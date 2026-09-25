@@ -1,0 +1,14 @@
+.logout-dialog {
+  border: 0;
+  border-radius: 18px;
+  padding: 28px;
+  width: min(92vw, 420px);
+  box-shadow: 0 24px 60px rgba(20, 24, 40, 0.25);
+  color: var(--ink);
+}
+.logout-dialog::backdrop { background: rgba(16, 24, 39, 0.55); }
+.logout-dialog h2 { margin: 0 0 8px; font-size: 22px; font-weight: 700; }
+.logout-dialog p { margin: 0 0 20px; color: var(--muted); font-size: 15px; }
+.logout-dialog__actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.logout-dialog__actions .btn { height: 44px; padding: 0 20px; font-size: 15px; }
+@media (max-width: 480px) { .logout-dialog__actions .btn { flex: 1; } }

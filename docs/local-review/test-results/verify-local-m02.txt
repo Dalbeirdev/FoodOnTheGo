@@ -1,0 +1,14 @@
+[PASS] PostgreSQL listening on :5432
+[PASS] Redis listening on :6379
+[PASS] Laravel API listening on :8001
+[PASS] Customer Web listening on :5173
+[PASS] API health ok (environment=local db=ok redis=ok)
+[PASS] health payload contains no secrets
+[PASS] Customer Web responds 200
+[PASS] backend .env has no production references
+[PASS] DB_DATABASE=foodonthego_local
+[PASS] Web API base is local: http://127.0.0.1:8001/api/v1
+[PASS] Android AppConfig defaults to local (emulator 10.0.2.2)
+[PASS] Main manifest: cleartext disabled (only local flavor overrides)
+
+LOCAL VERIFY = PASS

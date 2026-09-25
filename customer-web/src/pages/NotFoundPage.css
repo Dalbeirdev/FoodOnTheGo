@@ -1,0 +1,72 @@
+.nf {
+  min-height: calc(100vh - 80px);
+  display: grid;
+  place-items: center;
+  padding: 48px 16px;
+  background:
+    radial-gradient(60% 50% at 20% 10%, rgba(255, 138, 0, 0.14), transparent 60%),
+    radial-gradient(50% 40% at 90% 90%, rgba(247, 69, 31, 0.12), transparent 60%),
+    var(--bg);
+}
+
+.nf__card {
+  width: 100%;
+  max-width: 640px;
+  text-align: center;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 48px 32px;
+}
+
+.nf__pin {
+  display: inline-grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  color: var(--white);
+  box-shadow: 0 12px 26px rgba(247, 69, 31, 0.3);
+}
+
+.nf__code {
+  margin: 18px 0 0;
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -2px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nf h1 {
+  margin: 8px 0 10px;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.nf__text {
+  color: var(--muted);
+  font-size: 17px;
+  max-width: 44ch;
+  margin: 0 auto 28px;
+}
+
+.nf__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .nf__card { padding: 36px 20px; }
+  .nf__code { font-size: 56px; }
+  .nf h1 { font-size: 26px; }
+  .nf__actions .btn { width: 100%; }
+}

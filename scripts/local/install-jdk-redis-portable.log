@@ -1,0 +1,11 @@
+[12:56:17] Downloading Temurin JDK 17 (zip)…
+[12:57:59] JDK installed at C:\dev\jdk-17
+[12:57:59] Downloading Redis for Windows (zip)…
+[12:58:00] Release v5.0.14.1 → Redis-x64-5.0.14.1.zip
+[12:58:16] Redis installed at C:\dev\redis
+[12:58:16] PATH/JAVA_HOME updated (user scope)
+[12:58:16] java: openjdk version "17.0.20.1" 2026-08-18
+[12:58:16] java: OpenJDK Runtime Environment Temurin-17.0.20.1+1 (build 17.0.20.1+1)
+[12:58:16] java: OpenJDK 64-Bit Server VM Temurin-17.0.20.1+1 (build 17.0.20.1+1, mixed mode, sharing)
+[12:58:17] redis: Redis server v=5.0.14.1 sha=ec77f72d:0 malloc=jemalloc-5.2.1-redis bits=64 build=5627b8177c9289c
+[12:58:17] done

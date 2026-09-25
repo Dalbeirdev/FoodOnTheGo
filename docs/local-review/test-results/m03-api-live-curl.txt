@@ -1,0 +1,33 @@
+== register
+{"token":"1|fPwKciUG2xZCkYOZPpDhoWGudC1gcIr8sZWjmJBQ8011bd48","token_type":"Bearer","user":{"id":"8ecf50f7-0a92-4850-a2e5-576f1296cda7","name":"E2E Tester","email":"e2e.1790340770@example.com","email_verified":false,"pho
+== me
+{"id":"8ecf50f7-0a92-4850-a2e5-576f1296cda7","name":"E2E Tester","email":"e2e.1790340770@example.com","email_verified":false,"phone":null,"phone_verified":false,"role":"customer","member_since":"2026-
+
+== wrong password
+{"message":"The email\/phone or password is incorrect.","errors":{"identity":["The email\/phone or password is incorrect."]}}
+
+== login phone-less identity check + login ok
+{"token":"2|tWhjWStb5df3ZFUJ1IhzWLqYjpSRiT4fzov5guk0c90e9d0c","token_type":"Bearer","user"
+
+== profile patch
+{"id":"8ecf50f7-0a92-4850-a2e5-576f1296cda7","name":"E2E Tester","email":"e2e.1790340770@example.com","email_verified":false,"phone":"+919876543210","phone_verified":false,"role":"customer","member_si
+
+== forgot
+{"message":"If an account exists for that email, a reset link has been sent."}
+== logout
+{"message":"Signed out."}
+== me after logout (expect 401)
+000
+000
+000
+000
+000
+000
+000
+000
+000
+{"message":"Unauthenticated."}401
+== reset link in local log
+http://localhost:5173/reset-password?token=f6739e0400106d7c9090b5e2fd54e44d553907c8ebb7aced8beaf66132aa8426&amp;email=e2
+
+[exited with code 0]

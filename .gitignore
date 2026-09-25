@@ -1,0 +1,41 @@
+# --- secrets / local-only config (never commit) ---
+backend/.env
+backend/.env.*
+!backend/.env.example
+customer-web/.env.local
+mobile/android/local.properties
+mobile/android/key.properties
+*.jks
+*.keystore
+
+# --- dependencies ---
+node_modules/
+backend/vendor/
+mobile/.dart_tool/
+mobile/.flutter-plugins*
+mobile/.packages
+
+# --- build output ---
+customer-web/dist/
+mobile/build/
+mobile/android/.gradle/
+mobile/android/app/.cxx/
+backend/public/build/
+backend/storage/*.key
+backend/storage/logs/*
+backend/storage/framework/cache/data/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*.php
+
+# --- review APKs are large binaries; manifests + checksums stay tracked ---
+docs/local-review/apk/*.apk
+
+# --- editor / OS ---
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+DineFlow-client-main/
+restaurant-ordering-saas-main/

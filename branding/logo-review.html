@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FoodOnTheGo Logo Review</title>
+<style>
+  body { margin:0; padding:32px; font-family: system-ui, sans-serif; background:#f4f4f7; color:#1b1f2a; }
+  h1 { font-size:22px; margin:0 0 20px; }
+  .row { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:20px; }
+  .tile { border-radius:14px; padding:24px; display:flex; align-items:center; justify-content:center; min-height:170px; }
+  .light { background:#fff; border:1px solid #e5e7eb; }
+  .dark { background:#15161e; }
+  .orange { background:linear-gradient(135deg,#ff8a00,#f7451f); }
+  .tile img { max-width:100%; max-height:130px; }
+  .tile.small img { max-height:40px; }
+  .cap { grid-column:1/-1; font-size:14px; color:#5f6675; margin:-8px 0 0; }
+  .sizes { display:flex; align-items:flex-end; gap:24px; }
+  .sizes img { display:block; }
+</style>
+</head>
+<body>
+<h1>FoodOnTheGo — supplied SVG logo review</h1>
+
+<div class="row">
+  <div class="tile light"><img src="../Logo/foodonthego-logo-master.svg" alt="master"></div>
+  <div class="tile dark"><img src="../Logo/foodonthego-logo-master.svg" alt="master on dark"></div>
+  <div class="tile orange"><img src="../Logo/foodonthego-logo-master.svg" alt="master on orange"></div>
+  <p class="cap">foodonthego-logo-master.svg — light / dark / brand orange</p>
+</div>
+
+<div class="row">
+  <div class="tile light"><img src="../Logo/foodonthego-logo-no-tagline.svg" alt="no tagline"></div>
+  <div class="tile light"><img src="../Logo/foodonthego-icon.svg" alt="icon"></div>
+  <div class="tile light"><img src="../Logo/foodonthego-icon-square.svg" alt="icon square"></div>
+  <p class="cap">no-tagline / icon / icon-square</p>
+</div>
+
+<div class="row">
+  <div class="tile light sizes">
+    <img src="../Logo/foodonthego-icon-square.svg" width="16" height="16">
+    <img src="../Logo/foodonthego-icon-square.svg" width="32" height="32">
+    <img src="../Logo/foodonthego-icon-square.svg" width="48" height="48">
+    <img src="../Logo/foodonthego-icon-square.svg" width="96" height="96">
+    <img src="../Logo/foodonthego-icon-square.svg" width="192" height="192">
+  </div>
+  <div class="tile light small"><img src="../Logo/foodonthego-logo-no-tagline.svg" alt="header size"></div>
+  <div class="tile dark small"><img src="../Logo/foodonthego-logo-no-tagline.svg" alt="header size dark"></div>
+  <p class="cap">icon at 16 / 32 / 48 / 96 / 192 px, and the header-size wordmark (40 px tall)</p>
+</div>
+</body>
+</html>

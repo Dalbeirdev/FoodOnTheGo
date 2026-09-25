@@ -1,0 +1,7 @@
+[12:17:55] === install-flutter start ===
+[12:17:56] Stable Flutter 3.47.5 → https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.47.5-stable.zip
+[12:17:56] Downloading (~1 GB)…
+[12:21:56] Extracting…
+[12:23:05] Added flutter\bin to user PATH
+[12:23:05] Flutter 3.47.5 installed at C:\dev\flutter
+[12:23:05] === install-flutter end ===

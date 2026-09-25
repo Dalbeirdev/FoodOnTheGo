@@ -1,0 +1,71 @@
+{
+  "generated": "2026-09-25T12:59:21.602Z",
+  "account": "web.e2e.1790341146036@example.com",
+  "results": [
+    {
+      "name": "guarded /my-profile redirects to /login when signed out",
+      "pass": true,
+      "detail": "http://localhost:5173/login"
+    },
+    {
+      "name": "sign-up creates the account and lands on My Profile with the real name",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "header shows My Account instead of Login",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "session restored after reload",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "logout returns to Home and header shows Login",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "guarded /my-orders redirects to /login after logout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "wrong password shows the API error",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "correct login returns to the originally requested /my-orders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "forgot-password shows the generic confirmation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reset link for this account found in the local mail log",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "reset page accepts the token and confirms",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "login works with the new password",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no uncaught browser errors",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

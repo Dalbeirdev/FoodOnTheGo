@@ -1,0 +1,24 @@
+.pm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.pm { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 18px; padding: 18px 20px; border-radius: 16px; background: #fff; border: 2px solid transparent; box-shadow: var(--shadow-card); }
+.pm.is-default { border-color: #ffc9ad; background: #fffaf6; }
+.pm-brand { display: inline-grid; place-items: center; width: 64px; height: 42px; border-radius: 8px; font-size: 14px; font-weight: 800; font-style: italic; letter-spacing: .3px; }
+.pm-brand--visa { background: #fff; border: 1px solid var(--line); color: #1a1f71; }
+.pm-brand--amex { background: #2e77bc; color: #fff; }
+.pm-brand--rupay { background: #fff; border: 1px solid var(--line); color: #1c3f94; }
+.pm-brand--upi { background: #fff; border: 1px solid var(--line); color: #5f259f; font-style: normal; }
+.pm-brand--mc { position: relative; background: #f5f5f5; }
+.pm-brand--mc b { position: absolute; top: 11px; width: 20px; height: 20px; border-radius: 50%; }
+.pm-brand--mc b:first-child { left: 16px; background: #eb001b; }
+.pm-brand--mc b:last-child { left: 28px; background: #f79e1b; opacity: .9; }
+.pm-icon { display: inline-grid; place-items: center; width: 64px; height: 42px; border-radius: 8px; background: #fff3ea; color: var(--orange-deep); }
+.pm-icon--dark { background: #f0f1f4; color: var(--ink); }
+.pm__body h2 { margin: 0 0 4px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; color: var(--ink); }
+.pm__tag { padding: 2px 10px; border-radius: 999px; background: #e6f7ea; color: #1d8f3f; font-size: 12px; font-weight: 600; }
+.pm__body p { margin: 1px 0; font-size: 14px; color: var(--muted); }
+.pm__body p.is-green { color: #1d8f3f; font-weight: 600; }
+.pm__actions { display: flex; gap: 16px; }
+.pm-note { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.pm-kind { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; margin-bottom: 16px; border-radius: 12px; background: #f0f1f4; }
+.pm-kind button { height: 40px; border-radius: 9px; font-size: 15px; font-weight: 500; color: var(--muted); }
+.pm-kind button.is-on { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+@media (max-width: 600px) { .pm { grid-template-columns: 1fr; } .pm__actions { justify-content: flex-start; } }

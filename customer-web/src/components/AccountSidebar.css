@@ -1,0 +1,19 @@
+.acct { min-width: 0; background: #fff; border-radius: 18px; padding: 22px 16px; box-shadow: var(--shadow-card); }
+.acct__user { display: flex; align-items: center; gap: 14px; padding: 0 6px 18px; border-bottom: 1px solid var(--line); }
+.acct__avatar { flex-shrink: 0; width: 54px; height: 54px; border-radius: 50%; background: #ffe1d6; color: #9a2c0b; font-size: 18px; font-weight: 700; display: grid; place-items: center; }
+.acct__user > span:last-child { display: flex; flex-direction: column; font-size: 14px; color: var(--muted); min-width: 0; }
+.acct__user b { font-size: 17px; font-weight: 600; color: var(--ink); }
+.acct nav { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+.acct__link { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; font-size: 16px; font-weight: 500; color: var(--text); text-align: left; width: 100%; }
+.acct__link svg { color: var(--muted); flex-shrink: 0; }
+.acct__link:hover { background: var(--bg); }
+.acct__link.is-active { background: #fff3ea; color: var(--orange-text); }
+.acct__link.is-active svg { color: var(--orange-deep); }
+.acct__rule { height: 1px; margin: 10px 6px; background: var(--line); }
+@media (max-width: 1024px) {
+  .acct nav { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .acct__link { width: auto; padding: 10px 14px; font-size: 15px; }
+  .acct__rule { display: none; }
+}
+
+.acct__badge { margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #e5261f; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }

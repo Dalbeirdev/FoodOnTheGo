@@ -1,0 +1,14 @@
+.nt-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+.nt-tabs button { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 999px; background: #fff; border: 1px solid #dfe2e8; color: var(--ink); font-size: 15px; font-weight: 500; }
+.nt-tabs button.is-on { background: var(--brand-gradient); border-color: transparent; color: #fff; box-shadow: 0 8px 20px rgba(247,69,31,.25); }
+.nt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.nt > a, .nt > button { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; width: 100%; padding: 16px 20px; border-radius: 14px; background: #fff; box-shadow: var(--shadow-card); color: var(--ink); text-align: left; transition: background .15s; }
+.nt > a:hover, .nt > button:hover { background: #fffaf6; }
+.nt.is-unread > a, .nt.is-unread > button { background: #fff8f3; border-left: 3px solid var(--orange-deep); }
+.nt__icon { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; }
+.nt__icon--green { background: #e6f7ea; color: #1d9d4a; } .nt__icon--red { background: #ffe9e9; color: #e5261f; } .nt__icon--orange { background: #fff0e0; color: var(--orange-deep); } .nt__icon--blue { background: #e9f1ff; color: #2f7cf6; }
+.nt__text { display: flex; flex-direction: column; font-size: 14px; color: var(--muted); }
+.nt__text b { font-size: 16px; font-weight: 600; color: var(--ink); }
+.nt__when { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.nt__dot { position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; border-radius: 50%; background: var(--orange-deep); }
+@media (max-width: 600px) { .nt > a, .nt > button { grid-template-columns: auto 1fr; } .nt__when { grid-column: 2; } }

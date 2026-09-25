@@ -1,0 +1,40 @@
+/* Shared layout for the account section pages (Favorites, Addresses, Payment, Notifications, Help). */
+.ac { background: var(--bg); padding: 28px 0 60px; }
+.ac__grid { max-width: calc(var(--container) + 80px); margin: 0 auto; padding: 0 40px; display: grid; grid-template-columns: 296px minmax(0, 1fr); gap: 22px; align-items: start; }
+.ac__grid > * { min-width: 0; }
+.ac__main { display: flex; flex-direction: column; gap: 16px; }
+.ac-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.ac-head h1 { margin: 0; font-size: 30px; font-weight: 700; color: var(--ink); }
+.ac-head p { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+.ac-head .btn { height: 44px; padding: 0 18px; font-size: 15px; }
+.ac-card { background: #fff; border-radius: 18px; padding: 20px 22px; box-shadow: var(--shadow-card); }
+.ac-card h2 { margin: 0 0 12px; font-size: 19px; font-weight: 600; color: var(--ink); }
+.ac-empty { padding: 50px 16px 30px; text-align: center; }
+.ac-empty > span { font-size: 52px; }
+.ac-empty h3 { margin: 10px 0 4px; font-size: 20px; color: var(--ink); }
+.ac-empty p { margin: 0 0 16px; color: var(--muted); }
+
+/* generic modal form */
+.ac-modal { position: fixed; inset: 0; z-index: 60; background: rgba(15,17,23,.5); display: grid; place-items: center; padding: 16px; }
+.ac-modal__box { width: 100%; max-width: 560px; background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.3); max-height: 92vh; overflow: auto; }
+.ac-modal__box h2 { margin: 0 0 16px; font-size: 20px; color: var(--ink); }
+.ac-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.ac-fields label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; color: var(--text); }
+.ac-fields label.span2 { grid-column: 1 / -1; }
+.ac-fields input, .ac-fields select { height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #dfe2e8; font: inherit; font-size: 15px; color: var(--ink); background: #fff; outline: none; }
+.ac-fields input:focus, .ac-fields select:focus { border-color: var(--orange-deep); }
+.ac-fields input[aria-invalid="true"] { border-color: #e5261f; }
+.ac-fields em { font-size: 12px; font-style: normal; color: #e5261f; }
+.ac-check { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--text); }
+.ac-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--orange-deep); }
+.ac-modal__actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+.ac-modal__actions .btn { height: 44px; padding: 0 22px; }
+.ac-modal__actions .btn--outline { border-color: var(--line); }
+
+.ac-link-btn { color: var(--orange-deep); font-size: 14px; font-weight: 500; }
+.ac-link-btn:hover { text-decoration: underline; }
+.ac-danger-btn { color: #e5261f; font-size: 14px; font-weight: 500; }
+.ac-danger-btn:hover { text-decoration: underline; }
+
+@media (max-width: 1024px) { .ac__grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .ac { padding-top: 16px; } .ac__grid { padding: 0 16px; } .ac-card { padding: 16px; } .ac-fields { grid-template-columns: 1fr; } .ac-head h1 { font-size: 26px; } }

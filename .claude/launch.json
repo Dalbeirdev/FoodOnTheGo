@@ -1,0 +1,33 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "customer-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "cwd": "customer-web",
+      "port": 5173
+    },
+    {
+      "name": "mobile-web",
+      "runtimeExecutable": "C:\\dev\\flutter\\bin\\flutter.bat",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "5174",
+        "--web-hostname",
+        "127.0.0.1",
+        "--dart-define=APP_ENV=local",
+        "--dart-define=API_BASE_URL=http://127.0.0.1:8001/api/v1",
+        "--dart-define=BUILD_LABEL=web-preview"
+      ],
+      "cwd": "mobile",
+      "port": 5174
+    }
+  ]
+}

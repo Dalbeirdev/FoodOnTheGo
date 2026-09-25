@@ -1,0 +1,15 @@
+.addr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.addr { display: grid; grid-template-columns: auto auto 1fr; align-items: flex-start; gap: 16px; padding: 18px 20px; border-radius: 16px; background: #fff; border: 2px solid transparent; box-shadow: var(--shadow-card); }
+.addr.is-default { border-color: #ffc9ad; background: #fffaf6; }
+.addr__radio { position: relative; display: inline-block; margin-top: 4px; cursor: pointer; }
+.addr__radio input { position: absolute; opacity: 0; width: 0; height: 0; }
+.addr__radio i { display: block; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #cfd3db; position: relative; }
+.addr__radio input:checked + i { border-color: var(--orange-deep); }
+.addr__radio input:checked + i::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: var(--orange-deep); }
+.addr__radio input:focus-visible + i { outline: 2px solid var(--orange-deep); outline-offset: 2px; }
+.addr__icon { width: 44px; height: 44px; border-radius: 12px; background: #fff3ea; color: var(--orange-deep); display: grid; place-items: center; }
+.addr__body h2 { margin: 0 0 4px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; color: var(--ink); }
+.addr__tag { padding: 2px 10px; border-radius: 999px; background: #e6f7ea; color: #1d8f3f; font-size: 12px; font-weight: 600; }
+.addr__body p { margin: 0 0 8px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.addr__actions { display: flex; gap: 16px; }
+@media (max-width: 600px) { .addr { grid-template-columns: auto 1fr; } .addr__icon { display: none; } }

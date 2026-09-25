@@ -1,0 +1,184 @@
+{
+  "generated": "2026-09-25T13:26:15.803Z",
+  "results": [
+    {
+      "name": "TEST 5a guest on /my-orders is sent to /login",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1a OTP screen shows the masked number",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1b new customer is asked for basic details",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1c/5b signed in and returned to /my-orders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "header shows My Account (no Login)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "session survives reload (same tab)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6a logout confirmation → login with signed-out notice",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6b protected page inaccessible after logout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 wrong OTP shows attempts left",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4a expired OTP is reported",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4b resend issues a new code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 existing customer signs in and returns to the page they tried before (/favorites)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "session expired → login with expiry message",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "error state for 12345",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "error state for 9999900000",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "error state for 9999900001",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "error state for 9999900002",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "paste fills all six boxes",
+      "pass": true,
+      "detail": "123456"
+    },
+    {
+      "name": "no horizontal overflow desktop /login",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /login",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /login",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /login",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /verify-otp",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /verify-otp",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /verify-otp",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /verify-otp",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /account-setup",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /account-setup",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /account-setup",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /account-setup",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "axe: no WCAG A/AA violations on auth screens",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "keyboard reaches the phone field then Send OTP (single-country selector is disabled, so skipped)",
+      "pass": true,
+      "detail": "Skip to content > FoodOnTheGo home > My Account > Login > Get the App > Open menu > 98765 43210 > Send OTP > Terms of Service > Privacy Policy > Home > How It Works > Restaurants > Plan a Journey"
+    },
+    {
+      "name": "no uncaught browser errors",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "axe": [
+    {
+      "route": "/login",
+      "violations": []
+    },
+    {
+      "route": "/verify-otp",
+      "violations": []
+    },
+    {
+      "route": "/account-setup",
+      "violations": []
+    }
+  ]
+}

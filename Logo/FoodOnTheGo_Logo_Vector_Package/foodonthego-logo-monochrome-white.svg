@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="125" viewBox="0 0 620 125">
+
+<rect width="100%" height="100%" fill="#101827"/>
+
+<g transform="translate(15,5) scale(0.38)">
+<g id="fotg-symbol">
+  <!-- Motion lines -->
+  <path d="M28 111 H89" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round"/>
+  <path d="M12 139 H75" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round"/>
+  <path d="M31 167 H95" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round"/>
+
+  <!-- Location pin body -->
+  <path d="M177 25
+           C123 25 83 66 83 117
+           C83 181 150 241 177 269
+           C204 241 271 181 271 117
+           C271 66 231 25 177 25 Z"
+        fill="#FFFFFF"/>
+
+  <!-- Chef toque integrated at top -->
+  <path d="M130 76
+           C127 55 142 40 160 44
+           C166 27 194 26 202 45
+           C221 42 236 57 233 78
+           C221 70 209 67 196 68
+           C179 66 162 66 146 69
+           C140 70 135 72 130 76 Z"
+        fill="none" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M144 82 C164 75 192 75 215 83" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Serving cloche -->
+  <circle cx="177" cy="104" r="9" fill="white"/>
+  <path d="M126 145 C129 116 149 98 177 98 C205 98 225 116 228 145"
+        fill="none" stroke="white" stroke-width="12" stroke-linecap="round"/>
+  <path d="M117 148 H237" stroke="white" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- Road / journey cutout -->
+  <path d="M162 155
+           C188 167 192 185 181 201
+           C171 216 148 221 142 239
+           C138 250 145 259 156 266"
+        fill="none" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <path d="M172 168 C179 172 182 178 181 184"
+        fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <path d="M164 211 C157 216 152 222 150 229"
+        fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+</g></g>
+<text x="135" y="78" font-family="DejaVu Sans, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="-2" fill="white">FoodOnTheGo</text>
+<text x="139" y="106" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" font-weight="600" letter-spacing="4" fill="#E2E8F0">ORDER • PICKUP • ON YOUR ROUTE</text>
+
+</svg>

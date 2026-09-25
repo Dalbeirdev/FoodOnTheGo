@@ -1,0 +1,73 @@
+:root {
+  --orange: #ff7a00;
+  --orange-deep: #f24e1e;
+  --orange-text: #c2380f; /* WCAG AA text colour on white */
+  --red: #e5261f;
+  --ink: #1b1f2a;
+  --text: #2a2f3a;
+  --muted: #5f6675;
+  --line: #ebedf1;
+  --bg: #f7f8fa;
+  --white: #ffffff;
+  --brand-gradient: linear-gradient(90deg, #ff8a00 0%, #f7451f 100%);
+  --shadow-card: 0 10px 30px rgba(20, 24, 40, 0.08);
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --container: 1400px;
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--text);
+  background: var(--white);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---- Module 02: accessibility helpers ---- */
+:focus-visible {
+  outline: 3px solid #f24e1e;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.btn:focus-visible, .store-badge:focus-visible { outline-offset: 4px; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

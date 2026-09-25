@@ -1,0 +1,65 @@
+[12:17:52] === install-tooling start ===
+[12:17:53] Installing PHP 8.3 (PHP.PHP.8.3)…
+Found PHP 8.3 [PHP.PHP.8.3] Version 8.3.33
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+This package requires the following dependencies:
+  - Packages
+      Microsoft.VCRedist.2015+.x64
+Downloading https://downloads.php.net/~windows/releases/archives/php-8.3.33-Win32-vs16-x64.zip
+Successfully verified installer hash
+Extracting archive...
+Successfully extracted archive
+Starting package install...
+Path environment variable modified; restart your shell to use the new value.
+Command line alias added: "php"
+Successfully installed
+[12:18:00] PHP 8.3 install exit code: 0
+[12:18:00] Installing Temurin JDK 17 (EclipseAdoptium.Temurin.17.JDK)…
+Found Eclipse Temurin JDK with Hotspot 17 [EclipseAdoptium.Temurin.17.JDK] Version 17.0.20.101
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Downloading https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1+1/OpenJDK17U-jdk_x64_windows_hotspot_17.0.20.1_1.msi
+Successfully verified installer hash
+Starting package install...
+You cancelled the installation.
+Installer failed with exit code: 1602
+Installer log is available at: C:\Users\DalbeirSingh\AppData\Local\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir\EclipseAdoptium.Temurin.17.JDK.17.0.20.101-26-09-25-12-20-03.log
+[12:55:03] Temurin JDK 17 install exit code: -1978334964
+[12:55:04] Installing Memurai Developer (Redis-compatible) (Memurai.MemuraiDeveloper)…
+Found Memurai Developer [Memurai.MemuraiDeveloper] Version 4.1.2
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Downloading https://dist.memurai.com/releases/Memurai-Developer/4.1.2/Memurai-Developer-v4.1.2.msi
+Successfully verified installer hash
+Starting package install...
+Installer failed with exit code: 1603
+Installer log is available at: C:\Users\DalbeirSingh\AppData\Local\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\DiagOutputDir\Memurai.MemuraiDeveloper.4.1.2-26-09-25-12-55-10.log
+[12:55:29] Memurai Developer (Redis-compatible) install exit code: -1978335159
+[12:55:30] Installing Android Studio (Google.AndroidStudio)…
+Found Android Studio [Google.AndroidStudio] Version 2026.1.4.7
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Agreements for Android Studio [Google.AndroidStudio] Version 2026.1.4.7
+Version: 2026.1.4.7
+Publisher: Google LLC
+Publisher Url: https://developer.android.com/
+Publisher Support Url: https://developer.android.com/studio/intro
+Homepage: https://developer.android.com/studio
+License: Android Software Development Kit License Agreement
+License Url: https://developer.android.com/studio/terms
+Privacy Url: https://policies.google.com/privacy
+Copyright: Copyright © 2000–2024 Google
+Copyright Url: https://developer.android.com/studio/terms
+Agreements:
+  Android Software Development Kit License Agreement: https://developer.android.com/studio/terms
+
+Downloading https://edgedl.me.gvt1.com/android/studio/install/2026.1.4.7/android-studio-quail4-windows.exe
+Successfully verified installer hash
+Starting package install...
+The installer will request to run as administrator. Expect a prompt.
+Successfully installed
+[12:59:29] Android Studio install exit code: 0
+[13:02:25] Composer already installed — skipping
+[13:02:25] Added Composer to user PATH
+[13:02:25] === install-tooling end ===

@@ -1,0 +1,4 @@
+FoodOnTheGo backend — PHPUnit run 2026-09-25 14:15 (LOCAL)
+Command: php artisan test tests/Feature/HealthEndpointTest.php
+
+{"tool":"phpunit","result":"passed","tests":2,"passed":2,"assertions":15,"duration_ms":224}

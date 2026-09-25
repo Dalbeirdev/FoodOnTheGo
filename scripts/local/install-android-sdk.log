@@ -1,0 +1,341 @@
+[13:46:25] === install-android-sdk start ===
+[13:46:26] Downloading https://dl.google.com/android/repository/commandlinetools-win-15859902_latest.zip
+[13:46:50] command-line tools installed
+[13:46:50] Accepting licenses…
+Accept? (y/N): All SDK package licenses accepted
+
+[13:46:52] Installing platform-tools, platform 35, build-tools 35.0.0, emulator…
+WARNING: The SDK Manager CLI tool (sdkmanager) is deprecated. Use Android CLI instead.
+The 'android' binary can also be found in the cmdline-tools directory, and 'android sdk' is the replacement for 'sdkmanager'.
+To learn more about the Android CLI and how to use it, see the documentation (https://d.android.com/tools/agents/android-cli)
+
+Loading package information...                                                  
+Loading local repository...                                                     
+[                                       ] 3% Loading local repository...        
+[                                       ] 3% Fetch remote repository...         
+[=                                      ] 3% Fetch remote repository...         
+[=                                      ] 4% Fetch remote repository...         
+[=                                      ] 5% Fetch remote repository...         
+[==                                     ] 5% Fetch remote repository...         
+[==                                     ] 6% Fetch remote repository...         
+[==                                     ] 7% Fetch remote repository...         
+[==                                     ] 7% Computing updates...               
+[===                                    ] 8% Computing updates...               
+[===                                    ] 10% Computing updates...              
+[===                                    ] 10% Installing Android Emulator       
+[===                                    ] 10% Downloading emulator-windows_x64-1
+[====                                   ] 10% Downloading emulator-windows_x64-1
+[====                                   ] 11% Downloading emulator-windows_x64-1
+[====                                   ] 12% Downloading emulator-windows_x64-1
+[=====                                  ] 13% Downloading emulator-windows_x64-1
+[=====                                  ] 14% Downloading emulator-windows_x64-1
+[=====                                  ] 15% Downloading emulator-windows_x64-1
+[======                                 ] 15% Downloading emulator-windows_x64-1
+[======                                 ] 16% Downloading emulator-windows_x64-1
+[======                                 ] 16% Unzipping...                      
+[======                                 ] 16% Unzipping... emulator/            
+[======                                 ] 16% Unzipping... emulator/bin64/      
+[======                                 ] 16% Unzipping... emulator/drivers/    
+[======                                 ] 16% Unzipping... emulator/include/    
+[======                                 ] 16% Unzipping... emulator/lib/        
+[======                                 ] 16% Unzipping... emulator/lib64/      
+[======                                 ] 16% Unzipping... emulator/qemu/       
+[======                                 ] 16% Unzipping... emulator/resources/  
+[======                                 ] 16% Unzipping... emulator/concrt140.dl
+[======                                 ] 16% Unzipping... emulator/crashpad_han
+[======                                 ] 16% Unzipping... emulator/crashreport.
+[======                                 ] 16% Unzipping... emulator/emulator-che
+[======                                 ] 16% Unzipping... emulator/emulator.exe
+[======                                 ] 16% Unzipping... emulator/libabseil_dl
+[======                                 ] 16% Unzipping... emulator/libandroid-e
+[======                                 ] 16% Unzipping... emulator/libglib2_win
+[======                                 ] 16% Unzipping... emulator/liblibprotob
+[======                                 ] 16% Unzipping... emulator/LICENSE     
+[======                                 ] 16% Unzipping... emulator/mksdcard.exe
+[======                                 ] 16% Unzipping... emulator/msvcp140.dll
+[======                                 ] 16% Unzipping... emulator/msvcp140_1.d
+[======                                 ] 16% Unzipping... emulator/msvcp140_2.d
+[======                                 ] 16% Unzipping... emulator/msvcp140_ato
+[======                                 ] 16% Unzipping... emulator/msvcp140_cod
+[======                                 ] 16% Unzipping... emulator/netsimd.exe 
+[======                                 ] 16% Unzipping... emulator/nimble_bridg
+[======                                 ] 16% Unzipping... emulator/NOTICE.csv  
+[======                                 ] 16% Unzipping... emulator/NOTICE.txt  
+[======                                 ] 16% Unzipping... emulator/qemu-img.exe
+[======                                 ] 16% Unzipping... emulator/qsn.exe     
+[======                                 ] 16% Unzipping... emulator/source.prope
+[======                                 ] 16% Unzipping... emulator/vccorlib140.
+[======                                 ] 16% Unzipping... emulator/vcruntime140
+[======                                 ] 16% Unzipping... emulator/bin64/cygblk
+[======                                 ] 16% Unzipping... emulator/bin64/cygcom
+[======                                 ] 16% Unzipping... emulator/bin64/cyge2p
+[======                                 ] 16% Unzipping... emulator/bin64/cygext
+[======                                 ] 16% Unzipping... emulator/bin64/cyggcc
+[======                                 ] 16% Unzipping... emulator/bin64/cygico
+[======                                 ] 16% Unzipping... emulator/bin64/cygint
+[======                                 ] 16% Unzipping... emulator/bin64/cyguui
+[======                                 ] 16% Unzipping... emulator/bin64/cygwin
+[======                                 ] 16% Unzipping... emulator/bin64/e2fsck
+[======                                 ] 16% Unzipping... emulator/bin64/resize
+[======                                 ] 16% Unzipping... emulator/bin64/tune2f
+[======                                 ] 16% Unzipping... emulator/drivers/Andr
+[======                                 ] 16% Unzipping... emulator/drivers/Inst
+[======                                 ] 16% Unzipping... emulator/drivers/usba
+[======                                 ] 16% Unzipping... emulator/drivers/UsbA
+[======                                 ] 16% Unzipping... emulator/include/flat
+[======                                 ] 16% Unzipping... emulator/lib/cmake/  
+[======                                 ] 16% Unzipping... emulator/lib/pc-bios/
+[======                                 ] 16% Unzipping... emulator/lib/pkgconfi
+[======                                 ] 16% Unzipping... emulator/lib/adb_serv
+[======                                 ] 16% Unzipping... emulator/lib/advanced
+[======                                 ] 16% Unzipping... emulator/lib/ca-bundl
+[======                                 ] 16% Unzipping... emulator/lib/emu-orig
+[======                                 ] 16% Unzipping... emulator/lib/emulated
+[======                                 ] 16% Unzipping... emulator/lib/emulator
+[======                                 ] 16% Unzipping... emulator/lib/flatbuff
+[======                                 ] 16% Unzipping... emulator/lib/grpc_end
+[======                                 ] 16% Unzipping... emulator/lib/hardware
+[======                                 ] 16% Unzipping... emulator/lib/hostapd.
+[======                                 ] 16% Unzipping... emulator/lib/snapshot
+[======                                 ] 16% Unzipping... emulator/lib/ui_contr
+[======                                 ] 16% Unzipping... emulator/lib/cmake/fl
+[======                                 ] 16% Unzipping... emulator/lib/pc-bios/
+[======                                 ] 16% Unzipping... emulator/lib/pkgconfi
+[======                                 ] 16% Unzipping... emulator/lib64/gles_a
+[======                                 ] 16% Unzipping... emulator/lib64/gles_s
+[======                                 ] 16% Unzipping... emulator/lib64/qt/   
+[======                                 ] 16% Unzipping... emulator/lib64/vulkan
+[======                                 ] 16% Unzipping... emulator/lib64/libabs
+[======                                 ] 16% Unzipping... emulator/lib64/liband
+[======                                 ] 16% Unzipping... emulator/lib64/libemu
+[======                                 ] 16% Unzipping... emulator/lib64/libgfx
+[======                                 ] 17% Unzipping... emulator/lib64/libgfx
+[======                                 ] 17% Unzipping... emulator/lib64/libgli
+[======                                 ] 17% Unzipping... emulator/lib64/libima
+[======                                 ] 17% Unzipping... emulator/lib64/liblib
+[======                                 ] 17% Unzipping... emulator/lib64/libsha
+[======                                 ] 17% Unzipping... emulator/lib64/gles_a
+[======                                 ] 17% Unzipping... emulator/lib64/gles_s
+[======                                 ] 17% Unzipping... emulator/lib64/qt/bin
+[======                                 ] 17% Unzipping... emulator/lib64/qt/lib
+[======                                 ] 17% Unzipping... emulator/lib64/qt/plu
+[======                                 ] 17% Unzipping... emulator/lib64/qt/res
+[======                                 ] 17% Unzipping... emulator/lib64/qt/tra
+[======                                 ] 17% Unzipping... emulator/lib64/qt/bin
+[======                                 ] 17% Unzipping... emulator/lib64/qt/lib
+[=======                                ] 18% Unzipping... emulator/lib64/qt/lib
+[=======                                ] 18% Unzipping... emulator/lib64/qt/plu
+[=======                                ] 18% Unzipping... emulator/lib64/qt/res
+[=======                                ] 18% Unzipping... emulator/lib64/qt/tra
+[=======                                ] 18% Unzipping... emulator/lib64/vulkan
+[=======                                ] 19% Unzipping... emulator/lib64/vulkan
+[=======                                ] 19% Unzipping... emulator/qemu/windows
+[=======                                ] 20% Unzipping... emulator/qemu/windows
+[========                               ] 20% Unzipping... emulator/qemu/windows
+[========                               ] 21% Unzipping... emulator/qemu/windows
+[========                               ] 21% Unzipping... emulator/resources/ma
+[========                               ] 21% Unzipping... emulator/resources/sk
+[========                               ] 21% Unzipping... emulator/resources/de
+[========                               ] 21% Unzipping... emulator/resources/po
+[========                               ] 21% Unzipping... emulator/resources/To
+[========                               ] 21% Unzipping... emulator/resources/ma
+[========                               ] 21% Unzipping... emulator/resources/sk
+[============                           ] 33% Unzipping... emulator/resources/sk
+[============                           ] 33% Installing Android SDK Build-Tools
+[============                           ] 33% Downloading build-tools_r35_window
+[=============                          ] 33% Downloading build-tools_r35_window
+[=============                          ] 34% Downloading build-tools_r35_window
+[=============                          ] 35% Downloading build-tools_r35_window
+[==============                         ] 35% Downloading build-tools_r35_window
+[==============                         ] 36% Downloading build-tools_r35_window
+[==============                         ] 37% Downloading build-tools_r35_window
+[===============                        ] 38% Downloading build-tools_r35_window
+[===============                        ] 38% Unzipping... emulator/resources/sk
+[===============                        ] 38% Unzipping... android-15/          
+[===============                        ] 38% Unzipping... android-15/lib/      
+[===============                        ] 38% Unzipping... android-15/lib64/    
+[===============                        ] 38% Unzipping... android-15/lld-bin/  
+[===============                        ] 38% Unzipping... android-15/renderscri
+[===============                        ] 38% Unzipping... android-15/aapt.exe  
+[===============                        ] 38% Unzipping... android-15/aapt2.exe 
+[===============                        ] 38% Unzipping... android-15/aarch64-li
+[===============                        ] 38% Unzipping... android-15/aidl.exe  
+[===============                        ] 38% Unzipping... android-15/apksigner.
+[===============                        ] 38% Unzipping... android-15/arm-linux-
+[===============                        ] 38% Unzipping... android-15/bcc_compat
+[===============                        ] 38% Unzipping... android-15/core-lambd
+[===============                        ] 38% Unzipping... android-15/d8.bat    
+[===============                        ] 38% Unzipping... android-15/dexdump.ex
+[===============                        ] 39% Unzipping... android-15/dexdump.ex
+[===============                        ] 39% Unzipping... android-15/i686-linux
+[===============                        ] 39% Unzipping... android-15/libbcc.dll
+[===============                        ] 39% Unzipping... android-15/libbcinfo.
+[===============                        ] 39% Unzipping... android-15/libclang_a
+[===============                        ] 39% Unzipping... android-15/libLLVM_an
+[===============                        ] 40% Unzipping... android-15/libLLVM_an
+[================                       ] 40% Unzipping... android-15/libLLVM_an
+[================                       ] 40% Unzipping... android-15/libwinpthr
+[================                       ] 40% Unzipping... android-15/lld.exe   
+[================                       ] 40% Unzipping... android-15/llvm-rs-cc
+[================                       ] 40% Unzipping... android-15/mipsel-lin
+[================                       ] 40% Unzipping... android-15/NOTICE.txt
+[================                       ] 40% Unzipping... android-15/runtime.pr
+[================                       ] 40% Unzipping... android-15/source.pro
+[================                       ] 40% Unzipping... android-15/split-sele
+[================                       ] 40% Unzipping... android-15/x86_64-lin
+[================                       ] 40% Unzipping... android-15/zipalign.e
+[================                       ] 40% Unzipping... android-15/lib/apksig
+[================                       ] 40% Unzipping... android-15/lib/d8.jar
+[================                       ] 41% Unzipping... android-15/lib/d8.jar
+[================                       ] 42% Unzipping... android-15/lib/d8.jar
+[================                       ] 42% Unzipping... android-15/lib64/libw
+[================                       ] 42% Unzipping... android-15/lld-bin/li
+[================                       ] 42% Unzipping... android-15/lld-bin/ll
+[=================                      ] 43% Unzipping... android-15/lld-bin/ll
+[=================                      ] 43% Unzipping... android-15/renderscri
+[=================                      ] 44% Unzipping... android-15/renderscri
+[=====================                  ] 55% Unzipping... android-15/renderscri
+[=====================                  ] 55% Installing Android SDK Platform 35
+[=====================                  ] 55% Downloading platform-35_r02.zip...
+[======================                 ] 55% Downloading platform-35_r02.zip...
+[======================                 ] 56% Downloading platform-35_r02.zip...
+[======================                 ] 57% Downloading platform-35_r02.zip...
+[=======================                ] 58% Downloading platform-35_r02.zip...
+[=======================                ] 59% Downloading platform-35_r02.zip...
+[=======================                ] 60% Downloading platform-35_r02.zip...
+[========================               ] 60% Downloading platform-35_r02.zip...
+[========================               ] 61% Downloading platform-35_r02.zip...
+[========================               ] 61% Unzipping... android-15/renderscri
+[========================               ] 61% Unzipping... android-35/android-st
+[========================               ] 61% Unzipping... android-35/android.ja
+[========================               ] 62% Unzipping... android-35/android.ja
+[=========================              ] 63% Unzipping... android-35/android.ja
+[=========================              ] 63% Unzipping... android-35/build.prop
+[=========================              ] 63% Unzipping... android-35/core-for-s
+[=========================              ] 64% Unzipping... android-35/core-for-s
+[=========================              ] 64% Unzipping... android-35/framework.
+[=========================              ] 64% Unzipping... android-35/sdk.proper
+[=========================              ] 64% Unzipping... android-35/source.pro
+[=========================              ] 64% Unzipping... android-35/uiautomato
+[=========================              ] 64% Unzipping... android-35/data/NOTIC
+[=========================              ] 64% Unzipping... android-35/data/activ
+[=========================              ] 64% Unzipping... android-35/data/annot
+[=========================              ] 64% Unzipping... android-35/data/api-v
+[=========================              ] 64% Unzipping... android-35/data/broad
+[=========================              ] 64% Unzipping... android-35/data/categ
+[=========================              ] 64% Unzipping... android-35/data/featu
+[=========================              ] 64% Unzipping... android-35/data/servi
+[=========================              ] 64% Unzipping... android-35/data/widge
+[=========================              ] 64% Unzipping... android-35/data/res/a
+[=========================              ] 64% Unzipping... android-35/data/res/c
+[=========================              ] 64% Unzipping... android-35/data/res/d
+[=========================              ] 65% Unzipping... android-35/data/res/d
+[==========================             ] 65% Unzipping... android-35/data/res/d
+[==========================             ] 65% Unzipping... android-35/data/res/i
+[==========================             ] 65% Unzipping... android-35/data/res/l
+[==========================             ] 65% Unzipping... android-35/data/res/m
+[==========================             ] 65% Unzipping... android-35/data/res/r
+[==========================             ] 65% Unzipping... android-35/data/res/t
+[==========================             ] 65% Unzipping... android-35/data/res/v
+[==========================             ] 66% Unzipping... android-35/data/res/v
+[==========================             ] 66% Unzipping... android-35/data/res/x
+[==========================             ] 66% Unzipping... android-35/optional/a
+[==========================             ] 66% Unzipping... android-35/optional/o
+[==========================             ] 66% Unzipping... android-35/optional/l
+[==========================             ] 66% Unzipping... android-35/skins/NOTI
+[==========================             ] 66% Unzipping... android-35/skins/HVGA
+[==========================             ] 66% Unzipping... android-35/skins/QVGA
+[==========================             ] 66% Unzipping... android-35/skins/WQVG
+[==========================             ] 66% Unzipping... android-35/skins/WSVG
+[==========================             ] 66% Unzipping... android-35/skins/WVGA
+[==========================             ] 66% Unzipping... android-35/skins/WXGA
+[==========================             ] 66% Unzipping... android-35/templates/
+[==============================         ] 78% Unzipping... android-35/templates/
+[==============================         ] 78% Installing Android SDK Platform-To
+[==============================         ] 78% Downloading platform-tools_r37.0.1
+[===============================        ] 78% Downloading platform-tools_r37.0.1
+[===============================        ] 79% Downloading platform-tools_r37.0.1
+[===============================        ] 80% Downloading platform-tools_r37.0.1
+[================================       ] 80% Downloading platform-tools_r37.0.1
+[================================       ] 81% Downloading platform-tools_r37.0.1
+[================================       ] 82% Downloading platform-tools_r37.0.1
+[=================================      ] 83% Downloading platform-tools_r37.0.1
+[=================================      ] 83% Unzipping... android-35/templates/
+[=================================      ] 83% Unzipping... platform-tools/      
+[=================================      ] 83% Unzipping... platform-tools/adb.ex
+[=================================      ] 84% Unzipping... platform-tools/adb.ex
+[=================================      ] 85% Unzipping... platform-tools/adb.ex
+[==================================     ] 85% Unzipping... platform-tools/adb.ex
+[==================================     ] 86% Unzipping... platform-tools/adb.ex
+[==================================     ] 86% Unzipping... platform-tools/AdbWin
+[==================================     ] 86% Unzipping... platform-tools/etc1to
+[==================================     ] 86% Unzipping... platform-tools/fastbo
+[==================================     ] 87% Unzipping... platform-tools/fastbo
+[==================================     ] 87% Unzipping... platform-tools/hprof-
+[==================================     ] 87% Unzipping... platform-tools/libwin
+[==================================     ] 87% Unzipping... platform-tools/make_f
+[==================================     ] 87% Unzipping... platform-tools/mke2fs
+[===================================    ] 88% Unzipping... platform-tools/mke2fs
+[===================================    ] 88% Unzipping... platform-tools/NOTICE
+[===================================    ] 88% Unzipping... platform-tools/source
+[===================================    ] 88% Unzipping... platform-tools/sqlite
+[===================================    ] 89% Unzipping... platform-tools/sqlite
+[=======================================] 100% Unzipping... platform-tools/sqlit
+
+
+[13:48:16] sdkmanager exit code: 0
+[13:48:17] PATH / ANDROID_HOME set (user scope)
+Building flutter tool... 
+Running pub upgrade... 
+Resolving dependencies...
+Downloading packages...
+Got dependencies.
+Setting "android-sdk" value to "C:\Users\DalbeirSingh\AppData\Local\Android\Sdk".
+
+You may need to restart any open editors for them to read new settings.
+All SDK package licenses accepted.
+
+[!] Flutter (Channel stable, 3.47.5, on Microsoft Windows [Version 10.0.26200.9457], locale en-US) [665ms]
+    • Flutter version 3.47.5 on channel stable at C:\dev\flutter
+    ! The flutter binary is not on your path. Consider adding C:\dev\flutter\bin to your path.
+    ! The dart binary is not on your path. Consider adding C:\dev\flutter\bin to your path.
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision 6a19cca564 (8 days ago), 2026-09-17 14:13:22 -0400
+    • Engine revision af7e796e16
+    • Dart version 3.13.4
+    • DevTools version 2.60.0
+    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, enable-record-use, enable-swift-package-manager, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+    • If those were intentional, you can disregard the above warnings; however it is recommended to use "git" directly to perform update checks and upgrades.
+
+[√] Windows Version (Windows 11 or higher, 25H2, 2009) [1,459ms]
+
+[!] Android toolchain - develop for Android devices (Android SDK version 35.0.0) [2.3s]
+    • Android SDK at C:\Users\DalbeirSingh\AppData\Local\Android\Sdk
+    • Emulator version 37.1.11.0 (build_id 15917651) (CL:N/A)
+    X Flutter requires Android SDK 36 and the Android BuildTools 28.0.3
+      To update the Android SDK visit https://flutter.dev/to/windows-android-setup for detailed instructions.
+    • All Android licenses accepted.
+
+[√] Chrome - develop for the web [343ms]
+    • Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[!] Visual Studio - develop Windows apps (Visual Studio Professional 2026 Insiders [12009.208]) [342ms]
+    • Visual Studio at C:\Program Files\Microsoft Visual Studio\18\Insiders
+    • Visual Studio Professional 2026 version 18.9.12009.208
+    • The current Visual Studio installation is a pre-release version. It may not be supported by Flutter yet.
+    X Visual Studio is missing necessary components. Please re-run the Visual Studio installer for the "Desktop development with C++" workload, and include these components:
+        MSVC v142 - VS 2019 C++ x64/x86 build tools
+         - If there are multiple build tool versions available, install the latest
+        C++ CMake tools for Windows
+        Windows 10 SDK
+
+[√] Connected device (3 available) [2.4s]
+    • Windows (desktop) • windows • windows-x64    • Microsoft Windows [Version 10.0.26200.9457]
+    • Chrome (web)      • chrome  • web-javascript • Google Chrome 154.0.8037.58
+    • Edge (web)        • edge    • web-javascript • Microsoft Edge 153.0.4234.48
+
+[√] Network resources [2.1s]
+    • All expected network resources are available.
+
+! Doctor found issues in 3 categories.
+[13:49:02] === install-android-sdk end ===

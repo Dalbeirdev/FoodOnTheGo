@@ -1,0 +1,991 @@
+{
+  "generated": "2026-09-25T12:04:47.867Z",
+  "routes": {
+    "total": 16,
+    "pass": 16,
+    "results": [
+      {
+        "route": "/",
+        "finalPath": "/",
+        "h1": "Delicious FoodOn Your Route",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/how-it-works",
+        "finalPath": "/how-it-works",
+        "h1": "Great FoodOn Your Journey",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/restaurants",
+        "finalPath": "/restaurants",
+        "h1": "Great FoodAlong Your Route",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/plan-journey",
+        "finalPath": "/plan-journey",
+        "h1": "Plan Your Journey",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/about-us",
+        "finalPath": "/about-us",
+        "h1": "Good FoodFor Every Journey",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/for-restaurants",
+        "finalPath": "/for-restaurants",
+        "h1": "Grow Your Restaurant With FoodOnTheGo",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/help",
+        "finalPath": "/help",
+        "h1": "Help & Support",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/login",
+        "finalPath": "/login",
+        "h1": "Welcome Back",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/terms",
+        "finalPath": "/terms",
+        "h1": "Terms & Conditions",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/privacy",
+        "finalPath": "/privacy",
+        "h1": "Privacy Policy",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/refund-policy",
+        "finalPath": "/refund-policy",
+        "h1": "Refund & Cancellation Policy",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/cookie-policy",
+        "finalPath": "/cookie-policy",
+        "h1": "Cookie Policy",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/get-app",
+        "finalPath": "/get-app",
+        "h1": "FoodOnTheGo In Your Pocket",
+        "title": "Get the App · FoodOnTheGo",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/for-restaurants/register",
+        "finalPath": "/for-restaurants/register",
+        "h1": "Restaurant Registration",
+        "title": "Restaurant Registration · FoodOnTheGo",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/about",
+        "finalPath": "/about-us",
+        "h1": "Good FoodFor Every Journey",
+        "title": "FoodOnTheGo — Order • Pickup • On Your Route",
+        "notFound": false,
+        "pass": true
+      },
+      {
+        "route": "/this-page-does-not-exist",
+        "finalPath": "/this-page-does-not-exist",
+        "h1": "Page not found",
+        "title": "Page not found · FoodOnTheGo",
+        "notFound": true,
+        "pass": true
+      }
+    ]
+  },
+  "links": {
+    "total": 79,
+    "pass": 79,
+    "failures": [],
+    "results": [
+      {
+        "href": "/",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/about#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/about-us",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/about-us#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/addresses",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#s1",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#s2",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#s3",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#s4",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#s5",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/cookie-policy#s6",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/favorites",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/for-restaurants",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/for-restaurants#how",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/for-restaurants#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/for-restaurants/register",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/for-restaurants/register#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/forgot-password",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/get-app",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/get-app#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/help",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/help#contact",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/help#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/how-it-works",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/how-it-works#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/login",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/login#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/my-orders",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/my-profile",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/notifications",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/payment-methods",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/plan-journey",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/plan-journey#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s1",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s10",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s2",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s3",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s4",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s5",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s6",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s7",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s8",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/privacy#s9",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s1",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s2",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s3",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s4",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s5",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s6",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/refund-policy#s7",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants/brew-bites",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants/burger-hub",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants/healthy-bites",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants/pizza-point",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants/spice-nest",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/restaurants/wok-express",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/signup",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#main",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s1",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s10",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s11",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s2",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s3",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s4",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s5",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s6",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s7",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s8",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      },
+      {
+        "href": "/terms#s9",
+        "pass": true,
+        "notFound": false,
+        "anchorOk": true
+      }
+    ]
+  },
+  "axe": {
+    "pagesWithViolations": 0,
+    "results": [
+      {
+        "route": "/",
+        "violations": []
+      },
+      {
+        "route": "/how-it-works",
+        "violations": []
+      },
+      {
+        "route": "/about-us",
+        "violations": []
+      },
+      {
+        "route": "/help",
+        "violations": []
+      },
+      {
+        "route": "/for-restaurants",
+        "violations": []
+      },
+      {
+        "route": "/terms",
+        "violations": []
+      },
+      {
+        "route": "/get-app",
+        "violations": []
+      },
+      {
+        "route": "/this-page-does-not-exist",
+        "violations": []
+      },
+      {
+        "route": "/plan-journey",
+        "violations": []
+      },
+      {
+        "route": "/login",
+        "violations": []
+      }
+    ]
+  },
+  "keyboardTabOrder": [
+    "Skip to content",
+    "FoodOnTheGo home",
+    "Home",
+    "How It Works",
+    "Restaurants",
+    "Plan a Journey"
+  ],
+  "responsive": {
+    "overflowIssues": [],
+    "menu": [
+      {
+        "viewport": "tablet",
+        "route": "mobile-menu",
+        "burgerVisible": true,
+        "menuVisible": true,
+        "closedAfterNav": true,
+        "pass": true
+      },
+      {
+        "viewport": "mobile",
+        "route": "mobile-menu",
+        "burgerVisible": true,
+        "menuVisible": true,
+        "closedAfterNav": true,
+        "pass": true
+      }
+    ],
+    "results": [
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-home.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/how-it-works",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-how-it-works.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/about-us",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-about-us.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/help",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-help.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/for-restaurants",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-for-restaurants.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/terms",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-terms.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/get-app",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-get-app.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/this-page-does-not-exist",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-this-page-does-not-exist.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/plan-journey",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-plan-journey.png"
+      },
+      {
+        "viewport": "desktop",
+        "width": 1440,
+        "route": "/login",
+        "horizontalOverflowPx": 0,
+        "file": "desktop-login.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-home.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/how-it-works",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-how-it-works.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/about-us",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-about-us.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/help",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-help.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/for-restaurants",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-for-restaurants.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/terms",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-terms.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/get-app",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-get-app.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/this-page-does-not-exist",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-this-page-does-not-exist.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/plan-journey",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-plan-journey.png"
+      },
+      {
+        "viewport": "laptop",
+        "width": 1280,
+        "route": "/login",
+        "horizontalOverflowPx": 0,
+        "file": "laptop-login.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-home.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/how-it-works",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-how-it-works.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/about-us",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-about-us.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/help",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-help.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/for-restaurants",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-for-restaurants.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/terms",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-terms.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/get-app",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-get-app.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/this-page-does-not-exist",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-this-page-does-not-exist.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/plan-journey",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-plan-journey.png"
+      },
+      {
+        "viewport": "tablet",
+        "width": 820,
+        "route": "/login",
+        "horizontalOverflowPx": 0,
+        "file": "tablet-login.png"
+      },
+      {
+        "viewport": "tablet",
+        "route": "mobile-menu",
+        "burgerVisible": true,
+        "menuVisible": true,
+        "closedAfterNav": true,
+        "pass": true
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-home.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/how-it-works",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-how-it-works.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/about-us",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-about-us.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/help",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-help.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/for-restaurants",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-for-restaurants.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/terms",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-terms.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/get-app",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-get-app.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/this-page-does-not-exist",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-this-page-does-not-exist.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/plan-journey",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-plan-journey.png"
+      },
+      {
+        "viewport": "mobile",
+        "width": 390,
+        "route": "/login",
+        "horizontalOverflowPx": 0,
+        "file": "mobile-login.png"
+      },
+      {
+        "viewport": "mobile",
+        "route": "mobile-menu",
+        "burgerVisible": true,
+        "menuVisible": true,
+        "closedAfterNav": true,
+        "pass": true
+      }
+    ]
+  },
+  "consoleErrors": []
+}

@@ -1,0 +1,17 @@
+.fav-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.fav-card { position: relative; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-card); }
+.fav-card__media { position: relative; display: block; height: 150px; background: linear-gradient(135deg, #ffd8b0, #ff9c6a); }
+.fav-card__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fav-card__media > span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 56px; }
+.fav-card__heart { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 50%; background: #e5261f; color: #fff; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(229,38,31,.35); }
+.fav-card__body { padding: 12px 14px 14px; font-size: 13px; color: var(--muted); }
+.fav-card__body p { margin: 2px 0; }
+.fav-card__row { display: flex; justify-content: space-between; align-items: center; color: #e5261f; }
+.fav-card__row h2 { margin: 0; font-size: 17px; font-weight: 600; color: var(--ink); }
+.fav-card__row a:hover h2 { color: var(--orange-deep); }
+.fav-card__rating { display: flex; align-items: center; gap: 4px; }
+.fav-card__rating svg { color: #f5a623; }
+.fav-card__rating b { color: var(--ink); }
+.fav-card__meta { display: flex; gap: 12px; margin-top: 6px !important; }
+.fav-card__meta span { display: inline-flex; align-items: center; gap: 4px; }
+.fav-card__meta svg { color: var(--orange-deep); }

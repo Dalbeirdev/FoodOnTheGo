@@ -1,0 +1,20 @@
+.hp-search { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border-radius: 12px; background: #fff; border: 1px solid #dfe2e8; color: var(--muted); box-shadow: var(--shadow-card); }
+.hp-search input { flex: 1; border: 0; outline: none; font: inherit; font-size: 15px; color: var(--ink); background: none; min-width: 0; }
+.hp-title { margin: 6px 0 12px; font-size: 19px; font-weight: 600; color: var(--ink); }
+.hp-topics { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.hp-topics a { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 14px; background: #fff; box-shadow: var(--shadow-card); color: var(--ink); transition: transform .15s, box-shadow .15s; }
+.hp-topics a:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(20,24,40,.1); }
+.hp-topics a > span:last-child { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); }
+.hp-topics b { font-size: 16px; font-weight: 600; color: var(--ink); }
+.hp-topic__icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; background: #fff3ea; color: var(--orange-deep); display: grid; place-items: center; }
+.hp-contact { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.hp-contact a { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 14px; background: #fff; box-shadow: var(--shadow-card); color: var(--ink); }
+.hp-contact a:hover { background: #fffaf6; }
+.hp-contact a > span:nth-child(2) { display: flex; flex-direction: column; font-size: 14px; color: var(--muted); }
+.hp-contact b { font-size: 16px; font-weight: 600; color: var(--ink); }
+.hp-contact small { font-size: 12px; }
+.hp-contact__icon { width: 44px; height: 44px; border-radius: 12px; background: #fff3ea; color: var(--orange-deep); display: grid; place-items: center; }
+
+.hp-contact__pending { width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 14px; }
+.hp-contact li > .hp-contact__pending { opacity: .85; }
+.hp-notice { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; background: #fff7ed; border: 1px solid #ffd9b8; color: #7c3d00; font-size: 14px; }
