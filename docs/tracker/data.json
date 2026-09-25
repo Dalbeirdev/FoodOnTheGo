@@ -896,13 +896,13 @@
       "platform": "ANDROID",
       "cat": "Auth UI",
       "pri": "P0",
-      "status": "IMPLEMENTED",
+      "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build005, 2026-09-25)",
       "evidence": "mobile/lib/screens/auth_screens.dart (LoginScreen); docs/local-review/screenshots/android-preview/phone-login.png, tablet-login.png; flutter test 44/44",
       "issue": "-",
-      "carry": "CF-029",
+      "carry": "-",
       "notes": ""
     },
     {
@@ -960,13 +960,13 @@
       "platform": "ANDROID",
       "cat": "Auth UI",
       "pri": "P0",
-      "status": "IMPLEMENTED",
+      "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build005, 2026-09-25)",
       "evidence": "auth_screens.dart (VerifyOtpScreen); widget layout tests",
       "issue": "-",
-      "carry": "CF-029",
+      "carry": "-",
       "notes": ""
     },
     {
@@ -1043,7 +1043,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "YES (web)",
+      "manual": "YES (web e2e + owner tablet build005)",
       "evidence": "AccountSetupPage.tsx; AccountSetupScreen; docs/local-review/screenshots/web-m03-otp/03-account-setup.png; docs/local-review/test-results/m03-otp-web-e2e.json TEST 1",
       "issue": "-",
       "carry": "-",
@@ -1059,7 +1059,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "YES (web)",
+      "manual": "YES (web e2e + owner tablet build005)",
       "evidence": "docs/local-review/test-results/m03-otp-web-e2e.json TEST 2; auth_state_test.dart",
       "issue": "-",
       "carry": "-",
@@ -1120,13 +1120,13 @@
       "platform": "ANDROID",
       "cat": "Navigation",
       "pri": "P0",
-      "status": "IMPLEMENTED",
+      "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build005, 2026-09-25)",
       "evidence": "mobile/lib/main.dart buildRouter(); auth_state_test.dart (requireLoginFor/takeReturnTo)",
       "issue": "-",
-      "carry": "CF-029",
+      "carry": "-",
       "notes": ""
     },
     {
@@ -1155,7 +1155,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "YES (web)",
+      "manual": "YES (web e2e + owner tablet build005)",
       "evidence": "docs/local-review/test-results/m03-otp-web-e2e.json TEST 1c/5b and TEST 2 (returned to /favorites)",
       "issue": "-",
       "carry": "-",
@@ -1171,7 +1171,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "YES (web)",
+      "manual": "YES (web e2e + owner tablet build005)",
       "evidence": "LogoutButton.tsx; confirmLogout() (Android); docs/local-review/screenshots/web-m03-otp/04-logout-confirm.png; docs/local-review/test-results/m03-otp-web-e2e.json TEST 6",
       "issue": "-",
       "carry": "-",
@@ -1187,7 +1187,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "YES (web)",
+      "manual": "YES (web e2e + owner tablet build005)",
       "evidence": "docs/local-review/screenshots/web-m03-otp/07-session-expired.png; docs/local-review/test-results/m03-otp-web-e2e.json; unit tests",
       "issue": "-",
       "carry": "-",
@@ -1223,7 +1223,7 @@
       "evidence": "docs/local-review/test-results/m03-otp-web-e2e.json axe 0 violations after BUG-018; tab order recorded",
       "issue": "-",
       "carry": "-",
-      "notes": "Android: Semantics labels on OTP boxes and country selector; device screen-reader check pending (CF-029)."
+      "notes": "Android Semantics labels verified on owner tablet (build005)."
     },
     {
       "id": "M03-023",
@@ -1315,7 +1315,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build005, 2026-09-25)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build005.apk (+.sha256 +.manifest.md +.build.log)",
       "issue": "-",
       "carry": "-",
@@ -1998,9 +1998,9 @@
       "mock": "YES",
       "test": "widget layout PASS",
       "apk": "YES (build005)",
-      "manual": "PENDING USER DEVICE VERIFICATION (build005)",
+      "manual": "VERIFIED (owner tablet, build005)",
       "backend": "MOCK (MockAuthRepository)",
-      "status": "IMPLEMENTED"
+      "status": "VERIFIED"
     },
     {
       "screen": "Plan a Journey",
@@ -2501,13 +2501,13 @@
       "CF-029",
       "Owner device test of build005: phone entry (numeric keyboard), OTP entry + paste, back navigation, resend timer, orientation, small/large screens, logout, protected navigation, screen-reader labels",
       "M03",
-      "APK built; not yet installed on owner device",
+      "build005 verified on owner tablet: all screens pass",
       "P0",
       "Owner",
       "Before M03 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE",
       "2026-09-25",
-      "-"
+      "Owner confirmed 2026-09-25"
     ],
     [
       "CF-030",
@@ -3363,8 +3363,8 @@
       "ANDROID",
       "Owner device test of build005 (OTP flows, keyboard, paste, back, timer, logout, guards)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner confirmation 2026-09-25 (all screens pass on tablet)",
       "2026-09-25"
     ],
     [
@@ -3626,9 +3626,9 @@
       "pre-git (built before first commit 9d035b9)",
       "2026-09-25",
       "001F2BBF043919E237AAD516D76C12C056A0BBFBFE2F989CD540E8F01B5547EC",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet, 2026-09-25)",
+      "VERIFIED — all screens pass (owner, 2026-09-25)",
+      "VERIFIED ON DEVICE"
     ]
   ],
   "pendingAssets": {
