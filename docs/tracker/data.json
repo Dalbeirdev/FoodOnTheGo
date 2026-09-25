@@ -42,7 +42,7 @@
    "id": "M04",
    "name": "Module 04 — Customer Profile & Account Management (frontend-first, mock repositories)",
    "started": "2026-09-25",
-   "completed": "",
+   "completed": "2026-09-25",
    "scope": "Owner spec 2026-09-25: profile view/edit (phone locked, verified only when mock data says so), avatar, favorites, saved journey addresses (pickup-only — NOT delivery), payment methods as provider references only (NO card number / CVV / UPI credentials), notifications + preferences, security & account controls (delete-account confirmation UI only), account navigation. Web + Android in parallel on Mock* repositories behind ProfileRepository / FavoriteRepository / AddressRepository / PaymentMethodRepository / NotificationRepository. Backend, Razorpay tokenisation, FCM/SMS/email providers, change-phone OTP, email verification and account deletion backend are registered as carry-forward and NOT STARTED."
   },
   {
@@ -1936,13 +1936,13 @@
    "platform": "ANDROID",
    "cat": "Android",
    "pri": "P0",
-   "status": "IMPLEMENTED",
+   "status": "VERIFIED",
    "impl": "PASS",
    "test": "PASS",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "YES (owner tablet, build006)",
    "evidence": "docs/local-review/screenshots/android-preview/phone-*.png / tablet-*.png (favorites, addresses, payment-methods, notifications, my-profile, favorites-guest, restaurants-fav)",
    "issue": "-",
-   "carry": "CF-057",
+   "carry": "-",
    "notes": ""
   },
   {
@@ -2019,7 +2019,7 @@
    "status": "VERIFIED",
    "impl": "PASS",
    "test": "PASS",
-   "manual": "PENDING",
+   "manual": "YES (owner tablet, build006)",
    "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build006.apk (+.sha256 +.manifest.md +.build.log)",
    "issue": "-",
    "carry": "-",
@@ -2626,9 +2626,9 @@
    "mock": "YES",
    "test": "widget layout PASS",
    "apk": "YES (build006)",
-   "manual": "VERIFIED build005; M04 rewrite PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Help & Support (topics, contacts, pending live chat)",
@@ -2652,9 +2652,9 @@
    "mock": "YES",
    "test": "widget layout PASS",
    "apk": "YES (build006)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Saved Addresses (list, add/edit sheet, default, delete)",
@@ -2665,9 +2665,9 @@
    "mock": "YES",
    "test": "widget layout PASS",
    "apk": "YES (build006)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Payment Methods (provider refs only, default, remove)",
@@ -2678,9 +2678,9 @@
    "mock": "YES",
    "test": "widget layout PASS",
    "apk": "YES (build006)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Notifications (tabs, read, mark all, preferences)",
@@ -2691,9 +2691,9 @@
    "mock": "YES",
    "test": "widget layout PASS",
    "apk": "YES (build006)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Favorite hearts on restaurant cards + detail",
@@ -2704,9 +2704,9 @@
    "mock": "YES",
    "test": "widget layout PASS",
    "apk": "YES (build006)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   }
  ],
  "decisions": [
@@ -2811,6 +2811,12 @@
    "Saved addresses are journey start/destination shortcuts only (pickup model); UI copy states FoodOnTheGo is not a delivery app.",
    "Owner spec",
    "No delivery fields anywhere."
+  ],
+  [
+   "2026-09-25",
+   "Module 04 accepted as complete: owner verified build006 on tablet, all screens pass. Backend for accounts remains NOT STARTED (CF-046 … CF-056).",
+   "Owner",
+   "Module 05 may start on owner instruction."
   ]
  ],
  "carry": [
@@ -3494,9 +3500,9 @@
    "P0",
    "Owner",
    "Before M04 approval",
-   "PENDING USER DEVICE VERIFICATION",
+   "DONE",
    "2026-09-25",
-   "-"
+   "build006 verified on owner tablet 2026-09-25"
   ]
  ],
  "bugs": [
@@ -3764,7 +3770,7 @@
    "Session restore only ran from the Splash screen, so the router guard (needs !loading) never re-evaluated on a deep link",
    "AuthState.restore() at app start; signed-out guard inside resourceView()",
    "PASS (docs/local-review/screenshots/android-preview/phone-favorites-guest.png shows Sign in; flutter test 52/52)",
-   "FIXED / VERIFIED (preview)"
+   "FIXED / VERIFIED (owner device build006)"
   ],
   [
    "BUG-020",
@@ -4248,8 +4254,8 @@
    "ANDROID",
    "Owner device test of build006 (see CF-057)",
    "manual (device)",
-   "PENDING",
-   "-",
+   "PASS",
+   "Owner confirmation 2026-09-25: build006 tested on tab, all screens pass",
    "2026-09-25"
   ],
   [
@@ -4556,9 +4562,9 @@
    "1e962f6 (M04)",
    "2026-09-25",
    "CC8D2DB52C6923D15CD9DCC07959B424EF3B99EDC4DA72C27F7C0A0A03EE4732",
-   "PENDING",
-   "PENDING USER DEVICE VERIFICATION",
-   "BUILT — AWAITING DEVICE TEST"
+   "YES (owner tablet, 2026-09-25)",
+   "VERIFIED — all screens pass (owner, 2026-09-25)",
+   "VERIFIED ON DEVICE"
   ]
  ],
  "pendingAssets": {
