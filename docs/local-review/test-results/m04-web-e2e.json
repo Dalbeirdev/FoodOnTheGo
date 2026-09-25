@@ -1,0 +1,232 @@
+{
+  "generated": "2026-09-25T15:15:00.781Z",
+  "results": [
+    {
+      "name": "TEST 6a guest on /favorites is asked to sign in",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6b returned to /favorites after OTP",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 profile name edited, saved and shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1b change-number explains OTP backend pending",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1c photo preview → saved (mock)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2a favorite appears on Favorites",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2b favorite removed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3a validation errors shown on empty form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3b address added",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3c address edited",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3d address deleted after confirmation",
+      "pass": true,
+      "detail": "Home Default start,Work "
+    },
+    {
+      "name": "TEST 4a add method explains provider flow, no input fields",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4b payment store holds provider refs only (no PAN / CVV)",
+      "pass": true,
+      "detail": "[{\"id\":\"pm-card-1\",\"type\":\"card\",\"providerRef\":\"token_mock_4f8a\",\"brand\":\"Visa\",\"last4\":\"3456\",\"expiry\":\"12/28\",\"holder\""
+    },
+    {
+      "name": "TEST 5a unread → read on tap",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5b preference toggled and saved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5c mark all as read",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "error state with retry on failed load",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "retry recovers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 all five account pages redirect to login after logout",
+      "pass": true,
+      "detail": "5/5 session=null http://localhost:5173/login http://localhost:5173/login http://localhost:5173/login http://localhost:5173/login http://localhost:5173/login"
+    },
+    {
+      "name": "no horizontal overflow desktop /my-profile",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /my-profile",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /my-profile",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /my-profile",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /favorites",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /favorites",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /favorites",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /favorites",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /addresses",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /addresses",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /addresses",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /addresses",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /payment-methods",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /payment-methods",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /payment-methods",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /payment-methods",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /notifications",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /notifications",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /notifications",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /notifications",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "axe: no WCAG A/AA violations on account pages",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no uncaught browser errors",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "axe": [
+    {
+      "route": "/my-profile",
+      "violations": []
+    },
+    {
+      "route": "/favorites",
+      "violations": []
+    },
+    {
+      "route": "/addresses",
+      "violations": []
+    },
+    {
+      "route": "/payment-methods",
+      "violations": []
+    },
+    {
+      "route": "/notifications",
+      "violations": []
+    }
+  ]
+}

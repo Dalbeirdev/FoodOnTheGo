@@ -3,18 +3,21 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme.dart';
+import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
+import 'screens/profile_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
 import 'screens/home_screens.dart';
 import 'screens/order_screens.dart';
 import 'state/app_state.dart';
+import 'state/account_state.dart';
 import 'state/auth_state.dart';
 
 void main() => runApp(const FoodOnTheGoApp());
 
 /// Screens that need an account. Everything else is available to guests.
-const protectedPrefixes = ['/my-orders', '/my-profile', '/checkout', '/order-confirmation', '/order-tracking'];
+const protectedPrefixes = ['/my-orders', '/my-profile', '/checkout', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
 
 GoRouter buildRouter(AuthState auth) => GoRouter(
   initialLocation: '/',
@@ -47,6 +50,10 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/order-confirmation/:number', builder: (_, s) => OrderConfirmationScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
+    GoRoute(path: '/favorites', builder: (_, _) => const FavoritesScreen()),
+    GoRoute(path: '/addresses', builder: (_, _) => const AddressesScreen()),
+    GoRoute(path: '/payment-methods', builder: (_, _) => const PaymentMethodsScreen()),
+    GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
     GoRoute(path: '/login', builder: (_, s) => LoginScreen(reason: s.uri.queryParameters['reason'])),
     GoRoute(path: '/verify-otp', builder: (_, _) => const VerifyOtpScreen()),
     GoRoute(path: '/account-setup', builder: (_, _) => const AccountSetupScreen()),
@@ -62,12 +69,30 @@ class FoodOnTheGoApp extends StatefulWidget {
 
 class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   final auth = AuthState();
+  final account = AccountState();
   late final GoRouter router = buildRouter(auth);
+
+  @override
+  void initState() {
+    super.initState();
+    auth.addListener(_onAuth);
+    // Restore the session at app start so deep links to protected screens are guarded even when Splash is skipped.
+    auth.restore();
+  }
+
+  void _onAuth() => account.bind(auth.user);
+
+  @override
+  void dispose() {
+    auth.removeListener(_onAuth);
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) => MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => HealthState()),
           ChangeNotifierProvider.value(value: auth),
+          ChangeNotifierProvider.value(value: account),
           ChangeNotifierProvider(create: (_) => CartState()),
           ChangeNotifierProvider(create: (_) => OrdersState()),
         ],

@@ -34,8 +34,8 @@ export default function AccountSidebar() {
   return (
     <aside className="acct">
       <div className="acct__user">
-        <span className="acct__avatar">{initials(profile.name)}</span>
-        <span><b>{profile.name}</b>{profile.email}</span>
+        {profile?.avatarUrl ? <img className="acct__avatar acct__avatar--img" src={profile.avatarUrl} alt="" /> : <span className="acct__avatar">{initials(profile?.name ?? '')}</span>}
+        <span><b>{profile?.name ?? '…'}</b>{profile?.email || profile?.phone || ''}</span>
       </div>
       <nav aria-label="Account">
         {NAV.map(({ to, label, icon: Icon, badge }) => (

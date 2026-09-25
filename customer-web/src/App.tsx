@@ -6,6 +6,7 @@ import { AuthProvider } from './auth/AuthContext'
 import RequireAuth from './auth/RequireAuth'
 import { AccountProvider } from './account/AccountContext'
 import Footer from './components/Footer'
+import { ToastProvider } from './components/Toast'
 import HomePage from './pages/HomePage'
 import HowItWorksPage from './pages/HowItWorksPage'
 import AboutPage from './pages/AboutPage'
@@ -38,6 +39,7 @@ import ComingSoonPage from './pages/ComingSoonPage'
 export function AppShell() {
   return (
       <AuthProvider>
+      <ToastProvider>
       <ProfileProvider>
       <AccountProvider>
       <CartProvider>
@@ -83,6 +85,7 @@ export function AppShell() {
       </CartProvider>
       </AccountProvider>
       </ProfileProvider>
+      </ToastProvider>
       </AuthProvider>
   )
 }

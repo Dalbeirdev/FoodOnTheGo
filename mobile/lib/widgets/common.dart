@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +9,7 @@ import '../core/theme.dart';
 import '../data/mock_data.dart';
 import '../state/app_state.dart';
 import '../screens/auth_screens.dart' show confirmLogout;
+import '../state/account_state.dart';
 import '../state/auth_state.dart';
 
 /// Visible LOCAL/DEV strip so screenshots can never be mistaken for production.
@@ -304,7 +307,7 @@ class RestaurantCard extends StatelessWidget {
       child: InkWell(
         onTap: open,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Photo(r.image, aspect: 16 / 9, radius: 0, child: Positioned(top: 10, left: 10, child: DetourBadge(r.detourMin))),
+          Photo(r.image, aspect: 16 / 9, radius: 0, child: Positioned.fill(child: Stack(children: [Positioned(top: 10, left: 10, child: DetourBadge(r.detourMin)), Positioned(top: 6, right: 6, child: FavoriteButton(restaurantId: r.id, name: r.name))]))),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -577,10 +580,10 @@ class AccountCard extends StatelessWidget {
   final String active;
   static const _links = [
     (Icons.person_outline, 'My Profile', '/my-profile', 0),
-    (Icons.favorite_border, 'Favorite Restaurants', '/restaurants', 0),
-    (Icons.place_outlined, 'Saved Addresses', '', 0),
-    (Icons.credit_card, 'Payment Methods', '', 0),
-    (Icons.notifications_none, 'Notifications', '', 3),
+    (Icons.favorite_border, 'Favorite Restaurants', '/favorites', 0),
+    (Icons.place_outlined, 'Saved Addresses', '/addresses', 0),
+    (Icons.credit_card, 'Payment Methods', '/payment-methods', 0),
+    (Icons.notifications_none, 'Notifications', '/notifications', -1),
     (Icons.receipt_long_outlined, 'My Orders', '/my-orders', 0),
     (Icons.route_outlined, 'Plan a Journey', '/plan-journey', 0),
     (Icons.headset_mic_outlined, 'Help & Support', '/help', 0),
@@ -589,12 +592,13 @@ class AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthState>().user;
+    final profileAvatar = context.watch<AccountState>().profile.data?.avatarPath;
     return Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Container(width: 54, height: 54, decoration: const BoxDecoration(color: Brand.peachDeep, shape: BoxShape.circle), alignment: Alignment.center, child: user == null ? const Icon(Icons.person_outline, color: Brand.orangeDeep) : Text(user.initials, style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w800, fontSize: 18))),
+              Container(width: 54, height: 54, decoration: const BoxDecoration(color: Brand.peachDeep, shape: BoxShape.circle), alignment: Alignment.center, child: user == null ? const Icon(Icons.person_outline, color: Brand.orangeDeep) : (profileAvatar != null && File(profileAvatar).existsSync() ? ClipOval(child: Image.file(File(profileAvatar), width: 54, height: 54, fit: BoxFit.cover)) : Text(user.initials, style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w800, fontSize: 18)))),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(user?.name ?? 'Welcome, traveller', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)), Text(user == null ? 'Sign in to see your orders and profile' : (user.email ?? user.phone), style: const TextStyle(color: Brand.grey, fontSize: 13))])),
               if (user == null) BrandButton(label: 'Sign in', expand: false, height: 40, onPressed: () => context.push('/login')),
@@ -606,7 +610,8 @@ class AccountCard extends StatelessWidget {
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: Layout.width(context) >= 620 ? 3 : 2, mainAxisExtent: 42, crossAxisSpacing: 8, mainAxisSpacing: 4),
               itemCount: _links.length,
               itemBuilder: (_, i) {
-                final (icon, label, route, badge) = _links[i];
+                final (icon, label, route, badgeSpec) = _links[i];
+                final badge = badgeSpec == -1 ? context.watch<AccountState>().unreadCount : badgeSpec;
                 final isActive = route.isNotEmpty && route == active;
                 return InkWell(
                   borderRadius: BorderRadius.circular(10),
@@ -615,7 +620,7 @@ class AccountCard extends StatelessWidget {
                       confirmLogout(context);
                     } else if (route.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label arrives in the Account module')));
-                    } else if (route == '/help') {
+                    } else if (route == '/help' || route == '/favorites' || route == '/addresses' || route == '/payment-methods' || route == '/notifications') {
                       context.push(route);
                     } else if (route != active) {
                       context.go(route);
@@ -756,3 +761,41 @@ class BottomBar extends StatelessWidget {
 }
 
 void comingSoon(BuildContext context, String what) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$what arrives in a later module (local preview).')));
+
+/// Heart toggle shared by restaurant cards and the detail screen. Guests are sent to sign in and return.
+class FavoriteButton extends StatelessWidget {
+  const FavoriteButton({super.key, required this.restaurantId, required this.name, this.size = 36});
+  final String restaurantId, name;
+  final double size;
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthState>();
+    final account = context.watch<AccountState>();
+    final on = auth.isAuthenticated && account.isFavorite(restaurantId);
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      elevation: 1,
+      child: IconButton(
+        iconSize: size * .55,
+        constraints: BoxConstraints.tightFor(width: size, height: size),
+        padding: EdgeInsets.zero,
+        tooltip: on ? 'Remove $name from favorites' : 'Add $name to favorites',
+        icon: Icon(on ? Icons.favorite : Icons.favorite_border, color: on ? Brand.red : Brand.navy),
+        onPressed: () async {
+          if (!auth.isAuthenticated) {
+            auth.requireLoginFor('/restaurants/$restaurantId');
+            context.push('/login');
+            return;
+          }
+          try {
+            await account.toggleFavorite(restaurantId);
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(on ? '$name removed from favorites' : '$name added to favorites')));
+          } catch (e) {
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+          }
+        },
+      ),
+    );
+  }
+}

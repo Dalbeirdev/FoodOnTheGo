@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.wait([context.read<HealthState>().check(), context.read<AuthState>().restore(), Future.delayed(const Duration(milliseconds: 1400))]);
+      await Future.wait([context.read<HealthState>().check(), context.read<AuthState>().loading ? Future.value() : context.read<AuthState>().restore(), Future.delayed(const Duration(milliseconds: 1400))]);
       if (mounted) context.go('/home');
     });
   }
@@ -319,7 +319,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
               ]),
             ),
             const SizedBox(width: 12),
-            Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Brand.line), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.favorite_border, size: 20)),
+            FavoriteButton(restaurantId: r.id, name: r.name, size: 42),
           ]),
           const SizedBox(height: 16),
           SizedBox(

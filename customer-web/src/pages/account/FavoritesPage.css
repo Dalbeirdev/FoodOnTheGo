@@ -15,3 +15,13 @@
 .fav-card__meta { display: flex; gap: 12px; margin-top: 6px !important; }
 .fav-card__meta span { display: inline-flex; align-items: center; gap: 4px; }
 .fav-card__meta svg { color: var(--orange-deep); }
+
+/* ---- Module 04 additions ---- */
+.fav-card.is-busy { opacity: .6; }
+.fav-card__state { position: absolute; left: 10px; bottom: 10px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; color: #fff; }
+.fav-card__state.is-open { background: #1d8f3f; }
+.fav-card__state.is-closed { background: #6b7280; }
+.fav-card__media { position: relative; display: block; }
+.fav-card__rating span { color: var(--muted); font-weight: 400; font-size: 12px; }
+.fav-card__actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.fav-card__actions .btn { height: 38px; padding: 0 14px; font-size: 14px; }

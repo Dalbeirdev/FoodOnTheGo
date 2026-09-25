@@ -31,9 +31,9 @@
 .ac-modal__actions .btn { height: 44px; padding: 0 22px; }
 .ac-modal__actions .btn--outline { border-color: var(--line); }
 
-.ac-link-btn { color: var(--orange-deep); font-size: 14px; font-weight: 500; }
+.ac-link-btn { color: var(--orange-text); font-size: 14px; font-weight: 500; }
 .ac-link-btn:hover { text-decoration: underline; }
-.ac-danger-btn { color: #e5261f; font-size: 14px; font-weight: 500; }
+.ac-danger-btn { color: #b91c1c; font-size: 14px; font-weight: 500; }
 .ac-danger-btn:hover { text-decoration: underline; }
 
 @media (max-width: 1024px) { .ac__grid { grid-template-columns: 1fr; } }

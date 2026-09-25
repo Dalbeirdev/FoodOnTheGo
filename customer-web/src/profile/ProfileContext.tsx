@@ -1,70 +1,51 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { MockProfileRepository } from '../account/mock/mockRepositories'
+import type { Profile, ProfilePatch, ProfileRepository } from '../account/repositories'
 import { useAuth } from '../auth/AuthContext'
 
-export type Profile = {
-  name: string
-  email: string
-  emailVerified: boolean
-  phone: string
-  phoneVerified: boolean
-  dob: string
-  gender: 'male' | 'female' | 'other' | ''
-  language: string
-  cuisines: string[]
-  searchRadiusKm: number
-  notifications: boolean
-  emailUpdates: boolean
-  memberSince: string
-  accountType: string
-  status: 'active' | 'suspended'
-}
+export type { Gender, Profile, ProfilePatch } from '../account/repositories'
 
 type ProfileApi = {
-  profile: Profile
-  /** Identity fields (name/email/phone) persist through the API; preferences stay local until their module. */
-  update: (patch: Partial<Profile>) => Promise<void>
+  profile: Profile | null
+  status: 'idle' | 'loading' | 'ready' | 'error'
+  error: string | null
+  reload: () => Promise<void>
+  update: (patch: ProfilePatch) => Promise<Profile>
+  setAvatar: (dataUrl: string | null) => Promise<Profile>
+  requestDeletion: () => Promise<Profile>
 }
 
-/** Preference defaults shown until the preferences module stores them server-side. */
-const LOCAL_DEFAULTS: Omit<Profile, 'name' | 'email' | 'emailVerified' | 'phone' | 'phoneVerified' | 'memberSince'> = {
-  dob: '',
-  gender: '',
-  language: 'English',
-  cuisines: [],
-  searchRadiusKm: 20,
-  notifications: true,
-  emailUpdates: true,
-  accountType: 'Individual',
-  status: 'active',
-}
-
-const EMPTY: Profile = { name: '', email: '', emailVerified: false, phone: '', phoneVerified: false, memberSince: '', ...LOCAL_DEFAULTS }
-
+export const defaultProfileRepository: ProfileRepository = new MockProfileRepository()
 const ProfileContext = createContext<ProfileApi | null>(null)
 
-export function ProfileProvider({ children }: { children: ReactNode }) {
+/** Customer profile for the signed-in user, backed by ProfileRepository (mock in Module 04). */
+export function ProfileProvider({ children, repository = defaultProfileRepository }: { children: ReactNode; repository?: ProfileRepository }) {
   const auth = useAuth()
-  const [local, setLocal] = useState(LOCAL_DEFAULTS)
+  const user = auth.user
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [status, setStatus] = useState<ProfileApi['status']>('idle')
+  const [error, setError] = useState<string | null>(null)
 
-  // Identity comes from the authenticated user; nothing is invented when signed out.
-  const profile = useMemo<Profile>(() => {
-    const u = auth.user
-    if (!u) return EMPTY
-    return { ...local, name: u.name, email: u.email ?? '', emailVerified: false, phone: u.phone, phoneVerified: true, memberSince: u.memberSince }
-  }, [auth.user, local])
+  const reload = useCallback(async () => {
+    if (!user) { setProfile(null); setStatus('idle'); return }
+    setStatus('loading'); setError(null)
+    try { setProfile(await repository.get(user.id, { name: user.name, phone: user.phone, email: user.email, memberSince: user.memberSince })); setStatus('ready') } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong.'); setStatus('error') }
+  }, [user, repository])
+  useEffect(() => { const t = setTimeout(() => { void reload() }, 0); return () => clearTimeout(t) }, [reload])
 
   const api = useMemo<ProfileApi>(() => ({
-    profile,
+    profile, status, error, reload,
     update: async (patch) => {
-      const { name, email, phone, ...rest } = patch
-      if (name !== undefined || email !== undefined || phone !== undefined) {
-        // Phone is the verified identity and changes only through a fresh OTP flow (later module).
-        void phone
-        await auth.updateProfile({ ...(name !== undefined && { name }), ...(email !== undefined && { email: email || null }) })
-      }
-      if (Object.keys(rest).length) setLocal((l) => ({ ...l, ...rest }))
+      if (!user) throw new Error('Sign in to edit your profile.')
+      const next = await repository.update(user.id, patch)
+      // Keep the auth identity (header, sidebar) in sync for name/email.
+      if (patch.name !== undefined || patch.email !== undefined) await auth.updateProfile({ ...(patch.name !== undefined && { name: patch.name }), ...(patch.email !== undefined && { email: patch.email || null }) })
+      setProfile(next)
+      return next
     },
-  }), [profile, auth])
+    setAvatar: async (dataUrl) => { if (!user) throw new Error('Sign in first.'); const next = await repository.setAvatar(user.id, dataUrl); setProfile(next); return next },
+    requestDeletion: async () => { if (!user) throw new Error('Sign in first.'); const next = await repository.requestDeletion(user.id); setProfile(next); return next },
+  }), [profile, status, error, reload, user, auth, repository])
 
   return <ProfileContext.Provider value={api}>{children}</ProfileContext.Provider>
 }

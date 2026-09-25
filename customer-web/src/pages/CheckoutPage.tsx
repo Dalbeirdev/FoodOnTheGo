@@ -58,9 +58,9 @@ export default function CheckoutPage() {
   const { profile } = useProfile()
   const restaurant = RESTAURANTS.find((r) => r.id === cart.lines[0]?.restaurantId) ?? RESTAURANTS[0]
 
-  const [contact, setContact] = useState({ name: profile.name, phone: profile.phone, email: profile.email })
+  const [contact, setContact] = useState({ name: (profile?.name ?? ''), phone: (profile?.phone ?? ''), email: (profile?.email ?? '') })
   const [method, setMethod] = useState<PayMethod>('card')
-  const [card, setCard] = useState({ number: '', expiry: '', cvv: '', name: profile.name, save: true })
+  const [card, setCard] = useState({ number: '', expiry: '', cvv: '', name: (profile?.name ?? ''), save: true })
   const [promoOpen, setPromoOpen] = useState(false)
   const [promoInput, setPromoInput] = useState('')
   const [promo, setPromo] = useState<{ code: string; amount: number } | null>(null)

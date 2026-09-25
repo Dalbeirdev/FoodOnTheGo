@@ -1,0 +1,5 @@
+src/pages/RestaurantDetailPage.tsx:72:77: warning eslint(no-unused-expressions): Expected expression to be used help: Consider using this expression or removing it
+src/pages/MyProfilePage.tsx:55:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 217ms[39m

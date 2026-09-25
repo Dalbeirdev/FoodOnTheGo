@@ -12,3 +12,13 @@
 .nt__when { font-size: 13px; color: var(--muted); white-space: nowrap; }
 .nt__dot { position: absolute; top: 14px; right: 14px; width: 8px; height: 8px; border-radius: 50%; background: var(--orange-deep); }
 @media (max-width: 600px) { .nt > a, .nt > button { grid-template-columns: auto 1fr; } .nt__when { grid-column: 2; } }
+
+/* ---- Module 04 additions ---- */
+.nt-head__actions { display: flex; gap: 16px; align-items: center; }
+.nt-prefs h2 { margin-bottom: 8px; }
+.nt-prefs__list { list-style: none; margin: 0 0 12px; padding: 0; }
+.nt-prefs__list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.nt-prefs__list li:last-child { border-bottom: 0; }
+.nt-prefs__list b { display: block; font-size: 15px; color: var(--ink); }
+.nt-prefs__list small { display: block; font-size: 12.5px; color: var(--muted); }
+.nt-prefs__list em { font-style: normal; color: #7c3d00; }

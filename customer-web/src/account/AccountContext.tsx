@@ -1,98 +1,101 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useAuth } from '../auth/AuthContext'
+import { MockAddressRepository, MockFavoriteRepository, MockNotificationRepository, MockPaymentMethodRepository } from './mock/mockRepositories'
+import type { Address, AddressInput, AddressRepository, Favorite, FavoriteRepository, Notification, NotificationPreferences, NotificationRepository, PaymentMethod, PaymentMethodRepository } from './repositories'
 
-/* ---------------- Favorites ---------------- */
-export type Favorite = { restaurantId: string; addedAt: Date }
+export type { Address, AddressInput, AddressKind, Favorite, Notification, NotificationKind, NotificationPreferences, PaymentMethod } from './repositories'
 
-/* ---------------- Addresses ---------------- */
-export type AddressKind = 'home' | 'work' | 'other'
-export type Address = { id: string; label: string; kind: AddressKind; line1: string; line2: string; city: string; state: string; pincode: string }
+export type ResourceStatus = 'idle' | 'loading' | 'ready' | 'error'
+export type Resource<T> = { status: ResourceStatus; data: T; error: string | null; reload: () => Promise<void> }
 
-/* ---------------- Payment methods ---------------- */
-export type PaymentMethod =
-  | { id: string; type: 'card'; brand: 'Visa' | 'Mastercard' | 'RuPay' | 'Amex'; last4: string; expiry: string; holder: string; isDefault: boolean }
-  | { id: string; type: 'upi'; upiId: string; holder: string; isDefault: boolean }
-  | { id: string; type: 'wallet'; balance: number; isDefault: boolean }
-  | { id: string; type: 'cash'; isDefault: boolean }
-
-/* ---------------- Notifications ---------------- */
-export type NotificationKind = 'orders' | 'offers' | 'updates'
-export type Notification = { id: string; kind: NotificationKind; icon: 'bag' | 'tag' | 'bell' | 'store' | 'percent' | 'user'; title: string; text: string; at: Date; read: boolean; link?: string }
-
-type AccountApi = {
-  favorites: Favorite[]
-  isFavorite: (restaurantId: string) => boolean
-  toggleFavorite: (restaurantId: string) => void
-  addresses: Address[]
-  defaultAddressId: string
-  setDefaultAddress: (id: string) => void
-  saveAddress: (a: Omit<Address, 'id'> & { id?: string }) => void
-  removeAddress: (id: string) => void
-  paymentMethods: PaymentMethod[]
-  setDefaultPayment: (id: string) => void
-  savePaymentMethod: (m: PaymentMethod) => void
-  removePaymentMethod: (id: string) => void
-  notifications: Notification[]
-  unreadCount: number
-  markRead: (id: string) => void
-  markAllRead: () => void
+export type AccountRepositories = { favorites: FavoriteRepository; addresses: AddressRepository; payments: PaymentMethodRepository; notifications: NotificationRepository }
+export const defaultAccountRepositories: AccountRepositories = {
+  favorites: new MockFavoriteRepository(),
+  addresses: new MockAddressRepository(),
+  payments: new MockPaymentMethodRepository(),
+  notifications: new MockNotificationRepository(),
 }
 
-const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000)
-const uid = () => Math.random().toString(36).slice(2, 10)
-
-/** Local development fixtures for the controlled test identity. Replaced by the API in the Account module. */
-const FAVORITES: Favorite[] = ['burger-hub', 'pizza-point', 'spice-nest', 'brew-bites', 'wok-express', 'healthy-bites'].map((restaurantId, i) => ({ restaurantId, addedAt: hoursAgo(24 * (i + 2)) }))
-const ADDRESSES: Address[] = [
-  { id: 'home', label: 'Home', kind: 'home', line1: 'A-203, Green Valley Apartments', line2: 'Sector 62', city: 'Noida', state: 'Uttar Pradesh', pincode: '201309' },
-  { id: 'work', label: 'Work', kind: 'work', line1: 'Tower B, ABC Corporate Park', line2: 'Sector 142', city: 'Noida', state: 'Uttar Pradesh', pincode: '201305' },
-  { id: 'parents', label: 'Parents Home', kind: 'other', line1: '123, MG Road', line2: 'Indirapuram', city: 'Ghaziabad', state: 'Uttar Pradesh', pincode: '201014' },
-  { id: 'other', label: 'Other Address', kind: 'other', line1: '456, Sector 18', line2: '', city: 'Noida', state: 'Uttar Pradesh', pincode: '201301' },
-]
-const PAYMENTS: PaymentMethod[] = [
-  { id: 'card1', type: 'card', brand: 'Visa', last4: '3456', expiry: '12/28', holder: 'Rahul Sharma', isDefault: true },
-  { id: 'upi1', type: 'upi', upiId: 'rahul@okaxis', holder: 'Rahul Sharma', isDefault: false },
-  { id: 'wallet', type: 'wallet', balance: 250, isDefault: false },
-  { id: 'cash', type: 'cash', isDefault: false },
-]
-const NOTIFICATIONS: Notification[] = [
-  { id: 'n1', kind: 'orders', icon: 'bag', title: 'Your order is ready for pickup', text: 'Burger Hub', at: hoursAgo(0.03), read: false, link: '/my-orders' },
-  { id: 'n2', kind: 'offers', icon: 'tag', title: 'Special offer just for you!', text: 'Get 20% off on your next order', at: hoursAgo(1), read: false },
-  { id: 'n3', kind: 'orders', icon: 'bell', title: 'Order confirmed', text: 'Your order at Pizza Point has been confirmed', at: hoursAgo(3), read: false, link: '/my-orders' },
-  { id: 'n4', kind: 'updates', icon: 'store', title: 'New restaurant nearby', text: 'Spice Route is now available on your route', at: hoursAgo(24), read: true, link: '/restaurants' },
-  { id: 'n5', kind: 'offers', icon: 'percent', title: 'Price drop alert', text: 'Your favorite item is now at a lower price', at: hoursAgo(48), read: true },
-  { id: 'n6', kind: 'updates', icon: 'user', title: 'Account updated', text: 'Your profile information has been updated', at: hoursAgo(72), read: true, link: '/my-profile' },
-]
+type AccountApi = {
+  favorites: Resource<Favorite[]>
+  isFavorite: (restaurantId: string) => boolean
+  addFavorite: (restaurantId: string) => Promise<void>
+  removeFavorite: (restaurantId: string) => Promise<void>
+  toggleFavorite: (restaurantId: string) => Promise<void>
+  addresses: Resource<Address[]>
+  defaultAddressId: string
+  setDefaultAddress: (id: string) => Promise<void>
+  saveAddress: (input: AddressInput) => Promise<void>
+  removeAddress: (id: string) => Promise<void>
+  paymentMethods: Resource<PaymentMethod[]>
+  setDefaultPayment: (id: string) => Promise<void>
+  removePaymentMethod: (id: string) => Promise<void>
+  notifications: Resource<Notification[]>
+  unreadCount: number
+  markRead: (id: string) => Promise<void>
+  markAllRead: () => Promise<void>
+  notificationPrefs: Resource<NotificationPreferences | null>
+  updateNotificationPrefs: (patch: Partial<NotificationPreferences>) => Promise<void>
+}
 
 const AccountContext = createContext<AccountApi | null>(null)
 
-export function AccountProvider({ children }: { children: ReactNode }) {
-  const [favorites, setFavorites] = useState(FAVORITES)
-  const [addresses, setAddresses] = useState(ADDRESSES)
-  const [defaultAddressId, setDefaultAddressId] = useState('home')
-  const [paymentMethods, setPaymentMethods] = useState(PAYMENTS)
-  const [notifications, setNotifications] = useState(NOTIFICATIONS)
+function useResource<T>(userId: string | null, load: (userId: string) => Promise<T>, empty: T): [Resource<T>, (next: T) => void] {
+  const [status, setStatus] = useState<ResourceStatus>('idle')
+  const [data, setData] = useState<T>(empty)
+  const [error, setError] = useState<string | null>(null)
+  const reload = useCallback(async () => {
+    if (!userId) { setStatus('idle'); setData(empty); return }
+    setStatus('loading'); setError(null)
+    try { setData(await load(userId)); setStatus('ready') } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong.'); setStatus('error') }
+  }, [userId, empty, load])
+  useEffect(() => { const t = setTimeout(() => { void reload() }, 0); return () => clearTimeout(t) }, [reload])
+  const setReady = useCallback((next: T) => { setData(next); setStatus('ready'); setError(null) }, [])
+  return [{ status, data, error, reload }, setReady]
+}
+
+const EMPTY_ARR: never[] = []
+
+/** Account data for the signed-in customer. Every resource exposes loading / ready / error and a reload. */
+export function AccountProvider({ children, repositories = defaultAccountRepositories }: { children: ReactNode; repositories?: AccountRepositories }) {
+  const { user } = useAuth()
+  const userId = user?.id ?? null
+  const repos = repositories
+
+  const loadFavorites = useCallback((u: string) => repos.favorites.list(u), [repos])
+  const loadAddresses = useCallback((u: string) => repos.addresses.list(u), [repos])
+  const loadPayments = useCallback((u: string) => repos.payments.list(u), [repos])
+  const loadNotifications = useCallback((u: string) => repos.notifications.list(u), [repos])
+  const loadPrefs = useCallback((u: string) => repos.notifications.getPreferences(u), [repos])
+  const [favorites, setFavorites] = useResource<Favorite[]>(userId, loadFavorites, EMPTY_ARR)
+  const [addresses, setAddresses] = useResource<Address[]>(userId, loadAddresses, EMPTY_ARR)
+  const [paymentMethods, setPayments] = useResource<PaymentMethod[]>(userId, loadPayments, EMPTY_ARR)
+  const [notifications, setNotifications] = useResource<Notification[]>(userId, loadNotifications, EMPTY_ARR)
+  const [notificationPrefs, setPrefs] = useResource<NotificationPreferences | null>(userId, loadPrefs, null)
+
+  const need = useCallback(() => { if (!userId) throw new Error('Sign in to manage your account.'); return userId }, [userId])
 
   const api = useMemo<AccountApi>(() => ({
     favorites,
-    isFavorite: (id) => favorites.some((f) => f.restaurantId === id),
-    toggleFavorite: (id) => setFavorites((fs) => fs.some((f) => f.restaurantId === id) ? fs.filter((f) => f.restaurantId !== id) : [{ restaurantId: id, addedAt: new Date() }, ...fs]),
+    isFavorite: (id) => favorites.data.some((f) => f.restaurantId === id),
+    addFavorite: async (id) => setFavorites(await repos.favorites.add(need(), id)),
+    removeFavorite: async (id) => setFavorites(await repos.favorites.remove(need(), id)),
+    toggleFavorite: async (id) => setFavorites(favorites.data.some((f) => f.restaurantId === id) ? await repos.favorites.remove(need(), id) : await repos.favorites.add(need(), id)),
     addresses,
-    defaultAddressId,
-    setDefaultAddress: setDefaultAddressId,
-    saveAddress: (a) => setAddresses((as) => a.id ? as.map((x) => (x.id === a.id ? { ...x, ...a, id: a.id! } : x)) : [...as, { ...a, id: uid() }]),
-    removeAddress: (id) => { setAddresses((as) => as.filter((a) => a.id !== id)); setDefaultAddressId((d) => (d === id ? '' : d)) },
+    defaultAddressId: addresses.data.find((a) => a.isDefault)?.id ?? '',
+    setDefaultAddress: async (id) => setAddresses(await repos.addresses.setDefault(need(), id)),
+    saveAddress: async (input) => setAddresses(await repos.addresses.save(need(), input)),
+    removeAddress: async (id) => setAddresses(await repos.addresses.remove(need(), id)),
     paymentMethods,
-    setDefaultPayment: (id) => setPaymentMethods((ms) => ms.map((m) => ({ ...m, isDefault: m.id === id }))),
-    savePaymentMethod: (m) => setPaymentMethods((ms) => {
-      const next = ms.some((x) => x.id === m.id) ? ms.map((x) => (x.id === m.id ? m : x)) : [...ms, m]
-      return m.isDefault ? next.map((x) => ({ ...x, isDefault: x.id === m.id })) : next
-    }),
-    removePaymentMethod: (id) => setPaymentMethods((ms) => ms.filter((m) => m.id !== id)),
+    setDefaultPayment: async (id) => setPayments(await repos.payments.setDefault(need(), id)),
+    removePaymentMethod: async (id) => setPayments(await repos.payments.remove(need(), id)),
     notifications,
-    unreadCount: notifications.filter((n) => !n.read).length,
-    markRead: (id) => setNotifications((ns) => ns.map((n) => (n.id === id ? { ...n, read: true } : n))),
-    markAllRead: () => setNotifications((ns) => ns.map((n) => ({ ...n, read: true }))),
-  }), [favorites, addresses, defaultAddressId, paymentMethods, notifications])
+    unreadCount: notifications.data.filter((n) => !n.read).length,
+    markRead: async (id) => setNotifications(await repos.notifications.markRead(need(), id)),
+    markAllRead: async () => setNotifications(await repos.notifications.markAllRead(need())),
+    notificationPrefs,
+    updateNotificationPrefs: async (patch) => setPrefs(await repos.notifications.updatePreferences(need(), patch)),
+  }), [favorites, addresses, paymentMethods, notifications, notificationPrefs, repos, need, setFavorites, setAddresses, setPayments, setNotifications, setPrefs])
 
   return <AccountContext.Provider value={api}>{children}</AccountContext.Provider>
 }

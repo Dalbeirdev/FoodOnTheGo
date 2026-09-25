@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import Header from '../components/Header'
 import { ClockIcon, PinIcon, StarIcon } from '../components/Icons'
 import CartBar from '../components/CartBar'
 import { useCart } from '../cart/CartContext'
+import { useAccount } from '../account/AccountContext'
+import { useAuth } from '../auth/AuthContext'
 import { MENU, inr } from '../data/menu'
 import { RESTAURANTS } from './RestaurantsPage'
 import './RestaurantDetailPage.css'
@@ -54,6 +56,12 @@ export default function RestaurantDetailPage() {
   const restaurant = RESTAURANTS.find((r) => r.id === id) ?? RESTAURANTS[0]
   const [tab, setTab] = useState('All Items')
   const [liked, setLiked] = useState<Set<string>>(new Set())
+  const { isFavorite, toggleFavorite } = useAccount()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const saved = isFavorite(restaurant.id)
+  const favorite = () => { if (!isAuthenticated) return navigate('/login', { state: { from: location.pathname } }); void toggleFavorite(restaurant.id) }
   const cart = useCart()
 
   const add = (k: string) => {
@@ -78,7 +86,7 @@ export default function RestaurantDetailPage() {
               <Img src="/images/restaurant-burger-hub-cover.jpg" fallback="🍔" alt={`${restaurant.name} cover`} />
               <Link to="/restaurants" className="rd-hero__back"><BackIcon /> Back to Results</Link>
               <div className="rd-hero__actions">
-                <button type="button" className="rd-round" aria-label="Save restaurant"><HeartIcon /></button>
+                <button type="button" className={`rd-round ${saved ? 'is-on' : ''}`} aria-pressed={saved} aria-label={saved ? `Remove ${restaurant.name} from favorites` : `Add ${restaurant.name} to favorites`} onClick={favorite}><HeartIcon /></button>
                 <button type="button" className="rd-round" aria-label="Share"><ShareIcon /></button>
               </div>
               <button type="button" className="rd-hero__photos"><CameraIcon /> View Photos (12)</button>

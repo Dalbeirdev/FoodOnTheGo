@@ -6,12 +6,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foodonthego/core/theme.dart';
 import 'package:foodonthego/data/mock_data.dart';
+import 'package:foodonthego/screens/account_pages.dart';
 import 'package:foodonthego/screens/account_screens.dart';
+import 'package:foodonthego/screens/profile_screen.dart';
 import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
 import 'package:foodonthego/screens/order_screens.dart';
 import 'package:foodonthego/auth/auth_repository.dart';
+import 'package:foodonthego/state/account_state.dart';
 import 'package:foodonthego/state/app_state.dart';
 import 'package:foodonthego/state/auth_state.dart';
 import 'package:foodonthego/widgets/common.dart';
@@ -24,6 +27,7 @@ Widget app(Widget screen, {CartState? cart}) {
     providers: [
       ChangeNotifierProvider(create: (_) => HealthState()),
       ChangeNotifierProvider(create: (_) => AuthState(repository: MockAuthRepository(store: MemoryKeyValueStore(), latency: Duration.zero))),
+      ChangeNotifierProvider(create: (_) => AccountState(repositories: AccountRepositories.mock(MockAccountStore(store: MemoryKeyValueStore(), latency: Duration.zero)))),
       ChangeNotifierProvider(create: (_) => cart ?? CartState()),
       ChangeNotifierProvider(create: (_) => OrdersState()),
     ],
@@ -57,6 +61,10 @@ void main() {
     'Account setup (no token)': const AccountSetupScreen(),
     'Build info': const BuildInfoScreen(),
     'Help & Support': const HelpScreen(),
+    'Favorites (signed out guard)': const FavoritesScreen(),
+    'Addresses': const AddressesScreen(),
+    'Payment methods': const PaymentMethodsScreen(),
+    'Notifications': const NotificationsScreen(),
   };
 
   for (final size in [const Size(390, 844), const Size(1280, 800)]) {

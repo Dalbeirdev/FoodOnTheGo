@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import Header from '../../components/Header'
 import AccountSidebar from '../../components/AccountSidebar'
+import { ConfirmDialog, EmptyState, ErrorState, LoadingState } from '../../components/AccountStates'
+import { useToast } from '../../components/Toast'
 import { useAccount, type PaymentMethod } from '../../account/AccountContext'
 import { inr } from '../../data/menu'
 import './AccountPage.css'
@@ -11,51 +13,39 @@ const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 
 const PlusIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 5v14M5 12h14" /></svg>)
 const WalletIcon = ({ size = 26 }: P) => (<svg {...stroke(size)}><path d="M3 7a2 2 0 0 1 2-2h13v4H5a2 2 0 0 1-2-2Zm0 0v10a2 2 0 0 0 2 2h16V9H5a2 2 0 0 1-2-2Z" /><circle cx="17" cy="14" r="1.2" fill="currentColor" /></svg>)
 const CashIcon = ({ size = 26 }: P) => (<svg {...stroke(size)}><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /><path d="M5 9h.01M19 15h.01" /></svg>)
-
-type NewKind = 'card' | 'upi'
-const BRAND_BY_PREFIX = (n: string): 'Visa' | 'Mastercard' | 'RuPay' | 'Amex' => /^4/.test(n) ? 'Visa' : /^(5[1-5]|2[2-7])/.test(n) ? 'Mastercard' : /^(3[47])/.test(n) ? 'Amex' : 'RuPay'
+const LockIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>)
 
 function Brand({ brand }: { brand: string }) {
   if (brand === 'Mastercard') return <span className="pm-brand pm-brand--mc" aria-label="Mastercard"><b /><b /></span>
   return <span className={`pm-brand pm-brand--${brand.toLowerCase()}`}>{brand === 'Visa' ? 'VISA' : brand === 'Amex' ? 'AMEX' : 'RuPay'}</span>
 }
 
+/**
+ * Payment methods are provider-managed references only (Razorpay later).
+ * SECURITY BOUNDARY: no card number, expiry entry, CVV, UPI PIN or bank credential is ever
+ * collected or stored by FoodOnTheGo. Adding a method opens the provider's secure flow
+ * in the Payments module — until then the button explains that honestly.
+ */
 export default function PaymentMethodsPage() {
-  const { paymentMethods, setDefaultPayment, savePaymentMethod, removePaymentMethod } = useAccount()
-  const [open, setOpen] = useState(false)
-  const [kind, setKind] = useState<NewKind>('card')
-  const [card, setCard] = useState({ number: '', expiry: '', holder: '', makeDefault: false })
-  const [upi, setUpi] = useState({ id: '', holder: '', makeDefault: false })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    const err: Record<string, string> = {}
-    if (kind === 'card') {
-      const digits = card.number.replace(/\s/g, '')
-      if (digits.length < 15 || digits.length > 16) err.number = 'Enter the 15–16 digit card number'
-      if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(card.expiry)) err.expiry = 'Use MM/YY'
-      if (!card.holder.trim()) err.holder = 'Enter the name on the card'
-      setErrors(err)
-      if (Object.keys(err).length) return
-      savePaymentMethod({ id: `card-${Date.now()}`, type: 'card', brand: BRAND_BY_PREFIX(digits), last4: digits.slice(-4), expiry: card.expiry, holder: card.holder.trim(), isDefault: card.makeDefault })
-    } else {
-      if (!/^[\w.-]+@[\w-]+$/.test(upi.id.trim())) err.upi = 'Enter a valid UPI ID, e.g. name@bank'
-      if (!upi.holder.trim()) err.upiHolder = 'Enter the account holder name'
-      setErrors(err)
-      if (Object.keys(err).length) return
-      savePaymentMethod({ id: `upi-${Date.now()}`, type: 'upi', upiId: upi.id.trim(), holder: upi.holder.trim(), isDefault: upi.makeDefault })
-    }
-    setOpen(false); setCard({ number: '', expiry: '', holder: '', makeDefault: false }); setUpi({ id: '', holder: '', makeDefault: false })
-  }
+  const { paymentMethods, setDefaultPayment, removePaymentMethod } = useAccount()
+  const toast = useToast()
+  const [addOpen, setAddOpen] = useState(false)
+  const [removing, setRemoving] = useState<PaymentMethod | null>(null)
+  const [busy, setBusy] = useState(false)
 
   const render = (m: PaymentMethod) => {
     switch (m.type) {
-      case 'card': return { icon: <Brand brand={m.brand} />, title: 'Credit / Debit Card', lines: [`**** **** **** ${m.last4}`, m.expiry, m.holder], removable: true }
-      case 'upi': return { icon: <span className="pm-brand pm-brand--upi">UPI</span>, title: 'UPI', lines: [`UPI ID: ${m.upiId}`, m.holder], removable: true }
+      case 'card': return { icon: <Brand brand={m.brand} />, title: 'Credit / Debit Card', lines: [`•••• •••• •••• ${m.last4}`, `Expires ${m.expiry}`, m.holder], removable: true }
+      case 'upi': return { icon: <span className="pm-brand pm-brand--upi">UPI</span>, title: 'UPI', lines: [`UPI ID: ${m.handleMasked}`, m.holder], removable: true }
       case 'wallet': return { icon: <span className="pm-icon"><WalletIcon /></span>, title: 'Wallet', lines: ['FoodOnTheGo Wallet', `Balance: ${inr(m.balance)}`], removable: false, green: true }
-      case 'cash': return { icon: <span className="pm-icon pm-icon--dark"><CashIcon /></span>, title: 'Cash on Pickup', lines: ['Pay at restaurant during pickup'], removable: false }
+      case 'cash': return { icon: <span className="pm-icon pm-icon--dark"><CashIcon /></span>, title: 'Cash on Pickup', lines: ['Pay at the restaurant when you collect your order'], removable: false }
     }
+  }
+
+  const confirmRemove = async () => {
+    if (!removing) return
+    setBusy(true)
+    try { await removePaymentMethod(removing.id); toast.success('Payment method removed'); setRemoving(null) } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not remove this method') } finally { setBusy(false) }
   }
 
   return (
@@ -67,61 +57,54 @@ export default function PaymentMethodsPage() {
           <div className="ac__main">
             <div className="ac-head">
               <div><h1>Payment Methods</h1><p>Manage your saved payment methods</p></div>
-              <button type="button" className="btn btn--primary" onClick={() => { setOpen(true); setErrors({}) }}><PlusIcon /> Add New Payment Method</button>
+              <button type="button" className="btn btn--primary" onClick={() => setAddOpen(true)}><PlusIcon /> Add New Payment Method</button>
             </div>
 
-            <ul className="pm-list">
-              {paymentMethods.map((m) => {
-                const v = render(m)
-                return (
-                  <li key={m.id} className={`pm ${m.isDefault ? 'is-default' : ''}`}>
-                    {v.icon}
-                    <div className="pm__body">
-                      <h2>{v.title} {m.isDefault && <span className="pm__tag">Default</span>}</h2>
-                      {v.lines.map((l, i) => <p key={i} className={v.green && i === 1 ? 'is-green' : ''}>{l}</p>)}
-                    </div>
-                    <div className="pm__actions">
-                      {!m.isDefault && <button type="button" className="ac-link-btn" onClick={() => setDefaultPayment(m.id)}>Set as default</button>}
-                      {v.removable && <button type="button" className="ac-danger-btn" onClick={() => removePaymentMethod(m.id)}>Delete</button>}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-            <p className="pm-note">Card details are stored with the payment provider, never on FoodOnTheGo servers. Local environment: test mode only.</p>
+            {paymentMethods.status === 'loading' || paymentMethods.status === 'idle' ? <LoadingState label="Loading payment methods" /> : null}
+            {paymentMethods.status === 'error' && <ErrorState message={paymentMethods.error ?? 'Failed to load payment methods.'} onRetry={paymentMethods.reload} />}
+            {paymentMethods.status === 'ready' && paymentMethods.data.length === 0 && (
+              <EmptyState icon={<LockIcon size={30} />} title="No payment methods yet" text="Cash on pickup is always available. Cards and UPI will be added through the secure payment provider." />
+            )}
+            {paymentMethods.status === 'ready' && paymentMethods.data.length > 0 && (
+              <ul className="pm-list">
+                {paymentMethods.data.map((m) => {
+                  const v = render(m)
+                  return (
+                    <li key={m.id} className={`pm ${m.isDefault ? 'is-default' : ''}`}>
+                      {v.icon}
+                      <div className="pm__body">
+                        <h2>{v.title} {m.isDefault && <span className="pm__tag">Default</span>}</h2>
+                        {v.lines.map((l, i) => <p key={i} className={v.green && i === 1 ? 'is-green' : ''}>{l}</p>)}
+                        {(m.type === 'card' || m.type === 'upi') && <p className="pm__ref"><LockIcon size={12} /> Provider reference only — FoodOnTheGo never stores card or UPI credentials</p>}
+                      </div>
+                      <div className="pm__actions">
+                        {!m.isDefault && <button type="button" className="ac-link-btn" onClick={() => setDefaultPayment(m.id).then(() => toast.success('Default payment method updated')).catch(() => toast.error('Could not update the default'))}>Set as default</button>}
+                        {v.removable && <button type="button" className="ac-danger-btn" onClick={() => setRemoving(m)}>Remove</button>}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+            <p className="ac-note ac-note--info"><LockIcon size={14} /> Cards and UPI are tokenised by the payment provider. This app keeps only the brand, last four digits and a provider reference. Local environment: mock references, test mode only.</p>
           </div>
         </div>
 
-        {open && (
-          <div className="ac-modal" role="dialog" aria-modal="true" aria-labelledby="pm-form-title" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
-            <form className="ac-modal__box" onSubmit={submit} noValidate>
-              <h2 id="pm-form-title">Add New Payment Method</h2>
-              <div className="pm-kind" role="tablist">
-                <button type="button" role="tab" aria-selected={kind === 'card'} className={kind === 'card' ? 'is-on' : ''} onClick={() => setKind('card')}>Credit / Debit Card</button>
-                <button type="button" role="tab" aria-selected={kind === 'upi'} className={kind === 'upi' ? 'is-on' : ''} onClick={() => setKind('upi')}>UPI</button>
+        {addOpen && (
+          <div className="ac-modal" role="dialog" aria-modal="true" aria-labelledby="pm-add-title" onClick={(e) => { if (e.target === e.currentTarget) setAddOpen(false) }}>
+            <div className="ac-modal__box ac-modal__box--sm">
+              <h2 id="pm-add-title">Add a payment method</h2>
+              <div className="ac-confirm__text">
+                <p>New cards, UPI IDs and wallets are added through the payment provider's secure page, so your details never pass through FoodOnTheGo.</p>
+                <p><b>Status:</b> REAL RAZORPAY CONNECTION = NOT STARTED · PAYMENT TOKENIZATION = NOT STARTED. This opens automatically once the Payments module is connected.</p>
+                <p>Until then you can pay with <b>Cash on Pickup</b>.</p>
               </div>
-              {kind === 'card' ? (
-                <div className="ac-fields">
-                  <label className="span2">Card number<input value={card.number} inputMode="numeric" placeholder="1234 5678 9012 3456" maxLength={19} onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ').slice(0, 19) })} aria-invalid={!!errors.number} />{errors.number && <em>{errors.number}</em>}</label>
-                  <label>Expiry (MM/YY)<input value={card.expiry} placeholder="12/28" maxLength={5} onChange={(e) => setCard({ ...card, expiry: e.target.value.replace(/[^\d/]/g, '') })} aria-invalid={!!errors.expiry} />{errors.expiry && <em>{errors.expiry}</em>}</label>
-                  <label>Name on card<input value={card.holder} onChange={(e) => setCard({ ...card, holder: e.target.value })} aria-invalid={!!errors.holder} />{errors.holder && <em>{errors.holder}</em>}</label>
-                  <label className="ac-check span2"><input type="checkbox" checked={card.makeDefault} onChange={(e) => setCard({ ...card, makeDefault: e.target.checked })} /> Make this my default payment method</label>
-                </div>
-              ) : (
-                <div className="ac-fields">
-                  <label className="span2">UPI ID<input value={upi.id} placeholder="name@bank" onChange={(e) => setUpi({ ...upi, id: e.target.value })} aria-invalid={!!errors.upi} />{errors.upi && <em>{errors.upi}</em>}</label>
-                  <label className="span2">Account holder name<input value={upi.holder} onChange={(e) => setUpi({ ...upi, holder: e.target.value })} aria-invalid={!!errors.upiHolder} />{errors.upiHolder && <em>{errors.upiHolder}</em>}</label>
-                  <label className="ac-check span2"><input type="checkbox" checked={upi.makeDefault} onChange={(e) => setUpi({ ...upi, makeDefault: e.target.checked })} /> Make this my default payment method</label>
-                </div>
-              )}
-              <p className="pm-note">Test mode — no verification charge is made in the local environment.</p>
-              <div className="ac-modal__actions">
-                <button type="button" className="btn btn--outline" onClick={() => setOpen(false)}>Cancel</button>
-                <button type="submit" className="btn btn--primary">Save</button>
-              </div>
-            </form>
+              <div className="ac-modal__actions"><button type="button" className="btn btn--primary" onClick={() => setAddOpen(false)}>Got it</button></div>
+            </div>
           </div>
         )}
+
+        <ConfirmDialog open={!!removing} title="Remove this payment method?" text="The provider reference will be deleted from your account. You can add it again later through the secure payment flow." confirmLabel="Remove" danger busy={busy} onCancel={() => setRemoving(null)} onConfirm={confirmRemove} />
       </main>
     </>
   )

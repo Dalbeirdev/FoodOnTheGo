@@ -2,7 +2,9 @@ import { useState, type ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 import Header from '../../components/Header'
 import AccountSidebar from '../../components/AccountSidebar'
-import { useAccount, type Notification, type NotificationKind } from '../../account/AccountContext'
+import { EmptyState, ErrorState, LoadingState } from '../../components/AccountStates'
+import { useToast } from '../../components/Toast'
+import { useAccount, type Notification, type NotificationKind, type NotificationPreferences } from '../../account/AccountContext'
 import './AccountPage.css'
 import './NotificationsPage.css'
 
@@ -18,9 +20,17 @@ const ICON: Record<Notification['icon'], (p: P) => ReactElement> = {
 }
 const TONE: Record<Notification['icon'], string> = { bag: 'green', tag: 'red', bell: 'orange', store: 'blue', percent: 'orange', user: 'green' }
 const TABS: Array<{ id: 'all' | NotificationKind; label: string }> = [{ id: 'all', label: 'All' }, { id: 'orders', label: 'Orders' }, { id: 'offers', label: 'Offers' }, { id: 'updates', label: 'Updates' }]
+const PREFS: Array<{ key: keyof NotificationPreferences; label: string; sub: string; provider: string }> = [
+  { key: 'push', label: 'Push notifications', sub: 'Alerts on this device', provider: 'Firebase FCM = NOT STARTED' },
+  { key: 'orderUpdates', label: 'Order updates', sub: 'Confirmed, being prepared, ready for pickup', provider: '' },
+  { key: 'paymentUpdates', label: 'Payment & refund updates', sub: 'Payment confirmations and refunds', provider: '' },
+  { key: 'promotions', label: 'Offers & promotions', sub: 'Deals and new restaurants on your routes', provider: '' },
+  { key: 'email', label: 'Email notifications', sub: 'Receipts and important account emails', provider: 'Email provider = NOT STARTED' },
+  { key: 'sms', label: 'SMS notifications', sub: 'Pickup codes and urgent updates', provider: 'SMS provider = NOT STARTED' },
+]
 
-const ago = (d: Date) => {
-  const m = Math.round((Date.now() - d.getTime()) / 60_000)
+const ago = (iso: string) => {
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000)
   if (m < 60) return `${Math.max(1, m)} min${m === 1 ? '' : 's'} ago`
   const h = Math.round(m / 60)
   if (h < 24) return `${h} hour${h === 1 ? '' : 's'} ago`
@@ -29,9 +39,20 @@ const ago = (d: Date) => {
 }
 
 export default function NotificationsPage() {
-  const { notifications, unreadCount, markRead, markAllRead } = useAccount()
+  const { notifications, unreadCount, markRead, markAllRead, notificationPrefs, updateNotificationPrefs } = useAccount()
+  const toast = useToast()
   const [tab, setTab] = useState<'all' | NotificationKind>('all')
-  const visible = notifications.filter((n) => tab === 'all' || n.kind === tab)
+  const [showPrefs, setShowPrefs] = useState(false)
+  const [busyAll, setBusyAll] = useState(false)
+  const [savingPref, setSavingPref] = useState<string | null>(null)
+  const visible = notifications.data.filter((n) => tab === 'all' || n.kind === tab)
+
+  const read = (id: string) => markRead(id).catch(() => toast.error('Could not update the notification'))
+  const allRead = async () => { setBusyAll(true); try { await markAllRead(); toast.success('All notifications marked as read') } catch { toast.error('Could not mark all as read') } finally { setBusyAll(false) } }
+  const togglePref = async (key: keyof NotificationPreferences, value: boolean) => {
+    setSavingPref(key)
+    try { await updateNotificationPrefs({ [key]: value }); toast.success('Preference saved') } catch { toast.error('Could not save the preference') } finally { setSavingPref(null) }
+  }
 
   return (
     <>
@@ -42,8 +63,30 @@ export default function NotificationsPage() {
           <div className="ac__main">
             <div className="ac-head">
               <div><h1>Notifications</h1><p>Stay updated with your orders, offers and more</p></div>
-              {unreadCount > 0 && <button type="button" className="ac-link-btn" onClick={markAllRead}>Mark all as read</button>}
+              <div className="nt-head__actions">
+                <button type="button" className="ac-link-btn" aria-expanded={showPrefs} aria-controls="nt-prefs" onClick={() => setShowPrefs((v) => !v)}>Preferences</button>
+                {unreadCount > 0 && <button type="button" className="ac-link-btn" onClick={allRead} disabled={busyAll}>{busyAll ? 'Updating…' : 'Mark all as read'}</button>}
+              </div>
             </div>
+
+            {showPrefs && (
+              <section id="nt-prefs" className="ac-card nt-prefs" aria-label="Notification preferences">
+                <h2>Notification preferences</h2>
+                {notificationPrefs.status === 'error' && <ErrorState message={notificationPrefs.error ?? 'Failed to load preferences.'} onRetry={notificationPrefs.reload} />}
+                {notificationPrefs.status !== 'error' && !notificationPrefs.data && <LoadingState label="Loading preferences" rows={2} />}
+                {notificationPrefs.data && (
+                  <ul className="nt-prefs__list">
+                    {PREFS.map((p) => (
+                      <li key={p.key}>
+                        <span><b>{p.label}</b><small>{p.sub}{p.provider && <> · <em>{p.provider}</em></>}</small></span>
+                        <label className="pf-toggle nt-toggle"><input type="checkbox" checked={notificationPrefs.data![p.key]} disabled={savingPref === p.key} onChange={(e) => togglePref(p.key, e.target.checked)} aria-label={p.label} /><i aria-hidden="true" /></label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="ac-note">Delivery of push, SMS and email is connected in later modules; your choices are saved now.</p>
+              </section>
+            )}
 
             <div className="nt-tabs" role="tablist">
               {TABS.map((t) => {
@@ -52,9 +95,12 @@ export default function NotificationsPage() {
               })}
             </div>
 
-            {visible.length === 0 ? (
-              <div className="ac-card ac-empty"><span aria-hidden="true">🔔</span><h3>You're all caught up</h3><p>No notifications in this category.</p></div>
-            ) : (
+            {notifications.status === 'loading' || notifications.status === 'idle' ? <LoadingState label="Loading notifications" rows={4} /> : null}
+            {notifications.status === 'error' && <ErrorState message={notifications.error ?? 'Failed to load notifications.'} onRetry={notifications.reload} />}
+            {notifications.status === 'ready' && visible.length === 0 && (
+              <EmptyState icon={<ICON.bell size={32} />} title="You're all caught up" text={tab === 'all' ? 'No notifications yet.' : 'No notifications in this category.'} />
+            )}
+            {notifications.status === 'ready' && visible.length > 0 && (
               <ul className="nt-list">
                 {visible.map((n) => {
                   const Icon = ICON[n.icon]
@@ -69,8 +115,8 @@ export default function NotificationsPage() {
                   return (
                     <li key={n.id} className={`nt ${n.read ? '' : 'is-unread'}`}>
                       {n.link
-                        ? <Link to={n.link} onClick={() => markRead(n.id)}>{body}</Link>
-                        : <button type="button" onClick={() => markRead(n.id)}>{body}</button>}
+                        ? <Link to={n.link} onClick={() => { void read(n.id) }}>{body}</Link>
+                        : <button type="button" onClick={() => { void read(n.id) }} aria-label={`${n.title}. ${n.read ? 'Read' : 'Mark as read'}`}>{body}</button>}
                     </li>
                   )
                 })}

@@ -134,3 +134,6 @@
 @media (max-width: 480px) {
   .menu-grid { grid-template-columns: 1fr; }
 }
+
+.rd-round.is-on { color: #e5261f; }
+.rd-round.is-on svg { fill: currentColor; }

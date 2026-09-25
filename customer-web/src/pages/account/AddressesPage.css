@@ -9,7 +9,7 @@
 .addr__radio input:focus-visible + i { outline: 2px solid var(--orange-deep); outline-offset: 2px; }
 .addr__icon { width: 44px; height: 44px; border-radius: 12px; background: #fff3ea; color: var(--orange-deep); display: grid; place-items: center; }
 .addr__body h2 { margin: 0 0 4px; display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; color: var(--ink); }
-.addr__tag { padding: 2px 10px; border-radius: 999px; background: #e6f7ea; color: #1d8f3f; font-size: 12px; font-weight: 600; }
+.addr__tag { padding: 2px 10px; border-radius: 999px; background: #e6f7ea; color: #15733a; font-size: 12px; font-weight: 600; }
 .addr__body p { margin: 0 0 8px; font-size: 14px; line-height: 1.45; color: var(--muted); }
 .addr__actions { display: flex; gap: 16px; }
 @media (max-width: 600px) { .addr { grid-template-columns: auto 1fr; } .addr__icon { display: none; } }

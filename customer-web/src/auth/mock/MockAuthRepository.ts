@@ -43,12 +43,17 @@ export class MockAuthRepository implements AuthRepository {
   constructor(latencyMs = 500, now: () => number = () => Date.now()) {
     this.latencyMs = latencyMs
     this.now = now
-    if (!storage.get<AuthUser[]>(localStorage, KEY_DIRECTORY)) {
-      storage.set(localStorage, KEY_DIRECTORY, [{ id: 'cust-rahul', name: 'Rahul Sharma', phone: TEST_NUMBERS.existingCustomer, email: 'rahul.sharma@example.com', memberSince: '2025-01-12' }])
-    }
+    this.directory()
   }
 
-  private directory(): AuthUser[] { return storage.get<AuthUser[]>(localStorage, KEY_DIRECTORY) ?? [] }
+  private directory(): AuthUser[] {
+    const list = storage.get<AuthUser[]>(localStorage, KEY_DIRECTORY)
+    if (list) return list
+    // Re-seed lazily (storage may have been cleared after construction, e.g. between tests).
+    const seed: AuthUser[] = [{ id: 'cust-rahul', name: 'Rahul Sharma', phone: TEST_NUMBERS.existingCustomer, email: 'rahul.sharma@example.com', memberSince: '2025-01-12' }]
+    storage.set(localStorage, KEY_DIRECTORY, seed)
+    return seed
+  }
   private saveDirectory(list: AuthUser[]) { storage.set(localStorage, KEY_DIRECTORY, list) }
   private session(): Session | null { return storage.get<Session>(sessionStorage, KEY_SESSION) }
 

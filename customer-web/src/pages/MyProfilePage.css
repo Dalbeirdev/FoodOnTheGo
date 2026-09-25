@@ -19,9 +19,9 @@
 .pf-card__head p { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
 .pf-card__icon { color: var(--orange-deep); flex-shrink: 0; }
 .pf-required { margin-left: auto; font-size: 13px; color: #e5261f; }
-.pf-outline-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--orange-deep); background: #fff; color: var(--orange-deep); font-size: 14px; font-weight: 500; }
+.pf-outline-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--orange-deep); background: #fff; color: var(--orange-text); font-size: 14px; font-weight: 500; }
 .pf-outline-btn:hover { background: #fff7f2; }
-.pf-verified { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; background: #e6f7ea; color: #1d8f3f; font-size: 12px; font-weight: 600; }
+.pf-verified { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; background: #e6f7ea; color: #15733a; font-size: 12px; font-weight: 600; }
 .pf-verified svg { padding: 1px; border-radius: 50%; background: #1d9d4a; color: #fff; }
 
 /* ---------- Summary ---------- */
@@ -37,7 +37,7 @@
 .pf-tabs a { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; }
 .pf-tabs a svg { color: var(--muted); }
 .pf-tabs a:hover { background: var(--bg); }
-.pf-tabs a.is-on { background: #fff3ea; color: var(--orange-deep); box-shadow: inset 0 -3px 0 var(--orange-deep); }
+.pf-tabs a.is-on { background: #fff3ea; color: var(--orange-text); box-shadow: inset 0 -3px 0 var(--orange-deep); }
 .pf-tabs a.is-on svg { color: var(--orange-deep); }
 
 /* ---------- Form ---------- */
@@ -78,15 +78,15 @@
 .pf-account dt { display: flex; align-items: center; gap: 10px; margin: 0; color: var(--muted); }
 .pf-account dt svg { color: var(--ink); }
 .pf-account dd { margin: 0; display: flex; align-items: center; gap: 8px; color: var(--ink); font-weight: 500; }
-.pf-tag { padding: 3px 10px; border-radius: 999px; background: #e9f1ff; color: #2f7cf6; font-size: 12px; font-weight: 600; }
-.pf-status { color: #1d8f3f; }
+.pf-tag { padding: 3px 10px; border-radius: 999px; background: #e9f1ff; color: #1d4ed8; font-size: 12px; font-weight: 600; }
+.pf-status { color: #15733a; }
 .pf-danger { color: #e5261f; text-decoration: underline; }
 
 /* ---------- Side ---------- */
 .pf-side__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .pf-side__head h2 { display: flex; align-items: center; gap: 10px; }
 .pf-side__head h2 svg { color: var(--orange-deep); }
-.pf-side__head a, .pf-side__head button { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; color: var(--orange-deep); text-decoration: underline; }
+.pf-side__head a, .pf-side__head button { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 500; color: var(--orange-text); text-decoration: underline; }
 .pf-side__sub { margin: 4px 0 12px; font-size: 14px; color: var(--muted); }
 .pf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
 .pf-stat { display: flex; flex-direction: column; gap: 4px; padding: 16px 14px; border-radius: 14px; color: var(--ink); }
@@ -104,7 +104,7 @@
 .pf-prefs li > b { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; color: var(--muted); text-align: right; }
 .pf-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 240px; }
 .pf-chips button { height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid #dfe2e8; background: #fff; color: var(--text); font-size: 13px; }
-.pf-chips button.is-on { background: #fff3ea; border-color: #ffc9ad; color: var(--orange-deep); }
+.pf-chips button.is-on { background: #fff3ea; border-color: #ffc9ad; color: var(--orange-text); }
 .pf-toggle { position: relative; display: inline-block; cursor: pointer; }
 .pf-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
 .pf-toggle i { display: block; position: relative; width: 44px; height: 24px; border-radius: 999px; background: #d5d8df; transition: background .15s; }
@@ -124,9 +124,9 @@
 .pf-activity__info strong { font-size: 14px; color: var(--ink); margin-top: 2px; }
 .pf-activity__when { display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.5; color: var(--muted); text-align: right; }
 .pf-pill { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-.pf-pill.is-green { background: #e6f7ea; color: #1d8f3f; } .pf-pill.is-green svg { padding: 1px; border-radius: 50%; background: #1d9d4a; color: #fff; }
+.pf-pill.is-green { background: #e6f7ea; color: #15733a; } .pf-pill.is-green svg { padding: 1px; border-radius: 50%; background: #1d9d4a; color: #fff; }
 .pf-pill.is-blue { background: #e9f1ff; color: #2f7cf6; }
-.pf-pill.is-red { background: #ffe9e9; color: #e5261f; }
+.pf-pill.is-red { background: #ffe9e9; color: #b91c1c; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1400px) { .pf__grid { grid-template-columns: 240px 1fr; } .pf__side { grid-column: 2; } }
@@ -148,3 +148,18 @@
   .pf-prefs li > b, .pf-prefs li .pf-chips, .pf-prefs li .pf-input-wrap--sm { grid-column: 2; justify-content: flex-start; text-align: left; }
   .pf-prefs li .pf-toggle { grid-column: 2; }
 }
+
+/* ---- Module 04 additions ---- */
+.pf-avatar--img { object-fit: cover; }
+.pf-summary__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.pf-muted { color: var(--muted); }
+.pf-optional { font-weight: 400; color: var(--muted); font-size: 12px; }
+.pf-hint { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.pf-hint .ac-link-btn { font-size: 12px; }
+.pf-danger-note { color: #9a1d17; font-size: 13px; margin-top: 4px; }
+.pf-form__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.pf-form__actions .btn { height: 46px; }
+.pf-account dd .pf-hint { display: inline; margin-left: 6px; }
+.pf-account dd .pf-danger { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.pf-avatar-preview { display: block; width: 180px; height: 180px; border-radius: 50%; object-fit: cover; margin: 0 auto 14px; box-shadow: var(--shadow-card); }
+.pf-activity__empty { color: var(--muted); font-size: 14px; padding: 8px 0; }

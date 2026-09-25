@@ -17,3 +17,5 @@
 }
 
 .acct__badge { margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #e5261f; color: #fff; font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+
+.acct__avatar--img { object-fit: cover; }

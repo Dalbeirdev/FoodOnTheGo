@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import { ClockIcon, PinIcon, StarIcon } from '../components/Icons'
 import { useAccount } from '../account/AccountContext'
+import { useAuth } from '../auth/AuthContext'
 import './RestaurantsPage.css'
 
 type P = { size?: number }
@@ -47,6 +48,10 @@ export default function RestaurantsPage() {
   const [radius, setRadius] = useState(5)
   const [distance, setDistance] = useState(10)
   const { isFavorite, toggleFavorite } = useAccount()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const favorite = (id: string) => { if (!isAuthenticated) return navigate('/login', { state: { from: location.pathname + location.search } }); void toggleFavorite(id) }
 
   return (
     <>
@@ -174,7 +179,7 @@ export default function RestaurantsPage() {
                       <img src={r.image} alt={r.name} onError={(e) => { e.currentTarget.style.display = 'none' }} />
                       <span className="rcard__fallback" aria-hidden="true">{r.fallback}</span>
                       <span className="rcard__detour"><ClockIcon size={18} /><span>{r.detour}<br /><small>detour</small></span></span>
-                      <button type="button" className={`rcard__like ${isFavorite(r.id) ? 'is-on' : ''}`} aria-pressed={isFavorite(r.id)} aria-label={`Save ${r.name}`} onClick={() => toggleFavorite(r.id)}><HeartIcon /></button>
+                      <button type="button" className={`rcard__like ${isFavorite(r.id) ? 'is-on' : ''}`} aria-pressed={isFavorite(r.id)} aria-label={`Save ${r.name}`} onClick={() => favorite(r.id)}><HeartIcon /></button>
                     </div>
                     <div className="rcard__body">
                       <div className="rcard__row">
