@@ -86,25 +86,40 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
           if (journeyState == 'loading') const Card(child: Padding(padding: EdgeInsets.all(16), child: Row(children: [SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)), SizedBox(width: 12), Text('Loading journey…', style: TextStyle(color: Brand.grey))]))),
           if (journeyState == 'missing') Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Journey not found on this device.', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A1D17))), const SizedBox(height: 10), BrandButton(label: S.t('discovery.planJourney'), expand: false, height: 42, onPressed: () => context.go('/plan-journey'))]))),
           if (journey != null) _JourneyContextCard(journey: journey, ds: ds, js: js, units: units),
-          if (journey == null && journeyState == 'none') _NoJourneyCard(),
-          if (journey == null && journeyState == 'none') ...[const SizedBox(height: 10), _ScopeBanner(ds: ds, onChange: _changeLocation)],
+          if (journey == null && journeyState == 'none') _ContextCard(ds: ds, onChange: _changeLocation),
           const SizedBox(height: 14),
           // search + filters + sort
-          TextField(controller: searchCtrl, textInputAction: TextInputAction.search, decoration: InputDecoration(hintText: S.t('discovery.search.placeholder'), prefixIcon: const Icon(Icons.search, color: Brand.grey), suffixIcon: ds.search.isEmpty ? null : IconButton(tooltip: 'Clear search', icon: const Icon(Icons.close, size: 18), onPressed: () { searchCtrl.clear(); ds.setSearch(''); })), onChanged: ds.setSearch),
-          const SizedBox(height: 10),
-          Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            _Pill(icon: Icons.tune, label: '${S.t('discovery.filters')}${ds.activeFilterCount > 0 ? ' (${ds.activeFilterCount})' : ''}', active: ds.activeFilterCount > 0, onTap: () => _openFilters(context)),
-            _SortMenu(ds: ds, journey: journey),
-            _Pill(icon: mapView ? Icons.format_list_bulleted : Icons.map_outlined, label: mapView ? S.t('discovery.view.list') : S.t('discovery.view.map'), active: mapView, onTap: () => setState(() => mapView = !mapView)),
-            _UnitsMenu(ds: ds),
+          Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Expanded(child: Semantics(liveRegion: true, child: Text(heading, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -.2)))),
+            const SizedBox(width: 8),
+            _Segmented(mapView: mapView, onChanged: (v) => setState(() => mapView = v)),
           ]),
-          const SizedBox(height: 14),
-          Semantics(liveRegion: true, child: Text(heading, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
-          if (ds.sort == SortKey.recommended) Padding(padding: const EdgeInsets.only(top: 2), child: Text(S.t('discovery.sort.recommendedNote'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 16, offset: const Offset(0, 6))]),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              TextField(controller: searchCtrl, textInputAction: TextInputAction.search, decoration: InputDecoration(hintText: S.t('discovery.search.placeholder'), filled: true, fillColor: const Color(0xFFF4F5F8), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none), isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12), prefixIcon: const Icon(Icons.search, color: Brand.grey), suffixIcon: ds.search.isEmpty ? null : IconButton(tooltip: 'Clear search', icon: const Icon(Icons.close, size: 18), onPressed: () { searchCtrl.clear(); ds.setSearch(''); })), onChanged: ds.setSearch),
+              const SizedBox(height: 8),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                _Pill(icon: Icons.tune, label: '${S.t('discovery.filters')}${ds.activeFilterCount > 0 ? ' · ${ds.activeFilterCount}' : ''}', active: ds.activeFilterCount > 0, onTap: () => _openFilters(context)),
+                _SortMenu(ds: ds, journey: journey),
+                _UnitsMenu(ds: ds),
+              ]),
+            ]),
+          ),
+          if (ds.sort == SortKey.recommended) Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('discovery.sort.recommendedShort'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
           if (ds.status == DiscoveryStatus.updating) Padding(padding: const EdgeInsets.only(top: 4), child: Text(S.t('discovery.updating'), style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
           const SizedBox(height: 12),
           if (mapView) ...[
-            DiscoveryMapShell(journey: journey, items: ds.items, selectedId: ds.selectedId, onSelect: ds.select, updating: ds.status == DiscoveryStatus.updating || ds.status == DiscoveryStatus.loading),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .05), blurRadius: 16, offset: const Offset(0, 6))]),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Padding(padding: const EdgeInsets.fromLTRB(4, 2, 4, 8), child: Row(children: [Expanded(child: Text(S.t('discovery.map.title'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14))), _Legend(Brand.orange, S.t('card.open')), const SizedBox(width: 10), _Legend(Brand.greyLight, S.t('card.closed')), if (journey != null) ...[const SizedBox(width: 10), _Legend(Brand.orangeDeep, 'Route')]])),
+                DiscoveryMapShell(journey: journey, items: ds.items, selectedId: ds.selectedId, onSelect: ds.select, updating: ds.status == DiscoveryStatus.updating || ds.status == DiscoveryStatus.loading),
+              ]),
+            ),
             const SizedBox(height: 12),
             if (ds.selectedId != null) ...[
               for (final x in ds.items.where((x) => x.restaurant.id == ds.selectedId)) GlobalRestaurantCard(result: x, units: units, selected: true, onSelect: () {}),
@@ -140,7 +155,13 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                 ]),
               ]))),
             if (ds.items.isNotEmpty)
-              Opacity(opacity: ds.status == DiscoveryStatus.updating ? .6 : 1, child: ResponsiveGrid(columns: Layout.columns(context), children: [for (final x in ds.items) GlobalRestaurantCard(result: x, units: units, selected: x.restaurant.id == ds.selectedId, onSelect: () => ds.select(x.restaurant.id), ringLabel: journey == null ? _ringLabel(ds, x.ring) : null)])),
+              Opacity(opacity: ds.status == DiscoveryStatus.updating ? .6 : 1, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                for (final g in _groups(ds, journey)) ...[
+                  if (g.$1 != null) Padding(padding: const EdgeInsets.fromLTRB(2, 8, 2, 10), child: Row(children: [Text(g.$1!.toUpperCase(), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, letterSpacing: 1.6, color: Brand.navy)), const SizedBox(width: 8), Text('${g.$2.length}', style: const TextStyle(fontSize: 11.5, color: Brand.grey)), const SizedBox(width: 10), const Expanded(child: Divider(height: 1))])),
+                  ResponsiveGrid(columns: Layout.columns(context), children: [for (final x in g.$2) GlobalRestaurantCard(result: x, units: units, selected: x.restaurant.id == ds.selectedId, onSelect: () => ds.select(x.restaurant.id))]),
+                  const SizedBox(height: 4),
+                ],
+              ])),
             if (journey == null && ds.scope != null && ds.ringApplied != null && ds.ringApplied! > ds.maxRing && ds.status == DiscoveryStatus.ready)
               Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('scope.expanded', {'ring': (_ringLabel(ds, ds.ringApplied) ?? '').toLowerCase()}), style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
             if (journey == null && ds.scope != null && ds.nextRing != null && ds.nextCursor == null && ds.status == DiscoveryStatus.ready && ds.items.isNotEmpty) ...[
@@ -169,41 +190,79 @@ String _countryName(String cc) => cc; // Display names arrive with translations 
 String? _ringLabel(DiscoveryState ds, int? ring) => ring == null ? null : S.t('ring.$ring', {'region': ds.scope?.adminArea ?? ds.scope?.label ?? '', 'country': _countryName(ds.scope?.countryCode ?? '')});
 String _moreAreasLabel(DiscoveryState ds) => S.t('scope.moreAreas.${ds.nextRing}', {'region': ds.scope?.adminArea ?? ds.scope?.label ?? '', 'country': _countryName(ds.scope?.countryCode ?? '')});
 
-class _ScopeBanner extends StatelessWidget {
-  const _ScopeBanner({required this.ds, required this.onChange});
+/// One calm context card for general discovery: location row + hint + primary CTA.
+class _ContextCard extends StatelessWidget {
+  const _ContextCard({required this.ds, required this.onChange});
   final DiscoveryState ds;
   final VoidCallback onChange;
   @override
   Widget build(BuildContext context) {
-    final s = ds.scope;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-      decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Brand.line), borderRadius: BorderRadius.circular(12)),
-      child: Row(children: [
-        const Icon(Icons.place_outlined, size: 18, color: Brand.orangeDeep), const SizedBox(width: 8),
-        Expanded(child: s == null
-            ? Text(S.t('scope.none.text'), style: const TextStyle(fontSize: 13))
-            : Text.rich(TextSpan(text: S.t(s.lat != null ? 'scope.showingNear' : 'scope.showingIn', {'label': s.label}), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600), children: [TextSpan(text: '  ${S.t('scope.source.${s.source}')}', style: const TextStyle(fontWeight: FontWeight.w400, color: Brand.grey, fontSize: 12))]))),
-        TextButton(onPressed: onChange, child: Text(s == null ? S.t('scope.set') : S.t('scope.change'))),
-      ]),
+    final sc = ds.scope;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 14),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [
+            const Icon(Icons.place_outlined, size: 18, color: Brand.orangeDeep), const SizedBox(width: 8),
+            Expanded(child: sc == null
+                ? Text(S.t('scope.none.text'), style: const TextStyle(fontSize: 13.5))
+                : Text.rich(TextSpan(text: S.t(sc.lat != null ? 'scope.showingNear' : 'scope.showingIn', {'label': sc.label}), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700), children: [TextSpan(text: '  ${S.t('scope.source.${sc.source}')}', style: const TextStyle(fontWeight: FontWeight.w400, color: Brand.grey, fontSize: 12))]))),
+            TextButton(onPressed: onChange, child: Text(sc == null ? S.t('scope.set') : S.t('scope.change'))),
+          ]),
+          const Divider(height: 18),
+          Row(children: [
+            Expanded(child: Text(S.t('discovery.noJourney.text'), style: const TextStyle(color: Brand.grey, fontSize: 13))),
+            const SizedBox(width: 10),
+            BrandButton(label: S.t('discovery.planJourney'), trailingIcon: Icons.arrow_forward, expand: false, height: 40, onPressed: () => context.go('/plan-journey')),
+          ]),
+        ]),
+      ),
     );
   }
 }
 
-class _NoJourneyCard extends StatelessWidget {
+class _Segmented extends StatelessWidget {
+  const _Segmented({required this.mapView, required this.onChanged});
+  final bool mapView;
+  final ValueChanged<bool> onChanged;
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(S.t('discovery.noJourney.title'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 4),
-            Text(S.t('discovery.noJourney.text'), style: const TextStyle(color: Brand.grey, fontSize: 13.5)),
-            const SizedBox(height: 12),
-            BrandButton(label: S.t('discovery.planJourney'), trailingIcon: Icons.arrow_forward, expand: false, height: 44, onPressed: () => context.go('/plan-journey')),
-          ]),
-        ),
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(color: const Color(0xFFF4F5F8), borderRadius: BorderRadius.circular(12)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          for (final (isMap, icon, label) in [(false, Icons.format_list_bulleted, S.t('discovery.view.list')), (true, Icons.map_outlined, S.t('discovery.view.map'))])
+            Semantics(
+              button: true, selected: mapView == isMap, label: label, onTap: () => onChanged(isMap), excludeSemantics: true,
+              child: InkWell(
+                onTap: () => onChanged(isMap), borderRadius: BorderRadius.circular(9),
+                child: Container(
+                  height: 34, padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(color: mapView == isMap ? Colors.white : null, borderRadius: BorderRadius.circular(9), boxShadow: mapView == isMap ? [BoxShadow(color: Colors.black.withValues(alpha: .10), blurRadius: 8, offset: const Offset(0, 2))] : null),
+                  child: Row(children: [Icon(icon, size: 17, color: mapView == isMap ? Brand.orangeDeep : Brand.grey), const SizedBox(width: 5), Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: mapView == isMap ? Brand.navy : Brand.grey))]),
+                ),
+              ),
+            ),
+        ]),
       );
+}
+
+class _Legend extends StatelessWidget {
+  const _Legend(this.color, this.label);
+  final Color color;
+  final String label;
+  @override
+  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 9, height: 9, decoration: BoxDecoration(color: color, shape: BoxShape.circle)), const SizedBox(width: 4), Text(label, style: const TextStyle(fontSize: 11.5, color: Brand.grey))]);
+}
+
+/// Group results by proximity ring for general discovery (null heading = single group).
+List<(String?, List<RouteRestaurantResult>)> _groups(DiscoveryState ds, Journey? journey) {
+  if (journey != null || ds.scope == null) return [(null, ds.items)];
+  final out = <(String?, List<RouteRestaurantResult>)>[];
+  for (final x in ds.items) {
+    final label = _ringLabel(ds, x.ring);
+    if (out.isEmpty || out.last.$1 != label) { out.add((label, [x])); } else { out.last.$2.add(x); }
+  }
+  return out;
 }
 
 class _JourneyContextCard extends StatelessWidget {
@@ -330,29 +389,25 @@ class GlobalRestaurantCard extends StatelessWidget {
       child: InkWell(
         onTap: open,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Photo(r.image, aspect: 16 / 9, radius: 0, child: Positioned.fill(child: Stack(children: [
-            if (result.detourDurationMin != null) Positioned(top: 10, left: 10, child: DetourBadge(result.detourDurationMin!)),
+          Photo(r.image, aspect: 16 / 10, radius: 0, overlay: true, child: Positioned.fill(child: Stack(children: [
+            Positioned(top: 10, left: 10, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: statusBg.withValues(alpha: .96), borderRadius: BorderRadius.circular(999)), child: Text(S.t(statusKey), style: TextStyle(color: statusColor, fontWeight: FontWeight.w800, fontSize: 11.5)))),
+            if (result.detourDurationMin != null) Positioned(bottom: 10, left: 10, child: DetourBadge(result.detourDurationMin!)),
             Positioned(top: 6, right: 6, child: FavoriteButton(restaurantId: r.id, name: r.name)),
           ]))),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(child: Text(r.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-                const SizedBox(width: 6),
-                const Icon(Icons.star_rounded, color: Brand.star, size: 18),
-                Text(' ${r.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                Text(' (${r.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 12)),
+                Expanded(child: Text(r.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, height: 1.2))),
+                const SizedBox(width: 8),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 15), Text(' ${r.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)), Text(' (${r.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
               ]),
-              const SizedBox(height: 2),
-              Text('${r.cuisines.join(' • ')}  ${priceLevelLabel(r.priceLevel, r.currency)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 13.5)),
-              const SizedBox(height: 8),
-              Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2), decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(999)), child: Text(S.t(statusKey), style: TextStyle(color: statusColor, fontWeight: FontWeight.w800, fontSize: 11.5))),
-                if (next != null) Text(next, style: const TextStyle(color: Brand.grey, fontSize: 12)),
-                if (ringLabel != null) Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2), decoration: BoxDecoration(color: result.ring == 0 ? Brand.greenBg : result.ring == 2 ? const Color(0xFFFFF4E0) : result.ring == 3 ? const Color(0xFFF2F3F6) : Brand.blueBg, borderRadius: BorderRadius.circular(999)), child: Text(ringLabel!, style: TextStyle(color: result.ring == 0 ? Brand.green : result.ring == 2 ? const Color(0xFF8A4B00) : result.ring == 3 ? const Color(0xFF4B5260) : const Color(0xFF1D4ED8), fontWeight: FontWeight.w700, fontSize: 11.5))),
-                if (!a.acceptingOrders && a.isOpen) Text(S.t('card.notAcceptingOrders'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
-              ]),
+              const SizedBox(height: 4),
+              Text('${r.cuisines.take(2).join(' · ')}  ·  ${priceLevelLabel(r.priceLevel, r.currency)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 13.5)),
+              if (next != null || (!a.acceptingOrders && a.isOpen)) ...[
+                const SizedBox(height: 4),
+                Text([?next, if (!a.acceptingOrders && a.isOpen) S.t('card.notAcceptingOrders')].join('  ·  '), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+              ],
               const SizedBox(height: 8),
               Wrap(spacing: 10, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 if (result.distanceFromRouteM != null) _Meta(Icons.place_outlined, S.t('card.fromRoute', {'distance': formatDistance(result.distanceFromRouteM!, units)})),
@@ -361,12 +416,12 @@ class GlobalRestaurantCard extends StatelessWidget {
                 if (result.estimatedArrival != null) _Meta(Icons.directions_car_outlined, S.t('card.arrival', {'time': formatLocalTime(result.estimatedArrival!, r.timezone)})),
               ]),
               const SizedBox(height: 6),
-              Text(r.address.formatted, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 12)),
+              Text(r.address.formatted, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 12)),
               const SizedBox(height: 8),
-              Wrap(spacing: 6, runSpacing: 6, children: r.features.take(3).map((t) => Tag(t)).toList()),
+              Wrap(spacing: 6, runSpacing: 6, children: r.features.take(2).map((t) => Tag(t)).toList()),
               const SizedBox(height: 12),
               Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 8, children: [
-                TextButton(onPressed: open, style: TextButton.styleFrom(padding: EdgeInsets.zero), child: Text(S.t('card.viewMenu'), style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700, fontSize: 15))),
+                TextButton(onPressed: open, style: TextButton.styleFrom(padding: EdgeInsets.zero), child: Text(S.t('card.viewMenu'), style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700, fontSize: 14))),
                 BrandButton(label: S.t('card.viewRestaurant'), expand: false, height: 40, onPressed: open),
               ]),
             ]),

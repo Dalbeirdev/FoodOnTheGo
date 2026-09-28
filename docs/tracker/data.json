@@ -3336,6 +3336,38 @@
    "issue": "-",
    "carry": "CF-089",
    "notes": "Owner feedback 2026-09-28: previous layout looked messy / unprofessional."
+  },
+  {
+   "id": "M06-046",
+   "module": "M06",
+   "req": "REDESIGN (Android) — Restaurants screen parity: single context card, white toolbar with search + pills + segmented List/Map, ring group headings, calmer cards (status on image, rating chip, one info line, ≤2 tags, single primary action), map panel with header + legend",
+   "platform": "ANDROID",
+   "cat": "Design",
+   "pri": "P1",
+   "status": "IMPLEMENTED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "PENDING USER DEVICE VERIFICATION",
+   "evidence": "docs/local-review/screenshots/android-preview/phone-restaurants-*.png, tablet-restaurants-*.png; preview walkthrough 17/17; flutter test 79/79",
+   "issue": "-",
+   "carry": "CF-090",
+   "notes": "Segmented control carries its own semantics tap action."
+  },
+  {
+   "id": "M06-047",
+   "module": "M06",
+   "req": "Android review APK build010 with SHA-256 + manifest + build log (redesign)",
+   "platform": "ANDROID",
+   "cat": "Build",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "PENDING",
+   "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build010.apk",
+   "issue": "-",
+   "carry": "-",
+   "notes": "SHA-256 5BAF493895C9265DAAAA80A169E377F79CE5E82F11D36E70A0F7BE22AA8C9C32"
   }
  ],
  "pages": [
@@ -3830,7 +3862,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "analyze+unit+widget PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3843,7 +3875,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3856,7 +3888,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3869,7 +3901,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build005)",
    "backend": "MOCK (MockAuthRepository)",
    "status": "VERIFIED"
@@ -3882,7 +3914,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-plan-journey.png, tablet-plan-journey.png)",
    "mock": "YES (MockLocation/Journey/Route)",
    "test": "unit + widget PASS; preview walkthrough",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3895,7 +3927,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3908,7 +3940,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3921,7 +3953,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-my-profile.png, tablet-my-profile.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3934,7 +3966,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build003)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3947,7 +3979,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-favorites.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3960,7 +3992,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-addresses.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3973,7 +4005,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-payment-methods.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3986,7 +4018,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-notifications.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3999,7 +4031,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-restaurants-fav.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -4012,7 +4044,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-journey-suggestions.png)",
    "mock": "YES",
    "test": "preview walkthrough PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -4025,7 +4057,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-journey-preview.png, tablet-journey-preview.png)",
    "mock": "YES",
    "test": "preview walkthrough PASS",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -4033,12 +4065,12 @@
   {
    "screen": "Restaurants — global discovery (location scope banner + picker, rings, journey context, search, filter sheet, sort, list ⇄ map shell, load more)",
    "design": "Adapt from Web",
-   "ui": "IMPLEMENTED (M06 + addendum, build009)",
+   "ui": "IMPLEMENTED (M06 + addendum + redesign, build010)",
    "nav": "PASS",
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-restaurants-general.png, phone-restaurants-journey.png, tablet-restaurants-journey.png)",
    "mock": "YES",
    "test": "unit + widget PASS; preview walkthrough",
-   "apk": "YES (build009)",
+   "apk": "YES (build010)",
    "manual": "PENDING USER DEVICE VERIFICATION",
    "backend": "NOT STARTED",
    "status": "IMPLEMENTED"
@@ -5261,7 +5293,7 @@
    "P0",
    "Owner",
    "Before M06 approval",
-   "PENDING USER DEVICE VERIFICATION",
+   "SUPERSEDED by CF-090 (build010)",
    "2026-09-28",
    "-"
   ],
@@ -5273,7 +5305,19 @@
    "P2",
    "Claude",
    "Next Android polish pass",
-   "NOT STARTED",
+   "DONE",
+   "2026-09-28",
+   "Android parity pass applied 2026-09-28 (M06-046)"
+  ],
+  [
+   "CF-090",
+   "Owner device test of build010: location context card + Change location, ring group headings, segmented List/Map, journey flows, filters sheet, marker selection, TalkBack on segmented control and cards",
+   "M06",
+   "APK built; not yet installed on owner device",
+   "P0",
+   "Owner",
+   "Before M06 approval",
+   "PENDING USER DEVICE VERIFICATION",
    "2026-09-28",
    "-"
   ]
@@ -6235,6 +6279,26 @@
    "ANDROID",
    "Owner device test of build009 (see CF-088)",
    "manual (device)",
+   "SUPERSEDED",
+   "build009 replaced by build010 before device testing",
+   "2026-09-28"
+  ],
+  [
+   "TE-066",
+   "M06",
+   "ANDROID",
+   "Preview walkthrough on the redesigned Restaurants screen (device-region card, Chandigarh scope rings, filter sheet, map shell + selection, AE and US journeys)",
+   "preview",
+   "PASS",
+   "docs/local-review/screenshots/android-preview/phone-restaurants-*.png (17/17)",
+   "2026-09-28"
+  ],
+  [
+   "TE-067",
+   "M06",
+   "ANDROID",
+   "Owner device test of build010 (see CF-090)",
+   "manual (device)",
    "PENDING",
    "-",
    "2026-09-28"
@@ -6644,6 +6708,19 @@
    "b14b6d6 (M06 addendum)",
    "2026-09-28",
    "C8F93381CA811E8A666903A7B86ED11E93F7966AB2A851B135AE3BFB96A9C2EC",
+   "PENDING",
+   "PENDING USER DEVICE VERIFICATION",
+   "SUPERSEDED by build010 before device test"
+  ],
+  [
+   "FoodOnTheGo-local-review-v0.1.0-build010.apk",
+   "0.1.0",
+   "10 (local/debug)",
+   "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+   "MOCK AUTH + ACCOUNT + JOURNEY + GLOBAL RESTAURANT REPOSITORIES (location-scoped, redesigned)",
+   "Android redesign commit (see git log)",
+   "2026-09-28",
+   "5BAF493895C9265DAAAA80A169E377F79CE5E82F11D36E70A0F7BE22AA8C9C32",
    "PENDING",
    "PENDING USER DEVICE VERIFICATION",
    "BUILT — AWAITING DEVICE TEST"
