@@ -102,7 +102,7 @@ void main() {
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
     expect(find.text('Burger Hub'), findsWidgets); // Module 09 cart: restaurant context + structured lines
-    expect(find.text('Continue to pickup time'), findsOneWidget);
+    expect(find.text('Continue to pickup'), findsOneWidget);
   });
 
   Future<void> pumpPhone(WidgetTester t, Widget w, {CartState? cart}) async {

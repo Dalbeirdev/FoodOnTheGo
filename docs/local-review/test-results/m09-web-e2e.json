@@ -1,9 +1,9 @@
 {
   "module": "M09",
-  "ranAt": "2026-09-28T13:32:57.497Z",
+  "ranAt": "2026-09-28T13:46:03.057Z",
   "base": "http://localhost:5173",
   "total": 33,
-  "passed": 33,
+  "passed": 32,
   "results": [
     {
       "name": "TEST 1 empty cart: professional empty state, Explore + Plan actions, no checkout controls",
@@ -112,7 +112,7 @@
     },
     {
       "name": "PROCEED leads to the interim pickup-time stage (no payment, nothing ordered)",
-      "pass": true,
+      "pass": false,
       "detail": ""
     },
     {

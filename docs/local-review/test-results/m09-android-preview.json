@@ -1,0 +1,118 @@
+{
+  "module": "M09",
+  "ranAt": "2026-09-28T13:42:35.067Z",
+  "total": 22,
+  "passed": 22,
+  "results": [
+    {
+      "n": "phone: empty cart state with Explore restaurants + Plan a journey, no Continue",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: restaurant context (Burger Hub, address, status, prep) + structured lines (Size: Large, Add-ons: Extra Cheese) + totals",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: no invented taxes / fees; fees note shown",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: quantity +1 → line ₹1,050.00 and subtotal ₹1,170.00",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Edit reopens the item with configuration restored (Editing…, ₹700.00 total for qty 2)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Save changes returns to the cart with the line updated (Jumbo)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: promo WELCOME10 applies as a development promotion with a discount row",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Remove asks for confirmation",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: line removed; cart keeps the burger",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Continue opens the interim Pickup time stage (nothing ordered)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: removing the final item returns the empty state",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: empty cart state with Explore restaurants + Plan a journey, no Continue",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: restaurant context (Burger Hub, address, status, prep) + structured lines (Size: Large, Add-ons: Extra Cheese) + totals",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: no invented taxes / fees; fees note shown",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: quantity +1 → line ₹1,050.00 and subtotal ₹1,170.00",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Edit reopens the item with configuration restored (Editing…, ₹700.00 total for qty 2)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Save changes returns to the cart with the line updated (Jumbo)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: promo WELCOME10 applies as a development promotion with a discount row",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Remove asks for confirmation",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: line removed; cart keeps the burger",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Continue opens the interim Pickup time stage (nothing ordered)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: removing the final item returns the empty state",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

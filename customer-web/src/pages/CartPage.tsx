@@ -144,7 +144,7 @@ export default function CartPage() {
                       <p className="cart-rest-row__addr"><PinIcon size={16} /> <span dir="auto">{restaurant.address.formatted}</span></p>
                       <p className="cart-rest-row__meta">
                         {availability && <span className={`cart-status cart-status--${availability.status}`}>{t(`card.${availability.status === 'closing_soon' ? 'closingSoon' : availability.status === 'opening_soon' ? 'openingSoon' : availability.status === 'temporarily_closed' ? 'temporarilyClosed' : availability.status}`, undefined, locale)}</span>}
-                        {availability?.nextChangeAt && <span>{t(availability.status === 'open' || availability.status === 'closing_soon' ? 'card.closesAt' : 'card.opensAt', { time: formatLocalTime(availability.nextChangeAt, restaurant.timezone, locale) }, locale)} {zoneLabel(restaurant.timezone, locale)}</span>}
+                        {availability?.nextChangeAt && <span>{t(availability.status === 'open' || availability.status === 'closing_soon' ? 'card.closesAt' : 'card.opensAt', { time: formatLocalTime(availability.nextChangeAt, restaurant.timezone, locale) }, locale)} {zoneLabel(new Date().toISOString(), restaurant.timezone, locale)}</span>}
                         {!restaurant.acceptingOrders && <span className="cart-status cart-status--off">{t('card.notAcceptingOrders', undefined, locale)}</span>}
                       </p>
                       <p className="cart-rest-row__pickup"><ClockIcon size={16} /> {t('cartpage.prep', { minutes: formatMinutes(restaurant.prepTimeMin, locale) }, locale)} · {earliest && t('cartpage.earliest', { time: formatLocalTime(earliest, restaurant.timezone, locale) }, locale)}</p>
@@ -173,7 +173,7 @@ export default function CartPage() {
             {result?.currencyMismatch && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.currency', undefined, locale)}</p>}
             {result?.restaurantIssue === 'inactive' && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.restaurant.inactive', undefined, locale)} <Link to="/restaurants" className="cart-link">{t('cartpage.change', undefined, locale)}</Link></p>}
             {result?.restaurantIssue === 'not_accepting' && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.restaurant.notAccepting', undefined, locale)} <Link to={`/restaurants/${c.restaurantSlug}`} className="cart-link">{t('cartpage.view', undefined, locale)}</Link> · <Link to="/restaurants" className="cart-link">{t('cartpage.change', undefined, locale)}</Link></p>}
-            {result?.restaurantIssue === 'closed' && restaurant && <p className="cart-notice cart-notice--info" role="status">{availability?.nextChangeAt ? t('cartpage.restaurant.closed', { time: `${formatLocalTime(availability.nextChangeAt, restaurant.timezone, locale)} ${zoneLabel(restaurant.timezone, locale)}` }, locale) : t('cartpage.restaurant.closedNoTime', undefined, locale)}</p>}
+            {result?.restaurantIssue === 'closed' && restaurant && <p className="cart-notice cart-notice--info" role="status">{availability?.nextChangeAt ? t('cartpage.restaurant.closed', { time: `${formatLocalTime(availability.nextChangeAt, restaurant.timezone, locale)} ${zoneLabel(new Date().toISOString(), restaurant.timezone, locale)}` }, locale) : t('cartpage.restaurant.closedNoTime', undefined, locale)}</p>}
 
             {/* Lines */}
             <section className="cart-card" aria-labelledby="cart-items-title">

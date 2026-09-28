@@ -55,7 +55,7 @@ void main() {
     await t.pumpWidget(app(cart)); await t.pumpAndSettle();
     expect(find.text('Your cart is empty.'), findsOneWidget);
     expect(find.text('Explore restaurants'), findsOneWidget); expect(find.text('Plan a journey'), findsOneWidget);
-    expect(find.text('Continue to pickup time'), findsNothing);
+    expect(find.text('Continue to pickup'), findsNothing);
   });
   testWidgets('TEST 2 / 3 / 4 — structured lines, restaurant context, totals, quantity', (t) async {
     tall(t);
@@ -113,7 +113,7 @@ void main() {
     expect(find.text('Price updated from ₹300.00 to ₹350.00 each.'), findsOneWidget);
     expect(find.text('Review cart'), findsOneWidget);
     await t.tap(find.text('Accept updated price')); await t.pumpAndSettle();
-    expect(find.text('Continue to pickup time'), findsOneWidget);
+    expect(find.text('Continue to pickup'), findsOneWidget);
     expect(cart.items.single.unitPriceMinor, 35000);
     final cart2 = CartState(repository: MemoryCartRepository()); await cart2.ready; cart2.addItem(burger());
     await t.pumpWidget(app(cart2, simulate: StaleSimulation.unavailable)); await t.pumpAndSettle();
@@ -129,7 +129,7 @@ void main() {
     expect(find.textContaining('WELCOME10 applied'), findsOneWidget);
     expect(find.text('−₹70.00'), findsOneWidget);
     expect(find.text('₹630.00'), findsWidgets);
-    await t.tap(find.text('Continue to pickup time')); await t.pumpAndSettle();
+    await t.tap(find.text('Continue to pickup')); await t.pumpAndSettle();
     expect(find.text('Pickup time'), findsWidgets);
     expect(find.textContaining('Nothing has been ordered'), findsOneWidget);
   });

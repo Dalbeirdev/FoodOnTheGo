@@ -87,7 +87,7 @@ describe('Cart page (web)', () => {
     expect(screen.getByText(/estimated total/i).parentElement).toHaveTextContent('₹820.00')
     expect(screen.queryByText(/GST|VAT|service fee|platform fee/i)).toBeNull()
     expect(screen.getByText(/no taxes or fees are configured/i)).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByRole('button', { name: /continue to pickup time/i })).toBeEnabled())
+    await waitFor(() => expect(screen.getByRole('button', { name: /continue to pickup/i })).toBeEnabled())
   })
 
   it('TEST 4 / 6 / 7 — quantity updates totals; remove asks first; removing the last item empties the cart', async () => {
@@ -157,7 +157,7 @@ describe('Cart page (web)', () => {
     expect(screen.getByText(/your cart has changed/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^review cart$/i })).toBeDisabled()
     await user.click(within(line).getByRole('button', { name: /accept updated price/i }))
-    await waitFor(() => expect(screen.getByRole('button', { name: /continue to pickup time/i })).toBeEnabled())
+    await waitFor(() => expect(screen.getByRole('button', { name: /continue to pickup/i })).toBeEnabled())
     expect(within(await screen.findByRole('listitem', { name: 'Classic Burger' })).getByText(/₹350\.00 each/)).toBeInTheDocument()
     expect(screen.getByTestId('auth').textContent).toContain('"count":3')
     sessionStorage.setItem('fotg.mock.stale', 'unavailable')
@@ -186,7 +186,7 @@ describe('Cart page (web)', () => {
     const user = userEvent.setup()
     const repo = await seededRepo([burger()])
     mount('/cart', repo)
-    const btn = await screen.findByRole('button', { name: /continue to pickup time/i })
+    const btn = await screen.findByRole('button', { name: /continue to pickup/i })
     await waitFor(() => expect(btn).toBeEnabled())
     await user.click(btn)
     expect(await screen.findByRole('heading', { level: 1, name: /pickup time/i })).toBeInTheDocument()

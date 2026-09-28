@@ -225,7 +225,7 @@ const en: Record<string, string> = {
   'cartpage.promo.invalid': 'That code is not valid.',
   'cartpage.promo.expired': 'That code has expired.',
   'cartpage.promo.minSpend': 'This code needs a subtotal of at least {amount}.',
-  'cartpage.proceed': 'Continue to pickup time',
+  'cartpage.proceed': 'Continue to pickup',
   'cartpage.proceed.blocked': 'Review cart',
   'cartpage.restaurant': 'Pickup at',
   'cartpage.view': 'View restaurant',
