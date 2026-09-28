@@ -1,8 +1,8 @@
 {
   "module": "M10",
-  "ranAt": "2026-09-28T15:19:07.317Z",
+  "ranAt": "2026-09-28T15:44:50.954Z",
   "total": 14,
-  "passed": 7,
+  "passed": 14,
   "results": [
     {
       "n": "phone: pickup context — restaurant, address, zone (Asia/Kolkata), prep + earliest pickup, instructions, no-journey hint",
@@ -21,22 +21,22 @@
     },
     {
       "n": "phone: scheduled day → data-driven slots with Recommended and Full states",
-      "ok": false,
-      "d": ""
+      "ok": true,
+      "d": "Today | Tue, Sep 29 | Wed, Sep 30"
     },
     {
       "n": "phone: slot selected → summary shows date / time / zone / estimated ready",
-      "ok": false,
-      "d": "no slot found"
+      "ok": true,
+      "d": "8:00 AM · Recommended"
     },
     {
       "n": "phone: guest Continue → authentication gate (login) with selection preserved",
-      "ok": false,
+      "ok": true,
       "d": ""
     },
     {
       "n": "phone: returning to pickup keeps the selection (summary still filled)",
-      "ok": false,
+      "ok": true,
       "d": ""
     },
     {
@@ -57,21 +57,21 @@
     {
       "n": "tablet: scheduled day → data-driven slots with Recommended and Full states",
       "ok": true,
-      "d": ""
+      "d": "Today | Tue, Sep 29 | Wed, Sep 30"
     },
     {
       "n": "tablet: slot selected → summary shows date / time / zone / estimated ready",
-      "ok": false,
-      "d": "no slot found"
+      "ok": true,
+      "d": "8:00 AM · Recommended"
     },
     {
       "n": "tablet: guest Continue → authentication gate (login) with selection preserved",
-      "ok": false,
+      "ok": true,
       "d": ""
     },
     {
       "n": "tablet: returning to pickup keeps the selection (summary still filled)",
-      "ok": false,
+      "ok": true,
       "d": ""
     }
   ]
