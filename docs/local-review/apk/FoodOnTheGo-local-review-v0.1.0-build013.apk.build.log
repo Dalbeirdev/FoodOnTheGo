@@ -23,5 +23,5 @@ Warning: SDK processing. This version only understands SDK XML versions up to 3 
    We strongly recommend running the flutter tool without superuser privileges.
   /
 📎
-Running Gradle task 'assembleLocalDebug'...                        69.0s
+Running Gradle task 'assembleLocalDebug'...                        48.7s
 ✓ Built build/app/outputs/flutter-apk/app-local-debug.apk

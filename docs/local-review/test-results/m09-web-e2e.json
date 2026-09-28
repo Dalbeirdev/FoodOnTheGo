@@ -1,9 +1,9 @@
 {
   "module": "M09",
-  "ranAt": "2026-09-28T13:46:03.057Z",
+  "ranAt": "2026-09-28T13:54:22.847Z",
   "base": "http://localhost:5173",
   "total": 33,
-  "passed": 32,
+  "passed": 33,
   "results": [
     {
       "name": "TEST 1 empty cart: professional empty state, Explore + Plan actions, no checkout controls",
@@ -112,8 +112,8 @@
     },
     {
       "name": "PROCEED leads to the interim pickup-time stage (no payment, nothing ordered)",
-      "pass": false,
-      "detail": ""
+      "pass": true,
+      "detail": "http://localhost:5173/pickup-time | Pickup time | "
     },
     {
       "name": "TEST 12 price change: review notice, old → new price shown, Continue disabled until accepted",
