@@ -6366,7 +6366,7 @@
    "8 (local/debug)",
    "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
    "MOCK AUTH + ACCOUNT + JOURNEY + GLOBAL RESTAURANT REPOSITORIES; LOCAL API health only",
-   "M06 commit (see git log)",
+   "941cfe7 (M06)",
    "2026-09-28",
    "7596B75545342A0EFBBAFC338D72FBA6FEEF89A0765512C8BB43B01A49F02CA7",
    "PENDING",
