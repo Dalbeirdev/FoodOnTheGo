@@ -49,7 +49,7 @@
    "id": "M05",
    "name": "Module 05 — Plan a Journey & Trip Planning Experience (frontend-first, mock location/journey/route)",
    "started": "2026-09-28",
-   "completed": "",
+   "completed": "2026-09-28",
    "scope": "Owner spec 2026-09-28: origin/destination inputs with mock location search, saved addresses (Module 04) and recent locations, current-location dev behaviour (REAL GEOLOCATION PERMISSION = PENDING INTEGRATION), swap, validation, optional travel date/time, Journey model + JourneyRepository/RouteRepository/LocationRepository (Mock*), centralised journey state (no-journey → editing → validating → ready → route-loading → route-available / error), journey preview with schematic route (NOT a map), continue to /restaurants?journey=<id>, guest + authenticated flows, recent journeys, loading/error states. Google Places / Routes / Maps, PostGIS corridor search and geolocation are registered as pending — not implemented."
   },
   {
@@ -2064,13 +2064,13 @@
    "platform": "ANDROID",
    "cat": "Journey",
    "pri": "P0",
-   "status": "IMPLEMENTED",
+   "status": "VERIFIED",
    "impl": "PASS",
    "test": "PASS",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "YES (owner tablet, build007)",
    "evidence": "plan_journey_screen.dart; docs/local-review/screenshots/android-preview/phone-plan-journey.png, phone-journey-preview.png, tablet-*.png",
    "issue": "-",
-   "carry": "CF-070",
+   "carry": "-",
    "notes": ""
   },
   {
@@ -2611,7 +2611,7 @@
    "status": "VERIFIED",
    "impl": "PASS",
    "test": "PASS",
-   "manual": "PENDING",
+   "manual": "YES (owner tablet, build007)",
    "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build007.apk",
    "issue": "-",
    "carry": "-",
@@ -3163,9 +3163,9 @@
    "mock": "YES (MockLocation/Journey/Route)",
    "test": "unit + widget PASS; preview walkthrough",
    "apk": "YES (build007)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Restaurants / Details / Item",
@@ -3293,9 +3293,9 @@
    "mock": "YES",
    "test": "preview walkthrough PASS",
    "apk": "YES (build007)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Journey preview + schematic route + continue",
@@ -3306,9 +3306,9 @@
    "mock": "YES",
    "test": "preview walkthrough PASS",
    "apk": "YES (build007)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   },
   {
    "screen": "Restaurants with journey summary (?journey=<id>)",
@@ -3319,9 +3319,9 @@
    "mock": "YES",
    "test": "preview walkthrough PASS",
    "apk": "YES (build007)",
-   "manual": "PENDING USER DEVICE VERIFICATION",
+   "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
-   "status": "IMPLEMENTED"
+   "status": "VERIFIED"
   }
  ],
  "decisions": [
@@ -3450,6 +3450,12 @@
    "Route preview during development is a labelled schematic, never a fake Google Map; distance/time carry a \"mock development data\" label on both platforms.",
    "Owner spec / Claude",
    "Removed when GoogleRouteRepository + Maps arrive."
+  ],
+  [
+   "2026-09-28",
+   "Module 05 accepted as complete: owner verified build007 on tablet, all screens pass. Google Places/Routes/Maps, PostGIS corridor and geolocation remain NOT STARTED (CF-058 … CF-063).",
+   "Owner",
+   "Module 06 may start on owner instruction."
   ]
  ],
  "carry": [
@@ -4289,9 +4295,9 @@
    "P0",
    "Owner",
    "Before M05 approval",
-   "PENDING USER DEVICE VERIFICATION",
+   "DONE",
    "2026-09-28",
-   "-"
+   "build007 verified on owner tablet 2026-09-28"
   ]
  ],
  "bugs": [
@@ -4587,7 +4593,7 @@
    "Raw Material + InkWell without Semantics(container: true, button: true)",
    "BrandButton wrapped in a Semantics boundary (theme.dart)",
    "PASS (semantics probe; preview walkthrough clicks \"Find Restaurants Along Route\"; flutter test 64/64)",
-   "FIXED / VERIFIED (preview)"
+   "FIXED / VERIFIED (owner device build007)"
   ],
   [
    "BUG-022",
@@ -5131,8 +5137,8 @@
    "ANDROID",
    "Owner device test of build007 (see CF-070)",
    "manual (device)",
-   "PENDING",
-   "-",
+   "PASS",
+   "Owner confirmation 2026-09-28: build007 tested on tab, all screens pass",
    "2026-09-28"
   ],
   [
@@ -5484,9 +5490,9 @@
    "53ba419 (M05)",
    "2026-09-28",
    "2A3383DC5441666FF8A7AECCC6C31EA2912A7EB16CCE0E4B10EC5AD4D5B39119",
-   "PENDING",
-   "PENDING USER DEVICE VERIFICATION",
-   "BUILT — AWAITING DEVICE TEST"
+   "YES (owner tablet, 2026-09-28)",
+   "VERIFIED — all screens pass (owner, 2026-09-28)",
+   "VERIFIED ON DEVICE"
   ]
  ],
  "pendingAssets": {

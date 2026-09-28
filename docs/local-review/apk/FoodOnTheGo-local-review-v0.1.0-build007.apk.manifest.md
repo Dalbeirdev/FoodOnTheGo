@@ -12,7 +12,7 @@
 | SHA-256 | 2A3383DC5441666FF8A7AECCC6C31EA2912A7EB16CCE0E4B10EC5AD4D5B39119 |
 | Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=http://192.168.1.221:8001/api/v1 |
 | Install (USB) | adb install -r FoodOnTheGo-local-review-v0.1.0-build007.apk |
-| Install tested | PENDING |
-| Manual user tested | PENDING USER DEVICE VERIFICATION |
+| Install tested | YES (owner tablet, 2026-09-28) |
+| Manual user tested | VERIFIED — all screens pass (owner, 2026-09-28) |
 
 Phone must be on the same Wi-Fi as the PC (or use adb reverse). Check http://http://192.168.1.221:8001/api/health in the phone browser first.
