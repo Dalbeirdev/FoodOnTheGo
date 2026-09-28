@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 07 (Restaurant details & menu browsing) — awaiting owner device test of build011",
+  "phase": "Frontend — Module 07 COMPLETE (owner verified build011); Module 08 may start",
   "currentModule": "Module 07",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -63,7 +63,7 @@
       "id": "M07",
       "name": "Module 07 — Restaurant Details & Menu Browsing (frontend-first, mock repositories)",
       "started": "2026-09-28",
-      "completed": "",
+      "completed": "2026-09-28",
       "scope": "Owner spec 2026-09-28: canonical /restaurants/:restaurantSlug on approved Design A for Web + Android; MenuRepository abstraction (categories, items, search, filters, availability, cursor pages); opening hours + timezone; route context; favorites; map shell; gallery; states; SEO; item navigation to /restaurants/:slug/item/:itemSlug (read-only until Module 08). Backend tables, caching, deep links, dashboard link recorded as carry-forward."
     },
     {
@@ -3395,7 +3395,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build011)",
       "evidence": "mobile/lib/screens/restaurant_detail_screen.dart; docs/local-review/screenshots/android-preview/phone-restaurant-detail.png, tablet-restaurant-detail.png; docs/local-review/test-results/m07-android-preview.json 24/24",
       "issue": "-",
       "carry": "CF-098",
@@ -3827,7 +3827,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build011)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-restaurant-*.png, tablet-restaurant-detail.png, tablet-restaurant-info.png; docs/local-review/test-results/m07-android-preview.json",
       "issue": "-",
       "carry": "CF-098",
@@ -3987,7 +3987,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build011)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build011.apk",
       "issue": "-",
       "carry": "CF-098",
@@ -4064,7 +4064,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 25 + e2e 32/32 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build011)",
       "backend": "MOCK (MockRestaurantRepository + MockMenuRepository)",
       "prod": "NO",
       "shot": "web-m07/01-detail-no-journey",
@@ -4485,7 +4485,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "e2e TEST 12 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build011)",
       "backend": "MOCK (MockMenuRepository)",
       "prod": "NO",
       "shot": "web-m07/08-item-catalog",
@@ -4710,9 +4710,9 @@
       "mock": "YES",
       "test": "unit + widget PASS; preview walkthrough",
       "apk": "YES (build011)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build011, 2026-09-28)",
       "backend": "NOT STARTED",
-      "status": "IMPLEMENTED"
+      "status": "VERIFIED"
     },
     {
       "screen": "Restaurant Details (M07) — cover, info card, route context, Menu / Info / Photos tabs, category chips, search, filters, availability, hours, map shell, viewer",
@@ -4723,9 +4723,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (menu_test.dart 7 widget tests)",
       "apk": "YES (build011)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build011, 2026-09-28)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     },
     {
       "screen": "Catalogue item (read-only, M07)",
@@ -4736,9 +4736,9 @@
       "mock": "YES",
       "test": "widget PASS",
       "apk": "YES (build011)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build011, 2026-09-28)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -4921,6 +4921,12 @@
       "Repository menu items open a read-only catalogue item view until Module 08 delivers customisation and Add to Cart; legacy NCR items keep the Module 01 item page meanwhile.",
       "Claude",
       "Avoids duplicate ordering state before Module 08."
+    ],
+    [
+      "2026-09-28",
+      "Module 07 approved: owner tested build011 on tablet, all screens pass. Module 08 (Cart, Checkout & Payments) may start.",
+      "Owner",
+      "CF-098 closed; TE-074 PASS."
     ]
   ],
   "carry": [
@@ -6096,7 +6102,7 @@
       "P0",
       "Owner",
       "Before M07 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE — owner: \"build011 tested on tab, all screens pass\" (2026-09-28)",
       "2026-09-28",
       "-"
     ]
@@ -7176,8 +7182,8 @@
       "ANDROID",
       "Owner device test of build011 (see CF-098)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build011: all screens pass (2026-09-28)",
       "2026-09-28"
     ]
   ],
@@ -7635,9 +7641,9 @@
       "acd1ae4 (Module 07)",
       "2026-09-28",
       "8F7E8BBF5593010DADE21D86057B6F0F02B5B03F941BC4AC71593238DF5EA2CE",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-28)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
