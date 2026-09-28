@@ -5481,7 +5481,7 @@
    "7 (local/debug)",
    "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
    "MOCK AUTH + MOCK ACCOUNT + MOCK JOURNEY/ROUTE; LOCAL API health only",
-   "M05 commit (see git log)",
+   "53ba419 (M05)",
    "2026-09-28",
    "2A3383DC5441666FF8A7AECCC6C31EA2912A7EB16CCE0E4B10EC5AD4D5B39119",
    "PENDING",

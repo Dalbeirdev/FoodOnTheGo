@@ -6,7 +6,7 @@
 | Flavor / build type | local / debug |
 | Build environment | LOCAL (WSL Ubuntu build host) |
 | API base URL | http://192.168.1.221:8001/api/v1 |
-| Git commit | Module 05 commit (see git log) |
+| Git commit | 53ba419 (Module 05) |
 | Build timestamp | 2026-09-28 12:22 |
 | Size | 193.6 MB |
 | SHA-256 | 2A3383DC5441666FF8A7AECCC6C31EA2912A7EB16CCE0E4B10EC5AD4D5B39119 |
