@@ -1,0 +1,169 @@
+{
+  "module": "M07",
+  "ranAt": "2026-09-28T11:22:34.582Z",
+  "base": "http://localhost:5173",
+  "total": 32,
+  "passed": 32,
+  "results": [
+    {
+      "name": "TEST 7 direct slug open (no journey): H1, address, plan-journey hint, no route facts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SEO: title, description, canonical",
+      "pass": true,
+      "detail": "Dhaba Junction · FoodOnTheGo"
+    },
+    {
+      "name": "TEST 1 menu: dynamic categories (All + ≥3), items render, INR price in major units",
+      "pass": true,
+      "detail": "All | Popular 3 | Tandoor 3 | Breads 3 | Drinks & Sweets 3 — ₹320.00"
+    },
+    {
+      "name": "TEST 2 category chip → only that section is shown",
+      "pass": true,
+      "detail": "Tandoor"
+    },
+    {
+      "name": "TEST 3 search \"paneer\" narrows to matching items only",
+      "pass": true,
+      "detail": "Paneer Tikka"
+    },
+    {
+      "name": "TEST 3 no-match → empty state with clear action",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 unavailable item is visibly badged and not orderable",
+      "pass": true,
+      "detail": "Temporarily unavailable | Sold out"
+    },
+    {
+      "name": "TEST 5 \"Available now\" hides the unavailable item",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 sold-out item also hidden while filter is on",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 sold_out badge shown when filter is off",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "FILTER dietary \"Vegetarian\" narrows to tagged items",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 favorite while signed out → redirected to sign in",
+      "pass": true,
+      "detail": "http://localhost:5173/login"
+    },
+    {
+      "name": "TEST 9 no-menu restaurant shows info + \"Menu currently unavailable\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 invalid slug → not-found state with browse link",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "GLOBAL: JPY prices have no decimals",
+      "pass": true,
+      "detail": "¥890"
+    },
+    {
+      "name": "TEST 8 Info tab: hours listed for 7 days in restaurant zone (GMT+9 / Asia/Tokyo), Unicode name intact",
+      "pass": true,
+      "detail": "Monday11:00 AM – 11:00 PMTuesday11:00 AM – 11:00 PMWednesday11:00 AM – 11:00 PMT"
+    },
+    {
+      "name": "TEST 11 photo gallery opens lightbox dialog; Escape closes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 Escape closes lightbox",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 item link → /restaurants/:slug/item/:itemSlug renders the catalogue item view",
+      "pass": true,
+      "detail": "/restaurants/ippudo-shizuoka/item/shiromaru-motoaji-0-0"
+    },
+    {
+      "name": "TEST 7 with journey: route facts (distance from route, detour, arrival, ready by) + mock estimate label",
+      "pass": true,
+      "detail": "460 mfrom route4mdetour5:40 PMArrive localmock estimate"
+    },
+    {
+      "name": "MAP: dev map shell with the restaurant marker present",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "BACK: \"Back to results\" returns to the discovery list with the journey kept",
+      "pass": true,
+      "detail": "http://localhost:5173/restaurants"
+    },
+    {
+      "name": "TEST 13 large menu (100+ items): sections capped at 8 with \"Show all\" expanding",
+      "pass": true,
+      "detail": "80 → 84 cards, 14 category chips"
+    },
+    {
+      "name": "ERROR: menu failure shows error + retry; restaurant info still visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ERROR: retry recovers the menu",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE mobile 390×844: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE tablet 768×1024: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE desktop 1440×900: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

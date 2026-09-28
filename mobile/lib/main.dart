@@ -8,6 +8,7 @@ import 'screens/account_screens.dart';
 import 'screens/plan_journey_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/restaurants_screen.dart';
+import 'screens/restaurant_detail_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
 import 'screens/home_screens.dart';

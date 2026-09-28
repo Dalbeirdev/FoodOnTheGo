@@ -1,0 +1,128 @@
+{
+  "module": "M07",
+  "ranAt": "2026-09-28T11:21:43.935Z",
+  "total": 24,
+  "passed": 24,
+  "results": [
+    {
+      "n": "phone: detail opens by slug — name, address, status, prep, plan-journey hint",
+      "ok": true,
+      "d": "Open"
+    },
+    {
+      "n": "phone: menu categories + INR prices in major units",
+      "ok": true,
+      "d": "₹320.00 "
+    },
+    {
+      "n": "phone: menu search \"paneer\" narrows the list",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: no-match empty state with clear action",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: temporarily unavailable item is badged",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: \"Available now\" hides it (empty state)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Unicode restaurant + JPY prices without decimals",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Info tab — opening hours, zone label, pickup + contact placeholder",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: photo opens a full-screen viewer with Close",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: no-menu restaurant → \"Menu currently unavailable\" + info still shown",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: invalid slug → not-found with Browse restaurants",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: View item → read-only catalogue item with the Module 08 note",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: detail opens by slug — name, address, status, prep, plan-journey hint",
+      "ok": true,
+      "d": "Open"
+    },
+    {
+      "n": "tablet: menu categories + INR prices in major units",
+      "ok": true,
+      "d": "₹320.00 "
+    },
+    {
+      "n": "tablet: menu search \"paneer\" narrows the list",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: no-match empty state with clear action",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: temporarily unavailable item is badged",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: \"Available now\" hides it (empty state)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Unicode restaurant + JPY prices without decimals",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Info tab — opening hours, zone label, pickup + contact placeholder",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: photo opens a full-screen viewer with Close",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: no-menu restaurant → \"Menu currently unavailable\" + info still shown",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: invalid slug → not-found with Browse restaurants",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: View item → read-only catalogue item with the Module 08 note",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

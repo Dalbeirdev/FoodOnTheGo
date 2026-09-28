@@ -119,7 +119,7 @@ describe('Account flows (web UI)', () => {
     await signInRahul()
     const user = userEvent.setup()
     const detail = mount('/restaurants/healthy-bites')
-    const heart = await screen.findByRole('button', { name: /add healthy bites to favorites/i })
+    const heart = await screen.findByRole('button', { name: /save healthy bites/i })
     await user.click(heart)
     await waitFor(() => expect(screen.getByRole('button', { name: /remove healthy bites from favorites/i })).toBeInTheDocument())
     detail.unmount()

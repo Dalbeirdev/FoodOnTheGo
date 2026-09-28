@@ -22,10 +22,10 @@ describe('Customer Web pages render with the shared providers', () => {
     expect((await screen.findAllByRole('heading', { level: 3 })).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: /plan a journey/i }).length).toBeGreaterThan(0)
   })
-  it('Restaurant detail (Design A) renders the menu for the canonical slug route', () => {
-    renderPage(<RestaurantDetailPage />, { route: '/restaurants/burger-hub', path: '/restaurants/:restaurantSlug' })
-    expect(screen.getAllByText('Burger Hub').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Classic Burger').length).toBeGreaterThan(0)
+  it('Restaurant detail (Design A) renders the menu for the canonical slug route', async () => {
+    renderPage(<RestaurantDetailPage />, { route: '/restaurants/burger-hub', path: '/restaurants/:id' })
+    expect((await screen.findAllByText('Burger Hub')).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Classic Burger')).length).toBeGreaterThan(0)
   })
 
   it('Cart shows the empty state with a way back to restaurants', () => {

@@ -283,4 +283,18 @@ export class MockRestaurantRepository implements RestaurantRepository {
   }
 }
 
+
+/** Route context for one restaurant against a journey (no corridor cut-off) — used by the detail page. */
+export function routeContextFor(r: Restaurant, journey: JourneyLike, nowIso = new Date().toISOString()): RouteRestaurantResult | null {
+  const line: LatLng[] = journey.route?.geometry ?? (journey.origin.lat !== null && journey.destination.lat !== null ? [[journey.origin.lat, journey.origin.lng!], [journey.destination.lat, journey.destination.lng!]] : [])
+  if (line.length === 0) return null
+  const { meters, position } = distanceToPolyline([r.lat, r.lng], line)
+  const departure = journey.departureAt ? new Date(journey.departureAt).getTime() : new Date(nowIso).getTime()
+  const detourDistanceM = Math.round(meters * 2 * 1.3)
+  const detourDurationMin = Math.max(1, Math.round((detourDistanceM / 1000 / 35) * 60 + 2))
+  const arrivalMs = departure + position * (journey.route?.durationMin ?? 0) * 60_000 + (detourDurationMin / 2) * 60_000
+  const arrivalIso = new Date(arrivalMs).toISOString()
+  return { restaurant: r, distanceFromRouteM: Math.round(meters), detourDistanceM, detourDurationMin, estimatedArrival: arrivalIso, estimatedPickupReady: new Date(Math.max(arrivalMs, new Date(nowIso).getTime() + r.prepTimeMin * 60_000)).toISOString(), routePosition: position, availability: computeAvailability(r, arrivalIso) }
+}
+
 export { formatMinutes }

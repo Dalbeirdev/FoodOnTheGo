@@ -11,6 +11,7 @@ import 'package:foodonthego/screens/account_screens.dart';
 import 'package:foodonthego/screens/plan_journey_screen.dart';
 import 'package:foodonthego/screens/profile_screen.dart';
 import 'package:foodonthego/screens/restaurants_screen.dart';
+import 'package:foodonthego/screens/restaurant_detail_screen.dart';
 import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
@@ -21,6 +22,7 @@ import 'package:foodonthego/state/app_state.dart';
 import 'package:foodonthego/state/auth_state.dart';
 import 'package:foodonthego/state/discovery_state.dart';
 import 'package:foodonthego/discovery/discovery_repository.dart';
+import 'package:foodonthego/menu/menu_repository.dart';
 import 'package:foodonthego/state/journey_state.dart';
 import 'package:foodonthego/journey/journey_repositories.dart';
 import 'package:foodonthego/widgets/common.dart';
@@ -56,7 +58,7 @@ void main() {
   final screens = <String, Widget>{
     'Home': const HomeScreen(),
     'Restaurants': const RestaurantsScreen(),
-    'Restaurant detail': const RestaurantDetailScreen(id: 'burger-hub'),
+    'Restaurant detail': RestaurantDetailScreen(id: 'burger-hub', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Item': const ItemScreen(restaurantId: 'burger-hub', itemId: 'classic-burger'),
     'Cart (empty)': const CartScreen(),
     'Checkout': const CheckoutScreen(),

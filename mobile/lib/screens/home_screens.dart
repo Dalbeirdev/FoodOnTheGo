@@ -8,6 +8,7 @@ import '../data/mock_data.dart';
 import '../state/app_state.dart';
 import '../state/auth_state.dart';
 import '../widgets/common.dart';
+import 'catalog_item_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -148,143 +149,6 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class RestaurantDetailScreen extends StatefulWidget {
-  const RestaurantDetailScreen({super.key, required this.id});
-  final String id;
-  @override
-  State<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
-}
-
-class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
-  String tab = 'All Items';
-  @override
-  Widget build(BuildContext context) {
-    final r = restaurantById(widget.id);
-    final sections = menu.where((s) => tab == 'All Items' || s.title == tab).toList();
-    final wide = Layout.isWide(context);
-    return Scaffold(
-      appBar: BrandAppBar(title: r.name),
-      body: PageBody(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        header: Stack(children: [
-          Photo(r.image, height: wide ? 300 : 210, radius: 0, overlay: true),
-          Positioned(
-            top: 14,
-            left: 16,
-            child: Material(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(999),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(999),
-                onTap: () => context.canPop() ? context.pop() : context.go('/restaurants'),
-                child: const Padding(padding: EdgeInsets.fromLTRB(12, 9, 16, 9), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.arrow_back, size: 18), SizedBox(width: 8), Text('Back to Results', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5))])),
-              ),
-            ),
-          ),
-          Positioned(bottom: 14, left: 16, child: Pill('Open now', icon: Icons.circle, color: Colors.white, bg: Brand.green)),
-        ]),
-        children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(r.name, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1.1)),
-                const SizedBox(height: 4),
-                Text(r.cuisines.join(' • '), style: const TextStyle(color: Brand.grey, fontSize: 14.5)),
-                const SizedBox(height: 8),
-                Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 10, runSpacing: 6, children: [Rating(r), const Pill('Top Rated')]),
-              ]),
-            ),
-            const SizedBox(width: 12),
-            FavoriteButton(restaurantId: r.id, name: r.name, size: 42),
-          ]),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 100,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: r.gallery.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 10),
-              itemBuilder: (_, i) => Photo(r.gallery[i], width: 156, height: 100, radius: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ResponsiveGrid(
-            columns: Layout.columns(context, narrow: 2, medium: 2, wide: 4),
-            spacing: 10,
-            children: [
-              _Fact(Icons.place_outlined, '${r.distanceKm} km from route', '${r.detourMin} min detour'),
-              _Fact(Icons.schedule, '${r.prepMin}–${r.prepMin + 5} mins', 'Prep time'),
-              const _Fact(Icons.deck_outlined, 'Outdoor Seating', 'Available'),
-              const _Fact(Icons.eco_outlined, 'Veg Options', 'Available'),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(r.description, style: const TextStyle(color: Brand.grey, fontSize: 14.5, height: 1.5)),
-          const SizedBox(height: 8),
-          Row(children: [const Icon(Icons.location_on_outlined, size: 16, color: Brand.grey), const SizedBox(width: 6), Expanded(child: Text(r.address, style: const TextStyle(color: Brand.grey, fontSize: 13)))]),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(children: [
-                Expanded(child: BrandButton(label: 'Menu', icon: Icons.restaurant_menu, height: 46, onPressed: () {})),
-                const SizedBox(width: 10),
-                Expanded(child: OutlineButton(label: 'Photos (12)', icon: Icons.photo_library_outlined, height: 46, onPressed: () => comingSoon(context, 'Photo gallery'))),
-              ]),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 42,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: ['All Items', ...menu.map((s) => s.title)].map((t) {
-                final on = tab == t;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => setState(() => tab = t),
-                      borderRadius: BorderRadius.circular(999),
-                      child: Ink(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                        decoration: BoxDecoration(gradient: on ? Brand.gradient : null, color: on ? null : Colors.white, border: on ? null : Border.all(color: Brand.line), borderRadius: BorderRadius.circular(999)),
-                        child: Text(t, style: TextStyle(fontWeight: FontWeight.w700, color: on ? Colors.white : Brand.navy)),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          for (final s in sections) ...[
-            SectionTitle(s.title, subtitle: s.sub),
-            ResponsiveGrid(columns: Layout.columns(context, narrow: 2, medium: 3, wide: 4), children: s.items.map((i) => MenuItemCard(i, restaurantId: r.id)).toList()),
-          ],
-        ],
-      ),
-      bottomNavigationBar: const CartBar(),
-    );
-  }
-}
-
-class _Fact extends StatelessWidget {
-  const _Fact(this.icon, this.title, this.sub);
-  final IconData icon;
-  final String title, sub;
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(color: const Color(0xFFF6F7F9), borderRadius: BorderRadius.circular(12)),
-        child: Row(children: [
-          Icon(icon, color: Brand.orangeDeep, size: 20),
-          const SizedBox(width: 8),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), Text(sub, style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
-        ]),
-      );
-}
-
 class ItemScreen extends StatefulWidget {
   const ItemScreen({super.key, required this.restaurantId, required this.itemId});
   final String restaurantId, itemId;
@@ -302,7 +166,9 @@ class _ItemScreenState extends State<ItemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final item = menuItemById(widget.itemId) ?? menu.first.items.first;
+    final legacy = menuItemById(widget.itemId);
+    if (legacy == null) return CatalogItemScreen(restaurantId: widget.restaurantId, itemSlug: widget.itemId);
+    final item = legacy;
     final r = restaurantById(widget.restaurantId);
     final addonTotal = addonList.where((a) => addons.contains(a.$1)).fold<int>(0, (s, a) => s + a.$2);
     final unit = item.price + sizes[size]! + addonTotal;

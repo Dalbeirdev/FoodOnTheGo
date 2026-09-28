@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Header from '../components/Header'
 import CartBar from '../components/CartBar'
@@ -6,6 +6,12 @@ import { PinIcon, StarIcon, ChevronRightIcon } from '../components/Icons'
 import { useCart } from '../cart/CartContext'
 import { MENU, MENU_ITEMS, inr } from '../data/menu'
 import { RESTAURANTS } from './RestaurantsPage'
+import { menuRepository } from '../menu/mock/mockMenu'
+import { restaurantRepository } from '../repositories'
+import type { Restaurant } from '../repositories/types'
+import type { MenuItem as CatalogItem } from '../menu/repositories'
+import { formatMoney } from '../i18n/format'
+import { t, useLocale } from '../i18n/strings'
 import './ItemDetailPage.css'
 
 type P = { size?: number }
@@ -51,8 +57,50 @@ function Img({ src, fallback, alt = '', className = '' }: { src: string; fallbac
   )
 }
 
+/** Items outside the Module 01 fixture menu render a catalogue view; customisation + cart arrive in Module 08. */
+function CatalogItemPage({ rid, itemId }: { rid: string; itemId: string }) {
+  const { locale } = useLocale()
+  const [state, setState] = useState<{ status: 'loading' | 'ready' | 'notfound'; item: CatalogItem | null; restaurant: Restaurant | null }>({ status: 'loading', item: null, restaurant: null })
+  useEffect(() => {
+    let alive = true
+    restaurantRepository.getRestaurantBySlug(rid)
+      .then(async (rest) => { const item = rest ? await menuRepository.getItemBySlug(rest.id, itemId) : null; if (alive) setState({ status: item ? 'ready' : 'notfound', item, restaurant: rest }) })
+      .catch(() => { if (alive) setState({ status: 'notfound', item: null, restaurant: null }) })
+    return () => { alive = false }
+  }, [rid, itemId])
+  const view = state
+  const restaurant = state.restaurant
+  return (
+    <>
+      <Header />
+      <main id="main" className="item">
+        <div className="item__grid" style={{ gridTemplateColumns: '1fr' }}>
+          {view.status === 'loading' && <p role="status">Loading item…</p>}
+          {view.status === 'notfound' && <div className="rd-state" role="status"><h1>Item not found</h1><p>This item is no longer on the menu.</p><Link to={restaurant ? `/restaurants/${restaurant.slug}` : '/restaurants'} className="btn btn--primary">Back to the restaurant</Link></div>}
+          {view.status === 'ready' && view.item && restaurant && (
+            <article className="item-catalog">
+              <Link to={`/restaurants/${restaurant.slug}`} className="item__back">← {restaurant.name}</Link>
+              <div className="item-catalog__media"><img src={view.item.image} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} /><span aria-hidden="true">{view.item.fallback}</span></div>
+              <h1 dir="auto">{view.item.name}</h1>
+              {view.item.description && <p dir="auto">{view.item.description}</p>}
+              <p className="item-catalog__price"><strong>{formatMoney(view.item.basePriceMinor, view.item.currency, locale)}</strong>{view.item.availability !== 'available' && <span className="rd-badge rd-badge--closed">{t(`rd.item.${view.item.availability}`, undefined, locale)}</span>}</p>
+              {view.item.dietaryTags.length > 0 && <p className="item-catalog__tags">{view.item.dietaryTags.map((d) => <span key={d}>{d}</span>)}</p>}
+              <p className="rd-note rd-note--warn" role="status">{view.item.customizable ? 'Customization, quantity and Add to Cart for this item arrive in Module 08.' : 'Quantity and Add to Cart for this item arrive in Module 08.'}</p>
+            </article>
+          )}
+        </div>
+      </main>
+    </>
+  )
+}
+
 export default function ItemDetailPage() {
   const { rid = 'burger-hub', itemId = 'classic-burger' } = useParams()
+  if (!MENU_ITEMS[itemId]) return <CatalogItemPage rid={rid} itemId={itemId} />
+  return <LegacyItemDetailPage rid={rid} itemId={itemId} />
+}
+
+function LegacyItemDetailPage({ rid, itemId }: { rid: string; itemId: string }) {
   const navigate = useNavigate()
   const cart = useCart()
   const restaurant = RESTAURANTS.find((r) => r.id === rid) ?? RESTAURANTS[0]

@@ -14,11 +14,11 @@ import 'markets.dart';
 String formatMoney(int amountMinor, String currency, {String locale = 'en_US'}) {
   final f = NumberFormat.simpleCurrency(locale: locale, name: currency);
   final digits = f.decimalDigits ?? 2;
-  final amount = amountMinor / _pow10(digits);
+  final amount = amountMinor / pow10(digits);
   return f.format(amount);
 }
 
-int _pow10(int n) { var r = 1; for (var i = 0; i < n; i++) { r *= 10; } return r; }
+int pow10(int n) { var r = 1; for (var i = 0; i < n; i++) { r *= 10; } return r; }
 
 /// "₹₹" style indicator: the currency's symbol repeated priceLevel times (1–4).
 String priceLevelLabel(int priceLevel, String currency, {String locale = 'en_US'}) {
