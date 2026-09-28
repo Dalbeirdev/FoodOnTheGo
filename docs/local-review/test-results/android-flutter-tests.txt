@@ -1,1 +1,2 @@
-flutter analyze: No issues found; flutter test: +76 All tests passed; preview walkthrough shoot_m06 15/15 (2026-09-28, Module 06)
+flutter analyze: No issues found; flutter test: +79 All tests passed (2026-09-28, Module 06 + location-scope addendum)
+preview walkthrough shoot_m06: device-region banner, Change location → Chandigarh rings, filters, map shell, Dubai → Abu Dhabi and SF → LA journeys

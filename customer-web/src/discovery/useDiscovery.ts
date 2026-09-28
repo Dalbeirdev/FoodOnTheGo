@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { restaurantRepository } from '../repositories'
-import type { DiscoveryQuery, FilterDefinition, FilterValue, JourneyLike, ResultPage, RouteRestaurantResult, SortKey } from '../repositories/types'
+import type { DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, ResultPage, RouteRestaurantResult, ScopeRing, SortKey } from '../repositories/types'
 import { marketFor } from '../i18n/markets'
 
 export type DiscoveryStatus = 'idle' | 'loading' | 'updating' | 'loadingMore' | 'ready' | 'error'
@@ -9,7 +9,8 @@ export type DiscoveryStatus = 'idle' | 'loading' | 'updating' | 'loadingMore' | 
  * Discovery state for /restaurants: debounced search, data-driven filters, sort, corridor width,
  * cursor pagination, request cancellation and retry. Works with or without a journey.
  */
-export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean) {
+export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean, scope: DiscoveryScope | null = null) {
+  const scopeKey = scope ? `${scope.countryCode}|${scope.adminArea ?? ''}|${scope.lat ?? ''}|${scope.lng ?? ''}` : ''
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
   const [filters, setFilters] = useState<Record<string, FilterValue>>({})
@@ -18,6 +19,12 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean)
   const [corridorOverride, setCorridorOverride] = useState<{ journeyId: string | null; value: number } | null>(null)
   const corridorM = corridorOverride && corridorOverride.journeyId === (journey?.id ?? null) ? corridorOverride.value : null
   const setCorridorM = (v: number | null) => setCorridorOverride(v === null ? null : { journeyId: journey?.id ?? null, value: v })
+  // Ring override keyed by scope so a new location starts from the default rings again.
+  const [ringOverride, setRingOverride] = useState<{ key: string; value: ScopeRing } | null>(null)
+  const maxRing: ScopeRing = ringOverride && ringOverride.key === scopeKey ? ringOverride.value : 1
+  const [ringApplied, setRingApplied] = useState<ScopeRing | undefined>(undefined)
+  const [nextRing, setNextRing] = useState<ScopeRing | null>(null)
+  const [ringCounts, setRingCounts] = useState<Record<ScopeRing, number> | undefined>(undefined)
   const [status, setStatus] = useState<DiscoveryStatus>('idle')
   const [items, setItems] = useState<RouteRestaurantResult[]>([])
   const [total, setTotal] = useState(0)
@@ -36,17 +43,18 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean)
     const my = ++seq.current
     setStatus(mode === 'more' ? 'loadingMore' : first.current ? 'loading' : 'updating')
     setError(null)
-    const query: DiscoveryQuery = { search: debounced, filters, sort, cursor, corridorM: effectiveCorridor ?? undefined }
+    const query: DiscoveryQuery = { search: debounced, filters, sort, cursor, corridorM: effectiveCorridor ?? undefined, scope: journey ? null : scope, maxRing: journey ? undefined : maxRing }
     try {
       const page: ResultPage = journey ? await restaurantRepository.getRestaurantsForJourney(journey, query) : await restaurantRepository.getRestaurants(query)
       if (my !== seq.current) return // cancelled by a newer request
       setItems((prev) => (mode === 'more' ? [...prev, ...page.items] : page.items))
-      setTotal(page.total); setNextCursor(page.nextCursor); setStatus('ready'); first.current = false
+      setTotal(page.total); setNextCursor(page.nextCursor); setRingApplied(page.ringApplied); setNextRing(page.nextRing ?? null); setRingCounts(page.ringCounts); setStatus('ready'); first.current = false
     } catch (e) {
       if (my !== seq.current) return
       setError(e instanceof Error ? e.message : 'Something went wrong.'); setStatus('error')
     }
-  }, [journey, journeyReady, debounced, filters, sort, effectiveCorridor])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journey, journeyReady, debounced, filters, sort, effectiveCorridor, scopeKey, maxRing])
 
   useEffect(() => { void run(null, 'load') }, [run])
 
@@ -55,6 +63,7 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean)
   const clearFilters = () => { setFilters({}); setSearch('') }
   const activeFilterCount = Object.keys(filters).length + (debounced ? 1 : 0)
   const widenCorridor = () => setCorridorM(Math.min((corridorM ?? effectiveCorridor ?? 5000) * 2, 50_000))
+  const showMoreAreas = () => { if (nextRing !== null) setRingOverride({ key: scopeKey, value: nextRing }) }
 
-  return { search, setSearch, filters, setFilter, toggleOption, clearFilters, activeFilterCount, sort, setSort, definitions, corridorM: effectiveCorridor, setCorridorM, widenCorridor, status, items, total, nextCursor, error, loadMore: () => run(nextCursor, 'more'), retry: () => run(null, 'load') }
+  return { search, setSearch, filters, setFilter, toggleOption, clearFilters, activeFilterCount, sort, setSort, definitions, corridorM: effectiveCorridor, setCorridorM, widenCorridor, status, items, total, nextCursor, error, loadMore: () => run(nextCursor, 'more'), retry: () => run(null, 'load'), scope, maxRing, ringApplied, nextRing, ringCounts, showMoreAreas }
 }

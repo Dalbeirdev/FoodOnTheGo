@@ -2646,7 +2646,7 @@
    "manual": "PENDING USER DEVICE VERIFICATION",
    "evidence": "restaurants_screen.dart; docs/local-review/screenshots/android-preview/phone-restaurants-general.png, phone-restaurants-journey.png, tablet-restaurants-journey.png",
    "issue": "-",
-   "carry": "CF-085",
+   "carry": "CF-088",
    "notes": ""
   },
   {
@@ -2972,7 +2972,7 @@
   {
    "id": "M06-023",
    "module": "M06",
-   "req": "No active journey — general browsing with Plan a Journey CTA",
+   "req": "No active journey — location-scoped browsing (never the whole world) with a Plan a Journey CTA",
    "platform": "ALL",
    "cat": "Discovery",
    "pri": "P0",
@@ -2980,7 +2980,7 @@
    "impl": "PASS",
    "test": "PASS",
    "manual": "YES (web)",
-   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 12; docs/local-review/screenshots/android-preview/phone-restaurants-general.png",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 12 + SCOPE steps; docs/local-review/screenshots/android-preview/phone-restaurants-general.png",
    "issue": "-",
    "carry": "-",
    "notes": ""
@@ -3175,7 +3175,7 @@
    "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build008.apk",
    "issue": "-",
    "carry": "-",
-   "notes": "SHA-256 7596B75545342A0EFBBAFC338D72FBA6FEEF89A0765512C8BB43B01A49F02CA7"
+   "notes": "Superseded by build009 (M06-044)"
   },
   {
    "id": "M06-036",
@@ -3192,6 +3192,134 @@
    "issue": "Menu prices are Module 01 INR fixtures; menu module must price per restaurant currency",
    "carry": "CF-080",
    "notes": ""
+  },
+  {
+   "id": "M06-037",
+   "module": "M06",
+   "req": "ADDENDUM — Discovery scope: general discovery is always scoped to a location; the country is a hard boundary (menus / prices of other countries never appear)",
+   "platform": "ALL",
+   "cat": "Discovery scope",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "DiscoveryScope type; MockRestaurantRepository.ringFor; docs/local-review/test-results/m06-web-e2e.json SCOPE steps; SCOPE 1–3 unit tests (web + Dart)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "Owner decision 2026-09-28: \"not mix up Indian menu in USA and USA menu in India\"."
+  },
+  {
+   "id": "M06-038",
+   "module": "M06",
+   "req": "ADDENDUM — Proximity rings: near you (market radius) → same region → neighbouring regions (market adjacency table) → rest of country; auto-expands when inner rings are empty; \"Show more areas\" expands on demand",
+   "platform": "ALL",
+   "cat": "Discovery scope",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "markets regionAdjacency + scopeRadiusM; ring labels on cards; docs/local-review/screenshots/web-m06/13-scope-rings.png",
+   "issue": "-",
+   "carry": "CF-086",
+   "notes": ""
+  },
+  {
+   "id": "M06-039",
+   "module": "M06",
+   "req": "ADDENDUM — Scope resolution order: manual choice → device location (PENDING) → default saved address (Module 04) → last journey origin → device / browser region → ask the customer",
+   "platform": "ALL",
+   "cat": "Discovery scope",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "discovery/scope.ts resolveScope; DiscoveryState.resolveScope; SCOPE 3 Dart test; \"Where are you?\" state when nothing resolves",
+   "issue": "REAL GEOLOCATION = PENDING (CF-062); saved addresses carry no country yet (CF-087)",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-040",
+   "module": "M06",
+   "req": "ADDENDUM — \"Showing restaurants near/in …\" banner with source and Change location dialog / sheet (reuses the journey location picker; persisted per device)",
+   "platform": "ALL",
+   "cat": "Discovery scope",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/screenshots/web-m06/14-scope-change-location.png; docs/local-review/screenshots/android-preview/phone-restaurants-general.png (Chandigarh scope)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-041",
+   "module": "M06",
+   "req": "ADDENDUM — Journey mode unchanged: route corridor defines the scope; cross-border journeys show each restaurant in its own currency / zone",
+   "platform": "ALL",
+   "cat": "Discovery scope",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "Journey tests unchanged (TEST 1–3 journeys) still green",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-042",
+   "module": "M06",
+   "req": "ADDENDUM — Journey places carry a region (adminArea) so a chosen city resolves to the right ring; Unicode region names work (静岡県 ↔ 愛知県)",
+   "platform": "ALL",
+   "cat": "Discovery scope",
+   "pri": "P1",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "journey mock PLACES admin fields (web + Dart); SCOPE 3 tests",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-043",
+   "module": "M06",
+   "req": "ADDENDUM — Tests: web unit 106/106 (SCOPE 1–3 + 2 UI scope tests), e2e 49/49 (US region banner, Punjab rings, neighbouring regions, rest of India, Change location → 東京), Android 79/79, preview walkthrough",
+   "platform": "ALL",
+   "cat": "Testing",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "docs/local-review/test-results/web-vitest.txt; docs/local-review/test-results/m06-web-e2e.json; docs/local-review/test-results/android-flutter-tests.txt",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-044",
+   "module": "M06",
+   "req": "ADDENDUM — Android review APK build009 with SHA-256 + manifest + build log",
+   "platform": "ANDROID",
+   "cat": "Build",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "PENDING",
+   "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build009.apk",
+   "issue": "-",
+   "carry": "-",
+   "notes": "SHA-256 C8F93381CA811E8A666903A7B86ED11E93F7966AB2A851B135AE3BFB96A9C2EC"
   }
  ],
  "pages": [
@@ -3253,7 +3381,7 @@
    "backend": "MOCK",
    "prod": "NO",
    "shot": "restaurants",
-   "notes": "General + route-aware; list/map; data-driven filters; cursor pagination"
+   "notes": "General discovery is location-scoped (country boundary + proximity rings); route-aware with a journey; list/map; data-driven filters; cursor pagination"
   },
   {
    "page": "Restaurant Details / Menu (Design A)",
@@ -3686,7 +3814,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "analyze+unit+widget PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3699,7 +3827,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3712,7 +3840,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3725,7 +3853,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build005)",
    "backend": "MOCK (MockAuthRepository)",
    "status": "VERIFIED"
@@ -3738,7 +3866,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-plan-journey.png, tablet-plan-journey.png)",
    "mock": "YES (MockLocation/Journey/Route)",
    "test": "unit + widget PASS; preview walkthrough",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3751,7 +3879,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3764,7 +3892,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3777,7 +3905,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-my-profile.png, tablet-my-profile.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3790,7 +3918,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build003)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3803,7 +3931,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-favorites.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3816,7 +3944,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-addresses.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3829,7 +3957,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-payment-methods.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3842,7 +3970,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-notifications.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3855,7 +3983,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-restaurants-fav.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3868,7 +3996,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-journey-suggestions.png)",
    "mock": "YES",
    "test": "preview walkthrough PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3881,20 +4009,20 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-journey-preview.png, tablet-journey-preview.png)",
    "mock": "YES",
    "test": "preview walkthrough PASS",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
   },
   {
-   "screen": "Restaurants — global discovery (journey context, search, filter sheet, sort, list ⇄ map shell, load more)",
+   "screen": "Restaurants — global discovery (location scope banner + picker, rings, journey context, search, filter sheet, sort, list ⇄ map shell, load more)",
    "design": "Adapt from Web",
-   "ui": "IMPLEMENTED (M06 rewrite, build008)",
+   "ui": "IMPLEMENTED (M06 + addendum, build009)",
    "nav": "PASS",
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-restaurants-general.png, phone-restaurants-journey.png, tablet-restaurants-journey.png)",
    "mock": "YES",
    "test": "unit + widget PASS; preview walkthrough",
-   "apk": "YES (build008)",
+   "apk": "YES (build009)",
    "manual": "PENDING USER DEVICE VERIFICATION",
    "backend": "NOT STARTED",
    "status": "IMPLEMENTED"
@@ -4050,6 +4178,12 @@
    "\"Recommended\" sorting is a transparent business rule (open first, then detour, then rating) — no AI recommendation is claimed.",
    "Claude per spec",
    "Ranking rules move server-side with the corridor backend."
+  ],
+  [
+   "2026-09-28",
+   "DISCOVERY SCOPE RULE: without a journey, restaurants are always scoped to the customer's location — same region first, then neighbouring regions, then the rest of the country; countries never mix. With a journey, the route corridor is the scope.",
+   "Owner",
+   "Rings and adjacency come from market configuration (CF-086); real device location pending (CF-062)."
   ]
  ],
  "carry": [
@@ -5069,6 +5203,42 @@
    "P0",
    "Owner",
    "Before M06 approval",
+   "SUPERSEDED by CF-088 (build009)",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-086",
+   "Backend: market region adjacency + scope radius administered per market; PostGIS ST_DWithin rings for \"near you\"; region hierarchy (country → region → city) as data",
+   "M06",
+   "Registered per owner scope decision — frontend uses the development adjacency table",
+   "P0",
+   "Claude",
+   "Backend Markets module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-087",
+   "Saved addresses must carry countryCode (+ region) so the saved-address scope is exact; Module 04 fixtures assume the locale country until then",
+   "M06",
+   "Registered during the addendum",
+   "P1",
+   "Claude",
+   "Module 07 / Address rework",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-088",
+   "Owner device test of build009: device-region banner, Set/Change location (Chandigarh → Punjab/Haryana rings, Show more areas), country never mixes, journey flow unchanged, filters/sort/map",
+   "M06",
+   "APK built; not yet installed on owner device",
+   "P0",
+   "Owner",
+   "Before M06 approval",
    "PENDING USER DEVICE VERIFICATION",
    "2026-09-28",
    "-"
@@ -5971,8 +6141,8 @@
    "ANDROID",
    "Owner device test of build008 (see CF-085)",
    "manual (device)",
-   "PENDING",
-   "-",
+   "SUPERSEDED",
+   "build008 replaced by build009 before device testing",
    "2026-09-28"
   ],
   [
@@ -5983,6 +6153,56 @@
    "regression",
    "PASS",
    "docs/local-review/test-results/verify-local-m06.txt; docs/local-review/test-results/web-build-lint-m06.txt",
+   "2026-09-28"
+  ],
+  [
+   "TE-061",
+   "M06",
+   "WEB",
+   "Addendum: SCOPE 1–3 repository tests (Punjab rings, US-only, region-less auto-expand, Unicode adjacency) + scope UI tests (banner, rings, Show neighbouring regions, Change location, no-scope prompt)",
+   "unit + component",
+   "PASS",
+   "npm test → 9 files, 106 tests (docs/local-review/test-results/web-vitest.txt)",
+   "2026-09-28"
+  ],
+  [
+   "TE-062",
+   "M06",
+   "WEB",
+   "Addendum e2e: browser-region banner, Punjab rings → neighbours → rest of India, Change location → 東京 (JP only), country-scoped Unicode search, previous 44 steps re-run",
+   "e2e (local, mock repositories)",
+   "PASS",
+   "docs/local-review/test-results/m06-web-e2e.json (49/49); docs/local-review/screenshots/web-m06/13-scope-rings.png, 14-scope-change-location.png",
+   "2026-09-28"
+  ],
+  [
+   "TE-063",
+   "M06",
+   "ANDROID",
+   "Addendum: SCOPE 1–3 + DiscoveryState scope resolution / persistence tests; screen layouts",
+   "unit + widget",
+   "PASS",
+   "flutter analyze 0 issues; flutter test 79/79",
+   "2026-09-28"
+  ],
+  [
+   "TE-064",
+   "M06",
+   "ANDROID",
+   "Preview walkthrough: device-region banner, Change location → Chandigarh rings (auto-expanded to neighbouring regions), plus the Module 06 flows",
+   "preview",
+   "PASS",
+   "docs/local-review/screenshots/android-preview/phone-restaurants-general.png",
+   "2026-09-28"
+  ],
+  [
+   "TE-065",
+   "M06",
+   "ANDROID",
+   "Owner device test of build009 (see CF-088)",
+   "manual (device)",
+   "PENDING",
+   "-",
    "2026-09-28"
   ]
  ],
@@ -6266,6 +6486,14 @@
    "docs/local-review/screenshots/web-m06/, docs/local-review/screenshots/android-preview/phone-restaurants-*.png",
    "Live local view evidence",
    "YES"
+  ],
+  [
+   "Local-review APK build009 (location-scoped discovery)",
+   "M06",
+   "ANDROID",
+   "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build009.apk",
+   "Owner device test",
+   "YES"
   ]
  ],
  "apks": [
@@ -6369,6 +6597,19 @@
    "941cfe7 (M06)",
    "2026-09-28",
    "7596B75545342A0EFBBAFC338D72FBA6FEEF89A0765512C8BB43B01A49F02CA7",
+   "PENDING",
+   "PENDING USER DEVICE VERIFICATION",
+   "SUPERSEDED by build009 before device test"
+  ],
+  [
+   "FoodOnTheGo-local-review-v0.1.0-build009.apk",
+   "0.1.0",
+   "9 (local/debug)",
+   "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+   "MOCK AUTH + ACCOUNT + JOURNEY + GLOBAL RESTAURANT REPOSITORIES (location-scoped); LOCAL API health only",
+   "M06 addendum commit (see git log)",
+   "2026-09-28",
+   "C8F93381CA811E8A666903A7B86ED11E93F7966AB2A851B135AE3BFB96A9C2EC",
    "PENDING",
    "PENDING USER DEVICE VERIFICATION",
    "BUILT — AWAITING DEVICE TEST"
@@ -6663,7 +6904,7 @@
  "globalReadiness": [
   [
    "Country neutrality",
-   "IMPLEMENTED (frontend) — no country in reusable discovery logic; markets table only",
+   "IMPLEMENTED (frontend) — country is a hard discovery boundary; no country in reusable logic; markets table only",
    "Market administration backend NOT STARTED (CF-071)"
   ],
   [

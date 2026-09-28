@@ -4,6 +4,14 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { Providers } from '../test/render'
 import { AppShell } from '../App'
+import { LocaleProvider } from '../i18n/LocaleProvider'
+import { AuthProvider } from '../auth/AuthContext'
+import { ToastProvider } from '../components/Toast'
+import { ProfileProvider } from '../profile/ProfileContext'
+import { AccountProvider } from '../account/AccountContext'
+import { JourneyProvider } from '../journey/JourneyContext'
+import { CartProvider } from '../cart/CartContext'
+import { OrdersProvider } from '../orders/OrdersContext'
 import RestaurantsPage from '../pages/RestaurantsPage'
 import PlanJourneyPage from '../pages/PlanJourneyPage'
 import { MockRestaurantRepository, RESTAURANTS, computeAvailability, normalize, setMockRestaurantLatency } from '../repositories/mock/restaurants'
@@ -11,6 +19,10 @@ import { MockJourneyRepository, MockRouteRepository, PLACES, setMockJourneyLaten
 import { formatDistance, formatLocalTime, formatMoney, priceLevelLabel } from '../i18n/format'
 import { marketFor, resolveUnitSystem } from '../i18n/markets'
 import type { Journey } from '../journey/repositories'
+import type { DiscoveryScope } from '../repositories/types'
+
+const PUNJAB: DiscoveryScope = { countryCode: 'IN', adminArea: 'Punjab', locality: 'Rupnagar', lat: 30.9685, lng: 76.5265, label: 'Rupnagar', source: 'manual' }
+const setScope = (s: DiscoveryScope) => localStorage.setItem('fotg.discovery.scope', JSON.stringify(s))
 
 const place = (id: string) => toLocation(PLACES.find((p) => p.id === id)!)
 const repo = new MockRestaurantRepository()
@@ -67,6 +79,35 @@ describe('global readiness — formatting, units, time zones, Unicode', () => {
     expect(names(await repo.getRestaurants({ search: 'elysee' }))).toContain('Café Élysée des Routes')
     expect(names(await repo.getRestaurants({ search: 'البيت' }))).toContain('مطعم البيت الشامي')
     expect(names(await repo.getRestaurants({ search: 'al bait' }))).toContain('مطعم البيت الشامي')
+  })
+})
+
+describe('location-scoped discovery (mock repository)', () => {
+  it('SCOPE 1 — Punjab: near you → rest of Punjab → neighbouring states → rest of India, never other countries', async () => {
+    const p1 = await repo.getRestaurants({ scope: PUNJAB, now: NOW, limit: 50 })
+    expect(p1.items.map((x) => x.restaurant.id)).toEqual(['dhaba-junction-ropar', 'hoshiarpur-sweets', 'pathankot-rasoi'])
+    expect(p1.items.map((x) => x.ring)).toEqual([0, 1, 1])
+    expect(p1.ringApplied).toBe(1); expect(p1.nextRing).toBe(2)
+    const p2 = await repo.getRestaurants({ scope: PUNJAB, now: NOW, limit: 50, maxRing: 2 })
+    expect(p2.items.map((x) => x.restaurant.id)).toContain('ambala-chai') // Haryana neighbours Punjab
+    expect(p2.items.every((x) => (x.ring ?? 9) <= 2)).toBe(true)
+    expect(p2.nextRing).toBe(3)
+    const p3 = await repo.getRestaurants({ scope: PUNJAB, now: NOW, limit: 50, maxRing: 3 })
+    expect(p3.total).toBe(16) // every Indian fixture, nothing from US/GB/JP/FR/AE
+    expect(p3.items.every((x) => x.restaurant.countryCode === 'IN')).toBe(true)
+    expect(p3.nextRing).toBeNull()
+  })
+  it('SCOPE 2 — US scope shows only US restaurants; region-less scope auto-expands to the whole country', async () => {
+    const us = await repo.getRestaurants({ scope: { countryCode: 'US', adminArea: 'CA', lat: 37.7749, lng: -122.4194, label: 'San Francisco', source: 'manual' }, now: NOW, limit: 50 })
+    expect(us.items.every((x) => x.restaurant.countryCode === 'US')).toBe(true)
+    expect(us.total).toBe(4)
+    const inOnly = await repo.getRestaurants({ scope: { countryCode: 'IN', lat: null, lng: null, label: 'India', source: 'locale' }, now: NOW, limit: 50 })
+    expect(inOnly.ringApplied).toBe(3); expect(inOnly.total).toBe(16)
+    expect(inOnly.items.some((x) => x.restaurant.countryCode !== 'IN')).toBe(false)
+  })
+  it('SCOPE 3 — region adjacency works with non-Latin region names (静岡県 ↔ 愛知県)', async () => {
+    const jp = await repo.getRestaurants({ scope: { countryCode: 'JP', adminArea: '静岡県', lat: null, lng: null, label: '静岡', source: 'manual' }, now: NOW, limit: 50, maxRing: 2 })
+    expect(jp.items.map((x) => [x.restaurant.id, x.ring])).toEqual(expect.arrayContaining([['ippudo-shizuoka', 1], ['hamamatsu-unagi', 1], ['yamamotoya-nagoya', 2]]))
   })
 })
 
@@ -190,8 +231,9 @@ describe('Restaurants page (web)', () => {
     await user.selectOptions(screen.getByRole('combobox', { name: /distance units/i }), 'metric')
     await waitFor(() => expect(within(card).getByText(/(km|m) from route/)).toBeInTheDocument())
   })
-  it('TEST 8 (UI) — Unicode names render intact and typed search finds them', async () => {
+  it('TEST 8 (UI) — Unicode names render intact and typed search finds them (JP scope)', async () => {
     const user = userEvent.setup()
+    setScope({ countryCode: 'JP', label: '日本', lat: null, lng: null, source: 'manual' })
     mount('/restaurants')
     await screen.findByRole('heading', { name: /^\d+ restaurants$/i })
     await user.type(screen.getByRole('searchbox', { name: /search restaurants/i }), '山本屋')
@@ -209,8 +251,9 @@ describe('Restaurants page (web)', () => {
     await user.click(screen.getByRole('button', { name: /clear all/i }))
     await waitFor(() => expect(screen.getByRole('heading', { name: /^\d+ restaurants$/i }).textContent).toBe(before))
   })
-  it('TEST 10 (UI) — sort select re-orders the list', async () => {
+  it('TEST 10 (UI) — sort select re-orders the list (JP scope)', async () => {
     const user = userEvent.setup()
+    setScope({ countryCode: 'JP', label: '日本', lat: null, lng: null, source: 'manual' })
     mount('/restaurants')
     await screen.findByRole('heading', { name: /^\d+ restaurants$/i })
     await user.selectOptions(screen.getByRole('combobox', { name: /sort by/i }), 'highestRated')
@@ -237,6 +280,41 @@ describe('Restaurants page (web)', () => {
     const first = screen.getAllByRole('heading', { level: 3 }).length
     await user.click(screen.getByRole('button', { name: /load more restaurants/i }))
     await waitFor(() => expect(screen.getAllByRole('heading', { level: 3 }).length).toBeGreaterThan(first))
+  })
+  it('SCOPE (UI) — banner shows the scope, Punjab restaurants come first with ring labels, Show neighbouring regions expands, Change location dialog works', async () => {
+    const user = userEvent.setup()
+    setScope(PUNJAB)
+    mount('/restaurants')
+    expect(await screen.findByRole('status')).toHaveTextContent(/showing restaurants near rupnagar/i)
+    const list = document.querySelector('.cards') as HTMLElement
+    await waitFor(() => expect(within(list).getAllByRole('heading', { level: 3 })[0]).toHaveTextContent('Dhaba Junction'))
+    expect(within(list).getByText('Near you')).toBeInTheDocument()
+    expect(within(list).getAllByText('In Punjab').length).toBe(2)
+    expect(screen.queryByRole('heading', { name: 'Ambala Chai Point' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /show neighbouring regions/i }))
+    expect(await screen.findByRole('heading', { name: 'Ambala Chai Point' })).toBeInTheDocument()
+    expect(screen.getAllByText('Nearby region').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('heading', { name: 'Route 5 Diner' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /change location/i }))
+    const dialog = screen.getByRole('dialog', { name: /your location/i })
+    await user.type(within(dialog).getByRole('combobox'), 'san fran')
+    await user.click(await within(dialog).findByRole('option', { name: /^San Francisco, California/ }))
+    await user.click(within(dialog).getByRole('button', { name: /use this location/i }))
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(/showing restaurants near san francisco/i))
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Gilroy Garlic Kitchen' })).toBeInTheDocument())
+    expect(screen.queryByRole('heading', { name: 'Dhaba Junction' })).not.toBeInTheDocument()
+    expect(JSON.parse(localStorage.getItem('fotg.discovery.scope')!).countryCode).toBe('US')
+  })
+  it('SCOPE (UI) — no scope resolvable → asks for a location instead of showing mixed markets', async () => {
+    render(
+      <MemoryRouter initialEntries={['/restaurants']}>
+        <LocaleProvider locale="en"><AuthProvider><ToastProvider><ProfileProvider><AccountProvider><JourneyProvider><CartProvider><OrdersProvider>
+          <Routes><Route path="/restaurants" element={<RestaurantsPage />} /></Routes>
+        </OrdersProvider></CartProvider></JourneyProvider></AccountProvider></ProfileProvider></ToastProvider></AuthProvider></LocaleProvider>
+      </MemoryRouter>,
+    )
+    expect(await screen.findByText(/where are you\?/i)).toBeInTheDocument()
+    expect(document.querySelectorAll('.cards:not(.cards--skeleton) .rcard').length).toBe(0)
   })
   it('TEST 13 (UI) — empty route results offer widen / edit route recovery', async () => {
     const user = userEvent.setup()

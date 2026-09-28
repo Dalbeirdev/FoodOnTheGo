@@ -10,10 +10,10 @@ const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 
 const HeartIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.5 4.5 7 4.5c2 0 3.5 1 5 2.8 1.5-1.8 3-2.8 5-2.8 3.5 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21Z" /></svg>)
 const CarIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M4 11h16v6H4zM6 17v2M18 17v2" /><circle cx="7.5" cy="14" r="1" /><circle cx="16.5" cy="14" r="1" /></svg>)
 
-type Props = { result: RouteRestaurantResult; units?: UnitSystem; selected?: boolean; favorite: boolean; onFavorite: () => void; onSelect?: () => void }
+type Props = { result: RouteRestaurantResult; units?: UnitSystem; selected?: boolean; favorite: boolean; onFavorite: () => void; onSelect?: () => void; ringLabel?: string }
 
 /** Route-aware restaurant card. Every number goes through locale/unit/currency/time-zone formatting. */
-export default function RestaurantCard({ result, units, selected, favorite, onFavorite, onSelect }: Props) {
+export default function RestaurantCard({ result, units, selected, favorite, onFavorite, onSelect, ringLabel }: Props) {
   const { locale, unitPreference } = useLocale()
   const { restaurant: r, availability: a } = result
   const u = units ?? resolveUnitSystem(unitPreference, r.countryCode)
@@ -36,11 +36,13 @@ export default function RestaurantCard({ result, units, selected, favorite, onFa
         <p className="rcard__cuisine" dir="auto">{r.cuisines.join(' • ')} <span className="rcard__price" aria-label={`price level ${r.priceLevel} of 4, ${r.currency}`}>{priceLevelLabel(r.priceLevel, r.currency, locale)}</span></p>
         <p className="rcard__status">
           <span className={`rcard__open rcard__open--${a.status}`}>{t(statusKey, undefined, locale)}</span>
+          {ringLabel && <span className={`rcard__ring rcard__ring--${result.ring ?? 'x'}`}>{ringLabel}</span>}
           {nextChange && <small>{nextChange} <abbr title={r.timezone}>{zoneLabel(a.nextChangeAt!, r.timezone, locale)}</abbr></small>}
           {!a.acceptingOrders && a.status !== 'closed' && a.status !== 'temporarily_closed' && <small>{t('card.notAcceptingOrders', undefined, locale)}</small>}
         </p>
         <p className="rcard__meta">
           {result.distanceFromRouteM !== null && <span><PinIcon size={16} /> {t('card.fromRoute', { distance: formatDistance(result.distanceFromRouteM, u, locale) }, locale)}</span>}
+          {result.distanceFromRouteM === null && result.distanceFromScopeM !== null && result.distanceFromScopeM !== undefined && <span><PinIcon size={16} /> {formatDistance(result.distanceFromScopeM, u, locale)}</span>}
           {result.distanceFromRouteM !== null && <span className="rcard__sep" />}
           <span><ClockIcon size={16} /> {t('card.prep', { minutes: formatMinutes(r.prepTimeMin, locale) }, locale)}</span>
           {result.estimatedArrival && <><span className="rcard__sep" /><span><CarIcon /> {t('card.arrival', { time: formatLocalTime(result.estimatedArrival, r.timezone, locale) }, locale)}</span></>}

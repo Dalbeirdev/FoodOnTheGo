@@ -8,6 +8,10 @@ import { useAccount } from '../account/AccountContext'
 import { useAuth } from '../auth/AuthContext'
 import { useJourney } from '../journey/JourneyContext'
 import { useDiscovery } from '../discovery/useDiscovery'
+import { loadManualScope, resolveScope, saveManualScope, scopeFromLocale, scopeFromLocation } from '../discovery/scope'
+import LocationInput from '../components/LocationInput'
+import type { Location } from '../journey/JourneyContext'
+import type { DiscoveryScope, ScopeRing } from '../repositories/types'
 import { formatDistance, formatMinutes } from '../i18n/format'
 import { marketFor, resolveUnitSystem, type UnitSystem } from '../i18n/markets'
 import { t, useLocale } from '../i18n/strings'
@@ -16,6 +20,7 @@ import type { LatLng } from '../geo/geo'
 import type { SortKey } from '../repositories/types'
 import { RESTAURANTS as REPO_RESTAURANTS } from '../repositories/mock/restaurants'
 import type { Restaurant } from '../repositories'
+import './account/AccountPage.css'
 import './RestaurantsPage.css'
 
 export type { Restaurant }
@@ -41,7 +46,7 @@ export default function RestaurantsPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { locale, unitPreference, setUnitPreference } = useLocale()
-  const { isFavorite, toggleFavorite } = useAccount()
+  const { isFavorite, toggleFavorite, addresses } = useAccount()
   const { isAuthenticated } = useAuth()
   const journeyApi = useJourney()
 
@@ -59,8 +64,19 @@ export default function RestaurantsPage() {
   const journey = journeyState === 'ready' && journeyApi.journey?.route ? journeyApi.journey : journeyState === 'none' && journeyApi.journey?.route ? journeyApi.journey : null
   const journeyReady = journeyState !== 'loading'
 
+  // ---- location scope (general discovery only): manual → saved address → last journey → browser region → none
+  const [manualScope, setManualScope] = useState<DiscoveryScope | null>(() => loadManualScope())
+  const [scopeDialog, setScopeDialog] = useState(false)
+  const [pendingLoc, setPendingLoc] = useState<Location | null>(null)
+  const scope: DiscoveryScope | null = useMemo(() => journey ? null : resolveScope({ manual: manualScope, addresses: isAuthenticated ? addresses.data : [], addressCountry: scopeFromLocale(locale)?.countryCode ?? null, recentJourneys: journeyApi.recent, locale }), [journey, manualScope, isAuthenticated, addresses.data, journeyApi.recent, locale])
+  const applyScope = (l: Location | null) => { const s = l ? scopeFromLocation(l, 'manual') : null; setManualScope(s); saveManualScope(s); setScopeDialog(false); setPendingLoc(null) }
+  const regionName = scope?.adminArea ?? scope?.label ?? ''
+  const countryName = (() => { try { return new Intl.DisplayNames([locale], { type: 'region' }).of(scope?.countryCode ?? 'ZZ') ?? scope?.countryCode ?? '' } catch { return scope?.countryCode ?? '' } })()
+  const ringLabel = (ring: ScopeRing | undefined) => ring === undefined ? undefined : t(`ring.${ring}`, { region: regionName, country: countryName }, locale)
+  const moreAreasLabel = (ring: ScopeRing | null) => ring === null ? '' : t(`scope.moreAreas.${ring}`, { region: regionName, country: countryName }, locale)
+
   // ---- discovery
-  const d = useDiscovery(journey, journeyReady)
+  const d = useDiscovery(journey, journeyReady && (!!journey || !!scope), scope)
   const units: UnitSystem = resolveUnitSystem(unitPreference, journey?.origin.countryCode ?? d.items[0]?.restaurant.countryCode)
   const currency = journey ? marketFor(journey.origin.countryCode).currency : null
   const [view, setView] = useState<'list' | 'map' | 'both'>(() => (typeof window !== 'undefined' && window.innerWidth >= 1100 ? 'both' : 'list'))
@@ -123,6 +139,10 @@ export default function RestaurantsPage() {
             )}
             {!journey && journeyState === 'none' && (
               <section className="jctx jctx--none" aria-labelledby="jctx-none-title">
+                <div className="scope" role="status">
+                  {scope ? <><PinIcon size={16} /> <span>{t(scope.lat !== null ? 'scope.showingNear' : 'scope.showingIn', { label: scope.label }, locale)} <small>({t(`scope.source.${scope.source}`, undefined, locale)})</small></span><button type="button" className="pj-link" onClick={() => setScopeDialog(true)}>{t('scope.change', undefined, locale)}</button></>
+                    : <><PinIcon size={16} /> <span>{t('scope.none.text', undefined, locale)}</span><button type="button" className="btn btn--primary" onClick={() => setScopeDialog(true)}>{t('scope.set', undefined, locale)}</button></>}
+                </div>
                 <h2 id="jctx-none-title">{t('discovery.noJourney.title', undefined, locale)}</h2>
                 <p>{t('discovery.noJourney.text', undefined, locale)}</p>
                 <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)} <ArrowIcon /></Link>
@@ -178,14 +198,23 @@ export default function RestaurantsPage() {
                       <button type="button" className="btn btn--primary" onClick={() => { void d.retry() }}>{t('discovery.error.retry', undefined, locale)}</button>
                     </div>
                   )}
-                  {(d.status === 'loading' || d.status === 'idle') && (
+                  {(d.status === 'loading' || (d.status === 'idle' && (!!journey || !!scope))) && (
                     <ul className="cards cards--skeleton" aria-busy="true" aria-label={t(journey ? 'discovery.loadingRoute' : 'discovery.loading', undefined, locale)}>{[0, 1, 2, 3].map((i) => <li key={i} className="rcard rcard--skeleton"><div className="rcard__media" /><div className="rcard__body"><span /><span /><span /></div></li>)}</ul>
+                  )}
+                  {!journey && !scope && journeyState === 'none' && (
+                    <div className="disc-state disc-state--empty">
+                      <b>{t('scope.none.title', undefined, locale)}</b>
+                      <p>{t('scope.none.text', undefined, locale)}</p>
+                      <div className="disc-state__actions"><button type="button" className="btn btn--primary" onClick={() => setScopeDialog(true)}>{t('scope.set', undefined, locale)}</button></div>
+                    </div>
                   )}
                   {(d.status === 'ready' || d.status === 'updating') && d.items.length === 0 && (
                     <div className="disc-state disc-state--empty">
-                      <b>{t(journey ? 'discovery.empty.route.title' : 'discovery.empty.general.title', undefined, locale)}</b>
-                      <p>{t(journey ? 'discovery.empty.route.text' : 'discovery.empty.general.text', undefined, locale)}</p>
+                      <b>{t(journey ? 'discovery.empty.route.title' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title', { label: scope?.label ?? '' }, locale)}</b>
+                      <p>{t(journey ? 'discovery.empty.route.text' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text', undefined, locale)}</p>
                       <div className="disc-state__actions">
+                        {!journey && scope && d.nextRing !== null && <button type="button" className="btn btn--primary" onClick={d.showMoreAreas}>{moreAreasLabel(d.nextRing)}</button>}
+                        {!journey && scope && <button type="button" className="btn btn--outline" onClick={() => setScopeDialog(true)}>{t('scope.change', undefined, locale)}</button>}
                         {journey && (d.corridorM ?? 0) < 50_000 && <button type="button" className="btn btn--primary" onClick={d.widenCorridor}>{t('discovery.empty.increaseDetour', { distance: formatDistance(Math.min((d.corridorM ?? 5000) * 2, 50_000), journeyUnits, locale) }, locale)}</button>}
                         {d.activeFilterCount > 0 && <button type="button" className="btn btn--outline" onClick={d.clearFilters}>{t('discovery.empty.clearFilters', undefined, locale)}</button>}
                         {journey && <Link to="/plan-journey" className="btn btn--outline" onClick={() => journeyApi.edit()}>{t('discovery.empty.editRoute', undefined, locale)}</Link>}
@@ -194,8 +223,12 @@ export default function RestaurantsPage() {
                   )}
                   {d.items.length > 0 && (
                     <ul className={`cards ${d.status === 'updating' ? 'is-updating' : ''}`} ref={listRef} aria-busy={d.status === 'updating'}>
-                      {d.items.map((x) => <RestaurantCard key={x.restaurant.id} result={x} units={units} selected={x.restaurant.id === selectedId} favorite={isFavorite(x.restaurant.id)} onFavorite={() => favorite(x.restaurant.id)} onSelect={() => setSelectedId(x.restaurant.id)} />)}
+                      {d.items.map((x) => <RestaurantCard key={x.restaurant.id} result={x} units={units} selected={x.restaurant.id === selectedId} favorite={isFavorite(x.restaurant.id)} onFavorite={() => favorite(x.restaurant.id)} onSelect={() => setSelectedId(x.restaurant.id)} ringLabel={journey ? undefined : ringLabel(x.ring)} />)}
                     </ul>
+                  )}
+                  {!journey && scope && d.ringApplied !== undefined && d.ringApplied > d.maxRing && d.status === 'ready' && <p className="results__note" role="status">{t('scope.expanded', { ring: ringLabel(d.ringApplied)?.toLowerCase() ?? '' }, locale)}</p>}
+                  {!journey && scope && d.nextRing !== null && !d.nextCursor && d.status === 'ready' && d.items.length > 0 && (
+                    <div className="results__more"><button type="button" className="btn btn--outline" onClick={d.showMoreAreas}>{moreAreasLabel(d.nextRing)}</button></div>
                   )}
                   {d.nextCursor && d.status !== 'loading' && d.status !== 'error' && (
                     <div className="results__more">
@@ -220,6 +253,20 @@ export default function RestaurantsPage() {
             </div>
           </div>
         </section>
+
+        {scopeDialog && (
+          <div className="ac-modal" role="dialog" aria-modal="true" aria-labelledby="scope-title" onClick={(e) => { if (e.target === e.currentTarget) setScopeDialog(false) }}>
+            <div className="ac-modal__box scope-dialog">
+              <h2 id="scope-title">{t('scope.dialog.title', undefined, locale)}</h2>
+              <p className="ac-note" style={{ marginBottom: 12 }}>{t('scope.dialog.hint', undefined, locale)}</p>
+              <LocationInput id="scope-loc" label={t('scope.dialog.title', undefined, locale)} placeholder={t('discovery.search.placeholder', undefined, locale)} value={pendingLoc} onChange={setPendingLoc} allowCurrent />
+              <div className="ac-modal__actions">
+                <button type="button" className="btn btn--outline" onClick={() => { setScopeDialog(false); setPendingLoc(null) }}>Cancel</button>
+                <button type="button" className="btn btn--primary" disabled={!pendingLoc} onClick={() => applyScope(pendingLoc)}>{t('scope.dialog.use', undefined, locale)}</button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </>
   )

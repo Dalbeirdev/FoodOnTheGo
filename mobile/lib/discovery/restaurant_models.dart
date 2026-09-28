@@ -67,12 +67,25 @@ class Availability {
 
 /// Route-aware result: the restaurant plus everything computed relative to the journey.
 class RouteRestaurantResult {
-  const RouteRestaurantResult({required this.restaurant, required this.availability, this.distanceFromRouteM, this.detourDistanceM, this.detourDurationMin, this.estimatedArrival, this.estimatedPickupReady, this.routePosition});
+  const RouteRestaurantResult({required this.restaurant, required this.availability, this.distanceFromRouteM, this.detourDistanceM, this.detourDurationMin, this.estimatedArrival, this.estimatedPickupReady, this.routePosition, this.ring, this.distanceFromScopeM});
+  /// Scope ring (general discovery): 0 near you · 1 same region · 2 neighbouring region · 3 elsewhere in the country.
+  final int? ring;
+  final int? distanceFromScopeM;
   final GlobalRestaurant restaurant;
   final Availability availability;
   final int? distanceFromRouteM, detourDistanceM, detourDurationMin;
   final DateTime? estimatedArrival, estimatedPickupReady; // UTC
   final double? routePosition; // 0..1
+}
+
+/// Where the customer is looking from when there is no journey. Country is a HARD boundary.
+class DiscoveryScope {
+  const DiscoveryScope({required this.countryCode, this.adminArea, this.locality, this.lat, this.lng, required this.label, required this.source});
+  final String countryCode, label, source; // source: device | saved-address | journey | manual | locale | dev
+  final String? adminArea, locality;
+  final double? lat, lng;
+  Map<String, dynamic> toJson() => {'countryCode': countryCode, 'adminArea': adminArea, 'locality': locality, 'lat': lat, 'lng': lng, 'label': label, 'source': source};
+  factory DiscoveryScope.fromJson(Map<String, dynamic> j) => DiscoveryScope(countryCode: j['countryCode'] as String, adminArea: j['adminArea'] as String?, locality: j['locality'] as String?, lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), label: j['label'] as String, source: (j['source'] as String?) ?? 'manual');
 }
 
 enum SortKey { recommended, lowestDetour, nearestToRoute, highestRated, fastestPickup }
@@ -97,7 +110,9 @@ class FilterDefinition {
 }
 
 class DiscoveryQuery {
-  const DiscoveryQuery({this.search = '', this.filters = const {}, this.sort = SortKey.recommended, this.cursor, this.limit = 6, this.corridorM, this.now});
+  const DiscoveryQuery({this.search = '', this.filters = const {}, this.sort = SortKey.recommended, this.cursor, this.limit = 6, this.corridorM, this.now, this.scope, this.maxRing = 1});
+  final DiscoveryScope? scope;
+  final int maxRing;
   final String search;
   /// value: `List<String>` for multi, bool for toggle, num for min/max
   final Map<String, Object> filters;
@@ -111,9 +126,11 @@ class DiscoveryQuery {
 }
 
 class ResultPage {
-  const ResultPage({required this.items, required this.nextCursor, required this.total, required this.corridorM});
+  const ResultPage({required this.items, required this.nextCursor, required this.total, required this.corridorM, this.ringApplied, this.nextRing, this.ringCounts = const {}});
   final List<RouteRestaurantResult> items;
   final String? nextCursor;
   final int total;
   final int? corridorM;
+  final int? ringApplied, nextRing;
+  final Map<int, int> ringCounts;
 }

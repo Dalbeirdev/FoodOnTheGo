@@ -120,13 +120,42 @@ void main() {
     });
   });
 
+  group('location-scoped discovery', () {
+    const punjab = DiscoveryScope(countryCode: 'IN', adminArea: 'Punjab', locality: 'Rupnagar', lat: 30.9685, lng: 76.5265, label: 'Rupnagar', source: 'manual');
+    test('SCOPE 1 Punjab rings: near you → Punjab → neighbours → India; never other countries', () async {
+      final p1 = await repo.getRestaurants(DiscoveryQuery(scope: punjab, now: now, limit: 50));
+      expect(p1.items.map((x) => x.restaurant.id).toList(), ['dhaba-junction-ropar', 'hoshiarpur-sweets', 'pathankot-rasoi']);
+      expect(p1.items.map((x) => x.ring).toList(), [0, 1, 1]);
+      expect(p1.ringApplied, 1); expect(p1.nextRing, 2);
+      final p2 = await repo.getRestaurants(DiscoveryQuery(scope: punjab, now: now, limit: 50, maxRing: 2));
+      expect(p2.items.map((x) => x.restaurant.id), contains('ambala-chai'));
+      final p3 = await repo.getRestaurants(DiscoveryQuery(scope: punjab, now: now, limit: 50, maxRing: 3));
+      expect(p3.total, 16);
+      expect(p3.items.every((x) => x.restaurant.countryCode == 'IN'), isTrue);
+    });
+    test('SCOPE 2 US scope shows only US; region-less scope auto-expands to the country', () async {
+      final us = await repo.getRestaurants(DiscoveryQuery(scope: const DiscoveryScope(countryCode: 'US', adminArea: 'CA', lat: 37.7749, lng: -122.4194, label: 'San Francisco', source: 'manual'), now: now, limit: 50));
+      expect(us.total, 4); expect(us.items.every((x) => x.restaurant.countryCode == 'US'), isTrue);
+      final india = await repo.getRestaurants(DiscoveryQuery(scope: const DiscoveryScope(countryCode: 'IN', label: 'India', source: 'locale'), now: now, limit: 50));
+      expect(india.ringApplied, 3); expect(india.total, 16);
+    });
+    test('SCOPE 3 resolveScope priority + non-Latin adjacency', () async {
+      expect(DiscoveryState.resolveScope(locale: 'en-US')!.countryCode, 'US');
+      expect(DiscoveryState.resolveScope(locale: 'en'), isNull);
+      expect(DiscoveryState.resolveScope(manual: punjab, locale: 'en-US')!.label, 'Rupnagar');
+      final jp = await repo.getRestaurants(DiscoveryQuery(scope: const DiscoveryScope(countryCode: 'JP', adminArea: '静岡県', label: '静岡', source: 'manual'), now: now, limit: 50, maxRing: 2));
+      expect(jp.items.firstWhere((x) => x.restaurant.id == 'yamamotoya-nagoya').ring, 2);
+    });
+  });
+
   group('DiscoveryState', () {
     test('TEST 12 no journey → general results; bind journey → route-aware; widen; error + retry', () async {
       final r = MockRestaurantRepository(latency: Duration.zero);
-      final ds = DiscoveryState(repository: r);
-      await ds.bind(null);
+      final ds = DiscoveryState(repository: r, store: MemoryKeyValueStore());
+      await ds.bind(null, deviceLocale: 'en-IN');
       expect(ds.status, DiscoveryStatus.ready);
-      expect(ds.total, globalRestaurants.length);
+      expect(ds.scope!.source, 'locale');
+      expect(ds.total, 16); // India only — never the whole world
       expect(ds.nextCursor, isNotNull);
       final n = ds.items.length;
       await ds.loadMore();
@@ -145,8 +174,8 @@ void main() {
       expect(ds.status, DiscoveryStatus.ready);
     });
     test('filters + sort + selection', () async {
-      final ds = DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero));
-      await ds.bind(null);
+      final ds = DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero), store: MemoryKeyValueStore());
+      await ds.bind(null, deviceLocale: 'ja-JP');
       ds.setFilter('openNow', true);
       await Future<void>.delayed(Duration.zero);
       expect(ds.items.every((x) => x.availability.isOpen), isTrue);
@@ -158,6 +187,13 @@ void main() {
       ds.select('ippudo-shizuoka');
       expect(ds.selectedId, 'ippudo-shizuoka');
       expect(ds.units, UnitSystem.metric);
+      // manual scope persists and switches country
+      await ds.setManualScope(const JourneyLocation(id: 'sfo', name: 'San Francisco', sub: 'CA', kind: LocationKind.city, lat: 37.7749, lng: -122.4194, countryCode: 'US', adminArea: 'CA'));
+      expect(ds.scope!.countryCode, 'US');
+      expect(ds.items.every((x) => x.restaurant.countryCode == 'US'), isTrue);
+      final again = DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero), store: ds.storeForTest);
+      await again.bind(null, deviceLocale: 'en-IN');
+      expect(again.scope!.source, 'manual');
     });
   });
 }

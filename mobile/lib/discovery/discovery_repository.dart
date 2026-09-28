@@ -228,10 +228,31 @@ class MockRestaurantRepository implements RestaurantRepository {
   }
 
   ResultPage _page(List<RouteRestaurantResult> all, DiscoveryQuery q, int? corridorM) {
-    final filtered = all.where((x) => _matches(x.restaurant, q.search)).where((x) => _passes(x, q.filters)).toList()..sort((a, b) => _rank(a, b, q.sort));
+    int cmp(RouteRestaurantResult a, RouteRestaurantResult b) {
+      final ring = (a.ring ?? 0).compareTo(b.ring ?? 0);
+      if (ring != 0) return ring;
+      if (q.sort == SortKey.recommended && a.ring != null) {
+        final d = (a.distanceFromScopeM ?? 1 << 30).compareTo(b.distanceFromScopeM ?? 1 << 30);
+        if (d != 0) return d;
+      }
+      return _rank(a, b, q.sort);
+    }
+    final filtered = all.where((x) => _matches(x.restaurant, q.search)).where((x) => _passes(x, q.filters)).toList()..sort(cmp);
     final offset = q.cursor != null && RegExp(r'^c\d+$').hasMatch(q.cursor!) ? int.parse(q.cursor!.substring(1)) : 0;
     final items = filtered.skip(offset).take(q.limit).toList();
     return ResultPage(items: items, nextCursor: offset + q.limit < filtered.length ? 'c${offset + q.limit}' : null, total: filtered.length, corridorM: corridorM);
+  }
+
+  /// Ring classification relative to a scope; null when the country differs (never mixed).
+  static (int, int?)? ringFor(GlobalRestaurant r, DiscoveryScope scope) {
+    if (r.countryCode != scope.countryCode.toUpperCase()) return null;
+    final m = marketFor(scope.countryCode);
+    final distanceM = scope.lat != null && scope.lng != null ? haversineM(scope.lat!, scope.lng!, r.lat, r.lng).round() : null;
+    if (distanceM != null && distanceM <= m.scopeRadiusM) return (0, distanceM);
+    final sameRegion = scope.adminArea != null && r.address.adminArea != null && normalize(scope.adminArea!) == normalize(r.address.adminArea!);
+    if (sameRegion) return (1, distanceM);
+    if (regionsAdjacent(scope.countryCode, scope.adminArea, r.address.adminArea)) return (2, distanceM);
+    return (3, distanceM);
   }
 
   @override
@@ -239,7 +260,27 @@ class MockRestaurantRepository implements RestaurantRepository {
     await _wait();
     if (fail) throw Exception('Restaurant data is unavailable right now. Please try again.');
     final now = q.now ?? DateTime.now().toUtc();
-    return _page([for (final r in globalRestaurants) RouteRestaurantResult(restaurant: r, availability: computeAvailability(r, now))], q, null);
+    final scope = q.scope;
+    final all = <RouteRestaurantResult>[];
+    final ringCounts = <int, int>{0: 0, 1: 0, 2: 0, 3: 0};
+    for (final r in globalRestaurants) {
+      int? ring;
+      int? dist;
+      if (scope != null) {
+        final c = ringFor(r, scope);
+        if (c == null) continue; // other country — hard boundary
+        ring = c.$1; dist = c.$2; ringCounts[ring] = ringCounts[ring]! + 1;
+      }
+      all.add(RouteRestaurantResult(restaurant: r, availability: computeAvailability(r, now), ring: ring, distanceFromScopeM: dist));
+    }
+    if (scope == null) return _page(all, q, null);
+    var ringApplied = q.maxRing;
+    while (ringApplied < 3 && [0, 1, 2, 3].where((k) => k <= ringApplied).every((k) => ringCounts[k] == 0)) { ringApplied++; }
+    final applied = ringApplied;
+    final inScope = all.where((x) => (x.ring ?? 3) <= applied).toList();
+    final next = [1, 2, 3].where((k) => k > applied && ringCounts[k]! > 0).firstOrNull;
+    final page = _page(inScope, q, null);
+    return ResultPage(items: page.items, nextCursor: page.nextCursor, total: page.total, corridorM: null, ringApplied: applied, nextRing: next, ringCounts: ringCounts);
   }
 
   @override

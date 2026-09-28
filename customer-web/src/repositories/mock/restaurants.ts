@@ -6,10 +6,10 @@
  * replaces this class; the UI reads the same models. Corridor search here is a straight-line
  * approximation for development; production uses PostGIS + the routing provider (CF-061/059).
  */
-import { boundsOf, distanceToPolyline, inBounds, type LatLng } from '../../geo/geo'
+import { boundsOf, distanceToPolyline, haversineM, inBounds, type LatLng } from '../../geo/geo'
 import { formatDistance, formatMinutes, localClock } from '../../i18n/format'
-import { marketFor } from '../../i18n/markets'
-import type { Availability, DiscoveryQuery, FilterDefinition, FilterValue, JourneyLike, OpeningHours, Restaurant, ResultPage, RestaurantRepository, RouteRestaurantResult, SortKey } from '../types'
+import { marketFor, regionsAdjacent } from '../../i18n/markets'
+import type { Availability, DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, OpeningHours, Restaurant, ResultPage, RestaurantRepository, RouteRestaurantResult, ScopeRing, SortKey } from '../types'
 
 type Fixture = Omit<Restaurant, 'publicId' | 'image' | 'distance' | 'time' | 'detour' | 'tags' | 'reviewCount' | 'categories' | 'images' | 'acceptingOrders' | 'status' | 'market' | 'description' | 'openingHours' | 'features'> & {
   reviewCount: number
@@ -213,18 +213,49 @@ export class MockRestaurantRepository implements RestaurantRepository {
 
   private page(all: RouteRestaurantResult[], query: DiscoveryQuery, corridorM: number | null): ResultPage {
     const sort = query.sort ?? 'recommended'
-    const filtered = this.applyFilters(all.filter((x) => matches(x.restaurant, query.search ?? '')), query.filters ?? {}).sort((a, b) => rank(a, b, sort))
+    const filtered = this.applyFilters(all.filter((x) => matches(x.restaurant, query.search ?? '')), query.filters ?? {}).sort((a, b) => ((a.ring ?? 0) - (b.ring ?? 0)) || (sort === 'recommended' && a.ring !== undefined ? ((a.distanceFromScopeM ?? Number.POSITIVE_INFINITY) - (b.distanceFromScopeM ?? Number.POSITIVE_INFINITY)) || rank(a, b, sort) : rank(a, b, sort)))
     const offset = decodeCursor(query.cursor), limit = query.limit ?? PAGE
     const items = filtered.slice(offset, offset + limit)
     return { items, nextCursor: offset + limit < filtered.length ? encodeCursor(offset + limit) : null, total: filtered.length, corridorM }
+  }
+
+  /** Ring classification for a restaurant relative to a scope. Country mismatch → null (never mixed). */
+  static ringFor(r: Restaurant, scope: DiscoveryScope): { ring: ScopeRing; distanceM: number | null } | null {
+    if (r.countryCode !== scope.countryCode.toUpperCase()) return null
+    const m = marketFor(scope.countryCode)
+    const distanceM = scope.lat !== null && scope.lng !== null ? Math.round(haversineM([scope.lat, scope.lng], [r.lat, r.lng])) : null
+    if (distanceM !== null && distanceM <= m.scopeRadiusM) return { ring: 0, distanceM }
+    const sameRegion = !!scope.adminArea && !!r.address.adminArea && normalize(scope.adminArea) === normalize(r.address.adminArea)
+    if (sameRegion) return { ring: 1, distanceM }
+    if (regionsAdjacent(scope.countryCode, scope.adminArea, r.address.adminArea)) return { ring: 2, distanceM }
+    return { ring: 3, distanceM }
   }
 
   async getRestaurants(query: DiscoveryQuery): Promise<ResultPage> {
     await wait()
     if (failing()) throw new Error('Restaurant data is unavailable right now. Please try again.')
     const now = query.now ?? new Date().toISOString()
-    const all = RESTAURANTS.map((r): RouteRestaurantResult => ({ restaurant: r, distanceFromRouteM: null, detourDistanceM: null, detourDurationMin: null, estimatedArrival: null, estimatedPickupReady: null, routePosition: null, availability: computeAvailability(r, now) }))
-    return this.page(all, query, null)
+    const scope = query.scope ?? null
+    const all: RouteRestaurantResult[] = []
+    const ringCounts: Record<ScopeRing, number> = { 0: 0, 1: 0, 2: 0, 3: 0 }
+    for (const r of RESTAURANTS) {
+      let ring: ScopeRing | undefined, distanceFromScopeM: number | null = null
+      if (scope) {
+        const c = MockRestaurantRepository.ringFor(r, scope)
+        if (!c) continue // other country — hard boundary
+        ring = c.ring; distanceFromScopeM = c.distanceM; ringCounts[ring]++
+      }
+      all.push({ restaurant: r, distanceFromRouteM: null, detourDistanceM: null, detourDurationMin: null, estimatedArrival: null, estimatedPickupReady: null, routePosition: null, availability: computeAvailability(r, now), ring, distanceFromScopeM })
+    }
+    if (!scope) return this.page(all, query, null)
+    // Expanding rings: requested maxRing (default 1), auto-expanded outward while the inner rings are empty.
+    let ringApplied: ScopeRing = query.maxRing ?? 1
+    while (ringApplied < 3 && ([0, 1, 2, 3] as ScopeRing[]).filter((k) => k <= ringApplied).every((k) => ringCounts[k] === 0)) ringApplied = (ringApplied + 1) as ScopeRing
+    const applied = ringApplied
+    const inScope = all.filter((x) => (x.ring ?? 3) <= applied)
+    const nextRing = ([1, 2, 3] as ScopeRing[]).find((k) => k > applied && ringCounts[k] > 0) ?? null
+    const page = this.page(inScope, query, null)
+    return { ...page, ringApplied: applied, nextRing, ringCounts }
   }
 
   async getRestaurantsForJourney(journey: JourneyLike, query: DiscoveryQuery): Promise<ResultPage> {

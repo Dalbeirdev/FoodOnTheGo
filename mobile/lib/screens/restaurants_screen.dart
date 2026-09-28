@@ -10,7 +10,10 @@ import '../i18n/format.dart';
 import '../i18n/markets.dart';
 import '../i18n/strings.dart';
 import '../journey/journey_repositories.dart' show Journey, formatDuration;
+import '../state/account_state.dart';
+import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
+import 'plan_journey_screen.dart' show LocationPickerSheet;
 import '../state/journey_state.dart';
 import '../widgets/common.dart';
 
@@ -47,7 +50,22 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
       j = js.journey;
       setState(() => journeyState = 'ready');
     }
-    await ds.bind(j);
+    final auth = context.read<AuthState>();
+    final account = context.read<AccountState>();
+    if (auth.isAuthenticated && account.addresses.data.isEmpty) await account.loadAddresses();
+    if (js.recent.isEmpty) await js.loadRecent();
+    if (!mounted) return;
+    await ds.bind(j, addresses: auth.isAuthenticated ? account.addresses.data : const [], recentJourneys: js.recent, deviceLocale: Localizations.maybeLocaleOf(context)?.toLanguageTag());
+  }
+
+  Future<void> _changeLocation() async {
+    final js = context.read<JourneyState>();
+    final ds = context.read<DiscoveryState>();
+    final chosen = await showModalBottomSheet<dynamic>(
+      context: context, isScrollControlled: true, useSafeArea: true,
+      builder: (_) => MultiProvider(providers: [ChangeNotifierProvider.value(value: js), ChangeNotifierProvider.value(value: context.read<AuthState>()), ChangeNotifierProvider.value(value: context.read<AccountState>())], child: LocationPickerSheet(title: S.t('scope.dialog.title'), allowCurrent: true)),
+    );
+    if (chosen != null) await ds.setManualScope(chosen);
   }
 
   @override
@@ -69,6 +87,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
           if (journeyState == 'missing') Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Journey not found on this device.', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A1D17))), const SizedBox(height: 10), BrandButton(label: S.t('discovery.planJourney'), expand: false, height: 42, onPressed: () => context.go('/plan-journey'))]))),
           if (journey != null) _JourneyContextCard(journey: journey, ds: ds, js: js, units: units),
           if (journey == null && journeyState == 'none') _NoJourneyCard(),
+          if (journey == null && journeyState == 'none') ...[const SizedBox(height: 10), _ScopeBanner(ds: ds, onChange: _changeLocation)],
           const SizedBox(height: 14),
           // search + filters + sort
           TextField(controller: searchCtrl, textInputAction: TextInputAction.search, decoration: InputDecoration(hintText: S.t('discovery.search.placeholder'), prefixIcon: const Icon(Icons.search, color: Brand.grey), suffixIcon: ds.search.isEmpty ? null : IconButton(tooltip: 'Clear search', icon: const Icon(Icons.close, size: 18), onPressed: () { searchCtrl.clear(); ds.setSearch(''); })), onChanged: ds.setSearch),
@@ -99,20 +118,35 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
               InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('discovery.error.title'), style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A1D17))), Text(ds.error ?? '', style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13)), const SizedBox(height: 10), BrandButton(label: S.t('discovery.error.retry'), expand: false, height: 40, onPressed: ds.retry)])),
             if (ds.status == DiscoveryStatus.loading || ds.status == DiscoveryStatus.idle)
               Semantics(label: heading, child: Column(children: [for (var i = 0; i < 3; i++) Padding(padding: const EdgeInsets.only(bottom: 12), child: Container(height: 220, decoration: BoxDecoration(color: const Color(0xFFEEF0F4), borderRadius: BorderRadius.circular(14))))])),
-            if ((ds.status == DiscoveryStatus.ready || ds.status == DiscoveryStatus.updating || ds.status == DiscoveryStatus.loadingMore) && ds.items.isEmpty)
+            if (journey == null && ds.scope == null && journeyState == 'none')
+              Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
+                const Icon(Icons.place_outlined, size: 40, color: Brand.orangeDeep), const SizedBox(height: 8),
+                Text(S.t('scope.none.title'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4), Text(S.t('scope.none.text'), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
+                const SizedBox(height: 14), BrandButton(label: S.t('scope.set'), expand: false, height: 42, onPressed: _changeLocation),
+              ])))
+            else if ((ds.status == DiscoveryStatus.ready || ds.status == DiscoveryStatus.updating || ds.status == DiscoveryStatus.loadingMore) && ds.items.isEmpty)
               Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
                 const Icon(Icons.search_off, size: 40, color: Brand.orangeDeep), const SizedBox(height: 8),
-                Text(S.t(journey != null ? 'discovery.empty.route.title' : 'discovery.empty.general.title'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4), Text(S.t(journey != null ? 'discovery.empty.route.text' : 'discovery.empty.general.text'), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
+                Text(S.t(journey != null ? 'discovery.empty.route.title' : (ds.scope != null && ds.activeFilterCount == 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title'), {'label': ds.scope?.label ?? ''}), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4), Text(S.t(journey != null ? 'discovery.empty.route.text' : (ds.scope != null && ds.activeFilterCount == 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text')), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
                 const SizedBox(height: 14),
                 Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+                  if (journey == null && ds.scope != null && ds.nextRing != null) BrandButton(label: _moreAreasLabel(ds), expand: false, height: 42, onPressed: ds.showMoreAreas),
+                  if (journey == null && ds.scope != null) OutlineButton(label: S.t('scope.change'), expand: false, height: 42, onPressed: _changeLocation),
                   if (journey != null && (ds.corridorM ?? 0) < 50000) BrandButton(label: S.t('discovery.empty.increaseDetour', {'distance': formatDistance(((ds.corridorM ?? 5000) * 2).clamp(1000, 50000), units)}), expand: false, height: 42, onPressed: ds.widenCorridor),
                   if (ds.activeFilterCount > 0) OutlineButton(label: S.t('discovery.empty.clearFilters'), expand: false, height: 42, onPressed: () { searchCtrl.clear(); ds.clearFilters(); }),
                   if (journey != null) OutlineButton(label: S.t('discovery.empty.editRoute'), expand: false, height: 42, onPressed: () { js.edit(); context.go('/plan-journey'); }),
                 ]),
               ]))),
             if (ds.items.isNotEmpty)
-              Opacity(opacity: ds.status == DiscoveryStatus.updating ? .6 : 1, child: ResponsiveGrid(columns: Layout.columns(context), children: [for (final x in ds.items) GlobalRestaurantCard(result: x, units: units, selected: x.restaurant.id == ds.selectedId, onSelect: () => ds.select(x.restaurant.id))])),
+              Opacity(opacity: ds.status == DiscoveryStatus.updating ? .6 : 1, child: ResponsiveGrid(columns: Layout.columns(context), children: [for (final x in ds.items) GlobalRestaurantCard(result: x, units: units, selected: x.restaurant.id == ds.selectedId, onSelect: () => ds.select(x.restaurant.id), ringLabel: journey == null ? _ringLabel(ds, x.ring) : null)])),
+            if (journey == null && ds.scope != null && ds.ringApplied != null && ds.ringApplied! > ds.maxRing && ds.status == DiscoveryStatus.ready)
+              Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('scope.expanded', {'ring': (_ringLabel(ds, ds.ringApplied) ?? '').toLowerCase()}), style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
+            if (journey == null && ds.scope != null && ds.nextRing != null && ds.nextCursor == null && ds.status == DiscoveryStatus.ready && ds.items.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Center(child: OutlineButton(label: _moreAreasLabel(ds), expand: false, onPressed: ds.showMoreAreas)),
+            ],
             if (ds.nextCursor != null && ds.status != DiscoveryStatus.loading && ds.status != DiscoveryStatus.error) ...[
               const SizedBox(height: 14),
               Center(child: OutlineButton(label: ds.status == DiscoveryStatus.loadingMore ? S.t('discovery.loadingMore') : S.t('discovery.loadMore'), expand: false, onPressed: ds.status == DiscoveryStatus.loadingMore ? null : ds.loadMore)),
@@ -128,6 +162,31 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
   Future<void> _openFilters(BuildContext context) async {
     final ds = context.read<DiscoveryState>();
     await showModalBottomSheet<void>(context: context, isScrollControlled: true, useSafeArea: true, builder: (_) => ChangeNotifierProvider.value(value: ds, child: const FilterSheet()));
+  }
+}
+
+String _countryName(String cc) => cc; // Display names arrive with translations (CF-072); ISO code shown until then.
+String? _ringLabel(DiscoveryState ds, int? ring) => ring == null ? null : S.t('ring.$ring', {'region': ds.scope?.adminArea ?? ds.scope?.label ?? '', 'country': _countryName(ds.scope?.countryCode ?? '')});
+String _moreAreasLabel(DiscoveryState ds) => S.t('scope.moreAreas.${ds.nextRing}', {'region': ds.scope?.adminArea ?? ds.scope?.label ?? '', 'country': _countryName(ds.scope?.countryCode ?? '')});
+
+class _ScopeBanner extends StatelessWidget {
+  const _ScopeBanner({required this.ds, required this.onChange});
+  final DiscoveryState ds;
+  final VoidCallback onChange;
+  @override
+  Widget build(BuildContext context) {
+    final s = ds.scope;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+      decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Brand.line), borderRadius: BorderRadius.circular(12)),
+      child: Row(children: [
+        const Icon(Icons.place_outlined, size: 18, color: Brand.orangeDeep), const SizedBox(width: 8),
+        Expanded(child: s == null
+            ? Text(S.t('scope.none.text'), style: const TextStyle(fontSize: 13))
+            : Text.rich(TextSpan(text: S.t(s.lat != null ? 'scope.showingNear' : 'scope.showingIn', {'label': s.label}), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600), children: [TextSpan(text: '  ${S.t('scope.source.${s.source}')}', style: const TextStyle(fontWeight: FontWeight.w400, color: Brand.grey, fontSize: 12))]))),
+        TextButton(onPressed: onChange, child: Text(s == null ? S.t('scope.set') : S.t('scope.change'))),
+      ]),
+    );
   }
 }
 
@@ -251,11 +310,12 @@ class _UnitsMenu extends StatelessWidget {
 
 /// Route-aware card: every number goes through locale/unit/currency/time-zone formatting.
 class GlobalRestaurantCard extends StatelessWidget {
-  const GlobalRestaurantCard({super.key, required this.result, required this.units, this.selected = false, required this.onSelect});
+  const GlobalRestaurantCard({super.key, required this.result, required this.units, this.selected = false, required this.onSelect, this.ringLabel});
   final RouteRestaurantResult result;
   final UnitSystem units;
   final bool selected;
   final VoidCallback onSelect;
+  final String? ringLabel;
   @override
   Widget build(BuildContext context) {
     final r = result.restaurant;
@@ -290,11 +350,13 @@ class GlobalRestaurantCard extends StatelessWidget {
               Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2), decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(999)), child: Text(S.t(statusKey), style: TextStyle(color: statusColor, fontWeight: FontWeight.w800, fontSize: 11.5))),
                 if (next != null) Text(next, style: const TextStyle(color: Brand.grey, fontSize: 12)),
+                if (ringLabel != null) Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2), decoration: BoxDecoration(color: result.ring == 0 ? Brand.greenBg : result.ring == 2 ? const Color(0xFFFFF4E0) : result.ring == 3 ? const Color(0xFFF2F3F6) : Brand.blueBg, borderRadius: BorderRadius.circular(999)), child: Text(ringLabel!, style: TextStyle(color: result.ring == 0 ? Brand.green : result.ring == 2 ? const Color(0xFF8A4B00) : result.ring == 3 ? const Color(0xFF4B5260) : const Color(0xFF1D4ED8), fontWeight: FontWeight.w700, fontSize: 11.5))),
                 if (!a.acceptingOrders && a.isOpen) Text(S.t('card.notAcceptingOrders'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
               ]),
               const SizedBox(height: 8),
               Wrap(spacing: 10, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                 if (result.distanceFromRouteM != null) _Meta(Icons.place_outlined, S.t('card.fromRoute', {'distance': formatDistance(result.distanceFromRouteM!, units)})),
+                if (result.distanceFromRouteM == null && result.distanceFromScopeM != null) _Meta(Icons.place_outlined, formatDistance(result.distanceFromScopeM!, units)),
                 _Meta(Icons.schedule, S.t('card.prep', {'minutes': formatMinutes(r.prepTimeMin)})),
                 if (result.estimatedArrival != null) _Meta(Icons.directions_car_outlined, S.t('card.arrival', {'time': formatLocalTime(result.estimatedArrival!, r.timezone)})),
               ]),

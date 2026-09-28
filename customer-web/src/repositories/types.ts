@@ -154,6 +154,9 @@ export type RouteRestaurantResult = {
   /** 0..1 fraction along the route where the customer would leave it. */
   routePosition: number | null
   availability: Availability
+  /** Scope ring (general discovery only). */
+  ring?: ScopeRing
+  distanceFromScopeM?: number | null
 }
 
 export type SortKey = 'recommended' | 'lowestDetour' | 'nearestToRoute' | 'highestRated' | 'fastestPickup'
@@ -173,8 +176,29 @@ export type FilterDefinition = {
   journeyOnly?: boolean
   default?: FilterValue
 }
+/**
+ * Where the customer is looking from when there is no journey. The country is a HARD boundary
+ * (never mixes markets); region / locality / coordinates drive the proximity rings.
+ */
+export type DiscoveryScope = {
+  countryCode: string
+  adminArea?: string
+  locality?: string
+  lat: number | null
+  lng: number | null
+  /** Human label shown in the "Showing restaurants near …" banner. */
+  label: string
+  source: 'device' | 'saved-address' | 'journey' | 'manual' | 'locale' | 'dev'
+}
+/** 0 = within the scope radius, 1 = same region, 2 = neighbouring region, 3 = elsewhere in the country. */
+export type ScopeRing = 0 | 1 | 2 | 3
+
 export type DiscoveryQuery = {
   search?: string
+  /** Location scope for general discovery (ignored when a journey is supplied). */
+  scope?: DiscoveryScope | null
+  /** Highest ring to include (default 1). "Show more areas" raises it; auto-expands when inner rings are empty. */
+  maxRing?: ScopeRing
   filters?: Record<string, FilterValue>
   sort?: SortKey
   cursor?: string | null
@@ -184,7 +208,16 @@ export type DiscoveryQuery = {
   /** Injectable "now" (ISO) for deterministic availability in tests. */
   now?: string
 }
-export type ResultPage = { items: RouteRestaurantResult[]; nextCursor: string | null; total: number; corridorM: number | null }
+export type ResultPage = {
+  items: RouteRestaurantResult[]
+  nextCursor: string | null
+  total: number
+  corridorM: number | null
+  /** General discovery: ring actually applied (may be auto-expanded) and whether further rings hold restaurants. */
+  ringApplied?: ScopeRing
+  nextRing?: ScopeRing | null
+  ringCounts?: Record<ScopeRing, number>
+}
 
 export interface ContentRepository {
   getSiteNavigation(): SiteNavigation
