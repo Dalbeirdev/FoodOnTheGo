@@ -197,12 +197,12 @@ class _PickupTimeScreenState extends State<PickupTimeScreen> {
         ])),
       ]),
       bottomNavigationBar: BottomBar(child: Row(children: [
-        Expanded(flex: 4, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(flex: 3, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(S.t('pickup.time'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
-          Text(sel == null ? '—' : '${sel.mode == PickupMode.asap ? '~' : ''}${time(sel.requestedAt)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(sel == null ? '—' : '${sel.mode == PickupMode.asap ? '~' : ''}${time(sel.requestedAt)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         ])),
         const SizedBox(width: 10),
-        Expanded(flex: 5, child: BrandButton(label: S.t('pickup.continue'), icon: Icons.arrow_forward, onPressed: canContinue ? _continue : null)),
+        Expanded(flex: 6, child: BrandButton(label: S.t('pickup.continue'), onPressed: canContinue ? _continue : null)),
       ])),
     );
   }
