@@ -1,1 +1,1 @@
-flutter analyze: No issues found; flutter test: +64 All tests passed; preview walkthrough shoot_m05 18/18 (2026-09-28, Module 05)
+flutter analyze: No issues found; flutter test: +76 All tests passed; preview walkthrough shoot_m06 15/15 (2026-09-28, Module 06)

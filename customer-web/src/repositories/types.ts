@@ -81,19 +81,110 @@ export type GetAppContent = { title: string; accent: string; lead: string; store
 
 export type NotFoundContent = { code: string; title: string; text: string; actions: NavItem[] }
 
+/* ------------------------------------------------------------------ Global restaurant model (Module 06) */
+
+/** Flexible, country-neutral address. Only `formatted` and `countryCode` are guaranteed. */
+export type AddressComponents = {
+  formatted: string
+  line1?: string
+  locality?: string
+  adminArea?: string
+  postalCode?: string
+  /** ISO 3166-1 alpha-2 */
+  countryCode: string
+}
+
+/** One opening period. `close` earlier than `open` means the period runs overnight into the next day. */
+export type OpeningPeriod = { day: number; open: string; close: string }
+export type Closure = { from: string; to: string; reason?: string }
+export type OpeningHours = { periods: OpeningPeriod[]; closures?: Closure[]; note?: string }
+
+export type RestaurantStatus = 'active' | 'inactive' | 'temporarily_closed'
+
 export type Restaurant = {
   id: string
+  publicId: string
+  slug: string
   name: string
+  /** Latin transliterations / other-language names used by search, never shown instead of `name`. */
+  alternateNames?: string[]
+  description: string
+  /** ISO 3166-1 alpha-2 */
+  countryCode: string
+  /** Market / service-area identifier the restaurant belongs to (country → region → market). */
+  market: string
+  /** IANA time zone the restaurant operates in — opening status is computed here, never in the device zone. */
+  timezone: string
+  lat: number
+  lng: number
+  address: AddressComponents
   cuisines: string[]
+  categories: string[]
+  images: string[]
+  image: string
+  fallback: string
   rating: number
-  reviews: number
+  reviewCount: number
+  openingHours: OpeningHours
+  /** ISO 4217 */
+  currency: string
+  priceLevel: 1 | 2 | 3 | 4
+  prepTimeMin: number
+  features: string[]
+  tags: string[]
+  status: RestaurantStatus
+  acceptingOrders: boolean
+  /** @deprecated Module 01 display strings kept for Cart / Checkout / Item pages until Module 07 makes them journey-aware. */
   distance: string
   time: string
   detour: string
-  tags: string[]
-  image: string
-  fallback: string
 }
+
+export type AvailabilityStatus = 'open' | 'closing_soon' | 'opening_soon' | 'closed' | 'temporarily_closed'
+export type Availability = { status: AvailabilityStatus; acceptingOrders: boolean; nextChangeAt: string | null; localTime: string }
+
+/** Route-aware result: the restaurant plus everything computed relative to the customer's journey. */
+export type RouteRestaurantResult = {
+  restaurant: Restaurant
+  distanceFromRouteM: number | null
+  detourDistanceM: number | null
+  detourDurationMin: number | null
+  estimatedArrival: string | null
+  estimatedPickupReady: string | null
+  /** 0..1 fraction along the route where the customer would leave it. */
+  routePosition: number | null
+  availability: Availability
+}
+
+export type SortKey = 'recommended' | 'lowestDetour' | 'nearestToRoute' | 'highestRated' | 'fastestPickup'
+export type FilterValue = string[] | number | boolean
+export type FilterKind = 'multi' | 'toggle' | 'min' | 'max'
+export type FilterOption = { value: string; label: string; count?: number }
+/** Data-driven filter definition — the UI renders whatever the repository declares for this market / context. */
+export type FilterDefinition = {
+  id: string
+  labelKey: string
+  kind: FilterKind
+  options?: FilterOption[]
+  min?: number
+  max?: number
+  step?: number
+  unit?: 'distance' | 'minutes' | 'rating' | 'price'
+  journeyOnly?: boolean
+  default?: FilterValue
+}
+export type DiscoveryQuery = {
+  search?: string
+  filters?: Record<string, FilterValue>
+  sort?: SortKey
+  cursor?: string | null
+  limit?: number
+  /** Corridor half-width in metres; defaults to the market value. */
+  corridorM?: number
+  /** Injectable "now" (ISO) for deterministic availability in tests. */
+  now?: string
+}
+export type ResultPage = { items: RouteRestaurantResult[]; nextCursor: string | null; total: number; corridorM: number | null }
 
 export interface ContentRepository {
   getSiteNavigation(): SiteNavigation
@@ -107,6 +198,25 @@ export interface ContentRepository {
 }
 
 export interface RestaurantRepository {
+  /** Synchronous fixture access kept for Module 01 pages (cart, orders, hero). */
   list(): Restaurant[]
   byId(id: string): Restaurant | undefined
+  getRestaurantBySlug(slug: string): Promise<Restaurant | null>
+  /** General discovery — no journey. Paginated. */
+  getRestaurants(query: DiscoveryQuery): Promise<ResultPage>
+  /** Route-aware discovery bounded to the journey corridor. Paginated. */
+  getRestaurantsForJourney(journey: JourneyLike, query: DiscoveryQuery): Promise<ResultPage>
+  /** Filters applicable to this context (journey filters only when a journey exists). */
+  getFilterDefinitions(journey: JourneyLike | null): FilterDefinition[]
+  /** Cuisine taxonomy derived from data — dynamic, not a fixed global list. */
+  getCuisineTaxonomy(): string[]
+}
+
+/** Minimal journey shape discovery needs (kept structural so the journey module stays independent). */
+export type JourneyLike = {
+  id: string
+  origin: { name: string; lat: number | null; lng: number | null; countryCode?: string; timezone?: string }
+  destination: { name: string; lat: number | null; lng: number | null; countryCode?: string; timezone?: string }
+  departureAt: string | null
+  route: { geometry: [number, number][]; distanceKm: number; durationMin: number } | null
 }

@@ -10,7 +10,7 @@ const mount = (route: string) => render(<MemoryRouter initialEntries={[route]}><
 const PUBLIC_ROUTES: Array<[string, RegExp]> = [
   ['/', /Delicious Food/],
   ['/how-it-works', /How FoodOnTheGo Works/i],
-  ['/restaurants', /Restaurants on Your Route/i],
+  ['/restaurants', /Along Your Route/i],
   ['/plan-journey', /Plan Your Journey/i],
   ['/about-us', /Good Food/],
   ['/for-restaurants', /Grow Your Restaurant/i],

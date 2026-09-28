@@ -1,7 +1,7 @@
 {
  "project": "FoodOnTheGo",
- "phase": "Frontend — Module 05 (Plan a Journey & Trip Planning)",
- "currentModule": "Module 05",
+ "phase": "Frontend — Module 06 (Global route-aware restaurant discovery)",
+ "currentModule": "Module 06",
  "environment": "LOCAL DEVELOPMENT / TESTING",
  "production": "BLOCKED",
  "database": "PostgreSQL 18.6 + PostGIS 3.6.2",
@@ -54,21 +54,21 @@
   },
   {
    "id": "M06",
-   "name": "Module 06 — Orders, Tracking, ETA & Notifications",
-   "started": "",
+   "name": "Module 06 — Global Route-Based Restaurant Discovery & Map Experience (frontend-first, mock repositories)",
+   "started": "2026-09-28",
    "completed": "",
-   "scope": ""
+   "scope": "Owner spec 2026-09-28: geography-neutral discovery for Web + Android. Global Place / Restaurant models (ISO 3166-1, ISO 4217, IANA zones, WGS84, flexible addresses, overnight opening periods), market configuration (units, currency, locale, corridor), locale-aware money/distance/time formatting, restaurant-local opening status, Unicode search, data-driven filters, transparent sorting, cursor pagination, journey context (edit / new), list + map shell via MapProvider abstraction with text alternative, favorites reuse, canonical /restaurants/:slug. Google Places/Routes/Maps, PostGIS corridor search, real detours, translations, market administration, tax/fee configuration remain NOT STARTED and are tracked."
   },
   {
    "id": "M07",
-   "name": "Module 07 — Cart, Checkout & Payments (Razorpay TEST)",
+   "name": "Module 07 — Cart, Checkout & Payments (Razorpay TEST) + Restaurant Dashboard scheduling per owner",
    "started": "",
    "completed": "",
    "scope": ""
   },
   {
    "id": "M08",
-   "name": "Module 08 — Restaurant Dashboard & Admin Panel",
+   "name": "Module 08 — Orders, Tracking, ETA & Notifications",
    "started": "",
    "completed": "",
    "scope": ""
@@ -2616,6 +2616,582 @@
    "issue": "-",
    "carry": "-",
    "notes": "SHA-256 2A3383DC5441666FF8A7AECCC6C31EA2912A7EB16CCE0E4B10EC5AD4D5B39119"
+  },
+  {
+   "id": "M06-001",
+   "module": "M06",
+   "req": "Web restaurant discovery — /restaurants in general and route-aware contexts",
+   "platform": "WEB",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "RestaurantsPage.tsx; docs/local-review/screenshots/web-m06/01-general-discovery.png, 04-journey-dubai.png; docs/local-review/test-results/m06-web-e2e.json (44/44)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-002",
+   "module": "M06",
+   "req": "Android restaurant discovery — mobile-native list / map / filters / sort / load more",
+   "platform": "ANDROID",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "IMPLEMENTED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "PENDING USER DEVICE VERIFICATION",
+   "evidence": "restaurants_screen.dart; docs/local-review/screenshots/android-preview/phone-restaurants-general.png, phone-restaurants-journey.png, tablet-restaurants-journey.png",
+   "issue": "-",
+   "carry": "CF-085",
+   "notes": ""
+  },
+  {
+   "id": "M06-003",
+   "module": "M06",
+   "req": "Global location model — Place with placeId, formattedAddress, countryCode (ISO 3166-1), adminArea, locality, optional postalCode, IANA timezone; WGS84 / SRID 4326",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "journey/repositories.ts Location/Place; journey_repositories.dart JourneyLocation",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-004",
+   "module": "M06",
+   "req": "No country / city / currency / unit hardcoded in reusable discovery logic — per-market defaults only in i18n/markets (web + Dart)",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "i18n/markets.ts, lib/i18n/markets.dart; marketFor(\"ZZ\") falls back to neutral defaults (unit tests)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-005",
+   "module": "M06",
+   "req": "International restaurant model — publicId, slug, countryCode, market, timezone, lat/lng, flexible address, cuisines, categories, images, rating, reviewCount, openingHours (periods, overnight, closures), currency, priceLevel, prepTime, features, status, acceptingOrders",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "repositories/types.ts Restaurant; restaurant_models.dart GlobalRestaurant",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-006",
+   "module": "M06",
+   "req": "Currency architecture — ISO 4217 codes, integer minor units, locale-aware Intl / intl formatting, price-level symbols; no FX conversion",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "formatMoney / priceLevelLabel; TEST 4 unit tests (INR, USD, JPY, EUR, GBP)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-007",
+   "module": "M06",
+   "req": "Timezone architecture — restaurant IANA zone drives Open / Closing soon / Opens soon; zone label shown; device zone never assumed",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "computeAvailability (web Intl; Dart dev offset table); TEST 5 unit tests",
+   "issue": "Android dev offset table is not DST-aware — CF-078",
+   "carry": "CF-078",
+   "notes": ""
+  },
+  {
+   "id": "M06-008",
+   "module": "M06",
+   "req": "Distance units — internal metres; display metric / imperial by market or user preference",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "formatDistance / resolveUnitSystem; docs/local-review/test-results/m06-web-e2e.json TEST 6/7; units selector on both platforms",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-009",
+   "module": "M06",
+   "req": "Localization architecture — string bundles + t(); document lang/dir from locale; RTL not blocked (dir=\"auto\", logical CSS)",
+   "platform": "ALL",
+   "cat": "I18N",
+   "pri": "P0",
+   "status": "IMPLEMENTED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "i18n/strings.ts + LocaleProvider; lib/i18n/strings.dart",
+   "issue": "TRANSLATIONS = NOT STARTED (English bundle only; legacy pages still embed strings)",
+   "carry": "CF-079",
+   "notes": ""
+  },
+  {
+   "id": "M06-010",
+   "module": "M06",
+   "req": "Unicode support + search normalisation — NFKD / diacritic folding, alternate names, non-Latin and Arabic names never ASCII-sanitised",
+   "platform": "ALL",
+   "cat": "Global",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "normalize(); docs/local-review/test-results/m06-web-e2e.json TEST 8; docs/local-review/screenshots/web-m06/02-unicode-search.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-011",
+   "module": "M06",
+   "req": "Journey context on /restaurants — origin, destination, route summary, corridor width, result count, departure; Edit Journey / Start New Journey",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/screenshots/web-m06/04-journey-dubai.png; docs/local-review/screenshots/android-preview/phone-restaurants-journey.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-012",
+   "module": "M06",
+   "req": "Route-aware result model — RouteRestaurantResult (distanceFromRoute, detour distance/time, estimated arrival, pickup readiness, routePosition, availability)",
+   "platform": "ALL",
+   "cat": "Architecture",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "types.ts / restaurant_models.dart; computed in the repository, never in widgets",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-013",
+   "module": "M06",
+   "req": "RestaurantRepository — getRestaurants / getRestaurantsForJourney / getRestaurantBySlug / getFilterDefinitions / getCuisineTaxonomy with Mock implementation; bounding box + corridor + cursor pagination",
+   "platform": "ALL",
+   "cat": "Architecture",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "repositories/mock/restaurants.ts; discovery_repository.dart; TEST 1/2 unit tests",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-014",
+   "module": "M06",
+   "req": "List + map experience — web list / list+map / map; Android list ⇄ map toggle; selection synchronised both ways",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 11; docs/local-review/screenshots/web-m06/05-map-sync.png; docs/local-review/screenshots/android-preview/phone-restaurants-journey-map.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-015",
+   "module": "M06",
+   "req": "Map provider abstraction — MapProvider interface with schematic development shell (not a map); text alternative always present",
+   "platform": "ALL",
+   "cat": "Architecture",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "map/MapProvider.tsx; DiscoveryMapShell (Dart)",
+   "issue": "MAP PROVIDER = PENDING (Google Maps or approved vendor)",
+   "carry": "CF-060",
+   "notes": ""
+  },
+  {
+   "id": "M06-016",
+   "module": "M06",
+   "req": "Restaurant card — name (dir=auto), rating, cuisines, price level, open status + next change in restaurant zone, distance from route, detour, prep, arrival, address, features, favorite, View Restaurant / View Menu",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "components/RestaurantCard.tsx; GlobalRestaurantCard",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-017",
+   "module": "M06",
+   "req": "Filtering — data-driven definitions (cuisine taxonomy from data, open now, rating, dietary, price, pickup time; distance / detour only with a journey)",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "FiltersPanel.tsx / FilterSheet; docs/local-review/test-results/m06-web-e2e.json TEST 9; docs/local-review/screenshots/web-m06/03-filters.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-018",
+   "module": "M06",
+   "req": "Sorting — recommended (transparent rule, not AI), lowest detour, nearest to route, highest rated, fastest pickup",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 10; rule shown under the results bar",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-019",
+   "module": "M06",
+   "req": "Search — debounced, Unicode-aware, request cancellation",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "useDiscovery.ts; discovery_state.dart",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-020",
+   "module": "M06",
+   "req": "Pagination / load more — cursor pages of 6; long journeys stay bounded to the corridor",
+   "platform": "ALL",
+   "cat": "Scalability",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 2 (Delhi → Mumbai: 6 results, not all 30); docs/local-review/screenshots/web-m06/08-journey-long.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-021",
+   "module": "M06",
+   "req": "Favorites integration — Module 04 favorites reused on cards; guest → login",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json favorite step; FavoriteButton (Android)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-022",
+   "module": "M06",
+   "req": "Canonical restaurant route /restaurants/:slug (+ /restaurants/:slug/item/:id); legacy /restaurant/… redirects (web + Android)",
+   "platform": "ALL",
+   "cat": "Navigation",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json redirect step; App.tsx LegacyItemRedirect; main.dart redirect",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-023",
+   "module": "M06",
+   "req": "No active journey — general browsing with Plan a Journey CTA",
+   "platform": "ALL",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 12; docs/local-review/screenshots/android-preview/phone-restaurants-general.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-024",
+   "module": "M06",
+   "req": "Empty / loading / error states — no restaurants near route (widen corridor, clear filters, edit route), skeletons, updating, loading more, data unavailable + retry",
+   "platform": "ALL",
+   "cat": "UX",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES (web)",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json TEST 13 + error steps; docs/local-review/screenshots/web-m06/09-empty-route.png, 10-error.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-025",
+   "module": "M06",
+   "req": "Restaurant detail (Design A) — resolves by slug, shows formatted address, price level, zone-aware status, description, features",
+   "platform": "WEB",
+   "cat": "Discovery",
+   "pri": "P1",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "docs/local-review/screenshots/web-m06/11-detail-jp.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-026",
+   "module": "M06",
+   "req": "Responsive web — desktop / laptop / tablet / mobile incl. list+map, filters drawer, long names, long addresses, different currencies and units; zero overflow",
+   "platform": "WEB",
+   "cat": "Testing",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json 8 overflow checks + long-text step; docs/local-review/screenshots/web-m06/desktop|laptop|tablet|mobile-*.png, 12-long-text.png",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-027",
+   "module": "M06",
+   "req": "Accessibility — keyboard markers, combobox/search semantics, aria-live counts, labelled map + text alternative, contrast (axe 0 violations)",
+   "platform": "WEB",
+   "cat": "Accessibility",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "docs/local-review/test-results/m06-web-e2e.json axe + keyboard steps",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-028",
+   "module": "M06",
+   "req": "Web tests — formatting, units, time zones, Unicode, repository TEST 1–13, page TESTs, canonical redirect",
+   "platform": "WEB",
+   "cat": "Testing",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "discovery.test.tsx (22 tests); npm test 101/101 (docs/local-review/test-results/web-vitest.txt); e2e 44/44",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-029",
+   "module": "M06",
+   "req": "Android tests — formatting, zones, Unicode, repository TESTs, DiscoveryState, screen layouts",
+   "platform": "ANDROID",
+   "cat": "Testing",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "flutter analyze 0 issues; flutter test 76/76 (docs/local-review/test-results/android-flutter-tests.txt)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-030",
+   "module": "M06",
+   "req": "Previous module regression — build + lint, all suites, verify-local, Modules 01–05 pages, journey planning",
+   "platform": "ALL",
+   "cat": "Regression",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "docs/local-review/test-results/verify-local-m06.txt; docs/local-review/test-results/web-build-lint-m06.txt",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-031",
+   "module": "M06",
+   "req": "International test fixtures — IN (metric/INR), US (imperial/USD), GB (imperial/GBP), JP (JPY, kana/kanji), FR (EUR, diacritics), AE (AED, Arabic); no fixture is a product default",
+   "platform": "ALL",
+   "cat": "Test data",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "repositories/mock/restaurants.ts; discovery_repository.dart; journey mock places + corridors",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-032",
+   "module": "M06",
+   "req": "Google Places / Routes / Maps tracked as separate pending capabilities; PlacesProvider / RoutingProvider / MapProvider kept apart",
+   "platform": "BACKEND",
+   "cat": "Carry-forward",
+   "pri": "P0",
+   "status": "NOT STARTED",
+   "impl": "-",
+   "test": "-",
+   "manual": "-",
+   "evidence": "CF-058 / CF-059 / CF-060",
+   "issue": "GOOGLE PLACES = NOT STARTED · GOOGLE ROUTES = NOT STARTED · GOOGLE MAPS = NOT STARTED",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-033",
+   "module": "M06",
+   "req": "PostGIS corridor search + real detour calculation + cost-control shortlist tracked",
+   "platform": "DATABASE",
+   "cat": "Carry-forward",
+   "pri": "P0",
+   "status": "NOT STARTED",
+   "impl": "-",
+   "test": "-",
+   "manual": "-",
+   "evidence": "CF-061 / CF-063 / CF-067",
+   "issue": "POSTGIS CORRIDOR = NOT STARTED · REAL DETOUR = NOT STARTED",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-034",
+   "module": "M06",
+   "req": "Global future requirements registered — market configuration, translations, tax/fee configuration, money model, opening-hours exceptions, holidays, offline behaviour, image delivery, privacy of journey data, authorization of journey ids",
+   "platform": "ALL",
+   "cat": "Carry-forward",
+   "pri": "P0",
+   "status": "REGISTERED",
+   "impl": "-",
+   "test": "-",
+   "manual": "-",
+   "evidence": "CF-071 … CF-084; GLOBAL / INTERNATIONAL READINESS register",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M06-035",
+   "module": "M06",
+   "req": "Android review APK build008 with SHA-256 + manifest + build log",
+   "platform": "ANDROID",
+   "cat": "Build",
+   "pri": "P0",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "PENDING",
+   "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build008.apk",
+   "issue": "-",
+   "carry": "-",
+   "notes": "SHA-256 7596B75545342A0EFBBAFC338D72FBA6FEEF89A0765512C8BB43B01A49F02CA7"
+  },
+  {
+   "id": "M06-036",
+   "module": "M06",
+   "req": "Legacy Module 01 pages (cart, checkout, item, orders) still show sample distance strings and INR menu prices — tracked for Module 07 rework",
+   "platform": "ALL",
+   "cat": "Boundary",
+   "pri": "P1",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "-",
+   "manual": "-",
+   "evidence": "Restaurant.distance/time/detour marked @deprecated; menu inr() helper",
+   "issue": "Menu prices are Module 01 INR fixtures; menu module must price per restaurant currency",
+   "carry": "CF-080",
+   "notes": ""
   }
  ],
  "pages": [
@@ -2668,16 +3244,16 @@
    "page": "Restaurants",
    "url": "/restaurants",
    "design": "APPROVED",
-   "impl": "IMPLEMENTED",
+   "impl": "IMPLEMENTED (M06 rewrite, global-ready)",
    "resp": "PASS",
    "inter": "PASS",
-   "mock": "YES (+ journey summary from JourneyContext)",
+   "mock": "YES (MockRestaurantRepository, 30 fixtures / 6 markets)",
    "test": "unit + e2e PASS",
    "manual": "VERIFIED",
-   "backend": "NOT STARTED",
+   "backend": "MOCK",
    "prod": "NO",
    "shot": "restaurants",
-   "notes": "Route box reads the journey by id; discovery/filtering by corridor is a future module"
+   "notes": "General + route-aware; list/map; data-driven filters; cursor pagination"
   },
   {
    "page": "Restaurant Details / Menu (Design A)",
@@ -2692,7 +3268,7 @@
    "backend": "NOT STARTED",
    "prod": "NO",
    "shot": "restaurant-details",
-   "notes": "Canonical; Design B removed."
+   "notes": "Canonical; Design B removed. Resolves by slug; zone-aware status; legacy /restaurant/… redirects (M06)."
   },
   {
    "page": "Food Item / Customization",
@@ -3110,7 +3686,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "analyze+unit+widget PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3123,7 +3699,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3136,7 +3712,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3149,7 +3725,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build005)",
    "backend": "MOCK (MockAuthRepository)",
    "status": "VERIFIED"
@@ -3162,7 +3738,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-plan-journey.png, tablet-plan-journey.png)",
    "mock": "YES (MockLocation/Journey/Route)",
    "test": "unit + widget PASS; preview walkthrough",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3175,7 +3751,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3188,7 +3764,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build002)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3201,7 +3777,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-my-profile.png, tablet-my-profile.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3214,7 +3790,7 @@
    "resp": "PASS (390 + 1280 tests, tablet preview)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build003)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3227,7 +3803,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-favorites.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3240,7 +3816,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-addresses.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3253,7 +3829,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-payment-methods.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3266,7 +3842,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-notifications.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3279,7 +3855,7 @@
    "resp": "PASS (390 + 1000 preview: docs/local-review/screenshots/android-preview/phone-restaurants-fav.png)",
    "mock": "YES",
    "test": "widget layout PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build006, 2026-09-25)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3292,7 +3868,7 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-journey-suggestions.png)",
    "mock": "YES",
    "test": "preview walkthrough PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
@@ -3305,23 +3881,23 @@
    "resp": "PASS (docs/local-review/screenshots/android-preview/phone-journey-preview.png, tablet-journey-preview.png)",
    "mock": "YES",
    "test": "preview walkthrough PASS",
-   "apk": "YES (build007)",
+   "apk": "YES (build008)",
    "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
    "backend": "NOT STARTED",
    "status": "VERIFIED"
   },
   {
-   "screen": "Restaurants with journey summary (?journey=<id>)",
+   "screen": "Restaurants — global discovery (journey context, search, filter sheet, sort, list ⇄ map shell, load more)",
    "design": "Adapt from Web",
-   "ui": "IMPLEMENTED (build007)",
+   "ui": "IMPLEMENTED (M06 rewrite, build008)",
    "nav": "PASS",
-   "resp": "PASS (docs/local-review/screenshots/android-preview/phone-restaurants-journey.png)",
+   "resp": "PASS (docs/local-review/screenshots/android-preview/phone-restaurants-general.png, phone-restaurants-journey.png, tablet-restaurants-journey.png)",
    "mock": "YES",
-   "test": "preview walkthrough PASS",
-   "apk": "YES (build007)",
-   "manual": "VERIFIED (owner tablet, build007, 2026-09-28)",
+   "test": "unit + widget PASS; preview walkthrough",
+   "apk": "YES (build008)",
+   "manual": "PENDING USER DEVICE VERIFICATION",
    "backend": "NOT STARTED",
-   "status": "VERIFIED"
+   "status": "IMPLEMENTED"
   }
  ],
  "decisions": [
@@ -3456,6 +4032,24 @@
    "Module 05 accepted as complete: owner verified build007 on tablet, all screens pass. Google Places/Routes/Maps, PostGIS corridor and geolocation remain NOT STARTED (CF-058 … CF-063).",
    "Owner",
    "Module 06 may start on owner instruction."
+  ],
+  [
+   "2026-09-28",
+   "GLOBAL PLATFORM ARCHITECTURE = REQUIRED. FoodOnTheGo must remain geography-neutral and internationally extensible: no city, state, country, route, currency, timezone, language, country code or cuisine hardcoded into core architecture. Test locations are controlled test data only.",
+   "Owner (permanent)",
+   "Applies to every future module; tracked in the GLOBAL / INTERNATIONAL READINESS register."
+  ],
+  [
+   "2026-09-28",
+   "Module 06 re-sequenced to the owner spec: Module 06 = Global Route-Based Restaurant Discovery & Map Experience.",
+   "Owner spec / Claude",
+   "Orders / Tracking / ETA / Notifications moves to the Module 08 slot."
+  ],
+  [
+   "2026-09-28",
+   "\"Recommended\" sorting is a transparent business rule (open first, then detour, then rating) — no AI recommendation is claimed.",
+   "Claude per spec",
+   "Ranking rules move server-side with the corridor backend."
   ]
  ],
  "carry": [
@@ -4231,11 +4825,11 @@
    "CF-065",
    "Route-aware restaurant discovery: filter/rank restaurants by corridor + detour using the journey id (currently the list is the Module 01 fixture)",
    "M05",
-   "Registered per Module 05 spec — frontend uses mock repositories",
+   "Frontend route-aware discovery implemented in M06 on the mock repository; real corridor ranking remains backend",
    "P1",
    "Claude",
    "Restaurant Discovery module",
-   "NOT STARTED",
+   "PARTIAL (frontend done)",
    "2026-09-28",
    "-"
   ],
@@ -4298,6 +4892,186 @@
    "DONE",
    "2026-09-28",
    "build007 verified on owner tablet 2026-09-28"
+  ],
+  [
+   "CF-071",
+   "MARKET CONFIGURATION: admin-managed markets (country → region → market), units, currency, locale, corridor defaults, country availability",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Backend Markets module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-072",
+   "TRANSLATIONS: locale bundles (web + Android), RTL layout QA, pseudo-localisation tests; retrofit legacy pages to t()",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P1",
+   "Claude",
+   "Localization module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-073",
+   "TAX CONFIGURATION: no global GST/VAT/sales-tax rule; per market / product / restaurant, legally reviewed. Any tax shown in mockups is NOT approved",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Checkout / Payments module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-074",
+   "SERVICE / PLATFORM FEES: commercial configuration per market; never hardcoded",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Checkout / Payments module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-075",
+   "MONEY MODEL: integer minor units or fixed-precision decimals in the backend; no binary floating point for money",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Backend foundation",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-076",
+   "OPENING HOURS: multiple periods per day, overnight, holiday exceptions, temporary closures, restaurant overrides; regional holiday calendars",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P1",
+   "Claude",
+   "Restaurants backend",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-077",
+   "RESTAURANT AVAILABILITY rules: active status, market availability, accepting orders, menu availability, capacity, arrival-time checks",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Restaurants backend",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-078",
+   "ANDROID TIME ZONES: replace the development fixed-offset table with the timezone package + tzdata (DST-aware) before any production build",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Android hardening",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-079",
+   "LOCALIZATION READINESS: initializeDateFormatting per locale on Android; Intl locale from user preference on web",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P1",
+   "Claude",
+   "Localization module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-080",
+   "Menu / cart / checkout / orders pages: price per restaurant currency and journey-aware distances (retire Restaurant.distance/time/detour legacy strings and the inr() helper)",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Module 07 (Cart & Checkout)",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-081",
+   "OFFLINE / POOR NETWORK: cached journey context and restaurant summaries, offline messaging, safe retry (no offline ordering claims)",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P1",
+   "Claude",
+   "Android hardening",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-082",
+   "IMAGE DELIVERY: thumbnails, responsive images, object storage, CDN, compression; placeholders remain under PENDING ASSETS",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P1",
+   "Claude",
+   "Production readiness",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-083",
+   "PRIVACY / SECURITY of journeys: journey ids must not expose another customer's saved journeys; authorization + minimal retention; no precise journey data in public URLs",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Backend security",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-084",
+   "LONG-ROUTE STRATEGY: route segmentation, bounding boxes, progressive loading, candidate limits, viewport-bounded map queries, server/cursor pagination, caching",
+   "M06",
+   "Registered per Module 06 spec — frontend uses mock repositories",
+   "P0",
+   "Claude",
+   "Route Corridor backend module",
+   "NOT STARTED",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-085",
+   "Owner device test of build008: general browsing, filters sheet, sort, list/map toggle + marker selection, journey-aware results (Dubai → Abu Dhabi, SF → LA), units menu, Unicode names, load more, TalkBack on cards",
+   "M06",
+   "APK built; not yet installed on owner device",
+   "P0",
+   "Owner",
+   "Before M06 approval",
+   "PENDING USER DEVICE VERIFICATION",
+   "2026-09-28",
+   "-"
   ]
  ],
  "bugs": [
@@ -5150,6 +5924,66 @@
    "PASS",
    "docs/local-review/test-results/verify-local-m05.txt; docs/local-review/test-results/web-build-lint-m05.txt",
    "2026-09-28"
+  ],
+  [
+   "TE-055",
+   "M06",
+   "WEB",
+   "Vitest discovery suite: currency / units / zones / Unicode, repository TEST 1–13, page TESTs 1–13, canonical redirect",
+   "unit + component",
+   "PASS",
+   "npm test → 9 files, 101 tests (docs/local-review/test-results/web-vitest.txt)",
+   "2026-09-28"
+  ],
+  [
+   "TE-056",
+   "M06",
+   "WEB",
+   "Browser e2e (Playwright/Chrome): TEST 1–13 across AE / US / JP / IN journeys, map sync, favorites, redirects, long text, 8 overflow checks, mobile drawer + map, keyboard, axe on 2 pages",
+   "e2e (local, mock repositories)",
+   "PASS",
+   "docs/local-review/test-results/m06-web-e2e.json (44/44); docs/local-review/screenshots/web-m06/",
+   "2026-09-28"
+  ],
+  [
+   "TE-057",
+   "M06",
+   "ANDROID",
+   "Formatting, dev zone table, Unicode search, repository TESTs, DiscoveryState, screen layouts phone/tablet",
+   "unit + widget",
+   "PASS",
+   "flutter analyze 0 issues; flutter test 76/76",
+   "2026-09-28"
+  ],
+  [
+   "TE-058",
+   "M06",
+   "ANDROID",
+   "Flutter web preview walkthrough (semantics-driven): general discovery, filter sheet, map shell, Dubai → Abu Dhabi journey-aware results, marker selection, US imperial journey",
+   "preview",
+   "PASS",
+   "docs/local-review/screenshots/android-preview/phone-restaurants-*.png, tablet-restaurants-*.png",
+   "2026-09-28"
+  ],
+  [
+   "TE-059",
+   "M06",
+   "ANDROID",
+   "Owner device test of build008 (see CF-085)",
+   "manual (device)",
+   "PENDING",
+   "-",
+   "2026-09-28"
+  ],
+  [
+   "TE-060",
+   "M06",
+   "ALL",
+   "Regression: web build + lint, full suites, verify-local, Android build008",
+   "regression",
+   "PASS",
+   "docs/local-review/test-results/verify-local-m06.txt; docs/local-review/test-results/web-build-lint-m06.txt",
+   "2026-09-28"
   ]
  ],
  "artifacts": [
@@ -5400,6 +6234,38 @@
    "docs/local-review/screenshots/web-m05/, docs/local-review/screenshots/android-preview/phone-journey-*.png",
    "Live local view evidence",
    "YES"
+  ],
+  [
+   "Web global discovery layer (i18n markets/format/strings, geo, MapProvider, RestaurantCard, FiltersPanel, useDiscovery, RestaurantsPage)",
+   "M06",
+   "WEB",
+   "customer-web/src/i18n/*, src/geo/*, src/map/*, src/discovery/*, src/components/RestaurantCard.tsx, FiltersPanel.tsx, src/pages/RestaurantsPage.tsx, src/repositories/mock/restaurants.ts",
+   "Frontend-first global discovery per spec",
+   "YES"
+  ],
+  [
+   "Android global discovery layer",
+   "M06",
+   "ANDROID",
+   "mobile/lib/i18n/*, lib/discovery/*, lib/state/discovery_state.dart, lib/screens/restaurants_screen.dart",
+   "Frontend-first global discovery per spec",
+   "YES"
+  ],
+  [
+   "Local-review APK build008 (global discovery)",
+   "M06",
+   "ANDROID",
+   "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build008.apk",
+   "Owner device test",
+   "YES"
+  ],
+  [
+   "Web + Android M06 screenshots",
+   "M06",
+   "ALL",
+   "docs/local-review/screenshots/web-m06/, docs/local-review/screenshots/android-preview/phone-restaurants-*.png",
+   "Live local view evidence",
+   "YES"
   ]
  ],
  "apks": [
@@ -5492,7 +6358,20 @@
    "2A3383DC5441666FF8A7AECCC6C31EA2912A7EB16CCE0E4B10EC5AD4D5B39119",
    "YES (owner tablet, 2026-09-28)",
    "VERIFIED — all screens pass (owner, 2026-09-28)",
-   "VERIFIED ON DEVICE"
+   "VERIFIED ON DEVICE (owner, 2026-09-28) — superseded by build008"
+  ],
+  [
+   "FoodOnTheGo-local-review-v0.1.0-build008.apk",
+   "0.1.0",
+   "8 (local/debug)",
+   "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+   "MOCK AUTH + ACCOUNT + JOURNEY + GLOBAL RESTAURANT REPOSITORIES; LOCAL API health only",
+   "M06 commit (see git log)",
+   "2026-09-28",
+   "7596B75545342A0EFBBAFC338D72FBA6FEEF89A0765512C8BB43B01A49F02CA7",
+   "PENDING",
+   "PENDING USER DEVICE VERIFICATION",
+   "BUILT — AWAITING DEVICE TEST"
   ]
  ],
  "pendingAssets": {
@@ -5633,7 +6512,7 @@
    "NOT STARTED"
   ],
   [
-   "Restaurants (multi-tenant)",
+   "Restaurants (multi-tenant, global model: markets, zones, currencies, opening hours) — frontend mocked in M06",
    "NOT STARTED"
   ],
   [
@@ -5775,6 +6654,87 @@
   [
    "Authorization: customers may only access their own account records (backend) — NOT STARTED",
    "NOT STARTED"
+  ],
+  [
+   "Journey ids in URLs are opaque device-local ids; authorization of journey / saved-journey access is a backend requirement (CF-083)",
+   "PENDING"
+  ]
+ ],
+ "globalReadiness": [
+  [
+   "Country neutrality",
+   "IMPLEMENTED (frontend) — no country in reusable discovery logic; markets table only",
+   "Market administration backend NOT STARTED (CF-071)"
+  ],
+  [
+   "Currency",
+   "IMPLEMENTED — ISO 4217, minor units, Intl / intl formatting, per-restaurant currency",
+   "Backend money model + FX policy (CF-075)"
+  ],
+  [
+   "Timezone",
+   "IMPLEMENTED (web Intl, restaurant IANA zone) / DEV TABLE (Android)",
+   "Android DST-aware tz library (CF-078); UTC storage rule backend"
+  ],
+  [
+   "Distance units",
+   "IMPLEMENTED — metres internally, metric/imperial by market or preference",
+   "—"
+  ],
+  [
+   "Address formats",
+   "IMPLEMENTED — flexible components + provider formatted address; postal code optional",
+   "Provider address parsing (Places) CF-058"
+  ],
+  [
+   "Unicode",
+   "VERIFIED — Japanese, Arabic, diacritics rendered and searchable",
+   "Server-side collation / search normalisation"
+  ],
+  [
+   "Localization readiness",
+   "PARTIAL — string bundles + t() for discovery/journey; legacy pages embed English",
+   "Translations + retrofit (CF-072, CF-079)"
+  ],
+  [
+   "RTL readiness",
+   "PREPARED — dir from locale, dir=\"auto\" on names, logical CSS in new components",
+   "RTL QA once an RTL locale ships"
+  ],
+  [
+   "Global coordinates",
+   "IMPLEMENTED — WGS84 / SRID 4326 everywhere",
+   "PostGIS geography/geometry columns (CF-061)"
+  ],
+  [
+   "Opening hours",
+   "IMPLEMENTED — periods per day, overnight, closures, restaurant zone",
+   "Holiday calendars + overrides backend (CF-076)"
+  ],
+  [
+   "Tax configuration",
+   "NOT STARTED — no tax rule in the global app; mockup taxes not approved",
+   "CF-073"
+  ],
+  [
+   "International route capability",
+   "PREPARED — routing provider abstraction; no straight-line road assumptions in product logic",
+   "Routing provider + borders/business rules (CF-059, CF-067)"
+  ],
+  [
+   "Map provider abstraction",
+   "IMPLEMENTED — MapProvider interface + schematic shell; text alternative",
+   "Google Maps / approved vendor (CF-060)"
+  ],
+  [
+   "Routing provider abstraction",
+   "IMPLEMENTED — RouteRepository / RoutingProvider seam (mock)",
+   "Google Routes (CF-059); detour cost control (CF-063)"
+  ],
+  [
+   "Large dataset scalability",
+   "PREPARED — cursor pagination, bounded corridor search, debounced search, lazy images",
+   "Server pagination, spatial indexes, caching, segmentation (CF-084)"
   ]
  ]
 }

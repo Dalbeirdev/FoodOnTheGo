@@ -8,6 +8,9 @@ import { useAccount } from '../account/AccountContext'
 import { useAuth } from '../auth/AuthContext'
 import { MENU, inr } from '../data/menu'
 import { RESTAURANTS } from './RestaurantsPage'
+import { computeAvailability } from '../repositories/mock/restaurants'
+import { formatLocalTime, formatMinutes, priceLevelLabel, zoneLabel } from '../i18n/format'
+import { t, useLocale } from '../i18n/strings'
 import './RestaurantDetailPage.css'
 
 type P = { size?: number }
@@ -53,7 +56,10 @@ function Img({ src, fallback, alt = '' }: { src: string; fallback: string; alt?:
 
 export default function RestaurantDetailPage() {
   const { id } = useParams()
-  const restaurant = RESTAURANTS.find((r) => r.id === id) ?? RESTAURANTS[0]
+  const restaurant = RESTAURANTS.find((r) => r.slug === id || r.id === id) ?? RESTAURANTS[0]
+  const { locale } = useLocale()
+  const availability = computeAvailability(restaurant, new Date().toISOString())
+  const statusKey = availability.status === 'open' ? 'card.open' : availability.status === 'closing_soon' ? 'card.closingSoon' : availability.status === 'opening_soon' ? 'card.openingSoon' : availability.status === 'temporarily_closed' ? 'card.temporarilyClosed' : 'card.closed'
   const [tab, setTab] = useState('All Items')
   const [liked, setLiked] = useState<Set<string>>(new Set())
   const { isFavorite, toggleFavorite } = useAccount()
@@ -97,9 +103,10 @@ export default function RestaurantDetailPage() {
               <div className="rd-info__body">
                 <div className="rd-info__top">
                   <div>
-                    <h1>{restaurant.name}</h1>
-                    <p className="rd-info__cuisine">{restaurant.cuisines.join(' • ')}</p>
-                    <p className="rd-info__rating"><StarIcon size={16} /> <b>{restaurant.rating.toFixed(1)}</b> ({restaurant.reviews} reviews) <span className="rd-badge">Top Rated</span></p>
+                    <h1 dir="auto">{restaurant.name}</h1>
+                    <p className="rd-info__cuisine" dir="auto">{restaurant.cuisines.join(' • ')} <span className="rd-price" aria-label={`price level ${restaurant.priceLevel} of 4, ${restaurant.currency}`}>{priceLevelLabel(restaurant.priceLevel, restaurant.currency, locale)}</span></p>
+                    <p className="rd-info__rating"><StarIcon size={16} /> <b>{restaurant.rating.toLocaleString(locale, { minimumFractionDigits: 1 })}</b> ({restaurant.reviewCount.toLocaleString(locale)} reviews) <span className={`rd-badge rd-badge--${availability.status}`}>{t(statusKey, undefined, locale)}{availability.nextChangeAt && <> · {t(availability.status === 'open' || availability.status === 'closing_soon' ? 'card.closesAt' : 'card.opensAt', { time: formatLocalTime(availability.nextChangeAt, restaurant.timezone, locale) }, locale)} {zoneLabel(availability.nextChangeAt, restaurant.timezone, locale)}</>}</span></p>
+                    <p className="rd-info__addr" dir="auto"><PinIcon size={14} /> {restaurant.address.formatted}</p>
                   </div>
                   <div className="rd-info__gallery" aria-hidden="true">
                     <Img src="/images/gallery-burger-1.jpg" fallback="🍔" />
@@ -108,19 +115,17 @@ export default function RestaurantDetailPage() {
                   </div>
                 </div>
                 <ul className="rd-facts">
-                  <li><PinIcon size={22} /><span><b>{restaurant.distance}</b>{restaurant.detour} detour</span></li>
-                  <li><ClockIcon size={22} /><span><b>10–15 mins</b>Prep time</span></li>
-                  <li><CarIcon /><span><b>Parking</b>Available</span></li>
-                  <li><SeatIcon /><span><b>Outdoor Seating</b>Available</span></li>
-                  <li><LeafIcon /><span><b>Veg Options</b>Available</span></li>
+                  <li><PinIcon size={22} /><span><b>{restaurant.distance}</b>{restaurant.detour} detour (sample)</span></li>
+                  <li><ClockIcon size={22} /><span><b>{formatMinutes(restaurant.prepTimeMin, locale)}–{formatMinutes(restaurant.prepTimeMin + 5, locale)}</b>Prep time</span></li>
+                  {restaurant.features.slice(0, 3).map((f) => <li key={f}>{/parking/i.test(f) ? <CarIcon /> : /seat/i.test(f) ? <SeatIcon /> : <LeafIcon />}<span><b>{f}</b>Available</span></li>)}
                 </ul>
-                <p className="rd-info__desc">Juicy burgers, crispy fries and more! Burger Hub offers fresh, high-quality ingredients and delicious meals for travellers on the go.</p>
+                <p className="rd-info__desc">{restaurant.description}</p>
               </div>
             </section>
 
             <nav className="rd-tabs" aria-label="Restaurant sections">
               <button type="button" className="is-on"><ForkIcon /> Menu</button>
-              <button type="button"><StarOutline /> Reviews ({restaurant.reviews})</button>
+              <button type="button"><StarOutline /> Reviews ({restaurant.reviewCount})</button>
               <button type="button"><ImageIcon /> Photos (12)</button>
               <button type="button"><InfoIcon /> Info</button>
             </nav>
@@ -148,7 +153,7 @@ export default function RestaurantDetailPage() {
                           <button type="button" className={`mcard__like ${liked.has(item.id) ? 'is-on' : ''}`} aria-pressed={liked.has(item.id)} aria-label={`Save ${item.name}`} onClick={() => toggleLike(item.id)}><HeartIcon size={18} /></button>
                         </div>
                         <div className="mcard__body">
-                          <h3>{item.veg && <VegIcon />} <Link to={`/restaurant/${restaurant.id}/item/${item.id}`}>{item.name}</Link></h3>
+                          <h3>{item.veg && <VegIcon />} <Link to={`/restaurants/${restaurant.id}/item/${item.id}`}>{item.name}</Link></h3>
                           <p>{item.desc}</p>
                           <div className="mcard__foot">
                             <strong>{inr(item.price)}</strong>

@@ -171,7 +171,7 @@ export default function OrderTrackingPage() {
                 <Img src={restaurant.image} fallback={restaurant.fallback} />
                 <span className="ot-rest__info">
                   <b>{restaurant.name}</b>
-                  <span className="ot-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviews} reviews)</span>
+                  <span className="ot-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviewCount} reviews)</span>
                   <span>{restaurant.cuisines.join(' • ')}</span>
                 </span>
               </Link>

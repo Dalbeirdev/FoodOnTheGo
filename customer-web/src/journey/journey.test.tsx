@@ -90,9 +90,9 @@ describe('Plan a Journey (web)', () => {
     expect(screen.getAllByText(/mock development data/i, { selector: 'small' })).toHaveLength(2)
     expect(screen.getByRole('img', { name: /route from chandigarh to jammu via ropar, hoshiarpur, pathankot/i })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /find restaurants along route/i }))
-    expect(await screen.findByRole('heading', { name: /restaurants along chandigarh → jammu/i })).toBeInTheDocument()
-    expect(screen.getByLabelText('Your location')).toHaveValue('Chandigarh')
-    expect(screen.getByLabelText('Destination')).toHaveValue('Jammu')
+    expect(await screen.findByRole('heading', { name: /restaurants? along your route/i })).toBeInTheDocument()
+    expect(screen.getByText('Chandigarh', { selector: '.jctx__pt b' })).toBeInTheDocument()
+    expect(screen.getByText('Jammu', { selector: '.jctx__pt b' })).toBeInTheDocument()
   })
   it('TEST 2 — swap exchanges origin and destination', async () => {
     const user = userEvent.setup()
@@ -149,7 +149,8 @@ describe('Plan a Journey (web)', () => {
     await pick(user, /destination/i, 'Jaipur', /^Jaipur, Rajasthan, India$/)
     await user.click(screen.getByRole('button', { name: /find restaurants on route/i }))
     await user.click(await screen.findByRole('button', { name: /find restaurants along route/i }))
-    expect(await screen.findByRole('heading', { name: /restaurants along delhi → jaipur/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /restaurants? along your route/i })).toBeInTheDocument()
+    expect(screen.getByText('Jaipur', { selector: '.jctx__pt b' })).toBeInTheDocument()
     expect(screen.queryByText(/sign in with your mobile/i)).not.toBeInTheDocument()
   })
   it('current location shows the development notice and never claims a real position', async () => {

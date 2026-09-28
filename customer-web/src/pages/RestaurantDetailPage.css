@@ -137,3 +137,10 @@
 
 .rd-round.is-on { color: #e5261f; }
 .rd-round.is-on svg { fill: currentColor; }
+
+.rd-price { margin-left: 8px; font-weight: 700; color: var(--ink); letter-spacing: 1px; }
+.rd-info__addr { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.rd-badge--closed, .rd-badge--temporarily_closed { background: #f2f3f6; color: #4b5260; }
+.rd-badge--closing_soon { background: #fff4e0; color: #8a4b00; }
+.rd-badge--opening_soon { background: #eaf2ff; color: #1d4ed8; }
+.rd-badge--open { color: #15733a; }

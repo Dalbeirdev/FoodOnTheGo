@@ -15,15 +15,23 @@ import '../auth/auth_repository.dart' show KeyValueStore;
 
 enum LocationKind { city, station, airport, landmark, saved, recent, current }
 
+/// Generic global place (WGS84 / SRID 4326). Optional fields because providers differ — never
+/// assume one country's address format.
 class JourneyLocation {
-  const JourneyLocation({required this.id, required this.name, required this.sub, required this.kind, this.lat, this.lng, this.source = 'mock'});
+  const JourneyLocation({required this.id, required this.name, required this.sub, required this.kind, this.lat, this.lng, this.source = 'mock', this.placeId, this.formattedAddress, this.countryCode, this.adminArea, this.locality, this.postalCode, this.timezone});
   final String id, name, sub, source;
   final LocationKind kind;
   final double? lat, lng;
-  JourneyLocation copyWith({LocationKind? kind}) => JourneyLocation(id: id, name: name, sub: sub, kind: kind ?? this.kind, lat: lat, lng: lng, source: source);
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'sub': sub, 'kind': kind.name, 'lat': lat, 'lng': lng, 'source': source};
-  factory JourneyLocation.fromJson(Map<String, dynamic> j) => JourneyLocation(id: j['id'] as String, name: j['name'] as String, sub: (j['sub'] as String?) ?? '', kind: LocationKind.values.byName(j['kind'] as String), lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), source: (j['source'] as String?) ?? 'mock');
+  /// Provider place identifier, formatted address, ISO 3166-1 country code, IANA time zone.
+  final String? placeId, formattedAddress, countryCode, adminArea, locality, postalCode, timezone;
+  JourneyLocation copyWith({LocationKind? kind}) => JourneyLocation(id: id, name: name, sub: sub, kind: kind ?? this.kind, lat: lat, lng: lng, source: source, placeId: placeId, formattedAddress: formattedAddress, countryCode: countryCode, adminArea: adminArea, locality: locality, postalCode: postalCode, timezone: timezone);
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'sub': sub, 'kind': kind.name, 'lat': lat, 'lng': lng, 'source': source, 'placeId': placeId, 'formattedAddress': formattedAddress, 'countryCode': countryCode, 'adminArea': adminArea, 'locality': locality, 'postalCode': postalCode, 'timezone': timezone};
+  factory JourneyLocation.fromJson(Map<String, dynamic> j) => JourneyLocation(id: j['id'] as String, name: j['name'] as String, sub: (j['sub'] as String?) ?? '', kind: LocationKind.values.byName(j['kind'] as String), lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), source: (j['source'] as String?) ?? 'mock',
+      placeId: j['placeId'] as String?, formattedAddress: j['formattedAddress'] as String?, countryCode: j['countryCode'] as String?, adminArea: j['adminArea'] as String?, locality: j['locality'] as String?, postalCode: j['postalCode'] as String?, timezone: j['timezone'] as String?);
 }
+
+/// Alias matching the web `Place` type.
+typedef Place = JourneyLocation;
 
 class RouteSummary {
   const RouteSummary({required this.distanceKm, required this.durationMin, required this.geometry, required this.waypoints, this.provider = 'mock', this.isEstimate = true});
@@ -101,12 +109,13 @@ Map<String, String> validateJourney(JourneyLocation? origin, JourneyLocation? de
 /* ------------------------------------------------------------------ mock data */
 
 class _Place {
-  const _Place(this.id, this.name, this.sub, this.kind, this.lat, this.lng, [this.aliases = const []]);
-  final String id, name, sub;
+  const _Place(this.id, this.name, this.sub, this.kind, this.lat, this.lng, [this.aliases = const [], this.cc = 'IN', this.tz = 'Asia/Kolkata', this.admin]);
+  final String id, name, sub, cc, tz;
+  final String? admin;
   final LocationKind kind;
   final double lat, lng;
   final List<String> aliases;
-  JourneyLocation get location => JourneyLocation(id: id, name: name, sub: sub, kind: kind, lat: lat, lng: lng);
+  JourneyLocation get location => JourneyLocation(id: id, name: name, sub: sub, kind: kind, lat: lat, lng: lng, placeId: 'mock:$id', formattedAddress: '$name, $sub', countryCode: cc, timezone: tz, adminArea: admin);
 }
 
 const _places = [
@@ -133,6 +142,19 @@ const _places = [
   _Place('bengaluru', 'Bengaluru', 'Karnataka, India', LocationKind.city, 12.9716, 77.5946, ['bangalore']),
   _Place('mysuru', 'Mysuru', 'Karnataka, India', LocationKind.city, 12.2958, 76.6394, ['mysore']),
   _Place('port-blair', 'Port Blair', 'Andaman and Nicobar Islands (no road route — test case)', LocationKind.city, 11.6234, 92.7265),
+  // International test fixtures (controlled test data — no market is a product default)
+  _Place('san-francisco', 'San Francisco', 'California, USA', LocationKind.city, 37.7749, -122.4194, ['sf'], 'US', 'America/Los_Angeles', 'CA'),
+  _Place('los-angeles', 'Los Angeles', 'California, USA', LocationKind.city, 34.0522, -118.2437, ['la'], 'US', 'America/Los_Angeles', 'CA'),
+  _Place('sfo', 'San Francisco International Airport', 'SFO, California, USA', LocationKind.airport, 37.6213, -122.379, [], 'US', 'America/Los_Angeles', 'CA'),
+  _Place('london', 'London', 'England, United Kingdom', LocationKind.city, 51.5074, -0.1278, [], 'GB', 'Europe/London'),
+  _Place('manchester', 'Manchester', 'England, United Kingdom', LocationKind.city, 53.4808, -2.2426, [], 'GB', 'Europe/London'),
+  _Place('euston', 'London Euston Station', 'Euston Rd, London, UK', LocationKind.station, 51.5282, -0.1337, [], 'GB', 'Europe/London'),
+  _Place('tokyo', '東京', 'Tokyo, Japan', LocationKind.city, 35.6762, 139.6503, ['tokyo', 'とうきょう'], 'JP', 'Asia/Tokyo'),
+  _Place('osaka', '大阪', 'Osaka, Japan', LocationKind.city, 34.6937, 135.5023, ['osaka', 'おおさか'], 'JP', 'Asia/Tokyo'),
+  _Place('paris', 'Paris', 'Île-de-France, France', LocationKind.city, 48.8566, 2.3522, [], 'FR', 'Europe/Paris'),
+  _Place('lyon', 'Lyon', 'Auvergne-Rhône-Alpes, France', LocationKind.city, 45.764, 4.8357, [], 'FR', 'Europe/Paris'),
+  _Place('dubai', 'دبي', 'Dubai, United Arab Emirates', LocationKind.city, 25.2048, 55.2708, ['dubai'], 'AE', 'Asia/Dubai'),
+  _Place('abu-dhabi', 'أبوظبي', 'Abu Dhabi, United Arab Emirates', LocationKind.city, 24.4539, 54.3773, ['abu dhabi'], 'AE', 'Asia/Dubai'),
 ];
 
 const _corridors = <String, List<(String, double, double)>>{
@@ -142,12 +164,18 @@ const _corridors = <String, List<(String, double, double)>>{
   'bengaluru|mysuru': [('Ramanagara', 12.7209, 77.2799), ('Mandya', 12.5218, 76.8951)],
   'delhi|chandigarh': [('Panipat', 29.3909, 76.9635), ('Karnal', 29.6857, 76.9905), ('Ambala', 30.3782, 76.7767)],
   'delhi|agra': [('Mathura', 27.4924, 77.6737)],
+  'delhi|mumbai': [('Jaipur', 26.9124, 75.7873), ('Udaipur', 24.5854, 73.7125), ('Ahmedabad', 23.0225, 72.5714), ('Vadodara', 22.3072, 73.1812), ('Surat', 21.1702, 72.8311), ('Vapi', 20.3893, 72.9106)],
+  'san-francisco|los-angeles': [('Gilroy', 37.0058, -121.5683), ('Coalinga', 36.1397, -120.3602), ('Kettleman City', 36.0085, -119.9618), ('Lebec', 34.8422, -118.8648)],
+  'london|manchester': [('Milton Keynes', 52.0406, -0.7594), ('Watford Gap', 52.3106, -1.1231), ('Birmingham', 52.4862, -1.8904), ('Stoke-on-Trent', 53.0027, -2.1794)],
+  'tokyo|osaka': [('静岡', 34.9756, 138.3828), ('浜松', 34.7108, 137.7261), ('名古屋', 35.1815, 136.9066)],
+  'paris|lyon': [('Auxerre', 47.798, 3.5733), ('Beaune', 47.024, 4.8401)],
+  'dubai|abu-dhabi': [('Jebel Ali', 24.9857, 55.0273), ('Ghantoot', 24.8712, 54.8613)],
 };
 
-String _cityOf(JourneyLocation l) => (l.id == 'cp-delhi' || l.id == 'noida-62' || l.id == 'dev-current') ? 'delhi' : l.id.replaceAll(RegExp(r'-(rly|apt|tawi)$'), '');
+String _cityOf(JourneyLocation l) => (l.id == 'cp-delhi' || l.id == 'noida-62' || l.id == 'dev-current') ? 'delhi' : l.id == 'sfo' ? 'san-francisco' : l.id == 'euston' ? 'london' : l.id.replaceAll(RegExp(r'-(rly|apt|tawi)$'), '');
 
 /// Development stand-in for device location. REAL GEOLOCATION PERMISSION = PENDING INTEGRATION.
-const devLocation = JourneyLocation(id: 'dev-current', name: 'Sector 62, Noida', sub: 'Development location — REAL GEOLOCATION PERMISSION = PENDING INTEGRATION', kind: LocationKind.current, lat: 28.628, lng: 77.3649, source: 'dev-location');
+const devLocation = JourneyLocation(id: 'dev-current', name: 'Sector 62, Noida', sub: 'Development location — REAL GEOLOCATION PERMISSION = PENDING INTEGRATION', kind: LocationKind.current, lat: 28.628, lng: 77.3649, source: 'dev-location', countryCode: 'IN', timezone: 'Asia/Kolkata');
 
 double haversineKm(double lat1, double lng1, double lat2, double lng2) {
   const r = 6371.0;
@@ -172,6 +200,9 @@ class MockJourneyStore {
   Future<void> wait([Duration? d]) { final dur = d ?? latency; return dur == Duration.zero ? Future.value() : Future.delayed(dur); }
 }
 
+const _diacritics = {'à': 'a', 'á': 'a', 'â': 'a', 'ä': 'a', 'ã': 'a', 'å': 'a', 'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e', 'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i', 'ò': 'o', 'ó': 'o', 'ô': 'o', 'ö': 'o', 'õ': 'o', 'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u', 'ç': 'c', 'ñ': 'n'};
+String _norm(String s) => s.toLowerCase().split('').map((c) => _diacritics[c] ?? c).join();
+
 class MockLocationRepository implements LocationRepository {
   MockLocationRepository(this.s);
   final MockJourneyStore s;
@@ -181,13 +212,13 @@ class MockLocationRepository implements LocationRepository {
     await s.wait();
     if (s.failResources.contains('network')) throw const JourneyException(JourneyErrorCode.network, 'No internet connection. Check your network and try again.');
     if (s.failResources.contains('location')) throw const JourneyException(JourneyErrorCode.lookupFailed, 'Location search failed. Please try again.');
-    final q = query.trim().toLowerCase();
+    final q = _norm(query.trim());
     if (q.length < 2 || q == 'nowhere') return const [];
     int score(_Place p) {
-      final names = [p.name.toLowerCase(), ...p.aliases];
+      final names = [_norm(p.name), ...p.aliases.map(_norm)];
       if (names.any((n) => n == q)) return 0;
       if (names.any((n) => n.startsWith(q))) return 1;
-      if (names.any((n) => n.contains(q)) || p.sub.toLowerCase().contains(q)) return 2;
+      if (names.any((n) => n.contains(q)) || _norm(p.sub).contains(q)) return 2;
       return -1;
     }
     final scored = [for (final p in _places) (score(p), p)].where((e) => e.$1 >= 0).toList()..sort((a, b) => a.$1.compareTo(b.$1));

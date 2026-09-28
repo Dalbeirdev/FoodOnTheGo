@@ -5,6 +5,7 @@ import { AccountProvider } from '../account/AccountContext'
 import { AuthProvider } from '../auth/AuthContext'
 import { CartProvider } from '../cart/CartContext'
 import { JourneyProvider } from '../journey/JourneyContext'
+import { LocaleProvider } from '../i18n/LocaleProvider'
 import { ToastProvider } from '../components/Toast'
 import { OrdersProvider } from '../orders/OrdersContext'
 import { ProfileProvider } from '../profile/ProfileContext'
@@ -13,6 +14,7 @@ import { ProfileProvider } from '../profile/ProfileContext'
 export function Providers({ children, route = '/' }: { children: ReactNode; route?: string }) {
   return (
     <MemoryRouter initialEntries={[route]}>
+      <LocaleProvider locale="en-IN">
       <AuthProvider>
       <ToastProvider>
       <ProfileProvider>
@@ -26,6 +28,7 @@ export function Providers({ children, route = '/' }: { children: ReactNode; rout
       </ProfileProvider>
       </ToastProvider>
       </AuthProvider>
+      </LocaleProvider>
     </MemoryRouter>
   )
 }

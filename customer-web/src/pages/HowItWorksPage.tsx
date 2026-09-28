@@ -10,7 +10,7 @@ const STEPS = hiw.steps
 const BENEFITS = hiw.benefits
 const ALL = restaurantRepository.list()
 const STOPS = ALL.slice(0, 2).map((r) => ({ name: r.name, dist: r.distance.replace('from route', 'off route'), rating: String(r.rating), detour: r.detour, image: r.image, fallback: r.fallback }))
-const RESTAURANTS = ALL.slice(0, 3).map((r) => ({ name: r.name, cat: r.cuisines.slice(0, 2).join(' • '), rating: String(r.rating), count: r.reviews, detour: `${r.detour} detour • ${r.distance.replace(' from route', '')}`, image: r.image, fallback: r.fallback }))
+const RESTAURANTS = ALL.slice(0, 3).map((r) => ({ name: r.name, cat: r.cuisines.slice(0, 2).join(' • '), rating: String(r.rating), count: r.reviewCount, detour: `${r.detour} detour • ${r.distance.replace(' from route', '')}`, image: r.image, fallback: r.fallback }))
 
 function FoodImage({ src, fallback, alt }: { src: string; fallback: string; alt: string }) {
   return (

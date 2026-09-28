@@ -6,7 +6,7 @@ import HomePage from './HomePage'
 import MyOrdersPage from './MyOrdersPage'
 import PlanJourneyPage from './PlanJourneyPage'
 import RestaurantDetailPage from './RestaurantDetailPage'
-import RestaurantsPage, { RESTAURANTS } from './RestaurantsPage'
+import RestaurantsPage from './RestaurantsPage'
 
 describe('Customer Web pages render with the shared providers', () => {
   it('Home shows the approved hero copy and brand logo', () => {
@@ -16,12 +16,12 @@ describe('Customer Web pages render with the shared providers', () => {
     expect(screen.getAllByRole('link', { name: /plan a journey/i }).length).toBeGreaterThan(0)
   })
 
-  it('Restaurants lists every fixture restaurant', () => {
+  it('Restaurants (general discovery) renders the first page of cards and the Plan a Journey CTA', async () => {
     renderPage(<RestaurantsPage />, { route: '/restaurants' })
-    for (const r of RESTAURANTS) expect(screen.getAllByText(r.name).length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: /plan journey/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /\d+ restaurants$/i })).toBeInTheDocument()
+    expect((await screen.findAllByRole('heading', { level: 3 })).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: /plan a journey/i }).length).toBeGreaterThan(0)
   })
-
   it('Restaurant detail (Design A) renders the menu for the canonical slug route', () => {
     renderPage(<RestaurantDetailPage />, { route: '/restaurants/burger-hub', path: '/restaurants/:restaurantSlug' })
     expect(screen.getAllByText('Burger Hub').length).toBeGreaterThan(0)

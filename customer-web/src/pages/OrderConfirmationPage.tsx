@@ -137,8 +137,8 @@ export default function OrderConfirmationPage() {
               <ul>
                 {related.map((r) => (
                   <li key={r.id}>
-                    <Link to={`/restaurant/${restaurant.id}/item/${r.id}`}><Img src={r.image} fallback={r.fallback} alt={r.name} /></Link>
-                    <div><Link to={`/restaurant/${restaurant.id}/item/${r.id}`}><b>{r.name}</b></Link><span>{inr(r.price)}</span></div>
+                    <Link to={`/restaurants/${restaurant.id}/item/${r.id}`}><Img src={r.image} fallback={r.fallback} alt={r.name} /></Link>
+                    <div><Link to={`/restaurants/${restaurant.id}/item/${r.id}`}><b>{r.name}</b></Link><span>{inr(r.price)}</span></div>
                     <button type="button" aria-label={`Add ${r.name}`} onClick={() => cart.add({ key: `${restaurant.id}:${r.id}`, itemId: r.id, restaurantId: restaurant.id, name: r.name, unitPrice: r.price, image: r.image, fallback: r.fallback })}><PlusIcon /></button>
                   </li>
                 ))}
@@ -178,7 +178,7 @@ export default function OrderConfirmationPage() {
                 <Img src={restaurant.image} fallback={restaurant.fallback} />
                 <span className="oc-rest__info">
                   <b>{restaurant.name}</b>
-                  <span className="oc-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviews} reviews)</span>
+                  <span className="oc-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviewCount} reviews)</span>
                   <span>{restaurant.cuisines.join(' • ')}</span>
                 </span>
                 <ChevronRightIcon />

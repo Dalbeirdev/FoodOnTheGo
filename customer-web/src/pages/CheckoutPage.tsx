@@ -165,7 +165,7 @@ export default function CheckoutPage() {
                   <Img src="/images/restaurant-burger-hub-logo.jpg" fallback="🍔" alt={`${restaurant.name} logo`} />
                   <div>
                     <h3>{restaurant.name} <span className="co-open">Open</span></h3>
-                    <p className="co-pickup__rating"><StarIcon size={15} /> <b>{restaurant.rating.toFixed(1)}</b> ({restaurant.reviews} reviews)</p>
+                    <p className="co-pickup__rating"><StarIcon size={15} /> <b>{restaurant.rating.toFixed(1)}</b> ({restaurant.reviewCount} reviews)</p>
                     <p>{restaurant.cuisines.join(' • ')}</p>
                     <p className="co-pickup__addr"><PinIcon size={16} /> {RESTAURANT_ADDRESS}</p>
                   </div>

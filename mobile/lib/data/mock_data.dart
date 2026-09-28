@@ -1,3 +1,5 @@
+import '../discovery/discovery_repository.dart' show globalRestaurants;
+
 /// Local development fixtures — mirrors the Customer Web mock data so both
 /// platforms show the same restaurants, menu and controlled test identity.
 /// Replaced by the API in the Restaurants/Menus module.
@@ -91,7 +93,18 @@ const historyItems = <MenuItem>[
   MenuItem(id: 'coke', name: 'Coke', desc: 'Chilled 300 ml.', price: 60, image: imgShake, veg: true),
 ];
 
-Restaurant restaurantById(String id) => restaurants.firstWhere((r) => r.id == id, orElse: () => restaurants.first);
+Restaurant restaurantById(String id) => restaurants.firstWhere((r) => r.id == id, orElse: () => _legacyFromGlobal(id) ?? restaurants.first);
+
+/// Module 06 bridge: global fixtures (any market) presented through the Module 01 model until the
+/// detail / cart / order screens become journey-aware in later modules. Sample distances only.
+Restaurant? _legacyFromGlobal(String id) {
+  for (final g in globalRestaurants) {
+    if (g.id == id || g.slug == id) {
+      return Restaurant(id: g.id, name: g.name, cuisines: g.cuisines, rating: g.rating, reviews: g.reviewCount, distanceKm: 1.0, detourMin: 3, prepMin: g.prepTimeMin, tags: g.features.take(3).toList(), image: g.image, address: g.address.formatted, description: g.description);
+    }
+  }
+  return null;
+}
 MenuItem? menuItemById(String id) {
   for (final s in menu) {
     for (final i in s.items) {

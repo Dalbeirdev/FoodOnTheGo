@@ -11,7 +11,7 @@ import '../state/journey_state.dart';
 import '../widgets/common.dart';
 
 /// Saved journey addresses (Module 04) become selectable locations — no second address implementation.
-JourneyLocation addressToLocation(SavedAddress a) => JourneyLocation(id: 'addr-${a.id}', name: a.label, sub: [a.line1, a.locality, a.city].where((s) => s.isNotEmpty).join(', '), kind: LocationKind.saved, lat: a.lat, lng: a.lng, source: 'saved-address');
+JourneyLocation addressToLocation(SavedAddress a) => JourneyLocation(id: 'addr-${a.id}', name: a.label, sub: [a.line1, a.locality, a.city].where((s) => s.isNotEmpty).join(', '), kind: LocationKind.saved, lat: a.lat, lng: a.lng, source: 'saved-address', formattedAddress: a.formatted, locality: a.city, adminArea: a.state, postalCode: a.pincode.isEmpty ? null : a.pincode);
 
 /// Plan a Journey — mobile-native flow: tap a field → full-height picker sheet (search, current location,
 /// saved places, recent) → summary + schematic route preview → continue to restaurants.

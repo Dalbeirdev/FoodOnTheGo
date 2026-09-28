@@ -80,7 +80,7 @@ export default function CartPage() {
                   </span>
                   <div className="cart-rest-head__info">
                     <h3>{restaurant.name} <span className="cart-open">Open</span></h3>
-                    <p className="cart-rest-head__rating"><StarIcon size={15} /> <b>{restaurant.rating.toFixed(1)}</b> ({restaurant.reviews} reviews)</p>
+                    <p className="cart-rest-head__rating"><StarIcon size={15} /> <b>{restaurant.rating.toFixed(1)}</b> ({restaurant.reviewCount} reviews)</p>
                     <p>{restaurant.cuisines.join(' • ')}</p>
                     <p className="cart-rest-head__addr"><PinIcon size={15} /> Sector 62, Noida, Uttar Pradesh 201309</p>
                   </div>
@@ -148,7 +148,7 @@ export default function CartPage() {
                 </span>
                 <span className="cart-rest__info">
                   <b>{restaurant.name}</b>
-                  <span className="cart-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviews})</span>
+                  <span className="cart-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviewCount})</span>
                   <span>{restaurant.cuisines.join(' • ')}</span>
                 </span>
                 <ChevronRightIcon />

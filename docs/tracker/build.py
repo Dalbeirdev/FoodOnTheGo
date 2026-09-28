@@ -170,6 +170,7 @@ parts.append('<div class="card" style="margin-top:12px"><b>iOS application:</b> 
 # ---- backend
 parts.append('<h2 id="backend"><i></i>Backend</h2><div class="card"><p class="banner ban-warn" style="margin:0 0 12px">BACKEND PHASE = NOT STARTED — WAITING FOR FRONTEND APPROVAL</p><p class="small">Module 00 bootstrapped the local environment only (Laravel skeleton, /api/health, PostgreSQL/PostGIS, Redis). Feature areas are tracked below and will move to IN PROGRESS from the module in which they start.</p>')
 parts.append(table(['Backend area', 'Status'], d['backendAreas'], badge_cols=(1,)) + '<h3 style="margin:14px 0 6px">Database readiness</h3>' + table(['Item', 'Status'], d['databaseItems'], badge_cols=(1,)) + '<h3 style="margin:14px 0 6px">Security</h3>' + table(['Item', 'Status'], d['securityItems'], badge_cols=(1,)))
+parts.append('<h2 id="global"><i></i>Global / International readiness (permanent register — GLOBAL PLATFORM ARCHITECTURE = REQUIRED)</h2>' + table(['Capability', 'Current state', 'Remaining work'], d.get('globalReadiness', [])))
 parts.append('<h3 style="margin:14px 0 6px">Database architecture decision (permanent)</h3><ul><li><b>Primary database:</b> PostgreSQL + PostGIS</li><li><b>Reason:</b> FoodOnTheGo is highly geospatial and needs efficient restaurant-to-route proximity/corridor queries at large scale.</li><li><b>Redis:</b> caching, queues, rate limits, locks and temporary state only.</li><li>Do not switch to MySQL/MariaDB unless explicitly approved later.</li></ul></div>')
 
 # ---- decisions

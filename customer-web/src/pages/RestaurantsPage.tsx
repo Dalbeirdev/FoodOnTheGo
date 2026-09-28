@@ -1,59 +1,51 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
-import { ClockIcon, PinIcon, StarIcon } from '../components/Icons'
+import FiltersPanel from '../components/FiltersPanel'
+import RestaurantCard from '../components/RestaurantCard'
+import { PinIcon } from '../components/Icons'
 import { useAccount } from '../account/AccountContext'
 import { useAuth } from '../auth/AuthContext'
 import { useJourney } from '../journey/JourneyContext'
-import { formatDuration } from '../journey/mock/mockRepositories'
+import { useDiscovery } from '../discovery/useDiscovery'
+import { formatDistance, formatMinutes } from '../i18n/format'
+import { marketFor, resolveUnitSystem, type UnitSystem } from '../i18n/markets'
+import { t, useLocale } from '../i18n/strings'
+import { mapProvider } from '../map/MapProvider'
+import type { LatLng } from '../geo/geo'
+import type { SortKey } from '../repositories/types'
+import { RESTAURANTS as REPO_RESTAURANTS } from '../repositories/mock/restaurants'
+import type { Restaurant } from '../repositories'
 import './RestaurantsPage.css'
+
+export type { Restaurant }
+/** Re-exported for Module 01 pages that resolve restaurants by id; source of truth is the repository. */
+export const RESTAURANTS: Restaurant[] = REPO_RESTAURANTS
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
-const SwapIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M4 7h13M14 4l3 3-3 3M20 17H7M10 14l-3 3 3 3" /></svg>)
 const CarIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11M4 11h16v6H4zM6 17v2M18 17v2" /><circle cx="7.5" cy="14" r="1" /><circle cx="16.5" cy="14" r="1" /></svg>)
-const HeartIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.5 4.5 7 4.5c2 0 3.5 1 5 2.8 1.5-1.8 3-2.8 5-2.8 3.5 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21Z" /></svg>)
 const ListIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M8 6h13M8 12h13M8 18h13" /><circle cx="4" cy="6" r="1" fill="currentColor" /><circle cx="4" cy="12" r="1" fill="currentColor" /><circle cx="4" cy="18" r="1" fill="currentColor" /></svg>)
 const MapIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6ZM9 4v14M15 6v14" /></svg>)
+const SplitIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><rect x="3" y="4" width="8" height="16" rx="2" /><rect x="13" y="4" width="8" height="16" rx="2" /></svg>)
 const ChevronDown = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="m6 9 6 6 6-6" /></svg>)
-const ParkingIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><rect x="4" y="4" width="16" height="16" rx="3" /><path d="M9 16V8h3.5a2.5 2.5 0 0 1 0 5H9" /></svg>)
-const DriveIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M3 17h2l1.5-5h11L19 17h2M6 17v2M18 17v2" /><rect x="5" y="12" width="14" height="5" /></svg>)
-const SeatIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M5 11V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5M3 11h18v4H3zM5 15v4M19 15v4" /></svg>)
-const LeafIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M5 19c0-8 4-13 14-14 0 10-5 14-13 14M5 19l6-6" /></svg>)
+const SearchIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>)
+const FilterIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M3 5h18M6 12h12M10 19h4" /></svg>)
+const ArrowIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="M5 12h14M13 6l6 6-6 6" /></svg>)
 
-const CUISINES = ['Indian', 'Italian', 'Chinese', 'American', 'Fast Food', 'Healthy Food', 'Desserts & Beverages']
-const RATINGS = [{ v: 4.5, s: 4 }, { v: 4.0, s: 4 }, { v: 3.5, s: 3 }, { v: 3.0, s: 3 }]
-const FACILITIES = [
-  { icon: ParkingIcon, label: 'Parking' },
-  { icon: DriveIcon, label: 'Drive Through' },
-  { icon: SeatIcon, label: 'Outdoor Seating' },
-  { icon: LeafIcon, label: 'Veg Options' },
-]
-
-import { RESTAURANTS as REPO_RESTAURANTS } from '../repositories/mock/restaurants'
-import type { Restaurant } from '../repositories'
-export type { Restaurant }
-/** Re-exported for pages that resolve restaurants by id; source of truth is the repository. */
-export const RESTAURANTS: Restaurant[] = REPO_RESTAURANTS
-
-function Stars({ n }: { n: number }) {
-  return (
-    <span className="stars" aria-hidden="true">
-      {[0, 1, 2, 3, 4].map((i) => <StarIcon key={i} size={13} className={i < n ? 'is-on' : ''} />)}
-    </span>
-  )
-}
+const SORTS: SortKey[] = ['recommended', 'lowestDetour', 'nearestToRoute', 'highestRated', 'fastestPickup']
+const fmtDeparture = (iso: string, locale: string, timeZone?: string) => { try { return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone }).format(new Date(iso)) } catch { return iso } }
 
 export default function RestaurantsPage() {
   const [params] = useSearchParams()
-  const [view, setView] = useState<'list' | 'map'>('list')
-  const [radius, setRadius] = useState(5)
-  const [distance, setDistance] = useState(10)
-  const { isFavorite, toggleFavorite } = useAccount()
-  const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const { locale, unitPreference, setUnitPreference } = useLocale()
+  const { isFavorite, toggleFavorite } = useAccount()
+  const { isAuthenticated } = useAuth()
   const journeyApi = useJourney()
+
+  // ---- journey context: ?journey=<id> (application state id, never a place name) or the current journey in state
   const journeyId = params.get('journey')
   const [journeyState, setJourneyState] = useState<'none' | 'loading' | 'ready' | 'missing'>(journeyId ? 'loading' : 'none')
   useEffect(() => {
@@ -64,160 +56,168 @@ export default function RestaurantsPage() {
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [journeyId])
-  const journey = journeyState === 'ready' ? journeyApi.journey : null
-  const fromLabel = journey?.origin.name ?? params.get('from') ?? 'Sector 62, Noida'
-  const toLabel = journey?.destination.name ?? params.get('to') ?? 'Connaught Place, Delhi'
+  const journey = journeyState === 'ready' && journeyApi.journey?.route ? journeyApi.journey : journeyState === 'none' && journeyApi.journey?.route ? journeyApi.journey : null
+  const journeyReady = journeyState !== 'loading'
+
+  // ---- discovery
+  const d = useDiscovery(journey, journeyReady)
+  const units: UnitSystem = resolveUnitSystem(unitPreference, journey?.origin.countryCode ?? d.items[0]?.restaurant.countryCode)
+  const currency = journey ? marketFor(journey.origin.countryCode).currency : null
+  const [view, setView] = useState<'list' | 'map' | 'both'>(() => (typeof window !== 'undefined' && window.innerWidth >= 1100 ? 'both' : 'list'))
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const listRef = useRef<HTMLUListElement>(null)
   const favorite = (id: string) => { if (!isAuthenticated) return navigate('/login', { state: { from: location.pathname + location.search } }); void toggleFavorite(id) }
+  const selectFromMap = (id: string) => { setSelectedId(id); listRef.current?.querySelector<HTMLElement>(`[data-id="${id}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }
+
+  const markers = useMemo(() => d.items.map((x) => ({ id: x.restaurant.id, position: [x.restaurant.lat, x.restaurant.lng] as LatLng, label: x.restaurant.name, selected: x.restaurant.id === selectedId, muted: x.availability.status === 'closed' || x.availability.status === 'temporarily_closed' })), [d.items, selectedId])
+  const routeLine: LatLng[] | null = journey?.route?.geometry ?? null
+  const MapView = mapProvider.MapView
+  const showMap = view !== 'list', showList = view !== 'map'
+  const count = d.total
+  const heading = journey ? (count === 1 ? t('discovery.resultsOne', undefined, locale) : t('discovery.resultsCount', { count: count.toLocaleString(locale) }, locale)) : t('discovery.resultsCountGeneral', { count: count.toLocaleString(locale) }, locale)
+  const journeyUnits = journey ? resolveUnitSystem(unitPreference, journey.origin.countryCode) : units
 
   return (
     <>
       <Header />
       <main id="main" className="rest">
-        {/* ---------- Hero + route search ---------- */}
+        {/* ---------- Hero + journey context ---------- */}
         <section className="rest-hero">
           <div className="rest-hero__bg" aria-hidden="true">
             <img src="/images/hero-restaurants.jpg" alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />
             <div className="rest-hero__fade" />
           </div>
-
           <div className="rest-hero__inner">
             <div className="rest-hero__content">
-              <p className="rest-eyebrow">Explore restaurants</p>
-              <h1 className="rest-hero__title">
-                <span>Great Food</span>
-                <span className="rest-accent">Along Your Route</span>
-              </h1>
-              <p className="rest-hero__lead">
-                Discover top-rated restaurants on or near your route, pre-order your favourite food and pick it up at
-                the perfect time.
-              </p>
+              <p className="rest-eyebrow">{t('discovery.eyebrow', undefined, locale)}</p>
+              <h1 className="rest-hero__title"><span>{t('discovery.title.line1', undefined, locale)}</span><span className="rest-accent">{t('discovery.title.line2', undefined, locale)}</span></h1>
+              <p className="rest-hero__lead">{t('discovery.lead', undefined, locale)}</p>
             </div>
 
-            <form className="route-box" onSubmit={(e) => e.preventDefault()}>
-              <div className="route-box__top">
-                <label className="route-field">
-                  <PinIcon size={24} className="route-field__pin route-field__pin--from" />
-                  <span>
-                    <small>Your Location</small>
-                    <input type="text" value={fromLabel} readOnly aria-label="Your location" onClick={() => navigate('/plan-journey')} />
-                  </span>
-                </label>
-                <button type="button" className="route-swap" aria-label="Swap locations" onClick={() => { journeyApi.swap(); navigate('/plan-journey') }}><SwapIcon /></button>
-                <label className="route-field">
-                  <PinIcon size={24} className="route-field__pin" />
-                  <span>
-                    <small>Destination</small>
-                    <input type="text" value={toLabel} readOnly aria-label="Destination" onClick={() => navigate('/plan-journey')} />
-                  </span>
-                </label>
-                <button type="button" className="btn btn--primary route-box__submit" onClick={() => navigate('/plan-journey')}>{journey ? 'Change Journey' : 'Plan Journey'}</button>
+            {journeyState === 'loading' && <div className="jctx jctx--loading" role="status">{t('discovery.loadingRoute', undefined, locale)}</div>}
+            {journeyState === 'missing' && (
+              <div className="jctx jctx--missing" role="alert">
+                <p>Journey not found on this device.</p>
+                <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)}</Link>
               </div>
-
-              <div className="route-box__bottom">
-                <span className="route-summary" aria-live="polite"><CarIcon /> {journeyState === 'loading' ? 'Loading journey…' : journeyState === 'missing' ? <>Journey not found — <Link to="/plan-journey">plan a new one</Link></> : journey?.route ? <><b>{journey.route.distanceKm} km</b> • ~ {formatDuration(journey.route.durationMin)} <small className="route-summary__mock">mock estimate</small></> : journey ? 'Route not prepared yet' : <><b>32 km</b> • ~ 45 min <small className="route-summary__mock">sample</small></>}</span>
-                <span className="route-radius">
-                  Find restaurants within
-                  <span className="select-wrap">
-                    <select value={radius} onChange={(e) => setRadius(Number(e.target.value))} aria-label="Search radius">
-                      {[2, 5, 10, 15].map((k) => <option key={k} value={k}>{k} km</option>)}
-                    </select>
-                    <ChevronDown />
-                  </span>
-                  of route
-                </span>
-              </div>
-            </form>
+            )}
+            {journey && journeyState !== 'loading' && (
+              <section className="jctx" aria-labelledby="jctx-title">
+                <div className="jctx__head"><h2 id="jctx-title">{t('discovery.journeyLabel', undefined, locale)}</h2><span className="jctx__id">#{journey.id.slice(-6)}</span></div>
+                <div className="jctx__route">
+                  <span className="jctx__pt jctx__pt--from"><small>{t('discovery.from', undefined, locale)}</small><b dir="auto">{journey.origin.name}</b><span dir="auto">{journey.origin.formattedAddress ?? journey.origin.sub}</span></span>
+                  <span className="jctx__arrow" aria-hidden="true"><ArrowIcon /></span>
+                  <span className="jctx__pt jctx__pt--to"><small>{t('discovery.to', undefined, locale)}</small><b dir="auto">{journey.destination.name}</b><span dir="auto">{journey.destination.formattedAddress ?? journey.destination.sub}</span></span>
+                </div>
+                <dl className="jctx__facts">
+                  <div><dt><CarIcon size={16} /> {t('discovery.route', undefined, locale)}</dt><dd>{formatDistance(journey.route!.distanceKm * 1000, journeyUnits, locale)} · {formatMinutes(journey.route!.durationMin, locale)} <small className="route-summary__mock">{t('mock.estimate', undefined, locale)}</small></dd></div>
+                  <div><dt><PinIcon size={16} /> {t('discovery.corridor', { distance: formatDistance(d.corridorM ?? 0, journeyUnits, locale) }, locale)}</dt><dd><input type="range" min={1000} max={50000} step={1000} value={d.corridorM ?? 5000} onChange={(e) => d.setCorridorM(Number(e.target.value))} aria-label={t('discovery.corridor', { distance: formatDistance(d.corridorM ?? 0, journeyUnits, locale) }, locale)} className="range range--sm" /></dd></div>
+                  <div><dt>{journey.departureAt ? t('discovery.departing', { when: fmtDeparture(journey.departureAt, locale, journey.origin.timezone) }, locale) : t('discovery.leavingNow', undefined, locale)}</dt><dd className="jctx__count" aria-live="polite">{d.status === 'loading' ? t('discovery.loading', undefined, locale) : heading}</dd></div>
+                </dl>
+                <div className="jctx__actions">
+                  <Link to="/plan-journey" className="btn btn--outline" onClick={() => journeyApi.edit()}>{t('discovery.editJourney', undefined, locale)}</Link>
+                  <button type="button" className="btn btn--primary" onClick={() => { journeyApi.reset(); navigate('/plan-journey') }}>{t('discovery.newJourney', undefined, locale)}</button>
+                </div>
+              </section>
+            )}
+            {!journey && journeyState === 'none' && (
+              <section className="jctx jctx--none" aria-labelledby="jctx-none-title">
+                <h2 id="jctx-none-title">{t('discovery.noJourney.title', undefined, locale)}</h2>
+                <p>{t('discovery.noJourney.text', undefined, locale)}</p>
+                <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)} <ArrowIcon /></Link>
+              </section>
+            )}
           </div>
         </section>
 
         {/* ---------- Results ---------- */}
-        <section className="rest-body">
-          <aside className="filters">
-            <div className="filters__head">
-              <h2>Filter Results</h2>
-              <button type="button" className="filters__clear">Clear All</button>
-            </div>
-
-            <div className="filters__group">
-              <h3>Cuisine Type</h3>
-              {CUISINES.map((c) => (
-                <label key={c} className="check"><input type="checkbox" /><span>{c}</span></label>
-              ))}
-              <button type="button" className="filters__more">More <ChevronDown /></button>
-            </div>
-
-            <div className="filters__group">
-              <h3>Distance from Route</h3>
-              <input type="range" min={0} max={10} value={distance} onChange={(e) => setDistance(Number(e.target.value))} className="range" aria-label="Distance from route" style={{ ['--pct' as string]: `${distance * 10}%` }} />
-              <div className="range__labels"><span>0 km</span><span>{distance} km</span></div>
-            </div>
-
-            <div className="filters__group">
-              <h3>Rating</h3>
-              {RATINGS.map((r) => (
-                <label key={r.v} className="check"><input type="checkbox" /><Stars n={r.s} /><span>{r.v.toFixed(1)} &amp; above</span></label>
-              ))}
-            </div>
-
-            <div className="filters__group">
-              <h3>Facilities</h3>
-              {FACILITIES.map(({ icon: Icon, label }) => (
-                <label key={label} className="check check--icon"><input type="checkbox" /><Icon /><span>{label}</span></label>
-              ))}
-              <button type="button" className="filters__more">More <ChevronDown /></button>
-            </div>
-          </aside>
+        <section className={`rest-body ${filtersOpen ? 'filters-open' : ''}`}>
+          <div className="filters-wrap">
+            <FiltersPanel definitions={d.definitions} values={d.filters} onToggleOption={d.toggleOption} onSet={d.setFilter} onClear={() => { d.clearFilters(); setFiltersOpen(false) }} units={units} currency={currency} />
+          </div>
+          {filtersOpen && <button type="button" className="filters-backdrop" aria-label="Close filters" onClick={() => setFiltersOpen(false)} />}
 
           <div className="results">
             <div className="results__bar">
-              <h2>{journey ? `Restaurants along ${journey.origin.name} → ${journey.destination.name}` : '124 Restaurants on Your Route'}</h2>
+              <h2 aria-live="polite">{d.status === 'loading' ? t('discovery.loading', undefined, locale) : heading}{d.status === 'updating' && <small className="results__updating"> · {t('discovery.updating', undefined, locale)}</small>}</h2>
               <div className="results__tools">
-                <label className="sort">Sort by
+                <label className="results__search"><SearchIcon /><input type="search" value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder={t('discovery.search.placeholder', undefined, locale)} aria-label={t('discovery.search.label', undefined, locale)} dir="auto" /></label>
+                <button type="button" className="results__filters-btn" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((v) => !v)}><FilterIcon /> {t('discovery.filters', undefined, locale)}{d.activeFilterCount > 0 && <span className="results__badge">{d.activeFilterCount}</span>}</button>
+                <label className="sort">{t('discovery.sort', undefined, locale)}
                   <span className="select-wrap">
-                    <select aria-label="Sort by"><option>Recommended</option><option>Rating</option><option>Detour time</option><option>Distance</option></select>
+                    <select aria-label={t('discovery.sort', undefined, locale)} value={d.sort} onChange={(e) => d.setSort(e.target.value as SortKey)} title={t('discovery.sort.recommendedNote', undefined, locale)}>
+                      {SORTS.filter((s) => journey || (s !== 'lowestDetour' && s !== 'nearestToRoute')).map((s) => <option key={s} value={s}>{t(`discovery.sort.${s}`, undefined, locale)}</option>)}
+                    </select>
+                    <ChevronDown />
+                  </span>
+                </label>
+                <label className="sort units">
+                  <span className="select-wrap">
+                    <select aria-label={t('units.label', undefined, locale)} value={unitPreference} onChange={(e) => setUnitPreference(e.target.value as 'auto' | 'metric' | 'imperial')}>
+                      <option value="auto">{t('units.auto', undefined, locale)}</option><option value="metric">{t('units.metric', undefined, locale)}</option><option value="imperial">{t('units.imperial', undefined, locale)}</option>
+                    </select>
                     <ChevronDown />
                   </span>
                 </label>
                 <div className="view-toggle" role="group" aria-label="View">
-                  <button type="button" className={view === 'list' ? 'is-on' : ''} onClick={() => setView('list')}><ListIcon /> List View</button>
-                  <button type="button" className={view === 'map' ? 'is-on' : ''} onClick={() => setView('map')}><MapIcon /> Map View</button>
+                  <button type="button" className={view === 'list' ? 'is-on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}><ListIcon /> {t('discovery.view.list', undefined, locale)}</button>
+                  <button type="button" className={`view-toggle__both ${view === 'both' ? 'is-on' : ''}`} aria-pressed={view === 'both'} onClick={() => setView('both')}><SplitIcon /> {t('discovery.view.both', undefined, locale)}</button>
+                  <button type="button" className={view === 'map' ? 'is-on' : ''} aria-pressed={view === 'map'} onClick={() => setView('map')}><MapIcon /> {t('discovery.view.map', undefined, locale)}</button>
                 </div>
               </div>
             </div>
+            {d.sort === 'recommended' && <p className="results__note">{t('discovery.sort.recommendedNote', undefined, locale)}</p>}
 
-            {view === 'map' ? (
-              <div className="map-placeholder">Map view will load once the Maps module is connected.</div>
-            ) : (
-              <ul className="cards">
-                {RESTAURANTS.map((r) => (
-                  <li key={r.id} className="rcard">
-                    <div className="rcard__media">
-                      <img src={r.image} alt={r.name} onError={(e) => { e.currentTarget.style.display = 'none' }} />
-                      <span className="rcard__fallback" aria-hidden="true">{r.fallback}</span>
-                      <span className="rcard__detour"><ClockIcon size={18} /><span>{r.detour}<br /><small>detour</small></span></span>
-                      <button type="button" className={`rcard__like ${isFavorite(r.id) ? 'is-on' : ''}`} aria-pressed={isFavorite(r.id)} aria-label={`Save ${r.name}`} onClick={() => favorite(r.id)}><HeartIcon /></button>
+            <div className={`results__grid results__grid--${view}`}>
+              {showList && (
+                <div className="results__list">
+                  {d.status === 'error' && (
+                    <div className="disc-state disc-state--error" role="alert">
+                      <b>{t('discovery.error.title', undefined, locale)}</b><p>{d.error}</p>
+                      <button type="button" className="btn btn--primary" onClick={() => { void d.retry() }}>{t('discovery.error.retry', undefined, locale)}</button>
                     </div>
-                    <div className="rcard__body">
-                      <div className="rcard__row">
-                        <h3>{r.name}</h3>
-                        <span className="rcard__rating"><StarIcon size={14} /> {r.rating.toFixed(1)} <small>({r.reviews})</small></span>
-                      </div>
-                      <p className="rcard__cuisine">{r.cuisines.join(' • ')}</p>
-                      <p className="rcard__meta">
-                        <span><PinIcon size={16} /> {r.distance}</span>
-                        <span className="rcard__sep" />
-                        <span><ClockIcon size={16} /> {r.time}</span>
-                      </p>
-                      <div className="rcard__tags">{r.tags.map((t) => <span key={t}>{t}</span>)}</div>
-                      <div className="rcard__actions">
-                        <Link to={`/restaurants/${r.id}`} className="rcard__menu">View Menu</Link>
-                        <Link to={`/restaurants/${r.id}`} className="btn btn--primary rcard__order">Order Now</Link>
+                  )}
+                  {(d.status === 'loading' || d.status === 'idle') && (
+                    <ul className="cards cards--skeleton" aria-busy="true" aria-label={t(journey ? 'discovery.loadingRoute' : 'discovery.loading', undefined, locale)}>{[0, 1, 2, 3].map((i) => <li key={i} className="rcard rcard--skeleton"><div className="rcard__media" /><div className="rcard__body"><span /><span /><span /></div></li>)}</ul>
+                  )}
+                  {(d.status === 'ready' || d.status === 'updating') && d.items.length === 0 && (
+                    <div className="disc-state disc-state--empty">
+                      <b>{t(journey ? 'discovery.empty.route.title' : 'discovery.empty.general.title', undefined, locale)}</b>
+                      <p>{t(journey ? 'discovery.empty.route.text' : 'discovery.empty.general.text', undefined, locale)}</p>
+                      <div className="disc-state__actions">
+                        {journey && (d.corridorM ?? 0) < 50_000 && <button type="button" className="btn btn--primary" onClick={d.widenCorridor}>{t('discovery.empty.increaseDetour', { distance: formatDistance(Math.min((d.corridorM ?? 5000) * 2, 50_000), journeyUnits, locale) }, locale)}</button>}
+                        {d.activeFilterCount > 0 && <button type="button" className="btn btn--outline" onClick={d.clearFilters}>{t('discovery.empty.clearFilters', undefined, locale)}</button>}
+                        {journey && <Link to="/plan-journey" className="btn btn--outline" onClick={() => journeyApi.edit()}>{t('discovery.empty.editRoute', undefined, locale)}</Link>}
                       </div>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                  )}
+                  {d.items.length > 0 && (
+                    <ul className={`cards ${d.status === 'updating' ? 'is-updating' : ''}`} ref={listRef} aria-busy={d.status === 'updating'}>
+                      {d.items.map((x) => <RestaurantCard key={x.restaurant.id} result={x} units={units} selected={x.restaurant.id === selectedId} favorite={isFavorite(x.restaurant.id)} onFavorite={() => favorite(x.restaurant.id)} onSelect={() => setSelectedId(x.restaurant.id)} />)}
+                    </ul>
+                  )}
+                  {d.nextCursor && d.status !== 'loading' && d.status !== 'error' && (
+                    <div className="results__more">
+                      <button type="button" className="btn btn--outline" disabled={d.status === 'loadingMore'} onClick={() => { void d.loadMore() }}>{d.status === 'loadingMore' ? t('discovery.loadingMore', undefined, locale) : t('discovery.loadMore', undefined, locale)}</button>
+                      <small>{d.items.length.toLocaleString(locale)} / {d.total.toLocaleString(locale)}</small>
+                    </div>
+                  )}
+                </div>
+              )}
+              {showMap && (
+                <aside className="results__map" aria-label={t('discovery.map.title', undefined, locale)}>
+                  <div className="results__map-sticky">
+                    <MapView route={routeLine} origin={journey && journey.origin.lat !== null ? { position: [journey.origin.lat, journey.origin.lng!], label: journey.origin.name } : null} destination={journey && journey.destination.lat !== null ? { position: [journey.destination.lat, journey.destination.lng!], label: journey.destination.name } : null} markers={markers} selectedId={selectedId} onSelect={selectFromMap} ariaLabel={t('discovery.map.title', undefined, locale)} updating={d.status === 'updating' || d.status === 'loading'} shellNote={t('discovery.map.shell', undefined, locale)} />
+                    {selectedId && <p className="results__map-sel" aria-live="polite">{t('discovery.map.selected', { name: d.items.find((x) => x.restaurant.id === selectedId)?.restaurant.name ?? '' }, locale)}</p>}
+                    <details className="results__map-alt">
+                      <summary>{t('discovery.map.textAlt', undefined, locale)}</summary>
+                      <ol>{[...d.items].sort((a, b) => (a.routePosition ?? 0) - (b.routePosition ?? 0)).map((x) => <li key={x.restaurant.id}><button type="button" className="pj-link" onClick={() => selectFromMap(x.restaurant.id)} dir="auto">{x.restaurant.name}</button>{x.distanceFromRouteM !== null && <small> · {formatDistance(x.distanceFromRouteM, units, locale)}</small>}</li>)}</ol>
+                    </details>
+                  </div>
+                </aside>
+              )}
+            </div>
           </div>
         </section>
       </main>

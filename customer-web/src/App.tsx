@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
 import { OrdersProvider } from './orders/OrdersContext'
 import { ProfileProvider } from './profile/ProfileContext'
@@ -6,6 +6,7 @@ import { AuthProvider } from './auth/AuthContext'
 import RequireAuth from './auth/RequireAuth'
 import { AccountProvider } from './account/AccountContext'
 import { JourneyProvider } from './journey/JourneyContext'
+import { LocaleProvider } from './i18n/LocaleProvider'
 import Footer from './components/Footer'
 import { ToastProvider } from './components/Toast'
 import HomePage from './pages/HomePage'
@@ -36,9 +37,14 @@ import NotFoundPage from './pages/NotFoundPage'
 import GetAppPage from './pages/GetAppPage'
 import ComingSoonPage from './pages/ComingSoonPage'
 
+/** Canonical restaurant routes are /restaurants/:slug and /restaurants/:slug/item/:itemId — old /restaurant/… links redirect. */
+function LegacyItemRedirect() { const { rid, itemId } = useParams(); return <Navigate to={`/restaurants/${rid}/item/${itemId}`} replace /> }
+function LegacyRestaurantRedirect() { const { rid } = useParams(); return <Navigate to={`/restaurants/${rid}`} replace /> }
+
 /** Provider stack + route table, router-agnostic so tests can mount it inside a MemoryRouter. */
 export function AppShell() {
   return (
+      <LocaleProvider>
       <AuthProvider>
       <ToastProvider>
       <ProfileProvider>
@@ -53,7 +59,9 @@ export function AppShell() {
             <Route path="/about" element={<Navigate to="/about-us" replace />} />
             <Route path="/restaurants" element={<RestaurantsPage />} />
             <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-            <Route path="/restaurant/:rid/item/:itemId" element={<ItemDetailPage />} />
+            <Route path="/restaurants/:rid/item/:itemId" element={<ItemDetailPage />} />
+            <Route path="/restaurant/:rid/item/:itemId" element={<LegacyItemRedirect />} />
+            <Route path="/restaurant/:rid" element={<LegacyRestaurantRedirect />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
             <Route path="/order-confirmation/:orderNumber" element={<RequireAuth><OrderConfirmationPage /></RequireAuth>} />
@@ -90,6 +98,7 @@ export function AppShell() {
       </ProfileProvider>
       </ToastProvider>
       </AuthProvider>
+      </LocaleProvider>
   )
 }
 

@@ -1,0 +1,235 @@
+{
+  "generated": "2026-09-28T08:23:35.227Z",
+  "results": [
+    {
+      "name": "TEST 12 no journey: general browsing with Plan a Journey CTA",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 Unicode names render intact in general discovery",
+      "pass": true,
+      "detail": "うなぎ藤田 浜松店 | Rajwada Thali House | Spice Nest | Hoshiarpur Sweets & Snacks | Gujarati Bhojanalay | 味噌煮込みうどん 山本屋"
+    },
+    {
+      "name": "TEST 2 load more appends a bounded next page",
+      "pass": true,
+      "detail": "6 → 12"
+    },
+    {
+      "name": "TEST 8 diacritic-insensitive search finds Café Élysée",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 Arabic search + RTL name rendering",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 filter Open now changes the result count",
+      "pass": true,
+      "detail": "24 restaurants"
+    },
+    {
+      "name": "TEST 9 dietary filter (data-driven) narrows results",
+      "pass": true,
+      "detail": "2 restaurants"
+    },
+    {
+      "name": "TEST 10 sort highest rated puts the 4.8 restaurant first",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 sort fastest pickup puts a 4-5 min prep first",
+      "pass": true,
+      "detail": "Karak House Ghantoot"
+    },
+    {
+      "name": "TEST 1 short journey Dubai → Abu Dhabi: route-aware results",
+      "pass": true,
+      "detail": "2 restaurants along your route"
+    },
+    {
+      "name": "TEST 3 different country: no ₹ / km-only assumptions, AED price level",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 map marker selects the card",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 card hover selects the marker",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "map has a text alternative",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 US journey: results in USD with US addresses",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 imperial market renders miles",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 restaurant-local time zone shown on status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 unit preference switches the same results to metric",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 JPY price levels + JST zone label",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 long journey Delhi → Mumbai stays bounded to the corridor (6 results, not all 30)",
+      "pass": true,
+      "detail": "6 restaurants along your route"
+    },
+    {
+      "name": "TEST 13 empty route results show recovery actions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 widen corridor doubles the search width",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "journey context offers Edit Journey + Start New Journey",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "URL carries a journey id, never a place name",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "error state: restaurant data unavailable + retry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "retry recovers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "legacy /restaurant/... redirects to canonical /restaurants/...",
+      "pass": true,
+      "detail": "http://localhost:5173/restaurants/burger-hub/item/classic-burger"
+    },
+    {
+      "name": "restaurant detail resolves by slug with local-zone status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "favorite as guest → login (Module 04 favorites reused)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "long translated text does not overflow the card grid",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /restaurants (journey)",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /restaurants (journey)",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /restaurants (journey)",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /restaurants (journey)",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "mobile: filters open as a drawer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile: backdrop closes the drawer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "mobile: map view toggle shows the map shell",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "keyboard: Enter on a focused marker selects it",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe: no WCAG A/AA violations on discovery pages",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no uncaught browser errors",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "axe": [
+    {
+      "route": "/restaurants",
+      "violations": []
+    },
+    {
+      "route": "/restaurants?journey",
+      "violations": []
+    }
+  ]
+}

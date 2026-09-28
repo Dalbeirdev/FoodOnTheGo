@@ -10,6 +10,7 @@ import 'package:foodonthego/screens/account_pages.dart';
 import 'package:foodonthego/screens/account_screens.dart';
 import 'package:foodonthego/screens/plan_journey_screen.dart';
 import 'package:foodonthego/screens/profile_screen.dart';
+import 'package:foodonthego/screens/restaurants_screen.dart';
 import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
@@ -18,6 +19,8 @@ import 'package:foodonthego/auth/auth_repository.dart';
 import 'package:foodonthego/state/account_state.dart';
 import 'package:foodonthego/state/app_state.dart';
 import 'package:foodonthego/state/auth_state.dart';
+import 'package:foodonthego/state/discovery_state.dart';
+import 'package:foodonthego/discovery/discovery_repository.dart';
 import 'package:foodonthego/state/journey_state.dart';
 import 'package:foodonthego/journey/journey_repositories.dart';
 import 'package:foodonthego/widgets/common.dart';
@@ -32,6 +35,7 @@ Widget app(Widget screen, {CartState? cart}) {
       ChangeNotifierProvider(create: (_) => AuthState(repository: MockAuthRepository(store: MemoryKeyValueStore(), latency: Duration.zero))),
       ChangeNotifierProvider(create: (_) => AccountState(repositories: AccountRepositories.mock(MockAccountStore(store: MemoryKeyValueStore(), latency: Duration.zero)))),
       ChangeNotifierProvider(create: (_) => JourneyState(repositories: JourneyRepositories.mock(MockJourneyStore(store: MemoryKeyValueStore(), latency: Duration.zero)))),
+      ChangeNotifierProvider(create: (_) => DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero))),
       ChangeNotifierProvider(create: (_) => cart ?? CartState()),
       ChangeNotifierProvider(create: (_) => OrdersState()),
     ],

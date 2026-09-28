@@ -19,7 +19,7 @@ const CloseIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="M6 6l12
 const kindIcon = (k: Location['kind']) => k === 'station' ? <TrainIcon /> : k === 'airport' ? <PlaneIcon /> : k === 'recent' ? <HistoryIcon /> : k === 'current' ? <LocateIcon /> : <PinIcon size={18} />
 
 /** Saved journey addresses (Module 04) become selectable locations — no second address implementation. */
-export const addressToLocation = (a: Address): Location => ({ id: `addr-${a.id}`, name: a.label, sub: [a.line1, a.locality, a.city].filter(Boolean).join(', '), kind: 'saved', lat: a.lat, lng: a.lng, source: 'saved-address' })
+export const addressToLocation = (a: Address): Location => ({ id: `addr-${a.id}`, name: a.label, sub: [a.line1, a.locality, a.city].filter(Boolean).join(', '), kind: 'saved', lat: a.lat, lng: a.lng, source: 'saved-address', formattedAddress: [a.line1, a.line2, a.locality, a.city, a.state, a.pincode].filter(Boolean).join(', '), locality: a.city, adminArea: a.state, postalCode: a.pincode || undefined })
 
 type Option = { key: string; label: string; sub?: string; icon: ReactNode; location: Location | null; action?: 'current' }
 

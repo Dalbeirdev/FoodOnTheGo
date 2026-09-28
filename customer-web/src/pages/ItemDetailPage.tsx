@@ -226,9 +226,9 @@ export default function ItemDetailPage() {
               <ul className="it-related">
                 {related.map((r) => (
                   <li key={r.id}>
-                    <Link to={`/restaurant/${restaurant.id}/item/${r.id}`}><Img src={r.image} fallback={r.fallback} alt={r.name} /></Link>
+                    <Link to={`/restaurants/${restaurant.id}/item/${r.id}`}><Img src={r.image} fallback={r.fallback} alt={r.name} /></Link>
                     <div>
-                      <Link to={`/restaurant/${restaurant.id}/item/${r.id}`}><b>{r.name}</b></Link>
+                      <Link to={`/restaurants/${restaurant.id}/item/${r.id}`}><b>{r.name}</b></Link>
                       <span>{inr(r.price)}</span>
                     </div>
                     <button type="button" aria-label={`Add ${r.name}`} onClick={() => cart.add({ key: `${restaurant.id}:${r.id}`, itemId: r.id, restaurantId: restaurant.id, name: r.name, unitPrice: r.price, image: r.image, fallback: r.fallback })}><PlusIcon /></button>

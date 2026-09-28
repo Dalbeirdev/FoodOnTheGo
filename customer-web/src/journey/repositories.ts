@@ -23,7 +23,21 @@ export type Location = {
   lng: number | null
   /** Where the data came from — mock during development, later "google-places" / "api". */
   source: 'mock' | 'saved-address' | 'dev-location'
+  /* Global place fields (WGS84 / SRID 4326). Optional because providers differ; never assume a country's format. */
+  /** Provider place identifier. */
+  placeId?: string
+  formattedAddress?: string
+  /** ISO 3166-1 alpha-2 */
+  countryCode?: string
+  adminArea?: string
+  locality?: string
+  postalCode?: string
+  /** IANA time zone where known. */
+  timezone?: string
 }
+
+/** Generic global place — journeys, saved addresses and restaurants all resolve to this shape. */
+export type Place = Location
 
 export type JourneyStatus = 'draft' | 'ready' | 'route-available' | 'error'
 
