@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foodonthego/discovery/discovery_repository.dart';
 import 'package:foodonthego/menu/menu_repository.dart';
-import 'package:foodonthego/screens/catalog_item_screen.dart';
+import 'package:foodonthego/screens/item_detail_screen.dart';
 import 'package:foodonthego/screens/restaurant_detail_screen.dart';
 import 'package:foodonthego/state/account_state.dart';
 import 'package:foodonthego/state/auth_state.dart';
@@ -170,11 +170,11 @@ void main() {
       expect(find.textContaining('10:00 AM – 1:00 AM'), findsNWidgets(7));
       expect(find.textContaining('America/Los_Angeles'), findsOneWidget);
     });
-    testWidgets('Catalogue item screen renders a generated item read-only (Module 08 note)', (t) async {
+    testWidgets('Item details screen renders a generated Unicode item with its price (Module 08)', (t) async {
       final gyoza = (await repo.getItems('ippudo-shizuoka', const MenuFilter(search: 'gyoza'))).items.first;
-      await t.pumpWidget(app(CatalogItemScreen(restaurantId: 'ippudo-shizuoka', itemSlug: gyoza.slug, restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: repo)));
+      await t.pumpWidget(app(ItemDetailScreen(restaurantId: 'ippudo-shizuoka', itemSlug: gyoza.slug, restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: repo)));
       await t.pumpAndSettle();
-      expect(find.textContaining('Module 08'), findsOneWidget);
+      expect(find.text('Add to cart'), findsOneWidget);
       expect(find.textContaining('¥'), findsWidgets);
     });
   });

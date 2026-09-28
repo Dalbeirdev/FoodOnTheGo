@@ -56,7 +56,7 @@ export default function CheckoutPage() {
   const orders = useOrders()
   const navigate = useNavigate()
   const { profile } = useProfile()
-  const restaurant = RESTAURANTS.find((r) => r.id === cart.lines[0]?.restaurantId) ?? RESTAURANTS[0]
+  const restaurant = RESTAURANTS.find((r) => r.id === cart.cart?.restaurantId) ?? (cart.cart ? { ...RESTAURANTS[0], id: cart.cart.restaurantSlug, slug: cart.cart.restaurantSlug, name: cart.cart.restaurantName } : RESTAURANTS[0]) // Module 08: global carts show their own restaurant; the Cart module replaces this page
 
   const [contact, setContact] = useState({ name: (profile?.name ?? ''), phone: (profile?.phone ?? ''), email: (profile?.email ?? '') })
   const [method, setMethod] = useState<PayMethod>('card')

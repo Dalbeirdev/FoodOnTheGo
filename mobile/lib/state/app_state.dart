@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+
+import 'cart_state.dart';
+export 'cart_state.dart' show CartState, CartLine;
 import 'package:http/http.dart' as http;
 
 import '../core/app_config.dart';
@@ -26,60 +29,6 @@ class HealthState extends ChangeNotifier {
       status = ApiStatus.unreachable;
       detail = e.toString().split('\n').first;
     }
-    notifyListeners();
-  }
-}
-
-class CartLine {
-  CartLine({required this.item, required this.restaurantId, this.qty = 1});
-  final MenuItem item;
-  final String restaurantId;
-  int qty;
-  int get total => item.price * qty;
-}
-
-class CartState extends ChangeNotifier {
-  final List<CartLine> lines = [];
-  String note = '';
-
-  int get count => lines.fold(0, (a, l) => a + l.qty);
-  int get subtotal => lines.fold(0, (a, l) => a + l.total);
-  int get comboSaving => lines.any((l) => l.item.id.contains('combo') || l.item.id.contains('pack')) ? 50 : 0;
-  int get tax => ((subtotal - comboSaving) * 0.05).round();
-  int get total => subtotal - comboSaving + tax;
-  String? get restaurantId => lines.isEmpty ? null : lines.first.restaurantId;
-
-  int qtyOf(String itemId) => lines.where((l) => l.item.id == itemId).fold(0, (a, l) => a + l.qty);
-
-  void add(MenuItem item, String restaurantId) {
-    final existing = lines.where((l) => l.item.id == item.id).firstOrNull;
-    if (existing != null) {
-      existing.qty++;
-    } else {
-      lines.add(CartLine(item: item, restaurantId: restaurantId));
-    }
-    notifyListeners();
-  }
-
-  void remove(String itemId) {
-    final existing = lines.where((l) => l.item.id == itemId).firstOrNull;
-    if (existing == null) return;
-    if (existing.qty > 1) {
-      existing.qty--;
-    } else {
-      lines.remove(existing);
-    }
-    notifyListeners();
-  }
-
-  void removeLine(String itemId) {
-    lines.removeWhere((l) => l.item.id == itemId);
-    notifyListeners();
-  }
-
-  void clear() {
-    lines.clear();
-    note = '';
     notifyListeners();
   }
 }

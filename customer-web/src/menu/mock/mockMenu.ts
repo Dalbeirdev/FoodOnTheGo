@@ -12,7 +12,8 @@
 import { minorDigits } from '../../i18n/format'
 import { MENU as LEGACY_MENU } from '../../data/menu'
 import { RESTAURANTS, normalize } from '../../repositories/mock/restaurants'
-import { MenuError, type ItemAvailability, type MenuCategory, type MenuFilterValue, type MenuItem, type MenuPage, type MenuRepository } from '../repositories'
+import { MenuError, type ItemAvailability, type MenuCategory, type MenuFilterValue, type MenuItem, type MenuItemDetail, type MenuPage, type MenuRepository } from '../repositories'
+import { optionGroupsFor } from './optionGroups'
 
 type Tmpl = { cat: string; catAlt?: string; items: Array<[name: string, desc: string, price: number, tags?: string[], alt?: string[], custom?: boolean]> }
 
@@ -126,6 +127,10 @@ const ASSIGN: Record<string, keyof typeof TEMPLATES> = {
   'cafe-elysee-auxerre': 'french', 'brasserie-beaune': 'bourguignon',
   'al-bait-al-shami': 'levantine', 'ghantoot-karak': 'karak',
 }
+/** Module 01 NCR fixtures share the legacy menu (item ids preserved for existing cart / order pages). */
+const LEGACY_RESTAURANTS = ['burger-hub', 'pizza-point', 'spice-nest', 'brew-bites', 'wok-express', 'healthy-bites']
+/** Restaurant-provided allergen text (development fixture); absent = not published, never inferred. */
+const ALLERGEN_NOTES: Record<string, string> = { 'burger-hub': 'Contains gluten, dairy and egg. Prepared in a kitchen that also handles nuts.', 'ippudo-shizuoka': '小麦・卵・乳を含みます。' }
 /** Restaurants with no menu published yet (TEST 25 — "Menu currently unavailable"). */
 export const NO_MENU = new Set(['ambala-chai'])
 /** Large-menu fixture (TEST 12): the thali house gets many extra generated items. */
@@ -143,7 +148,7 @@ function buildMenu(restaurantId: string): { categories: MenuCategory[]; items: M
     const slug = `${slugify(alt[0] ?? name)}-${cat.displayOrder}-${i}`
     items.push({ id: `${restaurantId}:${slug}`, publicId: `itm_${restaurantId}_${slug}`, slug, restaurantId, categoryId: cat.id, name, alternateNames: alt, description: desc, images: [image], image, fallback, basePriceMinor: priceMinor, currency: r.currency, availability, dietaryTags: tags, customizable, prepTimeMin: prep, displayOrder: i, featured, status: 'active' })
   }
-  if (legacyIds.size && ['burger-hub', 'pizza-point', 'spice-nest', 'brew-bites', 'wok-express', 'healthy-bites'].includes(restaurantId)) {
+  if (legacyIds.size && LEGACY_RESTAURANTS.includes(restaurantId)) {
     // Module 01 menu, shared by the NCR fixtures — item ids preserved for the existing cart / order pages.
     LEGACY_MENU.forEach((s, ci) => {
       const cat: MenuCategory = { id: `${restaurantId}:${s.id}`, restaurantId, name: s.title, description: s.sub, displayOrder: ci }
@@ -210,6 +215,24 @@ export class MockMenuRepository implements MenuRepository {
   async getItemBySlug(restaurantId: string, slug: string) {
     await wait(latency / 2)
     return menuFor(restaurantId).items.find((i) => i.slug === slug || i.id === slug) ?? null
+  }
+  async getItemDetail(restaurantId: string, slug: string): Promise<MenuItemDetail | null> {
+    await wait(latency / 2)
+    if (failing()) throw new MenuError('unavailable', 'The item could not be loaded. Please try again.')
+    const r = RESTAURANTS.find((x) => x.id === restaurantId)
+    const item = menuFor(restaurantId).items.find((i) => i.slug === slug || i.id === slug)
+    if (!r || !item || item.restaurantId !== restaurantId) return null
+    const template = LEGACY_RESTAURANTS.includes(restaurantId) ? 'legacy' : (ASSIGN[restaurantId] ?? '')
+    const groups = optionGroupsFor(item, template)
+    return {
+      ...item,
+      restaurantSlug: r.slug,
+      allergenInformation: ALLERGEN_NOTES[restaurantId],
+      minimumQuantity: 1,
+      maximumQuantity: item.id.includes('family') || item.id.includes('pack') ? 5 : 20,
+      instructionsMaxLength: 200,
+      ...groups,
+    }
   }
   async getDietaryTags(restaurantId: string) {
     const set = new Set<string>()

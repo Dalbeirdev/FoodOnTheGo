@@ -1,0 +1,164 @@
+{
+  "module": "M08",
+  "ranAt": "2026-09-28T12:35:15.435Z",
+  "base": "http://localhost:5173",
+  "total": 31,
+  "passed": 31,
+  "results": [
+    {
+      "name": "ROUTE canonical /restaurants/:slug/item/:itemSlug renders the item with title + breadcrumb",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 simple item: no option groups, total = base price",
+      "pass": true,
+      "detail": "₹25.00"
+    },
+    {
+      "name": "TEST 1 add succeeds, cart badge updates to 1, cart bar visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 different restaurant → explicit confirmation dialog before replacing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 cancel keeps the existing cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 Clear cart & continue replaces the cart (USD cart, badge 1)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 required group (Choose your side) blocks: validation shown, nothing added",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 selecting the required option → add succeeds",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 add-ons + variant update the price (250 → 320 → 420)",
+      "pass": true,
+      "detail": "₹250.00 ₹320.00 ₹420.00"
+    },
+    {
+      "name": "TEST 4 max 3 add-ons: counter shows 3 of 3 and remaining option is not selectable",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 sold-out option is disabled and labelled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 quantity ×3 → total 1,260",
+      "pass": true,
+      "detail": "₹1,260.00"
+    },
+    {
+      "name": "TEST 6 structured CartItem persisted: variant, modifiers, instructions, qty, unit price (minor units)",
+      "pass": true,
+      "detail": "{\"q\":3,\"unit\":42000,\"v\":[\"Large\"],\"m\":[\"Extra Cheese\",\"Bacon\",\"Jalapeños\"]}"
+    },
+    {
+      "name": "TEST 11 identical configuration merges (1 line, qty 6)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 different configuration → separate line (2 lines)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 same restaurant → same cart (3 lines, restaurant burger-hub)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CART page (Module 01 layout) lists structured lines with option detail until the Cart module",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 sold-out item: Add to Cart disabled with explanation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 Unicode item + option names render",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 JPY: no decimals, +¥250 adjustment → ¥1,140",
+      "pass": true,
+      "detail": "¥1,140"
+    },
+    {
+      "name": "ERROR invalid item slug → not-found state with a way back",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SECURITY item from another restaurant via URL is rejected (not-found)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ERROR item load failure shows retry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ERROR retry recovers the item",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE mobile 390×844: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE tablet 768×1024: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE desktop 1440×900: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

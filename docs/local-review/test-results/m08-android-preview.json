@@ -1,0 +1,138 @@
+{
+  "module": "M08",
+  "ranAt": "2026-09-28T12:33:57.810Z",
+  "total": 26,
+  "passed": 26,
+  "results": [
+    {
+      "n": "phone: item details render — name, base price, Size (required) + Add-ons groups, sticky Add to cart",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: choosing a variant updates the total (₹320.00)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: three add-ons → ₹420.00 and \"3 of 3 selected\"",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: sold-out option shown as Sold out",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: quantity ×3 → ₹1,260.00",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Add to cart succeeds — snackbar + cart badge 3",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: different restaurant → \"Start a new cart?\" dialog",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Clear cart & continue replaces the cart (roti added)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: required \"Choose your side\" blocks with a validation message (USD item)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: sold-out item shows explanation, Add to cart disabled",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: Unicode item + groups (麺の硬さ, トッピング) and ¥ prices without decimals",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: +¥250 topping → ¥1,140",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: invalid item slug → not-found with Back to the menu",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: item details render — name, base price, Size (required) + Add-ons groups, sticky Add to cart",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: choosing a variant updates the total (₹320.00)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: three add-ons → ₹420.00 and \"3 of 3 selected\"",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: sold-out option shown as Sold out",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: quantity ×3 → ₹1,260.00",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Add to cart succeeds — snackbar + cart badge 3",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: different restaurant → \"Start a new cart?\" dialog",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Clear cart & continue replaces the cart (roti added)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: required \"Choose your side\" blocks with a validation message (USD item)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: sold-out item shows explanation, Add to cart disabled",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: Unicode item + groups (麺の硬さ, トッピング) and ¥ prices without decimals",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: +¥250 topping → ¥1,140",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: invalid item slug → not-found with Back to the menu",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

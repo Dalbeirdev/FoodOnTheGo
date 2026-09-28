@@ -12,6 +12,7 @@ import 'package:foodonthego/screens/plan_journey_screen.dart';
 import 'package:foodonthego/screens/profile_screen.dart';
 import 'package:foodonthego/screens/restaurants_screen.dart';
 import 'package:foodonthego/screens/restaurant_detail_screen.dart';
+import 'package:foodonthego/screens/item_detail_screen.dart';
 import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
@@ -59,7 +60,7 @@ void main() {
     'Home': const HomeScreen(),
     'Restaurants': const RestaurantsScreen(),
     'Restaurant detail': RestaurantDetailScreen(id: 'burger-hub', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
-    'Item': const ItemScreen(restaurantId: 'burger-hub', itemId: 'classic-burger'),
+    'Item': ItemDetailScreen(restaurantId: 'burger-hub', itemSlug: 'classic-burger', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Cart (empty)': const CartScreen(),
     'Checkout': const CheckoutScreen(),
     'Order tracking': const OrderTrackingScreen(number: 'FTG128701'),
@@ -112,9 +113,9 @@ void main() {
   }
 
   testWidgets('Item screen body is visible above its bottom bar', (t) async {
-    await pumpPhone(t, const ItemScreen(restaurantId: 'burger-hub', itemId: 'classic-burger'));
-    expect(find.text('Classic Burger'), findsNWidgets(2)); // app bar + body title
-    expect(find.text('Add to Cart'), findsOneWidget);
+    await pumpPhone(t, ItemDetailScreen(restaurantId: 'burger-hub', itemSlug: 'classic-burger', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)));
+    expect(find.text('Classic Burger'), findsOneWidget); // body title (app bar shows the restaurant)
+    expect(find.text('Add to cart'), findsOneWidget);
     expect(t.getSize(find.byType(BottomBar)).height, lessThan(120));
   });
 

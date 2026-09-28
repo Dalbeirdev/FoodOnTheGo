@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../i18n/format.dart' show pow10;
 import '../data/mock_data.dart' as legacy;
 import '../discovery/discovery_repository.dart' show globalRestaurants, normalize;
+import 'menu_options.dart';
 
 class MenuCategory {
   const MenuCategory({required this.id, required this.restaurantId, required this.name, this.description, required this.displayOrder});
@@ -52,6 +53,8 @@ abstract class MenuRepository {
   Future<MenuPage> getItems(String restaurantId, [MenuFilter filter = const MenuFilter()]);
   Future<MenuItem?> getItemBySlug(String restaurantId, String slug);
   Future<List<String>> getDietaryTags(String restaurantId);
+  /// Item + option groups; null when unknown or when the item belongs to another restaurant.
+  Future<MenuItemDetail?> getItemDetail(String restaurantId, String slug);
 }
 
 class MenuException implements Exception {
@@ -176,6 +179,8 @@ const _assign = <String, String>{
 };
 const noMenuRestaurants = {'ambala-chai'};
 const _largeMenuId = 'jaipur-thali';
+/// Restaurant-provided allergen text (development fixture); absent = not published, never inferred.
+const allergenNotes = <String, String>{'burger-hub': 'Contains gluten, dairy and egg. Prepared in a kitchen that also handles nuts.', 'ippudo-shizuoka': '小麦・卵・乳を含みます。'};
 const _legacyIds = {'burger-hub', 'pizza-point', 'spice-nest', 'brew-bites', 'wok-express', 'healthy-bites'};
 
 String _slug(String s) { final n = normalize(s).replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), '-').replaceAll(RegExp(r'^-|-$'), ''); return n.isEmpty ? 'item' : n; }
@@ -261,6 +266,18 @@ class MockMenuRepository implements MenuRepository {
   Future<MenuItem?> getItemBySlug(String restaurantId, String slug) async {
     await _wait(latency ~/ 2);
     return _menu(restaurantId).$2.where((i) => i.slug == slug || i.id == slug).firstOrNull;
+  }
+
+  @override
+  Future<MenuItemDetail?> getItemDetail(String restaurantId, String slug) async {
+    await _wait(latency ~/ 2);
+    if (fail) throw const MenuException('The item could not be loaded. Please try again.');
+    final r = globalRestaurants.where((x) => x.id == restaurantId).firstOrNull;
+    final item = _menu(restaurantId).$2.where((i) => i.slug == slug || i.id == slug).firstOrNull;
+    if (r == null || item == null || item.restaurantId != restaurantId) return null;
+    final template = _legacyIds.contains(restaurantId) ? 'legacy' : (_assign[restaurantId] ?? '');
+    final (variants, modifiers) = optionGroupsFor(item, template);
+    return MenuItemDetail(item: item, restaurantSlug: r.slug, allergenInformation: allergenNotes[restaurantId], minimumQuantity: 1, maximumQuantity: item.id.contains('family') || item.id.contains('pack') ? 5 : 20, instructionsMaxLength: 200, variantGroups: variants, modifierGroups: modifiers);
   }
 
   @override

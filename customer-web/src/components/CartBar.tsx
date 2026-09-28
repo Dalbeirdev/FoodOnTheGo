@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useCart } from '../cart/CartContext'
-import { inr } from '../data/menu'
+import { formatMoney } from '../i18n/format'
+import { useLocale } from '../i18n/strings'
 import { ArrowRightIcon } from './Icons'
 import './CartBar.css'
 
@@ -11,13 +12,14 @@ const CartIcon = () => (
 )
 
 export default function CartBar() {
-  const { count, total } = useCart()
+  const { count, subtotalMinor, currency } = useCart()
+  const { locale } = useLocale()
   if (count === 0) return null
   return (
     <div className="cart-bar" role="status">
       <div className="cart-bar__inner">
         <span className="cart-bar__icon"><CartIcon /><b>{count}</b></span>
-        <span className="cart-bar__text"><b>{count} {count === 1 ? 'item' : 'items'} in Cart</b>{inr(total)}</span>
+        <span className="cart-bar__text"><b>{count} {count === 1 ? 'item' : 'items'} in Cart</b>{formatMoney(subtotalMinor, currency ?? 'INR', locale)}</span>
         <Link to="/cart" className="btn btn--primary cart-bar__btn">View Cart <ArrowRightIcon size={18} /></Link>
       </div>
     </div>

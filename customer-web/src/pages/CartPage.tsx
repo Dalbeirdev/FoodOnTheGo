@@ -31,7 +31,7 @@ export const GST_RATE = 0.05
 
 export default function CartPage() {
   const cart = useCart()
-  const restaurant = RESTAURANTS.find((r) => r.id === cart.lines[0]?.restaurantId) ?? RESTAURANTS[0]
+  const restaurant = RESTAURANTS.find((r) => r.id === cart.cart?.restaurantId) ?? (cart.cart ? { ...RESTAURANTS[0], id: cart.cart.restaurantSlug, slug: cart.cart.restaurantSlug, name: cart.cart.restaurantName } : RESTAURANTS[0]) // Module 08: global carts show their own restaurant; the Cart module replaces this page
   const subtotal = cart.total
   const comboSaving = cart.lines.some((l) => l.itemId.includes('combo') || l.itemId.includes('pack')) ? 50 : 0
   const tax = Math.round((subtotal - comboSaving) * GST_RATE)

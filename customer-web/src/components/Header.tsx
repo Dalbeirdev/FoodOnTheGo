@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useSiteNavigation } from '../repositories'
 import { useAuth } from '../auth/AuthContext'
+import { useCart } from '../cart/CartContext'
+import { t } from '../i18n/strings'
 import './Header.css'
 
 const UserIcon = ({ size = 22 }: { size?: number }) => (
@@ -14,6 +16,8 @@ const UserIcon = ({ size = 22 }: { size?: number }) => (
 export default function Header() {
   const nav = useSiteNavigation()
   const { isAuthenticated, user } = useAuth()
+  const { count } = useCart()
+  const cartLabel = count === 0 ? t('cart.badge.empty') : count === 1 ? t('cart.badge.one') : t('cart.badge', { count })
   const secondary = isAuthenticated ? nav.accountLink : nav.secondaryAction
   const [open, setOpen] = useState(false)
   const menuId = useId()
@@ -56,6 +60,10 @@ export default function Header() {
         </nav>
 
         <div className="header__actions">
+          <Link to="/cart" className="header__cart" aria-label={cartLabel} title={cartLabel} data-count={count}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 4h2l2.5 11h11L21 7H7" /><circle cx="9" cy="20" r="1.5" /><circle cx="17" cy="20" r="1.5" /></svg>
+            {count > 0 && <span className="header__cart-badge" aria-hidden="true">{count > 99 ? '99+' : count}</span>}
+          </Link>
           <Link to={nav.accountLink.to} className="header__account" aria-label={user ? `${nav.accountLink.label}: ${user.name}` : nav.accountLink.label} title={user?.name ?? nav.accountLink.label}>
             <UserIcon />
           </Link>
