@@ -42,6 +42,8 @@ export type CartLine = { key: string; itemId: string; restaurantId: string; name
 type CartApi = {
   cart: Cart | null
   status: CartStatus
+  /** False until the device store has been read once (pages must not redirect on an unhydrated empty cart). */
+  hydrated: boolean
   count: number
   subtotalMinor: number
   currency: string | null
@@ -104,12 +106,13 @@ export function CartProvider({ children, repository, initialCart }: { children: 
   const [promo, setPromo] = useState<PromoState>(NO_PROMO)
   const [note, setNoteState] = useState(() => { try { return sessionStorage.getItem(NOTE_KEY) ?? '' } catch { return '' } })
   const hydrated = useRef(!!initialCart)
+  const [hydratedState, setHydratedState] = useState(!!initialCart)
 
   // Hydrate from the device store once; persist on every change afterwards.
   useEffect(() => {
     if (hydrated.current) return
     let alive = true
-    repo.load().then((c) => { if (!alive) return; hydrated.current = true; if (c) { setCart(c); setStatus('active') } }).catch(() => { hydrated.current = true })
+    repo.load().then((c) => { if (!alive) return; hydrated.current = true; if (c) { setCart(c); setStatus('active') } setHydratedState(true) }).catch(() => { hydrated.current = true; setHydratedState(true) })
     return () => { alive = false }
   }, [repo])
   useEffect(() => { if (hydrated.current) void repo.save(cart).catch(() => setStatus('error')) }, [cart, repo])
@@ -172,7 +175,7 @@ export function CartProvider({ children, repository, initialCart }: { children: 
     }))
     const restaurantMeta = (restaurantId: string) => (cart && cart.restaurantId === restaurantId ? { id: cart.restaurantId, slug: cart.restaurantSlug, name: cart.restaurantName, currency: cart.currency } : { id: restaurantId, slug: restaurantId, name: restaurantId, currency: 'INR' })
     return {
-      cart, status, count: cartItemCount(cart), subtotalMinor: cartSubtotalMinor(cart), currency: cart?.currency ?? null,
+      cart, status, hydrated: hydratedState, count: cartItemCount(cart), subtotalMinor: cartSubtotalMinor(cart), currency: cart?.currency ?? null,
       addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, editItem, acceptPriceChange,
       promo: cart ? (promo.status === 'applied' ? evaluatePromo(promo.code, cartSubtotalMinor(cart), cart.currency, minorDigits(cart.currency)) : promo) : NO_PROMO,
       discountMinor: cart && promo.status === 'applied' ? discountMinor(cartSubtotalMinor(cart), evaluatePromo(promo.code, cartSubtotalMinor(cart), cart.currency, minorDigits(cart.currency))) : 0,
@@ -190,7 +193,7 @@ export function CartProvider({ children, repository, initialCart }: { children: 
       clear: clearCart,
       qtyOf: (itemId) => (cart?.items ?? []).filter((i) => i.menuItemId === itemId).reduce((a, i) => a + i.quantity, 0),
     }
-  }, [cart, status, note, addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, editItem, acceptPriceChange, promo, applyPromo, removePromo, setNote])
+  }, [cart, status, hydratedState, note, addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, editItem, acceptPriceChange, promo, applyPromo, removePromo, setNote])
 
   return (
     <CartContext.Provider value={api}>

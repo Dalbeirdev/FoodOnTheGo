@@ -10,6 +10,7 @@ import { CartProvider, useCart, type AddItemInput } from '../cart/CartContext'
 import { MemoryCartRepository, type Cart } from '../cart/cartModel'
 import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { JourneyProvider } from '../journey/JourneyContext'
+import { PickupProvider } from '../pickup/PickupContext'
 import { LocaleProvider } from '../i18n/LocaleProvider'
 import { setMockMenuLatency } from '../menu/mock/mockMenu'
 import { setMockRestaurantLatency } from '../repositories/mock/restaurants'
@@ -33,6 +34,7 @@ function mount(path: string, repo = new MemoryCartRepository()) {
       <AuthProvider>
         <JourneyProvider>
           <CartProvider repository={repo}>
+            <PickupProvider>
             <MemoryRouter initialEntries={[path]}>
               <Routes>
                 <Route path="/cart" element={<CartPage />} />
@@ -43,6 +45,7 @@ function mount(path: string, repo = new MemoryCartRepository()) {
               <Loc />
               <AuthProbe />
             </MemoryRouter>
+            </PickupProvider>
           </CartProvider>
         </JourneyProvider>
       </AuthProvider>
@@ -182,7 +185,7 @@ describe('Cart page (web)', () => {
     expect(await screen.findByText(/that code has expired/i)).toBeInTheDocument()
   })
 
-  it('proceed leads to the interim pickup-time stage, which redirects back when the cart is empty', async () => {
+  it('proceed leads to the pickup-time stage, which redirects back when the cart is empty', async () => {
     const user = userEvent.setup()
     const repo = await seededRepo([burger()])
     mount('/cart', repo)
@@ -190,7 +193,7 @@ describe('Cart page (web)', () => {
     await waitFor(() => expect(btn).toBeEnabled())
     await user.click(btn)
     expect(await screen.findByRole('heading', { level: 1, name: /pickup time/i })).toBeInTheDocument()
-    expect(screen.getByText(/nothing has been ordered/i)).toBeInTheDocument()
+    expect(await screen.findByText(/when would you like to pick up/i)).toBeInTheDocument()
     mount('/pickup-time')
     await waitFor(() => expect(screen.getAllByTestId('loc').some((l) => l.textContent === '/cart')).toBe(true))
   })

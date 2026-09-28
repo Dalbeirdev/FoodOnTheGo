@@ -1,0 +1,135 @@
+{
+  "module": "M10",
+  "ranAt": "2026-09-28T15:15:18.491Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 25,
+  "passed": 25,
+  "results": [
+    {
+      "name": "ROUTE canonical /pickup-time renders the pickup page with restaurant context + zone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 no journey: hint shown; ASAP and Schedule modes offered; pickup instructions are restaurant data",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 device zone (Europe/London) ≠ restaurant zone: earliest pickup shown in restaurant time with GMT+5:30 label",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 ASAP: earliest estimate selected, summary shows date / time / ready, Continue enabled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 data-driven slots (15-min interval) with full slots disabled and one Recommended",
+      "pass": true,
+      "detail": "61 slots, 8 full"
+    },
+    {
+      "name": "TEST 2 scheduled slot selected: aria-checked, summary date + time + zone, Continue enabled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MODEL selection is an instant + IANA zone (not a display string)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 stale slot: validation fails, customer must choose another time, still on /pickup-time",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 guest Continue → authentication gate (login)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 after OTP the customer lands on /checkout with cart + pickup selection retained",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 journey-aware: journey line with estimated arrival (mock) and recommendation note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 recommended slot note references arrival + preparation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 not accepting orders: distinct blocking message, no mode / slot controls, Continue disabled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 / horizon: slots beyond the schedule horizon are disabled with \"Too far ahead\"; every disabled slot carries a reason",
+      "pass": true,
+      "detail": "17/61 disabled"
+    },
+    {
+      "name": "TEST 10 overnight: slots run past midnight (12:00 AM present; 01:00 close − 45 min cut-off) with 30-min interval in America/Los_Angeles",
+      "pass": true,
+      "detail": "11:00 PM | 11:30 PM · Full | 12:00 AM"
+    },
+    {
+      "name": "TEST 9 / 14 Unicode restaurant in Asia/Tokyo with 10-minute windows",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ERROR slots failed to load → error notice with retry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ERROR retry recovers the pickup page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE mobile 390×844: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE tablet 768×1024: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE desktop 1440×900: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

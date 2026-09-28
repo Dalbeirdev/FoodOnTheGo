@@ -6,6 +6,9 @@ import '../core/theme.dart';
 import '../data/mock_data.dart';
 import '../state/app_state.dart';
 import '../state/auth_state.dart';
+import '../state/pickup_state.dart';
+import '../i18n/format.dart' show formatLocalTime, zoneLabel;
+import '../i18n/strings.dart';
 import '../widgets/common.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -45,7 +48,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Row(children: [
                 Photo(r.image, width: 60, height: 60, radius: 12),
                 const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(r.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)), Text(r.address, style: const TextStyle(color: Brand.grey, fontSize: 12.5))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(r.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)), Text(r.address, style: const TextStyle(color: Brand.grey, fontSize: 12.5)), Builder(builder: (ctx) { final sel = ctx.watch<PickupState>().selection; return Text(sel == null ? '${S.t('checkout.pickup')}: ${S.t('checkout.pickup.none')}' : '${S.t('checkout.pickup')}: ${sel.mode == PickupMode.asap ? '${S.t('pickup.asap')} · ~' : ''}${formatLocalTime(sel.requestedAt, sel.restaurantTimezone)} ${zoneLabel(sel.restaurantTimezone)}', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)); })])),
               ]),
               const SizedBox(height: 12),
               InfoBox(icon: Icons.schedule, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Estimated Ready Time', style: TextStyle(fontSize: 12, color: Brand.grey)), Text('${timeOf(ready)} – ${timeOf(ready.add(const Duration(minutes: 5)))}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18))])),

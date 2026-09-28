@@ -20,6 +20,7 @@ import 'state/app_state.dart';
 import 'state/account_state.dart';
 import 'state/auth_state.dart';
 import 'state/discovery_state.dart';
+import 'state/pickup_state.dart';
 import 'state/journey_state.dart';
 
 void main() => runApp(const FoodOnTheGoApp());
@@ -110,6 +111,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: discovery),
           ChangeNotifierProvider(create: (_) => CartState()),
           ChangeNotifierProvider(create: (_) => OrdersState()),
+          ChangeNotifierProvider(create: (_) => PickupState()),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false),
       );

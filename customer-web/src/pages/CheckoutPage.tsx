@@ -4,6 +4,10 @@ import Header from '../components/Header'
 import { useProfile } from '../profile/ProfileContext'
 import { ArrowRightIcon, ChevronRightIcon, ClockIcon, PinIcon, StarIcon } from '../components/Icons'
 import { useCart } from '../cart/CartContext'
+import { usePickup } from '../pickup/PickupContext'
+import { formatLocalDate } from '../pickup/time'
+import { formatLocalTime as fmtLocalTime, zoneLabel as zoneLbl } from '../i18n/format'
+import { t as tr } from '../i18n/strings'
 import { useOrders } from '../orders/OrdersContext'
 import { inr } from '../data/menu'
 import { RESTAURANTS } from './RestaurantsPage'
@@ -53,6 +57,7 @@ function Img({ src, fallback, alt = '' }: { src?: string; fallback?: string; alt
 
 export default function CheckoutPage() {
   const cart = useCart()
+  const pickup = usePickup()
   const orders = useOrders()
   const navigate = useNavigate()
   const { profile } = useProfile()
@@ -165,6 +170,12 @@ export default function CheckoutPage() {
                   <Img src="/images/restaurant-burger-hub-logo.jpg" fallback="🍔" alt={`${restaurant.name} logo`} />
                   <div>
                     <h3>{restaurant.name} <span className="co-open">Open</span></h3>
+                    {/* Module 10 handoff: centralized pickup selection (restaurant-local time). Full checkout rewrite is Module 11 (CF-117). */}
+                    <p className="co-pickup" data-testid="checkout-pickup">
+                      <b>{tr('checkout.pickup')}:</b>{' '}
+                      {pickup.selection ? `${pickup.selection.mode === 'asap' ? tr('pickup.asap') + ' · ~' : ''}${fmtLocalTime(pickup.selection.requestedAt, pickup.selection.restaurantTimezone)} · ${formatLocalDate(pickup.selection.requestedAt, pickup.selection.restaurantTimezone)} (${zoneLbl(pickup.selection.requestedAt, pickup.selection.restaurantTimezone)})` : tr('checkout.pickup.none')}{' '}
+                      <Link to="/pickup-time" className="co-link">{tr('checkout.pickup.change')}</Link>
+                    </p>
                     <p className="co-pickup__rating"><StarIcon size={15} /> <b>{restaurant.rating.toFixed(1)}</b> ({restaurant.reviewCount} reviews)</p>
                     <p>{restaurant.cuisines.join(' • ')}</p>
                     <p className="co-pickup__addr"><PinIcon size={16} /> {RESTAURANT_ADDRESS}</p>

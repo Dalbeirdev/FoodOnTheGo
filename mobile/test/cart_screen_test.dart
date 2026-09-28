@@ -14,6 +14,8 @@ import 'package:foodonthego/state/auth_state.dart';
 import 'package:foodonthego/state/cart_state.dart';
 import 'package:foodonthego/state/discovery_state.dart';
 import 'package:foodonthego/state/journey_state.dart';
+import 'package:foodonthego/state/pickup_state.dart';
+import 'package:foodonthego/pickup/pickup_repository.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -37,10 +39,11 @@ void main() {
           ChangeNotifierProvider(create: (_) => DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero))),
           ChangeNotifierProvider.value(value: cart),
           ChangeNotifierProvider(create: (_) => OrdersState()),
+          ChangeNotifierProvider(create: (_) => PickupState(repository: MockPickupRepository(latency: Duration.zero), store: MemoryKeyValueStore())),
         ],
         child: MaterialApp.router(routerConfig: GoRouter(initialLocation: initial, routes: [
           GoRoute(path: '/cart', builder: (_, _) => CartScreen(restaurantRepository: rest, menuRepository: menu, simulate: simulate)),
-          GoRoute(path: '/pickup-time', builder: (_, _) => PickupTimeScreen(restaurantRepository: rest)),
+          GoRoute(path: '/pickup-time', builder: (_, _) => PickupTimeScreen(restaurantRepository: rest, menuRepository: menu)),
           GoRoute(path: '/restaurants', builder: (_, _) => const Scaffold(body: Text('list'))),
           GoRoute(path: '/plan-journey', builder: (_, _) => const Scaffold(body: Text('plan'))),
           GoRoute(path: '/restaurants/:id', builder: (_, s) => Scaffold(body: Text('restaurant ${s.pathParameters['id']}'))),
@@ -131,6 +134,6 @@ void main() {
     expect(find.text('₹630.00'), findsWidgets);
     await t.tap(find.text('Continue to pickup')); await t.pumpAndSettle();
     expect(find.text('Pickup time'), findsWidgets);
-    expect(find.textContaining('Nothing has been ordered'), findsOneWidget);
+    expect(find.text('When would you like to pick up?'), findsOneWidget);
   });
 }

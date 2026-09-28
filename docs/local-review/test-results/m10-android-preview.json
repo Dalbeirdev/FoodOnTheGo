@@ -1,0 +1,78 @@
+{
+  "module": "M10",
+  "ranAt": "2026-09-28T15:19:07.317Z",
+  "total": 14,
+  "passed": 7,
+  "results": [
+    {
+      "n": "phone: pickup context — restaurant, address, zone (Asia/Kolkata), prep + earliest pickup, instructions, no-journey hint",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: ASAP + Schedule for later modes offered (native segmented control)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: ASAP selected → summary with estimated ready + Continue",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: scheduled day → data-driven slots with Recommended and Full states",
+      "ok": false,
+      "d": ""
+    },
+    {
+      "n": "phone: slot selected → summary shows date / time / zone / estimated ready",
+      "ok": false,
+      "d": "no slot found"
+    },
+    {
+      "n": "phone: guest Continue → authentication gate (login) with selection preserved",
+      "ok": false,
+      "d": ""
+    },
+    {
+      "n": "phone: returning to pickup keeps the selection (summary still filled)",
+      "ok": false,
+      "d": ""
+    },
+    {
+      "n": "tablet: pickup context — restaurant, address, zone (Asia/Kolkata), prep + earliest pickup, instructions, no-journey hint",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: ASAP + Schedule for later modes offered (native segmented control)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: ASAP selected → summary with estimated ready + Continue",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: scheduled day → data-driven slots with Recommended and Full states",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: slot selected → summary shows date / time / zone / estimated ready",
+      "ok": false,
+      "d": "no slot found"
+    },
+    {
+      "n": "tablet: guest Continue → authentication gate (login) with selection preserved",
+      "ok": false,
+      "d": ""
+    },
+    {
+      "n": "tablet: returning to pickup keeps the selection (summary still filled)",
+      "ok": false,
+      "d": ""
+    }
+  ]
+}

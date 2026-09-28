@@ -1,0 +1,8 @@
+== oxlint
+src/pages/OrderTrackingPage.tsx:73:72: warning react(purity): Cannot call impure function during render help: `Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component re-renders
+src/pages/MyOrdersPage.tsx:60:27: warning react(purity): Cannot call impure function during render help: `Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component re-renders
+src/pages/MyProfilePage.tsx:55:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+== tsc -b
+(no output = clean)
+== vite build
+[32m✓ built in 381ms[39m

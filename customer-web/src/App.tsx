@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
+import { PickupProvider } from './pickup/PickupContext'
 import { OrdersProvider } from './orders/OrdersContext'
 import { ProfileProvider } from './profile/ProfileContext'
 import { AuthProvider } from './auth/AuthContext'
@@ -52,6 +53,7 @@ export function AppShell() {
       <AccountProvider>
       <JourneyProvider>
       <CartProvider>
+      <PickupProvider>
         <OrdersProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -94,6 +96,7 @@ export function AppShell() {
           </Routes>
           <Footer />
         </OrdersProvider>
+      </PickupProvider>
       </CartProvider>
       </JourneyProvider>
       </AccountProvider>

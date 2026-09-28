@@ -26,6 +26,8 @@ import 'package:foodonthego/state/discovery_state.dart';
 import 'package:foodonthego/discovery/discovery_repository.dart';
 import 'package:foodonthego/menu/menu_repository.dart';
 import 'package:foodonthego/state/journey_state.dart';
+import 'package:foodonthego/state/pickup_state.dart';
+import 'package:foodonthego/pickup/pickup_repository.dart';
 import 'package:foodonthego/journey/journey_repositories.dart';
 import 'package:foodonthego/widgets/common.dart';
 import 'package:go_router/go_router.dart';
@@ -42,6 +44,7 @@ Widget app(Widget screen, {CartState? cart}) {
       ChangeNotifierProvider(create: (_) => DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero))),
       ChangeNotifierProvider(create: (_) => cart ?? CartState()),
       ChangeNotifierProvider(create: (_) => OrdersState()),
+      ChangeNotifierProvider(create: (_) => PickupState(repository: MockPickupRepository(latency: Duration.zero), store: MemoryKeyValueStore())),
     ],
     child: MaterialApp.router(theme: Brand.theme(), routerConfig: router),
   );
