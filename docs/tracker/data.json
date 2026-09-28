@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 09 (Cart management, pickup context & checkout preparation) — awaiting owner device test of build013",
+  "phase": "Frontend — Modules 08 + 09 COMPLETE (owner verified build013); Module 10 may start",
   "currentModule": "Module 09",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -70,14 +70,14 @@
       "id": "M08",
       "name": "Module 08 — Food Item Details, Customization & Add to Cart (frontend-first, mock repositories)",
       "started": "2026-09-28",
-      "completed": "",
+      "completed": "2026-09-28",
       "scope": "Owner spec 2026-09-28: canonical item route, data-driven variant / modifier groups with required + min / max + availability, dynamic integer-minor-unit pricing via a central pricing service, special instructions, quantity rules, centralized cart (one restaurant per cart, explicit replacement, identical configurations merge), guest cart with device persistence, cart badge, states, Unicode + multi-currency fixtures, Web + Android. Cart page, checkout, taxes / fees, server cart, revalidation, snapshots recorded as carry-forward."
     },
     {
       "id": "M09",
       "name": "Module 09 — Cart Management, Pickup Context & Checkout Preparation (frontend-first, mock repositories)",
       "started": "2026-09-28",
-      "completed": "",
+      "completed": "2026-09-28",
       "scope": "Owner spec 2026-09-28: /cart on the Module 08 cart — restaurant / pickup / journey context, structured lines with edit (item route + edit context), remove, quantity, empty state, guest cart + login preservation, pricing summary without invented fees, promo area (development), validation + stale-cart handling (price change, unavailable item / modifier, closed vs not accepting, currency), Continue to pickup time (interim), Web + Android. Server cart, guest token, merge, expiry, revalidation, idempotency, promotions and pickup slot engine recorded as carry-forward."
     },
     {
@@ -4019,7 +4019,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build013)",
       "evidence": "mobile/lib/screens/item_detail_screen.dart; docs/local-review/screenshots/android-preview/phone-item-details.png, phone-item-customized.png, tablet-item-details.png; docs/local-review/test-results/m08-android-preview.json 26/26",
       "issue": "-",
       "carry": "CF-108",
@@ -4515,7 +4515,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build013)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-item-*.png; docs/local-review/test-results/m08-android-preview.json",
       "issue": "-",
       "carry": "CF-108",
@@ -4675,7 +4675,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build013)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build012.apk",
       "issue": "-",
       "carry": "CF-108",
@@ -4707,7 +4707,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build013)",
       "evidence": "mobile/lib/screens/cart_screen.dart; docs/local-review/screenshots/android-preview/phone-cart-lines.png, tablet-cart-lines.png; docs/local-review/test-results/m09-android-preview.json",
       "issue": "-",
       "carry": "CF-118",
@@ -5139,7 +5139,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build013)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-cart-*.png, tablet-cart-lines.png; docs/local-review/test-results/m09-android-preview.json",
       "issue": "-",
       "carry": "CF-118",
@@ -5315,7 +5315,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build013)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build013.apk",
       "issue": "-",
       "carry": "CF-118",
@@ -5422,7 +5422,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 9 + e2e 33/33 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build013)",
       "backend": "MOCK (LocalCartRepository + MockMenuRepository revalidation)",
       "prod": "NO",
       "shot": "web-m09/02-cart-two-lines",
@@ -5814,7 +5814,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 11 + e2e 31/31 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build013)",
       "backend": "MOCK (MockMenuRepository.getItemDetail + LocalCartRepository)",
       "prod": "NO",
       "shot": "web-m08/04-customized-burger",
@@ -5829,7 +5829,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "e2e PROCEED step PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build013)",
       "backend": "NOT STARTED (REAL PICKUP SLOT ENGINE)",
       "prod": "NO",
       "shot": "web-m09/10-pickup-time-interim",
@@ -5911,9 +5911,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (item_detail_test.dart 7, cart_test.dart 8, pricing_test.dart 10)",
       "apk": "YES (build013)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build013, 2026-09-28)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     },
     {
       "screen": "Cart / Checkout / Confirmation / Tracking",
@@ -6094,9 +6094,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (cart_validation_test 7, cart_screen_test 6)",
       "apk": "YES (build013)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build013, 2026-09-28)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     },
     {
       "screen": "Pickup time (interim, M09)",
@@ -6107,9 +6107,9 @@
       "mock": "YES",
       "test": "widget PASS",
       "apk": "YES (build013)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build013, 2026-09-28)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -6376,6 +6376,12 @@
       "Stale-cart handling: a changed price must be consciously accepted; unavailable items / modifiers require review; nothing is removed or re-priced silently.",
       "Owner spec §24–27",
       "reviewCart"
+    ],
+    [
+      "2026-09-28",
+      "Modules 08 and 09 approved: owner tested build013 on tablet, all screens pass. Module 10 may start.",
+      "Owner",
+      "CF-108 / CF-118 closed; TE-083 superseded, TE-091 PASS."
     ]
   ],
   "carry": [
@@ -7791,7 +7797,7 @@
       "P0",
       "Owner",
       "Before M09 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE — owner: \"build013 tested on tab, all screens pass\" (2026-09-28); covers Module 08 (CF-108) too",
       "2026-09-28",
       "-"
     ]
@@ -9111,8 +9117,8 @@
       "ANDROID",
       "Owner device test of build013 (see CF-118)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build013: all screens pass (2026-09-28)",
       "2026-09-28"
     ]
   ],
@@ -9644,9 +9650,9 @@
       "eda4d63 (Module 09)",
       "2026-09-28",
       "BC1D89F06DF21A112F0C63BC66A3C793BA2646ECEF512853BE8FD1B9A8869241",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-28)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
