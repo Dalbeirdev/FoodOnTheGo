@@ -520,7 +520,8 @@ class SummaryRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(children: [
           Expanded(child: Text(label, style: TextStyle(color: bold ? Brand.navy : Brand.grey, fontWeight: bold ? FontWeight.w800 : FontWeight.w500, fontSize: bold ? 18 : 14.5))),
-          Text(value, style: TextStyle(fontWeight: bold ? FontWeight.w800 : FontWeight.w700, fontSize: bold ? 22 : 14.5, color: green ? Brand.green : Brand.navy)),
+          const SizedBox(width: 8),
+          Flexible(child: Text(value, textAlign: TextAlign.end, style: TextStyle(fontWeight: bold ? FontWeight.w800 : FontWeight.w700, fontSize: bold ? 22 : 14.5, color: green ? Brand.green : Brand.navy))),
         ]),
       );
 }

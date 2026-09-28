@@ -96,7 +96,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
     final rest = r!;
     final js = context.watch<JourneyState>();
     final journey = js.journey?.route != null ? js.journey : null;
-    final route = journey == null ? null : _routeContext(rest, journey);
+    final route = journey == null ? null : routeContextFor(rest, journey);
     final units = resolveUnitSystem(context.watch<DiscoveryState>().unitPreference, rest.countryCode);
     final a = computeAvailability(rest, DateTime.now().toUtc());
     return Scaffold(
@@ -209,7 +209,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
       );
 }
 
-RouteRestaurantResult? _routeContext(GlobalRestaurant r, Journey j) {
+RouteRestaurantResult? routeContextFor(GlobalRestaurant r, Journey j) {
   final line = j.route?.geometry ?? const <List<double>>[];
   if (line.isEmpty) return null;
   final (meters, position) = distanceToPolyline(r.lat, r.lng, line);

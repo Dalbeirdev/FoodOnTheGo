@@ -13,6 +13,7 @@ import 'package:foodonthego/screens/profile_screen.dart';
 import 'package:foodonthego/screens/restaurants_screen.dart';
 import 'package:foodonthego/screens/restaurant_detail_screen.dart';
 import 'package:foodonthego/screens/item_detail_screen.dart';
+import 'package:foodonthego/screens/cart_screen.dart';
 import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
@@ -61,7 +62,7 @@ void main() {
     'Restaurants': const RestaurantsScreen(),
     'Restaurant detail': RestaurantDetailScreen(id: 'burger-hub', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Item': ItemDetailScreen(restaurantId: 'burger-hub', itemSlug: 'classic-burger', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
-    'Cart (empty)': const CartScreen(),
+    'Cart (empty)': CartScreen(restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Checkout': const CheckoutScreen(),
     'Order tracking': const OrderTrackingScreen(number: 'FTG128701'),
     'My orders': const MyOrdersScreen(),
@@ -97,11 +98,11 @@ void main() {
     t.view.physicalSize = const Size(390, 844);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.resetPhysicalSize);
-    await t.pumpWidget(app(const CartScreen(), cart: cart()));
-    await t.pump();
+    await t.pumpWidget(app(CartScreen(restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)), cart: cart()));
+    await t.pumpAndSettle();
     expect(t.takeException(), isNull);
-    expect(find.textContaining("You're saving"), findsOneWidget);
-    expect(find.text('Proceed to Checkout'), findsOneWidget);
+    expect(find.text('Burger Hub'), findsWidgets); // Module 09 cart: restaurant context + structured lines
+    expect(find.text('Continue to pickup time'), findsOneWidget);
   });
 
   Future<void> pumpPhone(WidgetTester t, Widget w, {CartState? cart}) async {

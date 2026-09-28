@@ -3,6 +3,7 @@ import { LocalCartRepository, cartItemCount, cartSubtotalMinor, type Cart, type 
 import { minorDigits } from '../i18n/format'
 import { t } from '../i18n/strings'
 import { configurationKey, lineTotalMinor } from '../pricing/pricing'
+import { NO_PROMO, discountMinor, evaluatePromo, type PromoState } from './cartValidation'
 import '../pages/account/AccountPage.css'
 import '../components/AccountStates.css'
 
@@ -55,6 +56,14 @@ type CartApi = {
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   replaceRestaurantCart: (input: AddItemInput) => AddResult
+  /** Replace a line with a re-configured version (merges if the new configuration already exists). */
+  editItem: (id: string, input: AddItemInput) => AddResult
+  /** Customer consciously accepts a changed price for a line (stale-cart review). */
+  acceptPriceChange: (id: string, newUnitMinor: number) => void
+  promo: PromoState
+  discountMinor: number
+  applyPromo: (code: string) => PromoState
+  removePromo: () => void
   /* ---- legacy API (Module 01 pages) ---- */
   lines: CartLine[]
   total: number
@@ -92,6 +101,7 @@ export function CartProvider({ children, repository, initialCart }: { children: 
   const [status, setStatus] = useState<CartStatus>(initialCart ? 'active' : 'empty')
   const [conflict, setConflict] = useState<{ input: AddItemInput; current: Cart } | null>(null)
   const [lastAdded, setLastAdded] = useState<{ at: number; menuItemId: string; merged: boolean } | null>(null)
+  const [promo, setPromo] = useState<PromoState>(NO_PROMO)
   const [note, setNoteState] = useState(() => { try { return sessionStorage.getItem(NOTE_KEY) ?? '' } catch { return '' } })
   const hydrated = useRef(!!initialCart)
 
@@ -134,8 +144,24 @@ export function CartProvider({ children, repository, initialCart }: { children: 
     const q = Math.trunc(quantity)
     commit({ ...cart, items: q <= 0 ? cart.items.filter((i) => i.id !== id) : cart.items.map((i) => (i.id === id ? withTotals(i, Math.min(i.maximumQuantity, Math.max(i.minimumQuantity, q))) : i)) })
   }, [cart, commit])
+  const editItem = useCallback((id: string, input: AddItemInput): AddResult => {
+    if (!cart) return { ok: false, reason: 'error' }
+    if (cart.restaurantId !== input.restaurant.id) return { ok: false, reason: 'restaurant_conflict' }
+    const without: Cart = { ...cart, items: cart.items.filter((i) => i.id !== id) }
+    return insert(without, input)
+  }, [cart, insert])
+  const acceptPriceChange = useCallback((id: string, newUnitMinor: number) => {
+    if (!cart) return
+    commit({ ...cart, items: cart.items.map((i) => (i.id === id ? { ...i, unitPriceMinor: newUnitMinor, lineTotalMinor: lineTotalMinor(newUnitMinor, i.quantity) } : i)) })
+  }, [cart, commit])
+  const applyPromo = useCallback((code: string): PromoState => {
+    const c = cart
+    const next = c ? evaluatePromo(code, cartSubtotalMinor(c), c.currency, minorDigits(c.currency)) : { ...NO_PROMO, code: code.trim().toUpperCase(), status: 'invalid' as const }
+    setPromo(next); return next
+  }, [cart])
+  const removePromo = useCallback(() => setPromo(NO_PROMO), [])
   const setNote = useCallback((n: string) => { setNoteState(n); try { sessionStorage.setItem(NOTE_KEY, n) } catch { /* ignore */ } }, [])
-  const clearCart = useCallback(() => { commit(null); setNote('') }, [commit, setNote])
+  const clearCart = useCallback(() => { commit(null); setNote(''); setPromo(NO_PROMO) }, [commit, setNote])
 
   const api = useMemo<CartApi>(() => {
     const digits = cart ? minorDigits(cart.currency) : 2
@@ -147,7 +173,10 @@ export function CartProvider({ children, repository, initialCart }: { children: 
     const restaurantMeta = (restaurantId: string) => (cart && cart.restaurantId === restaurantId ? { id: cart.restaurantId, slug: cart.restaurantSlug, name: cart.restaurantName, currency: cart.currency } : { id: restaurantId, slug: restaurantId, name: restaurantId, currency: 'INR' })
     return {
       cart, status, count: cartItemCount(cart), subtotalMinor: cartSubtotalMinor(cart), currency: cart?.currency ?? null,
-      addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart,
+      addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, editItem, acceptPriceChange,
+      promo: cart ? (promo.status === 'applied' ? evaluatePromo(promo.code, cartSubtotalMinor(cart), cart.currency, minorDigits(cart.currency)) : promo) : NO_PROMO,
+      discountMinor: cart && promo.status === 'applied' ? discountMinor(cartSubtotalMinor(cart), evaluatePromo(promo.code, cartSubtotalMinor(cart), cart.currency, minorDigits(cart.currency))) : 0,
+      applyPromo, removePromo,
       lines, total: major(cartSubtotalMinor(cart)), note, setNote,
       // Legacy add: a plain line (no options) from the Module 01 pages (related items, reorder). Prices arrive in major units.
       add: (line, qty = 1) => {
@@ -161,7 +190,7 @@ export function CartProvider({ children, repository, initialCart }: { children: 
       clear: clearCart,
       qtyOf: (itemId) => (cart?.items ?? []).filter((i) => i.menuItemId === itemId).reduce((a, i) => a + i.quantity, 0),
     }
-  }, [cart, status, note, addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, setNote])
+  }, [cart, status, note, addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, editItem, acceptPriceChange, promo, applyPromo, removePromo, setNote])
 
   return (
     <CartContext.Provider value={api}>

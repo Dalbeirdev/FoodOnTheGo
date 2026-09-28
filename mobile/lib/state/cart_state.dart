@@ -5,11 +5,15 @@ import 'package:flutter/foundation.dart';
 import '../auth/auth_repository.dart' show SecureKeyValueStore;
 import '../cart/cart_models.dart';
 import '../data/mock_data.dart' show MenuItem;
+import '../discovery/discovery_repository.dart' show globalRestaurants;
 import '../i18n/format.dart' show pow10;
 import '../pricing/pricing_service.dart' show configurationKey;
 import 'package:intl/intl.dart';
 
 export '../cart/cart_models.dart';
+export '../cart/cart_validation.dart' show PromoState, PromoStatus;
+
+import '../cart/cart_validation.dart' show PromoState, PromoStatus, evaluatePromo, discountMinor;
 
 /// Legacy line shape used by the Module 01 cart / checkout / order screens (prices in MAJOR units).
 class CartLine {
@@ -51,6 +55,7 @@ class CartState extends ChangeNotifier {
   CartStatus status = CartStatus.empty;
   ({AddItemInput input, Cart current})? conflict;
   String note = '';
+  PromoState _promo = PromoState.none;
   final _hydrated = Completer<void>();
 
   Future<void> _hydrate() async {
@@ -111,7 +116,25 @@ class CartState extends ChangeNotifier {
     if (quantity <= 0) { removeItem(id); return; }
     _commit(c.copyWith(items: c.items.map((i) => i.id == id ? i.withQuantity(quantity < i.minimumQuantity ? i.minimumQuantity : (quantity > i.maximumQuantity ? i.maximumQuantity : quantity)) : i).toList()));
   }
-  void clearCart() { note = ''; _commit(null); }
+  /// Replace a line with a re-configured version (merges when the new configuration already exists).
+  AddResult editItem(String id, AddItemInput input) {
+    final c = cart;
+    if (c == null) return const AddResult.fail(AddFailure.invalidQuantity);
+    if (c.restaurantId != input.restaurantId) return const AddResult.fail(AddFailure.restaurantConflict);
+    return _insert(c.copyWith(items: c.items.where((i) => i.id != id).toList()), input);
+  }
+  /// Customer consciously accepts a changed unit price (stale-cart review).
+  void acceptPriceChange(String id, int newUnitMinor) {
+    final c = cart; if (c == null) return;
+    _commit(c.copyWith(items: c.items.map((i) => i.id == id ? CartItem(id: i.id, menuItemId: i.menuItemId, itemSlug: i.itemSlug, restaurantId: i.restaurantId, itemName: i.itemName, image: i.image, basePriceMinor: i.basePriceMinor, currency: i.currency, selectedVariants: i.selectedVariants, selectedModifiers: i.selectedModifiers, specialInstructions: i.specialInstructions, quantity: i.quantity, minimumQuantity: i.minimumQuantity, maximumQuantity: i.maximumQuantity, unitPriceMinor: newUnitMinor, addedAt: i.addedAt) : i).toList()));
+  }
+  /* -------- promotions (frontend area; backend validates for real) -------- */
+  PromoState get promo => (cart != null && _promo.status == PromoStatus.applied) ? evaluatePromo(_promo.code, subtotalMinor, _digits) : _promo;
+  int get discountMinorValue => cart == null ? 0 : discountMinor(subtotalMinor, promo);
+  int get estimatedTotalMinor => subtotalMinor - discountMinorValue < 0 ? 0 : subtotalMinor - discountMinorValue;
+  PromoState applyPromo(String code) { _promo = cart == null ? PromoState(code: code.trim().toUpperCase(), status: PromoStatus.invalid) : evaluatePromo(code, subtotalMinor, _digits); notifyListeners(); return _promo; }
+  void removePromo() { _promo = PromoState.none; notifyListeners(); }
+  void clearCart() { note = ''; _promo = PromoState.none; _commit(null); }
 
   /* ---------------- legacy API (Module 01 screens, replaced by the Cart module) ---------------- */
   int get _digits => cart == null ? 2 : (NumberFormat.simpleCurrency(locale: 'en_US', name: cart!.currency).decimalDigits ?? 2);
@@ -126,9 +149,10 @@ class CartState extends ChangeNotifier {
   void add(MenuItem item, String restaurantId) {
     final existing = items.where((i) => i.id == item.id).firstOrNull;
     if (existing != null) { updateQuantity(existing.id, existing.quantity + 1); return; }
-    final cur = cart != null && cart!.restaurantId == restaurantId ? cart!.currency : 'INR';
+    final gr = globalRestaurants.where((r) => r.id == restaurantId).firstOrNull;
+    final cur = cart != null && cart!.restaurantId == restaurantId ? cart!.currency : (gr?.currency ?? 'INR');
     final scale = pow10(NumberFormat.simpleCurrency(locale: 'en_US', name: cur).decimalDigits ?? 2);
-    addItem(AddItemInput(menuItemId: item.id, itemSlug: item.id, itemName: item.name, image: item.image, basePriceMinor: item.price * scale, currency: cur, restaurantId: restaurantId, restaurantSlug: cart?.restaurantSlug ?? restaurantId, restaurantName: cart?.restaurantName ?? restaurantId, restaurantCurrency: cur, unitPriceMinor: item.price * scale, lineKey: item.id));
+    addItem(AddItemInput(menuItemId: item.id, itemSlug: item.id, itemName: item.name, image: item.image, basePriceMinor: item.price * scale, currency: cur, restaurantId: restaurantId, restaurantSlug: gr?.slug ?? restaurantId, restaurantName: gr?.name ?? restaurantId, restaurantCurrency: cur, unitPriceMinor: item.price * scale, lineKey: item.id));
   }
   void remove(String itemId) { final i = items.where((x) => x.id == itemId).firstOrNull; if (i != null) updateQuantity(i.id, i.quantity - 1); }
   void removeLine(String itemId) => removeItem(itemId);

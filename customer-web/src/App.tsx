@@ -16,6 +16,7 @@ import RestaurantsPage from './pages/RestaurantsPage'
 import RestaurantDetailPage from './pages/RestaurantDetailPage'
 import ItemDetailPage from './pages/ItemDetailPage'
 import CartPage from './pages/CartPage'
+import PickupTimePage from './pages/PickupTimePage'
 import CheckoutPage from './pages/CheckoutPage'
 import OrderConfirmationPage from './pages/OrderConfirmationPage'
 import OrderTrackingPage from './pages/OrderTrackingPage'
@@ -63,6 +64,7 @@ export function AppShell() {
             <Route path="/restaurant/:rid/item/:itemId" element={<LegacyItemRedirect />} />
             <Route path="/restaurant/:rid" element={<LegacyRestaurantRedirect />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/pickup-time" element={<PickupTimePage />} />
             <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
             <Route path="/order-confirmation/:orderNumber" element={<RequireAuth><OrderConfirmationPage /></RequireAuth>} />
             <Route path="/order-tracking/:orderNumber" element={<RequireAuth><OrderTrackingPage /></RequireAuth>} />

@@ -17,8 +17,10 @@ import '../widgets/common.dart';
 /// Scrollable content + sticky bottom Add to Cart. Everything is driven by MenuItemDetail
 /// (variant / modifier groups, min / max, availability); prices come from the pricing service.
 class ItemDetailScreen extends StatefulWidget {
-  const ItemDetailScreen({super.key, required this.restaurantId, required this.itemSlug, this.restaurantRepository, this.menuRepository});
+  const ItemDetailScreen({super.key, required this.restaurantId, required this.itemSlug, this.editCartItemId, this.restaurantRepository, this.menuRepository});
   final String restaurantId, itemSlug;
+  /// Module 09: cart line being edited — its configuration is restored instead of the defaults.
+  final String? editCartItemId;
   final MockRestaurantRepository? restaurantRepository;
   final MenuRepository? menuRepository;
   @override
@@ -53,7 +55,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       final d = rest == null ? null : await _mr.getItemDetail(rest.id, widget.itemSlug);
       if (!mounted) return;
       if (rest == null || d == null) { setState(() { r = rest; status = 'notfound'; }); return; }
-      setState(() { r = rest; detail = d; selections = defaultSelections(d); quantity = clampQuantity(d.minimumQuantity, d.maximumQuantity, d.minimumQuantity); status = 'ready'; attempted = false; touched.clear(); notices.clear(); });
+      final line = widget.editCartItemId == null ? null : context.read<CartState>().items.where((i) => i.id == widget.editCartItemId).firstOrNull;
+      final restored = <String, List<String>>{};
+      if (line != null) { for (final o in line.allOptions) { (restored[o.groupId] ??= []).add(o.optionId); } instructions.text = line.specialInstructions; }
+      setState(() { r = rest; detail = d; selections = line != null ? restored : defaultSelections(d); quantity = clampQuantity(d.minimumQuantity, d.maximumQuantity, line?.quantity ?? d.minimumQuantity); status = 'ready'; attempted = false; touched.clear(); notices.clear(); });
     } catch (e) {
       if (mounted) setState(() { status = 'error'; error = '$e'; });
     }
@@ -88,6 +93,11 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       specialInstructions: normalizeInstructions(instructions.text, d.instructionsMaxLength), quantity: clampQuantity(d.minimumQuantity, d.maximumQuantity, quantity), unitPriceMinor: unit, minimumQuantity: d.minimumQuantity, maximumQuantity: d.maximumQuantity,
     );
     final cart = context.read<CartState>();
+    if (widget.editCartItemId != null) {
+      final r2 = cart.editItem(widget.editCartItemId!, input);
+      if (r2.ok) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.t('item.edit.saved')))); if (context.canPop()) { context.pop(); } else { context.go('/cart'); } }
+      return;
+    }
     final res = cart.addItem(input);
     if (res.ok) {
       setState(() => attempted = false);
@@ -162,7 +172,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         else if (av.status == AvailabilityStatus.closed || av.status == AvailabilityStatus.openingSoon || av.status == AvailabilityStatus.temporarilyClosed) Padding(padding: const EdgeInsets.only(top: 12), child: InfoBox(icon: Icons.schedule, child: Text(S.t('item.closedNote'), style: const TextStyle(fontSize: 13)))),
         const SizedBox(height: 16),
         SectionCard(
-          title: groups.isEmpty ? 'Your order' : 'Customize',
+          title: widget.editCartItemId != null ? S.t('item.edit.title') : groups.isEmpty ? 'Your order' : 'Customize',
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             for (var gi = 0; gi < groups.length; gi++) _group(groups[gi], gi + 1, d, issues, blocked),
             _step(groups.length + 1, S.t('item.instructions'), optional: true),
@@ -198,7 +208,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             Text(S.t('item.unit', {'price': formatMoney(unit, it.currency)}), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 11.5)),
           ])),
           const SizedBox(width: 10),
-          BrandButton(label: S.t('item.addToCart'), icon: Icons.shopping_cart_outlined, expand: false, onPressed: blocked ? null : _add),
+          BrandButton(label: widget.editCartItemId != null ? S.t('item.edit.save') : S.t('item.addToCart'), icon: widget.editCartItemId != null ? Icons.check : Icons.shopping_cart_outlined, expand: false, onPressed: blocked ? null : _add),
         ]),
       ),
     );

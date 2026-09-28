@@ -1,0 +1,174 @@
+{
+  "module": "M09",
+  "ranAt": "2026-09-28T13:32:57.497Z",
+  "base": "http://localhost:5173",
+  "total": 33,
+  "passed": 33,
+  "results": [
+    {
+      "name": "TEST 1 empty cart: professional empty state, Explore + Plan actions, no checkout controls",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 single configured line: variant, modifier, instructions, unit price, line total",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 guest cart: no login was needed to build and view the cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESTAURANT context: name, address, status pill, prep + earliest pickup, pickup-only note, View restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 multiple items: subtotal 700 + 120 = 820; estimated total equals subtotal; no invented taxes / fees",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "NO JOURNEY: ordering still possible; hint shown with Plan a journey link",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 quantity +1 → line 1,050, subtotal 1,170, badge 4",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 Edit reopens the item with the previous configuration restored (variant, modifier, note, qty 2)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 Save changes returns to the cart with the same line updated (Jumbo + Bacon, ₹460 each, still 2 lines)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 Continue shopping links to the same restaurant and the cart badge stays",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "PROMO development code applies as a mock: 10% off shown as a discount row with backend note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "PROMO expired / invalid codes are refused",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "PROMO invalid code message",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 unavailable item: marked, Choose another item link, Continue blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MODIFIER unavailable: item requires review (paid customisation never silently removed)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESTAURANT not accepting orders: explained with View / Choose another restaurant, Continue blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESTAURANT closed: separate informational notice, ordering ahead still allowed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "JOURNEY context on the cart when a journey exists (origin → destination + route facts)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 signing in afterwards does not destroy the guest cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 remove asks for confirmation first",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 line removed, totals and badge updated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "PROCEED leads to the interim pickup-time stage (no payment, nothing ordered)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 price change: review notice, old → new price shown, Continue disabled until accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 accepting the updated price re-enables Continue",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 removing the final item returns the empty state; badge 0",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 / 14 JPY Unicode cart: 一風堂 静岡店, チャーシュー line, ¥1,140 without decimals",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE mobile 390×844: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE tablet 768×1024: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE desktop 1440×900: no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

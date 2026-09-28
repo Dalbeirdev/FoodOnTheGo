@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import CartBar from '../components/CartBar'
 import { ChevronRightIcon } from '../components/Icons'
@@ -60,8 +60,13 @@ type LoadState = { status: 'loading' | 'ready' | 'notfound' | 'error'; restauran
 
 export default function ItemDetailPage() {
   const { rid = '', itemId = '' } = useParams()
+  const [search] = useSearchParams()
+  const editId = search.get('edit')
+  const navigate = useNavigate()
   const { locale } = useLocale()
   const cart = useCart()
+  const editing = editId ? cart.cart?.items.find((i) => i.id === editId) ?? null : null
+  const restoredFor = useRef<string | null>(null)
   const [state, setState] = useState<LoadState>({ status: 'loading', restaurant: null, item: null })
   const [selections, setSelections] = useState<Selections>({})
   const [quantity, setQuantity] = useState(1)
@@ -87,7 +92,8 @@ export default function ItemDetailPage() {
         if (!alive) return
         if (!restaurant || !item) { setState({ status: 'notfound', restaurant, item: null }); return }
         setState({ status: 'ready', restaurant, item })
-        setSelections(defaultSelections(item)); setQuantity(clampQuantity(item, item.minimumQuantity)); setInstructions(''); setAttempted(false); setTouched({}); setGroupNotice({}); setSlide(0); setToast(null)
+        setSelections(defaultSelections(item)); setQuantity(clampQuantity(item, item.minimumQuantity)); setInstructions(''); restoredFor.current = null
+        setAttempted(false); setTouched({}); setGroupNotice({}); setSlide(0); setToast(null)
         document.title = `${item.name} · ${restaurant.name} · FoodOnTheGo`
         menuRepository.getItems(restaurant.id, { limit: 12 }).then((p) => { if (alive) setMore(p.items.filter((i) => i.id !== item.id && i.availability === 'available').slice(0, 4)) }).catch(() => {})
       } catch (e) {
@@ -95,7 +101,17 @@ export default function ItemDetailPage() {
       }
     })()
     return () => { alive = false }
-  }, [rid, itemId, reloadTick])
+  }, [rid, itemId, editId, reloadTick])
+  // Edit mode (Module 09): once the item and the cart line are both available, restore the previous configuration.
+  useEffect(() => {
+    const item = state.item
+    if (!item || !editing || restoredFor.current === editing.id) return
+    restoredFor.current = editing.id
+    const restored: Selections = {}
+    for (const o of [...editing.selectedVariants, ...editing.selectedModifiers]) (restored[o.groupId] ??= []).push(o.optionId)
+    const id = setTimeout(() => { setSelections(restored); setQuantity(clampQuantity(item, editing.quantity)); setInstructions(editing.specialInstructions) }, 0)
+    return () => clearTimeout(id)
+  }, [state.item, editing])
 
   const item = state.item; const restaurant = state.restaurant
   const groups = useMemo(() => (item ? [...item.variantGroups, ...item.modifierGroups].sort((a, b) => a.displayOrder - b.displayOrder) : []), [item])
@@ -125,6 +141,11 @@ export default function ItemDetailPage() {
       selectedVariants: chosen.filter((c) => c.group.kind === 'variant').map((c) => ({ groupId: c.group.id, groupName: c.group.name, optionId: c.option.id, optionName: c.option.name, priceAdjustmentMinor: c.option.priceAdjustmentMinor })),
       selectedModifiers: chosen.filter((c) => c.group.kind === 'modifier').map((c) => ({ groupId: c.group.id, groupName: c.group.name, optionId: c.option.id, optionName: c.option.name, priceAdjustmentMinor: c.option.priceAdjustmentMinor })),
       specialInstructions: normalizeInstructions(instructions, item.instructionsMaxLength), quantity: clampQuantity(item, quantity), unitPriceMinor: unit, minimumQuantity: item.minimumQuantity, maximumQuantity: item.maximumQuantity,
+    }
+    if (editing) {
+      const res = cart.editItem(editing.id, input)
+      if (res.ok) { setAttempted(false); navigate('/cart', { state: { updated: true } }) }
+      return
     }
     const res = cart.addItem(input)
     if (res.ok) setAttempted(false)
@@ -189,7 +210,8 @@ export default function ItemDetailPage() {
             </section>
 
             <aside className="it-custom" aria-labelledby="customize-title">
-              <h2 id="customize-title">{groups.length ? 'Customize' : 'Your order'}</h2>
+              <h2 id="customize-title">{editing ? t('item.edit.title', undefined, locale) : groups.length ? 'Customize' : 'Your order'}</h2>
+              {editing && <p className="it-group__rule" style={{ margin: '0 0 8px' }}><Link to="/cart">{t('item.edit.cancel', undefined, locale)}</Link></p>}
               {groups.map((g, gi) => {
                 const issue = showIssues(g)
                 const chosen = selections[g.id] ?? []
@@ -244,7 +266,7 @@ export default function ItemDetailPage() {
                   <strong aria-live="polite">{formatMoney(total, item.currency, locale)}</strong>
                   <small className="it-muted">{t('item.unit', { price: formatMoney(unit, item.currency, locale) }, locale)}</small>
                 </div>
-                <button type="button" className="btn btn--primary it-total__btn" onClick={addToCart} disabled={!canAdd} aria-disabled={!canAdd}><CartIcon /> {t('item.addToCart', undefined, locale)}</button>
+                <button type="button" className="btn btn--primary it-total__btn" onClick={addToCart} disabled={!canAdd} aria-disabled={!canAdd}><CartIcon /> {editing ? t('item.edit.save', undefined, locale) : t('item.addToCart', undefined, locale)}</button>
               </div>
               {attempted && issues.length > 0 && <p className="it-group__error" role="alert">{t('item.addToCart.fix', undefined, locale)}</p>}
               {toast && (

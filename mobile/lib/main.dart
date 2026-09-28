@@ -10,6 +10,8 @@ import 'screens/profile_screen.dart';
 import 'screens/restaurants_screen.dart';
 import 'screens/restaurant_detail_screen.dart';
 import 'screens/item_detail_screen.dart';
+import 'screens/cart_screen.dart';
+import 'screens/pickup_time_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
 import 'screens/home_screens.dart';
@@ -52,8 +54,9 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
       ],
     ),
     GoRoute(path: '/restaurants/:id', builder: (_, s) => RestaurantDetailScreen(id: s.pathParameters['id']!)),
-    GoRoute(path: '/restaurants/:id/item/:itemId', builder: (_, s) => ItemDetailScreen(restaurantId: s.pathParameters['id']!, itemSlug: s.pathParameters['itemId']!)),
+    GoRoute(path: '/restaurants/:id/item/:itemId', builder: (_, s) => ItemDetailScreen(restaurantId: s.pathParameters['id']!, itemSlug: s.pathParameters['itemId']!, editCartItemId: s.uri.queryParameters['edit'])),
     GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
+    GoRoute(path: '/pickup-time', builder: (_, _) => const PickupTimeScreen()),
     GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
     GoRoute(path: '/order-confirmation/:number', builder: (_, s) => OrderConfirmationScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
