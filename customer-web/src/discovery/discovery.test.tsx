@@ -195,7 +195,7 @@ describe('Restaurants page (web)', () => {
   it('TEST 12 — no journey: general browsing with a Plan a Journey CTA and no route-only sort options', async () => {
     mount('/restaurants')
     expect(await screen.findByRole('heading', { name: /^\d+ restaurants$/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /browsing all restaurants/i })).toBeInTheDocument()
+    expect(screen.getByText(/plan a journey to see restaurants along your route/i)).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: /plan a journey/i }).length).toBeGreaterThan(0)
     const sort = screen.getByRole('combobox', { name: /sort by/i })
     expect(within(sort).queryByRole('option', { name: /lowest detour/i })).not.toBeInTheDocument()
@@ -288,8 +288,8 @@ describe('Restaurants page (web)', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(/showing restaurants near rupnagar/i)
     const list = document.querySelector('.cards') as HTMLElement
     await waitFor(() => expect(within(list).getAllByRole('heading', { level: 3 })[0]).toHaveTextContent('Dhaba Junction'))
-    expect(within(list).getByText('Near you')).toBeInTheDocument()
-    expect(within(list).getAllByText('In Punjab').length).toBe(2)
+    expect(within(list).getAllByText('Near you').length).toBeGreaterThan(0) // group heading + hidden card label
+    expect(within(list).getAllByText('In Punjab').length).toBe(3) // heading + 2 cards
     expect(screen.queryByRole('heading', { name: 'Ambala Chai Point' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /show neighbouring regions/i }))
     expect(await screen.findByRole('heading', { name: 'Ambala Chai Point' })).toBeInTheDocument()

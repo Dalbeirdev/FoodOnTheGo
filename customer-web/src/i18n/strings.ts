@@ -39,6 +39,7 @@ const en: Record<string, string> = {
   'discovery.sort.nearestToRoute': 'Nearest to route',
   'discovery.sort.highestRated': 'Highest rated',
   'discovery.sort.fastestPickup': 'Fastest pickup',
+  'discovery.sort.recommendedShort': 'Sorted by: open now, shortest detour, then rating.',
   'discovery.sort.recommendedNote': 'Recommended = open now first, then shortest detour and rating (transparent rule, not AI).',
   'discovery.view.list': 'List view',
   'discovery.view.map': 'Map view',

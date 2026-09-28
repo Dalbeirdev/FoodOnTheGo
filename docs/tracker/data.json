@@ -3320,6 +3320,22 @@
    "issue": "-",
    "carry": "-",
    "notes": "SHA-256 C8F93381CA811E8A666903A7B86ED11E93F7966AB2A851B135AE3BFB96A9C2EC"
+  },
+  {
+   "id": "M06-045",
+   "module": "M06",
+   "req": "REDESIGN — Restaurants page professional pass: merged context card in a compact hero, sticky toolbar with segmented controls, ring group headings instead of per-card pills, calmer cards (status on image, one info line, one primary action), map panel with header + legend, editorial filter sidebar",
+   "platform": "WEB",
+   "cat": "Design",
+   "pri": "P1",
+   "status": "VERIFIED",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "YES",
+   "evidence": "docs/local-review/screenshots/web-m06/ (regenerated after redesign); e2e 49/49 incl. axe; unit 106/106",
+   "issue": "-",
+   "carry": "CF-089",
+   "notes": "Owner feedback 2026-09-28: previous layout looked messy / unprofessional."
   }
  ],
  "pages": [
@@ -4184,6 +4200,12 @@
    "DISCOVERY SCOPE RULE: without a journey, restaurants are always scoped to the customer's location — same region first, then neighbouring regions, then the rest of the country; countries never mix. With a journey, the route corridor is the scope.",
    "Owner",
    "Rings and adjacency come from market configuration (CF-086); real device location pending (CF-062)."
+  ],
+  [
+   "2026-09-28",
+   "Restaurants page redesigned for a professional look: one context card, sticky segmented toolbar, ring section headings, single-action cards, map panel with legend.",
+   "Owner feedback / Claude",
+   "Android parity tracked as CF-089."
   ]
  ],
  "carry": [
@@ -5240,6 +5262,18 @@
    "Owner",
    "Before M06 approval",
    "PENDING USER DEVICE VERIFICATION",
+   "2026-09-28",
+   "-"
+  ],
+  [
+   "CF-089",
+   "Apply the same visual pass to the Android Restaurants screen (group headings, calmer cards, toolbar) for parity",
+   "M06",
+   "Web redesign done first per owner feedback",
+   "P2",
+   "Claude",
+   "Next Android polish pass",
+   "NOT STARTED",
    "2026-09-28",
    "-"
   ]

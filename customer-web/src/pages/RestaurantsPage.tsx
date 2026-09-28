@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import FiltersPanel from '../components/FiltersPanel'
@@ -111,15 +111,15 @@ export default function RestaurantsPage() {
               <p className="rest-hero__lead">{t('discovery.lead', undefined, locale)}</p>
             </div>
 
-            {journeyState === 'loading' && <div className="jctx jctx--loading" role="status">{t('discovery.loadingRoute', undefined, locale)}</div>}
+            {journeyState === 'loading' && <div className="ctx ctx--loading" role="status">{t('discovery.loadingRoute', undefined, locale)}</div>}
             {journeyState === 'missing' && (
-              <div className="jctx jctx--missing" role="alert">
+              <div className="ctx ctx--missing" role="alert">
                 <p>Journey not found on this device.</p>
                 <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)}</Link>
               </div>
             )}
             {journey && journeyState !== 'loading' && (
-              <section className="jctx" aria-labelledby="jctx-title">
+              <section className="ctx jctx" aria-labelledby="jctx-title">
                 <div className="jctx__head"><h2 id="jctx-title">{t('discovery.journeyLabel', undefined, locale)}</h2><span className="jctx__id">#{journey.id.slice(-6)}</span></div>
                 <div className="jctx__route">
                   <span className="jctx__pt jctx__pt--from"><small>{t('discovery.from', undefined, locale)}</small><b dir="auto">{journey.origin.name}</b><span dir="auto">{journey.origin.formattedAddress ?? journey.origin.sub}</span></span>
@@ -138,14 +138,15 @@ export default function RestaurantsPage() {
               </section>
             )}
             {!journey && journeyState === 'none' && (
-              <section className="jctx jctx--none" aria-labelledby="jctx-none-title">
-                <div className="scope" role="status">
+              <section className="ctx" aria-label={t('scope.dialog.title', undefined, locale)}>
+                <div className="ctx__row scope" role="status">
                   {scope ? <><PinIcon size={16} /> <span>{t(scope.lat !== null ? 'scope.showingNear' : 'scope.showingIn', { label: scope.label }, locale)} <small>({t(`scope.source.${scope.source}`, undefined, locale)})</small></span><button type="button" className="pj-link" onClick={() => setScopeDialog(true)}>{t('scope.change', undefined, locale)}</button></>
-                    : <><PinIcon size={16} /> <span>{t('scope.none.text', undefined, locale)}</span><button type="button" className="btn btn--primary" onClick={() => setScopeDialog(true)}>{t('scope.set', undefined, locale)}</button></>}
+                    : <><PinIcon size={16} /> <span>{t('scope.none.text', undefined, locale)}</span><button type="button" className="pj-link" onClick={() => setScopeDialog(true)}>{t('scope.set', undefined, locale)}</button></>}
                 </div>
-                <h2 id="jctx-none-title">{t('discovery.noJourney.title', undefined, locale)}</h2>
-                <p>{t('discovery.noJourney.text', undefined, locale)}</p>
-                <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)} <ArrowIcon /></Link>
+                <div className="ctx__hint">
+                  <span>{t('discovery.noJourney.text', undefined, locale)}</span>
+                  <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)} <ArrowIcon /></Link>
+                </div>
               </section>
             )}
           </div>
@@ -187,7 +188,7 @@ export default function RestaurantsPage() {
                 </div>
               </div>
             </div>
-            {d.sort === 'recommended' && <p className="results__note">{t('discovery.sort.recommendedNote', undefined, locale)}</p>}
+            {d.sort === 'recommended' && <p className="results__note">{t('discovery.sort.recommendedShort', undefined, locale)}</p>}
 
             <div className={`results__grid results__grid--${view}`}>
               {showList && (
@@ -223,7 +224,16 @@ export default function RestaurantsPage() {
                   )}
                   {d.items.length > 0 && (
                     <ul className={`cards ${d.status === 'updating' ? 'is-updating' : ''}`} ref={listRef} aria-busy={d.status === 'updating'}>
-                      {d.items.map((x) => <RestaurantCard key={x.restaurant.id} result={x} units={units} selected={x.restaurant.id === selectedId} favorite={isFavorite(x.restaurant.id)} onFavorite={() => favorite(x.restaurant.id)} onSelect={() => setSelectedId(x.restaurant.id)} ringLabel={journey ? undefined : ringLabel(x.ring)} />)}
+                      {d.items.map((x, i) => {
+                        const showGroup = !journey && scope && x.ring !== undefined && (i === 0 || d.items[i - 1].ring !== x.ring)
+                        const count = showGroup ? d.ringCounts?.[x.ring!] : undefined
+                        return (
+                          <Fragment key={x.restaurant.id}>
+                            {showGroup && <li className="cards__group" role="presentation" aria-hidden="true"><b>{ringLabel(x.ring)}</b>{count !== undefined && <small>{count}</small>}</li>}
+                            <RestaurantCard result={x} units={units} selected={x.restaurant.id === selectedId} favorite={isFavorite(x.restaurant.id)} onFavorite={() => favorite(x.restaurant.id)} onSelect={() => setSelectedId(x.restaurant.id)} ringLabel={journey ? undefined : ringLabel(x.ring)} />
+                          </Fragment>
+                        )
+                      })}
                     </ul>
                   )}
                   {!journey && scope && d.ringApplied !== undefined && d.ringApplied > d.maxRing && d.status === 'ready' && <p className="results__note" role="status">{t('scope.expanded', { ring: ringLabel(d.ringApplied)?.toLowerCase() ?? '' }, locale)}</p>}
@@ -241,6 +251,7 @@ export default function RestaurantsPage() {
               {showMap && (
                 <aside className="results__map" aria-label={t('discovery.map.title', undefined, locale)}>
                   <div className="results__map-sticky">
+                    <div className="results__map-head"><b>{t('discovery.map.title', undefined, locale)}</b><span className="results__map-legend"><span><i style={{ background: '#ff8a00' }} />{t('card.open', undefined, locale)}</span><span><i style={{ background: '#b9bfcc' }} />{t('card.closed', undefined, locale)}</span>{journey && <span><i style={{ background: '#f24e1e' }} />{t('discovery.route', undefined, locale)}</span>}</span></div>
                     <MapView route={routeLine} origin={journey && journey.origin.lat !== null ? { position: [journey.origin.lat, journey.origin.lng!], label: journey.origin.name } : null} destination={journey && journey.destination.lat !== null ? { position: [journey.destination.lat, journey.destination.lng!], label: journey.destination.name } : null} markers={markers} selectedId={selectedId} onSelect={selectFromMap} ariaLabel={t('discovery.map.title', undefined, locale)} updating={d.status === 'updating' || d.status === 'loading'} shellNote={t('discovery.map.shell', undefined, locale)} />
                     {selectedId && <p className="results__map-sel" aria-live="polite">{t('discovery.map.selected', { name: d.items.find((x) => x.restaurant.id === selectedId)?.restaurant.name ?? '' }, locale)}</p>}
                     <details className="results__map-alt">
