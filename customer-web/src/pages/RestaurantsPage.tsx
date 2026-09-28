@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import { ClockIcon, PinIcon, StarIcon } from '../components/Icons'
 import { useAccount } from '../account/AccountContext'
 import { useAuth } from '../auth/AuthContext'
+import { useJourney } from '../journey/JourneyContext'
+import { formatDuration } from '../journey/mock/mockRepositories'
 import './RestaurantsPage.css'
 
 type P = { size?: number }
@@ -51,6 +53,20 @@ export default function RestaurantsPage() {
   const { isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const journeyApi = useJourney()
+  const journeyId = params.get('journey')
+  const [journeyState, setJourneyState] = useState<'none' | 'loading' | 'ready' | 'missing'>(journeyId ? 'loading' : 'none')
+  useEffect(() => {
+    if (!journeyId) { setJourneyState('none'); return }
+    let alive = true
+    setJourneyState('loading')
+    journeyApi.load(journeyId).then((j) => { if (alive) setJourneyState(j ? 'ready' : 'missing') }).catch(() => { if (alive) setJourneyState('missing') })
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [journeyId])
+  const journey = journeyState === 'ready' ? journeyApi.journey : null
+  const fromLabel = journey?.origin.name ?? params.get('from') ?? 'Sector 62, Noida'
+  const toLabel = journey?.destination.name ?? params.get('to') ?? 'Connaught Place, Delhi'
   const favorite = (id: string) => { if (!isAuthenticated) return navigate('/login', { state: { from: location.pathname + location.search } }); void toggleFavorite(id) }
 
   return (
@@ -83,22 +99,22 @@ export default function RestaurantsPage() {
                   <PinIcon size={24} className="route-field__pin route-field__pin--from" />
                   <span>
                     <small>Your Location</small>
-                    <input type="text" defaultValue={params.get('from') ?? 'Sector 62, Noida'} aria-label="Your location" />
+                    <input type="text" value={fromLabel} readOnly aria-label="Your location" onClick={() => navigate('/plan-journey')} />
                   </span>
                 </label>
-                <button type="button" className="route-swap" aria-label="Swap locations"><SwapIcon /></button>
+                <button type="button" className="route-swap" aria-label="Swap locations" onClick={() => { journeyApi.swap(); navigate('/plan-journey') }}><SwapIcon /></button>
                 <label className="route-field">
                   <PinIcon size={24} className="route-field__pin" />
                   <span>
                     <small>Destination</small>
-                    <input type="text" defaultValue={params.get('to') ?? 'Connaught Place, Delhi'} aria-label="Destination" />
+                    <input type="text" value={toLabel} readOnly aria-label="Destination" onClick={() => navigate('/plan-journey')} />
                   </span>
                 </label>
-                <button type="submit" className="btn btn--primary route-box__submit">Find Restaurants</button>
+                <button type="button" className="btn btn--primary route-box__submit" onClick={() => navigate('/plan-journey')}>{journey ? 'Change Journey' : 'Plan Journey'}</button>
               </div>
 
               <div className="route-box__bottom">
-                <span className="route-summary"><CarIcon /> <b>32 km</b> • ~ 45 min</span>
+                <span className="route-summary" aria-live="polite"><CarIcon /> {journeyState === 'loading' ? 'Loading journey…' : journeyState === 'missing' ? <>Journey not found — <Link to="/plan-journey">plan a new one</Link></> : journey?.route ? <><b>{journey.route.distanceKm} km</b> • ~ {formatDuration(journey.route.durationMin)} <small className="route-summary__mock">mock estimate</small></> : journey ? 'Route not prepared yet' : <><b>32 km</b> • ~ 45 min <small className="route-summary__mock">sample</small></>}</span>
                 <span className="route-radius">
                   Find restaurants within
                   <span className="select-wrap">
@@ -154,7 +170,7 @@ export default function RestaurantsPage() {
 
           <div className="results">
             <div className="results__bar">
-              <h2>124 Restaurants on Your Route</h2>
+              <h2>{journey ? `Restaurants along ${journey.origin.name} → ${journey.destination.name}` : '124 Restaurants on Your Route'}</h2>
               <div className="results__tools">
                 <label className="sort">Sort by
                   <span className="select-wrap">

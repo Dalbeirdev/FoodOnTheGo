@@ -5,6 +5,7 @@ import { ProfileProvider } from './profile/ProfileContext'
 import { AuthProvider } from './auth/AuthContext'
 import RequireAuth from './auth/RequireAuth'
 import { AccountProvider } from './account/AccountContext'
+import { JourneyProvider } from './journey/JourneyContext'
 import Footer from './components/Footer'
 import { ToastProvider } from './components/Toast'
 import HomePage from './pages/HomePage'
@@ -42,6 +43,7 @@ export function AppShell() {
       <ToastProvider>
       <ProfileProvider>
       <AccountProvider>
+      <JourneyProvider>
       <CartProvider>
         <OrdersProvider>
           <Routes>
@@ -83,6 +85,7 @@ export function AppShell() {
           <Footer />
         </OrdersProvider>
       </CartProvider>
+      </JourneyProvider>
       </AccountProvider>
       </ProfileProvider>
       </ToastProvider>

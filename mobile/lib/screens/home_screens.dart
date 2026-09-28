@@ -6,7 +6,9 @@ import '../core/app_config.dart';
 import '../core/theme.dart';
 import '../data/mock_data.dart';
 import '../state/app_state.dart';
+import '../journey/journey_repositories.dart' show formatDuration;
 import '../state/auth_state.dart';
+import '../state/journey_state.dart';
 import '../widgets/common.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -149,8 +151,8 @@ class HomeScreen extends StatelessWidget {
 }
 
 class RestaurantsScreen extends StatefulWidget {
-  const RestaurantsScreen({super.key, this.from, this.to});
-  final String? from, to;
+  const RestaurantsScreen({super.key, this.from, this.to, this.journeyId});
+  final String? from, to, journeyId;
   @override
   State<RestaurantsScreen> createState() => _RestaurantsScreenState();
 }
@@ -158,9 +160,26 @@ class RestaurantsScreen extends StatefulWidget {
 class _RestaurantsScreenState extends State<RestaurantsScreen> {
   String query = '';
   bool mapView = false;
+  String journeyState = 'none'; // none | loading | ready | missing
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.journeyId;
+    if (id == null) return;
+    journeyState = 'loading';
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final j = await context.read<JourneyState>().load(id).catchError((_) => null);
+      if (mounted) setState(() => journeyState = j == null ? 'missing' : 'ready');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final q = query.toLowerCase();
+    final js = context.watch<JourneyState>();
+    final journey = journeyState == 'ready' ? js.journey : null;
+    final fromLabel = journey?.origin.name ?? widget.from ?? 'Sector 62, Noida';
+    final toLabel = journey?.destination.name ?? widget.to ?? 'Connaught Place, Delhi';
     final list = restaurants.where((r) => q.isEmpty || r.name.toLowerCase().contains(q) || r.cuisines.any((c) => c.toLowerCase().contains(q))).toList();
     return Scaffold(
       appBar: const BrandAppBar(title: 'Restaurants'),
@@ -171,15 +190,15 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                _RoutePoint(label: 'Your Location', value: widget.from ?? 'Sector 62, Noida', color: Brand.orange),
+                _RoutePoint(label: 'Your Location', value: fromLabel, color: Brand.orange),
                 Row(children: [
                   const Expanded(child: Divider()),
                   Container(margin: const EdgeInsets.symmetric(horizontal: 12), width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFFF2F3F6), borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.swap_vert, size: 20)),
                   const Expanded(child: Divider()),
                 ]),
-                _RoutePoint(label: 'Destination', value: widget.to ?? 'Connaught Place, Delhi', color: Brand.red),
+                _RoutePoint(label: 'Destination', value: toLabel, color: Brand.red),
                 const SizedBox(height: 16),
-                BrandButton(label: 'Find Restaurants', onPressed: () => context.go('/plan-journey')),
+                BrandButton(label: journey == null ? 'Plan Journey' : 'Change Journey', onPressed: () => context.go('/plan-journey')),
               ]),
             ),
           ),
@@ -188,7 +207,14 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [Icon(Icons.directions_car_outlined, size: 18), SizedBox(width: 8), Text('32 km', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), Text('  ·  ~45 min', style: TextStyle(color: Brand.grey, fontSize: 14))]),
+                Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
+                  const Icon(Icons.directions_car_outlined, size: 18), const SizedBox(width: 8),
+                  if (journeyState == 'loading') const Text('Loading journey…', style: TextStyle(color: Brand.grey, fontSize: 14))
+                  else if (journeyState == 'missing') TextButton(onPressed: () => context.go('/plan-journey'), child: const Text('Journey not found — plan a new one'))
+                  else if (journey?.route != null) ...[Text('${journey!.route!.distanceKm} km', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), Text('  ·  ~${formatDuration(journey.route!.durationMin)}', style: const TextStyle(color: Brand.grey, fontSize: 14)), const SizedBox(width: 8), Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: const Text('mock estimate', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))))]
+                  else if (journey != null) const Text('Route not prepared yet', style: TextStyle(color: Brand.grey, fontSize: 14))
+                  else ...[const Text('32 km', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), const Text('  ·  ~45 min (sample)', style: TextStyle(color: Brand.grey, fontSize: 14))],
+                ]),
                 const SizedBox(height: 10),
                 Wrap(crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 6, children: [
                   const Text('Find restaurants within', style: TextStyle(color: Brand.grey, fontSize: 13.5)),
@@ -201,7 +227,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('${list.length} Restaurants on Your Route', style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+          Text(journey == null ? '${list.length} Restaurants on Your Route' : 'Restaurants along ${journey.origin.name} → ${journey.destination.name}', style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           Wrap(crossAxisAlignment: WrapCrossAlignment.center, runSpacing: 6, children: [
             const Text('Sort by', style: TextStyle(color: Brand.grey, fontSize: 13.5)),

@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AccountProvider } from '../account/AccountContext'
 import { AuthProvider } from '../auth/AuthContext'
 import { CartProvider } from '../cart/CartContext'
+import { JourneyProvider } from '../journey/JourneyContext'
 import { ToastProvider } from '../components/Toast'
 import { OrdersProvider } from '../orders/OrdersContext'
 import { ProfileProvider } from '../profile/ProfileContext'
@@ -16,9 +17,11 @@ export function Providers({ children, route = '/' }: { children: ReactNode; rout
       <ToastProvider>
       <ProfileProvider>
         <AccountProvider>
+          <JourneyProvider>
           <CartProvider>
             <OrdersProvider>{children}</OrdersProvider>
           </CartProvider>
+          </JourneyProvider>
         </AccountProvider>
       </ProfileProvider>
       </ToastProvider>

@@ -19,7 +19,7 @@ describe('Customer Web pages render with the shared providers', () => {
   it('Restaurants lists every fixture restaurant', () => {
     renderPage(<RestaurantsPage />, { route: '/restaurants' })
     for (const r of RESTAURANTS) expect(screen.getAllByText(r.name).length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: /find restaurants/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /plan journey/i })).toBeInTheDocument()
   })
 
   it('Restaurant detail (Design A) renders the menu for the canonical slug route', () => {

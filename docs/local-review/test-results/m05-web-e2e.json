@@ -1,0 +1,205 @@
+{
+  "generated": "2026-09-25T16:04:37.653Z",
+  "results": [
+    {
+      "name": "TEST 6 guest can open /plan-journey without login",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "location search shows mock suggestions (city, station, airport)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 Chandigarh → Jammu accepted, summary displayed",
+      "pass": true,
+      "detail": "loading states seen: 2"
+    },
+    {
+      "name": "route preview drawn with corridor stops + text alternative",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 continue → /restaurants?journey=<id> (no city names in the URL)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "restaurants page shows the journey summary from state",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "journey survives a page refresh via the journey id",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 swap: fields exchanged",
+      "pass": true,
+      "detail": "Jammu → Chandigarh"
+    },
+    {
+      "name": "TEST 2 reversed corridor route prepared",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 same origin/destination rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 missing origin cannot continue",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4b typed-but-unselected origin flagged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "current location shows REAL GEOLOCATION PERMISSION = PENDING INTEGRATION",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "development location applied and labelled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "route failure shows Error loading journey + Try again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "retry recovers the route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no route available handled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "failed mock lookup shows an error with retry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no location found state",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "optional travel date + departure time carried into the summary",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "recent journeys listed (mock/local)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "recent → Use again fills the form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "recent → Remove deletes the entry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 authenticated: Home / Work saved addresses offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 Home → Jammu: saved location loads and journey prepared",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "keyboard: ArrowDown ×2 + Enter picks the second suggestion",
+      "pass": true,
+      "detail": "Connaught Place"
+    },
+    {
+      "name": "keyboard: Tab moves focus onward (no trap)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no horizontal overflow desktop /plan-journey",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /plan-journey",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /plan-journey",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /plan-journey",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow desktop /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow laptop /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow tablet /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "no horizontal overflow mobile /restaurants",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "mobile: suggestion dropdown does not overflow",
+      "pass": true,
+      "detail": "0px"
+    },
+    {
+      "name": "axe: no WCAG A/AA violations on journey pages",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no uncaught browser errors",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "axe": [
+    {
+      "route": "/plan-journey",
+      "violations": []
+    },
+    {
+      "route": "/restaurants",
+      "violations": []
+    }
+  ]
+}

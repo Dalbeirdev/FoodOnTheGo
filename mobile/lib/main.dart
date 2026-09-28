@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/theme.dart';
 import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
+import 'screens/plan_journey_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
@@ -13,6 +14,7 @@ import 'screens/order_screens.dart';
 import 'state/app_state.dart';
 import 'state/account_state.dart';
 import 'state/auth_state.dart';
+import 'state/journey_state.dart';
 
 void main() => runApp(const FoodOnTheGoApp());
 
@@ -37,7 +39,7 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
       builder: (_, state, child) => ShellScreen(location: state.uri.path, child: child),
       routes: [
         GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
-        GoRoute(path: '/restaurants', builder: (_, s) => RestaurantsScreen(from: s.uri.queryParameters['from'], to: s.uri.queryParameters['to'])),
+        GoRoute(path: '/restaurants', builder: (_, s) => RestaurantsScreen(from: s.uri.queryParameters['from'], to: s.uri.queryParameters['to'], journeyId: s.uri.queryParameters['journey'])),
         GoRoute(path: '/plan-journey', builder: (_, _) => const PlanJourneyScreen()),
         GoRoute(path: '/my-orders', builder: (_, _) => const MyOrdersScreen()),
         GoRoute(path: '/my-profile', builder: (_, _) => const ProfileScreen()),
@@ -70,6 +72,7 @@ class FoodOnTheGoApp extends StatefulWidget {
 class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   final auth = AuthState();
   final account = AccountState();
+  final journey = JourneyState();
   late final GoRouter router = buildRouter(auth);
 
   @override
@@ -93,6 +96,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider(create: (_) => HealthState()),
           ChangeNotifierProvider.value(value: auth),
           ChangeNotifierProvider.value(value: account),
+          ChangeNotifierProvider.value(value: journey),
           ChangeNotifierProvider(create: (_) => CartState()),
           ChangeNotifierProvider(create: (_) => OrdersState()),
         ],

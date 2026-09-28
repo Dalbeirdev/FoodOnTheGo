@@ -110,9 +110,16 @@ class BrandButton extends StatelessWidget {
         ]),
       ),
     );
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(onTap: onPressed, borderRadius: BorderRadius.circular(14), child: expand ? SizedBox(width: double.infinity, child: child) : child),
+    // Own semantics boundary: without it the InkWell tap merges into the enclosing card node
+    // and screen readers announce the whole card as one button (BUG-021).
+    return Semantics(
+      container: true,
+      button: true,
+      enabled: enabled,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(onTap: onPressed, borderRadius: BorderRadius.circular(14), child: expand ? SizedBox(width: double.infinity, child: child) : child),
+      ),
     );
   }
 }
