@@ -1,9 +1,9 @@
 {
   "module": "M17",
-  "ranAt": "2026-09-29T15:20:50.947Z",
+  "ranAt": "2026-09-29T15:55:17.291Z",
   "base": "http://localhost:5173",
-  "total": 68,
-  "passed": 68,
+  "total": 71,
+  "passed": 71,
   "results": [
     {
       "name": "TEST 1 shell: dark sidebar with FoodOnTheGo wordmark + \"Restaurant Dashboard\", 13 nav items, active state, header with location / accepting / notifications / staff",
@@ -106,7 +106,7 @@
       "detail": ""
     },
     {
-      "name": "TEST 7 / 8 / 9 new item stored customer-compatible: 18000 INR minor units, variant group Size with Regular / Large (+4000)",
+      "name": "TEST 7 / 8 / 9 new item stored customer-compatible: 18000 INR minor units, uploaded 800 × 800 photo, variant group Size with Regular / Large (+4000)",
       "pass": true,
       "detail": ""
     },
@@ -127,6 +127,21 @@
     },
     {
       "name": "TEST 13 profile: General / Images / Cuisine tabs, restaurant logo vs cover with recommended sizes, operational status (Active / Open / Accepting) separate, location block with IANA zone + ISO currency",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 15 / 16 / 17 image uploads: logo (SVG), cover (JPG cropped to 1200 × 400, optimized), gallery (2 photos with reorder / remove)",
+      "pass": true,
+      "detail": "restaurant-burger-hub-cover.jpg · 1200 × 400 · 54 KB · optimized for web"
+    },
+    {
+      "name": "TEST 16 upload validation: unsupported type rejected with a clear message",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 105 uploaded cover + gallery become the customer-facing restaurant photos (shared model)",
       "pass": true,
       "detail": ""
     },
@@ -181,7 +196,7 @@
       "detail": ""
     },
     {
-      "name": "TEST 64 invite staff → appears as Invited",
+      "name": "TEST 64 invite staff with a profile photo → appears as Invited with the avatar",
       "pass": true,
       "detail": ""
     },

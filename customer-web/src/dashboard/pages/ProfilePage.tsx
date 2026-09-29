@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { t } from '../../i18n/strings'
 import { useDashboard } from '../DashboardContext'
 import { AcceptingSwitch } from '../DashboardLayout'
+import ImageUpload, { GalleryUpload } from '../components/ImageUpload'
 import { Card, Field, Icon, PageHeader, Pill, Tabs, ToastLine, useToastMessage } from '../components/ui'
 
 /** Restaurant profile (Module 17): General information · Images · Cuisine & features; location block; operational status. */
@@ -10,7 +11,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<'general' | 'images' | 'cuisine'>('general')
   const [form, setForm] = useState({ name: r.name, description: r.description, phone: p.contact.phone ?? '', website: p.contact.website ?? '', email: p.contact.publicEmail ?? '', prepTimeMin: r.prepTimeMin })
   const [cuisines, setCuisines] = useState<string[]>(r.cuisines); const [features, setFeatures] = useState<string[]>(r.features); const [newCuisine, setNewCuisine] = useState(''); const [newFeature, setNewFeature] = useState('')
-  const [logo, setLogo] = useState(p.logo ?? ''); const [cover, setCover] = useState(p.coverImage ?? ''); const [gallery, setGallery] = useState<string[]>(p.gallery); const [newImg, setNewImg] = useState('')
+  const [logo, setLogo] = useState(p.logo ?? ''); const [cover, setCover] = useState(p.coverImage ?? ''); const [gallery, setGallery] = useState<string[]>(p.gallery)
   const [busy, setBusy] = useState(false); const [errors, setErrors] = useState<Record<string, string>>({}); const { msg, toast } = useToastMessage()
   useEffect(() => { setForm({ name: r.name, description: r.description, phone: p.contact.phone ?? '', website: p.contact.website ?? '', email: p.contact.publicEmail ?? '', prepTimeMin: r.prepTimeMin }); setCuisines(r.cuisines); setFeatures(r.features); setLogo(p.logo ?? ''); setCover(p.coverImage ?? ''); setGallery(p.gallery) }, [rid]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { document.title = `${t('dash.nav.profile', undefined, locale)} · ${t('dash.brand', undefined, locale)}` }, [locale])
@@ -46,14 +47,11 @@ export default function ProfilePage() {
               <>
                 <p className="db-muted" style={{ margin: 0 }}>{t('dash.profile.imagesNote', undefined, locale)}</p>
                 <div className="db-form-row">
-                  <div><p className="db-field__label" style={{ margin: '0 0 6px' }}>{t('dash.profile.logo', undefined, locale)}</p><div className="db-image-box db-image-box--logo">{logo ? <img src={logo} alt={t('dash.profile.logoAlt', undefined, locale)} /> : <div className="db-image-box__ph"><Icon name="image" size={26} /><small>{t('dash.profile.noLogo', undefined, locale)}</small></div>}</div><p className="db-field__hint">{t('dash.profile.logoHint', undefined, locale)}</p><input className="db-input db-input--sm" aria-label={t('dash.profile.logoUrl', undefined, locale)} value={logo} onChange={(e) => setLogo(e.target.value)} placeholder="/images/…" disabled={!canEdit} /></div>
-                  <div><p className="db-field__label" style={{ margin: '0 0 6px' }}>{t('dash.profile.cover', undefined, locale)}</p><div className="db-image-box">{cover ? <img src={cover} alt={t('dash.profile.coverAlt', undefined, locale)} /> : <div className="db-image-box__ph"><Icon name="image" size={26} /><small>{t('dash.profile.noCover', undefined, locale)}</small></div>}</div><p className="db-field__hint">{t('dash.profile.coverHint', undefined, locale)}</p><input className="db-input db-input--sm" aria-label={t('dash.profile.coverUrl', undefined, locale)} value={cover} onChange={(e) => setCover(e.target.value)} placeholder="/images/…" disabled={!canEdit} data-testid="profile-cover" /></div>
+                  <ImageUpload kind="logo" value={logo || null} onChange={(u) => setLogo(u ?? '')} label={t('dash.profile.logo', undefined, locale)} hint={t('dash.profile.logoHint', undefined, locale)} disabled={!canEdit} shape="square" testId="upload-logo" />
+                  <ImageUpload kind="cover" value={cover || null} onChange={(u) => setCover(u ?? '')} label={t('dash.profile.cover', undefined, locale)} hint={t('dash.profile.coverHint', undefined, locale)} disabled={!canEdit} shape="wide" testId="upload-cover" />
                 </div>
-                <div><p className="db-field__label" style={{ margin: '0 0 6px' }}>{t('dash.profile.gallery', undefined, locale)}</p>
-                  {gallery.length === 0 ? <p className="db-muted" style={{ margin: 0 }}>{t('dash.profile.noGallery', undefined, locale)}</p> : <div className="db-gallery">{gallery.map((g, i) => <figure key={g + i}><img src={g} alt="" /><figcaption>{canEdit && <><button type="button" className="db-iconbtn" style={{ width: 30, height: 30 }} aria-label={t('dash.action.moveUp', undefined, locale)} disabled={i === 0} onClick={() => { const n = [...gallery]; [n[i - 1], n[i]] = [n[i], n[i - 1]]; setGallery(n) }}><Icon name="back" size={12} /></button><button type="button" className="db-iconbtn" style={{ width: 30, height: 30 }} aria-label={t('dash.action.remove', undefined, locale)} onClick={() => setGallery(gallery.filter((_, k) => k !== i))}><Icon name="trash" size={12} /></button></>}</figcaption></figure>)}</div>}
-                  {canEdit && <div style={{ display: 'flex', gap: 8, marginTop: 8 }}><input className="db-input db-input--sm" aria-label={t('dash.profile.galleryUrl', undefined, locale)} value={newImg} onChange={(e) => setNewImg(e.target.value)} placeholder="/images/food-salad.jpg" /><button type="button" className="db-btn db-btn--outline db-btn--sm" onClick={() => { if (newImg.trim()) { setGallery([...gallery, newImg.trim()]); setNewImg('') } }}>{t('dash.action.add', undefined, locale)}</button></div>}
-                  <p className="db-field__hint">{t('dash.profile.uploadPending', undefined, locale)}</p>
-                </div>
+                <GalleryUpload value={gallery} onChange={setGallery} label={t('dash.profile.gallery', undefined, locale)} disabled={!canEdit} testId="upload-gallery" />
+                <p className="db-field__hint">{t('dash.profile.uploadPending', undefined, locale)}</p>
               </>
             )}
             {tab === 'cuisine' && (

@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend - Module 17 COMPLETE (owner reviewed); Module 18 awaiting owner spec",
+  "phase": "Frontend - Module 17 COMPLETE (owner reviewed; image uploads added, owner re-check pending); Module 18 awaiting owner spec",
   "currentModule": "Module 17",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -10452,18 +10452,18 @@
     {
       "id": "M17-013",
       "module": "M17",
-      "req": "Restaurant images: logo (512×512 guidance) vs cover (1200×400) with previews, optional gallery add / reorder / remove; UPLOAD = PENDING (backend)",
+      "req": "Restaurant images: professional uploader (drop zone / browse, type + size validation, client-side resize + centre crop, preview with dimensions, replace / remove) for logo (512×512, SVG allowed) and cover (1200×400); gallery uploader (multi-select, reorder, remove, cap 8); cover + gallery become the customer-facing photos",
       "platform": "WEB",
       "cat": "Profile",
-      "pri": "P1",
+      "pri": "P0",
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "YES (browser + owner review)",
-      "evidence": "docs/local-review/screenshots/web-m17/14-profile-images.png",
+      "manual": "YES (browser) — owner re-check pending (TE-150)",
+      "evidence": "docs/local-review/screenshots/web-m17/14-profile-images.png; docs/local-review/test-results/m17-web-e2e.json TEST 15 / 16 / 17 image uploads; dashboard.test Image uploads",
       "issue": "-",
       "carry": "CF-215",
-      "notes": ""
+      "notes": "Reworked after the owner review: path inputs replaced by real uploads"
     },
     {
       "id": "M17-014",
@@ -11268,7 +11268,7 @@
     {
       "id": "M17-064",
       "module": "M17",
-      "req": "Automated tests: dashboard.test.tsx (18) — helpers (money, hours, pickup settings, item validation), repository state machine + verification + shared-domain effects, UI (overview / switch, orders, delay + details, pickup, menu, profile, hours, RBAC, reviews, analytics + JPY); suite 307",
+      "req": "Automated tests: dashboard.test.tsx (20) incl. image uploads — helpers (money, hours, pickup settings, item validation), repository state machine + verification + shared-domain effects, UI (overview / switch, orders, delay + details, pickup, menu, profile, hours, RBAC, reviews, analytics + JPY); suite 307",
       "platform": "WEB",
       "cat": "Testing",
       "pri": "P0",
@@ -11276,7 +11276,7 @@
       "impl": "PASS",
       "test": "PASS",
       "manual": "YES (browser + owner review)",
-      "evidence": "docs/local-review/test-results/web-vitest-m17.txt (307/307, 26 files)",
+      "evidence": "docs/local-review/test-results/web-vitest-m17.txt (309/309, 26 files)",
       "issue": "-",
       "carry": "-",
       "notes": ""
@@ -11292,7 +11292,7 @@
       "impl": "PASS",
       "test": "PASS",
       "manual": "YES (browser + owner review)",
-      "evidence": "docs/local-review/test-results/web-vitest-m17.txt (307/307, 26 files); docs/local-review/test-results/m17-web-e2e.json TEST 105",
+      "evidence": "docs/local-review/test-results/web-vitest-m17.txt (309/309, 26 files); docs/local-review/test-results/m17-web-e2e.json TEST 105",
       "issue": "-",
       "carry": "-",
       "notes": ""
@@ -11380,7 +11380,7 @@
     {
       "id": "M17-071",
       "module": "M17",
-      "req": "Pending assets: camera / QR scanner integration, image uploads, invitation delivery, partner support contacts, translations",
+      "req": "Pending assets: camera / QR scanner integration, server-side image storage / CDN, invitation delivery, partner support contacts, translations",
       "platform": "ALL",
       "cat": "Pending",
       "pri": "P1",
@@ -11456,6 +11456,38 @@
       "issue": "-",
       "carry": "-",
       "notes": ""
+    },
+    {
+      "id": "M17-076",
+      "module": "M17",
+      "req": "Image asset architecture: ImageAssetRepository (MockImageAssetRepository = browser storage, ApiImageAssetRepository later) with per-kind specs (logo / cover / gallery / item / icon / avatar: box, crop mode, min dimensions, max bytes, accepted types, quality); clear validation messages; server upload pending (CF-215)",
+      "platform": "WEB",
+      "cat": "Architecture",
+      "pri": "P0",
+      "status": "VERIFIED",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "YES (browser) — owner re-check pending (TE-150)",
+      "evidence": "customer-web/src/dashboard/imageAssets.ts; components/ImageUpload.tsx",
+      "issue": "-",
+      "carry": "CF-215",
+      "notes": "Added after the owner review (image upload gap reported 2026-09-29)"
+    },
+    {
+      "id": "M17-077",
+      "module": "M17",
+      "req": "Menu item photo upload (800×800 crop) in the item editor; category icon upload (128×128) in the category editor; staff profile photo upload (256×256 round) in invite / edit; header avatar shows the photo",
+      "platform": "WEB",
+      "cat": "Menu / Staff",
+      "pri": "P1",
+      "status": "VERIFIED",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "YES (browser) — owner re-check pending (TE-150)",
+      "evidence": "docs/local-review/screenshots/web-m17/11-menu-item-editor.png, 20-staff.png; docs/local-review/test-results/m17-web-e2e.json TEST 7 / 64",
+      "issue": "-",
+      "carry": "CF-215",
+      "notes": "Added after the owner review (image upload gap reported 2026-09-29)"
     }
   ],
   "pages": [
@@ -12064,7 +12096,7 @@
       "backend": "MOCK (dashboard repositories over shared customer stores)",
       "prod": "NO",
       "shot": "web-m17/10-menu-items",
-      "notes": "Restaurant Dashboard (responsive web, permission-gated)."
+      "notes": "Restaurant Dashboard (responsive web, permission-gated). Image uploads (validated, resized, cropped in the browser) added 2026-09-29."
     },
     {
       "page": "Dashboard · Restaurant Profile",
@@ -12079,7 +12111,7 @@
       "backend": "MOCK (dashboard repositories over shared customer stores)",
       "prod": "NO",
       "shot": "web-m17/15-profile-general",
-      "notes": "Restaurant Dashboard (responsive web, permission-gated)."
+      "notes": "Restaurant Dashboard (responsive web, permission-gated). Image uploads (validated, resized, cropped in the browser) added 2026-09-29."
     },
     {
       "page": "Dashboard · Operating Hours",
@@ -12139,7 +12171,7 @@
       "backend": "MOCK (dashboard repositories over shared customer stores)",
       "prod": "NO",
       "shot": "web-m17/20-staff",
-      "notes": "Restaurant Dashboard (responsive web, permission-gated)."
+      "notes": "Restaurant Dashboard (responsive web, permission-gated). Image uploads (validated, resized, cropped in the browser) added 2026-09-29."
     },
     {
       "page": "Dashboard · Analytics",
@@ -13168,6 +13200,12 @@
       "Module 17 approved: owner reviewed the Restaurant Dashboard in the browser, all screens pass. Module 18 may start once its spec arrives.",
       "Owner",
       "TE-149 PASS."
+    ],
+    [
+      "2026-09-29",
+      "Image handling: the dashboard validates, resizes and crops images client-side per kind (logo, cover, gallery, item, icon, avatar) behind ImageAssetRepository; storage, scanning and CDN delivery are backend work (CF-215).",
+      "Owner feedback (image upload gap) + Claude",
+      "M17-013, M17-076, M17-077"
     ]
   ],
   "carry": [
@@ -15741,7 +15779,7 @@
     ],
     [
       "CF-215",
-      "RESTAURANT IMAGE UPLOADS: logo / cover / gallery / item images — upload validation, file types, size limits, compression, CDN, security",
+      "RESTAURANT IMAGE UPLOADS (server side): storage, virus / content scanning, re-encoding, CDN delivery, signed upload URLs — frontend validation / resize / crop / preview delivered in M17",
       "M17",
       "Recorded per spec §15–17",
       "P1",
@@ -18023,20 +18061,20 @@
       "TE-144",
       "M17",
       "WEB",
-      "dashboard.test.tsx (18): money / hours / pickup-settings / item validation helpers; order state machine + verification + shared-domain effects (sold out, new item, profile, hours, settings); UI: overview + location switch, orders workflow, delay + details, pickup verification, menu management, profile, hours editor, RBAC + staff invite, reviews response, analytics + JPY",
+      "dashboard.test.tsx (20): money / hours / pickup-settings / item validation helpers; order state machine + verification + shared-domain effects (sold out, new item, profile, hours, settings); UI: overview + location switch, orders workflow, delay + details, pickup verification, menu management, profile, hours editor, RBAC + staff invite, reviews response, analytics + JPY; image upload validation + component",
       "unit + component",
       "PASS",
-      "src/dashboard/dashboard.test.tsx; docs/local-review/test-results/web-vitest-m17.txt (307/307, 26 files)",
+      "src/dashboard/dashboard.test.tsx; docs/local-review/test-results/web-vitest-m17.txt (309/309, 26 files)",
       "2026-09-29"
     ],
     [
       "TE-145",
       "M17",
       "WEB",
-      "Dashboard e2e: shell + brand, overview, location switch (USD / JPY), orders accept / reject / delay / ready, details drawer, pickup scanner shell + code verification (valid / invalid / wrong location / duplicate), menu (sold out → customer page, add item with variants, category, modifiers), profile, accepting toggle, hours (overnight, overlap, special), pickup settings, reviews response, staff + RBAC (viewer), analytics, notifications, settings, help, axe × 7, responsive 1920 / 1366 / tablet / mobile",
+      "Dashboard e2e: shell + brand, overview, location switch (USD / JPY), orders accept / reject / delay / ready, details drawer, pickup scanner shell + code verification (valid / invalid / wrong location / duplicate), menu (sold out → customer page, add item with variants, category, modifiers), profile, accepting toggle, hours (overnight, overlap, special), pickup settings, reviews response, staff + RBAC (viewer), analytics, notifications, settings, help, axe × 7, responsive 1920 / 1366 / tablet / mobile; image uploads (logo SVG, cover JPG crop, gallery, item photo, staff avatar, type rejection)",
       "e2e",
       "PASS",
-      "docs/local-review/test-results/m17-web-e2e.json (68/68); docs/local-review/screenshots/web-m17/",
+      "docs/local-review/test-results/m17-web-e2e.json (71/71); docs/local-review/screenshots/web-m17/",
       "2026-09-29"
     ],
     [
@@ -18056,7 +18094,7 @@
       "Customer frontend regression: full vitest suite (Modules 01–16)",
       "regression",
       "PASS",
-      "docs/local-review/test-results/web-vitest-m17.txt (307/307, 26 files)",
+      "docs/local-review/test-results/web-vitest-m17.txt (309/309, 26 files)",
       "2026-09-29"
     ],
     [
@@ -18077,6 +18115,16 @@
       "manual (browser)",
       "PASS",
       "Owner: \"dashboard reviewed in browser, all screens pass\" (2026-09-29)",
+      "2026-09-29"
+    ],
+    [
+      "TE-150",
+      "M17",
+      "WEB",
+      "Owner re-check of the image upload flows (logo, cover, gallery, item photo, category icon, staff photo) in the shared preview",
+      "manual (browser)",
+      "PENDING",
+      "https://claude.ai/artifact/YUJz1HeHohVmuY62aUjVsY",
       "2026-09-29"
     ]
   ],

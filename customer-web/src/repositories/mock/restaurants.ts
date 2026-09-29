@@ -143,7 +143,7 @@ const matches = (r: Restaurant, q: string) => {
 
 /* ---------------- Module 17: restaurant-managed overrides (name, description, cuisines, features, prep time, hours,
  * accepting orders, status) saved by the Restaurant Dashboard — development storage only; the backend owns this later. */
-export type RestaurantOverride = Partial<Pick<Restaurant, 'name' | 'description' | 'cuisines' | 'features' | 'prepTimeMin' | 'openingHours' | 'acceptingOrders' | 'status'>>
+export type RestaurantOverride = Partial<Pick<Restaurant, 'name' | 'description' | 'cuisines' | 'features' | 'prepTimeMin' | 'openingHours' | 'acceptingOrders' | 'status' | 'image' | 'images'>>
 const OVERRIDE_KEY = 'fotg.restaurant.overrides.v1'
 export const loadRestaurantOverrides = (): Record<string, RestaurantOverride> => { try { const raw = localStorage.getItem(OVERRIDE_KEY); return raw ? (JSON.parse(raw) as Record<string, RestaurantOverride>) : {} } catch { return {} } }
 export function saveRestaurantOverride(id: string, patch: RestaurantOverride) { try { const all = loadRestaurantOverrides(); all[id] = { ...(all[id] ?? {}), ...patch }; localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all)) } catch { /* ignore */ } }

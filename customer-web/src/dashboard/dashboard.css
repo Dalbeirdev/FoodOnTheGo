@@ -177,6 +177,21 @@
 .db-settings-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--db-line); } .db-settings-row:last-child { border-bottom: 0; } .db-settings-row p { margin: 0; } .db-settings-row small { display: block; color: var(--db-muted); }
 .db-help-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; } .db-help-card { border: 1px solid var(--db-line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; } .db-help-card h3 { margin: 0; font-size: 1rem; } .db-help-card p { margin: 0; color: var(--db-muted); font-size: 0.88rem; }
 .db-tabbar { display: none; }
+/* ---------- Image upload ---------- */
+.db-upload { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.db-upload__zone { position: relative; border: 2px dashed #c9ced6; border-radius: 14px; background: #fafbfc; min-height: 170px; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.15s, background 0.15s; }
+.db-upload--wide .db-upload__zone { aspect-ratio: 3 / 1; min-height: 140px; } .db-upload--square .db-upload__zone { aspect-ratio: 1 / 1; max-width: 260px; } .db-upload--round .db-upload__zone { aspect-ratio: 1 / 1; max-width: 140px; border-radius: 50%; min-height: 120px; }
+.db-upload--compact .db-upload__zone { min-height: 120px; max-width: 200px; }
+.db-upload__zone.is-drag { border-color: var(--db-orange); background: #fff3ea; } .db-upload__zone.has-image { border-style: solid; border-color: var(--db-line); background: #fff; } .db-upload__zone.is-disabled { opacity: 0.7; }
+.db-upload__preview { width: 100%; height: 100%; object-fit: cover; display: block; } .db-upload--square .db-upload__preview, .db-upload--compact .db-upload__preview { object-fit: contain; background: #fff; }
+.db-upload__empty { width: 100%; height: 100%; min-height: inherit; border: 0; background: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 16px; font: inherit; color: var(--db-text); }
+.db-upload__empty small { color: var(--db-muted); } .db-upload__empty:focus-visible { outline: 3px solid var(--db-orange); outline-offset: -3px; border-radius: 12px; }
+.db-upload__icon { width: 46px; height: 46px; border-radius: 12px; background: #fff0e6; color: var(--db-orange-text); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+.db-upload__actions { position: absolute; inset-inline-end: 8px; bottom: 8px; display: flex; gap: 6px; } .db-upload--round .db-upload__actions { position: static; justify-content: center; padding: 6px; }
+.db-upload__progress { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.75); font-weight: 700; }
+.db-upload__meta { margin: 0; font-size: 0.78rem; color: var(--db-muted); overflow-wrap: anywhere; } .db-upload__warn { color: var(--db-amber); }
+.db-upload__zone--tile { min-height: 90px; height: 90px; aspect-ratio: auto; flex-direction: column; gap: 4px; cursor: pointer; font: inherit; color: var(--db-muted); padding: 0; }
+.db-gallery__item { margin: 0; } .db-avatar--img { object-fit: cover; }
 .db-status-strip { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
 /* ---------- Responsive ---------- */

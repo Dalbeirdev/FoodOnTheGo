@@ -63,6 +63,8 @@ export class MockRestaurantManagementRepository implements RestaurantManagementR
     await wait(); if (failing()) throw new Error('dashboard_save_failed')
     const { contact, logo, coverImage, gallery, ...restaurantPatch } = patch
     if (Object.keys(restaurantPatch).length) saveRestaurantOverride(rid, restaurantPatch)
+    // Cover + gallery are the customer-facing photos of the location (shared restaurant model).
+    if (coverImage !== undefined || gallery !== undefined) { const cur = profiles().find((p) => p.restaurantId === rid); const cover = coverImage === undefined ? cur?.coverImage ?? null : coverImage; const gal = gallery ?? cur?.gallery ?? []; const imgs = [cover, ...gal].filter((x): x is string => !!x); if (imgs.length) saveRestaurantOverride(rid, { image: imgs[0], images: imgs }) }
     const list = profiles(); const i = list.findIndex((p) => p.restaurantId === rid)
     if (i >= 0) { list[i] = { ...list[i], contact: { ...list[i].contact, ...(contact ?? {}) }, logo: logo === undefined ? list[i].logo : logo, coverImage: coverImage === undefined ? list[i].coverImage : coverImage, gallery: gallery ?? list[i].gallery }; lsSave(K.profiles, list) }
     return locationOf(rid)!
@@ -89,7 +91,7 @@ export class MockMenuManagementRepository implements MenuManagementRepository {
   async saveCategory(rid: string, c: Partial<MenuCategory> & { name: string }) {
     await wait(); const m = getManagedMenu(rid)
     if (c.id) { const i = m.categories.findIndex((x) => x.id === c.id); if (i < 0) throw new Error('category_not_found'); m.categories[i] = { ...m.categories[i], ...c }; saveManagedMenu(rid, m); return m.categories[i] }
-    const cat: MenuCategory = { id: `${rid}:${slugify(c.name)}-${Date.now().toString(36)}`, restaurantId: rid, name: c.name, description: c.description, displayOrder: c.displayOrder ?? m.categories.length }
+    const cat: MenuCategory = { id: `${rid}:${slugify(c.name)}-${Date.now().toString(36)}`, restaurantId: rid, name: c.name, description: c.description, icon: c.icon ?? null, displayOrder: c.displayOrder ?? m.categories.length }
     m.categories.push(cat); saveManagedMenu(rid, m); return cat
   }
   async reorderCategories(rid: string, orderedIds: string[]) { await wait(); const m = getManagedMenu(rid); m.categories = orderedIds.map((cid, i) => ({ ...m.categories.find((c) => c.id === cid)!, displayOrder: i })).filter((c) => c.id); saveManagedMenu(rid, m); return m.categories }
@@ -187,7 +189,7 @@ export class MockRestaurantStaffRepository implements RestaurantStaffRepository 
   private all() { return lsLoad<StaffMember[]>(K.staff, STAFF) }
   async list() { await wait(); if (failing()) throw new Error('staff_load_failed'); return this.all() }
   async invite(i: StaffInvite) { await wait(); const list = this.all(); if (list.some((s) => s.email.toLowerCase() === i.email.toLowerCase())) throw new Error('staff_duplicate_email'); const m: StaffMember = { id: id('stf'), ...i, status: 'invited' }; list.push(m); lsSave(K.staff, list); return m }
-  async update(sid: string, patch: Partial<Pick<StaffMember, 'role' | 'locationAccess' | 'status'>>) { await wait(); const list = this.all(); const i = list.findIndex((s) => s.id === sid); if (i < 0) throw new Error('staff_not_found'); if (list[i].role === 'owner' && patch.role && patch.role !== 'owner' && list.filter((s) => s.role === 'owner').length === 1) throw new Error('last_owner'); list[i] = { ...list[i], ...patch }; lsSave(K.staff, list); return list[i] }
+  async update(sid: string, patch: Partial<Pick<StaffMember, 'role' | 'locationAccess' | 'status' | 'avatar'>>) { await wait(); const list = this.all(); const i = list.findIndex((s) => s.id === sid); if (i < 0) throw new Error('staff_not_found'); if (list[i].role === 'owner' && patch.role && patch.role !== 'owner' && list.filter((s) => s.role === 'owner').length === 1) throw new Error('last_owner'); list[i] = { ...list[i], ...patch }; lsSave(K.staff, list); return list[i] }
   async remove(sid: string) { await wait(); const list = this.all(); const s = list.find((x) => x.id === sid); if (s?.role === 'owner') throw new Error('last_owner'); lsSave(K.staff, list.filter((x) => x.id !== sid)) }
 }
 

@@ -43,8 +43,8 @@ export type SpecialHours = { id: string; date: string; label: string; closed: bo
 export type HoursValidationIssue = { day: number | null; index: number | null; code: 'invalid_time' | 'overlap' | 'zero_length' | 'too_many' }
 
 export type StaffStatus = 'active' | 'invited' | 'suspended'
-export type StaffMember = { id: string; name: string; email: string; role: RoleId; locationAccess: 'all' | string[]; status: StaffStatus }
-export type StaffInvite = { name: string; email: string; role: RoleId; locationAccess: 'all' | string[] }
+export type StaffMember = { id: string; name: string; email: string; role: RoleId; locationAccess: 'all' | string[]; status: StaffStatus; avatar?: string | null }
+export type StaffInvite = { name: string; email: string; role: RoleId; locationAccess: 'all' | string[]; avatar?: string | null }
 
 export type NotificationType = 'new_order' | 'order_update' | 'review' | 'pickup' | 'platform' | 'warning'
 export type DashboardNotification = { id: string; locationId: string | null; type: NotificationType; title: string; body: string; at: string; read: boolean; link: string | null }
@@ -133,7 +133,7 @@ export interface RestaurantOrderRepository {
 export interface RestaurantStaffRepository {
   list(): Promise<StaffMember[]>
   invite(i: StaffInvite): Promise<StaffMember>
-  update(id: string, patch: Partial<Pick<StaffMember, 'role' | 'locationAccess' | 'status'>>): Promise<StaffMember>
+  update(id: string, patch: Partial<Pick<StaffMember, 'role' | 'locationAccess' | 'status' | 'avatar'>>): Promise<StaffMember>
   remove(id: string): Promise<void>
 }
 export interface RestaurantReviewRepository {

@@ -75,7 +75,7 @@ function ProfileMenu() {
   const d = useDashboard(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
   return (
     <div className="db-profile" ref={ref}>
-      <button type="button" className="db-profile__btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} data-testid="db-profile" aria-label={`${d.staff.name} · ${t(`dash.role.${d.staff.role}`, undefined, d.locale)}`}><Avatar name={d.staff.name} /><span className="db-profile__text"><b dir="auto">{d.staff.name}</b><small>{t(`dash.role.${d.staff.role}`, undefined, d.locale)}</small></span><Icon name="chevron" size={16} /></button>
+      <button type="button" className="db-profile__btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} data-testid="db-profile" aria-label={`${d.staff.name} · ${t(`dash.role.${d.staff.role}`, undefined, d.locale)}`}><Avatar name={d.staff.name} src={d.staff.avatar} /><span className="db-profile__text"><b dir="auto">{d.staff.name}</b><small>{t(`dash.role.${d.staff.role}`, undefined, d.locale)}</small></span><Icon name="chevron" size={16} /></button>
       {open && (
         <div className="db-profile__menu" role="menu" aria-label={t('dash.header.profileMenu', undefined, d.locale)}>
           <Link role="menuitem" to={`${BASE}/settings`} onClick={() => setOpen(false)}>{t('dash.nav.settings', undefined, d.locale)}</Link>

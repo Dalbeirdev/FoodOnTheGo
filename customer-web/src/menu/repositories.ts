@@ -9,6 +9,8 @@ export type MenuCategory = {
   restaurantId: string
   name: string
   description?: string
+  /** Optional category icon (restaurant-managed, Module 17). */
+  icon?: string | null
   displayOrder: number
 }
 

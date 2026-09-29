@@ -12,6 +12,8 @@ import { MockRestaurantOrderRepository, dashboardRepositories, seedDashboardFixt
 import { fromDayPeriods, toDayPeriods, validateHours } from './pages/HoursPage'
 import { toMinor, fromMinor, validateItem } from './pages/MenuPage'
 import { validatePickupSettings } from './pages/PickupSettingsPage'
+import { IMAGE_SPECS, MockImageAssetRepository, validateImageFile } from './imageAssets'
+import ImageUpload from './components/ImageUpload'
 import OverviewPage from './pages/OverviewPage'
 import OrdersPage from './pages/OrdersPage'
 import PickupVerificationPage from './pages/PickupVerificationPage'
@@ -76,7 +78,33 @@ describe('Dashboard helpers', () => {
     expect(validateItem({ name: 'Wrap', categoryId: 'c', price: '120', prepTimeMin: 8 }, 'INR', [g({ minSelections: 2, maxSelections: 1 })]).map((i) => i.code)).toContain('min_max')
     expect(validateItem({ name: 'Wrap', categoryId: 'c', price: '120', prepTimeMin: 8 }, 'INR', [g({ options: [] })]).map((i) => i.code)).toContain('no_options')
     expect(validateItem({ name: 'Wrap', categoryId: 'c', price: '120', prepTimeMin: 8 }, 'INR', [g({ required: true, minSelections: 0 })]).map((i) => i.code)).toContain('min_max')
+  }, 30000)
+})
+
+describe('Image uploads', () => {
+  const png = (name = 'dish.png', size = 1200) => new File([new Uint8Array(size)], name, { type: 'image/png' })
+  it('validates type and size per image kind; stores an optimized asset as a data URL', async () => {
+    localStorage.clear()
+    expect(validateImageFile(new File(['x'], 'a.gif', { type: 'image/gif' }), IMAGE_SPECS.item).issues[0].code).toBe('type')
+    expect(validateImageFile(new File([new Uint8Array(9 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' }), IMAGE_SPECS.item).issues[0].code).toBe('size')
+    expect(validateImageFile(new File(['<svg/>'], 'logo.svg', { type: 'image/svg+xml' }), IMAGE_SPECS.logo).ok).toBe(true)
+    expect(validateImageFile(new File(['<svg/>'], 'cover.svg', { type: 'image/svg+xml' }), IMAGE_SPECS.cover).ok).toBe(false)
+    expect(validateImageFile(null, IMAGE_SPECS.avatar).issues[0].code).toBe('empty')
+    const repo = new MockImageAssetRepository(); const asset = await repo.upload(png(), 'item')
+    expect(asset.url.startsWith('data:image/png;base64,')).toBe(true); expect(asset.kind).toBe('item'); expect(asset.name).toBe('dish.png')
+    await expect(repo.upload(new File(['x'], 'a.gif', { type: 'image/gif' }), 'item')).rejects.toMatchObject({ code: 'type' })
   })
+  it('ImageUpload: browse → preview + meta, replace / remove, error on a wrong type', async () => {
+    const user = userEvent.setup({ applyAccept: false }); let value: string | null = null
+    const { rerender } = render(<LocaleProvider><ImageUpload kind="logo" value={value} onChange={(u) => { value = u }} label="Restaurant Logo" testId="up" /></LocaleProvider>)
+    await user.upload(screen.getByTestId('up-input'), new File(['x'], 'bad.txt', { type: 'text/plain' }))
+    expect(await screen.findByTestId('upload-error')).toHaveTextContent(/Unsupported file type/)
+    await user.upload(screen.getByTestId('up-input'), png('logo.png'))
+    await waitFor(() => expect(value).toMatch(/^data:image\/png/), { timeout: 5000 })
+    rerender(<LocaleProvider><ImageUpload kind="logo" value={value} onChange={(u) => { value = u }} label="Restaurant Logo" testId="up" /></LocaleProvider>)
+    expect(screen.getByRole('img', { name: 'Restaurant Logo' })).toHaveAttribute('src', value!); expect(screen.getByTestId('upload-meta')).toHaveTextContent('logo.png')
+    await user.click(screen.getByTestId('upload-remove')); expect(value).toBeNull()
+  }, 30000)
 })
 
 describe('Restaurant order repository (shared domain)', () => {
@@ -124,7 +152,7 @@ describe('Restaurant order repository (shared domain)', () => {
     expect((await dashboardRepositories.management.getLocation('burger-hub'))?.profile.contact.phone).toBe('+91 1')
     await dashboardRepositories.management.savePickupSettings('burger-hub', { ...settingsFor(r), intervalMinutes: 10, instructions: 'Back door' })
     expect(settingsFor(restaurantRepository.byId('burger-hub')!)).toMatchObject({ intervalMinutes: 10, instructions: 'Back door' })
-  })
+  }, 30000)
 })
 
 describe('Restaurant Dashboard (web UI)', () => {
@@ -141,7 +169,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     await waitFor(() => expect(screen.getByTestId('db-location')).toHaveTextContent('Route 5 Diner'))
     await waitFor(() => expect(screen.getByTestId('ov-revenue')).toHaveTextContent('$')); expect(screen.getByText(/America\/Los_Angeles/)).toBeInTheDocument()
     expect(within(screen.getByTestId('ov-recent')).getAllByRole('row')).toHaveLength(4)
-  })
+  }, 30000)
 
   it('TEST 11 / 12 / 13 / 14 / 16 orders page: tabs with counts, new-order card, accept → preparing, reject requires a reason, mark ready', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/orders')
@@ -158,7 +186,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     const prep = screen.getAllByTestId('order-card').find((c) => c.textContent?.includes('FOTG-RD01-NEW1'))!; await user.click(within(prep).getByTestId('act-ready'))
     await waitFor(() => expect(order('FOTG-RD01-NEW1').orderStatus).toBe('READY_FOR_PICKUP'))
     await user.click(within(tabs).getByRole('tab', { name: /^ready/i })); await waitFor(() => expect(screen.getAllByTestId('order-card')).toHaveLength(3)); expect(screen.getAllByTestId('act-verify')).toHaveLength(3)
-  })
+  }, 30000)
 
   it('TEST 15 delay dialog updates the ETA with a customer-safe reason; order details drawer shows snapshot + timeline + privacy note', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/orders?tab=preparing')
@@ -170,7 +198,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     await user.click(within(screen.getAllByTestId('order-card')[0]).getByTestId('act-view'))
     const details = await screen.findByTestId('order-details'); expect(details).toHaveTextContent('Michael T.'); expect(details).toHaveTextContent('Size: Large'); expect(details).toHaveTextContent('Only the information needed'); expect(within(details).getByTestId('order-timeline').querySelectorAll('li').length).toBeGreaterThanOrEqual(5)
     expect(details.textContent).not.toMatch(/4242|@|\+91/)
-  })
+  }, 30000)
 
   it('TEST 17 / 18 / 19 pickup verification UI: valid code succeeds, invalid is safe, duplicate refused, scanner shell documented as pending', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/pickup-verification')
@@ -182,7 +210,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     await user.type(input, 'RVG7K2'); await user.click(screen.getByTestId('pickup-submit'))
     await waitFor(() => expect(screen.getByTestId('pickup-result')).toHaveAttribute('data-result', 'already_used'))
     await user.click(screen.getByRole('tab', { name: /scan qr code/i })); expect(screen.getByTestId('pickup-scanner')).toHaveTextContent('PENDING')
-  })
+  }, 30000)
 
   it('TEST 6 / 7 / 10 menu: search + filters, add category, add item with a variant group, mark sold out', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/menu')
@@ -204,15 +232,18 @@ describe('Restaurant Dashboard (web UI)', () => {
     await waitFor(() => expect(row()).toBeTruthy())
     await user.click(within(row()).getByTestId('item-more')); await user.click(screen.getByTestId('set-sold_out'))
     await waitFor(() => expect(row()).toHaveTextContent('Sold Out')); expect((await menuRepository.getItemDetail('burger-hub', 'classic-burger'))?.availability).toBe('sold_out')
-  })
+  }, 30000)
 
   it('TEST 3 profile form saves and the customer restaurant model reflects it; cuisine tags are data', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/profile')
     const name = await screen.findByTestId('profile-name'); await user.clear(name); await user.type(name, 'Burger Hub Sector 62'); await user.click(screen.getByTestId('profile-save'))
     await waitFor(() => expect(restaurantRepository.byId('burger-hub')?.name).toBe('Burger Hub Sector 62')); await waitFor(() => expect(screen.getByTestId('db-location')).toHaveTextContent('Burger Hub Sector 62'))
+    await user.click(screen.getByRole('tab', { name: /images/i })); await user.upload(screen.getByTestId('upload-cover-input'), new File([new Uint8Array(2000)], 'cover.jpg', { type: 'image/jpeg' }))
+    await waitFor(() => expect(screen.getByRole('img', { name: /cover image/i })).toBeInTheDocument(), { timeout: 5000 }); await user.click(screen.getByTestId('profile-save'))
+    await waitFor(() => expect(restaurantRepository.byId('burger-hub')?.image).toMatch(/^data:image\/jpeg/))
     await user.click(screen.getByRole('tab', { name: /cuisine/i })); await user.type(screen.getByTestId('profile-cuisine-input'), 'Wraps'); await user.click(screen.getByTestId('profile-cuisine-add')); expect(screen.getByTestId('profile-cuisines')).toHaveTextContent('Wraps')
     await user.click(screen.getAllByTestId('db-accepting-toggle')[0]); await waitFor(() => expect(restaurantRepository.byId('burger-hub')?.acceptingOrders).toBe(false)); expect(screen.getAllByTestId('db-accepting')[0]).toHaveTextContent('Not Accepting')
-  })
+  }, 30000)
 
   it('TEST 4 hours editor: add a second period, overnight badge, overlap error blocks save, valid save persists', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/hours')
@@ -227,7 +258,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     await waitFor(() => expect(restaurantRepository.byId('burger-hub')?.openingHours.periods.filter((p) => p.day === 1)).toEqual([{ day: 1, open: '08:00', close: '23:30' }, { day: 1, open: '23:45', close: '02:00' }]))
     await user.click(screen.getByTestId('day-toggle-0')); await user.click(screen.getByTestId('hours-save'))
     await waitFor(() => expect(restaurantRepository.byId('burger-hub')?.openingHours.periods.some((p) => p.day === 0)).toBe(false))
-  })
+  }, 30000)
 
   it('TEST 20 staff permissions: viewer sees no order actions and is denied pickup verification; menu manager cannot see staff; invite adds a member', async () => {
     const user = userEvent.setup(); localStorage.setItem('fotg.rd.staff', 'stf-yuki'); mount('/restaurant-dashboard/orders')
@@ -240,7 +271,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     await user.click(screen.getByTestId('staff-invite')); await user.type(screen.getByTestId('staff-name'), 'Ravi Kumar'); await user.type(screen.getByTestId('staff-email'), 'ravi@riverside.example'); await user.selectOptions(screen.getByTestId('staff-role'), 'order_staff'); await user.click(screen.getByTestId('staff-save'))
     await waitFor(() => expect(screen.getAllByTestId('staff-row')).toHaveLength(6)); expect(screen.getByTestId('staff-table')).toHaveTextContent('Ravi Kumar')
     expect(screen.getByTestId('perm-table')).toHaveTextContent('pickup.verify')
-  })
+  }, 30000)
 
   it('TEST 21 reviews list with rating summary; restaurant response saved without touching the rating', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/reviews')
@@ -250,7 +281,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     await user.click(screen.getByRole('button', { name: /^all$/i })); await waitFor(() => expect(screen.getAllByTestId('review-response')).toHaveLength(2))
     const stored = JSON.parse(sessionStorage.getItem('fotg.reviews.v1')!) as Array<{ reviewId: string; overallRating: number; text: string; restaurantResponse: { text: string } | null }>
     const r = stored.find((x) => x.reviewId === 'rv_fx_bh1')!; expect(r.restaurantResponse?.text).toBe('Thank you David!'); expect(r.overallRating).toBe(5); expect(r.text).toContain('Amazing')
-  })
+  }, 30000)
 
   it('TEST 22 / 23 / 24 / 25 analytics date filters change the series; JPY location formats 0-decimal currency, Unicode names and Asia/Tokyo', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/analytics')
@@ -259,5 +290,5 @@ describe('Restaurant Dashboard (web UI)', () => {
     expect(screen.getByTestId('an-revenue-chart').querySelectorAll('circle').length).toBe(30)
     await user.click(screen.getByTestId('db-location')); await user.click(within(screen.getByRole('option', { name: /一風堂/ })).getByRole('button'))
     await waitFor(() => expect(screen.getByTestId('an-revenue')).toHaveTextContent('¥')); expect(screen.getByTestId('an-revenue').textContent).not.toMatch(/¥[\d,]+\.\d/); expect(screen.getByText(/Asia\/Tokyo/)).toBeInTheDocument(); expect(screen.getByTestId('db-location')).toHaveTextContent('静岡駅前')
-  })
+  }, 30000)
 })

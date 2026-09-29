@@ -10,9 +10,9 @@ import type { DashboardNotification, LocationProfile, Organization, Role, StaffM
 export const ORG: Organization = { id: 'org-riverside', name: 'Riverside Hospitality Group', logo: null, onboardingStatus: 'APPROVED', locationIds: ['burger-hub', 'kettleman-diner', 'ippudo-shizuoka'] }
 
 export const PROFILES: LocationProfile[] = [
-  { restaurantId: 'burger-hub', organizationId: ORG.id, locationName: 'Sector 62 · Noida', contact: { phone: '+91 120 400 1234', website: 'https://burgerhub.example', publicEmail: null }, logo: null, coverImage: '/images/food-burger.jpg', gallery: ['/images/food-burger.jpg', '/images/food-salad.jpg'], onboardingStatus: 'APPROVED', active: true },
-  { restaurantId: 'kettleman-diner', organizationId: ORG.id, locationName: 'Kettleman City · I-5', contact: { phone: '+1 (559) 555-0142', website: null, publicEmail: 'hello@route5diner.example' }, logo: null, coverImage: '/images/food-burger.jpg', gallery: [], onboardingStatus: 'APPROVED', active: true },
-  { restaurantId: 'ippudo-shizuoka', organizationId: ORG.id, locationName: '静岡駅前', contact: { phone: '+81 54-000-0000', website: null, publicEmail: null }, logo: null, coverImage: '/images/food-noodles.jpg', gallery: ['/images/food-noodles.jpg'], onboardingStatus: 'UNDER_REVIEW', active: true },
+  { restaurantId: 'burger-hub', organizationId: ORG.id, locationName: 'Sector 62 · Noida', contact: { phone: '+91 120 400 1234', website: 'https://burgerhub.example', publicEmail: null }, logo: null, coverImage: '/images/restaurant-burger-hub-cover.jpg', gallery: ['/images/gallery-interior.jpg', '/images/food-salad.jpg'], onboardingStatus: 'APPROVED', active: true },
+  { restaurantId: 'kettleman-diner', organizationId: ORG.id, locationName: 'Kettleman City · I-5', contact: { phone: '+1 (559) 555-0142', website: null, publicEmail: 'hello@route5diner.example' }, logo: null, coverImage: '/images/gallery-interior.jpg', gallery: [], onboardingStatus: 'APPROVED', active: true },
+  { restaurantId: 'ippudo-shizuoka', organizationId: ORG.id, locationName: '静岡駅前', contact: { phone: '+81 54-000-0000', website: null, publicEmail: null }, logo: null, coverImage: '/images/food-curry.jpg', gallery: ['/images/food-curry.jpg'], onboardingStatus: 'UNDER_REVIEW', active: true },
 ]
 
 /** Roles are permission bundles (starting examples; the backend / admin manage them later). */
