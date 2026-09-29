@@ -1,0 +1,349 @@
+{
+  "module": "M17",
+  "ranAt": "2026-09-29T15:20:50.947Z",
+  "base": "http://localhost:5173",
+  "total": 68,
+  "passed": 68,
+  "results": [
+    {
+      "name": "TEST 1 shell: dark sidebar with FoodOnTheGo wordmark + \"Restaurant Dashboard\", 13 nav items, active state, header with location / accepting / notifications / staff",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 overview: 4 KPI cards, revenue summary with SVG chart + delta, prep time, rating, unavailable items, recent orders table with status-dependent actions, top items",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 location switch → Route 5 Diner: USD revenue, America/Los_Angeles, different recent orders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 23 / 24 / 25 JPY location: 0-decimal yen, Asia/Tokyo, Unicode restaurant + customer names",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 orders: tabs New(2) Preparing(1) Ready(2) Completed(2) Cancelled(1); new-order cards show number, customer, pickup time, items, total, note, Accept / Reject / View",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 accept → ACCEPTED (restaurant event in the shared order store)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 reject requires a structured reason + optional internal note; customer-safe text previewed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 rejected: REJECTED + REFUND_PENDING, customer-safe reason key, internal note never in the event",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 preparing tab lists accepted + preparing orders with Mark Ready / Report Delay",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 15 delay: ETA updated, DELAYED event with customer-safe reason, \"Delayed\" badge",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 16 mark ready → READY_FOR_PICKUP (pickup verification READY)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 57 / 58 order details drawer: statuses, customer display name only, items + options, totals, timeline, safe payment line",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 52 QR scanner shell documented as PENDING (no fake scanning)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 18 invalid code → safe error (no other-customer data)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 55 code from another location → \"Wrong location\" without revealing the order",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 17 valid code → Pickup Verified, order COMPLETED, verification VERIFIED",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 19 duplicate verification → Already used; single PICKED_UP event",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 30 menu: Categories / Items / Modifiers tabs, search + category + status filters, image / name / category / price / status / actions table, Add Item, Preview Customer View",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 / 105 Classic Burger marked SOLD OUT → shared managed menu updated for the customer app",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 add item validation blocks an empty form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 / 8 / 9 new item stored customer-compatible: 18000 INR minor units, variant group Size with Regular / Large (+4000)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 add category → appears in the category table",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 39 modifiers tab lists every option group with kind, rules (min–max) and options",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 105 customer restaurant page shows the dashboard-added item and Classic Burger as sold out",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 profile: General / Images / Cuisine tabs, restaurant logo vs cover with recommended sizes, operational status (Active / Open / Accepting) separate, location block with IANA zone + ISO currency",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 profile update persists (header selector + shared restaurant override)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 20 accepting-orders toggle is separate from open status and reaches the shared model",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 second period + overnight badge; overlap detected on save",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 valid hours saved with an overnight period (18:00→02:00 style) into the shared restaurant model",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 24 special hours / closure added for a date (no hardcoded holidays)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 pickup settings validation (lead time beyond the schedule horizon) blocks save",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 pickup settings saved (interval 10 min, instructions) into the shared pickup settings the customer slot engine reads",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 21 reviews: average, count, distribution bars, review cards with response; respond form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 62 restaurant response saved; rating / text untouched",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 63 staff: avatar, name, role, location access, status, actions; permission matrix",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 64 invite staff → appears as Invited",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 20 viewer (single-location access) cannot see Staff or Pickup Verification and is scoped to 一風堂; Staff page → permission denied",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 20 viewer sees orders read-only (no Accept / Reject / Mark Ready)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 analytics: KPIs, revenue line chart, order bars, status donut, top items, rating bars, peak pickup hours; 30-day range changes the series",
+      "pass": true,
+      "detail": "{\"rev\":30,\"status\":4,\"pickup\":14,\"rating\":true}"
+    },
+    {
+      "name": "TEST 72 / 73 notifications list + mark all read updates the shared header / sidebar badge",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 74 / 75 settings: operational, language / timezone / currency (platform-controlled), notification preferences persist, account & security placeholders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 76 help: 7 topic cards + partner support (pending)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (orders) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (menu) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (pickup) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (profile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (staff) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (1920, overview) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1920, orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1920, menu) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1920, pickup) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1366, overview) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1366, orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1366, menu) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (1366, pickup) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (tablet, overview) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (tablet, orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (tablet, menu) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (tablet, pickup) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile, overview) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile, orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile, menu) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile, pickup) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 26 / 91 mobile: sidebar hidden, bottom tab bar (Overview / Orders / Menu / More), header burger opens the drawer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 26 mobile pickup verification remains operational",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}
