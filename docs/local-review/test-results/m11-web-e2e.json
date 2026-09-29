@@ -1,0 +1,165 @@
+{
+  "module": "M11",
+  "ranAt": "2026-09-29T07:26:22.947Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 31,
+  "passed": 31,
+  "results": [
+    {
+      "name": "TEST 2 guest at canonical /checkout is sent to login (protected route)",
+      "pass": true,
+      "detail": "pickup mode asap"
+    },
+    {
+      "name": "TEST 2 after OTP the customer returns to /checkout with cart + pickup selection retained",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 review sections: Customer (verified), Restaurant, Pickup, Items, Promo, Order note, Legal, Payment, Summary",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 summary shows only configured lines: subtotal + total, no invented tax/fee/delivery lines",
+      "pass": true,
+      "detail": "{\"subtotal\":true,\"noFees\":true,\"forbidden\":null}"
+    },
+    {
+      "name": "TEST 1 mock disclosure + legal DRAFT note + no raw card / UPI / bank fields",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 payment methods come from the repository for IN/INR (UPI, card, ...) — no cash at pickup",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 restaurant zone retained: pickup time shown in Asia/Kolkata (device is Europe/London)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 valid promo WELCOME10 applied → discount line + recalculated total (integer money)",
+      "pass": true,
+      "detail": "Total₹250.00 → Total₹225.00"
+    },
+    {
+      "name": "TEST 7 remove promo → total restored",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 expired promo → distinct \"expired\" message",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 minimum-spend promo (INDIA50 needs a larger subtotal) → distinct message with the threshold amount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 invalid promo → distinct \"not valid\" message",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 not-eligible promo (NEWBIE) → distinct message, total unchanged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 Continue without accepting terms → blocked with a clear message, still on /checkout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 payment handoff: CheckoutRequest prepared (idempotency key, cart, pickup, method, terms version) and no amount charged",
+      "pass": true,
+      "detail": "{\"key\":\"64133866\",\"method\":\"upi\",\"terms\":\"draft-2026-09\"} | url http://localhost:5173/payment | Secure paymentPaymentPayment processing arrives in Module 12. This is the payment request prepared by checkout — no amount has been charged and no order exists."
+    },
+    {
+      "name": "TEST 11 request carries no client-authoritative amount (display echo only) and no card data",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 changed price → warning + Accept new price; Continue blocked until accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 Continue with a stale price stays on /checkout with the price issue listed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 after accepting the new price the warning clears and the total is recalculated",
+      "pass": true,
+      "detail": "Total₹250.00 → Total₹275.00"
+    },
+    {
+      "name": "TEST 9 missing pickup selection → checkout redirects to /pickup-time (no payment possible)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 restaurant not accepting orders → blocking notice, payment cannot continue",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 Continue stays on /checkout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 offline → clear offline state, Continue disabled, nothing ordered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12/13 USD restaurant: totals in $, zone America/Los_Angeles, market payment methods without UPI",
+      "pass": true,
+      "detail": "pickup asap"
+    },
+    {
+      "name": "TEST 15 responsive (mobile) no horizontal overflow and Continue visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 15 responsive (tablet) no horizontal overflow and Continue visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 15 responsive (desktop) no horizontal overflow and Continue visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "module": "M11",
+  "ranAt": "2026-09-29T07:41:03.326Z",
+  "total": 14,
+  "passed": 14,
+  "results": [
+    {
+      "n": "phone: TEST 2 guest opening /checkout lands on the login gate",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 review sections — Customer/Verified, Burger Hub, pickup zone, items, promo, legal, payment, summary",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 no invented tax/fee lines; repository payment methods (UPI present, no cash at pickup)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 promo WELCOME10 applied → discount line in the summary",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 11 Continue without terms → blocked with a clear message",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 11 with terms accepted → payment stage shows the prepared request, nothing charged",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: legal document opens with DRAFT / pending approval notice",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 2 guest opening /checkout lands on the login gate",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 review sections — Customer/Verified, Burger Hub, pickup zone, items, promo, legal, payment, summary",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 no invented tax/fee lines; repository payment methods (UPI present, no cash at pickup)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 promo WELCOME10 applied → discount line in the summary",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 11 Continue without terms → blocked with a clear message",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 11 with terms accepted → payment stage shows the prepared request, nothing charged",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: legal document opens with DRAFT / pending approval notice",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

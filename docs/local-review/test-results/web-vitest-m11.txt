@@ -1,0 +1,9 @@
+
+ RUN  v5.0.2 E:/TechPio-Data/FoodOnTheGo/customer-web
+
+
+ Test Files  19 passed (19)
+      Tests  214 passed (214)
+   Start at  12:53:00
+   Duration  21.47s (tests 57%, environment 24%, transform 10%, setup 5%, import 4%)
+
