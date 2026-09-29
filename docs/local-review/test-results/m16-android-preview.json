@@ -1,0 +1,128 @@
+{
+  "module": "M16",
+  "ranAt": "2026-09-29T14:12:17.576Z",
+  "total": 24,
+  "passed": 24,
+  "results": [
+    {
+      "n": "phone: ENTRY My orders — Rate your experience on completed cards",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 2 active order — review not available, Track order offered",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 completed order details — Rate your experience button",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 review form — order context, Overall rating (Required), categories, quick feedback, items, written review",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 3 no rating — submit blocked with an error",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 4 rating chosen — \"5 of 5\" announced, negative tags hidden",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 / 6 tags + item feedback selected, Unicode text counted",
+      "ok": true,
+      "d": "typed=Très bon 😀 一風堂 | 486 characters remaining"
+    },
+    {
+      "n": "phone: TEST 8 submit — confirmation, stored review shown as text, next actions (Reorder / receipt / favorite / help / restaurant / journey)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 9 details after review — Edit review + Reviewed · 5 of 5",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 9 review route on a reviewed order — no form, existing review",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 10 Edit restores the content (5 of 5, Great food tag selected; text verified after update)",
+      "ok": true,
+      "d": "chip=true"
+    },
+    {
+      "n": "phone: TEST 10 update — one review, now 4 of 5, original text preserved through the edit",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: ENTRY My orders — Rate your experience on completed cards",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 2 active order — review not available, Track order offered",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 completed order details — Rate your experience button",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 review form — order context, Overall rating (Required), categories, quick feedback, items, written review",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 3 no rating — submit blocked with an error",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 4 rating chosen — \"5 of 5\" announced, negative tags hidden",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 / 6 tags + item feedback selected, Unicode text counted",
+      "ok": true,
+      "d": "typed=Très bon 😀 一風堂 | 486 characters remaining"
+    },
+    {
+      "n": "tablet: TEST 8 submit — confirmation, stored review shown as text, next actions (Reorder / receipt / favorite / help / restaurant / journey)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 9 details after review — Edit review + Reviewed · 5 of 5",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 9 review route on a reviewed order — no form, existing review",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 10 Edit restores the content (5 of 5, Great food tag selected; text verified after update)",
+      "ok": true,
+      "d": "chip=true"
+    },
+    {
+      "n": "tablet: TEST 10 update — one review, now 4 of 5, original text preserved through the edit",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

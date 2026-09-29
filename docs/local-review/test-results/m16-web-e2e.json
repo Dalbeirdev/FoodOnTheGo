@@ -1,0 +1,200 @@
+{
+  "module": "M16",
+  "ranAt": "2026-09-29T13:36:40.005Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 38,
+  "passed": 38,
+  "results": [
+    {
+      "name": "ROUTE /order/:orderNumber/review is the canonical review route and requires sign-in",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ENTRY My Orders: Rate your experience only on completed / picked-up cards, never on ongoing or cancelled",
+      "pass": true,
+      "detail": "[{\"group\":\"completed\",\"review\":true},{\"group\":\"ongoing\",\"review\":false},{\"group\":\"completed\",\"review\":true},{\"group\":\"cancelled\",\"review\":false},{\"group\":\"cancelled\",\"review\":false}]"
+    },
+    {
+      "name": "TEST 2 active (preparing) order: review not available, Track order offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 order details of a completed order shows Rate your experience → /order/:no/review",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 review form: order context, overall rating required, categories / tags / items / text optional, privacy note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 no rating → submit blocked with an announced error; nothing stored",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 valid rating: \"5 of 5\" announced; negative tags hidden for a top rating (relevance, not steering)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 / 6 tags pressed, item feedback pressed, Unicode text counted in characters (not bytes)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 submission failure: error shown, rating / tags / text retained, nothing stored, Retry + Cancel offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 draft survives a reload (local draft store)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 rapid double submit → exactly one review; \"Thanks for your feedback.\" + post-pickup actions",
+      "pass": true,
+      "detail": "[\"rv_962a04ea7d894d2e9547\"]"
+    },
+    {
+      "name": "TEST 6 stored review: restaurant derived from the order, Unicode text intact, rendered as text (no HTML), no PII in the record",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 favorite toggle uses Module 04 favorites (label flips)",
+      "pass": true,
+      "detail": "Saved restaurant → Save restaurant"
+    },
+    {
+      "name": "TEST 11 / 13 post-pickup actions: Reorder → Module 15 reorder, View receipt → Module 13 receipt, Get help, View restaurant, Explore, Plan another journey",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 Reorder from the review page lands in the Module 15 reorder review panel",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 order details after review: Edit review + \"Reviewed · 5 of 5\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 review route on a reviewed order: no form, existing review shown, no duplicate created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 Edit restores the existing content",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 update keeps ONE record with a new version (no duplicate)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 rejected order: not eligible for review",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 JP market config: two categories only, 300-character limit, Unicode restaurant name in the header",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 low rating: positive tags hidden, negative + neutral offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AUTH another customer's order → not found (no data, no form)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "OFFLINE state: banner shown and submit disabled (nothing pretends to be sent)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "READINESS restaurant page: ratings & reviews slot shows the local verified-order summary (1 review, average 4 of 5) with a development label",
+      "pass": true,
+      "detail": "Ratings & reviewsCatalogue rating 4.5 from 320 reviews (restaurant-supplied placeholder).1 verified order review(s) submitted from this device (development) · average 4 of 5.Public review lists, sorti"
+    },
+    {
+      "name": "RESPONSIVE (mobile, form) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile, form) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (mobile, submitted) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile, submitted) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (tablet, form) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet, form) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (tablet, submitted) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet, submitted) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (desktop, form) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop, form) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (desktop, submitted) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop, submitted) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}
