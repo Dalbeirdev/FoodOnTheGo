@@ -10,9 +10,12 @@ import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
 import '../state/cart_state.dart' hide PromoStatus, PromoState;
-import '../pickup/pickup_models.dart' show PickupMode;
 import '../state/checkout_state.dart';
 import '../state/payment_state.dart';
+import '../state/order_state.dart';
+import '../state/journey_state.dart';
+import '../state/pickup_state.dart';
+import '../pickup/pickup_repository.dart' show settingsFor;
 import '../widgets/common.dart';
 
 /// Payment experience (Module 12) — Android. One canonical route: /payment, launched from /checkout.
@@ -70,9 +73,34 @@ class _PaymentScreenState extends State<PaymentScreen> with WidgetsBindingObserv
 
   void _maybeHandoff(PaymentState pay) {
     if (pay.status != PaymentStatus.verified || pay.attempt == null || handedOff) return;
+    final co = context.read<CheckoutState>(); final req = co.request; final r = restaurant;
+    if (req == null || r == null) return;
     handedOff = true;
-    final id = pay.attempt!.publicId;
-    Future<void>.delayed(const Duration(milliseconds: 1400), () { if (mounted) context.go('/order-confirmation/pending-$id'); });
+    final a = pay.attempt!; final cart = context.read<CartState>(); final pk = context.read<PickupState>(); final journey = context.read<JourneyState>().journey;
+    final orders = context.read<OrderState>();
+    final settings = settingsFor(r); final m = settings.methods.where((x) => x.enabled).firstOrNull ?? settings.methods.first;
+    final c = cart.cart;
+    () async {
+      try {
+        // Module 13: one development order per payment attempt (idempotent) — a repeated handoff returns the same order.
+        final order = await orders.orders.createFromPayment(CreateOrderInput(
+          paymentAttemptId: a.publicId, checkoutReference: a.checkoutReference, customerId: a.customerId,
+          restaurant: RestaurantSnapshot(id: r.id, slug: r.slug, name: r.name, formattedAddress: r.address.formatted, countryCode: r.countryCode, timezone: r.timezone, lat: r.lat, lng: r.lng, pickupInstructions: settings.instructions, pickupLocation: m.label),
+          items: [for (final i in c?.items ?? const <CartItem>[]) OrderItemSnapshot(lineId: i.id, menuItemId: i.menuItemId, itemName: i.itemName, image: i.image, variants: [for (final v in i.selectedVariants) OrderOptionSnapshot(groupName: v.groupName, optionName: v.optionName, priceAdjustmentMinor: v.priceAdjustmentMinor)], modifiers: [for (final v in i.selectedModifiers) OrderOptionSnapshot(groupName: v.groupName, optionName: v.optionName, priceAdjustmentMinor: v.priceAdjustmentMinor)], specialInstructions: i.specialInstructions, quantity: i.quantity, unitPriceMinor: i.unitPriceMinor, lineTotalMinor: i.lineTotalMinor)],
+          pricing: OrderPricing(currency: req.currency, subtotalMinor: co.summary?.subtotalMinor ?? (c?.subtotalMinor ?? 0), discountMinor: co.summary?.discountMinor ?? 0, promoCode: req.promoCode, taxes: [for (final l in co.summary?.taxes ?? const <SummaryLine>[]) PricingLine(id: l.id, label: l.label, amountMinor: l.amountMinor)], fees: [for (final l in co.summary?.fees ?? const <SummaryLine>[]) PricingLine(id: l.id, label: l.label, amountMinor: l.amountMinor)], totalMinor: req.displayedTotalMinor),
+          payment: OrderPaymentSummary(status: OrderPaymentStatus.paid, methodType: a.methodType, methodLabel: pay.method?.label ?? a.methodId, providerDisplayName: pay.provider?.displayName ?? a.provider, reference: a.publicId, paidAmountMinor: a.amountMinor, currency: a.currency),
+          pickup: PickupSnapshot(mode: req.pickupSelection.mode.name, requestedAt: req.pickupSelection.requestedAt, estimatedReadyTime: req.pickupSelection.estimatedReadyTime, restaurantTimezone: req.pickupSelection.restaurantTimezone, methodType: m.type.name, methodLabel: m.label, instructions: m.instructions),
+          journey: journey == null ? null : JourneySnapshot(journeyId: journey.id, originName: journey.origin.name, destinationName: journey.destination.name),
+          orderNote: req.orderNote,
+        ));
+        await Future<void>.delayed(const Duration(milliseconds: 1200)); // brief "Payment confirmed. Preparing your order…"
+        if (!mounted) return;
+        context.go('/order-confirmation/${order.orderNumber}');
+        cart.clearCart(); pk.clear(); co.clearRequest(); await pay.reset();
+      } catch (_) {
+        if (mounted) context.go('/order-confirmation/pending-${a.publicId}');
+      }
+    }();
   }
 
   Future<void> _onBackWhileBusy(PaymentState pay) async {

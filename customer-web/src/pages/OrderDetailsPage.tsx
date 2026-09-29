@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Header from '../components/Header'
+import { t, useLocale } from '../i18n/strings'
 import AccountSidebar from '../components/AccountSidebar'
 import { ArrowRightIcon, ChevronRightIcon, ClockIcon, PinIcon } from '../components/Icons'
 import { useCart } from '../cart/CartContext'
@@ -49,12 +50,28 @@ function Img({ src, fallback, alt = '' }: { src?: string; fallback?: string; alt
 
 export default function OrderDetailsPage() {
   const { orderNumber = '' } = useParams()
+  const { locale } = useLocale()
   const { getOrder } = useOrders()
   const cart = useCart()
   const navigate = useNavigate()
   const [shared, setShared] = useState(false)
   const order = getOrder(orderNumber)
 
+  if (!order && orderNumber.startsWith('FOTG-')) {
+    // Module 13 interim: orders created by the new order domain are shown here by the next module; keep navigation correct.
+    return (
+      <>
+        <Header />
+        <main id="main" className="od od--missing">
+          <div className="od-card" data-testid="details-interim">
+            <h1>{t('details.interim.title', undefined, locale)}</h1>
+            <p>{t('details.interim.text', { ref: orderNumber }, locale)}</p>
+            <Link to={`/order-confirmation/${orderNumber}`} className="btn btn--primary">{t('interim.backToConfirmation', undefined, locale)}</Link>
+          </div>
+        </main>
+      </>
+    )
+  }
   if (!order) {
     return (
       <>

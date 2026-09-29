@@ -26,6 +26,8 @@ import 'state/discovery_state.dart';
 import 'state/pickup_state.dart';
 import 'state/checkout_state.dart';
 import 'state/payment_state.dart';
+import 'state/order_state.dart';
+import 'screens/order_confirmation_screen.dart';
 import 'state/journey_state.dart';
 
 void main() => runApp(const FoodOnTheGoApp());
@@ -121,6 +123,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider(create: (_) => PickupState()),
           ChangeNotifierProvider(create: (_) => CheckoutState()),
           ChangeNotifierProvider(create: (_) => PaymentState()),
+          ChangeNotifierProvider(create: (_) => OrderState()),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false),
       );

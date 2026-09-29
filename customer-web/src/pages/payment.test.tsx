@@ -11,6 +11,7 @@ import { CartProvider, useCart, type AddItemInput } from '../cart/CartContext'
 import { MemoryCartRepository } from '../cart/cartModel'
 import { CheckoutProvider } from '../checkout/CheckoutContext'
 import { setMockCheckoutLatency } from '../checkout/mock/mockCheckout'
+import { setMockOrderLatency } from '../order/mock/mockOrder'
 import type { CheckoutRequest } from '../checkout/repositories'
 import { JourneyProvider } from '../journey/JourneyContext'
 import { LocaleProvider } from '../i18n/LocaleProvider'
@@ -63,7 +64,7 @@ const payBtn = () => screen.getByRole('button', { name: /pay ₹|pay \$|pay ¥|p
 const statusOf = (ref: string) => attempts().filter((a) => a.checkoutReference === ref)
 
 describe('Payment experience (web)', () => {
-  beforeEach(() => { setMockPaymentLatency(0); setMockCheckoutLatency(0); setMockPickupLatency(0); setMockMenuLatency(0); setMockRestaurantLatency(0); localStorage.clear(); sessionStorage.clear(); signIn() })
+  beforeEach(() => { setMockOrderLatency(0); setMockPaymentLatency(0); setMockCheckoutLatency(0); setMockPickupLatency(0); setMockMenuLatency(0); setMockRestaurantLatency(0); localStorage.clear(); sessionStorage.clear(); signIn() })
 
   it('TEST 1 — success: READY → pay → provider success → verifying (mock) → verified → order-confirmation handoff; one attempt only', async () => {
     const user = userEvent.setup()
@@ -76,8 +77,9 @@ describe('Payment experience (web)', () => {
     expect(screen.getByText(/Razorpay \(development sandbox\)/)).toBeInTheDocument()
     await user.click(payBtn())
     expect(await screen.findByText(/payment confirmed/i, {}, { timeout: 4000 })).toBeInTheDocument()
-    await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent(/order-confirmation\/pending-pay_dev_/), { timeout: 4000 })
-    expect(screen.getByTestId('pay-handoff')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent(/order-confirmation\/FOTG-/), { timeout: 4000 })
+    expect(await screen.findByTestId('oc-number', {}, { timeout: 4000 })).toHaveTextContent(/FOTG-/)
+    expect(JSON.parse(sessionStorage.getItem('fotg.orders.v1')!)).toHaveLength(1)
     const list = statusOf(req.idempotencyKey)
     expect(list).toHaveLength(1)
     expect(list[0].status).toBe('VERIFIED')
@@ -216,8 +218,9 @@ describe('Payment experience (web)', () => {
     await repo.transition(a.publicId, 'VERIFIED')
     sessionStorage.setItem('fotg.payment.current', a.publicId)
     mount()
-    await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent(`pending-${a.publicId}`), { timeout: 4000 })
+    await waitFor(() => expect(screen.getByTestId('loc')).toHaveTextContent(/order-confirmation\/FOTG-/), { timeout: 4000 })
     expect(statusOf(req.idempotencyKey)).toHaveLength(1)
+    const orders = JSON.parse(sessionStorage.getItem('fotg.orders.v1')!); expect(orders).toHaveLength(1); expect(orders[0].paymentAttemptId).toBe(a.publicId)
   })
 
   it('checkout changed: a new CheckoutRequest supersedes the old attempt', async () => {

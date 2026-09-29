@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import { useCart } from '../cart/CartContext'
+import { useJourney } from '../journey/JourneyContext'
+import { orderRepositories } from '../order/useOrderConfirmation'
+import { usePickup } from '../pickup/PickupContext'
+import { settingsFor } from '../pickup/mock/mockPickup'
 import { useCheckout } from '../checkout/CheckoutContext'
 import { formatLocalTime, formatMoney, zoneLabel } from '../i18n/format'
 import { formatLocalDate } from '../pickup/time'
@@ -33,6 +37,8 @@ export default function PaymentPage() {
   const co = useCheckout()
   const pay = usePayment()
   const cart = useCart()
+  const journey = useJourney()
+  const pickup = usePickup()
   const navigate = useNavigate()
   const { locale } = useLocale()
   const req = co.request
@@ -56,13 +62,34 @@ export default function PaymentPage() {
   // VERIFIED → brief confirmation, then hand off to the order-confirmation stage (Module 13 builds that page).
   const attemptId = pay.attempt?.publicId
   useEffect(() => {
-    if (pay.status !== 'VERIFIED' || !attemptId || handoff.current) return
+    if (pay.status !== 'VERIFIED' || !attemptId || !pay.attempt || !restaurant || !req || handoff.current) return
     handoff.current = true
-    const tm = setTimeout(() => navigate(`/order-confirmation/pending-${attemptId}`, { replace: true }), 1400)
-    return () => clearTimeout(tm)
-  }, [pay.status, attemptId, navigate])
+    const a = pay.attempt; const r = restaurant; const c = cart.cart; const rq = req
+    let on = true
+    ;(async () => {
+      // Module 13: the (development) order is created once per payment attempt — a refresh or repeated handoff returns the same order.
+      const settings = settingsFor(r)
+      const m = settings.methods.find((x) => x.enabled) ?? settings.methods[0]
+      const order = await orderRepositories.orders.createFromPayment({
+        paymentAttemptId: a.publicId, checkoutReference: a.checkoutReference, customerId: a.customerId,
+        restaurant: { id: r.id, slug: r.slug, name: r.name, formattedAddress: r.address.formatted, countryCode: r.countryCode, timezone: r.timezone, lat: r.lat ?? null, lng: r.lng ?? null, contact: null, pickupInstructions: settings.instructions ?? null, pickupLocation: m?.label ?? null },
+        items: (c?.items ?? []).map((i) => ({ lineId: i.id, menuItemId: i.menuItemId, itemName: i.itemName, image: i.image, variants: i.selectedVariants.map((v) => ({ groupName: v.groupName, optionName: v.optionName, priceAdjustmentMinor: v.priceAdjustmentMinor })), modifiers: i.selectedModifiers.map((v) => ({ groupName: v.groupName, optionName: v.optionName, priceAdjustmentMinor: v.priceAdjustmentMinor })), specialInstructions: i.specialInstructions, quantity: i.quantity, unitPriceMinor: i.unitPriceMinor, lineTotalMinor: i.lineTotalMinor })),
+        pricing: { currency: rq.currency, subtotalMinor: co.summary?.subtotalMinor ?? (c?.items ?? []).reduce((s, i) => s + i.lineTotalMinor, 0), discountMinor: co.summary?.discountMinor ?? 0, promoCode: rq.promoCode, taxes: co.summary?.taxes.map((l) => ({ id: l.id, label: l.label, amountMinor: l.amountMinor })) ?? [], fees: co.summary?.fees.map((l) => ({ id: l.id, label: l.label, amountMinor: l.amountMinor })) ?? [], totalMinor: rq.displayedTotalMinor },
+        payment: { status: 'PAID', methodType: a.methodType, methodLabel: pay.method?.label ?? a.methodId, providerDisplayName: pay.provider?.displayName ?? a.provider, reference: a.publicId, paidAmountMinor: a.amountMinor, currency: a.currency, maskedDetails: null },
+        pickup: { mode: rq.pickupSelection.mode, requestedAt: rq.pickupSelection.requestedAt, estimatedReadyTime: rq.pickupSelection.estimatedReadyTime, restaurantTimezone: rq.pickupSelection.restaurantTimezone, methodType: m?.type ?? 'counter', methodLabel: m?.label ?? 'Counter pickup', instructions: m?.instructions ?? null },
+        journey: journey.journey ? { journeyId: journey.journey.id, originName: journey.journey.origin.name, destinationName: journey.journey.destination.name } : null,
+        orderNote: rq.orderNote,
+      })
+      await new Promise((r) => setTimeout(r, 1200)) // brief "Payment confirmed. Preparing your order…" transition
+      if (!on) return
+      // The checkout is consumed: clear the cart, the pickup selection and the request so nothing can re-enter payment.
+      navigate(`/order-confirmation/${order.orderNumber}`, { replace: true })
+      cart.clearCart(); pickup.clear(); co.clearRequest(); pay.reset()
+    })().catch(() => { if (on) navigate(`/order-confirmation/pending-${attemptId}`, { replace: true }) })
+    return () => { on = false }
+  }, [pay.status, attemptId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!req) return <Navigate to="/checkout" replace />
+  if (!req) return handoff.current ? null : <Navigate to="/checkout" replace />
   const tz = req.pickupSelection.restaurantTimezone
   const money = (m: number) => formatMoney(m, req.currency, locale)
   const itemCount = cart.cart?.items.reduce((a, i) => a + i.quantity, 0) ?? 0

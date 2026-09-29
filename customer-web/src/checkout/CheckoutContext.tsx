@@ -36,6 +36,8 @@ type CheckoutApi = {
   setPaymentMethod: (id: string) => void
   setTermsAccepted: (v: boolean) => void
   continueToPayment: () => Promise<CheckoutRequest | null>
+  /** Called once the order exists — a consumed request must never re-enter payment. */
+  clearRequest: () => void
   acceptPriceChange: (itemId: string, newUnitMinor: number) => void
 }
 
@@ -162,7 +164,8 @@ export function CheckoutProvider({ children, promotions = defaultPromos, payment
     return req
   }, [prepare, connectivity, auth.user, c, pickup, summary, termsAccepted, paymentMethodId, restaurant, promo, cart.note])
 
-  const api = useMemo<CheckoutApi>(() => ({ status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setPaymentMethod: setPaymentMethodId, setTermsAccepted, continueToPayment, acceptPriceChange }), [status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setTermsAccepted, continueToPayment, acceptPriceChange])
+  const clearRequest = useCallback(() => { setRequest(null); setStatus('INITIALIZING'); try { sessionStorage.removeItem(REQUEST_KEY); sessionStorage.removeItem(TERMS_KEY) } catch { /* ignore */ } }, [])
+  const api = useMemo<CheckoutApi>(() => ({ status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setPaymentMethod: setPaymentMethodId, setTermsAccepted, continueToPayment, clearRequest, acceptPriceChange }), [status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setTermsAccepted, continueToPayment, acceptPriceChange, clearRequest])
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }
 

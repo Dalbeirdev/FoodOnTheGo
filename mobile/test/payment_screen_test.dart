@@ -5,7 +5,7 @@ import 'package:foodonthego/discovery/discovery_repository.dart';
 import 'package:foodonthego/journey/journey_repositories.dart';
 import 'package:foodonthego/menu/menu_repository.dart';
 import 'package:foodonthego/pickup/pickup_repository.dart';
-import 'package:foodonthego/screens/order_screens.dart';
+import 'package:foodonthego/screens/order_confirmation_screen.dart';
 import 'package:foodonthego/screens/payment_screen.dart';
 import 'package:foodonthego/state/account_state.dart' hide MockPaymentMethodRepository;
 import 'package:foodonthego/state/app_state.dart';
@@ -14,6 +14,7 @@ import 'package:foodonthego/state/cart_state.dart' hide PromoStatus, PromoState;
 import 'package:foodonthego/state/checkout_state.dart';
 import 'package:foodonthego/state/discovery_state.dart';
 import 'package:foodonthego/state/journey_state.dart';
+import 'package:foodonthego/state/order_state.dart';
 import 'package:foodonthego/state/payment_state.dart';
 import 'package:foodonthego/state/pickup_state.dart';
 import 'package:go_router/go_router.dart';
@@ -23,12 +24,12 @@ import 'package:provider/provider.dart';
 void main() {
   final now = DateTime.now().toUtc();
   AddItemInput burger() => const AddItemInput(menuItemId: 'classic-burger', itemSlug: 'classic-burger', itemName: 'Classic Burger', image: '', basePriceMinor: 25000, currency: 'INR', restaurantId: 'burger-hub', restaurantSlug: 'burger-hub', restaurantName: 'Burger Hub', restaurantCurrency: 'INR', quantity: 2, unitPriceMinor: 25000);
-  CheckoutRequest req() => CheckoutRequest(idempotencyKey: 'ck-w1', customerId: 'u1', cartId: 'cart-1', restaurantId: 'burger-hub', pickupSelection: PickupSelection(mode: PickupMode.asap, requestedAt: now.add(const Duration(minutes: 20)), restaurantTimezone: 'Asia/Kolkata', estimatedReadyTime: now.add(const Duration(minutes: 20)), cartId: 'cart-1', restaurantId: 'burger-hub'), currency: 'INR', orderNote: '', termsAccepted: true, termsVersion: 'draft-2026-09', privacyVersion: 'draft-2026-09', acceptedAt: now, paymentMethodId: 'upi', displayedTotalMinor: 50000, createdAt: now);
+  CheckoutRequest req() => CheckoutRequest(idempotencyKey: 'ck-w1', customerId: 'cust-rahul', cartId: 'cart-1', restaurantId: 'burger-hub', pickupSelection: PickupSelection(mode: PickupMode.asap, requestedAt: now.add(const Duration(minutes: 20)), restaurantTimezone: 'Asia/Kolkata', estimatedReadyTime: now.add(const Duration(minutes: 20)), cartId: 'cart-1', restaurantId: 'burger-hub'), currency: 'INR', orderNote: '', termsAccepted: true, termsVersion: 'draft-2026-09', privacyVersion: 'draft-2026-09', acceptedAt: now, paymentMethodId: 'upi', displayedTotalMinor: 50000, createdAt: now);
 
-  Widget app(CartState cart, CheckoutState co, PaymentState pay, {String? mock}) => MultiProvider(
+  Widget app(CartState cart, CheckoutState co, PaymentState pay, {String? mock, AuthState? auth}) => MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => HealthState()),
-          ChangeNotifierProvider(create: (_) => AuthState(repository: MockAuthRepository(store: MemoryKeyValueStore(), latency: Duration.zero))),
+          ChangeNotifierProvider.value(value: auth ?? AuthState(repository: MockAuthRepository(store: MemoryKeyValueStore(), latency: Duration.zero))),
           ChangeNotifierProvider(create: (_) => AccountState(repositories: AccountRepositories.mock(MockAccountStore(store: MemoryKeyValueStore(), latency: Duration.zero)))),
           ChangeNotifierProvider(create: (_) => JourneyState(repositories: JourneyRepositories.mock(MockJourneyStore(store: MemoryKeyValueStore(), latency: Duration.zero)))),
           ChangeNotifierProvider(create: (_) => DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero))),
@@ -37,6 +38,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => PickupState(repository: MockPickupRepository(latency: Duration.zero), store: MemoryKeyValueStore())),
           ChangeNotifierProvider.value(value: co),
           ChangeNotifierProvider.value(value: pay),
+          ChangeNotifierProvider(create: (_) => OrderState(store: MemoryKeyValueStore())),
         ],
         child: MaterialApp.router(routerConfig: GoRouter(initialLocation: '/payment', routes: [
           GoRoute(path: '/payment', builder: (_, _) => PaymentScreen(mockOutcome: mock, restaurantRepository: MockRestaurantRepository(latency: Duration.zero))),
@@ -56,10 +58,12 @@ void main() {
     return (cart, co, pay, resolver);
   }
 
-  testWidgets('TEST 1 — summary, method, Pay button; success → verified → handoff card (no order claims)', (t) async {
+  testWidgets('TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation', (t) async {
     tall(t);
     final (cart, co, pay, _) = await states();
-    await t.pumpWidget(app(cart, co, pay, mock: 'success')); await t.pumpAndSettle();
+    final auth = AuthState(repository: MockAuthRepository(store: MemoryKeyValueStore(), latency: Duration.zero));
+    await t.runAsync(() async { final otp = await auth.requestOtp('+919876543210'); await auth.verifyOtp(otp.devOtp!); });
+    await t.pumpWidget(app(cart, co, pay, mock: 'success', auth: auth)); await t.pumpAndSettle();
     expect(find.text('Payment summary'), findsOneWidget);
     expect(find.textContaining('Burger Hub'), findsWidgets);
     expect(find.textContaining('₹500.00'), findsWidgets);
@@ -70,10 +74,10 @@ void main() {
     await t.tap(find.textContaining('Pay ₹500.00')); await t.pump();
     await t.pumpAndSettle();
     expect(find.text('Payment confirmed'), findsWidgets);
-    await t.pump(const Duration(milliseconds: 1600)); await t.pumpAndSettle();
-    expect(find.textContaining('Order creation and the confirmation page arrive with Module 13'), findsOneWidget);
-    expect(find.textContaining('Payment reference'), findsOneWidget);
-    expect(find.text('Order Confirmed'), findsNothing);
+    await t.pump(const Duration(milliseconds: 1600)); await t.pumpAndSettle(); await t.pump(const Duration(milliseconds: 500)); await t.pumpAndSettle();
+    expect(find.text('Order confirmed'), findsWidgets); // Module 13 confirmation
+    expect(find.textContaining('FOTG-'), findsWidgets);
+    expect(find.text('Pickup code'), findsOneWidget);
     expect(await pay.repo.listForCheckout('ck-w1'), hasLength(1));
   });
 

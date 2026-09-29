@@ -1,221 +1,250 @@
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useParams } from 'react-router-dom'
+import QRCode from 'qrcode'
 import Header from '../components/Header'
-import { ArrowRightIcon, ChevronRightIcon, ClockIcon, PinIcon, StarIcon } from '../components/Icons'
-import { useCart } from '../cart/CartContext'
-import { useOrders, type Order } from '../orders/OrdersContext'
-import { MENU, inr } from '../data/menu'
-import { RESTAURANTS } from './RestaurantsPage'
+import { useAuth } from '../auth/AuthContext'
+import { formatLocalTime, formatMoney, zoneLabel } from '../i18n/format'
 import { t, useLocale } from '../i18n/strings'
+import { formatLocalDate } from '../pickup/time'
+import { useOrderConfirmation, type OrderConfirmationDeps } from '../order/useOrderConfirmation'
+import type { Order, OrderItemSnapshot, OrderPricing, PickupVerification, Receipt } from '../order/repositories'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
 
+/**
+ * Order confirmation (Module 13). Canonical route /order-confirmation/:orderNumber (public reference, never an internal id).
+ * Everything shown comes from the order snapshot. Order status and payment status stay separate. The pickup code and QR
+ * token are opaque development values — their presence proves nothing; the server validates pickup later (CF-160).
+ */
 type P = { size?: number }
-const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
-const CheckIcon = ({ size = 22 }: P) => (<svg {...stroke(size)}><path d="m5 12 4 4L19 7" /></svg>)
-const ChefIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M7 11a4 4 0 0 1 1-7.9A4.5 4.5 0 0 1 16 3a4 4 0 0 1 1 7.9V19H7z" /><path d="M7 15h10" /></svg>)
-const BagIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M6 8h12l1 12H5L6 8Z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>)
-const PhoneIcon = ({ size = 22 }: P) => (<svg {...stroke(size)}><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" /></svg>)
-const DocIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4M9 12h6M9 16h6" /></svg>)
-const HeadsetIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M4 13v-2a8 8 0 0 1 16 0v2" /><rect x="3" y="13" width="4" height="6" rx="1.5" /><rect x="17" y="13" width="4" height="6" rx="1.5" /><path d="M19 19a3 3 0 0 1-3 2h-2" /></svg>)
-const CardIcon = ({ size = 22 }: P) => (<svg {...stroke(size)}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h4" /></svg>)
-const PlusIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="M12 5v14M5 12h14" /></svg>)
+const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true })
+const CheckIcon = ({ size = 26 }: P) => (<svg {...stroke(size)}><path d="m5 12 4 4L19 7" /></svg>)
+const ClockIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
+const PinIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></svg>)
+const WarnIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>)
+const QrIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 14h3v3h-3zM19 14h2M14 19h2M19 19h2" /></svg>)
 
-const STEP_INDEX: Record<Order['status'], number> = { placed: 0, confirmed: 1, preparing: 1, ready: 2, picked_up: 3, cancelled: 0 }
-
-const fmtTime = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase()
-const fmtDate = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-
-const RESTAURANT_ADDRESS = 'Sector 62, Noida, Uttar Pradesh 201309'
-const RESTAURANT_PHONE = '+91 98765 43210'
-
-function Img({ src, fallback, alt = '' }: { src?: string; fallback?: string; alt?: string }) {
-  return (
-    <span className="oc-img">
-      {src && <img src={src} alt={alt} onError={(e) => { e.currentTarget.style.display = 'none' }} />}
-      <span aria-hidden="true">{fallback ?? '🍽️'}</span>
-    </span>
-  )
-}
-
-export default function OrderConfirmationPage() {
+export default function OrderConfirmationPage({ deps }: { deps?: OrderConfirmationDeps }) {
   const { orderNumber = '' } = useParams()
   const { locale } = useLocale()
-  const { getOrder } = useOrders()
-  const cart = useCart()
-  const order = getOrder(orderNumber)
+  const auth = useAuth()
+  const oc = useOrderConfirmation(orderNumber, deps)
+  const [showReceipt, setShowReceipt] = useState(false)
+  useEffect(() => { document.title = `${t('oc.title', undefined, locale)} · FoodOnTheGo` }, [locale])
+  if (oc.redirectTo) return <Navigate to={oc.redirectTo} replace />
 
-  // Module 12 handoff: a verified (development) payment arrives here as pending-<paymentReference>. Module 13 builds
-  // the real confirmation from the server-created order; until then this interim card makes no order claims.
-  if (orderNumber.startsWith('pending-')) {
-    const ref = orderNumber.slice('pending-'.length)
-    return (
-      <>
-        <Header />
-        <main id="main" className="oc oc--missing">
-          <div className="oc-card cart-card pay-handoff" data-testid="pay-handoff">
-            <div className="pay-handoff__icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L19 7" /></svg></div>
-            <h1>{t('pay.handoff.title', undefined, locale)}</h1>
-            <p>{t('pay.handoff.text', undefined, locale)}</p>
-            <p className="pay-ref"><b>{t('pay.handoff.reference', undefined, locale)}</b> {ref}</p>
-            <Link to="/" className="btn btn--primary">{t('pay.handoff.back', undefined, locale)}</Link>
-          </div>
-        </main>
-      </>
-    )
-  }
-
-  if (!order) {
-    return (
-      <>
-        <Header />
-        <main id="main" className="oc oc--missing">
-          <div className="oc-card">
-            <h1>Order not found</h1>
-            <p>We couldn't find order <b>#{orderNumber}</b> in this session.</p>
-            <Link to="/restaurants" className="btn btn--primary">Explore Restaurants</Link>
-          </div>
-        </main>
-      </>
-    )
-  }
-
-  const restaurant = RESTAURANTS.find((r) => r.id === order.restaurantId) ?? RESTAURANTS[0]
-  const step = STEP_INDEX[order.status]
-  const count = order.lines.reduce((a, l) => a + l.qty, 0)
-  const related = MENU.flatMap((s) => s.items).filter((i) => !order.lines.some((l) => l.itemId === i.id)).slice(0, 4)
-
-  const STEPS = [
-    { icon: CheckIcon, label: 'Order Placed', sub: fmtTime(order.placedAt) },
-    { icon: ChefIcon, label: 'Being Prepared', sub: 'Estimated ready in\n15–20 mins' },
-    { icon: BagIcon, label: 'Ready for Pickup', sub: '' },
-    { icon: CheckIcon, label: 'Picked Up', sub: '' },
-  ]
-
+  const o = oc.order
   return (
     <>
       <Header />
-      <main id="main" className="oc">
-        <section className="oc-hero">
-          <div className="oc-hero__bg" aria-hidden="true">
-            <img src="/images/hero-cart.jpg" alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-            <div className="oc-hero__fade" />
+      <main id="main" className="cart ocp">
+        <div className="cart__grid cart__grid--single">
+          <div className="cart__main">
+            {oc.status === 'LOADING' && <Loading locale={locale} />}
+            {oc.status === 'ORDER_NOT_FOUND' && <StateCard tone="warn" title={t('oc.notFound.title', undefined, locale)} text={t('oc.notFound.text', { ref: orderNumber }, locale)} actions={[['/my-orders', t('oc.action.myOrders', undefined, locale), 'outline'], ['/restaurants', t('oc.action.browse', undefined, locale), 'primary'], ['/help', t('oc.action.help', undefined, locale), 'outline']]} />}
+            {oc.status === 'FAILED_TO_LOAD' && <StateCard tone="error" title={t('oc.failed.title', undefined, locale)} text={t('oc.failed.text', undefined, locale)} actions={[['/help', t('oc.action.help', undefined, locale), 'outline']]} retry={oc.reload} retryLabel={t('oc.action.retry', undefined, locale)} />}
+            {oc.status === 'PAYMENT_PENDING' && <StateCard tone="warn" title={t('oc.pending.title', undefined, locale)} text={t('oc.pending.text', undefined, locale)} note={t('oc.pending.note', undefined, locale)} actions={[['/payment', t('oc.action.checkStatus', undefined, locale), 'primary'], ['/help', t('oc.action.help', undefined, locale), 'outline']]} order={o} locale={locale} />}
+            {oc.status === 'PAYMENT_FAILED' && <StateCard tone="error" title={t('oc.paymentFailed.title', undefined, locale)} text={t('oc.paymentFailed.text', undefined, locale)} actions={[['/payment', t('oc.action.backToPayment', undefined, locale), 'primary'], ['/checkout', t('oc.action.backToCheckout', undefined, locale), 'outline']]} />}
+            {oc.status === 'CANCELLED' && o && <StateCard tone="muted" title={t('oc.cancelled.title', undefined, locale)} text={t('oc.cancelled.text', { ref: o.orderNumber }, locale)} note={t('oc.cancelled.note', undefined, locale)} actions={[['/help', t('oc.action.help', undefined, locale), 'primary'], ['/refund-policy', t('oc.action.cancellationPolicy', undefined, locale), 'outline'], ['/restaurants', t('oc.action.browse', undefined, locale), 'outline']]} order={o} locale={locale} />}
+            {oc.status === 'CONFIRMED' && o && <Confirmed order={o} verification={oc.verification} receipt={oc.receipt} locale={locale} customerName={auth.user?.name ?? null} showReceipt={showReceipt} setShowReceipt={setShowReceipt} />}
           </div>
-          <div className="oc-hero__inner">
-            <p className="oc-eyebrow">Order confirmed</p>
-            <h1>Thank You!</h1>
-            <p className="oc-hero__lead">Your order has been placed successfully.</p>
-          </div>
-        </section>
-
-        <div className="oc__grid">
-          <div className="oc__main">
-            <section className="oc-card">
-              <div className="oc-confirm">
-                <span className="oc-confirm__tick"><CheckIcon size={44} /></span>
-                <div className="oc-confirm__text">
-                  <h2>Order Confirmed!</h2>
-                  <p>Your order has been placed and is being prepared.<br />We will notify you when it's ready for pickup.</p>
-                </div>
-                <div className="oc-confirm__num">
-                  <span>Order Number</span>
-                  <b>#{order.number}</b>
-                  <small>Placed on {fmtDate(order.placedAt)}, {fmtTime(order.placedAt)}</small>
-                </div>
-              </div>
-
-              <ol className="oc-steps" aria-label="Order progress">
-                {STEPS.map(({ icon: Icon, label, sub }, i) => (
-                  <li key={label} className={i < step ? 'is-done' : i === step ? 'is-on' : ''} aria-current={i === step ? 'step' : undefined}>
-                    <span className="oc-steps__icon"><Icon /></span>
-                    <b>{label}</b>
-                    {sub && <small>{sub.split('\n').map((s) => <span key={s}>{s}</span>)}</small>}
-                  </li>
-                ))}
-              </ol>
-
-              <div className="oc-facts">
-                <div>
-                  <span className="oc-facts__icon"><ClockIcon size={26} /></span>
-                  <span><small>Estimated Ready Time</small><b>{fmtTime(order.readyFrom)} – {fmtTime(order.readyTo)}</b><span>(15–20 minutes)</span></span>
-                </div>
-                <div>
-                  <span className="oc-facts__icon"><PinIcon size={26} /></span>
-                  <span><small>Pickup at</small><b>{restaurant.name}</b><span>{RESTAURANT_ADDRESS}</span><a href="#map" className="oc-link">View on Map <ArrowRightIcon size={14} /></a></span>
-                </div>
-                <div>
-                  <span className="oc-facts__icon"><PhoneIcon size={26} /></span>
-                  <span><small>Restaurant Phone</small><a href={`tel:${RESTAURANT_PHONE.replace(/\s/g, '')}`} className="oc-link oc-link--lg">{RESTAURANT_PHONE}</a></span>
-                </div>
-              </div>
-
-              <div className="oc-actions">
-                <Link to={`/order-tracking/${order.number}`} className="btn btn--primary"><PinIcon size={18} /> Track Order</Link>
-                <Link to={`/order/${order.number}`} className="btn btn--outline"><DocIcon /> View Order Details</Link>
-                <Link to="/help" className="btn btn--outline"><HeadsetIcon /> Need Help?</Link>
-              </div>
-            </section>
-
-            <section className="oc-related">
-              <div className="oc-related__head"><h2>You May Also Like</h2><Link to={`/restaurants/${restaurant.id}`}>See All</Link></div>
-              <ul>
-                {related.map((r) => (
-                  <li key={r.id}>
-                    <Link to={`/restaurants/${restaurant.id}/item/${r.id}`}><Img src={r.image} fallback={r.fallback} alt={r.name} /></Link>
-                    <div><Link to={`/restaurants/${restaurant.id}/item/${r.id}`}><b>{r.name}</b></Link><span>{inr(r.price)}</span></div>
-                    <button type="button" aria-label={`Add ${r.name}`} onClick={() => cart.add({ key: `${restaurant.id}:${r.id}`, itemId: r.id, restaurantId: restaurant.id, name: r.name, unitPrice: r.price, image: r.image, fallback: r.fallback })}><PlusIcon /></button>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
-
-          <aside className="oc__side">
-            <section className="oc-card">
-              <h2>Order Summary</h2>
-              <ul className="oc-lines">
-                {order.lines.map((l) => (
-                  <li key={l.key}>
-                    <Img src={l.image} fallback={l.fallback} />
-                    <span className="oc-lines__info"><b>{l.name}</b>{l.detail && <span>{l.detail.replace(/, /g, '  |  ')}</span>}</span>
-                    <span className="oc-lines__qty">{l.qty} ×</span>
-                    <b className="oc-lines__price">{inr(l.unitPrice)}</b>
-                  </li>
-                ))}
-              </ul>
-              <dl className="oc-sum">
-                <div><dt>Subtotal ({count} {count === 1 ? 'item' : 'items'})</dt><dd>{inr(order.subtotal)}</dd></div>
-                {order.discount > 0 && <div className="oc-sum__disc"><dt>Discount</dt><dd>−{inr(order.discount)}</dd></div>}
-                <div><dt>Taxes (GST 5%)</dt><dd>{inr(order.tax)}</dd></div>
-                <div className="oc-sum__total"><dt>Total Paid</dt><dd>{inr(order.total)}</dd></div>
-              </dl>
-              <div className="oc-paid">
-                <span className="oc-paid__icon"><CardIcon /></span>
-                <span><b>Paid via {order.payment.method}</b>**** **** **** {order.payment.last4}</span>
-                <span className="oc-paid__status"><CheckIcon size={16} /> Payment Successful</span>
-              </div>
-            </section>
-
-            <section className="oc-card">
-              <h2>Restaurant Information</h2>
-              <Link to={`/restaurants/${restaurant.id}`} className="oc-rest">
-                <Img src={restaurant.image} fallback={restaurant.fallback} />
-                <span className="oc-rest__info">
-                  <b>{restaurant.name}</b>
-                  <span className="oc-rest__rating"><StarIcon size={14} /> {restaurant.rating.toFixed(1)} ({restaurant.reviewCount} reviews)</span>
-                  <span>{restaurant.cuisines.join(' • ')}</span>
-                </span>
-                <ChevronRightIcon />
-              </Link>
-              <ul className="oc-rest__facts">
-                <li><PinIcon size={20} /> {RESTAURANT_ADDRESS}</li>
-                <li><PhoneIcon size={20} /> {RESTAURANT_PHONE}</li>
-                <li><ClockIcon size={20} /> Open Today: 8:00 AM – 11:00 PM</li>
-              </ul>
-            </section>
-          </aside>
         </div>
       </main>
     </>
+  )
+}
+
+function Loading({ locale }: { locale: string }) {
+  return (
+    <section className="cart-card ocp-skeleton" role="status" aria-live="polite" aria-busy="true">
+      <p className="cart-muted">{t('oc.loading', undefined, locale)}</p>
+      <div className="ocp-skel ocp-skel--title" /><div className="ocp-skel" /><div className="ocp-skel ocp-skel--short" /><div className="ocp-skel ocp-skel--block" />
+    </section>
+  )
+}
+
+type Action = [string, string, 'primary' | 'outline']
+function StateCard({ tone, title, text, note, actions, retry, retryLabel, order, locale }: { tone: 'warn' | 'error' | 'muted'; title: string; text: string; note?: string; actions: Action[]; retry?: () => void; retryLabel?: string; order?: Order | null; locale?: string }) {
+  return (
+    <section className={`cart-card ocp-state ocp-state--${tone}`} role={tone === 'error' ? 'alert' : 'status'} aria-labelledby="ocp-state-title">
+      <h1 id="ocp-state-title" className="ocp-state__title"><WarnIcon size={22} /> {title}</h1>
+      <p>{text}</p>
+      {note && <p className="cart-notice cart-notice--warn">{note}</p>}
+      {order && locale && <dl className="co-dl ocp-mini"><div><dt>{t('oc.orderNumber', undefined, locale)}</dt><dd><b>{order.orderNumber}</b></dd></div><div><dt>{t('oc.orderStatus', undefined, locale)}</dt><dd>{t(`oc.status.${order.orderStatus}`, undefined, locale)}</dd></div><div><dt>{t('oc.paymentStatus', undefined, locale)}</dt><dd>{t(`oc.pay.${order.paymentStatus}`, undefined, locale)}</dd></div></dl>}
+      <div className="pay-actions">
+        {retry && <button type="button" className="btn btn--primary" onClick={retry}>{retryLabel}</button>}
+        {actions.map(([to, label, kind]) => <Link key={to + label} to={to} className={`btn btn--${kind}`}>{label}</Link>)}
+      </div>
+    </section>
+  )
+}
+
+function Confirmed({ order: o, verification, receipt, locale, customerName, showReceipt, setShowReceipt }: { order: Order; verification: PickupVerification | null; receipt: Receipt | null; locale: string; customerName: string | null; showReceipt: boolean; setShowReceipt: (v: boolean) => void }) {
+  const tz = o.pickup.restaurantTimezone
+  const money = (m: number) => formatMoney(m, o.pricing.currency, locale)
+  const count = o.items.reduce((a, i) => a + i.quantity, 0)
+  const mapsHref = o.restaurant.lat != null && o.restaurant.lng != null ? `https://www.google.com/maps/search/?api=1&query=${o.restaurant.lat},${o.restaurant.lng}` : null
+  return (
+    <>
+      <section className="cart-card ocp-hero" aria-labelledby="ocp-title" aria-live="polite">
+        <div className="ocp-hero__tick" aria-hidden="true"><CheckIcon size={34} /></div>
+        <p className="cart-eyebrow">{t('oc.eyebrow', undefined, locale)}</p>
+        <h1 id="ocp-title">{t('oc.confirmed.title', undefined, locale)}</h1>
+        <p className="ocp-hero__lead">{t('oc.confirmed.lead', { restaurant: o.restaurant.name }, locale)}</p>
+        <dl className="ocp-facts">
+          <div><dt>{t('oc.orderNumber', undefined, locale)}</dt><dd><b className="ocp-number" data-testid="oc-number">{o.orderNumber}</b></dd></div>
+          <div><dt>{t('oc.orderStatus', undefined, locale)}</dt><dd><span className="co-badge co-badge--ok" data-testid="oc-order-status">{t(`oc.status.${o.orderStatus}`, undefined, locale)}</span></dd></div>
+          <div><dt>{t('oc.paymentStatus', undefined, locale)}</dt><dd><span className="co-badge co-badge--ok" data-testid="oc-payment-status">{t(`oc.pay.${o.paymentStatus}`, undefined, locale)}</span></dd></div>
+          <div><dt>{t('oc.total', undefined, locale)}</dt><dd><b data-testid="oc-total">{money(o.pricing.totalMinor)}</b> <span className="co-badge co-badge--muted">{o.pricing.currency}</span></dd></div>
+        </dl>
+        <p className="cart-mock">{t('oc.mock', undefined, locale)}</p>
+        <div className="pay-actions ocp-primary">
+          <Link to={`/order-tracking/${o.orderNumber}`} className="btn btn--primary cart-proceed" data-testid="oc-track">{t('oc.action.track', undefined, locale)}</Link>
+          <Link to={`/order/${o.orderNumber}`} className="btn btn--outline" data-testid="oc-details">{t('oc.action.details', undefined, locale)}</Link>
+        </div>
+      </section>
+
+      <PickupCode verification={verification} locale={locale} />
+
+      <section className="cart-card" aria-labelledby="ocp-pickup">
+        <h2 id="ocp-pickup"><ClockIcon /> {t('oc.pickup', undefined, locale)}</h2>
+        <dl className="co-dl">
+          <div><dt>{t('pickup.date', undefined, locale)}</dt><dd>{formatLocalDate(o.pickup.requestedAt, tz, locale)}</dd></div>
+          <div><dt>{t('pickup.time', undefined, locale)}</dt><dd data-testid="oc-pickup-time">{o.pickup.mode === 'asap' ? `${t('pickup.asap', undefined, locale)} · ~` : ''}{formatLocalTime(o.pickup.requestedAt, tz, locale)} {zoneLabel(o.pickup.requestedAt, tz, locale)}<small>{t('oc.pickup.zone', { zone: tz }, locale)}</small></dd></div>
+          <div><dt>{t('oc.pickup.ready', undefined, locale)}</dt><dd>~{formatLocalTime(o.pickup.estimatedReadyTime, tz, locale)} {zoneLabel(o.pickup.estimatedReadyTime, tz, locale)}</dd></div>
+          <div><dt>{t('oc.pickup.method', undefined, locale)}</dt><dd>{o.pickup.methodLabel}{o.restaurant.pickupLocation && <small>{o.restaurant.pickupLocation}</small>}</dd></div>
+          {(o.pickup.instructions || o.restaurant.pickupInstructions) && <div><dt>{t('oc.pickup.instructions', undefined, locale)}</dt><dd>{o.pickup.instructions ?? o.restaurant.pickupInstructions}</dd></div>}
+        </dl>
+        {o.journey && <p className="cart-notice cart-notice--info ocp-journey"><PinIcon size={16} /> {t('oc.journey', { origin: o.journey.originName, destination: o.journey.destinationName }, locale)} <Link to="/plan-journey" className="cart-link">{t('oc.action.continueJourney', undefined, locale)}</Link></p>}
+      </section>
+
+      <section className="cart-card" aria-labelledby="ocp-rest">
+        <h2 id="ocp-rest"><PinIcon /> {t('oc.restaurant', undefined, locale)}</h2>
+        <p className="co-rest__name">{o.restaurant.name}</p>
+        <p className="cart-rest-row__addr ocp-addr">{o.restaurant.formattedAddress}</p>
+        <p className="cart-muted">{o.restaurant.contact ?? t('oc.restaurant.contactNone', undefined, locale)}</p>
+        <div className="pay-actions">
+          {mapsHref && <a className="btn btn--outline" href={mapsHref} target="_blank" rel="noopener noreferrer">{t('oc.action.directions', undefined, locale)}</a>}
+          <Link to={`/restaurants/${o.restaurant.slug}`} className="btn btn--outline">{t('oc.action.viewRestaurant', undefined, locale)}</Link>
+        </div>
+        <p className="cart-muted">{t('oc.restaurant.directionsNote', undefined, locale)}</p>
+      </section>
+
+      <section className="cart-card" aria-labelledby="ocp-items">
+        <h2 id="ocp-items">{t('oc.items', { count }, locale)}</h2>
+        <Items items={o.items} money={money} />
+        {o.orderNote && <p className="cart-muted">{t('oc.note', { note: o.orderNote }, locale)}</p>}
+        <Pricing pricing={o.pricing} money={money} locale={locale} />
+      </section>
+
+      <section className="cart-card" aria-labelledby="ocp-payment">
+        <h2 id="ocp-payment">{t('oc.payment', undefined, locale)}</h2>
+        <dl className="co-dl">
+          <div><dt>{t('oc.paymentStatus', undefined, locale)}</dt><dd>{t(`oc.pay.${o.payment.status}`, undefined, locale)}</dd></div>
+          <div><dt>{t('oc.payment.method', undefined, locale)}</dt><dd>{o.payment.methodLabel}<small>{t('pay.provider', { provider: o.payment.providerDisplayName }, locale)}{o.payment.maskedDetails ? ` · ${o.payment.maskedDetails}` : ''}</small></dd></div>
+          <div><dt>{t('oc.payment.reference', undefined, locale)}</dt><dd><code className="pay-ref">{o.payment.reference}</code></dd></div>
+          <div><dt>{t('oc.payment.paid', undefined, locale)}</dt><dd><b>{money(o.payment.paidAmountMinor)}</b></dd></div>
+        </dl>
+        <p className="cart-muted">{t('oc.payment.safe', undefined, locale)}</p>
+      </section>
+
+      <section className="cart-card" aria-labelledby="ocp-receipt">
+        <h2 id="ocp-receipt">{t('oc.receipt', undefined, locale)}</h2>
+        <p className="cart-muted">{t('oc.receipt.text', undefined, locale)}</p>
+        <div className="pay-actions">
+          <button type="button" className="btn btn--outline" aria-expanded={showReceipt} aria-controls="ocp-receipt-panel" onClick={() => setShowReceipt(!showReceipt)}>{showReceipt ? t('oc.receipt.hide', undefined, locale) : t('oc.receipt.view', undefined, locale)}</button>
+          <button type="button" className="btn btn--outline" disabled aria-describedby="ocp-receipt-pending">{t('oc.receipt.download', undefined, locale)}</button>
+          <button type="button" className="btn btn--outline" disabled aria-describedby="ocp-receipt-pending">{t('oc.receipt.email', undefined, locale)}</button>
+        </div>
+        <p id="ocp-receipt-pending" className="cart-muted">{t('oc.receipt.pending', undefined, locale)}</p>
+        {showReceipt && receipt && (
+          <div id="ocp-receipt-panel" className="ocp-receipt" data-testid="oc-receipt">
+            <p className="ocp-receipt__kind">{t('oc.receipt.kind', undefined, locale)}</p>
+            <dl className="co-dl">
+              <div><dt>{t('oc.orderNumber', undefined, locale)}</dt><dd>{receipt.orderNumber}</dd></div>
+              <div><dt>{t('oc.receipt.date', undefined, locale)}</dt><dd>{formatLocalDate(receipt.orderDate, tz, locale)} · {formatLocalTime(receipt.orderDate, tz, locale)} {zoneLabel(receipt.orderDate, tz, locale)}</dd></div>
+              <div><dt>{t('oc.restaurant', undefined, locale)}</dt><dd>{receipt.restaurantName}<small>{receipt.restaurantAddress}</small></dd></div>
+              {(receipt.customerName ?? customerName) && <div><dt>{t('oc.receipt.customer', undefined, locale)}</dt><dd>{receipt.customerName ?? customerName}</dd></div>}
+              <div><dt>{t('oc.payment.method', undefined, locale)}</dt><dd>{receipt.paymentMethodLabel} · <code className="pay-ref">{receipt.paymentReference}</code></dd></div>
+            </dl>
+            <Items items={receipt.items} money={money} />
+            <Pricing pricing={receipt.pricing} money={money} locale={locale} />
+            <p className="cart-muted">{t('oc.receipt.notInvoice', undefined, locale)}</p>
+          </div>
+        )}
+      </section>
+
+      <section className="cart-card" aria-labelledby="ocp-help">
+        <h2 id="ocp-help">{t('oc.help', undefined, locale)}</h2>
+        <p className="cart-muted">{t('oc.help.text', undefined, locale)}</p>
+        <div className="pay-actions">
+          <Link to="/help" className="btn btn--outline">{t('oc.action.help', undefined, locale)}</Link>
+          <Link to="/refund-policy" className="btn btn--outline">{t('oc.action.cancellationPolicy', undefined, locale)}</Link>
+          <Link to="/restaurants" className="btn btn--outline">{t('oc.action.browse', undefined, locale)}</Link>
+          <Link to="/" className="btn btn--outline">{t('oc.action.home', undefined, locale)}</Link>
+        </div>
+      </section>
+    </>
+  )
+}
+
+function PickupCode({ verification: pv, locale }: { verification: PickupVerification | null; locale: string }) {
+  const [qr, setQr] = useState<string | null>(null)
+  useEffect(() => {
+    let on = true
+    if (!pv) { setQr(null); return }
+    QRCode.toDataURL(pv.qrToken, { errorCorrectionLevel: 'M', margin: 1, width: 220, color: { dark: '#101827', light: '#ffffff' } }).then((u) => { if (on) setQr(u) }).catch(() => { if (on) setQr(null) })
+    return () => { on = false }
+  }, [pv])
+  if (!pv) return <section className="cart-card ocp-code" aria-labelledby="ocp-code-title"><h2 id="ocp-code-title"><QrIcon /> {t('oc.code', undefined, locale)}</h2><p className="cart-notice cart-notice--warn" role="status">{t('oc.code.unavailable', undefined, locale)}</p></section>
+  const spaced = pv.code.split('').join(' ')
+  return (
+    <section className="cart-card ocp-code" aria-labelledby="ocp-code-title">
+      <h2 id="ocp-code-title"><QrIcon /> {t('oc.code', undefined, locale)}</h2>
+      <p className="cart-muted">{t('oc.code.text', undefined, locale)}</p>
+      <div className="ocp-code__grid">
+        <div className="ocp-code__qr">
+          {qr ? <img src={qr} width={220} height={220} alt={t('oc.code.qrAlt', { code: spaced }, locale)} data-testid="oc-qr" /> : <div className="ocp-skel ocp-skel--qr" aria-hidden="true" />}
+        </div>
+        <div className="ocp-code__text">
+          <p className="ocp-code__label">{t('oc.code.label', undefined, locale)}</p>
+          <p className="ocp-code__value" data-testid="oc-code" aria-label={t('oc.code.aria', { code: spaced }, locale)}>{pv.code}</p>
+          <p className="cart-muted">{t(`oc.code.state.${pv.status}`, undefined, locale)}</p>
+        </div>
+      </div>
+      <p className="cart-muted ocp-code__note">{t('oc.code.note', undefined, locale)}</p>
+    </section>
+  )
+}
+
+function Items({ items, money }: { items: OrderItemSnapshot[]; money: (m: number) => string }) {
+  return (
+    <ul className="ocp-lines">
+      {items.map((i) => (
+        <li key={i.lineId} className="ocp-line">
+          <div className="ocp-line__info">
+            <b>{i.itemName} <span className="co-qty">× {i.quantity}</span></b>
+            {[...i.variants, ...i.modifiers].map((o, k) => <small key={k}>{o.groupName}: {o.optionName}{o.priceAdjustmentMinor ? ` (+${money(o.priceAdjustmentMinor)})` : ''}</small>)}
+            {i.specialInstructions && <small className="ocp-line__note">“{i.specialInstructions}”</small>}
+            <small>{money(i.unitPriceMinor)} × {i.quantity}</small>
+          </div>
+          <b className="ocp-line__total">{money(i.lineTotalMinor)}</b>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function Pricing({ pricing: p, money, locale }: { pricing: OrderPricing; money: (m: number) => string; locale: string }) {
+  return (
+    <dl className="cart-sum" data-testid="oc-pricing">
+      <div><dt>{t('cartpage.subtotal', undefined, locale)}</dt><dd>{money(p.subtotalMinor)}</dd></div>
+      {p.discountMinor > 0 && <div className="cart-sum__disc"><dt>{t('cartpage.discount', { code: p.promoCode ?? '' }, locale)}</dt><dd>−{money(p.discountMinor)}</dd></div>}
+      {p.taxes.map((l) => <div key={l.id}><dt>{l.label}</dt><dd>{money(l.amountMinor)}</dd></div>)}
+      {p.fees.map((l) => <div key={l.id}><dt>{l.label}</dt><dd>{money(l.amountMinor)}</dd></div>)}
+      <div className="cart-sum__total"><dt>{t('oc.total', undefined, locale)}</dt><dd>{money(p.totalMinor)}</dd></div>
+      {p.taxes.length === 0 && p.fees.length === 0 && <div className="cart-muted ocp-nofees"><dt>{t('oc.noFees', undefined, locale)}</dt><dd /></div>}
+    </dl>
   )
 }

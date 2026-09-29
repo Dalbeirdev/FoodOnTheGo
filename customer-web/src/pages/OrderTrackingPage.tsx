@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Header from '../components/Header'
+import { t, useLocale } from '../i18n/strings'
 import { ArrowRightIcon, ChevronRightIcon, ClockIcon, PinIcon, StarIcon } from '../components/Icons'
 import { useOrders, type Order } from '../orders/OrdersContext'
 import { inr } from '../data/menu'
@@ -40,6 +41,7 @@ function Img({ src, fallback, alt = '' }: { src?: string; fallback?: string; alt
 
 export default function OrderTrackingPage() {
   const { orderNumber = '' } = useParams()
+  const { locale } = useLocale()
   const { getOrder } = useOrders()
   const order = getOrder(orderNumber)
   const [notifyOpen, setNotifyOpen] = useState(false)
@@ -53,6 +55,21 @@ export default function OrderTrackingPage() {
     return () => document.removeEventListener('mousedown', close)
   }, [notifyOpen])
 
+  if (!order && orderNumber.startsWith('FOTG-')) {
+    // Module 13 interim: orders created by the new order domain are shown here by the next module; keep navigation correct.
+    return (
+      <>
+        <Header />
+        <main id="main" className="ot ot--missing">
+          <div className="ot-card" data-testid="tracking-interim">
+            <h1>{t('tracking.interim.title', undefined, locale)}</h1>
+            <p>{t('tracking.interim.text', { ref: orderNumber }, locale)}</p>
+            <Link to={`/order-confirmation/${orderNumber}`} className="btn btn--primary">{t('interim.backToConfirmation', undefined, locale)}</Link>
+          </div>
+        </main>
+      </>
+    )
+  }
   if (!order) {
     return (
       <>

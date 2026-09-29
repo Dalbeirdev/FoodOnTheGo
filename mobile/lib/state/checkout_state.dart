@@ -133,6 +133,8 @@ class CheckoutState extends ChangeNotifier {
     } finally { promoBusy = false; notifyListeners(); }
   }
   Future<void> removePromo({required CartState cart, DateTime? now}) async { promo = null; cart.removePromo(); final c = cart.cart; if (c != null) summary = await checkoutRepo.buildSummary(c, 0, (now ?? DateTime.now()).toUtc()); notifyListeners(); }
+  /// Called once the order exists — a consumed request must never re-enter payment.
+  void clearRequest() { request = null; status = CheckoutStatus.initializing; _store.write(requestKey, null).catchError((_) {}); notifyListeners(); }
   void setPaymentMethod(String id) { paymentMethodId = id; notifyListeners(); }
   void setTermsAccepted(bool v) { termsAccepted = v; _store.write(termsKey, v ? '1' : '0').catchError((_) {}); notifyListeners(); }
 
