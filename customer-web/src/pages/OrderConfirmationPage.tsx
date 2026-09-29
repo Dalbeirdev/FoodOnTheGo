@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import QRCode from 'qrcode'
 import Header from '../components/Header'
 import { useAuth } from '../auth/AuthContext'
 import { formatLocalTime, formatMoney, zoneLabel } from '../i18n/format'
@@ -8,6 +7,7 @@ import { t, useLocale } from '../i18n/strings'
 import { formatLocalDate } from '../pickup/time'
 import { useOrderConfirmation, type OrderConfirmationDeps } from '../order/useOrderConfirmation'
 import type { Order, OrderItemSnapshot, OrderPricing, PickupVerification, Receipt } from '../order/repositories'
+import { PickupCode } from '../order/PickupCodeCard'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
@@ -23,7 +23,6 @@ const CheckIcon = ({ size = 26 }: P) => (<svg {...stroke(size)}><path d="m5 12 4
 const ClockIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>)
 const PinIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.5" /></svg>)
 const WarnIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.9 2.5 18a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>)
-const QrIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 14h3v3h-3zM19 14h2M14 19h2M19 19h2" /></svg>)
 
 export default function OrderConfirmationPage({ deps }: { deps?: OrderConfirmationDeps }) {
   const { orderNumber = '' } = useParams()
@@ -186,35 +185,6 @@ function Confirmed({ order: o, verification, receipt, locale, customerName, show
         </div>
       </section>
     </>
-  )
-}
-
-function PickupCode({ verification: pv, locale }: { verification: PickupVerification | null; locale: string }) {
-  const [qr, setQr] = useState<string | null>(null)
-  useEffect(() => {
-    let on = true
-    if (!pv) { setQr(null); return }
-    QRCode.toDataURL(pv.qrToken, { errorCorrectionLevel: 'M', margin: 1, width: 220, color: { dark: '#101827', light: '#ffffff' } }).then((u) => { if (on) setQr(u) }).catch(() => { if (on) setQr(null) })
-    return () => { on = false }
-  }, [pv])
-  if (!pv) return <section className="cart-card ocp-code" aria-labelledby="ocp-code-title"><h2 id="ocp-code-title"><QrIcon /> {t('oc.code', undefined, locale)}</h2><p className="cart-notice cart-notice--warn" role="status">{t('oc.code.unavailable', undefined, locale)}</p></section>
-  const spaced = pv.code.split('').join(' ')
-  return (
-    <section className="cart-card ocp-code" aria-labelledby="ocp-code-title">
-      <h2 id="ocp-code-title"><QrIcon /> {t('oc.code', undefined, locale)}</h2>
-      <p className="cart-muted">{t('oc.code.text', undefined, locale)}</p>
-      <div className="ocp-code__grid">
-        <div className="ocp-code__qr">
-          {qr ? <img src={qr} width={220} height={220} alt={t('oc.code.qrAlt', { code: spaced }, locale)} data-testid="oc-qr" /> : <div className="ocp-skel ocp-skel--qr" aria-hidden="true" />}
-        </div>
-        <div className="ocp-code__text">
-          <p className="ocp-code__label">{t('oc.code.label', undefined, locale)}</p>
-          <p className="ocp-code__value" data-testid="oc-code" aria-label={t('oc.code.aria', { code: spaced }, locale)}>{pv.code}</p>
-          <p className="cart-muted">{t(`oc.code.state.${pv.status}`, undefined, locale)}</p>
-        </div>
-      </div>
-      <p className="cart-muted ocp-code__note">{t('oc.code.note', undefined, locale)}</p>
-    </section>
   )
 }
 

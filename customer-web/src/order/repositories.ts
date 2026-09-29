@@ -9,7 +9,7 @@
  *    Their visual presence never proves pickup — the server validates token, order, restaurant, status, validity, used state.
  *  - Reloading a confirmation never creates another order, payment or pickup code.
  */
-export type OrderStatus = 'PAYMENT_PENDING' | 'CONFIRMED' | 'ACCEPTED' | 'PREPARING' | 'READY_FOR_PICKUP' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED' | 'REJECTED' | 'REFUND_PENDING' | 'REFUNDED'
+export type OrderStatus = 'PAYMENT_PENDING' | 'CONFIRMED' | 'AWAITING_RESTAURANT_ACCEPTANCE' | 'ACCEPTED' | 'PREPARING' | 'READY_FOR_PICKUP' | 'PICKUP_VERIFICATION' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED' | 'REJECTED' | 'REFUND_PENDING' | 'REFUNDED'
 export type OrderPaymentStatus = 'PAYMENT_PENDING' | 'PAID' | 'FAILED' | 'REFUND_PENDING' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
 export type PickupVerificationStatus = 'NOT_READY' | 'READY' | 'VERIFICATION_AVAILABLE' | 'VERIFIED' | 'ALREADY_USED' | 'INVALID' | 'EXPIRED'
 
@@ -48,6 +48,8 @@ export type PickupSnapshot = {
   methodType: string
   methodLabel: string
   instructions: string | null
+  /** Journey-based arrival estimate (mock ETA service) — separate from the food-ready ETA. */
+  estimatedCustomerArrival?: string | null
 }
 export type PricingLine = { id: string; label: string; amountMinor: number }
 export type OrderPricing = { currency: string; subtotalMinor: number; discountMinor: number; promoCode: string | null; taxes: PricingLine[]; fees: PricingLine[]; totalMinor: number }
@@ -63,8 +65,25 @@ export type OrderPaymentSummary = {
   /** Approved masked details from the provider later ("Card ending in 4242"); never derived by us. */
   maskedDetails: string | null
 }
-export type JourneySnapshot = { journeyId: string; originName: string; destinationName: string } | null
-export type OrderEvent = { eventId: string; status: string; at: string; actor: 'customer' | 'system' | 'restaurant'; note?: string }
+export type JourneySnapshot = { journeyId: string; originName: string; destinationName: string; originLat?: number | null; originLng?: number | null } | null
+/** Structured, append-only order event (Module 14). `sequence` lets clients ignore duplicates and stale events. */
+export type OrderEventType = 'ORDER_CREATED' | 'PAYMENT_VERIFIED' | 'ORDER_CONFIRMED' | 'SENT_TO_RESTAURANT' | 'RESTAURANT_ACCEPTED' | 'RESTAURANT_REJECTED' | 'PREPARING' | 'DELAYED' | 'ETA_UPDATED' | 'READY_FOR_PICKUP' | 'PICKUP_VERIFICATION' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED' | 'REFUND_UPDATED'
+export type OrderEvent = {
+  eventId: string
+  /** Monotonic per order; the backend will version events the same way (CF-179). */
+  sequence: number
+  type: OrderEventType
+  /** Order status after this event (null when the event does not change it, e.g. ETA_UPDATED). */
+  status: OrderStatus | null
+  paymentStatus?: OrderPaymentStatus | null
+  at: string
+  actor: 'customer' | 'system' | 'restaurant'
+  /** Customer-safe reason key (track.reason.*) — internal restaurant notes never travel here. */
+  reasonKey?: string | null
+  /** Updated food-ready ETA (ISO instant) when the event changes it. */
+  etaReadyAt?: string | null
+  note?: string
+}
 
 export type Order = {
   /** Public, non-sequential id (ULID-like). */
@@ -81,6 +100,14 @@ export type Order = {
   pickup: PickupSnapshot
   /** Reference to the pickup verification record (code + token live there, not on the order). */
   pickupCodeReference: string
+  pickupVerificationStatus: PickupVerificationStatus
+  /** Food-ready ETA (restaurant / backend estimate) — distinct from the customer arrival ETA on the pickup snapshot. */
+  etaReadyAt: string | null
+  delayed: boolean
+  delayReasonKey: string | null
+  rejectionReasonKey: string | null
+  cancellationReasonKey: string | null
+  lastEventSequence: number
   paymentAttemptId: string
   checkoutReference: string
   journey: JourneySnapshot
@@ -137,6 +164,8 @@ export interface OrderRepository {
   getByOrderNumber(orderNumber: string, customerId: string): Promise<Order | null>
   findByPaymentAttempt(paymentAttemptId: string): Promise<Order | null>
   listForCustomer(customerId: string): Promise<Order[]>
+  /** Applies tracking events in sequence order (duplicates and stale sequences are ignored) and persists the result. */
+  applyEvents(orderNumber: string, events: OrderEvent[]): Promise<Order | null>
 }
 export interface PickupVerificationRepository {
   getForOrder(order: Order): Promise<PickupVerification | null>

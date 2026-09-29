@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import '../auth/auth_repository.dart' show KeyValueStore;
+import 'order_tracking.dart' show reduceOrder;
 
 /// Order domain (Module 13) — the confirmed order with immutable snapshots, pickup verification and receipt.
 /// Public references only (publicId, orderNumber); order and payment status are separate; pickup code and QR token
 /// are opaque development values whose presence proves nothing — the server validates pickup later.
-enum OrderStatus { paymentPending, confirmed, accepted, preparing, readyForPickup, pickedUp, completed, cancelled, rejected, refundPending, refunded }
+enum OrderStatus { paymentPending, confirmed, awaitingRestaurantAcceptance, accepted, preparing, readyForPickup, pickupVerification, pickedUp, completed, cancelled, rejected, refundPending, refunded }
 enum OrderPaymentStatus { paymentPending, paid, failed, refundPending, partiallyRefunded, refunded }
 enum PickupVerificationStatus { notReady, ready, verificationAvailable, verified, alreadyUsed, invalid, expired }
 
@@ -39,10 +40,12 @@ class RestaurantSnapshot {
   factory RestaurantSnapshot.fromJson(Map<String, dynamic> j) => RestaurantSnapshot(id: j['id'] as String, slug: j['slug'] as String, name: j['name'] as String, formattedAddress: j['formattedAddress'] as String, countryCode: j['countryCode'] as String, timezone: j['timezone'] as String, lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), contact: j['contact'] as String?, pickupInstructions: j['pickupInstructions'] as String?, pickupLocation: j['pickupLocation'] as String?);
 }
 class PickupSnapshot {
-  const PickupSnapshot({required this.mode, required this.requestedAt, required this.estimatedReadyTime, required this.restaurantTimezone, required this.methodType, required this.methodLabel, this.instructions});
+  const PickupSnapshot({required this.mode, required this.requestedAt, required this.estimatedReadyTime, required this.restaurantTimezone, required this.methodType, required this.methodLabel, this.instructions, this.estimatedCustomerArrival});
   final String mode, restaurantTimezone, methodType, methodLabel; final DateTime requestedAt, estimatedReadyTime; final String? instructions;
-  Map<String, dynamic> toJson() => {'mode': mode, 'requestedAt': requestedAt.toIso8601String(), 'estimatedReadyTime': estimatedReadyTime.toIso8601String(), 'restaurantTimezone': restaurantTimezone, 'methodType': methodType, 'methodLabel': methodLabel, 'instructions': instructions};
-  factory PickupSnapshot.fromJson(Map<String, dynamic> j) => PickupSnapshot(mode: j['mode'] as String, requestedAt: DateTime.parse(j['requestedAt'] as String).toUtc(), estimatedReadyTime: DateTime.parse(j['estimatedReadyTime'] as String).toUtc(), restaurantTimezone: j['restaurantTimezone'] as String, methodType: j['methodType'] as String, methodLabel: j['methodLabel'] as String, instructions: j['instructions'] as String?);
+  /// Journey-based arrival estimate (mock ETA) — separate from the food-ready ETA.
+  final DateTime? estimatedCustomerArrival;
+  Map<String, dynamic> toJson() => {'mode': mode, 'requestedAt': requestedAt.toIso8601String(), 'estimatedReadyTime': estimatedReadyTime.toIso8601String(), 'restaurantTimezone': restaurantTimezone, 'methodType': methodType, 'methodLabel': methodLabel, 'instructions': instructions, 'estimatedCustomerArrival': estimatedCustomerArrival?.toIso8601String()};
+  factory PickupSnapshot.fromJson(Map<String, dynamic> j) => PickupSnapshot(mode: j['mode'] as String, requestedAt: DateTime.parse(j['requestedAt'] as String).toUtc(), estimatedReadyTime: DateTime.parse(j['estimatedReadyTime'] as String).toUtc(), restaurantTimezone: j['restaurantTimezone'] as String, methodType: j['methodType'] as String, methodLabel: j['methodLabel'] as String, instructions: j['instructions'] as String?, estimatedCustomerArrival: j['estimatedCustomerArrival'] == null ? null : DateTime.parse(j['estimatedCustomerArrival'] as String).toUtc());
 }
 class PricingLine {
   const PricingLine({required this.id, required this.label, required this.amountMinor});
@@ -63,21 +66,31 @@ class OrderPaymentSummary {
   factory OrderPaymentSummary.fromJson(Map<String, dynamic> j) => OrderPaymentSummary(status: OrderPaymentStatus.values.byName(j['status'] as String), methodType: j['methodType'] as String, methodLabel: j['methodLabel'] as String, providerDisplayName: j['providerDisplayName'] as String, reference: j['reference'] as String, paidAmountMinor: j['paidAmountMinor'] as int, currency: j['currency'] as String, maskedDetails: j['maskedDetails'] as String?);
 }
 class JourneySnapshot {
-  const JourneySnapshot({required this.journeyId, required this.originName, required this.destinationName});
-  final String journeyId, originName, destinationName;
-  Map<String, dynamic> toJson() => {'journeyId': journeyId, 'originName': originName, 'destinationName': destinationName};
-  factory JourneySnapshot.fromJson(Map<String, dynamic> j) => JourneySnapshot(journeyId: j['journeyId'] as String, originName: j['originName'] as String, destinationName: j['destinationName'] as String);
+  const JourneySnapshot({required this.journeyId, required this.originName, required this.destinationName, this.originLat, this.originLng});
+  final String journeyId, originName, destinationName; final double? originLat, originLng;
+  Map<String, dynamic> toJson() => {'journeyId': journeyId, 'originName': originName, 'destinationName': destinationName, 'originLat': originLat, 'originLng': originLng};
+  factory JourneySnapshot.fromJson(Map<String, dynamic> j) => JourneySnapshot(journeyId: j['journeyId'] as String, originName: j['originName'] as String, destinationName: j['destinationName'] as String, originLat: (j['originLat'] as num?)?.toDouble(), originLng: (j['originLng'] as num?)?.toDouble());
 }
+/// Structured, append-only order event (Module 14). `sequence` lets clients ignore duplicates and stale events.
+enum OrderEventType { orderCreated, paymentVerified, orderConfirmed, sentToRestaurant, restaurantAccepted, restaurantRejected, preparing, delayed, etaUpdated, readyForPickup, pickupVerification, pickedUp, completed, cancelled, refundUpdated }
 class OrderEvent {
-  const OrderEvent({required this.eventId, required this.status, required this.at, required this.actor, this.note});
-  final String eventId, status, actor; final DateTime at; final String? note;
-  Map<String, dynamic> toJson() => {'eventId': eventId, 'status': status, 'at': at.toIso8601String(), 'actor': actor, 'note': note};
-  factory OrderEvent.fromJson(Map<String, dynamic> j) => OrderEvent(eventId: j['eventId'] as String, status: j['status'] as String, at: DateTime.parse(j['at'] as String), actor: j['actor'] as String, note: j['note'] as String?);
+  const OrderEvent({required this.eventId, required this.sequence, required this.type, required this.status, this.paymentStatus, required this.at, required this.actor, this.reasonKey, this.etaReadyAt, this.note});
+  final String eventId, actor; final int sequence; final OrderEventType type; final OrderStatus? status; final OrderPaymentStatus? paymentStatus; final DateTime at;
+  /// Customer-safe reason key (track.reason.*) — internal restaurant notes never travel here.
+  final String? reasonKey, note; final DateTime? etaReadyAt;
+  Map<String, dynamic> toJson() => {'eventId': eventId, 'sequence': sequence, 'type': type.name, 'status': status?.name, 'paymentStatus': paymentStatus?.name, 'at': at.toIso8601String(), 'actor': actor, 'reasonKey': reasonKey, 'etaReadyAt': etaReadyAt?.toIso8601String(), 'note': note};
+  factory OrderEvent.fromJson(Map<String, dynamic> j) => OrderEvent(eventId: j['eventId'] as String, sequence: (j['sequence'] as int?) ?? 0, type: OrderEventType.values.where((t) => t.name == j['type']).firstOrNull ?? OrderEventType.orderCreated, status: j['status'] == null ? null : OrderStatus.values.where((x) => x.name == j['status']).firstOrNull, paymentStatus: j['paymentStatus'] == null ? null : OrderPaymentStatus.values.where((x) => x.name == j['paymentStatus']).firstOrNull, at: DateTime.parse(j['at'] as String).toUtc(), actor: j['actor'] as String, reasonKey: j['reasonKey'] as String?, etaReadyAt: j['etaReadyAt'] == null ? null : DateTime.parse(j['etaReadyAt'] as String).toUtc(), note: j['note'] as String?);
 }
 
 class Order {
-  const Order({required this.publicId, required this.orderNumber, required this.customerId, required this.restaurant, required this.items, required this.pricing, required this.orderStatus, required this.paymentStatus, required this.payment, required this.pickup, required this.pickupCodeReference, required this.paymentAttemptId, required this.checkoutReference, this.journey, required this.orderNote, required this.events, required this.createdAt, required this.updatedAt});
+  const Order({required this.publicId, required this.orderNumber, required this.customerId, required this.restaurant, required this.items, required this.pricing, required this.orderStatus, required this.paymentStatus, required this.payment, required this.pickup, required this.pickupCodeReference, this.pickupVerificationStatus = PickupVerificationStatus.notReady, this.etaReadyAt, this.delayed = false, this.delayReasonKey, this.rejectionReasonKey, this.cancellationReasonKey, this.lastEventSequence = 0, required this.paymentAttemptId, required this.checkoutReference, this.journey, required this.orderNote, required this.events, required this.createdAt, required this.updatedAt});
   final String publicId, orderNumber, customerId, pickupCodeReference, paymentAttemptId, checkoutReference, orderNote;
+  final PickupVerificationStatus pickupVerificationStatus;
+  /// Food-ready ETA (restaurant / backend estimate) — distinct from pickup.estimatedCustomerArrival.
+  final DateTime? etaReadyAt;
+  final bool delayed;
+  final String? delayReasonKey, rejectionReasonKey, cancellationReasonKey;
+  final int lastEventSequence;
   final RestaurantSnapshot restaurant;
   final List<OrderItemSnapshot> items;
   final OrderPricing pricing;
@@ -89,8 +102,13 @@ class Order {
   final List<OrderEvent> events;
   final DateTime createdAt, updatedAt;
   int get itemCount => items.fold(0, (a, i) => a + i.quantity);
-  Map<String, dynamic> toJson() => {'publicId': publicId, 'orderNumber': orderNumber, 'customerId': customerId, 'restaurant': restaurant.toJson(), 'items': items.map((i) => i.toJson()).toList(), 'pricing': pricing.toJson(), 'orderStatus': orderStatus.name, 'paymentStatus': paymentStatus.name, 'payment': payment.toJson(), 'pickup': pickup.toJson(), 'pickupCodeReference': pickupCodeReference, 'paymentAttemptId': paymentAttemptId, 'checkoutReference': checkoutReference, 'journey': journey?.toJson(), 'orderNote': orderNote, 'events': events.map((e) => e.toJson()).toList(), 'createdAt': createdAt.toIso8601String(), 'updatedAt': updatedAt.toIso8601String()};
-  factory Order.fromJson(Map<String, dynamic> j) => Order(publicId: j['publicId'] as String, orderNumber: j['orderNumber'] as String, customerId: j['customerId'] as String, restaurant: RestaurantSnapshot.fromJson(j['restaurant'] as Map<String, dynamic>), items: [for (final i in j['items'] as List) OrderItemSnapshot.fromJson(i as Map<String, dynamic>)], pricing: OrderPricing.fromJson(j['pricing'] as Map<String, dynamic>), orderStatus: OrderStatus.values.byName(j['orderStatus'] as String), paymentStatus: OrderPaymentStatus.values.byName(j['paymentStatus'] as String), payment: OrderPaymentSummary.fromJson(j['payment'] as Map<String, dynamic>), pickup: PickupSnapshot.fromJson(j['pickup'] as Map<String, dynamic>), pickupCodeReference: j['pickupCodeReference'] as String, paymentAttemptId: j['paymentAttemptId'] as String, checkoutReference: j['checkoutReference'] as String, journey: j['journey'] == null ? null : JourneySnapshot.fromJson(j['journey'] as Map<String, dynamic>), orderNote: (j['orderNote'] as String?) ?? '', events: [for (final e in (j['events'] as List?) ?? []) OrderEvent.fromJson(e as Map<String, dynamic>)], createdAt: DateTime.parse(j['createdAt'] as String), updatedAt: DateTime.parse(j['updatedAt'] as String));
+  Order copyWith({OrderStatus? orderStatus, OrderPaymentStatus? paymentStatus, DateTime? etaReadyAt, bool? delayed, String? delayReasonKey, String? rejectionReasonKey, String? cancellationReasonKey, int? lastEventSequence, PickupVerificationStatus? pickupVerificationStatus, List<OrderEvent>? events, DateTime? updatedAt}) => Order(
+        publicId: publicId, orderNumber: orderNumber, customerId: customerId, restaurant: restaurant, items: items, pricing: pricing, orderStatus: orderStatus ?? this.orderStatus, paymentStatus: paymentStatus ?? this.paymentStatus,
+        payment: paymentStatus == null ? payment : OrderPaymentSummary(status: paymentStatus, methodType: payment.methodType, methodLabel: payment.methodLabel, providerDisplayName: payment.providerDisplayName, reference: payment.reference, paidAmountMinor: payment.paidAmountMinor, currency: payment.currency, maskedDetails: payment.maskedDetails),
+        pickup: pickup, pickupCodeReference: pickupCodeReference, pickupVerificationStatus: pickupVerificationStatus ?? this.pickupVerificationStatus, etaReadyAt: etaReadyAt ?? this.etaReadyAt, delayed: delayed ?? this.delayed, delayReasonKey: delayReasonKey ?? this.delayReasonKey, rejectionReasonKey: rejectionReasonKey ?? this.rejectionReasonKey, cancellationReasonKey: cancellationReasonKey ?? this.cancellationReasonKey, lastEventSequence: lastEventSequence ?? this.lastEventSequence,
+        paymentAttemptId: paymentAttemptId, checkoutReference: checkoutReference, journey: journey, orderNote: orderNote, events: events ?? this.events, createdAt: createdAt, updatedAt: updatedAt ?? this.updatedAt);
+  Map<String, dynamic> toJson() => {'publicId': publicId, 'orderNumber': orderNumber, 'customerId': customerId, 'restaurant': restaurant.toJson(), 'items': items.map((i) => i.toJson()).toList(), 'pricing': pricing.toJson(), 'orderStatus': orderStatus.name, 'paymentStatus': paymentStatus.name, 'payment': payment.toJson(), 'pickup': pickup.toJson(), 'pickupCodeReference': pickupCodeReference, 'pickupVerificationStatus': pickupVerificationStatus.name, 'etaReadyAt': etaReadyAt?.toIso8601String(), 'delayed': delayed, 'delayReasonKey': delayReasonKey, 'rejectionReasonKey': rejectionReasonKey, 'cancellationReasonKey': cancellationReasonKey, 'lastEventSequence': lastEventSequence, 'paymentAttemptId': paymentAttemptId, 'checkoutReference': checkoutReference, 'journey': journey?.toJson(), 'orderNote': orderNote, 'events': events.map((e) => e.toJson()).toList(), 'createdAt': createdAt.toIso8601String(), 'updatedAt': updatedAt.toIso8601String()};
+  factory Order.fromJson(Map<String, dynamic> j) => Order(publicId: j['publicId'] as String, orderNumber: j['orderNumber'] as String, customerId: j['customerId'] as String, restaurant: RestaurantSnapshot.fromJson(j['restaurant'] as Map<String, dynamic>), items: [for (final i in j['items'] as List) OrderItemSnapshot.fromJson(i as Map<String, dynamic>)], pricing: OrderPricing.fromJson(j['pricing'] as Map<String, dynamic>), orderStatus: OrderStatus.values.byName(j['orderStatus'] as String), paymentStatus: OrderPaymentStatus.values.byName(j['paymentStatus'] as String), payment: OrderPaymentSummary.fromJson(j['payment'] as Map<String, dynamic>), pickup: PickupSnapshot.fromJson(j['pickup'] as Map<String, dynamic>), pickupCodeReference: j['pickupCodeReference'] as String, pickupVerificationStatus: PickupVerificationStatus.values.where((x) => x.name == j['pickupVerificationStatus']).firstOrNull ?? PickupVerificationStatus.notReady, etaReadyAt: j['etaReadyAt'] == null ? null : DateTime.parse(j['etaReadyAt'] as String).toUtc(), delayed: (j['delayed'] as bool?) ?? false, delayReasonKey: j['delayReasonKey'] as String?, rejectionReasonKey: j['rejectionReasonKey'] as String?, cancellationReasonKey: j['cancellationReasonKey'] as String?, lastEventSequence: (j['lastEventSequence'] as int?) ?? 0, paymentAttemptId: j['paymentAttemptId'] as String, checkoutReference: j['checkoutReference'] as String, journey: j['journey'] == null ? null : JourneySnapshot.fromJson(j['journey'] as Map<String, dynamic>), orderNote: (j['orderNote'] as String?) ?? '', events: [for (final e in (j['events'] as List?) ?? []) OrderEvent.fromJson(e as Map<String, dynamic>)], createdAt: DateTime.parse(j['createdAt'] as String), updatedAt: DateTime.parse(j['updatedAt'] as String));
 }
 
 class PickupVerification {
@@ -119,6 +137,8 @@ abstract class OrderRepository {
   Future<Order?> getByOrderNumber(String orderNumber, String customerId);
   Future<Order?> findByPaymentAttempt(String paymentAttemptId);
   Future<List<Order>> listForCustomer(String customerId);
+  /// Applies tracking events in order (duplicates / stale sequences ignored) and persists the result.
+  Future<Order?> applyEvents(String orderNumber, List<OrderEvent> events);
 }
 abstract class PickupVerificationRepository { Future<PickupVerification?> getForOrder(Order order); }
 abstract class ReceiptRepository { Future<Receipt> getReceipt(Order order, String? customerName); }
@@ -148,8 +168,9 @@ class MockOrderRepository implements OrderRepository {
     final now = DateTime.now().toUtc();
     final publicId = '${now.millisecondsSinceEpoch.toRadixString(36).toUpperCase()}${_hex(8).toUpperCase()}';
     final pv = PickupVerification(reference: 'pv_${_hex(6)}', orderPublicId: publicId, code: _code(6), qrToken: 'pv_dev_${_hex(16)}', status: PickupVerificationStatus.verificationAvailable, activatedAt: now);
-    final order = Order(publicId: publicId, orderNumber: 'FOTG-${_code(4)}-${_code(4)}', customerId: i.customerId, restaurant: i.restaurant, items: i.items, pricing: i.pricing, orderStatus: i.payment.status == OrderPaymentStatus.paid ? OrderStatus.confirmed : OrderStatus.paymentPending, paymentStatus: i.payment.status, payment: i.payment, pickup: i.pickup, pickupCodeReference: pv.reference, paymentAttemptId: i.paymentAttemptId, checkoutReference: i.checkoutReference, journey: i.journey, orderNote: i.orderNote,
-        events: [OrderEvent(eventId: 'evt_${_hex(4)}', status: 'ORDER_CREATED', at: now, actor: 'system', note: 'development order created from a verified mock payment'), OrderEvent(eventId: 'evt_${_hex(4)}', status: 'PAYMENT_VERIFIED', at: now, actor: 'system'), OrderEvent(eventId: 'evt_${_hex(4)}', status: 'ORDER_CONFIRMED', at: now, actor: 'system')], createdAt: now, updatedAt: now);
+    final paid = i.payment.status == OrderPaymentStatus.paid;
+    final order = Order(publicId: publicId, orderNumber: 'FOTG-${_code(4)}-${_code(4)}', customerId: i.customerId, restaurant: i.restaurant, items: i.items, pricing: i.pricing, orderStatus: paid ? OrderStatus.confirmed : OrderStatus.paymentPending, paymentStatus: i.payment.status, payment: i.payment, pickup: i.pickup, pickupCodeReference: pv.reference, etaReadyAt: i.pickup.estimatedReadyTime, lastEventSequence: 3, paymentAttemptId: i.paymentAttemptId, checkoutReference: i.checkoutReference, journey: i.journey, orderNote: i.orderNote,
+        events: [OrderEvent(eventId: '$publicId-1', sequence: 1, type: OrderEventType.orderCreated, status: OrderStatus.paymentPending, at: now, actor: 'system', note: 'development order created from a verified mock payment'), OrderEvent(eventId: '$publicId-2', sequence: 2, type: OrderEventType.paymentVerified, status: null, paymentStatus: i.payment.status, at: now, actor: 'system'), OrderEvent(eventId: '$publicId-3', sequence: 3, type: OrderEventType.orderConfirmed, status: paid ? OrderStatus.confirmed : OrderStatus.paymentPending, at: now, actor: 'system')], createdAt: now, updatedAt: now);
     list.add(order); await _store.write(ordersKey, jsonEncode((list.length > 30 ? list.sublist(list.length - 30) : list).map((o) => o.toJson()).toList())).catchError((_) {});
     final pvs = await verifications(); pvs.add(pv); await _store.write(pvKey, jsonEncode((pvs.length > 30 ? pvs.sublist(pvs.length - 30) : pvs).map((p) => p.toJson()).toList())).catchError((_) {});
     return order;
@@ -158,12 +179,20 @@ class MockOrderRepository implements OrderRepository {
   Future<Order?> getByOrderNumber(String n, String customerId) async {
     await _wait();
     if (fail) throw StateError('order_load_failed');
-    final fx = fixture(n, customerId); if (fx != null) return fx;
+    final fx = _fixtures[n] ?? fixture(n, customerId); if (fx != null) return fx;
     final o = (await _orders()).where((x) => x.orderNumber == n).firstOrNull;
     return o != null && o.customerId == customerId ? o : null; // ownership stand-in for server authorization
   }
   @override
   Future<Order?> findByPaymentAttempt(String id) async => (await _orders()).where((o) => o.paymentAttemptId == id).firstOrNull;
+  final Map<String, Order> _fixtures = {};
+  @override
+  Future<Order?> applyEvents(String orderNumber, List<OrderEvent> events) async {
+    final list = await _orders(); final i = list.indexWhere((o) => o.orderNumber == orderNumber);
+    if (i < 0) { var fx = _fixtures[orderNumber] ?? fixture(orderNumber, ''); if (fx == null) return null; for (final e in events) { fx = reduceOrder(fx!, e).order; } _fixtures[orderNumber] = fx!; return fx; }
+    var o = list[i]; for (final e in events) { o = reduceOrder(o, e).order; }
+    list[i] = o; await _store.write(ordersKey, jsonEncode(list.map((x) => x.toJson()).toList())).catchError((_) {}); return o;
+  }
   @override
   Future<List<Order>> listForCustomer(String customerId) async => (await _orders()).where((o) => o.customerId == customerId).toList();
 
@@ -177,8 +206,8 @@ class MockOrderRepository implements OrderRepository {
         orderStatus: pending ? OrderStatus.paymentPending : OrderStatus.cancelled, paymentStatus: pending ? OrderPaymentStatus.paymentPending : OrderPaymentStatus.refundPending,
         payment: OrderPaymentSummary(status: pending ? OrderPaymentStatus.paymentPending : OrderPaymentStatus.refundPending, methodType: 'upi', methodLabel: 'UPI', providerDisplayName: 'Razorpay (development sandbox)', reference: 'pay_dev_demo', paidAmountMinor: pending ? 0 : 25000, currency: 'INR'),
         pickup: PickupSnapshot(mode: 'asap', requestedAt: at, estimatedReadyTime: at, restaurantTimezone: 'Asia/Kolkata', methodType: 'counter', methodLabel: 'Counter pickup'),
-        pickupCodeReference: 'pv_demo', paymentAttemptId: 'pay_dev_demo', checkoutReference: 'ck-demo', orderNote: '',
-        events: [OrderEvent(eventId: 'evt_demo1', status: 'ORDER_CREATED', at: now, actor: 'system'), if (!pending) OrderEvent(eventId: 'evt_demo2', status: 'CANCELLED', at: now, actor: 'restaurant', note: 'development fixture')], createdAt: now, updatedAt: now);
+        pickupCodeReference: 'pv_demo', pickupVerificationStatus: pending ? PickupVerificationStatus.notReady : PickupVerificationStatus.invalid, etaReadyAt: at, cancellationReasonKey: pending ? null : 'restaurant_unavailable', lastEventSequence: pending ? 1 : 3, paymentAttemptId: 'pay_dev_demo', checkoutReference: 'ck-demo', orderNote: '',
+        events: [OrderEvent(eventId: 'evt_demo1', sequence: 1, type: OrderEventType.orderCreated, status: OrderStatus.paymentPending, at: now, actor: 'system'), if (!pending) OrderEvent(eventId: 'evt_demo2', sequence: 2, type: OrderEventType.restaurantAccepted, status: OrderStatus.accepted, at: now, actor: 'restaurant'), if (!pending) OrderEvent(eventId: 'evt_demo3', sequence: 3, type: OrderEventType.cancelled, status: OrderStatus.cancelled, paymentStatus: OrderPaymentStatus.refundPending, reasonKey: 'restaurant_unavailable', at: now, actor: 'restaurant', note: 'development fixture')], createdAt: now, updatedAt: now);
   }
 }
 

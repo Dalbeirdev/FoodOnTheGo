@@ -71,7 +71,6 @@ void main() {
     'Restaurant detail': RestaurantDetailScreen(id: 'burger-hub', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Item': ItemDetailScreen(restaurantId: 'burger-hub', itemSlug: 'classic-burger', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Cart (empty)': CartScreen(restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
-    'Order tracking': const OrderTrackingScreen(number: 'FTG128701'),
     'My orders': const MyOrdersScreen(),
     'Profile': const ProfileScreen(),
     'Plan a journey': const PlanJourneyScreen(),

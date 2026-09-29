@@ -3,7 +3,8 @@
  * is a real backend order. Controls: sessionStorage fotg.mock.fail contains "order" → loading fails (retry recovers).
  * Fixture references (development only): FOTG-DEMO-PEND (payment pending), FOTG-DEMO-CANC (cancelled).
  */
-import type { CreateOrderInput, Order, OrderRepository, PickupVerification, PickupVerificationRepository, Receipt, ReceiptRepository } from '../repositories'
+import type { CreateOrderInput, Order, OrderEvent, OrderRepository, PickupVerification, PickupVerificationRepository, Receipt, ReceiptRepository } from '../repositories'
+import { reduceOrder } from '../tracking'
 
 const ORDERS_KEY = 'fotg.orders.v1'
 const PV_KEY = 'fotg.pickup_verifications.v1'
@@ -33,11 +34,12 @@ export class MockOrderRepository implements OrderRepository {
     const order: Order = {
       publicId, orderNumber: orderNumber(), customerId: input.customerId, restaurant: input.restaurant, items: input.items, pricing: input.pricing,
       orderStatus: input.payment.status === 'PAID' ? 'CONFIRMED' : 'PAYMENT_PENDING', paymentStatus: input.payment.status, payment: input.payment, pickup: input.pickup,
-      pickupCodeReference: pv.reference, paymentAttemptId: input.paymentAttemptId, checkoutReference: input.checkoutReference, journey: input.journey, orderNote: input.orderNote,
+      pickupCodeReference: pv.reference, pickupVerificationStatus: 'NOT_READY', etaReadyAt: input.pickup.estimatedReadyTime, delayed: false, delayReasonKey: null, rejectionReasonKey: null, cancellationReasonKey: null, lastEventSequence: 3,
+      paymentAttemptId: input.paymentAttemptId, checkoutReference: input.checkoutReference, journey: input.journey, orderNote: input.orderNote,
       events: [
-        { eventId: `evt_${hex(4)}`, status: 'ORDER_CREATED', at: now, actor: 'system', note: 'development order created from a verified mock payment' },
-        { eventId: `evt_${hex(4)}`, status: 'PAYMENT_VERIFIED', at: now, actor: 'system', note: 'development verification' },
-        { eventId: `evt_${hex(4)}`, status: 'ORDER_CONFIRMED', at: now, actor: 'system' },
+        { eventId: `${publicId}-1`, sequence: 1, type: 'ORDER_CREATED', status: 'PAYMENT_PENDING', at: now, actor: 'system', note: 'development order created from a verified mock payment' },
+        { eventId: `${publicId}-2`, sequence: 2, type: 'PAYMENT_VERIFIED', status: null, paymentStatus: input.payment.status, at: now, actor: 'system', note: 'development verification' },
+        { eventId: `${publicId}-3`, sequence: 3, type: 'ORDER_CONFIRMED', status: input.payment.status === 'PAID' ? 'CONFIRMED' : 'PAYMENT_PENDING', at: now, actor: 'system' },
       ],
       createdAt: now, updatedAt: now,
     }
@@ -54,6 +56,12 @@ export class MockOrderRepository implements OrderRepository {
     return o && o.customerId === customerId ? o : null
   }
   async findByPaymentAttempt(id: string) { return load<Order>(ORDERS_KEY).find((o) => o.paymentAttemptId === id) ?? null }
+  async applyEvents(orderNumber: string, events: OrderEvent[]): Promise<Order | null> {
+    const list = load<Order>(ORDERS_KEY); const i = list.findIndex((o) => o.orderNumber === orderNumber)
+    if (i < 0) { const fx = fixtureCache.get(orderNumber); if (!fx) return null; let o = fx; for (const e of events) o = reduceOrder(o, e).order; fixtureCache.set(orderNumber, o); return o }
+    let o = list[i]; for (const e of events) o = reduceOrder(o, e).order
+    list[i] = o; save(ORDERS_KEY, list); return o
+  }
   async listForCustomer(customerId: string) { return load<Order>(ORDERS_KEY).filter((o) => o.customerId === customerId) }
 }
 
@@ -73,11 +81,13 @@ export class MockReceiptRepository implements ReceiptRepository {
 }
 
 /** Development fixtures for states that the mock payment flow does not naturally produce. */
+const fixtureCache = new Map<string, Order>()
 function fixture(n: string, customerId: string): Order | null {
   if (n !== 'FOTG-DEMO-PEND' && n !== 'FOTG-DEMO-CANC') return null
+  const cached = fixtureCache.get(n); if (cached) return cached
   const now = new Date(); const at = new Date(now.getTime() + 45 * 60000).toISOString()
   const pending = n === 'FOTG-DEMO-PEND'
-  return {
+  const o: Order = {
     publicId: 'DEMO' + n.slice(-4), orderNumber: n, customerId,
     restaurant: { id: 'burger-hub', slug: 'burger-hub', name: 'Burger Hub', formattedAddress: 'Sector 62, Noida, Uttar Pradesh 201309, India', countryCode: 'IN', timezone: 'Asia/Kolkata', lat: 28.6285, lng: 77.3652, contact: null, pickupInstructions: 'Show your pickup code at the counter.', pickupLocation: 'Pickup counter' },
     items: [{ lineId: 'l1', menuItemId: 'classic-burger', itemName: 'Classic Burger', image: '', variants: [{ groupName: 'Size', optionName: 'Regular', priceAdjustmentMinor: 0 }], modifiers: [], specialInstructions: '', quantity: 1, unitPriceMinor: 25000, lineTotalMinor: 25000 }],
@@ -85,8 +95,10 @@ function fixture(n: string, customerId: string): Order | null {
     orderStatus: pending ? 'PAYMENT_PENDING' : 'CANCELLED', paymentStatus: pending ? 'PAYMENT_PENDING' : 'REFUND_PENDING',
     payment: { status: pending ? 'PAYMENT_PENDING' : 'REFUND_PENDING', methodType: 'upi', methodLabel: 'UPI', providerDisplayName: 'Razorpay (development sandbox)', reference: 'pay_dev_demo', paidAmountMinor: pending ? 0 : 25000, currency: 'INR', maskedDetails: null },
     pickup: { mode: 'asap', requestedAt: at, estimatedReadyTime: at, restaurantTimezone: 'Asia/Kolkata', methodType: 'counter', methodLabel: 'Counter pickup', instructions: null },
-    pickupCodeReference: 'pv_demo', paymentAttemptId: 'pay_dev_demo', checkoutReference: 'ck-demo', journey: null, orderNote: '',
-    events: [{ eventId: 'evt_demo1', status: 'ORDER_CREATED', at: now.toISOString(), actor: 'system' }, ...(pending ? [] : [{ eventId: 'evt_demo2', status: 'CANCELLED', at: now.toISOString(), actor: 'restaurant' as const, note: 'development fixture' }])],
+    pickupCodeReference: 'pv_demo', pickupVerificationStatus: pending ? 'NOT_READY' : 'INVALID', etaReadyAt: at, delayed: false, delayReasonKey: null, rejectionReasonKey: null, cancellationReasonKey: pending ? null : 'restaurant_unavailable', lastEventSequence: pending ? 1 : 3,
+    paymentAttemptId: 'pay_dev_demo', checkoutReference: 'ck-demo', journey: null, orderNote: '',
+    events: [{ eventId: 'evt_demo1', sequence: 1, type: 'ORDER_CREATED' as const, status: 'PAYMENT_PENDING' as const, at: now.toISOString(), actor: 'system' as const }, ...(pending ? [] : [{ eventId: 'evt_demo2', sequence: 2, type: 'RESTAURANT_ACCEPTED' as const, status: 'ACCEPTED' as const, at: now.toISOString(), actor: 'restaurant' as const }, { eventId: 'evt_demo3', sequence: 3, type: 'CANCELLED' as const, status: 'CANCELLED' as const, paymentStatus: 'REFUND_PENDING' as const, reasonKey: 'restaurant_unavailable', at: now.toISOString(), actor: 'restaurant' as const, note: 'development fixture' }])],
     createdAt: now.toISOString(), updatedAt: now.toISOString(),
   }
+  fixtureCache.set(n, o); return o
 }

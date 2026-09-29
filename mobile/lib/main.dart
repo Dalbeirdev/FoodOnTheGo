@@ -27,6 +27,8 @@ import 'state/pickup_state.dart';
 import 'state/checkout_state.dart';
 import 'state/payment_state.dart';
 import 'state/order_state.dart';
+import 'state/tracking_state.dart';
+import 'screens/order_tracking_screen.dart';
 import 'screens/order_confirmation_screen.dart';
 import 'state/journey_state.dart';
 
@@ -124,6 +126,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider(create: (_) => CheckoutState()),
           ChangeNotifierProvider(create: (_) => PaymentState()),
           ChangeNotifierProvider(create: (_) => OrderState()),
+          ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); return TrackingState(orders: os.orders, verifications: os.verifications); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false),
       );

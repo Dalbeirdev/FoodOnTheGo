@@ -27,7 +27,7 @@ void main() {
     expect(o.publicId.length, greaterThan(12));
     expect(o.orderStatus, OrderStatus.confirmed); expect(o.paymentStatus, OrderPaymentStatus.paid);
     expect(o.items.single.allOptions, hasLength(2)); expect(o.pricing.totalMinor, 61200); expect(o.pricing.taxes, isEmpty);
-    expect(o.events.map((e) => e.status).toList(), ['ORDER_CREATED', 'PAYMENT_VERIFIED', 'ORDER_CONFIRMED']);
+    expect(o.events.map((e) => e.type).toList(), [OrderEventType.orderCreated, OrderEventType.paymentVerified, OrderEventType.orderConfirmed]);
     await state.load(o.orderNumber, customerId: 'u1', customerName: 'Dev');
     expect(state.status, ConfirmationStatus.confirmed);
     final pv = state.verification!;
