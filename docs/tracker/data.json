@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 14 (Live order tracking) — awaiting owner device test of build018",
+  "phase": "Frontend - Module 14 COMPLETE (owner verified build018); Module 15 (order details & history) awaiting owner spec",
   "currentModule": "Module 14",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -112,7 +112,7 @@
       "id": "M14",
       "name": "Module 14 — Live Order Tracking, ETA & Pickup Completion (frontend-first, mock events)",
       "started": "2026-09-29",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-29: canonical /order-tracking/:orderNumber on Web + Android; structured sequenced OrderEvents + defensive reducer; timeline; waiting / accepted / preparing / delayed / ready / verification / picked-up / completed / rejected / cancelled / payment-pending states; separate ETAs; Module 13 pickup code + QR reuse; OrderTrackingService abstraction with deterministic MockOrderTrackingService scenarios; connection state (live / stale / offline / error / completed), refresh, resume; restaurant + directions + distance units; support; localization / timezone / Unicode fixtures. Backend state machine, event persistence, restaurant RBAC, real-time transport, polling, ETA engines, pickup verification, notifications, modification / cancellation policy recorded as carry-forward."
     },
     {
@@ -8134,7 +8134,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build018)",
       "evidence": "mobile/lib/screens/order_tracking_screen.dart; docs/local-review/screenshots/android-preview/phone-tracking-*.png, tablet-tracking-*.png; docs/local-review/test-results/m14-android-preview.json 20/20",
       "issue": "-",
       "carry": "CF-184",
@@ -8646,7 +8646,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build018)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-tracking-live.png, phone-tracking-delay.png, phone-tracking-ready.png, phone-tracking-completed.png, phone-tracking-rejected.png, phone-tracking-offline.png, tablet-tracking-*.png",
       "issue": "-",
       "carry": "CF-184",
@@ -8662,7 +8662,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build018)",
       "evidence": "tracking_test TEST 10/11/15; order_tracking_screen_test TEST 10/11",
       "issue": "-",
       "carry": "CF-183",
@@ -8838,7 +8838,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build018)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build018.apk",
       "issue": "-",
       "carry": "CF-184",
@@ -8993,7 +8993,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 24 + e2e 34/34 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build018)",
       "backend": "MOCK (MockOrderTrackingService over MockOrderRepository events)",
       "prod": "NO",
       "shot": "web-m14/03-tracking-ready-qr",
@@ -9702,9 +9702,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (tracking_test 10, order_tracking_screen_test 5)",
       "apk": "YES (build018)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build018, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -10175,6 +10175,12 @@
       "Development tracking controls (scenario, advance, duplicate / stale injection, offline toggle) exist only in local builds; mock scenarios are deterministic scripts.",
       "Claude (spec §71–72)",
       "CF-155"
+    ],
+    [
+      "2026-09-29",
+      "Module 14 approved: owner tested build018 on tablet, all screens pass. Module 15 may start once its spec arrives.",
+      "Owner",
+      "CF-184 closed; TE-129 PASS."
     ]
   ],
   "carry": [
@@ -12382,7 +12388,7 @@
       "P0",
       "Owner",
       "Before M14 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE - owner: \"build018 tested on tab, all screens pass\" (2026-09-29)",
       "2026-09-29",
       "-"
     ],
@@ -14290,8 +14296,8 @@
       "ANDROID",
       "Owner device test of build018 (see CF-184)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build018: all screens pass (2026-09-29)",
       "2026-09-29"
     ]
   ],
@@ -15008,9 +15014,9 @@
       "df50a72 (Module 14)",
       "2026-09-29",
       "F78E179E864FCC581EED7F30BE711D6176791B31BE919585DA0376C5973085FE",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-29)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
