@@ -172,10 +172,9 @@ function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: 
           <div className="pay-actions">
             <Link to={`/order/${o.orderNumber}`} className="btn btn--primary">{t('track.action.viewOrder', undefined, locale)}</Link>
             <Link to={`/order-confirmation/${o.orderNumber}`} className="btn btn--outline">{t('track.action.receipt', undefined, locale)}</Link>
-            <button type="button" className="btn btn--outline" disabled aria-describedby="trk-rate-note">{t('track.action.rate', undefined, locale)}</button>
+            <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="trk-review">{t('rv.entry.rate', undefined, locale)}</Link>
             <Link to={`/restaurants/${o.restaurant.slug}`} className="btn btn--outline">{t('track.action.reorder', undefined, locale)}</Link>
           </div>
-          <p id="trk-rate-note" className="cart-muted">{t('track.rate.pending', undefined, locale)}</p>
         </section>
       )}
 

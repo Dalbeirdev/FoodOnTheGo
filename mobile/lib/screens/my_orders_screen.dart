@@ -81,6 +81,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
         if (o.orderStatus == OrderStatus.paymentPending) BrandButton(label: S.t('oc.action.checkStatus'), expand: false, height: 40, onPressed: () => context.push('/order-confirmation/${o.orderNumber}')),
         OutlineButton(label: S.t('oc.action.details'), expand: false, height: 40, onPressed: () => context.push('/order/${o.orderNumber}')),
         if (o.reorderEligible) OutlineButton(label: S.t('od.action.reorder'), expand: false, height: 40, onPressed: () => context.push('/order/${o.orderNumber}?reorder=1')),
+        if (isReviewable(o.orderStatus)) OutlineButton(label: S.t('rv.entry.rate'), expand: false, height: 40, onPressed: () => context.push('/order/${o.orderNumber}/review')),
       ]),
     ])))));
   }

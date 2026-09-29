@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../order/order_models.dart';
+import '../review/review_models.dart';
 import '../payment/payment_models.dart';
 
 export '../order/order_models.dart';
@@ -12,18 +13,25 @@ export '../order/order_models.dart';
 enum ConfirmationStatus { loading, confirmed, paymentPending, paymentFailed, failedToLoad, orderNotFound, cancelled }
 
 class OrderState extends ChangeNotifier {
-  OrderState({OrderRepository? orders, PickupVerificationRepository? verifications, ReceiptRepository? receipts, PaymentRepository? payments, KeyValueStore? store}) {
+  OrderState({OrderRepository? orders, PickupVerificationRepository? verifications, ReceiptRepository? receipts, PaymentRepository? payments, KeyValueStore? store, ReviewRepository? reviews, ReviewEligibilityService? reviewEligibility, ReviewConfigProvider? reviewConfig}) {
     final st = store ?? SecureKeyValueStore();
     final mock = orders is MockOrderRepository ? orders : MockOrderRepository(st);
     this.orders = orders ?? mock;
     this.verifications = verifications ?? MockPickupVerificationRepository(mock);
     this.receipts = receipts ?? MockReceiptRepository();
     this.payments = payments ?? MockPaymentRepository(st);
+    this.reviews = reviews ?? MockReviewRepository(st);
+    this.reviewEligibility = reviewEligibility ?? MockReviewEligibilityService(this.reviews);
+    this.reviewConfig = reviewConfig ?? MockReviewConfigProvider();
   }
   late final OrderRepository orders;
   late final PickupVerificationRepository verifications;
   late final ReceiptRepository receipts;
   late final PaymentRepository payments;
+  /// Module 16 — reviews are order-bound; the restaurant is derived from the order.
+  late final ReviewRepository reviews;
+  late final ReviewEligibilityService reviewEligibility;
+  late final ReviewConfigProvider reviewConfig;
 
   ConfirmationStatus status = ConfirmationStatus.loading;
   Order? order;

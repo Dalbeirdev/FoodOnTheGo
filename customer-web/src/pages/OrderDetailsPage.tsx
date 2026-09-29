@@ -13,6 +13,7 @@ import type { Order, OrderItemSnapshot, OrderPricing, OrderRepository, Receipt, 
 import { timelineFor } from '../order/tracking'
 import { orderRepositories } from '../order/useOrderConfirmation'
 import { formatLocalDate } from '../pickup/time'
+import { useReviewEntry, type ReviewDeps } from '../review/useReviewEntry'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
@@ -24,7 +25,7 @@ import './MyOrdersPage.css'
  * live menu); the Module 14 timeline model and the Module 13 receipt are reused; Track order links to Module 14.
  * Reorder builds a NEW cart from the CURRENT menu after the customer reviews the differences.
  */
-type Deps = { orders?: OrderRepository; receipts?: ReceiptRepository; reorder?: ReorderService }
+type Deps = { orders?: OrderRepository; receipts?: ReceiptRepository; reorder?: ReorderService; review?: ReviewDeps }
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true })
 const CheckIcon = ({ size = 14 }: P) => (<svg {...stroke(size)}><path d="m5 12 4 4L19 7" /></svg>)
@@ -68,7 +69,7 @@ export default function OrderDetailsPage({ deps }: { deps?: Deps }) {
             {state === 'loading' && <section className="cart-card ocp-skeleton" role="status" aria-live="polite" aria-busy="true"><p className="cart-muted">{t('od.loading', undefined, locale)}</p><div className="ocp-skel ocp-skel--title" /><div className="ocp-skel" /><div className="ocp-skel ocp-skel--block" /></section>}
             {state === 'not_found' && <section className="cart-card ocp-state ocp-state--warn" role="status"><h1 className="ocp-state__title">{t('oc.notFound.title', undefined, locale)}</h1><p>{t('oc.notFound.text', { ref: orderNumber }, locale)}</p><div className="pay-actions"><Link to="/my-orders" className="btn btn--primary">{t('oc.action.myOrders', undefined, locale)}</Link><Link to="/help" className="btn btn--outline">{t('oc.action.help', undefined, locale)}</Link></div></section>}
             {state === 'error' && <section className="cart-card ocp-state ocp-state--error" role="alert"><h1 className="ocp-state__title">{t('oc.failed.title', undefined, locale)}</h1><p>{t('oc.failed.text', undefined, locale)}</p><div className="pay-actions"><button type="button" className="btn btn--primary" onClick={() => setTick((x) => x + 1)}>{t('oc.action.retry', undefined, locale)}</button></div></section>}
-            {state === 'ready' && order && <Details order={order} receipt={receipt} locale={locale} showReceipt={showReceipt} setShowReceipt={setShowReceipt} reorder={reorderSvc} />}
+            {state === 'ready' && order && <Details order={order} receipt={receipt} locale={locale} showReceipt={showReceipt} setShowReceipt={setShowReceipt} reorder={reorderSvc} review={deps?.review} />}
           </div>
         </div>
       </main>
@@ -76,10 +77,12 @@ export default function OrderDetailsPage({ deps }: { deps?: Deps }) {
   )
 }
 
-function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reorder }: { order: Order; receipt: Receipt | null; locale: string; showReceipt: boolean; setShowReceipt: (v: boolean) => void; reorder: ReorderService }) {
+function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reorder, review }: { order: Order; receipt: Receipt | null; locale: string; showReceipt: boolean; setShowReceipt: (v: boolean) => void; reorder: ReorderService; review?: ReviewDeps }) {
   const tz = o.pickup.restaurantTimezone
   const money = (m: number) => formatMoney(m, o.pricing.currency, locale)
   const time = (iso: string) => `${formatLocalTime(iso, tz, locale)} ${zoneLabel(iso, tz, locale)}`
+  const auth = useAuth()
+  const reviewEntry = useReviewEntry(o, auth.user?.id ?? null, review)
   const account = useAccount()
   const s = o.orderStatus
   const closed = s === 'CANCELLED' || s === 'REJECTED'
@@ -104,10 +107,12 @@ function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reord
           {isTrackable(s) && <Link to={`/order-tracking/${o.orderNumber}`} className="btn btn--primary cart-proceed" data-testid="od-track">{t('oc.action.track', undefined, locale)}</Link>}
           {canReorder && <a href="#reorder" className="btn btn--primary" data-testid="od-reorder-cta">{t('od.action.reorder', undefined, locale)}</a>}
           <button type="button" className="btn btn--outline" onClick={() => setShowReceipt(!showReceipt)} aria-expanded={showReceipt} aria-controls="od-receipt">{showReceipt ? t('oc.receipt.hide', undefined, locale) : t('oc.receipt.view', undefined, locale)}</button>
-          {isReviewable(s) && <button type="button" className="btn btn--outline" disabled aria-describedby="od-rate-note">{t('track.action.rate', undefined, locale)}</button>}
+          {isReviewable(s) && reviewEntry.state === 'eligible' && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="od-review">{t('rv.entry.rate', undefined, locale)}</Link>}
+          {isReviewable(s) && reviewEntry.state === 'reviewed' && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="od-review">{reviewEntry.eligibility?.canEdit ? t('rv.entry.edit', undefined, locale) : t('rv.entry.view', undefined, locale)}</Link>}
           <Link to="/help" className="btn btn--outline">{t('od.action.help', undefined, locale)}</Link>
         </div>
-        {isReviewable(s) && <p id="od-rate-note" className="cart-muted">{t('track.rate.pending', undefined, locale)}</p>}
+        {isReviewable(s) && reviewEntry.state === 'ineligible' && reviewEntry.eligibility && <p id="od-rate-note" className="cart-muted" data-testid="od-review-note">{t(`rv.ineligible.${reviewEntry.eligibility.reason}`, undefined, locale)}</p>}
+        {isReviewable(s) && reviewEntry.state === 'reviewed' && reviewEntry.review && <p className="cart-muted" data-testid="od-review-note">{t('rv.entry.reviewed', undefined, locale)} · {t('rv.rating.value', { n: reviewEntry.review.overallRating, max: 5 }, locale)}</p>}
       </section>
 
       <section className="cart-card" aria-labelledby="od-rest">

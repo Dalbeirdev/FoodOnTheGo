@@ -14,6 +14,8 @@ import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
 import '../state/journey_state.dart';
+import '../review/review_models.dart';
+import '../state/order_state.dart';
 import '../widgets/common.dart';
 import 'restaurants_screen.dart' show DiscoveryMapShell;
 
@@ -183,6 +185,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
         if (rest.openingHours.note != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(rest.openingHours.note!, style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
         Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('rd.info.hoursZone', {'zone': rest.timezone}), style: const TextStyle(color: Brand.grey, fontSize: 11.5))),
       ])),
+      const SizedBox(height: 12),
+      _ReviewSummaryCard(restaurant: rest),
       const SizedBox(height: 12),
       SectionCard(title: S.t('rd.info.contact'), icon: Icons.call_outlined, child: Text(S.t('rd.info.contactNone'), style: const TextStyle(color: Brand.grey, fontSize: 13))),
       if (rest.features.isNotEmpty) ...[const SizedBox(height: 12), SectionCard(title: S.t('rd.info.features'), icon: Icons.local_parking_outlined, child: Wrap(spacing: 6, runSpacing: 6, children: [for (final f in rest.features) Tag(f)]))],
@@ -396,5 +400,29 @@ class MenuItemTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Module 16 readiness: public review summary slot. Aggregates are server-side later; the mock counts only reviews on this device.
+class _ReviewSummaryCard extends StatefulWidget {
+  const _ReviewSummaryCard({required this.restaurant});
+  final GlobalRestaurant restaurant;
+  @override
+  State<_ReviewSummaryCard> createState() => _ReviewSummaryCardState();
+}
+class _ReviewSummaryCardState extends State<_ReviewSummaryCard> {
+  RestaurantReviewSummary? summary;
+  @override
+  void initState() { super.initState(); WidgetsBinding.instance.addPostFrameCallback((_) async { try { final s = await context.read<OrderState>().reviews.getRestaurantReviewSummary(widget.restaurant.id); if (mounted) setState(() => summary = s); } catch (_) {} }); }
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.restaurant; final s = summary;
+    return SectionCard(title: S.t('rd.reviews.title'), icon: Icons.reviews_outlined, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(S.t('rd.reviews.catalogue', {'rating': r.rating.toStringAsFixed(1), 'count': r.reviewCount}), style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
+      const SizedBox(height: 6),
+      Text(s != null && s.reviewCount > 0 && s.averageRating != null ? S.t('rd.reviews.local', {'count': s.reviewCount, 'avg': s.averageRating!.toStringAsFixed(1), 'max': 5}) : S.t('rd.reviews.none'), style: const TextStyle(fontSize: 13.5)),
+      const SizedBox(height: 6),
+      Text(S.t('rd.reviews.note'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+    ]));
   }
 }

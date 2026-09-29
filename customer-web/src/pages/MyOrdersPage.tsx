@@ -137,7 +137,7 @@ function OrderCard({ o, locale }: { o: OrderSummary; locale: string }) {
         <Link to={`/order/${o.orderNumber}`} className="btn btn--outline">{t('oc.action.details', undefined, locale)}</Link>
         {o.reorderEligible && <Link to={`/order/${o.orderNumber}#reorder`} className="btn btn--outline">{t('od.action.reorder', undefined, locale)}</Link>}
         {g !== 'ongoing' && <Link to={`/order/${o.orderNumber}#receipt`} className="btn btn--outline">{t('track.action.receipt', undefined, locale)}</Link>}
-        {isReviewable(o.orderStatus) && <button type="button" className="btn btn--outline" disabled title={t('track.rate.pending', undefined, locale)}>{t('track.action.rate', undefined, locale)}</button>}
+        {isReviewable(o.orderStatus) && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="mo-review">{t('rv.entry.rate', undefined, locale)}</Link>}
         <Link to="/help" className="cart-link mo-card__help">{t('od.action.help', undefined, locale)}</Link>
       </div>
     </li>

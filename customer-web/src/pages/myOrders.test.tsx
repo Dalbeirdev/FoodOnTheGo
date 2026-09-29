@@ -99,7 +99,7 @@ describe('My orders + order details (web)', () => {
     const pend = ongoing.find((c) => within(c).getByTestId('mo-order-status').textContent === 'Payment pending')!
     expect(within(pend).getByRole('link', { name: /check payment status/i })).toBeInTheDocument(); expect(within(pend).queryByRole('link', { name: /track order/i })).toBeNull()
     const done = byGroup('completed')[0]
-    expect(within(done).getByRole('link', { name: /view order details/i })).toBeInTheDocument(); expect(within(done).getByRole('link', { name: /^reorder$/i })).toBeInTheDocument(); expect(within(done).getByRole('link', { name: /get receipt/i })).toBeInTheDocument(); expect(within(done).getByRole('button', { name: /rate experience/i })).toBeDisabled()
+    expect(within(done).getByRole('link', { name: /view order details/i })).toBeInTheDocument(); expect(within(done).getByRole('link', { name: /^reorder$/i })).toBeInTheDocument(); expect(within(done).getByRole('link', { name: /get receipt/i })).toBeInTheDocument(); expect(within(done).getByRole('link', { name: /rate your experience/i })).toHaveAttribute('href', expect.stringMatching(/\/order\/FOTG-.*\/review$/))
     const cancelled = byGroup('cancelled'); expect(cancelled).toHaveLength(2)
     const refunded = cancelled.find((c) => within(c).getByTestId('mo-payment-status').textContent === 'Refunded')!; expect(within(refunded).getByTestId('mo-order-status')).toHaveTextContent('Cancelled')
     const rejected = cancelled.find((c) => within(c).getByTestId('mo-order-status').textContent === 'Rejected')!; expect(within(rejected).getByTestId('mo-payment-status')).toHaveTextContent('Refund pending')
@@ -141,7 +141,7 @@ describe('My orders + order details (web)', () => {
     expect(screen.getByTestId('od-pickup-time')).toHaveTextContent(/12:30\s?PM/); expect(screen.getByTestId('od-pickup-time')).toHaveTextContent('America/Los_Angeles')
     expect(screen.getByTestId('od-payment')).toHaveTextContent('Card ending in 4242'); expect(screen.getByTestId('od-payment')).toHaveTextContent('pay_usd')
     expect(screen.getByTestId('od-timeline').querySelectorAll('li')).toHaveLength(7)
-    expect(screen.getByRole('button', { name: /rate experience/i })).toBeDisabled()
+    expect(await screen.findByTestId('od-review')).toHaveTextContent(/rate your experience/i)
     await user.click(screen.getAllByRole('button', { name: /view receipt/i })[0])
     expect(screen.getByTestId('od-receipt-panel')).toHaveTextContent(/Not a tax invoice/)
   })

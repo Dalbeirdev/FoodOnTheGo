@@ -8,6 +8,7 @@ import '../i18n/format.dart';
 import '../i18n/strings.dart';
 import '../order/order_history.dart';
 import '../order/order_tracking.dart';
+import '../review/review_models.dart';
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/cart_state.dart' hide PromoStatus, PromoState;
@@ -24,7 +25,7 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
-  Order? order; Receipt? receipt; String state = 'loading'; bool showReceipt = false;
+  Order? order; Receipt? receipt; String state = 'loading'; bool showReceipt = false; ReviewEligibility? reviewEntry;
   ReorderPlan? plan; String reorderState = 'idle'; final removed = <String>{}; bool confirmReplace = false;
   late final ReorderService _reorder = widget.reorderService ?? MockReorderService();
 
@@ -41,6 +42,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       if (!mounted) return;
       setState(() { order = o; receipt = r; state = 'ready'; });
       if (widget.startReorder && _canReorder(o)) _check();
+      if (isReviewable(o.orderStatus)) { try { final c = await os.reviewConfig.configFor(o); final el = await os.reviewEligibility.check(o, auth.user?.id ?? '', c); if (mounted) setState(() => reviewEntry = el); } catch (_) {} }
     } catch (_) { if (mounted) setState(() => state = 'error'); }
   }
   bool _canReorder(Order o) => !isTrackable(o.orderStatus) && o.orderStatus != OrderStatus.paymentPending;
@@ -93,7 +95,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           Wrap(spacing: 6, runSpacing: 6, children: [_pill('${S.t('oc.orderStatus')}: ${S.t('oc.status.${orderStatusKey(s)}')}', closed), _pill('${S.t('oc.paymentStatus')}: ${S.t('oc.pay.${paymentStatusKey(o.paymentStatus)}')}', false)]),
           if (s == OrderStatus.cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.block, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('od.cancelled', {'at': closedAt == null ? '' : '${DateFormat.MMMEd('en_US').format(toZone(closedAt, tz))} · ${time(closedAt)}'})} ${o.cancellationReasonKey != null ? S.t('track.reason.${o.cancellationReasonKey}') : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
           if (s == OrderStatus.rejected) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('od.rejected')} ${o.rejectionReasonKey != null ? S.t('track.reason.${o.rejectionReasonKey}') : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
-          if (isReviewable(s)) Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('track.rate.pending'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
+          if (isReviewable(s) && reviewEntry != null) Padding(padding: const EdgeInsets.only(top: 10), child: reviewEntry!.eligible
+              ? BrandButton(icon: Icons.star_outline_rounded, label: S.t('rv.entry.rate'), expand: false, height: 44, onPressed: () => context.push('/order/${o.orderNumber}/review').then((_) => _load()))
+              : reviewEntry!.existingReview != null
+                  ? Wrap(spacing: 10, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [OutlineButton(label: reviewEntry!.canEdit ? S.t('rv.entry.edit') : S.t('rv.entry.view'), expand: false, height: 40, onPressed: () => context.push('/order/${o.orderNumber}/review').then((_) => _load())), Text('${S.t('rv.entry.reviewed')} · ${S.t('rv.rating.value', {'n': reviewEntry!.existingReview!.overallRating, 'max': 5})}', style: const TextStyle(color: Brand.grey, fontSize: 12))])
+                  : Text(S.t('rv.ineligible.${eligibilityKey(reviewEntry!.reason)}'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
         ]))),
         const SizedBox(height: 12),
         SectionCard(title: S.t('oc.restaurant'), icon: Icons.storefront_outlined, trailing: TextButton.icon(onPressed: () => account.toggleFavorite(o.restaurant.id), icon: Icon(fav ? Icons.favorite : Icons.favorite_border, size: 18, color: fav ? const Color(0xFFB42318) : null), label: Text(fav ? S.t('od.action.unfavorite') : S.t('od.action.favorite'))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(o.restaurant.formattedAddress, style: const TextStyle(color: Brand.grey, fontSize: 13.5)), const SizedBox(height: 8), OutlineButton(label: S.t('oc.action.viewRestaurant'), expand: false, height: 40, onPressed: () => context.push('/restaurants/${o.restaurant.slug}'))])),

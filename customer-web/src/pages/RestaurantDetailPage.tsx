@@ -16,6 +16,8 @@ import { formatDistance, formatLocalTime, formatMinutes, formatMoney, localClock
 import { resolveUnitSystem } from '../i18n/markets'
 import { t, useLocale } from '../i18n/strings'
 import { mapProvider } from '../map/MapProvider'
+import { reviewRepositories } from '../review/mock/mockReview'
+import type { RestaurantReviewSummary } from '../review/repositories'
 import './RestaurantDetailPage.css'
 
 type P = { size?: number }
@@ -288,6 +290,7 @@ export default function RestaurantDetailPage() {
                 <div className="rd-side-card"><h2>{t('rd.info.address', undefined, locale)}</h2><p dir="auto"><PinIcon size={16} /> {r.address.formatted}</p><h3>{t('rd.info.pickup', undefined, locale)}</h3><p>{t('rd.info.pickupText', undefined, locale)}</p></div>
                 <div className="rd-side-card"><h2>{t('rd.info.contact', undefined, locale)}</h2><p className="rd-muted">{t('rd.info.contactNone', undefined, locale)}</p></div>
                 <HoursCard r={r} locale={locale} today={today} />
+                <ReviewSummaryCard restaurantId={r.id} rating={r.rating} reviewCount={r.reviewCount} locale={locale} />
               </section>
             )}
 
@@ -374,5 +377,19 @@ function MenuItemCard({ item, restaurantSlug, locale }: { item: MenuItem; restau
         </div>
       </div>
     </li>
+  )
+}
+
+/** Module 16 readiness: public review summary slot. Aggregates are server-side later; the mock counts only reviews on this device. */
+function ReviewSummaryCard({ restaurantId, rating, reviewCount, locale }: { restaurantId: string; rating: number; reviewCount: number; locale: string }) {
+  const [summary, setSummary] = useState<RestaurantReviewSummary | null>(null)
+  useEffect(() => { let on = true; reviewRepositories.reviews.getRestaurantReviewSummary(restaurantId).then((s) => { if (on) setSummary(s) }).catch(() => {}); return () => { on = false } }, [restaurantId])
+  return (
+    <div className="rd-side-card" data-testid="rd-reviews">
+      <h2>{t('rd.reviews.title', undefined, locale)}</h2>
+      <p className="rd-muted">{t('rd.reviews.catalogue', { rating: rating.toLocaleString(locale, { minimumFractionDigits: 1 }), count: reviewCount.toLocaleString(locale) }, locale)}</p>
+      <p>{summary && summary.reviewCount > 0 && summary.averageRating != null ? t('rd.reviews.local', { count: summary.reviewCount, avg: summary.averageRating.toLocaleString(locale, { maximumFractionDigits: 1 }), max: 5 }, locale) : t('rd.reviews.none', undefined, locale)}</p>
+      <p className="rd-muted">{t('rd.reviews.note', undefined, locale)}</p>
+    </div>
   )
 }

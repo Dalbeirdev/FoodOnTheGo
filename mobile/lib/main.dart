@@ -20,6 +20,8 @@ import 'screens/help_screen.dart';
 import 'screens/home_screens.dart';
 import 'screens/my_orders_screen.dart';
 import 'screens/order_details_screen.dart';
+import 'screens/review_screen.dart';
+import 'auth/auth_repository.dart' show SecureKeyValueStore;
 import 'state/app_state.dart';
 import 'state/account_state.dart';
 import 'state/auth_state.dart';
@@ -75,6 +77,7 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/order-confirmation/:number', builder: (_, s) => OrderConfirmationScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order/:number', builder: (_, s) => OrderDetailsScreen(number: s.pathParameters['number']!, startReorder: s.uri.queryParameters['reorder'] == '1')),
+    GoRoute(path: '/order/:number/review', builder: (_, s) => ReviewScreen(number: s.pathParameters['number']!, draftStore: SecureKeyValueStore())),
     GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
     GoRoute(path: '/favorites', builder: (_, _) => const FavoritesScreen()),
     GoRoute(path: '/addresses', builder: (_, _) => const AddressesScreen()),

@@ -26,6 +26,7 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage'
 import OrderTrackingPage from './pages/OrderTrackingPage'
 import MyOrdersPage from './pages/MyOrdersPage'
 import OrderDetailsPage from './pages/OrderDetailsPage'
+import ReviewPage from './pages/ReviewPage'
 import MyProfilePage from './pages/MyProfilePage'
 import FavoritesPage from './pages/account/FavoritesPage'
 import AddressesPage from './pages/account/AddressesPage'
@@ -78,6 +79,7 @@ export function AppShell() {
             <Route path="/order-tracking/:orderNumber" element={<RequireAuth><OrderTrackingPage /></RequireAuth>} />
             <Route path="/my-orders" element={<RequireAuth><MyOrdersPage /></RequireAuth>} />
             <Route path="/order/:orderNumber" element={<RequireAuth><OrderDetailsPage /></RequireAuth>} />
+            <Route path="/order/:orderNumber/review" element={<RequireAuth><ReviewPage /></RequireAuth>} />
             <Route path="/my-profile" element={<RequireAuth><MyProfilePage /></RequireAuth>} />
             <Route path="/favorites" element={<RequireAuth><FavoritesPage /></RequireAuth>} />
             <Route path="/addresses" element={<RequireAuth><AddressesPage /></RequireAuth>} />

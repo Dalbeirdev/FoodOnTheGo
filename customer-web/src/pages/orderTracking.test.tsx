@@ -68,7 +68,7 @@ describe('Order tracking (web)', () => {
     await advance(o.orderNumber); expect(status()).toBe('Order completed'); expect(steps()).toEqual(['done', 'done', 'done', 'done', 'done', 'done', 'done'])
     expect(screen.getByTestId('trk-live')).toHaveTextContent('Final status')
     expect(screen.getByRole('link', { name: /^view order$/i })).toHaveAttribute('href', `/order/${o.orderNumber}`)
-    expect(screen.getByRole('button', { name: /rate experience/i })).toBeDisabled()
+    expect(screen.getByTestId('trk-review')).toHaveAttribute('href', `/order/${o.orderNumber}/review`)
     expect(screen.getByRole('link', { name: /reorder/i })).toHaveAttribute('href', '/restaurants/burger-hub')
   })
 
