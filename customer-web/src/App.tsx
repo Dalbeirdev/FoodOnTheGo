@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
 import { PickupProvider } from './pickup/PickupContext'
 import { CheckoutProvider } from './checkout/CheckoutContext'
@@ -57,6 +57,9 @@ import AnalyticsPage from './dashboard/pages/AnalyticsPage'
 import NotificationsDashboardPage from './dashboard/pages/NotificationsPage'
 import SettingsPage from './dashboard/pages/SettingsPage'
 import HelpDashboardPage from './dashboard/pages/HelpPage'
+
+/** Static share builds (VITE_ROUTER=hash) run from a single file host where only hash routes survive a reload. */
+const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRouter
 
 /** Canonical restaurant routes are /restaurants/:slug and /restaurants/:slug/item/:itemId — old /restaurant/… links redirect. */
 function LegacyItemRedirect() { const { rid, itemId } = useParams(); return <Navigate to={`/restaurants/${rid}/item/${itemId}`} replace /> }
@@ -154,8 +157,8 @@ export function AppShell() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <AppShell />
-    </BrowserRouter>
+    </Router>
   )
 }

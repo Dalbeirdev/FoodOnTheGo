@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:share": "cross-env-free: set VITE_ROUTER=hash and VITE_SHARE_BUILD=1 then vite build --base ./ --outDir dist-share (see docs/local-review/share-preview.md)",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
