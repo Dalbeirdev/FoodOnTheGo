@@ -1,0 +1,88 @@
+{
+  "module": "M13",
+  "ranAt": "2026-09-29T10:18:10.617Z",
+  "total": 16,
+  "passed": 16,
+  "results": [
+    {
+      "n": "phone: TEST 1 / 14 confirmation after mock payment — Order confirmed, public order number, separate statuses, total INR",
+      "ok": true,
+      "d": "FOTG-HTE6-57BH"
+    },
+    {
+      "n": "phone: TEST 2 / 3 / 13 pickup code (6 chars) + QR with a text alternative",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: pickup details in restaurant zone, restaurant, items snapshot, payment summary, receipt + Track order",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: receipt summary (ORDER RECEIPT, not a tax invoice); download / email prepared",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 7 Track order → Module 14 interim tracking screen",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 6 returning to the confirmation restores the same order",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 4 payment-pending fixture — no confirmed / paid claim, Check payment status",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 invalid order → not-found state with recovery",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 / 14 confirmation after mock payment — Order confirmed, public order number, separate statuses, total INR",
+      "ok": true,
+      "d": "FOTG-QEQH-H2R9"
+    },
+    {
+      "n": "tablet: TEST 2 / 3 / 13 pickup code (6 chars) + QR with a text alternative",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: pickup details in restaurant zone, restaurant, items snapshot, payment summary, receipt + Track order",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: receipt summary (ORDER RECEIPT, not a tax invoice); download / email prepared",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 7 Track order → Module 14 interim tracking screen",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 6 returning to the confirmation restores the same order",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 4 payment-pending fixture — no confirmed / paid claim, Check payment status",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 invalid order → not-found state with recovery",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "module": "M13",
+  "ranAt": "2026-09-29T10:06:30.196Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 27,
+  "passed": 27,
+  "results": [
+    {
+      "name": "ROUTE canonical /order-confirmation/:orderNumber with a public reference (no internal id)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 confirmation: Order confirmed, order number, separate order / payment statuses, total + currency, Track order CTA",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 pickup code displayed (6 readable characters, state text)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 QR displayed with a text alternative; payload is an opaque development token (no phone / email / order data)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 pickup details in the restaurant zone (device Europe/London vs Asia/Kolkata), method, instructions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 restaurant snapshot: name, formatted address, contact placeholder, Get directions + View restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 item snapshot + pricing from the order (no invented tax / fee lines) + safe payment summary (status, method, reference, paid)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CONSUMED checkout: cart cleared, checkout request cleared, one order + one pickup verification stored",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 refresh restores the same order from storage; no new order / payment / pickup code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RECEIPT summary (order receipt, not a tax invoice) with items + pricing + payment method; download / email prepared but disabled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 View order details points to /order/:orderNumber (Module 15)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 Track order navigates to /order-tracking/:orderNumber (Module 14 interim page, back link to confirmation)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 /order/:orderNumber shows the Module 15 interim page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 payment pending: no Order confirmed / Paid claim, do-not-pay-again note, Check payment status, no pickup code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CANCELLED order state with refund status, help and cancellation policy",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 invalid order number → professional not-found state with recovery actions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ERROR failed-to-load state with Try again that recovers (fotg.mock.fail=order)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 / 10 USD order: $ total, USD code, America/Los_Angeles pickup time unambiguous with zone label, market provider",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 / 12 EUR order with Unicode item + French address renders (€, EUR, Europe/Paris) without overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "MULTI three orders created across three checkouts — one per payment attempt",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 / RESPONSIVE (mobile) no horizontal overflow, QR ≥ 200px and not clipped, Track order visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 13 / RESPONSIVE (tablet) no horizontal overflow, QR ≥ 200px and not clipped, Track order visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 13 / RESPONSIVE (desktop) no horizontal overflow, QR ≥ 200px and not clipped, Track order visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}
