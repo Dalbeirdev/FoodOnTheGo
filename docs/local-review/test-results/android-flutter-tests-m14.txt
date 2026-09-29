@@ -1,0 +1,225 @@
+Resolving dependencies...
+Downloading packages...
+  cli_util 0.4.2 (0.6.0 available)
+  code_assets 1.2.1 (2.1.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  go_router 18.0.1 (18.0.2 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.4.0 (1.5.0 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.0 available)
+  qr 3.0.2 (4.0.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+Got dependencies!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart
+00:00 +0: E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart: phone helpers validate, normalise, mask and format Indian numbers
+00:00 +1: E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart: MockAuthRepository new customer needs setup; existing customer is authenticated directly
+00:00 +2: E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart: MockAuthRepository wrong codes count attempts then lock; codes expire; failure numbers
+00:00 +3: E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart: MockAuthRepository expired session is reported
+00:00 +4: E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart: AuthState full new-customer flow with return-to, then logout clears everything
+00:00 +5: E:/TechPio-Data/FoodOnTheGo/mobile/test/auth_state_test.dart: AuthState restore reports an expired session and changePhone resets the flow
+00:04 +6: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:04 +7: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:04 +8: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:04 +9: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:04 +10: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:04 +11: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:04 +12: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +13: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +14: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +15: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +16: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +17: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +18: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +19: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +20: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +21: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 1 — empty cart state with Explore / Plan actions and no Continue
+00:05 +22: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:05 +23: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:05 +24: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:05 +25: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:05 +26: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:05 +27: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:05 +28: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +29: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +30: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +31: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +32: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +33: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +34: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +35: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +36: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +37: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +38: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +39: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +40: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +41: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +42: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +43: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +44: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +45: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +46: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +47: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +48: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +49: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +50: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +51: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +52: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 2 — guest is redirected to login; cart and pickup selection are kept
+00:06 +53: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +54: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +55: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +56: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +57: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +58: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +59: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +60: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +61: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +62: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +63: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +64: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +65: E:/TechPio-Data/FoodOnTheGo/mobile/test/cart_screen_test.dart: TEST 6 / 7 — remove asks first; removing the last item empties the cart
+00:06 +66: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:06 +67: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +68: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +69: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +70: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +71: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +72: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +73: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +74: E:/TechPio-Data/FoodOnTheGo/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:07 +75: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +76: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +77: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +78: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +79: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +80: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +81: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +82: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +83: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +84: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:07 +85: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:08 +86: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:08 +87: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +88: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +89: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +90: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +91: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +92: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +93: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +94: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +95: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +96: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +97: E:/TechPio-Data/FoodOnTheGo/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +98: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:08 +99: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +100: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +101: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +102: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +103: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +104: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +105: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:09 +106: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:09 +107: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:09 +108: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:09 +109: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +110: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +111: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +112: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +113: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +114: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +115: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +116: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +117: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +118: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +119: E:/TechPio-Data/FoodOnTheGo/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:10 +120: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:10 +121: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +122: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +123: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +124: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +125: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +126: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +127: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +128: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +129: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +130: E:/TechPio-Data/FoodOnTheGo/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:11 +131: E:/TechPio-Data/FoodOnTheGo/mobile/test/item_detail_test.dart: TEST 10 — different restaurant asks before replacing the cart
+00:11 +132: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:11 +133: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:11 +134: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:11 +135: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +136: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +137: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +138: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +139: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +140: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +141: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +142: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +143: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +144: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +145: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +146: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +147: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +148: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +149: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +150: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +151: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +152: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +153: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +154: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +155: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:12 +156: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home lays out at 390×844
+00:12 +157: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home lays out at 390×844
+00:12 +158: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home lays out at 390×844
+00:13 +159: E:/TechPio-Data/FoodOnTheGo/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:13 +160: E:/TechPio-Data/FoodOnTheGo/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:13 +161: E:/TechPio-Data/FoodOnTheGo/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:13 +162: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 8 — stale slot: validation fails, customer must choose another time
+00:13 +163: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 8 — stale slot: validation fails, customer must choose another time
+00:14 +164: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 8 — stale slot: validation fails, customer must choose another time
+00:14 +165: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item lays out at 390×844
+00:14 +166: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 6 — not accepting orders is a distinct blocking state
+00:14 +167: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: TEST 6 — not accepting orders is a distinct blocking state
+00:14 +168: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: My orders lays out at 390×844
+00:14 +169: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:15 +170: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:15 +171: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:15 +172: E:/TechPio-Data/FoodOnTheGo/mobile/test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:15 +173: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Verify OTP (no pending phone) lays out at 390×844
+00:15 +174: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Account setup (no token) lays out at 390×844
+00:15 +175: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Build info lays out at 390×844
+00:15 +176: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Help & Support lays out at 390×844
+00:15 +177: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Favorites (signed out guard) lays out at 390×844
+00:15 +178: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Addresses lays out at 390×844
+00:15 +179: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Payment methods lays out at 390×844
+00:15 +180: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Notifications lays out at 390×844
+00:15 +181: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home lays out at 1280×800
+00:15 +182: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Restaurants lays out at 1280×800
+00:15 +183: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Restaurant detail lays out at 1280×800
+00:16 +184: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item lays out at 1280×800
+00:16 +185: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Cart (empty) lays out at 1280×800
+00:16 +186: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: My orders lays out at 1280×800
+00:16 +187: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Profile lays out at 1280×800
+00:16 +188: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Plan a journey lays out at 1280×800
+00:16 +189: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Login (mobile number) lays out at 1280×800
+00:16 +190: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Verify OTP (no pending phone) lays out at 1280×800
+00:16 +191: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Account setup (no token) lays out at 1280×800
+00:16 +192: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Build info lays out at 1280×800
+00:16 +193: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Help & Support lays out at 1280×800
+00:16 +194: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Favorites (signed out guard) lays out at 1280×800
+00:17 +195: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Addresses lays out at 1280×800
+00:17 +196: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Payment methods lays out at 1280×800
+00:17 +197: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Notifications lays out at 1280×800
+00:17 +198: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Cart with a combo shows the saving and totals
+00:17 +199: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item screen body is visible above its bottom bar
+00:17 +200: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Checkout (guest) redirects to login instead of rendering the review
+00:17 +201: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home with items shows the cart bar without hiding the page
+00:17 +202: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:17 +203: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:17 +203: All tests passed!

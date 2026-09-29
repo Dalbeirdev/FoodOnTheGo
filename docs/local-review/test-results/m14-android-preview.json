@@ -1,0 +1,108 @@
+{
+  "module": "M14",
+  "ranAt": "2026-09-29T11:22:32.245Z",
+  "total": 20,
+  "passed": 20,
+  "results": [
+    {
+      "n": "phone: TEST 1 tracking header — status, live indicator, separate order / payment statuses, pickup time + zone, ready ETA, arrival ETA",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: timeline present with placed / payment done and upcoming steps",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 2 delay — \"taking a little longer\", customer-safe reason, updated ready ETA; still Preparing",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 8 / 9 duplicate + stale events ignored (counters)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 6 ready — prominent ready panel with QR + pickup code + instructions",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 7 / completed — picked up after (mock) verification, final status, next actions",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 3 rejected — preparation stops, reason shown, refund pending separate, no QR",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 payment pending — no fulfilment progress, Check payment status",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 10 offline — banner with last known status, no live claim",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 11 back online — status refreshed, offline banner gone",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 tracking header — status, live indicator, separate order / payment statuses, pickup time + zone, ready ETA, arrival ETA",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: timeline present with placed / payment done and upcoming steps",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 2 delay — \"taking a little longer\", customer-safe reason, updated ready ETA; still Preparing",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 8 / 9 duplicate + stale events ignored (counters)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 6 ready — prominent ready panel with QR + pickup code + instructions",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 7 / completed — picked up after (mock) verification, final status, next actions",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 3 rejected — preparation stops, reason shown, refund pending separate, no QR",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 payment pending — no fulfilment progress, Check payment status",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 10 offline — banner with last known status, no live claim",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 11 back online — status refreshed, offline banner gone",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

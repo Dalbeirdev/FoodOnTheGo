@@ -1,0 +1,189 @@
+{
+  "module": "M14",
+  "ranAt": "2026-09-29T11:15:50.475Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 34,
+  "passed": 34,
+  "results": [
+    {
+      "name": "ROUTE Track order → canonical /order-tracking/:orderNumber with the Module 13 reference",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 header: current status, restaurant, separate order / payment statuses, pickup time in restaurant zone, food-ready ETA, live indicator + last updated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ETA separation: customer arrival ETA (journey mock) shown apart from the food-ready ETA; distance from journey origin in metric units",
+      "pass": true,
+      "detail": "arrival=1 distance=About 60 m from Sector 62, Noida (straight line, development estimate)."
+    },
+    {
+      "name": "TEST 1 timeline: placed + payment done, restaurant step current, rest upcoming (no future step shown as done)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 → Waiting for the restaurant (deterministic mock event, not a real restaurant)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 → Restaurant accepted",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 → Preparing: meaningful stage, no fabricated percentage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 → Ready for pickup: prominent ready panel, pickup code + QR reused from Module 13, instructions, directions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 → Pickup verification: restaurant is verifying; screen states it does not complete the pickup",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 → Picked up after the (mock) restaurant verification; code hidden; frontend never marks pickup itself",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 → Completed: all steps done, final status, next actions (View order, Get receipt, Rate later, Reorder)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "EVENT HISTORY preserved: 10 structured events with monotonic sequence, type, status, actor and timestamps",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RELOAD restores the completed order from the persisted events (no regression, no new events)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 restaurant delay: \"taking a little longer\", customer-safe reason, updated ready ETA highlighted; status stays Preparing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 / 9 duplicate and out-of-order events are ignored (status unchanged, counters show 1 / 1)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 rejected: preparation stops, stopped step marked, refund pending shown separately, no pickup code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 further events are refused after rejection",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 cancelled after acceptance: cancelled state with reason; refund status separate",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 refund update still applies to a cancelled order (Refunded)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 payment pending: no fulfilment progress, check-status link, no code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 network loss: \"Live updates temporarily unavailable\" banner while the status stays as last known",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 reconnect: live again and the missed accepted event is applied",
+      "pass": true,
+      "detail": "status=Restaurant accepted your order live=Live updatesLast updated 12:15 PM Refresh status"
+    },
+    {
+      "name": "TEST 10 browser offline: offline banner + \"last known status\" wording; no live claim",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 back online: reconnects and refreshes the current state",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 42 manual refresh does not create duplicate events",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 / 13 America/Los_Angeles order: restaurant-local pickup time + zone label, ready ETA in restaurant time, imperial distance (mi)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 Unicode: Œufs en meurette / Brasserie Beaunoise render, € total, Europe/Paris zone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile) no horizontal overflow, timeline + ready panel + QR present",
+      "pass": true,
+      "detail": "overflow=false status=Ready for pickup ready=1 qr=1"
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (tablet) no horizontal overflow, timeline + ready panel + QR present",
+      "pass": true,
+      "detail": "overflow=false status=Ready for pickup ready=1 qr=1"
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (desktop) no horizontal overflow, timeline + ready panel + QR present",
+      "pass": true,
+      "detail": "overflow=false status=Ready for pickup ready=1 qr=1"
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "orders": [
+    "FOTG-5ZEC-NLTP",
+    "FOTG-U777-CHXT",
+    "FOTG-N8YR-N7VF",
+    "FOTG-WR7K-NYA3",
+    "FOTG-CBFS-B3MH",
+    "FOTG-UUG6-LG2S",
+    "FOTG-Z4ZM-CEFX"
+  ]
+}
