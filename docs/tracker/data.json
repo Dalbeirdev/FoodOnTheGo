@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 13 (Order confirmation) — awaiting owner device test of build017",
+  "phase": "Frontend - Module 13 COMPLETE (owner verified build017); Module 14 (order tracking) awaiting owner spec",
   "currentModule": "Module 13",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -105,7 +105,7 @@
       "id": "M13",
       "name": "Module 13 — Order Confirmation, Pickup Verification & Receipt Summary (frontend-first, mock repositories)",
       "started": "2026-09-29",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-29: canonical /order-confirmation/:orderNumber on Web + Android with public references; order domain (snapshots, separate statuses, events) + OrderRepository / PickupVerificationRepository / ReceiptRepository mocks; payment handoff creates the development order idempotently and consumes the checkout; success header, pickup code + opaque-token QR, pickup / restaurant / items / pricing / payment / receipt / help; loading, pending, failed, cancelled, not-found states; reload safety; Track order + details navigation; INR / USD / EUR, zone and Unicode fixtures. Backend order creation, snapshots, events, pickup code + QR verification, authorization, receipts, notifications, restaurant workflow recorded as carry-forward."
     },
     {
@@ -7455,7 +7455,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build017)",
       "evidence": "mobile/lib/screens/order_confirmation_screen.dart; docs/local-review/screenshots/android-preview/phone-order-confirmed.png, tablet-order-confirmed.png; docs/local-review/test-results/m13-android-preview.json 16/16",
       "issue": "-",
       "carry": "CF-171",
@@ -7887,7 +7887,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build017)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-order-confirmed.png, phone-order-receipt.png, phone-order-payment-pending.png, phone-order-not-found.png, tablet-order-confirmed.png",
       "issue": "-",
       "carry": "CF-171",
@@ -8095,7 +8095,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build017)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build017.apk",
       "issue": "-",
       "carry": "CF-171",
@@ -8234,7 +8234,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 12 + e2e 27/27 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build017)",
       "backend": "MOCK (MockOrderRepository + MockPickupVerificationRepository + MockReceiptRepository)",
       "prod": "NO",
       "shot": "web-m13/01-order-confirmed",
@@ -8945,9 +8945,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (order_test 9, order_confirmation_screen_test 4)",
       "apk": "YES (build017)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build017, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -9382,6 +9382,12 @@
       "The payment handoff consumes the checkout (cart, pickup selection, checkout request cleared) once the order exists; Get directions opens a maps deep link with restaurant coordinates until the routing integration lands.",
       "Claude (spec §14–15, §39)",
       "CF-166"
+    ],
+    [
+      "2026-09-29",
+      "Module 13 approved: owner tested build017 on tablet, all screens pass. Module 14 may start once its spec arrives.",
+      "Owner",
+      "CF-171 closed; TE-121 PASS."
     ]
   ],
   "carry": [
@@ -11433,7 +11439,7 @@
       "P0",
       "Owner",
       "Before M13 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE - owner: \"build017 tested on tab, all screens pass\" (2026-09-29)",
       "2026-09-29",
       "-"
     ]
@@ -13207,8 +13213,8 @@
       "ANDROID",
       "Owner device test of build017 (see CF-171)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build017: all screens pass (2026-09-29)",
       "2026-09-29"
     ]
   ],
@@ -13888,9 +13894,9 @@
       "2fa991d (Module 13)",
       "2026-09-29",
       "91B3EE4E998468AB03C7B5A43615163A19BA6AB37910E5D47690789148C1808E",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-29)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
