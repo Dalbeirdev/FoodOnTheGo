@@ -1,0 +1,80 @@
+# Module 15 Android — flutter analyze + flutter test — 2026-09-29T12:05:05Z
+Resolving dependencies...
+Downloading packages...
+  cli_util 0.4.2 (0.6.0 available)
+  code_assets 1.2.1 (2.1.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  go_router 18.0.1 (18.0.2 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.4.0 (1.5.0 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.0 available)
+  qr 3.0.2 (4.0.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+Got dependencies!
+Analyzing mobile...                                             
+No issues found! (ran in 4.3s)
+00:07 +158: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +159: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +160: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +161: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +162: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +163: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +164: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +165: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +166: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +167: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +168: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +169: test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:07 +170: test/screens_test.dart: Home lays out at 390×844
+00:07 +171: test/screens_test.dart: Home lays out at 390×844
+00:08 +172: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +173: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +174: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +175: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +176: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +177: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +178: test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:08 +179: test/screens_test.dart: Cart (empty) lays out at 390×844
+00:08 +180: test/screens_test.dart: Cart (empty) lays out at 390×844
+00:08 +181: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +182: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +183: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +184: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +185: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +186: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +187: test/pickup_screen_test.dart: signed-in customer continues straight to checkout after validation
+00:09 +188: test/screens_test.dart: Build info lays out at 390×844
+00:09 +189: test/screens_test.dart: Help & Support lays out at 390×844
+00:09 +190: test/screens_test.dart: Favorites (signed out guard) lays out at 390×844
+00:09 +191: test/screens_test.dart: Addresses lays out at 390×844
+00:09 +192: test/screens_test.dart: Payment methods lays out at 390×844
+00:09 +193: test/screens_test.dart: Notifications lays out at 390×844
+00:09 +194: test/screens_test.dart: Home lays out at 1280×800
+00:09 +195: test/screens_test.dart: Restaurants lays out at 1280×800
+00:09 +196: test/screens_test.dart: Restaurant detail lays out at 1280×800
+00:10 +197: test/screens_test.dart: Item lays out at 1280×800
+00:10 +198: test/screens_test.dart: Cart (empty) lays out at 1280×800
+00:10 +199: test/screens_test.dart: My orders lays out at 1280×800
+00:10 +200: test/screens_test.dart: Profile lays out at 1280×800
+00:10 +201: test/screens_test.dart: Plan a journey lays out at 1280×800
+00:10 +202: test/screens_test.dart: Login (mobile number) lays out at 1280×800
+00:10 +203: test/screens_test.dart: Verify OTP (no pending phone) lays out at 1280×800
+00:10 +204: test/screens_test.dart: Account setup (no token) lays out at 1280×800
+00:10 +205: test/screens_test.dart: Build info lays out at 1280×800
+00:10 +206: test/screens_test.dart: Help & Support lays out at 1280×800
+00:10 +207: test/screens_test.dart: Favorites (signed out guard) lays out at 1280×800
+00:10 +208: test/screens_test.dart: Addresses lays out at 1280×800
+00:10 +209: test/screens_test.dart: Payment methods lays out at 1280×800
+00:10 +210: test/screens_test.dart: Notifications lays out at 1280×800
+00:10 +211: test/screens_test.dart: Cart with a combo shows the saving and totals
+00:10 +212: test/screens_test.dart: Item screen body is visible above its bottom bar
+00:10 +213: test/screens_test.dart: Checkout (guest) redirects to login instead of rendering the review
+00:10 +214: test/screens_test.dart: Home with items shows the cart bar without hiding the page
+00:10 +215: test/screens_test.dart: Home shows hero copy and restaurant cards
+00:11 +216: test/screens_test.dart: (tearDownAll)
+00:11 +216: All tests passed!

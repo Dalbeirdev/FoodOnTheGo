@@ -1,0 +1,218 @@
+{
+  "module": "M15",
+  "ranAt": "2026-09-29T13:01:22.633Z",
+  "total": 42,
+  "passed": 42,
+  "results": [
+    {
+      "n": "phone: TEST 17 /my-orders is protected — after OTP the customer lands on My orders",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 empty state — \"No orders yet\", Explore restaurants, Plan a journey",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 2 / 3 / 4 seeded list — 5 of 12, newest first, group + payment badges, Track order on ongoing, Reorder on completed / cancelled",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 9 Load more → 10 of 12",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 9 Load more → 12 of 12, button gone",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 filter Cancelled → 4 (no Track order)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 filter Ongoing → 3 (no Reorder)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 6 / 8 filtered-empty with Clear filters",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 6 Clear filters (+ All) → all 12",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 6 search by order number → 1",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 10 / 14 / 15 details — cancelled notice, Partially refunded, Refunded ₹320.00 / Remaining paid ₹960.00, timeline, receipt, Reorder check",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 10 receipt inline (Module 13) — not a tax invoice",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 12 reorder validation — Price changed (was ₹640.00 · now ₹250.00), 1 item addable at current prices",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 12 new cart from the reorder — Burger Hub, Classic Burger at ₹250.00",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 13 one active cart = one restaurant — confirmation before replacing (Route 5 Diner → Burger Hub)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 13 Keep current cart — stays on details",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 10 USD order — $18.99, America/Los_Angeles, masked card only",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 14 rejected JPY order — could not accept, ¥980, Unicode restaurant, Refund pending",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 11 ongoing order — Track order bottom action, no reorder",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 11 Track order → Module 14 tracking",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 16 unknown order → not found",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 17 /my-orders is protected — after OTP the customer lands on My orders",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 empty state — \"No orders yet\", Explore restaurants, Plan a journey",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 2 / 3 / 4 seeded list — 5 of 12, newest first, group + payment badges, Track order on ongoing, Reorder on completed / cancelled",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 9 Load more → 10 of 12",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 9 Load more → 12 of 12, button gone",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 filter Cancelled → 4 (no Track order)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 filter Ongoing → 3 (no Reorder)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 6 / 8 filtered-empty with Clear filters",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 6 Clear filters (+ All) → all 12",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 6 search by order number → 1",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 10 / 14 / 15 details — cancelled notice, Partially refunded, Refunded ₹320.00 / Remaining paid ₹960.00, timeline, receipt, Reorder check",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 10 receipt inline (Module 13) — not a tax invoice",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 12 reorder validation — Price changed (was ₹640.00 · now ₹250.00), 1 item addable at current prices",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 12 new cart from the reorder — Burger Hub, Classic Burger at ₹250.00",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 13 one active cart = one restaurant — confirmation before replacing (Route 5 Diner → Burger Hub)",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 13 Keep current cart — stays on details",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 10 USD order — $18.99, America/Los_Angeles, masked card only",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 14 rejected JPY order — could not accept, ¥980, Unicode restaurant, Refund pending",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 11 ongoing order — Track order bottom action, no reorder",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 11 Track order → Module 14 tracking",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 16 unknown order → not found",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}

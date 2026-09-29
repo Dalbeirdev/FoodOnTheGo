@@ -1,0 +1,265 @@
+{
+  "module": "M15",
+  "ranAt": "2026-09-29T12:32:20.771Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 51,
+  "passed": 51,
+  "results": [
+    {
+      "name": "TEST 17 /my-orders unauthenticated → login gate",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 17 after OTP the customer returns to /my-orders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 empty state: \"No orders yet\" + Explore restaurants + Plan a journey; no error, no cards",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 / 4 / 9 list: 5 summaries per page, newest first, order number + restaurant + pickup time + total + both status badges",
+      "pass": true,
+      "detail": "[\"Burger HubFOTG-SEED-0001 · Mon, Sep 28CompletedPaidPickup timeMon, Sep 28 · 6:46\",\"Burger HubFOTG-SEED-0002 · Sat, Sep 26PreparingPaidPickup timeSat, Sep 26 · 6:46\",\"Route 5 DinerFOTG-SEED-0003 · Thu, Sep 24Picked upPaidPickup timeThu, Sep 24 · 6\",\"Brasserie BeaunoiseFOTG-SEED-0004 · Wed, Sep 23CancelledRefundedPickup timeWed, \",\"一風堂 静岡店FOTG-SEED-0005 · Tue, Sep 22RejectedRefund pendingPickup timeTue, Sep 22 \"]"
+    },
+    {
+      "name": "TEST 3 grouping on cards: ongoing / completed / cancelled derived from the order status; payment status shown separately (Refunded, Refund pending)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 state-dependent actions: Track order only on ongoing; Reorder + Get receipt on completed / cancelled; Rate disabled (Module 16)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 Load more → 10 of 12",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 Load more → 12 of 12 and the button disappears",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 filter Cancelled: 4 cancelled / rejected orders only (aria-pressed on the active chip)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 filter Ongoing: 3 orders, all with Track order",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 / 8 filtered-empty: Ongoing + \"route 5\" → \"No ongoing orders\" with Clear filters",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 Clear filters → back to all 12 (5 shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 search by restaurant name: 2 Route 5 Diner orders",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 search by order number (case-insensitive): exactly one match",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 sort oldest first: FOTG-SEED-0012 leads",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 load failure: error state with Try again (no stale list)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 retry recovers the list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "ROUTE card → canonical /order/:orderNumber",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 details: restaurant, items with customization, snapshot pricing, pickup (restaurant zone), payment summary, timeline",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 / 15 cancelled + partially refunded: closed notice with reason, Refunded ₹320.00, Remaining paid ₹960.00 of ₹1,280.00; refund note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 no Track order on a closed order; Reorder CTA present; safe payment details only (no PAN / UPI id)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 receipt (Module 13) inline: order receipt, not a tax invoice",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Favorite toggle from the details page (Module 04 favorites)",
+      "pass": true,
+      "detail": "Saved restaurant → Save restaurant"
+    },
+    {
+      "name": "TEST 10 USD order (America/Los_Angeles): $18.99, zone label, masked card detail only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 rejected JPY order: \"could not accept\" notice, ¥980 (0-decimal), Unicode restaurant + item, Refund pending",
+      "pass": true,
+      "detail": "{\"rejected\":true,\"notice\":true,\"yen\":true,\"restaurant\":true,\"item\":true,\"refundPending\":true} Order details一風堂 静岡店FOTG-SEED-0005 · placed Tue, Sep 22 · 9:31 AM GMT+9RejectedRefund pendingThe restaurant could not accept this order. Reason: an item is unavailable.ReorderView receiptGet help with this orderRestaurant Save restaurant一風堂 静岡店静岡県静岡市葵区紺屋町6-7, JapanView restaurantPickup detailsPickup dateTue, Sep 22Pickup time10:16 AM GMT+9restaurant time · Asia/TokyoPickup methodCounter pickupCounter pickupPickup details are the ones agreed at the time of the order. Later changes to the restaurant do not alter them.Items (1)Spicy Paneer Wrap × 1Size: Regular¥980 × 1¥980Items subtotal¥980Total¥"
+    },
+    {
+      "name": "TEST 11 ongoing order: Track order present, no Reorder",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 Track order → Module 14 /order-tracking/:orderNumber",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 reorder validation: price changed (was ₹640.00 → now ₹250.00), summary at current prices, new-order note",
+      "pass": true,
+      "detail": "[{\"status\":\"price_changed\",\"text\":\"Classic Burger × 2Price changedWas ₹640.00 each · now ₹250.00Remove\"}]"
+    },
+    {
+      "name": "TEST 12 new cart: Burger Hub, Classic Burger × 2 at ₹250.00 (current), nothing from the old order reused",
+      "pass": true,
+      "detail": "{\"id\":\"cart-mumnoo5f-3t2o0t\",\"restaurantId\":\"burger-hub\",\"restaurantSlug\":\"burger-hub\",\"restaurantName\":\"Burger Hub\",\"currency\":\"INR\",\"items\":[{\"id\":\"classic-burger|classic-burger:size=size:regular|\",\"menuItemId\":\"classic-burger\",\"itemSlug\":\"classic-burger\",\"restaurantId\":\"burger-hub\",\"itemName\":\"Cl"
+    },
+    {
+      "name": "TEST 13 unavailable item: \"Item no longer available\" + Open restaurant menu; missing modifier: \"choose again\" with the missing option named; Add disabled (0 addable)",
+      "pass": true,
+      "detail": "[{\"status\":\"unavailable\",\"text\":\"Œufs en meurette × 2Item no longer availableOpen restaurant menu\"},{\"status\":\"modifier_missing\",\"text\":\"Classic Burger × 2One of your previous selections is no longer available — choose againNo longer available: Add-ons: Fried EggChoose options again\"}]"
+    },
+    {
+      "name": "TEST 13 restaurant no longer on the platform: clear message + Explore restaurants / Plan a journey alternatives",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "setup: Route 5 Diner cart in place",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 cross-restaurant reorder asks before replacing the cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 Keep current cart: nothing changed, still on the details page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 Replace cart: new Burger Hub cart with the reorder line only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 16 another customer's order number → not found (no data leak)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 16 unknown order number → not found with My orders / Help actions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 16 the list no longer shows the foreign order (11 remain)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile, my-orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile, my-orders) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (mobile, details) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile, details) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (tablet, my-orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet, my-orders) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (tablet, details) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet, details) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (desktop, my-orders) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop, my-orders) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (desktop, details) no horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop, details) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

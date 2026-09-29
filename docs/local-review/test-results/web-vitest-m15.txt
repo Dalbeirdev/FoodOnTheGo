@@ -1,0 +1,12 @@
+
+ RUN  v5.0.2 E:/TechPio-Data/FoodOnTheGo/customer-web
+
+
+ Test Files  24 passed (24)
+      Tests  279 passed (279)
+   Start at  17:34:39
+   Duration  24.60s (tests 63%, environment 20%, transform 9%, import 4%, setup 4%)
+
+    Isolate  24 workers spawned · ~2.07s startup each (spawn + environment, per file)
+             at least ~1.24s faster with isolate: false — reuses workers across files instead of one per file
+
