@@ -1,0 +1,170 @@
+{
+  "module": "M12",
+  "ranAt": "2026-09-29T08:23:29.236Z",
+  "base": "http://localhost:5173",
+  "deviceTimezone": "Europe/London",
+  "total": 32,
+  "passed": 32,
+  "results": [
+    {
+      "name": "ROUTE /payment launched from /checkout: summary (restaurant, pickup + zone, items, amount + currency, method + provider), Ready to pay",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SECURITY no card / CVV / UPI PIN / bank fields on the page; secure messaging; mock labelled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SECURITY no provider secrets in the built bundle (source scan)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 success → Verifying (mock) → Payment confirmed → \"Preparing your order…\" with a development note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 handoff to the order-confirmation stage (interim card: no order claims, payment reference shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 1 / 6 exactly one attempt, one provider opening, full auditable history (PREPARING → … → VERIFIED)",
+      "pass": true,
+      "detail": "VERIFIED"
+    },
+    {
+      "name": "MODEL attempt carries publicId (non-sequential), provider ref, ISO currency, display amount, method — and no card data",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 refresh on the handoff page keeps a single verified attempt",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SNAPSHOT a new CheckoutRequest gets its own attempt; old verified attempt untouched",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 failure: failed state, nothing charged, Retry / Choose another method / Back to checkout; cart + checkout preserved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 retry: a controlled second attempt for the same checkout (FAILED + READY), no duplicate charge path",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 cancelled: safe return with Try again + method selection, no charge / order implied, checkout kept",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 change method: fresh READY attempt with method=card; checkout unchanged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 pending: \"Payment pending\", do-not-pay-again warning, Check payment status, no Pay button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 status check that is still pending stays PENDING (never auto-failed / auto-succeeded)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 refresh while pending recovers the same attempt (no new attempt, still pending)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 status check → verified (mock) → handoff, still the same attempt",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 unknown status: customer told to check status before trying again; no retry / no pay button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 status check still unknown keeps UNKNOWN, single attempt",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 15 processing state: \"Waiting for payment…\" with Cancel payment and no second Pay button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 / 46 refresh while processing → recovered as UNKNOWN (check status), same attempt, no fake success",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "OFFLINE payment cannot start while offline; customer told to check status rather than pay again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 / 10 USD checkout: $ amount, USD code, market provider (not Razorpay), card method, attempt currency USD",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 USD success flow completes with the same state machine",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 Unicode + EUR: \"Œufs en meurette\" from Brasserie Beaunoise renders with € / EUR and Europe/Paris",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE (mobile) no horizontal overflow, Pay button visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (tablet) no horizontal overflow, Pay button visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (tablet) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE (desktop) no horizontal overflow, Pay button visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (desktop) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

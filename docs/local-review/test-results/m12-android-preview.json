@@ -1,0 +1,108 @@
+{
+  "module": "M12",
+  "ranAt": "2026-09-29T09:36:27.575Z",
+  "total": 20,
+  "passed": 20,
+  "results": [
+    {
+      "n": "phone: payment summary — restaurant, pickup + zone, items, amount + INR, method + provider, Ready to pay, no card fields",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 success → Payment confirmed (development verification) → handoff card without order claims",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 1 handoff: interim order-confirmation card with payment reference",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 2 failure → Retry payment / method list / Back to checkout; nothing charged",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 7 retry → new attempt Ready to pay",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 3 cancelled → Try again, method selection, no order implied",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 8 change method → fresh attempt with card, Ready to pay",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 4 pending → do-not-pay-again warning + Check payment status, no Pay button",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 4 status check → verified (mock) → handoff",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "phone: TEST 5 unknown status → check status before trying again; no retry / pay button",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: payment summary — restaurant, pickup + zone, items, amount + INR, method + provider, Ready to pay, no card fields",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 success → Payment confirmed (development verification) → handoff card without order claims",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 1 handoff: interim order-confirmation card with payment reference",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 2 failure → Retry payment / method list / Back to checkout; nothing charged",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 7 retry → new attempt Ready to pay",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 3 cancelled → Try again, method selection, no order implied",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 8 change method → fresh attempt with card, Ready to pay",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 4 pending → do-not-pay-again warning + Check payment status, no Pay button",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 4 status check → verified (mock) → handoff",
+      "ok": true,
+      "d": ""
+    },
+    {
+      "n": "tablet: TEST 5 unknown status → check status before trying again; no retry / pay button",
+      "ok": true,
+      "d": ""
+    }
+  ]
+}
