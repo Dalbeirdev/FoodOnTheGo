@@ -18,7 +18,8 @@ import 'screens/legal_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
 import 'screens/home_screens.dart';
-import 'screens/order_screens.dart';
+import 'screens/my_orders_screen.dart';
+import 'screens/order_details_screen.dart';
 import 'state/app_state.dart';
 import 'state/account_state.dart';
 import 'state/auth_state.dart';
@@ -29,13 +30,14 @@ import 'state/payment_state.dart';
 import 'state/order_state.dart';
 import 'state/tracking_state.dart';
 import 'screens/order_tracking_screen.dart';
+import 'state/orders_history_state.dart';
 import 'screens/order_confirmation_screen.dart';
 import 'state/journey_state.dart';
 
 void main() => runApp(const FoodOnTheGoApp());
 
 /// Screens that need an account. Everything else is available to guests.
-const protectedPrefixes = ['/my-orders', '/my-profile', '/checkout', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
+const protectedPrefixes = ['/my-orders', '/order/', '/my-profile', '/checkout', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
 
 GoRouter buildRouter(AuthState auth) => GoRouter(
   initialLocation: '/',
@@ -72,6 +74,7 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/legal/:slug', builder: (_, s) => LegalScreen(slug: s.pathParameters['slug']!)),
     GoRoute(path: '/order-confirmation/:number', builder: (_, s) => OrderConfirmationScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
+    GoRoute(path: '/order/:number', builder: (_, s) => OrderDetailsScreen(number: s.pathParameters['number']!, startReorder: s.uri.queryParameters['reorder'] == '1')),
     GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
     GoRoute(path: '/favorites', builder: (_, _) => const FavoritesScreen()),
     GoRoute(path: '/addresses', builder: (_, _) => const AddressesScreen()),
@@ -126,6 +129,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider(create: (_) => CheckoutState()),
           ChangeNotifierProvider(create: (_) => PaymentState()),
           ChangeNotifierProvider(create: (_) => OrderState()),
+          ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
           ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); return TrackingState(orders: os.orders, verifications: os.verifications); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false),

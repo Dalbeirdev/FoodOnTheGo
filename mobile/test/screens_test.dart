@@ -17,7 +17,9 @@ import 'package:foodonthego/screens/cart_screen.dart';
 import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
-import 'package:foodonthego/screens/order_screens.dart';
+import 'package:foodonthego/screens/my_orders_screen.dart';
+import 'package:foodonthego/state/order_state.dart';
+import 'package:foodonthego/state/orders_history_state.dart';
 import 'package:foodonthego/screens/checkout_screen.dart';
 import 'package:foodonthego/state/checkout_state.dart';
 import 'package:foodonthego/state/payment_state.dart';
@@ -47,6 +49,8 @@ Widget app(Widget screen, {CartState? cart}) {
       ChangeNotifierProvider(create: (_) => DiscoveryState(repository: MockRestaurantRepository(latency: Duration.zero))),
       ChangeNotifierProvider(create: (_) => cart ?? CartState()),
       ChangeNotifierProvider(create: (_) => OrdersState()),
+      ChangeNotifierProvider(create: (_) => OrderState()),
+      ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
       ChangeNotifierProvider(create: (_) => PickupState(repository: MockPickupRepository(latency: Duration.zero), store: MemoryKeyValueStore())),
       ChangeNotifierProvider(create: (_) => CheckoutState()),
       ChangeNotifierProvider(create: (_) => PaymentState(resolver: MockPaymentProviderResolver(latency: Duration.zero), verifier: MockPaymentVerificationService(latency: Duration.zero), store: MemoryKeyValueStore())),

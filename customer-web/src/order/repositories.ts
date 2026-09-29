@@ -61,6 +61,8 @@ export type OrderPaymentSummary = {
   /** Public payment reference (attempt publicId) — safe to show. */
   reference: string
   paidAmountMinor: number
+  /** Refunded so far (minor units) — partial refunds are representable; null when no refund exists. */
+  refundedAmountMinor?: number | null
   currency: string
   /** Approved masked details from the provider later ("Card ending in 4242"); never derived by us. */
   maskedDetails: string | null
@@ -158,7 +160,32 @@ export type CreateOrderInput = {
   orderNote: string
 }
 
+/** Lightweight row for order history — never the full snapshot. */
+export type OrderSummary = {
+  publicId: string
+  orderNumber: string
+  restaurantName: string
+  restaurantSlug: string
+  restaurantImage: string | null
+  restaurantTimezone: string
+  createdAt: string
+  pickupAt: string
+  itemCount: number
+  itemPreview: string
+  currency: string
+  totalMinor: number
+  orderStatus: OrderStatus
+  paymentStatus: OrderPaymentStatus
+  reorderEligible: boolean
+}
+export type OrderGroup = 'all' | 'ongoing' | 'completed' | 'cancelled'
+export type OrderSort = 'newest' | 'oldest'
+export type OrderListQuery = { group?: OrderGroup; query?: string; sort?: OrderSort; cursor?: string | null; limit?: number }
+export type OrderPage = { items: OrderSummary[]; nextCursor: string | null; total: number }
+
 export interface OrderRepository {
+  /** Paginated, filtered, sorted history summaries (cursor = opaque token; the backend pages the same way). */
+  listSummaries(customerId: string, q?: OrderListQuery): Promise<OrderPage>
   /** Idempotent per payment attempt — a refresh or repeated handoff returns the same order. */
   createFromPayment(input: CreateOrderInput): Promise<Order>
   getByOrderNumber(orderNumber: string, customerId: string): Promise<Order | null>

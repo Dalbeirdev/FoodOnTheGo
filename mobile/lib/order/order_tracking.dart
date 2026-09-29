@@ -21,7 +21,7 @@ ReduceResult reduceOrder(Order o, OrderEvent e) {
   if (o.events.any((x) => x.eventId == e.eventId)) return ReduceResult(o, false, 'duplicate');
   if (e.sequence <= o.lastEventSequence) return ReduceResult(o, false, 'stale');
   if (terminalOrderStatuses.contains(o.orderStatus) && e.type != OrderEventType.refundUpdated) return ReduceResult(o, false, 'terminal');
-  var next = o.copyWith(events: [...o.events, e], lastEventSequence: e.sequence, updatedAt: e.at, orderStatus: e.status, paymentStatus: e.paymentStatus, etaReadyAt: e.etaReadyAt);
+  var next = o.copyWith(events: [...o.events, e], lastEventSequence: e.sequence, updatedAt: e.at, orderStatus: e.status, paymentStatus: e.paymentStatus, etaReadyAt: e.etaReadyAt, refundedAmountMinor: e.paymentStatus == OrderPaymentStatus.refunded ? o.payment.paidAmountMinor : null);
   switch (e.type) {
     case OrderEventType.delayed: next = next.copyWith(delayed: true, delayReasonKey: e.reasonKey ?? 'taking_longer');
     case OrderEventType.readyForPickup: next = next.copyWith(delayed: false, pickupVerificationStatus: PickupVerificationStatus.ready);

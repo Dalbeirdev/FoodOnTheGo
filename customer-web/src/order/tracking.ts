@@ -25,7 +25,7 @@ export function reduceOrder(order: Order, e: OrderEvent): ReduceResult {
   if (TERMINAL_ORDER.has(order.orderStatus) && e.type !== 'REFUND_UPDATED') return { order, applied: false, reason: 'terminal' }
   const next: Order = { ...order, events: [...order.events, e], lastEventSequence: e.sequence, updatedAt: e.at }
   if (e.status) next.orderStatus = e.status
-  if (e.paymentStatus) { next.paymentStatus = e.paymentStatus; next.payment = { ...next.payment, status: e.paymentStatus } }
+  if (e.paymentStatus) { next.paymentStatus = e.paymentStatus; next.payment = { ...next.payment, status: e.paymentStatus, refundedAmountMinor: e.paymentStatus === 'REFUNDED' ? next.payment.paidAmountMinor : (next.payment.refundedAmountMinor ?? null) } }
   if (e.etaReadyAt !== undefined && e.etaReadyAt !== null) next.etaReadyAt = e.etaReadyAt
   switch (e.type) {
     case 'DELAYED': next.delayed = true; next.delayReasonKey = e.reasonKey ?? 'taking_longer'; break

@@ -155,7 +155,7 @@ describe('Authentication flows (web UI)', () => {
     await screen.findByRole('heading', { name: /enter the code/i })
     await enterOtp(user, DEV_OTP)
     await user.click(screen.getByRole('button', { name: /^verify$/i }))
-    expect(await screen.findByRole('heading', { name: /your orders/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^my orders$/i })).toBeInTheDocument()
   })
 
   it('TEST 6 — logout asks for confirmation, then protected pages are inaccessible', async () => {

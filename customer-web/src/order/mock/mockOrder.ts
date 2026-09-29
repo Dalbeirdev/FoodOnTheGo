@@ -3,7 +3,8 @@
  * is a real backend order. Controls: sessionStorage fotg.mock.fail contains "order" → loading fails (retry recovers).
  * Fixture references (development only): FOTG-DEMO-PEND (payment pending), FOTG-DEMO-CANC (cancelled).
  */
-import type { CreateOrderInput, Order, OrderEvent, OrderRepository, PickupVerification, PickupVerificationRepository, Receipt, ReceiptRepository } from '../repositories'
+import type { CreateOrderInput, Order, OrderEvent, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRepository, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, Receipt, ReceiptRepository } from '../repositories'
+import { groupOf, pageSummaries } from '../history'
 import { reduceOrder } from '../tracking'
 
 const ORDERS_KEY = 'fotg.orders.v1'
@@ -23,7 +24,69 @@ const failing = () => { try { return (sessionStorage.getItem('fotg.mock.fail') ?
 const load = <T,>(k: string): T[] => { try { const raw = sessionStorage.getItem(k); return raw ? (JSON.parse(raw) as T[]) : [] } catch { return [] } }
 const save = <T,>(k: string, v: T[]) => { try { sessionStorage.setItem(k, JSON.stringify(v.slice(-30))) } catch { /* ignore */ } }
 
+const COMPLETED_LIKE: ReadonlySet<OrderStatus> = new Set(['PICKED_UP', 'COMPLETED'])
+function seedTail(publicId: string, os: OrderStatus, ps: OrderPaymentStatus, at: string): OrderEvent[] {
+  const mk = (seq: number, type: OrderEvent['type'], status: OrderStatus | null, extra: Partial<OrderEvent> = {}): OrderEvent => ({ eventId: `${publicId}-${seq}`, sequence: seq, type, status, at, actor: 'restaurant', ...extra })
+  const path: Record<string, OrderEvent[]> = {
+    COMPLETED: [mk(4, 'RESTAURANT_ACCEPTED', 'ACCEPTED'), mk(5, 'PREPARING', 'PREPARING'), mk(6, 'READY_FOR_PICKUP', 'READY_FOR_PICKUP'), mk(7, 'PICKED_UP', 'PICKED_UP'), mk(8, 'COMPLETED', 'COMPLETED', { actor: 'system' })],
+    PICKED_UP: [mk(4, 'RESTAURANT_ACCEPTED', 'ACCEPTED'), mk(5, 'PREPARING', 'PREPARING'), mk(6, 'READY_FOR_PICKUP', 'READY_FOR_PICKUP'), mk(7, 'PICKED_UP', 'PICKED_UP')],
+    PREPARING: [mk(4, 'RESTAURANT_ACCEPTED', 'ACCEPTED'), mk(5, 'PREPARING', 'PREPARING')],
+    READY_FOR_PICKUP: [mk(4, 'RESTAURANT_ACCEPTED', 'ACCEPTED'), mk(5, 'PREPARING', 'PREPARING'), mk(6, 'READY_FOR_PICKUP', 'READY_FOR_PICKUP')],
+    CANCELLED: [mk(4, 'RESTAURANT_ACCEPTED', 'ACCEPTED'), mk(5, 'CANCELLED', 'CANCELLED', { reasonKey: 'restaurant_unavailable', paymentStatus: 'REFUND_PENDING' }), mk(6, 'REFUND_UPDATED', null, { actor: 'system', paymentStatus: ps })],
+    REJECTED: [mk(4, 'RESTAURANT_REJECTED', 'REJECTED', { reasonKey: 'item_unavailable', paymentStatus: 'REFUND_PENDING' })],
+  }
+  return path[os] ?? []
+}
+export function summaryOf(o: Order): OrderSummary {
+  return { publicId: o.publicId, orderNumber: o.orderNumber, restaurantName: o.restaurant.name, restaurantSlug: o.restaurant.slug, restaurantImage: null, restaurantTimezone: o.restaurant.timezone, createdAt: o.createdAt, pickupAt: o.pickup.requestedAt, itemCount: o.items.reduce((a, i) => a + i.quantity, 0), itemPreview: o.items.map((i) => `${i.itemName} × ${i.quantity}`).join(' · '), currency: o.pricing.currency, totalMinor: o.pricing.totalMinor, orderStatus: o.orderStatus, paymentStatus: o.paymentStatus, reorderEligible: groupOf(o.orderStatus) !== 'ongoing' && o.paymentStatus !== 'PAYMENT_PENDING' }
+}
+
 export class MockOrderRepository implements OrderRepository {
+  async listSummaries(customerId: string, q: OrderListQuery = {}): Promise<OrderPage> {
+    await wait()
+    if (failing()) throw new Error('orders_load_failed')
+    return pageSummaries(load<Order>(ORDERS_KEY).filter((o) => o.customerId === customerId).map(summaryOf), q)
+  }
+  /** Development: seeds a varied order history (statuses, currencies, zones, Unicode, refunds) for the signed-in customer. */
+  async seedDemoHistory(customerId: string, n = 12): Promise<number> {
+    const list = load<Order>(ORDERS_KEY)
+    if (list.some((o) => o.customerId === customerId && o.orderNumber.startsWith('FOTG-SEED'))) return 0
+    const now = Date.now()
+    const F: Array<[string, string, string, string, string, string, number, string, OrderStatus, OrderPaymentStatus, number | null]> = [
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', 'COMPLETED', 'PAID', null],
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 32000, 'INR', 'PREPARING', 'PAID', null],
+      ['kettleman-diner', 'route-5-diner', 'Route 5 Diner', '33400 Bernard Dr, Kettleman City, CA 93239, USA', 'US', 'America/Los_Angeles', 1899, 'USD', 'PICKED_UP', 'PAID', null],
+      ['brasserie-beaune', 'brasserie-beaunoise', 'Brasserie Beaunoise', '3 Place Carnot, 21200 Beaune, France', 'FR', 'Europe/Paris', 1200, 'EUR', 'CANCELLED', 'REFUNDED', 1200],
+      ['ippudo-shizuoka', 'ippudo-shizuoka', '一風堂 静岡店', '静岡県静岡市葵区紺屋町6-7, Japan', 'JP', 'Asia/Tokyo', 980, 'JPY', 'REJECTED', 'REFUND_PENDING', null],
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 64000, 'INR', 'CANCELLED', 'PARTIALLY_REFUNDED', 32000],
+      ['grapevine-burgers', 'grapevine-burgers', 'Grapevine Burgers', '5602 Dennis McCarthy Dr, Lebec, CA 93243, USA', 'US', 'America/Los_Angeles', 1499, 'USD', 'READY_FOR_PICKUP', 'PAID', null],
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', 'COMPLETED', 'PAID', null],
+    ]
+    const names = ['Classic Burger', 'Truck Stop Breakfast', 'Œufs en meurette', '白丸元味', 'Spicy Paneer Wrap']
+    let made = 0
+    for (let i = 0; i < n; i++) {
+      const [rid, slug, name, addr, cc, tz, unit, cur, os, ps, refunded] = F[i % F.length]
+      const created = new Date(now - (i + 1) * 36 * 3600000).toISOString(); const pick = new Date(now - (i + 1) * 36 * 3600000 + 45 * 60000).toISOString()
+      const publicId = ulidLike() + i; const qty = 1 + (i % 2); const total = unit * qty
+      const o: Order = {
+        publicId, orderNumber: `FOTG-SEED-${String(i + 1).padStart(4, '0')}`, customerId,
+        restaurant: { id: rid, slug, name, formattedAddress: addr, countryCode: cc, timezone: tz, lat: null, lng: null, contact: null, pickupInstructions: null, pickupLocation: 'Counter pickup' },
+        items: [{ lineId: 'l1', menuItemId: 'classic-burger', itemName: names[i % names.length], image: '', variants: [{ groupName: 'Size', optionName: 'Regular', priceAdjustmentMinor: 0 }], modifiers: [], specialInstructions: i % 3 === 0 ? 'No onion' : '', quantity: qty, unitPriceMinor: unit, lineTotalMinor: total }],
+        pricing: { currency: cur, subtotalMinor: total, discountMinor: 0, promoCode: null, taxes: [], fees: [], totalMinor: total },
+        orderStatus: os, paymentStatus: ps,
+        payment: { status: ps, methodType: cur === 'INR' ? 'upi' : 'card', methodLabel: cur === 'INR' ? 'UPI' : 'Credit / debit card', providerDisplayName: cur === 'INR' ? 'Razorpay (development sandbox)' : 'Payment provider (development sandbox)', reference: `pay_dev_seed${i}`, paidAmountMinor: total, refundedAmountMinor: refunded === null ? null : Math.min(refunded, total), currency: cur, maskedDetails: cur === 'INR' ? null : 'Card ending in 4242' },
+        pickup: { mode: 'scheduled', requestedAt: pick, estimatedReadyTime: pick, restaurantTimezone: tz, methodType: 'counter', methodLabel: 'Counter pickup', instructions: null, estimatedCustomerArrival: null },
+        pickupCodeReference: `pv_seed${i}`, pickupVerificationStatus: COMPLETED_LIKE.has(os) ? 'VERIFIED' : os === 'READY_FOR_PICKUP' ? 'READY' : 'NOT_READY', etaReadyAt: pick, delayed: false, delayReasonKey: null,
+        rejectionReasonKey: os === 'REJECTED' ? 'item_unavailable' : null, cancellationReasonKey: os === 'CANCELLED' ? (i % 2 ? 'restaurant_unavailable' : 'other') : null, lastEventSequence: 3,
+        paymentAttemptId: `pay_dev_seed${i}`, checkoutReference: `ck-seed${i}`, journey: null, orderNote: '',
+        events: [{ eventId: `${publicId}-1`, sequence: 1, type: 'ORDER_CREATED', status: 'PAYMENT_PENDING', at: created, actor: 'system' }, { eventId: `${publicId}-2`, sequence: 2, type: 'PAYMENT_VERIFIED', status: null, paymentStatus: 'PAID', at: created, actor: 'system' }, { eventId: `${publicId}-3`, sequence: 3, type: 'ORDER_CONFIRMED', status: 'CONFIRMED', at: created, actor: 'system' }, ...seedTail(publicId, os, ps, created)],
+        createdAt: created, updatedAt: created,
+      }
+      o.lastEventSequence = o.events.length
+      list.push(o); made++
+    }
+    save(ORDERS_KEY, list); return made
+  }
   async createFromPayment(input: CreateOrderInput): Promise<Order> {
     await wait()
     const existing = load<Order>(ORDERS_KEY).find((o) => o.paymentAttemptId === input.paymentAttemptId)

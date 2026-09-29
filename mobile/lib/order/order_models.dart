@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import '../auth/auth_repository.dart' show KeyValueStore;
+import 'order_history.dart' show OrderListQuery, OrderPage, OrderSummary, pageSummaries;
 import 'order_tracking.dart' show reduceOrder;
 
 /// Order domain (Module 13) — the confirmed order with immutable snapshots, pickup verification and receipt.
@@ -60,10 +61,12 @@ class OrderPricing {
   factory OrderPricing.fromJson(Map<String, dynamic> j) => OrderPricing(currency: j['currency'] as String, subtotalMinor: j['subtotalMinor'] as int, discountMinor: j['discountMinor'] as int, promoCode: j['promoCode'] as String?, taxes: [for (final l in (j['taxes'] as List?) ?? []) PricingLine.fromJson(l as Map<String, dynamic>)], fees: [for (final l in (j['fees'] as List?) ?? []) PricingLine.fromJson(l as Map<String, dynamic>)], totalMinor: j['totalMinor'] as int);
 }
 class OrderPaymentSummary {
-  const OrderPaymentSummary({required this.status, required this.methodType, required this.methodLabel, required this.providerDisplayName, required this.reference, required this.paidAmountMinor, required this.currency, this.maskedDetails});
+  const OrderPaymentSummary({required this.status, required this.methodType, required this.methodLabel, required this.providerDisplayName, required this.reference, required this.paidAmountMinor, required this.currency, this.maskedDetails, this.refundedAmountMinor});
   final OrderPaymentStatus status; final String methodType, methodLabel, providerDisplayName, reference, currency; final int paidAmountMinor; final String? maskedDetails;
-  Map<String, dynamic> toJson() => {'status': status.name, 'methodType': methodType, 'methodLabel': methodLabel, 'providerDisplayName': providerDisplayName, 'reference': reference, 'paidAmountMinor': paidAmountMinor, 'currency': currency, 'maskedDetails': maskedDetails};
-  factory OrderPaymentSummary.fromJson(Map<String, dynamic> j) => OrderPaymentSummary(status: OrderPaymentStatus.values.byName(j['status'] as String), methodType: j['methodType'] as String, methodLabel: j['methodLabel'] as String, providerDisplayName: j['providerDisplayName'] as String, reference: j['reference'] as String, paidAmountMinor: j['paidAmountMinor'] as int, currency: j['currency'] as String, maskedDetails: j['maskedDetails'] as String?);
+  /// Amount refunded so far (minor units, provider-authoritative); null until a refund is confirmed.
+  final int? refundedAmountMinor;
+  Map<String, dynamic> toJson() => {'status': status.name, 'methodType': methodType, 'methodLabel': methodLabel, 'providerDisplayName': providerDisplayName, 'reference': reference, 'paidAmountMinor': paidAmountMinor, 'currency': currency, 'maskedDetails': maskedDetails, 'refundedAmountMinor': refundedAmountMinor};
+  factory OrderPaymentSummary.fromJson(Map<String, dynamic> j) => OrderPaymentSummary(status: OrderPaymentStatus.values.byName(j['status'] as String), methodType: j['methodType'] as String, methodLabel: j['methodLabel'] as String, providerDisplayName: j['providerDisplayName'] as String, reference: j['reference'] as String, paidAmountMinor: j['paidAmountMinor'] as int, currency: j['currency'] as String, maskedDetails: j['maskedDetails'] as String?, refundedAmountMinor: j['refundedAmountMinor'] as int?);
 }
 class JourneySnapshot {
   const JourneySnapshot({required this.journeyId, required this.originName, required this.destinationName, this.originLat, this.originLng});
@@ -102,9 +105,9 @@ class Order {
   final List<OrderEvent> events;
   final DateTime createdAt, updatedAt;
   int get itemCount => items.fold(0, (a, i) => a + i.quantity);
-  Order copyWith({OrderStatus? orderStatus, OrderPaymentStatus? paymentStatus, DateTime? etaReadyAt, bool? delayed, String? delayReasonKey, String? rejectionReasonKey, String? cancellationReasonKey, int? lastEventSequence, PickupVerificationStatus? pickupVerificationStatus, List<OrderEvent>? events, DateTime? updatedAt}) => Order(
+  Order copyWith({OrderStatus? orderStatus, OrderPaymentStatus? paymentStatus, DateTime? etaReadyAt, bool? delayed, String? delayReasonKey, String? rejectionReasonKey, String? cancellationReasonKey, int? lastEventSequence, PickupVerificationStatus? pickupVerificationStatus, List<OrderEvent>? events, DateTime? updatedAt, int? refundedAmountMinor}) => Order(
         publicId: publicId, orderNumber: orderNumber, customerId: customerId, restaurant: restaurant, items: items, pricing: pricing, orderStatus: orderStatus ?? this.orderStatus, paymentStatus: paymentStatus ?? this.paymentStatus,
-        payment: paymentStatus == null ? payment : OrderPaymentSummary(status: paymentStatus, methodType: payment.methodType, methodLabel: payment.methodLabel, providerDisplayName: payment.providerDisplayName, reference: payment.reference, paidAmountMinor: payment.paidAmountMinor, currency: payment.currency, maskedDetails: payment.maskedDetails),
+        payment: paymentStatus == null && refundedAmountMinor == null ? payment : OrderPaymentSummary(status: paymentStatus ?? payment.status, methodType: payment.methodType, methodLabel: payment.methodLabel, providerDisplayName: payment.providerDisplayName, reference: payment.reference, paidAmountMinor: payment.paidAmountMinor, currency: payment.currency, maskedDetails: payment.maskedDetails, refundedAmountMinor: refundedAmountMinor ?? payment.refundedAmountMinor),
         pickup: pickup, pickupCodeReference: pickupCodeReference, pickupVerificationStatus: pickupVerificationStatus ?? this.pickupVerificationStatus, etaReadyAt: etaReadyAt ?? this.etaReadyAt, delayed: delayed ?? this.delayed, delayReasonKey: delayReasonKey ?? this.delayReasonKey, rejectionReasonKey: rejectionReasonKey ?? this.rejectionReasonKey, cancellationReasonKey: cancellationReasonKey ?? this.cancellationReasonKey, lastEventSequence: lastEventSequence ?? this.lastEventSequence,
         paymentAttemptId: paymentAttemptId, checkoutReference: checkoutReference, journey: journey, orderNote: orderNote, events: events ?? this.events, createdAt: createdAt, updatedAt: updatedAt ?? this.updatedAt);
   Map<String, dynamic> toJson() => {'publicId': publicId, 'orderNumber': orderNumber, 'customerId': customerId, 'restaurant': restaurant.toJson(), 'items': items.map((i) => i.toJson()).toList(), 'pricing': pricing.toJson(), 'orderStatus': orderStatus.name, 'paymentStatus': paymentStatus.name, 'payment': payment.toJson(), 'pickup': pickup.toJson(), 'pickupCodeReference': pickupCodeReference, 'pickupVerificationStatus': pickupVerificationStatus.name, 'etaReadyAt': etaReadyAt?.toIso8601String(), 'delayed': delayed, 'delayReasonKey': delayReasonKey, 'rejectionReasonKey': rejectionReasonKey, 'cancellationReasonKey': cancellationReasonKey, 'lastEventSequence': lastEventSequence, 'paymentAttemptId': paymentAttemptId, 'checkoutReference': checkoutReference, 'journey': journey?.toJson(), 'orderNote': orderNote, 'events': events.map((e) => e.toJson()).toList(), 'createdAt': createdAt.toIso8601String(), 'updatedAt': updatedAt.toIso8601String()};
@@ -137,6 +140,8 @@ abstract class OrderRepository {
   Future<Order?> getByOrderNumber(String orderNumber, String customerId);
   Future<Order?> findByPaymentAttempt(String paymentAttemptId);
   Future<List<Order>> listForCustomer(String customerId);
+  /// Module 15: lightweight summaries (never the full snapshot), filtered / searched / sorted / paged.
+  Future<OrderPage> listSummaries(String customerId, OrderListQuery q);
   /// Applies tracking events in order (duplicates / stale sequences ignored) and persists the result.
   Future<Order?> applyEvents(String orderNumber, List<OrderEvent> events);
 }
@@ -195,6 +200,58 @@ class MockOrderRepository implements OrderRepository {
   }
   @override
   Future<List<Order>> listForCustomer(String customerId) async => (await _orders()).where((o) => o.customerId == customerId).toList();
+  @override
+  Future<OrderPage> listSummaries(String customerId, OrderListQuery q) async {
+    await _wait();
+    if (fail) throw StateError('orders_load_failed');
+    return pageSummaries((await _orders()).where((o) => o.customerId == customerId).map(OrderSummary.of).toList(), q);
+  }
+  /// Development: seeds a varied order history (statuses, currencies, zones, Unicode, refunds) for the signed-in customer.
+  Future<int> seedDemoHistory(String customerId, [int n = 12]) async {
+    final list = await _orders();
+    if (list.any((o) => o.customerId == customerId && o.orderNumber.startsWith('FOTG-SEED'))) return 0;
+    final now = DateTime.now().toUtc();
+    const f = <(String, String, String, String, String, String, int, String, OrderStatus, OrderPaymentStatus, int?)>[
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', OrderStatus.completed, OrderPaymentStatus.paid, null),
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 32000, 'INR', OrderStatus.preparing, OrderPaymentStatus.paid, null),
+      ('kettleman-diner', 'route-5-diner', 'Route 5 Diner', '33400 Bernard Dr, Kettleman City, CA 93239, USA', 'US', 'America/Los_Angeles', 1899, 'USD', OrderStatus.pickedUp, OrderPaymentStatus.paid, null),
+      ('brasserie-beaune', 'brasserie-beaunoise', 'Brasserie Beaunoise', '3 Place Carnot, 21200 Beaune, France', 'FR', 'Europe/Paris', 1200, 'EUR', OrderStatus.cancelled, OrderPaymentStatus.refunded, 1200),
+      ('ippudo-shizuoka', 'ippudo-shizuoka', '一風堂 静岡店', '静岡県静岡市葵区紺屋町6-7, Japan', 'JP', 'Asia/Tokyo', 980, 'JPY', OrderStatus.rejected, OrderPaymentStatus.refundPending, null),
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 64000, 'INR', OrderStatus.cancelled, OrderPaymentStatus.partiallyRefunded, 32000),
+      ('grapevine-burgers', 'grapevine-burgers', 'Grapevine Burgers', '5602 Dennis McCarthy Dr, Lebec, CA 93243, USA', 'US', 'America/Los_Angeles', 1499, 'USD', OrderStatus.readyForPickup, OrderPaymentStatus.paid, null),
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', OrderStatus.completed, OrderPaymentStatus.paid, null),
+    ];
+    const names = ['Classic Burger', 'Truck Stop Breakfast', 'Œufs en meurette', '白丸元味', 'Spicy Paneer Wrap'];
+    var made = 0;
+    for (var i = 0; i < n; i++) {
+      final (rid, slug, name, addr, cc, tz, unit, cur, os, ps, refunded) = f[i % f.length];
+      final created = now.subtract(Duration(hours: (i + 1) * 36)); final pick = created.add(const Duration(minutes: 45));
+      final publicId = 'SEED${now.millisecondsSinceEpoch.toRadixString(36).toUpperCase()}$i'; final qty = 1 + (i % 2); final total = unit * qty; final inr = cur == 'INR';
+      OrderEvent mk(int seq, OrderEventType type, OrderStatus? status, {String actor = 'restaurant', OrderPaymentStatus? paymentStatus, String? reasonKey}) => OrderEvent(eventId: '$publicId-$seq', sequence: seq, type: type, status: status, paymentStatus: paymentStatus, at: created, actor: actor, reasonKey: reasonKey);
+      final tail = switch (os) {
+        OrderStatus.completed => [mk(4, OrderEventType.restaurantAccepted, OrderStatus.accepted), mk(5, OrderEventType.preparing, OrderStatus.preparing), mk(6, OrderEventType.readyForPickup, OrderStatus.readyForPickup), mk(7, OrderEventType.pickedUp, OrderStatus.pickedUp), mk(8, OrderEventType.completed, OrderStatus.completed, actor: 'system')],
+        OrderStatus.pickedUp => [mk(4, OrderEventType.restaurantAccepted, OrderStatus.accepted), mk(5, OrderEventType.preparing, OrderStatus.preparing), mk(6, OrderEventType.readyForPickup, OrderStatus.readyForPickup), mk(7, OrderEventType.pickedUp, OrderStatus.pickedUp)],
+        OrderStatus.preparing => [mk(4, OrderEventType.restaurantAccepted, OrderStatus.accepted), mk(5, OrderEventType.preparing, OrderStatus.preparing)],
+        OrderStatus.readyForPickup => [mk(4, OrderEventType.restaurantAccepted, OrderStatus.accepted), mk(5, OrderEventType.preparing, OrderStatus.preparing), mk(6, OrderEventType.readyForPickup, OrderStatus.readyForPickup)],
+        OrderStatus.cancelled => [mk(4, OrderEventType.restaurantAccepted, OrderStatus.accepted), mk(5, OrderEventType.cancelled, OrderStatus.cancelled, reasonKey: 'restaurant_unavailable', paymentStatus: OrderPaymentStatus.refundPending), mk(6, OrderEventType.refundUpdated, null, actor: 'system', paymentStatus: ps)],
+        OrderStatus.rejected => [mk(4, OrderEventType.restaurantRejected, OrderStatus.rejected, reasonKey: 'item_unavailable', paymentStatus: OrderPaymentStatus.refundPending)],
+        _ => <OrderEvent>[],
+      };
+      final events = [mk(1, OrderEventType.orderCreated, OrderStatus.paymentPending, actor: 'system'), mk(2, OrderEventType.paymentVerified, null, actor: 'system', paymentStatus: OrderPaymentStatus.paid), mk(3, OrderEventType.orderConfirmed, OrderStatus.confirmed, actor: 'system'), ...tail];
+      list.add(Order(publicId: publicId, orderNumber: 'FOTG-SEED-${(i + 1).toString().padLeft(4, '0')}', customerId: customerId,
+          restaurant: RestaurantSnapshot(id: rid, slug: slug, name: name, formattedAddress: addr, countryCode: cc, timezone: tz, pickupLocation: 'Counter pickup'),
+          items: [OrderItemSnapshot(lineId: 'l1', menuItemId: 'classic-burger', itemName: names[i % names.length], image: '', variants: const [OrderOptionSnapshot(groupName: 'Size', optionName: 'Regular', priceAdjustmentMinor: 0)], modifiers: const [], specialInstructions: i % 3 == 0 ? 'No onion' : '', quantity: qty, unitPriceMinor: unit, lineTotalMinor: total)],
+          pricing: OrderPricing(currency: cur, subtotalMinor: total, discountMinor: 0, totalMinor: total), orderStatus: os, paymentStatus: ps,
+          payment: OrderPaymentSummary(status: ps, methodType: inr ? 'upi' : 'card', methodLabel: inr ? 'UPI' : 'Credit / debit card', providerDisplayName: inr ? 'Razorpay (development sandbox)' : 'Payment provider (development sandbox)', reference: 'pay_dev_seed$i', paidAmountMinor: total, currency: cur, maskedDetails: inr ? null : 'Card ending in 4242', refundedAmountMinor: refunded == null ? null : ps == OrderPaymentStatus.refunded ? total : (refunded > total ? total : refunded)),
+          pickup: PickupSnapshot(mode: 'scheduled', requestedAt: pick, estimatedReadyTime: pick, restaurantTimezone: tz, methodType: 'counter', methodLabel: 'Counter pickup'),
+          pickupCodeReference: 'pv_seed$i', pickupVerificationStatus: os == OrderStatus.completed || os == OrderStatus.pickedUp ? PickupVerificationStatus.verified : os == OrderStatus.readyForPickup ? PickupVerificationStatus.ready : PickupVerificationStatus.notReady,
+          etaReadyAt: pick, rejectionReasonKey: os == OrderStatus.rejected ? 'item_unavailable' : null, cancellationReasonKey: os == OrderStatus.cancelled ? (i.isOdd ? 'restaurant_unavailable' : 'other') : null, lastEventSequence: events.length,
+          paymentAttemptId: 'pay_dev_seed$i', checkoutReference: 'ck-seed$i', orderNote: '', events: events, createdAt: created, updatedAt: created));
+      made++;
+    }
+    await _store.write(ordersKey, jsonEncode(list.map((o) => o.toJson()).toList())).catchError((_) {});
+    return made;
+  }
 
   static Order? fixture(String n, String customerId) {
     if (n != 'FOTG-DEMO-PEND' && n != 'FOTG-DEMO-CANC') return null;

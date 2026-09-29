@@ -34,10 +34,9 @@ describe('Customer Web pages render with the shared providers', () => {
     expect(screen.getAllByText(/explore restaurants/i).length).toBeGreaterThan(0)
   })
 
-  it('My Orders shows the seeded order history', () => {
+  it('My Orders (Module 15) renders the history page shell', async () => {
     renderPage(<MyOrdersPage />, { route: '/my-orders' })
-    expect(screen.getAllByText(/FTG128701/).length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/FTG128654/).length).toBeGreaterThan(0)
+    expect(await screen.findByRole('heading', { name: /^my orders$/i })).toBeInTheDocument()
   })
 
   it('Plan a Journey renders its form', () => {
