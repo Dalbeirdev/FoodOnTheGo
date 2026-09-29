@@ -27,7 +27,11 @@ const OVERRIDES: Record<string, Partial<Omit<PickupSettings, 'restaurantId' | 't
   'brasserie-beaune': { intervalMinutes: 15, minimumLeadMinutes: 45, modes: ['scheduled'] },
   'ambala-chai': { intervalMinutes: 5 },
 }
-export function settingsFor(r: Restaurant): PickupSettings { return { restaurantId: r.id, timezone: r.timezone, ...DEFAULT, ...(OVERRIDES[r.id] ?? {}) } }
+/* Module 17: settings saved by the Restaurant Dashboard (development storage) take precedence over the fixtures. */
+const SETTINGS_KEY = 'fotg.pickup.settings.v1'
+export const loadManagedPickupSettings = (): Record<string, Partial<PickupSettings>> => { try { const raw = localStorage.getItem(SETTINGS_KEY); return raw ? (JSON.parse(raw) as Record<string, Partial<PickupSettings>>) : {} } catch { return {} } }
+export function saveManagedPickupSettings(restaurantId: string, s: PickupSettings) { try { const all = loadManagedPickupSettings(); all[restaurantId] = s; localStorage.setItem(SETTINGS_KEY, JSON.stringify(all)) } catch { /* ignore */ } }
+export function settingsFor(r: Restaurant): PickupSettings { return { restaurantId: r.id, timezone: r.timezone, ...DEFAULT, ...(OVERRIDES[r.id] ?? {}), ...(loadManagedPickupSettings()[r.id] ?? {}) } }
 
 const inClosure = (r: Restaurant, date: string) => (r.openingHours.closures ?? []).some((c) => date >= c.from && date <= c.to)
 

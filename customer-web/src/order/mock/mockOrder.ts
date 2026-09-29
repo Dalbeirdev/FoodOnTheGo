@@ -95,7 +95,7 @@ export class MockOrderRepository implements OrderRepository {
     const publicId = ulidLike()
     const pv: PickupVerification = { reference: `pv_${hex(6)}`, orderPublicId: publicId, code: code(6), qrToken: `pv_dev_${hex(16)}`, status: 'VERIFICATION_AVAILABLE', activatedAt: now, expiresAt: null }
     const order: Order = {
-      publicId, orderNumber: orderNumber(), customerId: input.customerId, restaurant: input.restaurant, items: input.items, pricing: input.pricing,
+      publicId, orderNumber: orderNumber(), customerId: input.customerId, customerDisplayName: input.customerDisplayName ?? null, restaurant: input.restaurant, items: input.items, pricing: input.pricing,
       orderStatus: input.payment.status === 'PAID' ? 'CONFIRMED' : 'PAYMENT_PENDING', paymentStatus: input.payment.status, payment: input.payment, pickup: input.pickup,
       pickupCodeReference: pv.reference, pickupVerificationStatus: 'NOT_READY', etaReadyAt: input.pickup.estimatedReadyTime, delayed: false, delayReasonKey: null, rejectionReasonKey: null, cancellationReasonKey: null, lastEventSequence: 3,
       paymentAttemptId: input.paymentAttemptId, checkoutReference: input.checkoutReference, journey: input.journey, orderNote: input.orderNote,

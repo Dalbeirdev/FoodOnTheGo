@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
 import { PickupProvider } from './pickup/PickupContext'
 import { CheckoutProvider } from './checkout/CheckoutContext'
@@ -42,9 +42,26 @@ import LegalPage from './pages/LegalPage'
 import NotFoundPage from './pages/NotFoundPage'
 import GetAppPage from './pages/GetAppPage'
 import ComingSoonPage from './pages/ComingSoonPage'
+import { DashboardProvider } from './dashboard/DashboardContext'
+import DashboardLayout, { RequirePermission } from './dashboard/DashboardLayout'
+import OverviewPage from './dashboard/pages/OverviewPage'
+import OrdersPage from './dashboard/pages/OrdersPage'
+import PickupVerificationPage from './dashboard/pages/PickupVerificationPage'
+import MenuPage from './dashboard/pages/MenuPage'
+import ProfilePage from './dashboard/pages/ProfilePage'
+import HoursPage from './dashboard/pages/HoursPage'
+import PickupSettingsPage from './dashboard/pages/PickupSettingsPage'
+import ReviewsPage from './dashboard/pages/ReviewsPage'
+import StaffPage from './dashboard/pages/StaffPage'
+import AnalyticsPage from './dashboard/pages/AnalyticsPage'
+import NotificationsDashboardPage from './dashboard/pages/NotificationsPage'
+import SettingsPage from './dashboard/pages/SettingsPage'
+import HelpDashboardPage from './dashboard/pages/HelpPage'
 
 /** Canonical restaurant routes are /restaurants/:slug and /restaurants/:slug/item/:itemId — old /restaurant/… links redirect. */
 function LegacyItemRedirect() { const { rid, itemId } = useParams(); return <Navigate to={`/restaurants/${rid}/item/${itemId}`} replace /> }
+/** The restaurant dashboard has its own shell — the public footer stays off its routes. */
+function SiteFooter() { const l = useLocation(); return l.pathname.startsWith('/restaurant-dashboard') ? null : <Footer /> }
 function LegacyRestaurantRedirect() { const { rid } = useParams(); return <Navigate to={`/restaurants/${rid}`} replace /> }
 
 /** Provider stack + route table, router-agnostic so tests can mount it inside a MemoryRouter. */
@@ -100,9 +117,27 @@ export function AppShell() {
             <Route path="/privacy" element={<LegalPage slug="privacy" />} />
             <Route path="/refund-policy" element={<LegalPage slug="refund-policy" />} />
             <Route path="/cookie-policy" element={<LegalPage slug="cookie-policy" />} />
+            {/* Module 17 — Restaurant Dashboard (responsive web, own shell, shared domain) */}
+            <Route path="/restaurant-dashboard" element={<DashboardProvider><DashboardLayout /></DashboardProvider>}>
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<OverviewPage />} />
+              <Route path="orders" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />
+              <Route path="orders/:orderNumber" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />
+              <Route path="pickup-verification" element={<RequirePermission perm="pickup.verify"><PickupVerificationPage /></RequirePermission>} />
+              <Route path="menu" element={<RequirePermission perm="menu.view"><MenuPage /></RequirePermission>} />
+              <Route path="profile" element={<RequirePermission perm="restaurant.profile.view"><ProfilePage /></RequirePermission>} />
+              <Route path="hours" element={<RequirePermission perm="restaurant.profile.view"><HoursPage /></RequirePermission>} />
+              <Route path="pickup-settings" element={<RequirePermission perm="restaurant.profile.view"><PickupSettingsPage /></RequirePermission>} />
+              <Route path="reviews" element={<RequirePermission perm="reviews.view"><ReviewsPage /></RequirePermission>} />
+              <Route path="staff" element={<RequirePermission perm="staff.view"><StaffPage /></RequirePermission>} />
+              <Route path="analytics" element={<RequirePermission perm="analytics.view"><AnalyticsPage /></RequirePermission>} />
+              <Route path="notifications" element={<RequirePermission perm="notifications.view"><NotificationsDashboardPage /></RequirePermission>} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="help" element={<HelpDashboardPage />} />
+            </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-          <Footer />
+          <SiteFooter />
         </OrdersProvider>
       </PaymentProviderContext>
       </CheckoutProvider>

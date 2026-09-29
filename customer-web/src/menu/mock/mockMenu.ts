@@ -12,7 +12,7 @@
 import { minorDigits } from '../../i18n/format'
 import { MENU as LEGACY_MENU } from '../../data/menu'
 import { RESTAURANTS, normalize } from '../../repositories/mock/restaurants'
-import { MenuError, type ItemAvailability, type MenuCategory, type MenuFilterValue, type MenuItem, type MenuItemDetail, type MenuPage, type MenuRepository } from '../repositories'
+import { MenuError, type ItemAvailability, type MenuCategory, type MenuFilterValue, type MenuItem, type MenuItemDetail, type MenuPage, type MenuRepository, type ModifierGroup, type VariantGroup } from '../repositories'
 import { optionGroupsFor } from './optionGroups'
 
 type Tmpl = { cat: string; catAlt?: string; items: Array<[name: string, desc: string, price: number, tags?: string[], alt?: string[], custom?: boolean]> }
@@ -183,7 +183,27 @@ function buildMenu(restaurantId: string): { categories: MenuCategory[]; items: M
 }
 
 const cache = new Map<string, ReturnType<typeof buildMenu>>()
-const menuFor = (id: string) => { if (!cache.has(id)) cache.set(id, buildMenu(id)); return cache.get(id)! }
+const generatedFor = (id: string) => { if (!cache.has(id)) cache.set(id, buildMenu(id)); return cache.get(id)! }
+
+/* ---------------- Module 17: restaurant-managed menus. When the Restaurant Dashboard has edited a location's menu, the
+ * managed snapshot (localStorage, development only) replaces the generated one — the customer app sees sold-out items,
+ * price changes and new items immediately. The backend owns the single menu source of truth later. */
+export type ManagedMenuSnapshot = { categories: MenuCategory[]; items: MenuItem[]; groups: Record<string, { variantGroups: VariantGroup[]; modifierGroups: ModifierGroup[] }> }
+const MANAGED_KEY = 'fotg.menu.managed.v1'
+const loadManaged = (): Record<string, ManagedMenuSnapshot> => { try { const raw = localStorage.getItem(MANAGED_KEY); return raw ? (JSON.parse(raw) as Record<string, ManagedMenuSnapshot>) : {} } catch { return {} } }
+const menuFor = (id: string) => { const m = loadManaged()[id]; return m ? { categories: m.categories, items: m.items } : generatedFor(id) }
+/** Materializes the full editable snapshot (categories, items, option groups) for a restaurant. */
+export function getManagedMenu(restaurantId: string): ManagedMenuSnapshot {
+  const stored = loadManaged()[restaurantId]
+  if (stored) return stored
+  const base = generatedFor(restaurantId)
+  const template = LEGACY_RESTAURANTS.includes(restaurantId) ? 'legacy' : (ASSIGN[restaurantId] ?? '')
+  const groups: ManagedMenuSnapshot['groups'] = {}
+  for (const it of base.items) groups[it.id] = optionGroupsFor(it, template)
+  return { categories: [...base.categories], items: [...base.items], groups }
+}
+export function saveManagedMenu(restaurantId: string, snapshot: ManagedMenuSnapshot) { try { const all = loadManaged(); all[restaurantId] = snapshot; localStorage.setItem(MANAGED_KEY, JSON.stringify(all)) } catch { /* ignore */ } }
+export function clearManagedMenu(restaurantId: string) { try { const all = loadManaged(); delete all[restaurantId]; localStorage.setItem(MANAGED_KEY, JSON.stringify(all)) } catch { /* ignore */ } }
 
 let latency = 250
 export function setMockMenuLatency(ms: number) { latency = ms }
@@ -223,7 +243,7 @@ export class MockMenuRepository implements MenuRepository {
     const item = menuFor(restaurantId).items.find((i) => i.slug === slug || i.id === slug)
     if (!r || !item || item.restaurantId !== restaurantId) return null
     const template = LEGACY_RESTAURANTS.includes(restaurantId) ? 'legacy' : (ASSIGN[restaurantId] ?? '')
-    const groups = optionGroupsFor(item, template)
+    const groups = loadManaged()[restaurantId]?.groups[item.id] ?? optionGroupsFor(item, template)
     return {
       ...item,
       restaurantSlug: r.slug,

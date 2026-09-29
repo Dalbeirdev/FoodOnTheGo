@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
 import { useJourney } from '../journey/JourneyContext'
 import { orderRepositories } from '../order/useOrderConfirmation'
@@ -34,6 +35,7 @@ const DEV = import.meta.env.DEV
 const OUTCOMES: MockOutcome[] = ['success', 'failure', 'cancelled', 'pending', 'timeout', 'unknown']
 
 export default function PaymentPage() {
+  const auth = useAuth()
   const co = useCheckout()
   const pay = usePayment()
   const cart = useCart()
@@ -71,7 +73,7 @@ export default function PaymentPage() {
       const settings = settingsFor(r)
       const m = settings.methods.find((x) => x.enabled) ?? settings.methods[0]
       const order = await orderRepositories.orders.createFromPayment({
-        paymentAttemptId: a.publicId, checkoutReference: a.checkoutReference, customerId: a.customerId,
+        paymentAttemptId: a.publicId, checkoutReference: a.checkoutReference, customerId: a.customerId, customerDisplayName: auth.user?.name ?? null,
         restaurant: { id: r.id, slug: r.slug, name: r.name, formattedAddress: r.address.formatted, countryCode: r.countryCode, timezone: r.timezone, lat: r.lat ?? null, lng: r.lng ?? null, contact: null, pickupInstructions: settings.instructions ?? null, pickupLocation: m?.label ?? null },
         items: (c?.items ?? []).map((i) => ({ lineId: i.id, menuItemId: i.menuItemId, itemName: i.itemName, image: i.image, variants: i.selectedVariants.map((v) => ({ groupName: v.groupName, optionName: v.optionName, priceAdjustmentMinor: v.priceAdjustmentMinor })), modifiers: i.selectedModifiers.map((v) => ({ groupName: v.groupName, optionName: v.optionName, priceAdjustmentMinor: v.priceAdjustmentMinor })), specialInstructions: i.specialInstructions, quantity: i.quantity, unitPriceMinor: i.unitPriceMinor, lineTotalMinor: i.lineTotalMinor })),
         pricing: { currency: rq.currency, subtotalMinor: co.summary?.subtotalMinor ?? (c?.items ?? []).reduce((s, i) => s + i.lineTotalMinor, 0), discountMinor: co.summary?.discountMinor ?? 0, promoCode: rq.promoCode, taxes: co.summary?.taxes.map((l) => ({ id: l.id, label: l.label, amountMinor: l.amountMinor })) ?? [], fees: co.summary?.fees.map((l) => ({ id: l.id, label: l.label, amountMinor: l.amountMinor })) ?? [], totalMinor: rq.displayedTotalMinor },

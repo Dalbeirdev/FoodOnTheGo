@@ -58,6 +58,10 @@ export type Review = {
   status: ReviewStatus
   version: number
   moderation: { reason: string | null; moderatedAt: string | null }
+  /** Restaurant reply (Module 17) — moderated like the review; the restaurant can never edit the customer's rating or text. */
+  restaurantResponse?: { text: string; respondedAt: string; responderName: string } | null
+  /** Display name policy is pending (CF-206); fixtures carry a first name + initial only. */
+  customerDisplayName?: string | null
   createdAt: string
   updatedAt: string
 }

@@ -141,6 +141,14 @@ const matches = (r: Restaurant, q: string) => {
 
 /* ------------------------------------------------------------------ repository */
 
+/* ---------------- Module 17: restaurant-managed overrides (name, description, cuisines, features, prep time, hours,
+ * accepting orders, status) saved by the Restaurant Dashboard — development storage only; the backend owns this later. */
+export type RestaurantOverride = Partial<Pick<Restaurant, 'name' | 'description' | 'cuisines' | 'features' | 'prepTimeMin' | 'openingHours' | 'acceptingOrders' | 'status'>>
+const OVERRIDE_KEY = 'fotg.restaurant.overrides.v1'
+export const loadRestaurantOverrides = (): Record<string, RestaurantOverride> => { try { const raw = localStorage.getItem(OVERRIDE_KEY); return raw ? (JSON.parse(raw) as Record<string, RestaurantOverride>) : {} } catch { return {} } }
+export function saveRestaurantOverride(id: string, patch: RestaurantOverride) { try { const all = loadRestaurantOverrides(); all[id] = { ...(all[id] ?? {}), ...patch }; localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all)) } catch { /* ignore */ } }
+export const withOverrides = (r: Restaurant): Restaurant => { const o = loadRestaurantOverrides()[r.id]; return o ? { ...r, ...o } : r }
+
 let latency = 300
 export function setMockRestaurantLatency(ms: number) { latency = ms }
 const wait = (ms = latency) => (ms === 0 ? Promise.resolve() : new Promise<void>((r) => setTimeout(r, ms)))
@@ -165,9 +173,9 @@ const rank = (a: RouteRestaurantResult, b: RouteRestaurantResult, sort: SortKey)
 }
 
 export class MockRestaurantRepository implements RestaurantRepository {
-  list() { return RESTAURANTS }
-  byId(id: string) { return RESTAURANTS.find((r) => r.id === id || r.slug === id) }
-  async getRestaurantBySlug(slug: string) { await wait(latency / 3); return RESTAURANTS.find((r) => r.slug === slug || r.id === slug) ?? null }
+  list() { return RESTAURANTS.map(withOverrides) }
+  byId(id: string) { const r = RESTAURANTS.find((x) => x.id === id || x.slug === id); return r ? withOverrides(r) : undefined }
+  async getRestaurantBySlug(slug: string) { await wait(latency / 3); const r = RESTAURANTS.find((x) => x.slug === slug || x.id === slug); return r ? withOverrides(r) : null }
 
   getCuisineTaxonomy() {
     // Derived from data (admin-managed taxonomy later). Latin-script duplicates of local names are kept — the market decides display.

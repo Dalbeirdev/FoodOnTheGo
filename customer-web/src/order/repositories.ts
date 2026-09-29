@@ -93,6 +93,8 @@ export type Order = {
   /** Customer-friendly public reference. Format is a development fixture; the backend generates it later. */
   orderNumber: string
   customerId: string
+  /** Display name shown to restaurant staff (the only customer identity they need); never contact / payment data. */
+  customerDisplayName?: string | null
   restaurant: RestaurantSnapshot
   items: OrderItemSnapshot[]
   pricing: OrderPricing
@@ -148,6 +150,7 @@ export type Receipt = {
 }
 
 export type CreateOrderInput = {
+  customerDisplayName?: string | null
   paymentAttemptId: string
   checkoutReference: string
   customerId: string

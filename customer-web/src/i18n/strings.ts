@@ -6,6 +6,7 @@
  */
 import { createContext, useContext } from 'react'
 import { isRtl } from './format'
+import { dashStrings } from '../dashboard/strings'
 
 export type Locale = { locale: string; dir: 'ltr' | 'rtl'; unitPreference: 'auto' | 'metric' | 'imperial' }
 
@@ -888,6 +889,9 @@ const en: Record<string, string> = {
   'discovery.empty.scope.title': 'No restaurants near {label} yet.',
   'discovery.empty.scope.text': 'Try a wider area or a different location. Restaurants from other countries are never shown here.',
 }
+
+// Module 17: restaurant dashboard strings live in their own table and merge into the English bundle.
+Object.assign(en, dashStrings)
 
 const bundles: Record<string, Record<string, string>> = { en }
 
