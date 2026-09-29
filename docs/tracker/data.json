@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 16 (Reviews & post-pickup) — awaiting owner device test of build020",
+  "phase": "Frontend - Module 16 COMPLETE (owner verified build020); Module 17 awaiting owner spec",
   "currentModule": "Module 16",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -126,7 +126,7 @@
       "id": "M16",
       "name": "Module 16 — Reviews, Ratings, Customer Feedback & Post-Pickup Experience (frontend-first, mock repositories)",
       "started": "2026-09-29",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-29: canonical /order/:orderNumber/review on Web + Android; ReviewRepository / ReviewEligibilityService / ReviewConfigProvider with mocks; order-bound eligibility (completed, owner, window, one per order); configurable scale, categories, tags (sentiment-filtered), optional item feedback, Unicode-limited text; submission vs moderation states; drafts kept on failure; offline state; duplicate protection; existing review + edit window; entry points from Order Details / My Orders / tracking; post-pickup actions reusing M04 favorites, M13 receipt, M15 reorder; restaurant summary readiness; localization / RTL / privacy. Backend review API, moderation, aggregation, restaurant responses, admin moderation, photos / identity policies recorded as carry-forward."
     },
     {
@@ -9620,7 +9620,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build020)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-review-form.png, phone-review-submitted.png; docs/local-review/test-results/m16-android-preview.json (24/24); review_screen_test (5)",
       "issue": "-",
       "carry": "CF-210",
@@ -10052,7 +10052,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build020)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-review-*.png, tablet-review-form.png, tablet-review-submitted.png",
       "issue": "-",
       "carry": "CF-210",
@@ -10244,7 +10244,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build020)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build020.apk",
       "issue": "-",
       "carry": "CF-210",
@@ -10793,7 +10793,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 10 + e2e 38/38 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build020)",
       "backend": "MOCK (MockReviewRepository + MockReviewEligibilityService + MockReviewConfigProvider)",
       "prod": "NO",
       "shot": "web-m16/06-review-submitted",
@@ -11149,9 +11149,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (review_test 5, review_screen_test 5)",
       "apk": "YES (build020)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build020, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "IMPLEMENTED — PENDING USER DEVICE VERIFICATION"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -11712,6 +11712,12 @@
       "Review photos, titles, anonymous display names, helpful votes, reporting and public review lists are not implemented (not approved) and tracked as carry-forward; restaurant responses belong to the Restaurant Dashboard.",
       "Owner spec §11–15, §35–37, §39",
       "CF-204, CF-207, CF-209"
+    ],
+    [
+      "2026-09-29",
+      "Module 16 approved: owner tested build020 on tablet, all screens pass. Module 17 may start once its spec arrives.",
+      "Owner",
+      "CF-210 closed; TE-143 PASS."
     ]
   ],
   "carry": [
@@ -14231,7 +14237,7 @@
       "P0",
       "Owner",
       "Device test",
-      "PENDING",
+      "DONE - owner: \"build020 tested on tab, all screens pass\" (2026-09-29)",
       "2026-09-29",
       "-"
     ]
@@ -16351,8 +16357,8 @@
       "ANDROID",
       "Owner device test of build020 (see CF-210)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build020: all screens pass (2026-09-29)",
       "2026-09-29"
     ]
   ],
@@ -17143,9 +17149,9 @@
       "ef9a1e2 (Module 16)",
       "2026-09-29",
       "77299D4D6D7F9A53FF1FC033A9D9ADC4743A62BFB10FC762632D7EDC144F6AC2",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-29)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
