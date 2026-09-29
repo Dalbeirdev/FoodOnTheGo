@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
 import { PickupProvider } from './pickup/PickupContext'
+import { CheckoutProvider } from './checkout/CheckoutContext'
+import PaymentPage from './pages/PaymentPage'
 import { OrdersProvider } from './orders/OrdersContext'
 import { ProfileProvider } from './profile/ProfileContext'
 import { AuthProvider } from './auth/AuthContext'
@@ -54,6 +56,7 @@ export function AppShell() {
       <JourneyProvider>
       <CartProvider>
       <PickupProvider>
+      <CheckoutProvider>
         <OrdersProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -68,6 +71,7 @@ export function AppShell() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/pickup-time" element={<PickupTimePage />} />
             <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
+            <Route path="/payment" element={<RequireAuth><PaymentPage /></RequireAuth>} />
             <Route path="/order-confirmation/:orderNumber" element={<RequireAuth><OrderConfirmationPage /></RequireAuth>} />
             <Route path="/order-tracking/:orderNumber" element={<RequireAuth><OrderTrackingPage /></RequireAuth>} />
             <Route path="/my-orders" element={<RequireAuth><MyOrdersPage /></RequireAuth>} />
@@ -96,6 +100,7 @@ export function AppShell() {
           </Routes>
           <Footer />
         </OrdersProvider>
+      </CheckoutProvider>
       </PickupProvider>
       </CartProvider>
       </JourneyProvider>

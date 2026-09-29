@@ -12,6 +12,9 @@ import 'screens/restaurant_detail_screen.dart';
 import 'screens/item_detail_screen.dart';
 import 'screens/cart_screen.dart';
 import 'screens/pickup_time_screen.dart';
+import 'screens/checkout_screen.dart';
+import 'screens/payment_screen.dart';
+import 'screens/legal_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
 import 'screens/home_screens.dart';
@@ -21,6 +24,7 @@ import 'state/account_state.dart';
 import 'state/auth_state.dart';
 import 'state/discovery_state.dart';
 import 'state/pickup_state.dart';
+import 'state/checkout_state.dart';
 import 'state/journey_state.dart';
 
 void main() => runApp(const FoodOnTheGoApp());
@@ -59,6 +63,8 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
     GoRoute(path: '/pickup-time', builder: (_, _) => const PickupTimeScreen()),
     GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
+    GoRoute(path: '/payment', builder: (_, _) => const PaymentScreen()),
+    GoRoute(path: '/legal/:slug', builder: (_, s) => LegalScreen(slug: s.pathParameters['slug']!)),
     GoRoute(path: '/order-confirmation/:number', builder: (_, s) => OrderConfirmationScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
@@ -112,6 +118,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider(create: (_) => CartState()),
           ChangeNotifierProvider(create: (_) => OrdersState()),
           ChangeNotifierProvider(create: (_) => PickupState()),
+          ChangeNotifierProvider(create: (_) => CheckoutState()),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false),
       );

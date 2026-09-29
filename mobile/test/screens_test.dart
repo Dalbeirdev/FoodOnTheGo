@@ -18,6 +18,8 @@ import 'package:foodonthego/screens/auth_screens.dart';
 import 'package:foodonthego/screens/help_screen.dart';
 import 'package:foodonthego/screens/home_screens.dart';
 import 'package:foodonthego/screens/order_screens.dart';
+import 'package:foodonthego/screens/checkout_screen.dart';
+import 'package:foodonthego/state/checkout_state.dart';
 import 'package:foodonthego/auth/auth_repository.dart';
 import 'package:foodonthego/state/account_state.dart';
 import 'package:foodonthego/state/app_state.dart';
@@ -45,6 +47,7 @@ Widget app(Widget screen, {CartState? cart}) {
       ChangeNotifierProvider(create: (_) => cart ?? CartState()),
       ChangeNotifierProvider(create: (_) => OrdersState()),
       ChangeNotifierProvider(create: (_) => PickupState(repository: MockPickupRepository(latency: Duration.zero), store: MemoryKeyValueStore())),
+      ChangeNotifierProvider(create: (_) => CheckoutState()),
     ],
     child: MaterialApp.router(theme: Brand.theme(), routerConfig: router),
   );
@@ -66,7 +69,6 @@ void main() {
     'Restaurant detail': RestaurantDetailScreen(id: 'burger-hub', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Item': ItemDetailScreen(restaurantId: 'burger-hub', itemSlug: 'classic-burger', restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
     'Cart (empty)': CartScreen(restaurantRepository: MockRestaurantRepository(latency: Duration.zero), menuRepository: MockMenuRepository(latency: Duration.zero)),
-    'Checkout': const CheckoutScreen(),
     'Order tracking': const OrderTrackingScreen(number: 'FTG128701'),
     'My orders': const MyOrdersScreen(),
     'Profile': const ProfileScreen(),
@@ -123,11 +125,10 @@ void main() {
     expect(t.getSize(find.byType(BottomBar)).height, lessThan(120));
   });
 
-  testWidgets('Checkout body is visible above its bottom bar', (t) async {
+  testWidgets('Checkout (guest) redirects to login instead of rendering the review', (t) async {
     await pumpPhone(t, const CheckoutScreen(), cart: cart());
-    expect(find.text('Pickup Location & Time'), findsOneWidget);
-    expect(find.text('Place Order'), findsOneWidget);
-    expect(t.getSize(find.byType(BottomBar)).height, lessThan(120));
+    expect(find.text('Continue to secure payment'), findsNothing);
+    expect(find.text('Place Order'), findsNothing);
   });
 
   testWidgets('Home with items shows the cart bar without hiding the page', (t) async {
