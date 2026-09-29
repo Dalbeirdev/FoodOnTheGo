@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 12 (Payment experience) — awaiting owner device test of build016",
+  "phase": "Frontend - Module 12 COMPLETE (owner verified build016); Module 13 (order confirmation) awaiting owner spec",
   "currentModule": "Module 12",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -98,7 +98,7 @@
       "id": "M12",
       "name": "Module 12 — Payment Experience, Payment States & Order-Confirmation Handoff (frontend-first, mock provider)",
       "started": "2026-09-29",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-29: canonical /payment on Web + Android launched from /checkout; PaymentProvider / Resolver / Repository / Verification abstraction; deterministic MockPaymentProvider (success, failure, cancelled, pending, timeout, unknown); PaymentAttempt model with audit history; centralized state machine (IDLE … VERIFIED / FAILED / CANCELLED / PENDING / UNKNOWN / EXPIRED / ERROR); single initiation, retry, change method, check status, checkout snapshot invalidation, refresh / restart recovery, offline; payment summary; secure boundary (no card data, no secrets, display-only amount); handoff to an interim order-confirmation card. Server verification, webhooks, idempotency, amount + currency checks, refunds, reconciliation, audit, recovery endpoints, deep-link return, dev-mode safety recorded as carry-forward."
     },
     {
@@ -6760,7 +6760,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build016)",
       "evidence": "mobile/lib/screens/payment_screen.dart; docs/local-review/screenshots/android-preview/phone-payment-*.png, tablet-payment-*.png; docs/local-review/test-results/m12-android-preview.json 20/20",
       "issue": "-",
       "carry": "CF-152",
@@ -7128,7 +7128,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build016)",
       "evidence": "payment_test TEST 13; checkout_state restore",
       "issue": "-",
       "carry": "CF-150",
@@ -7224,7 +7224,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build016)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-payment-ready.png, phone-payment-failed.png, phone-payment-pending.png, phone-payment-unknown.png, tablet-payment-ready.png; payment_screen_test TEST 12",
       "issue": "-",
       "carry": "CF-152",
@@ -7416,7 +7416,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build016)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build016.apk",
       "issue": "-",
       "carry": "CF-152",
@@ -7947,7 +7947,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 14 + e2e 32/32 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build016)",
       "backend": "MOCK (MockPaymentProvider + MockPaymentRepository + MockPaymentVerificationService)",
       "prod": "NO",
       "shot": "web-m12/01-payment-ready",
@@ -8239,9 +8239,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (payment_test 13, payment_screen_test 4)",
       "apk": "YES (build016)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build016, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     },
     {
       "screen": "Legal documents (M11) — /legal/terms, /legal/privacy, /legal/refund-policy with DRAFT banner",
@@ -8641,6 +8641,12 @@
       "One canonical payment experience (/payment, launched from /checkout) on both platforms; the order-confirmation handoff is an interim card until Module 13; the cart is not cleared by the client on payment success (the server-created order decides).",
       "Claude (spec §1, §54)",
       "-"
+    ],
+    [
+      "2026-09-29",
+      "Module 12 approved: owner tested build016 on tablet, all screens pass. Module 13 may start once its spec arrives.",
+      "Owner",
+      "CF-152 closed; TE-114 PASS."
     ]
   ],
   "carry": [
@@ -10464,7 +10470,7 @@
       "P0",
       "Owner",
       "Before M12 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE - owner: \"build016 tested on tab, all screens pass\" (2026-09-29)",
       "2026-09-29",
       "-"
     ],
@@ -12200,8 +12206,8 @@
       "ANDROID",
       "Owner device test of build016 (see CF-152)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build016: all screens pass (2026-09-29)",
       "2026-09-29"
     ]
   ],
@@ -12844,9 +12850,9 @@
       "8a3d2a7 (Module 12)",
       "2026-09-29",
       "0B0D0E47E30875BE6B05E88ED7F4990F8407A8A70B0632B0F9DDF834BE9D03E7",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-29)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
