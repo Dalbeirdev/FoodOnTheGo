@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 15 (My Orders, history, details & reorder) — awaiting owner device test of build019",
+  "phase": "Frontend - Module 14 COMPLETE (owner verified build019); Module 15 (order details & history) awaiting owner spec",
   "currentModule": "Module 15",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -119,7 +119,7 @@
       "id": "M15",
       "name": "Module 15 — My Orders, Order History, Order Details & Reorder (frontend-first, mock repositories)",
       "started": "2026-09-29",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-29: canonical /my-orders (auth) + /order/:orderNumber on Web + Android; OrderSummary vs full snapshot; Ongoing / Completed / Cancelled grouping; search / filters / sort / cursor paging; empty / filtered-empty / loading / error states; details from the snapshot with Module 14 timeline, Module 13 receipt, Track order, favorites, Rate (disabled), Help; cancelled / rejected / refund display (pending / partial / full); safe payment details; ReorderService / MockReorderService validating restaurant, availability, variants / modifiers and prices with customer review, unavailable / price-changed / modifier-missing / restaurant-unavailable handling and ONE CART = ONE RESTAURANT confirmation; authorization; localization / currency / timezone / Unicode fixtures. Backend history API, reorder validation, receipts, refund records, retention policy recorded as carry-forward."
     },
     {
@@ -8893,7 +8893,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build019)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-orders-list.png, tablet-orders-list.png; docs/local-review/test-results/m15-android-preview.json (42/42); my_orders_screen_test",
       "issue": "-",
       "carry": "CF-197",
@@ -8909,7 +8909,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build019)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-order-details-cancelled.png, phone-reorder-price-changed.png, phone-reorder-replace-confirm.png; docs/local-review/test-results/m15-android-preview.json",
       "issue": "-",
       "carry": "CF-197",
@@ -9469,7 +9469,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build019)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-orders-*.png, phone-order-details-*.png, phone-reorder-*.png, tablet-orders-list.png, tablet-order-details-cancelled.png",
       "issue": "-",
       "carry": "CF-197",
@@ -9581,7 +9581,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build019)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build019.apk",
       "issue": "-",
       "carry": "CF-197",
@@ -9752,7 +9752,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 15 + e2e 51/51 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build019)",
       "backend": "MOCK (MockOrderRepository.listSummaries)",
       "prod": "NO",
       "shot": "web-m15/02-my-orders-list",
@@ -9767,7 +9767,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 15 + e2e 51/51 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build019)",
       "backend": "MOCK (MockOrderRepository + MockReceiptRepository + MockReorderService)",
       "prod": "NO",
       "shot": "web-m15/05-order-details-cancelled-refund",
@@ -10458,9 +10458,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (orders_history_test 7, my_orders_screen_test 6)",
       "apk": "YES (build019)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build019, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "IMPLEMENTED — PENDING USER DEVICE VERIFICATION"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -10979,6 +10979,12 @@
       "Development order seeding exists only in local builds and is idempotent per account.",
       "Claude (spec evidence rules)",
       "CF-155"
+    ],
+    [
+      "2026-09-29",
+      "Module 15 approved: owner tested build019 on tablet, all screens pass. Module 16 may start once its spec arrives.",
+      "Owner",
+      "CF-197 closed; TE-136 PASS."
     ]
   ],
   "carry": [
@@ -13342,7 +13348,7 @@
       "P0",
       "Owner",
       "Device test",
-      "PENDING",
+      "DONE - owner: \"build019 tested on tab, all screens pass\" (2026-09-29)",
       "2026-09-29",
       "-"
     ]
@@ -15350,8 +15356,8 @@
       "ANDROID",
       "Owner device test of build019 (see CF-197)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build019: all screens pass (2026-09-29)",
       "2026-09-29"
     ]
   ],
@@ -16105,9 +16111,9 @@
       "56fa825 (Module 15)",
       "2026-09-29",
       "AEBBE8AB41801A24EB5C3498342C2397CD106868FFACDD19505C9143DDEBEB31",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-29)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
