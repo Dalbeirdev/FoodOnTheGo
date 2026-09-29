@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-
 import { CartProvider } from './cart/CartContext'
 import { PickupProvider } from './pickup/PickupContext'
 import { CheckoutProvider } from './checkout/CheckoutContext'
+import { PaymentProviderContext } from './payment/PaymentContext'
 import PaymentPage from './pages/PaymentPage'
 import { OrdersProvider } from './orders/OrdersContext'
 import { ProfileProvider } from './profile/ProfileContext'
@@ -57,6 +58,7 @@ export function AppShell() {
       <CartProvider>
       <PickupProvider>
       <CheckoutProvider>
+      <PaymentProviderContext>
         <OrdersProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -100,6 +102,7 @@ export function AppShell() {
           </Routes>
           <Footer />
         </OrdersProvider>
+      </PaymentProviderContext>
       </CheckoutProvider>
       </PickupProvider>
       </CartProvider>

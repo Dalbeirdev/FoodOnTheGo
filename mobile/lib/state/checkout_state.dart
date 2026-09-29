@@ -46,7 +46,9 @@ class CheckoutState extends ChangeNotifier {
   int _seq = 0;
 
   Future<void> _restore() async {
-    try { termsAccepted = (await _store.read(termsKey)) == '1'; notifyListeners(); } catch (_) {}
+    try { termsAccepted = (await _store.read(termsKey)) == '1'; } catch (_) {}
+    try { final raw = await _store.read(requestKey); if (raw != null && raw.isNotEmpty) request = CheckoutRequest.fromJson(jsonDecode(raw) as Map<String, dynamic>); } catch (_) {}
+    notifyListeners();
   }
 
   List<CheckoutIssue> issues({required bool authenticated, required Cart? cart, required PickupSelection? selection}) {

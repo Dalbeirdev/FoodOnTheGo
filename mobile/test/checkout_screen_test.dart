@@ -13,6 +13,7 @@ import 'package:foodonthego/state/app_state.dart';
 import 'package:foodonthego/state/auth_state.dart';
 import 'package:foodonthego/state/cart_state.dart' hide PromoStatus, PromoState;
 import 'package:foodonthego/state/checkout_state.dart';
+import 'package:foodonthego/state/payment_state.dart';
 import 'package:foodonthego/state/discovery_state.dart';
 import 'package:foodonthego/state/journey_state.dart';
 import 'package:foodonthego/state/pickup_state.dart';
@@ -35,10 +36,11 @@ void main() {
           ChangeNotifierProvider(create: (_) => OrdersState()),
           ChangeNotifierProvider.value(value: pk),
           ChangeNotifierProvider.value(value: co),
+          ChangeNotifierProvider(create: (_) => PaymentState(resolver: MockPaymentProviderResolver(latency: Duration.zero), verifier: MockPaymentVerificationService(latency: Duration.zero), store: MemoryKeyValueStore())),
         ],
         child: MaterialApp.router(routerConfig: GoRouter(initialLocation: '/checkout', routes: [
           GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
-          GoRoute(path: '/payment', builder: (_, _) => const PaymentScreen()),
+          GoRoute(path: '/payment', builder: (_, _) => PaymentScreen(restaurantRepository: MockRestaurantRepository(latency: Duration.zero))),
           GoRoute(path: '/legal/:slug', builder: (_, s) => LegalScreen(slug: s.pathParameters['slug']!)),
           GoRoute(path: '/login', builder: (_, _) => const Scaffold(body: Text('login screen'))),
           GoRoute(path: '/cart', builder: (_, _) => const Scaffold(body: Text('cart screen'))),
@@ -103,7 +105,7 @@ void main() {
     await t.tap(find.byType(Checkbox)); await t.pumpAndSettle();
     await t.tap(find.text('Continue to secure payment')); await t.pumpAndSettle();
     expect(co.request, isNotNull);
-    expect(find.textContaining('no amount has been charged'), findsOneWidget);
+    expect(find.text('Ready to pay'), findsOneWidget); // Module 12 payment stage
   });
 
   testWidgets('legal links open the DRAFT documents', (t) async {

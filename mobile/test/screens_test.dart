@@ -20,6 +20,7 @@ import 'package:foodonthego/screens/home_screens.dart';
 import 'package:foodonthego/screens/order_screens.dart';
 import 'package:foodonthego/screens/checkout_screen.dart';
 import 'package:foodonthego/state/checkout_state.dart';
+import 'package:foodonthego/state/payment_state.dart';
 import 'package:foodonthego/auth/auth_repository.dart';
 import 'package:foodonthego/state/account_state.dart';
 import 'package:foodonthego/state/app_state.dart';
@@ -48,6 +49,7 @@ Widget app(Widget screen, {CartState? cart}) {
       ChangeNotifierProvider(create: (_) => OrdersState()),
       ChangeNotifierProvider(create: (_) => PickupState(repository: MockPickupRepository(latency: Duration.zero), store: MemoryKeyValueStore())),
       ChangeNotifierProvider(create: (_) => CheckoutState()),
+      ChangeNotifierProvider(create: (_) => PaymentState(resolver: MockPaymentProviderResolver(latency: Duration.zero), verifier: MockPaymentVerificationService(latency: Duration.zero), store: MemoryKeyValueStore())),
     ],
     child: MaterialApp.router(theme: Brand.theme(), routerConfig: router),
   );

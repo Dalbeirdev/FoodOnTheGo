@@ -9,6 +9,8 @@ import { AuthProvider, useAuth } from '../auth/AuthContext'
 import { CartProvider, useCart, type AddItemInput } from '../cart/CartContext'
 import { MemoryCartRepository } from '../cart/cartModel'
 import { CheckoutProvider } from '../checkout/CheckoutContext'
+import { PaymentProviderContext } from '../payment/PaymentContext'
+import { setMockPaymentLatency } from '../payment/mock/mockPayment'
 import { setMockCheckoutLatency } from '../checkout/mock/mockCheckout'
 import { JourneyProvider } from '../journey/JourneyContext'
 import { setMockMenuLatency } from '../menu/mock/mockMenu'
@@ -33,7 +35,7 @@ function AuthProbe() { const a = useAuth(); return <output data-testid="auth">{S
 
 function mount(path: string, repo = new MemoryCartRepository()) {
   return render(
-    <LocaleProvider><AuthProvider><ProfileProvider><JourneyProvider><CartProvider repository={repo}><PickupProvider><CheckoutProvider>
+    <LocaleProvider><AuthProvider><ProfileProvider><JourneyProvider><CartProvider repository={repo}><PickupProvider><CheckoutProvider><PaymentProviderContext>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
@@ -43,7 +45,7 @@ function mount(path: string, repo = new MemoryCartRepository()) {
         </Routes>
         <Loc /><AuthProbe />
       </MemoryRouter>
-    </CheckoutProvider></PickupProvider></CartProvider></JourneyProvider></ProfileProvider></AuthProvider></LocaleProvider>,
+    </PaymentProviderContext></CheckoutProvider></PickupProvider></CartProvider></JourneyProvider></ProfileProvider></AuthProvider></LocaleProvider>,
   )
 }
 const seededRepo = async (items: AddItemInput[]) => {
@@ -58,10 +60,10 @@ const seededRepo = async (items: AddItemInput[]) => {
 }
 const signIn = () => { localStorage.setItem('fotg.mock.customers', JSON.stringify([USER])); sessionStorage.setItem('fotg.mock.session', JSON.stringify({ token: 'dev', userId: 'u1', expiresAt: Date.now() + 3600000 })) }
 const withinIst = () => { const h = new Date().getUTCHours(); return h >= 3 && h < 17 }
-const ready = async () => { await waitFor(() => expect(screen.getByText(/order summary/i)).toBeInTheDocument()); await waitFor(() => expect(screen.queryByText(/validating cart and pickup/i)).toBeNull(), { timeout: 4000 }) }
+const ready = async () => { await waitFor(() => expect(screen.getByText(/order summary/i)).toBeInTheDocument()); await waitFor(() => expect(screen.queryByText(/validating cart and pickup/i)).toBeNull(), { timeout: 4000 }); await waitFor(() => expect(screen.getByText(/items subtotal/i)).toBeInTheDocument(), { timeout: 4000 }) }
 
 describe('Checkout review (web)', () => {
-  beforeEach(() => { setMockCheckoutLatency(0); setMockPickupLatency(0); setMockMenuLatency(0); setMockRestaurantLatency(0); localStorage.clear(); sessionStorage.clear() })
+  beforeEach(() => { setMockPaymentLatency(0); setMockCheckoutLatency(0); setMockPickupLatency(0); setMockMenuLatency(0); setMockRestaurantLatency(0); localStorage.clear(); sessionStorage.clear() })
 
   it('TEST 2 — guest reaching checkout is sent to login (state stays in storage)', async () => {
     const repo = await seededRepo([burger()])
@@ -117,7 +119,8 @@ describe('Checkout review (web)', () => {
     expect(req).toMatchObject({ customerId: 'u1', restaurantId: 'burger-hub', currency: 'INR', termsAccepted: true, termsVersion: 'draft-2026-09', paymentMethodId: 'upi', promoCode: null })
     expect(req.idempotencyKey.length).toBeGreaterThan(8)
     expect(req.pickupSelection.restaurantTimezone).toBe('Asia/Kolkata')
-    expect(screen.getByText(/no amount has been charged/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Ready to pay/i)).toBeInTheDocument()
+    expect(screen.getByTestId('pay-total')).toHaveTextContent('₹640.00')
   })
 
   it('TEST 5 / 6 / 7 — promo apply, invalid, expired, remove; totals recalculate in integer money', async () => {
@@ -197,7 +200,7 @@ describe('Checkout review (web)', () => {
     sessionStorage.setItem('fotg.pickup.selection', JSON.stringify(pickupFor((await repo.load())!.id, 'grapevine-burgers', 'America/Los_Angeles')))
     mount('/checkout', repo)
     await ready()
-    expect(screen.getByText(/items subtotal/i).parentElement).toHaveTextContent('$11.99')
+    await waitFor(() => expect(screen.getByText(/items subtotal/i).parentElement).toHaveTextContent('$11.99'))
     expect(screen.getByText(/America\/Los_Angeles/)).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /credit \/ debit card/i })).toBeInTheDocument()
     expect(screen.queryByRole('radio', { name: /upi/i })).toBeNull()

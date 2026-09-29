@@ -5,6 +5,9 @@ import { useCart } from '../cart/CartContext'
 import { useOrders, type Order } from '../orders/OrdersContext'
 import { MENU, inr } from '../data/menu'
 import { RESTAURANTS } from './RestaurantsPage'
+import { t, useLocale } from '../i18n/strings'
+import './CartPage.css'
+import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
 
 type P = { size?: number }
@@ -37,9 +40,30 @@ function Img({ src, fallback, alt = '' }: { src?: string; fallback?: string; alt
 
 export default function OrderConfirmationPage() {
   const { orderNumber = '' } = useParams()
+  const { locale } = useLocale()
   const { getOrder } = useOrders()
   const cart = useCart()
   const order = getOrder(orderNumber)
+
+  // Module 12 handoff: a verified (development) payment arrives here as pending-<paymentReference>. Module 13 builds
+  // the real confirmation from the server-created order; until then this interim card makes no order claims.
+  if (orderNumber.startsWith('pending-')) {
+    const ref = orderNumber.slice('pending-'.length)
+    return (
+      <>
+        <Header />
+        <main id="main" className="oc oc--missing">
+          <div className="oc-card cart-card pay-handoff" data-testid="pay-handoff">
+            <div className="pay-handoff__icon" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4L19 7" /></svg></div>
+            <h1>{t('pay.handoff.title', undefined, locale)}</h1>
+            <p>{t('pay.handoff.text', undefined, locale)}</p>
+            <p className="pay-ref"><b>{t('pay.handoff.reference', undefined, locale)}</b> {ref}</p>
+            <Link to="/" className="btn btn--primary">{t('pay.handoff.back', undefined, locale)}</Link>
+          </div>
+        </main>
+      </>
+    )
+  }
 
   if (!order) {
     return (

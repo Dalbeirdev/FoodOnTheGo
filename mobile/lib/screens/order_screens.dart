@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../data/mock_data.dart';
 import '../state/app_state.dart';
+import '../i18n/strings.dart';
 import '../widgets/common.dart';
 
 class OrderConfirmationScreen extends StatelessWidget {
@@ -12,6 +13,25 @@ class OrderConfirmationScreen extends StatelessWidget {
   final String number;
   @override
   Widget build(BuildContext context) {
+    // Module 12 handoff: a verified (development) payment arrives as pending-<paymentReference>. Module 13 builds the real
+    // confirmation from the server-created order; until then this interim card makes no order claims.
+    if (number.startsWith('pending-')) {
+      final ref = number.substring('pending-'.length);
+      return Scaffold(
+        appBar: BrandAppBar(title: S.t('pay.handoff.title'), showCart: false),
+        body: PageBody(children: [Card(child: Padding(padding: const EdgeInsets.all(24), child: Column(children: [
+          Container(width: 64, height: 64, decoration: const BoxDecoration(color: Brand.greenBg, shape: BoxShape.circle), child: const Icon(Icons.check, color: Brand.green, size: 34)),
+          const SizedBox(height: 14),
+          Text(S.t('pay.handoff.title'), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text(S.t('pay.handoff.text'), style: const TextStyle(color: Brand.grey, height: 1.45), textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          Text('${S.t('pay.handoff.reference')} $ref', style: const TextStyle(fontFamily: 'monospace', fontSize: 12.5), textAlign: TextAlign.center),
+          const SizedBox(height: 18),
+          BrandButton(label: S.t('pay.handoff.back'), onPressed: () => context.go('/')),
+        ])))]),
+      );
+    }
     final order = context.watch<OrdersState>().byNumber(number);
     if (order == null) return Scaffold(appBar: AppBar(), body: const Center(child: Text('Order not found')));
     final r = restaurantById(order.restaurantId);
@@ -69,6 +89,25 @@ class OrderTrackingScreen extends StatelessWidget {
   final String number;
   @override
   Widget build(BuildContext context) {
+    // Module 12 handoff: a verified (development) payment arrives as pending-<paymentReference>. Module 13 builds the real
+    // confirmation from the server-created order; until then this interim card makes no order claims.
+    if (number.startsWith('pending-')) {
+      final ref = number.substring('pending-'.length);
+      return Scaffold(
+        appBar: BrandAppBar(title: S.t('pay.handoff.title'), showCart: false),
+        body: PageBody(children: [Card(child: Padding(padding: const EdgeInsets.all(24), child: Column(children: [
+          Container(width: 64, height: 64, decoration: const BoxDecoration(color: Brand.greenBg, shape: BoxShape.circle), child: const Icon(Icons.check, color: Brand.green, size: 34)),
+          const SizedBox(height: 14),
+          Text(S.t('pay.handoff.title'), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          Text(S.t('pay.handoff.text'), style: const TextStyle(color: Brand.grey, height: 1.45), textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          Text('${S.t('pay.handoff.reference')} $ref', style: const TextStyle(fontFamily: 'monospace', fontSize: 12.5), textAlign: TextAlign.center),
+          const SizedBox(height: 18),
+          BrandButton(label: S.t('pay.handoff.back'), onPressed: () => context.go('/')),
+        ])))]),
+      );
+    }
     final order = context.watch<OrdersState>().byNumber(number);
     if (order == null) return Scaffold(appBar: AppBar(), body: const Center(child: Text('Order not found')));
     final r = restaurantById(order.restaurantId);

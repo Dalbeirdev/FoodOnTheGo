@@ -77,6 +77,7 @@ class CheckoutRequest {
   final bool termsAccepted;
   final DateTime acceptedAt, createdAt;
   final int displayedTotalMinor;
+  factory CheckoutRequest.fromJson(Map<String, dynamic> j) => CheckoutRequest(idempotencyKey: j['idempotencyKey'] as String, customerId: j['customerId'] as String, cartId: j['cartId'] as String, restaurantId: j['restaurantId'] as String, pickupSelection: PickupSelection.fromJson(j['pickupSelection'] as Map<String, dynamic>), promoCode: j['promoCode'] as String?, currency: j['currency'] as String, orderNote: (j['orderNote'] as String?) ?? '', termsAccepted: j['termsAccepted'] as bool, termsVersion: j['termsVersion'] as String, privacyVersion: j['privacyVersion'] as String, acceptedAt: DateTime.parse(j['acceptedAt'] as String), paymentMethodId: j['paymentMethodId'] as String, displayedTotalMinor: j['displayedTotalMinor'] as int, createdAt: DateTime.parse(j['createdAt'] as String));
   Map<String, dynamic> toJson() => {'idempotencyKey': idempotencyKey, 'customerId': customerId, 'cartId': cartId, 'restaurantId': restaurantId, 'pickupSelection': pickupSelection.toJson(), 'promoCode': promoCode, 'currency': currency, 'orderNote': orderNote, 'termsAccepted': termsAccepted, 'termsVersion': termsVersion, 'privacyVersion': privacyVersion, 'acceptedAt': acceptedAt.toIso8601String(), 'paymentMethodId': paymentMethodId, 'displayedTotalMinor': displayedTotalMinor, 'createdAt': createdAt.toIso8601String()};
 }
 
