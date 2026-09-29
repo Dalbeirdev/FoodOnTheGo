@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 11 (Checkout review & payment preparation) — awaiting owner device test of build015 (covers build014 flows)",
+  "phase": "Frontend - Modules 10 + 11 COMPLETE (owner verified build015); Module 12 (payment processing) awaiting owner spec",
   "currentModule": "Module 11",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -84,14 +84,14 @@
       "id": "M10",
       "name": "Module 10 — Pickup Time Selection, Arrival Coordination & Checkout Handoff (frontend-first, mock repositories)",
       "started": "2026-09-28",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-28: canonical /pickup-time on Web + Android; PickupSlot / PickupSelection models (instants + IANA zone), MockPickupRepository (opening hours, closures, cut-off, lead, horizon, capacity, recommended by ETA), MockEtaService, centralized pickup state persisted through login, ASAP + scheduled modes, locale-aware date / time, guidance, validation + stale slot, cart revalidation, auth gate and checkout handoff. Backend slot engine, hours engine, DST library, dynamic prep, ETA, locking, concurrency, idempotency, arrival policies recorded as carry-forward."
     },
     {
       "id": "M11",
       "name": "Module 11 — Checkout Review, Pricing Summary & Payment Preparation (frontend-first, mock repositories)",
       "started": "2026-09-29",
-      "completed": "",
+      "completed": "2026-09-29",
       "scope": "Owner spec 2026-09-29: protected canonical /checkout on Web + Android; checkout state machine; customer / restaurant / pickup / items / promo / note / legal / payment method / summary sections; Promotion model + states via PromotionRepository; PaymentMethodRepository per market (no raw card data; cash at pickup NOT APPROVED); configured-lines pricing summary in integer minor units (never authoritative); cart, pickup, restaurant, price and promo revalidation; offline state; CheckoutRequest with idempotency key and no client amount; interim /payment. Backend pricing, promotions, payments, legal acceptance records, idempotent orders recorded as carry-forward."
     },
     {
@@ -5361,7 +5361,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build015)",
       "evidence": "mobile/lib/screens/pickup_time_screen.dart; docs/local-review/screenshots/android-preview/phone-pickup-context.png, phone-pickup-slots.png, tablet-pickup-slots.png; docs/local-review/test-results/m10-android-preview.json",
       "issue": "-",
       "carry": "CF-131",
@@ -5873,7 +5873,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build015)",
       "evidence": "docs/local-review/screenshots/android-preview/phone-pickup-*.png; docs/local-review/test-results/m10-android-preview.json",
       "issue": "-",
       "carry": "CF-131",
@@ -6033,7 +6033,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build015)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build014.apk",
       "issue": "-",
       "carry": "CF-131",
@@ -6065,7 +6065,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build015)",
       "evidence": "mobile/lib/screens/checkout_screen.dart; docs/local-review/screenshots/android-preview/phone-checkout-review.png, tablet-checkout-review.png; docs/local-review/test-results/m11-android-preview.json 14/14",
       "issue": "-",
       "carry": "CF-138",
@@ -6625,7 +6625,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "YES (owner tablet, build015)",
       "evidence": "docs/local-review/test-results/m11-android-preview.json (14/14); docs/local-review/screenshots/android-preview/phone-checkout-*.png, phone-payment-handoff.png, phone-legal-draft.png",
       "issue": "-",
       "carry": "CF-138",
@@ -6721,7 +6721,7 @@
       "status": "VERIFIED",
       "impl": "PASS",
       "test": "PASS",
-      "manual": "PENDING",
+      "manual": "YES (owner tablet, build015)",
       "evidence": "docs/local-review/apk/FoodOnTheGo-local-review-v0.1.0-build015.apk",
       "issue": "-",
       "carry": "CF-138",
@@ -6844,7 +6844,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 16 + e2e 31/31 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build015)",
       "backend": "MOCK (MockPromotionRepository + MockPaymentMethodRepository + MockCheckoutRepository)",
       "prod": "NO",
       "shot": "web-m11/02-checkout-review",
@@ -7236,7 +7236,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "unit 7 + e2e 25/25 PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build015)",
       "backend": "MOCK (MockPickupRepository + MockEtaService)",
       "prod": "NO",
       "shot": "web-m10/03-pickup-scheduled-slots",
@@ -7252,7 +7252,7 @@
       "inter": "PASS",
       "mock": "YES",
       "test": "PASS",
-      "manual": "VERIFIED (browser)",
+      "manual": "VERIFIED (browser + owner tablet build015)",
       "backend": "NOT STARTED",
       "prod": "NO",
       "shot": "web-m11/05-payment-handoff",
@@ -7531,9 +7531,9 @@
       "mock": "YES",
       "test": "unit + widget PASS (pickup_test 7, pickup_screen_test 5)",
       "apk": "YES (build015)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build015, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     },
     {
       "screen": "Payment (interim, M11) — prepared CheckoutRequest, nothing charged",
@@ -7544,9 +7544,9 @@
       "mock": "YES",
       "test": "widget PASS (checkout_screen_test TEST 11)",
       "apk": "YES (build015)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build015, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     },
     {
       "screen": "Legal documents (M11) — /legal/terms, /legal/privacy, /legal/refund-policy with DRAFT banner",
@@ -7557,9 +7557,9 @@
       "mock": "YES",
       "test": "widget PASS (legal links test)",
       "apk": "YES (build015)",
-      "manual": "PENDING USER DEVICE VERIFICATION",
+      "manual": "VERIFIED (owner tablet, build015, 2026-09-29)",
       "backend": "NOT STARTED",
-      "status": "BUILT — AWAITING DEVICE TEST"
+      "status": "VERIFIED"
     }
   ],
   "decisions": [
@@ -7892,6 +7892,12 @@
       "Canonical protected /checkout (web) and native /checkout (Android); flow Cart → Pickup Time → Checkout → Payment → Confirmation; interim /payment page until Module 12.",
       "Claude (spec §1)",
       "-"
+    ],
+    [
+      "2026-09-29",
+      "Modules 10 and 11 approved: owner tested build015 on tablet, all screens pass. Module 12 may start once its spec arrives.",
+      "Owner",
+      "CF-131 / CF-138 closed; TE-099 and TE-107 PASS."
     ]
   ],
   "carry": [
@@ -9463,7 +9469,7 @@
       "P0",
       "Owner",
       "Before M10 approval",
-      "PENDING USER DEVICE VERIFICATION — build014 superseded by build015 (same flows included)",
+      "DONE - owner: \"build015 tested on tab, all screens pass\" (2026-09-29); build015 includes the Module 10 flows",
       "2026-09-28",
       "-"
     ],
@@ -9547,7 +9553,7 @@
       "P0",
       "Owner",
       "Before M10 / M11 approval",
-      "PENDING USER DEVICE VERIFICATION",
+      "DONE - owner: \"build015 tested on tab, all screens pass\" (2026-09-29)",
       "2026-09-29",
       "-"
     ],
@@ -11065,8 +11071,8 @@
       "ANDROID",
       "Owner device test of build014 (see CF-131)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build015: all screens pass (2026-09-29)",
       "2026-09-28"
     ],
     [
@@ -11145,8 +11151,8 @@
       "ANDROID",
       "Owner device test of build015 (see CF-138; includes Module 10 flows from CF-131)",
       "manual (device)",
-      "PENDING",
-      "-",
+      "PASS",
+      "Owner device test on tablet, build015: all screens pass (2026-09-29)",
       "2026-09-29"
     ]
   ],
@@ -11741,7 +11747,7 @@
       "FF7C2A8A40121DD17B4A03FBB288E7939D97C5304C16CAECB2E976FCB948CC35",
       "PENDING",
       "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "SUPERSEDED by build015 (flows verified there)"
     ],
     [
       "FoodOnTheGo-local-review-v0.1.0-build015.apk",
@@ -11752,9 +11758,9 @@
       "15a7a25 (Module 11)",
       "2026-09-29",
       "45EE1CCDEBFE6A51FD8590B14F33703BBAB34C84B59DBF0B35F9EEF1629E692F",
-      "PENDING",
-      "PENDING USER DEVICE VERIFICATION",
-      "BUILT — AWAITING DEVICE TEST"
+      "YES (owner tablet)",
+      "VERIFIED (owner, all screens pass, 2026-09-29)",
+      "VERIFIED"
     ]
   ],
   "pendingAssets": {
