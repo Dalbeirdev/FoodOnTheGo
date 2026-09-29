@@ -202,12 +202,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ])),
       ]),
       bottomNavigationBar: BottomBar(child: Row(children: [
-        Expanded(flex: 3, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(flex: 2, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(S.t('checkout.total'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
-          Text(co.summary == null ? '—' : money(co.summary!.totalMinor), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(co.summary == null ? '—' : money(co.summary!.totalMinor), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         ])),
         const SizedBox(width: 10),
-        Expanded(flex: 6, child: BrandButton(label: continuing ? S.t('checkout.preparingPayment') : S.t('checkout.continue'), onPressed: canContinue ? _continue : null)),
+        Expanded(flex: 7, child: BrandButton(label: continuing ? S.t('checkout.preparingPayment') : S.t('checkout.continue'), onPressed: canContinue ? _continue : null)),
       ])),
     );
   }
