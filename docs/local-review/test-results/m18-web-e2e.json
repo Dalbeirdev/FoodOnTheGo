@@ -1,0 +1,634 @@
+{
+  "module": "M18",
+  "ranAt": "2026-09-30T06:29:25.170Z",
+  "base": "http://localhost:5173",
+  "total": 125,
+  "passed": 125,
+  "results": [
+    {
+      "name": "TEST 1 shell: dark grouped sidebar (Operations / Finance / Growth / Platform / Security & Administration), 20 nav items, header with global search, environment badge, alerts, admin profile",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 environment indicator shows LOCAL · Mock data (never hardcoded production)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 overview: 8 KPI cards, critical alert strip, orders chart, platform health (payment gateway degraded), recent activity, pending approvals table, top restaurants, GMV per currency (no cross-currency sum)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 4 alerts menu: unread badge, critical items (payment gateway degraded, refund failed), mark all read",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 global search \"burger\": restaurant hit (Burger Hub) + order hits, typed by kind",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 5 search Enter opens the first hit (restaurant details)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 restaurants list: tabs All / Pending / Approved / Suspended / Rejected / Draft, search + market / cuisine / sort filters, 10-row pages with \"Showing 1–10 of 36\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 pending tab (URL state tab=pending): 4 restaurants — 2 Under Review + 2 Submitted, with document counts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 search narrows to The Green Bowl; q= is in the URL",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 market filter IN + \"green\" → empty state (no matches)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 suspended tab: Ambala Chai Point + Watford Gap (customer app closes them)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 10 suspended restaurants are inactive in the shared restaurant overrides (customer availability = temporarily closed)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 sort by orders puts Rajwada Thali House (2,210) first",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 pagination page 2 (URL page=2) shows 11–20 of 36",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 restaurant details: profile / documents / locations / notes / history tabs, Submitted status, 5 documents (IN market set), Approve / Reject / Request information actions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 approve blocked warning: 5 required documents not approved → override checkbox required",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 approve without override does nothing (dialog stays open, error shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 15 document review: business registration → Approved (1 of 5), audit entry document.reviewed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 16 request information → Under Review + internal note + audit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 17 reject dialog: category select, public reason (shown to restaurant), internal note (never shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 17 rejected: status REJECTED, audit entry with category + public reason, internal note kept in notes only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 18 approve (override recorded): APPROVED, restaurant becomes active + accepting in the shared model",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 19 suspend dialog: impact warning (disappears from search, in-progress orders continue, settlements on hold) + mandatory reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 19 suspend without reason is blocked (validation error)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 20 suspended: shared override inactive + not accepting, Restaurant Dashboard profile onboarding SUSPENDED, audit restaurant.suspended with reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 20 reactivate → APPROVED, active again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 21 multi-location: Riverside org shows 3 locations (Burger Hub IN, Route 5 Diner US, 一風堂 JP) with time zone / currency and per-location suspend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 history tab lists the audit trail for this restaurant (suspended + reactivated)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (restaurant details) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 23 customers: masked phone / email only, verified badges, statuses Active / Restricted / Suspended / Deactivated, no login-as control",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 23 status filter SUSPENDED → Jake Bell only (URL status=SUSPENDED)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 24 customer details: identity (minimal), recent orders from the shared store, support cases, reviews, security; Restricted → Set active / Suspend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 25 suspend customer with reason → SUSPENDED + audit customer.suspended",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (customer details) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 26 orders: 8 tabs incl. Exceptions with counts, restaurant + market, order status and payment status separate, totals in restaurant currency",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 27 exceptions tab lists detected exceptions (refund overdue on the rejected order, pickup verification issue on stale ready orders)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 28 market filter JP → only 一風堂 orders in yen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 29 order details: items + totals, shared timeline (order placed → payment confirmed → rejected), payment record, refund RF-001284 pending, exception strip, no status override control",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 29 admin note added (audit order.note_added)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (order details) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 30 payments: KPI strip (captured / failed / refunds pending / mismatches), references + provider refs, method category only (no card data), statuses incl. Failed / Authorized / Refunded, mismatch badge",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 30 status filter FAILED → 3 failed payments with provider failure reasons in the drawer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 31 payment drawer: event history (created → provider redirect → failed: insufficient funds), reconciliation block, safe method note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 31 reconciliation mismatch (provider captured vs platform authorized) is flagged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 32 refunds: tabs per state, full / partial types, currencies explicit (INR / USD / GBP / JPY), failed refund visible, no \"issue refund\" money-moving control",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 32 refunds tab FAILED → RF-001281 only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 33 settlements: net payouts by currency (never summed across), periods, gross / refunds / fees / adjustments / net, statuses Pending / Processing / Paid / Failed / On hold",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (settlements) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 34 review moderation: queues All / Pending / Flagged / Published / Hidden / Rejected with counts, report counts, ratings",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 35 flagged review drawer: 3 reports with reasons (harassment, offensive, spam), text shown unedited, Publish / Hide / Reject actions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 35 hide requires a reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 36 hidden: shared review store status HIDDEN, rating/text unchanged, moderation reason + version bump, audit review.hide",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 36 moderation history updated in the drawer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 37 pending review with a restaurant response containing a phone number → Hide response action available",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 37 restaurant response hidden (review itself untouched, still pending)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 38 publish (no reason needed) → PUBLISHED in the shared store",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (reviews) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 39 promotions: 6 campaigns with statuses Draft / Scheduled / Active / Paused / Expired / Disabled, fixed amounts carry explicit currency, percentages show %",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 40 new promotion validation: code / name / value / dates required",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 40 promotion created (market IN, scheduled) + audit promotion.created",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 41 pause active promotion with reason → PAUSED (audit promotion.paused)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 42 support queues: Open(3) In Progress(1) Waiting(2) Resolved(2) All(8); urgent system case first; priorities and sources shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 43 support case: conversation with internal note visibly marked, linked restaurant, assignee Léa Dubois, status In Progress",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 44 internal note stored with internal=true (never public)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 44 status → RESOLVED (audit support.status_changed)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 45 assign open case → assignee set and status moves to In Progress",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (support case) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 46 notifications: alerts list with severities and links; announcements / templates / delivery tabs",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 46 announcements: scheduled / draft / sent with audience, markets, channel; sending stays backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 47 announcement draft saved (audit announcement.created)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 47 templates readiness table (7 templates, locales, channels)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 48 markets: 7 markets with ISO country + currency, locale, IANA time zone, unit system, providers, tax ref, restaurant counts, status Active / Pilot / Inactive",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 49 market validation: 2-letter currency rejected (ISO 4217 needs 3 letters)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 49 market AE → Active (audit market.updated)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 50 taxes: per-market references (GST 5%, VAT 20%, provider-calculated US)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 50 fees & commission shells: platform fee 2.5%, commission 10%, draft market-specific fees",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 51 configuration: ordering / pickup / payments / fees / markets / notifications / restaurants groups; locked platform rules (one restaurant per cart, pickup only, cash at pickup NOT APPROVED)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 51 config change with reason → value 20, audit configuration.changed with before/after",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 52 feature flag toggle requires a reason; flagged non-authoritative; audit feature_flag.changed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 53 admin users: 8 users, roles, statuses (Invited / Suspended), MFA enrolment, last login; self row has no suspend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 53 roles & permissions: 7 roles with permission lists (restaurants.approve, refunds.issue, reviews.moderate…)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 54 invite validation: duplicate email rejected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 54 invited admin appears as INVITED finance_admin (audit admin_user.invited)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 55 role change with reason → audit admin_user.role_changed (before/after)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 56 audit logs: newest first, actor / action / target / result, filters (action, target, result, date range), no edit or delete controls, immutable note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 56 result filter DENIED → 2 denied entries (suspended login, approval without permission)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 57 audit detail: actor, role, action, target, result, IP, reason, before / after JSON",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 58 security dashboard: failed logins, suspicious activity, locked accounts, high-risk actions, permission changes, MFA coverage; high-severity alerts; events table",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (security) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 59 analytics: 8 KPIs, orders trend line, orders by market donut, GMV / revenue / refunds per currency table (no cross-currency total), top restaurants, rating distribution; range incl. Quarter + market filter",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 59 quarter + JP market: currency table only JPY, markets donut JP only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (analytics) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 60 system status: overall Degraded (payment gateway), 7 services with latency, queues (webhooks failed 2), webhooks table, maps usage, Unknown state for unconfigured SMS",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 61 settings: general, brand, support contacts, legal versions all DRAFT · Pending final approval, security (MFA, session timeout, IP allowlist), integrations status without secrets",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 62 help page explains RBAC = UX only, audit, money rules, mock data",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 63 RBAC: Support Admin sees only Overview + Restaurants / Customers / Orders / Reviews / Support / Payments / Refunds / Notifications / Help (no Finance settlements, Growth, Markets, Admin users, Audit, Security, System, Settings)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 64 direct URL to /admin/audit-logs as Support Admin → forbidden state naming the role (backend enforces the same rule)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 64 Support Admin cannot approve / reject / suspend (no action buttons)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 64 Support Admin sees reviews read-only (no moderation actions)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 65 suspended admin account has no permissions (only Overview + Help remain)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 66 load failure (fotg.mock.fail=admin) shows an error state with retry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 66 retry recovers the restaurants table",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 overview: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 restaurants: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 orders: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920: sidebar visible, no tab bar",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 overview: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 restaurants: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 orders: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366: sidebar visible, no tab bar",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE tablet overview: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet restaurants: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet orders: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet: sidebar hidden, burger + bottom tab bar (Overview / Restaurants / Orders / More), environment badge still visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE tablet restaurant details: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet support case: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE mobile overview: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile restaurants: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile orders: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile: sidebar hidden, burger + bottom tab bar (Overview / Restaurants / Orders / More), environment badge still visible",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE mobile restaurant details: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile support case: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "A11Y axe (mobile overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}
