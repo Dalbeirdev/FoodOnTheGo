@@ -1,7 +1,7 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Frontend — Module 18A (India Market Control Center) — awaiting owner review (browser + build021)",
-  "currentModule": "Module 18A",
+  "phase": "Frontend — Module 19 final QA done; BACKEND DEVELOPMENT MAY START = YES; owner acceptance (Modules 18 / 18A, build021 / build022) pending",
+  "currentModule": "Module 19",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
   "database": "PostgreSQL 18.6 + PostGIS 3.6.2",
@@ -152,7 +152,14 @@
     },
     {
       "id": "M19",
-      "name": "Module 19 — pending owner spec",
+      "name": "Module 19 — Final Frontend QA, India-first Market Audit, Design Review, Integration Verification & Backend Readiness Gate",
+      "started": "2026-09-30",
+      "completed": "",
+      "scope": "Owner spec 2026-09-30: audit, test, compare, fix, verify, simplify, standardize and document everything from Module 01 to 18A. No new features, no backend. Nine bugs fixed (BUG-066..074), backend requirements consolidated, backend start gate evaluated."
+    },
+    {
+      "id": "M20",
+      "name": "Module 20 — Backend Foundation (pending owner approval to start)",
       "started": "",
       "completed": "",
       "scope": ""
@@ -2102,14 +2109,14 @@
       "platform": "WEB",
       "cat": "Security",
       "pri": "P1",
-      "status": "PARTIAL",
+      "status": "VERIFIED",
       "impl": "PASS",
       "test": "-",
       "manual": "-",
       "evidence": "CheckoutPage.tsx (mock UI only; no persistence)",
       "issue": "Must be replaced by Razorpay hosted checkout in Module 05 — no card data may ever be stored",
       "carry": "CF-053",
-      "notes": ""
+      "notes": "Resolved by the Module 11 checkout rewrite: no card form exists (verified in Module 19, e2e A11)."
     },
     {
       "id": "M05-001",
@@ -3254,14 +3261,14 @@
       "platform": "ALL",
       "cat": "Boundary",
       "pri": "P1",
-      "status": "PARTIAL",
+      "status": "VERIFIED",
       "impl": "PASS",
       "test": "-",
       "manual": "-",
       "evidence": "Restaurant.distance/time/detour marked @deprecated; menu inr() helper",
       "issue": "Menu prices are Module 01 INR fixtures; menu module must price per restaurant currency",
       "carry": "CF-080",
-      "notes": ""
+      "notes": "Resolved by Modules 08–15: legacy pages replaced; money via formatter, distances via formatDistance (verified in Module 19)."
     },
     {
       "id": "M06-037",
@@ -14526,6 +14533,2022 @@
       "issue": "-",
       "carry": "-",
       "notes": ""
+    },
+    {
+      "id": "M19-001",
+      "module": "M19",
+      "req": "Full inventory (routes, pages, screens, repositories, tests) compared with the tracker",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-inventory",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-002",
+      "module": "M19",
+      "req": "Customer Web audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A1–A14, C1–C6, E1–E5, F1–F11",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-003",
+      "module": "M19",
+      "req": "Android audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/flutter-m19.txt (288/288)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-004",
+      "module": "M19",
+      "req": "Restaurant Dashboard audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) B1–B5; docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-005",
+      "module": "M19",
+      "req": "Admin Dashboard audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) D1–D2, F; docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-006",
+      "module": "M19",
+      "req": "India Market dashboard audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-007",
+      "module": "M19",
+      "req": "Customer design audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m19/c01-home.png … c18-profile.png; #qa-design",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-008",
+      "module": "M19",
+      "req": "Restaurant design audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m19/x-restaurant-*.png; #qa-design",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-009",
+      "module": "M19",
+      "req": "Admin design audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m19/x-admin-*.png; #qa-design",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-010",
+      "module": "M19",
+      "req": "India Market design audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m18a/; #qa-design",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-011",
+      "module": "M19",
+      "req": "Brand audit (orange #FF6A00, navy, grey; darker orange only where contrast needs it)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-design",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-012",
+      "module": "M19",
+      "req": "Logo audit (customer header, dashboard + admin sidebars, Android identity, favicon)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m19/c01-home.png",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-013",
+      "module": "M19",
+      "req": "Design system audit (buttons, inputs, cards, tables, tabs, dialogs, badges, states)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-design",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-014",
+      "module": "M19",
+      "req": "Hierarchy audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-screens",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-015",
+      "module": "M19",
+      "req": "Clutter audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-screens",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-016",
+      "module": "M19",
+      "req": "Primary action audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-screens",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-017",
+      "module": "M19",
+      "req": "5-second comprehension test (Claude inspection; owner confirmation pending)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-screens",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-018",
+      "module": "M19",
+      "req": "India market configuration resolves to India / IN / INR / en-IN / Asia/Kolkata / metric / +91",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "customer-web/src/market/market.test.tsx; docs/local-review/test-results/m19-web-e2e.json (68/68)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-019",
+      "module": "M19",
+      "req": "INR audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F4; frontendGate.test.ts",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-020",
+      "module": "M19",
+      "req": "India timezone audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A4, A7",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-021",
+      "module": "M19",
+      "req": "India phone audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A8, E5",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-022",
+      "module": "M19",
+      "req": "India units audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A2",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-023",
+      "module": "M19",
+      "req": "India address audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A4",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-024",
+      "module": "M19",
+      "req": "Foreign content audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F3",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-025",
+      "module": "M19",
+      "req": "Global fixture separation",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-026",
+      "module": "M19",
+      "req": "Unsupported country UX",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m18a-web-e2e.json TEST 30",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-027",
+      "module": "M19",
+      "req": "Unsupported India area UX",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m18a-web-e2e.json TEST 31",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-028",
+      "module": "M19",
+      "req": "Customer full E2E: home → journey → discovery → restaurant → item → cart → pickup → auth → checkout → payment → confirmation → tracking → pickup → completed → review → my orders → reorder",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A–C",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-029",
+      "module": "M19",
+      "req": "Direct restaurant flow (no journey)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) E1–E4",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-030",
+      "module": "M19",
+      "req": "Auth flow (phone, OTP, invalid OTP, return route, session expiry guard)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A8, A9, F11; auth vitest",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-031",
+      "module": "M19",
+      "req": "Guest flow",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A3–A8",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-032",
+      "module": "M19",
+      "req": "Auth return preservation (cart, restaurant, pickup, journey)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A9",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-033",
+      "module": "M19",
+      "req": "Journey",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A2; journey.test.tsx",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-034",
+      "module": "M19",
+      "req": "Discovery",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A3, E1; discovery.test.tsx",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-035",
+      "module": "M19",
+      "req": "Restaurant details (Design A)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A4; docs/local-review/screenshots/web-m19/c04-restaurant.png",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-036",
+      "module": "M19",
+      "req": "Item customization",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A5",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-037",
+      "module": "M19",
+      "req": "Cart (one restaurant, no silent replacement)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A6, E2",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-038",
+      "module": "M19",
+      "req": "Pickup",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A7; pickup vitest",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-039",
+      "module": "M19",
+      "req": "Checkout (no tax %, no fee, no delivery, legal acceptance)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A10",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-040",
+      "module": "M19",
+      "req": "Payment (success / failure / cancelled / unknown; timeout + pending in unit tests)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A11, E3, E4; payment vitest",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Timeout outcome is covered by unit tests only (CF-266)."
+    },
+    {
+      "id": "M19-041",
+      "module": "M19",
+      "req": "Confirmation (reference, code, QR, receipt)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A12, A13",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-042",
+      "module": "M19",
+      "req": "Tracking",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A14, C1; tracking vitest",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-043",
+      "module": "M19",
+      "req": "My Orders",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) C5",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-044",
+      "module": "M19",
+      "req": "Reorder",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) C6",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-045",
+      "module": "M19",
+      "req": "Review",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) C3, C4",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-046",
+      "module": "M19",
+      "req": "Profile (real order history, no fabricated samples)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) E5; BUG-067",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-047",
+      "module": "M19",
+      "req": "Restaurant E2E on the customer order: accept → ready → verify pickup → completed",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) B1–B5",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-048",
+      "module": "M19",
+      "req": "Restaurant multi-location",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-049",
+      "module": "M19",
+      "req": "Restaurant menu",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-050",
+      "module": "M19",
+      "req": "Restaurant orders workflow",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) B2; docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-051",
+      "module": "M19",
+      "req": "Restaurant pickup verification (valid / invalid / duplicate)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) B3–B5",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-052",
+      "module": "M19",
+      "req": "Restaurant RBAC UI",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-053",
+      "module": "M19",
+      "req": "Restaurant analytics",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-054",
+      "module": "M19",
+      "req": "Restaurant India context",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "m18a-web-e2e.json TEST 26, 27",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-055",
+      "module": "M19",
+      "req": "Admin E2E",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) D1, D2; docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-056",
+      "module": "M19",
+      "req": "Admin restaurants",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-057",
+      "module": "M19",
+      "req": "Admin customers (privacy)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-058",
+      "module": "M19",
+      "req": "Admin orders",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) D1",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-059",
+      "module": "M19",
+      "req": "Admin payments",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-060",
+      "module": "M19",
+      "req": "Admin refunds",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-061",
+      "module": "M19",
+      "req": "Admin reviews",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) D2",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-062",
+      "module": "M19",
+      "req": "Admin support",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-063",
+      "module": "M19",
+      "req": "Admin India market",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-064",
+      "module": "M19",
+      "req": "Admin RBAC",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-065",
+      "module": "M19",
+      "req": "Admin audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-066",
+      "module": "M19",
+      "req": "Admin security",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-067",
+      "module": "M19",
+      "req": "Admin system status",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-068",
+      "module": "M19",
+      "req": "Shared domain audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-domain",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-069",
+      "module": "M19",
+      "req": "Enum audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-enums",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-070",
+      "module": "M19",
+      "req": "Mock data audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-mock",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-071",
+      "module": "M19",
+      "req": "API readiness (pages consume repositories / services)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-map",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-072",
+      "module": "M19",
+      "req": "Frontend → backend mapping",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-map",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-073",
+      "module": "M19",
+      "req": "Country hardcoding",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "frontendGate.test.ts",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-074",
+      "module": "M19",
+      "req": "Currency hardcoding",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "frontendGate.test.ts; BUG-071",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-075",
+      "module": "M19",
+      "req": "Phone hardcoding",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "customer-web/src/auth/phone.ts",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-076",
+      "module": "M19",
+      "req": "Timezone hardcoding",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "grep audit (no offset arithmetic)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-077",
+      "module": "M19",
+      "req": "Unit hardcoding",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "BUG-063",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-078",
+      "module": "M19",
+      "req": "Money safety (integer minor units)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "frontendGate.test.ts MONEY; docs/local-review/test-results/m19-web-e2e.json (68/68) A13",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-079",
+      "module": "M19",
+      "req": "Address model",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "customer-web/src/repositories/types.ts AddressComponents",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-080",
+      "module": "M19",
+      "req": "Opening hours (periods, overnight, closures, zone)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "dashboard.test.tsx; discovery.test.tsx",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-081",
+      "module": "M19",
+      "req": "Unicode",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A5, C3",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-082",
+      "module": "M19",
+      "req": "Localization (string tables, market locale)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "frontendGate.test.ts",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-083",
+      "module": "M19",
+      "req": "RTL readiness (logical CSS properties, dir=auto; no RTL market active)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-084",
+      "module": "M19",
+      "req": "Customer accessibility (axe on 9 customer views + keyboard)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A11Y, F10",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-085",
+      "module": "M19",
+      "req": "Restaurant accessibility",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A11Y; BUG-070",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-086",
+      "module": "M19",
+      "req": "Admin accessibility",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) A11Y; docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-087",
+      "module": "M19",
+      "req": "Android accessibility (semantics in widget tests; text scale 1.3×)",
+      "platform": "ANDROID",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/flutter-m19.txt (288/288)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "No screen-reader run on a device; owner device check pending."
+    },
+    {
+      "id": "M19-088",
+      "module": "M19",
+      "req": "Customer responsive (1920 / 1366 / 1024 / 768 / 390)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) RESPONSIVE",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-089",
+      "module": "M19",
+      "req": "Restaurant responsive",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) RESPONSIVE",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-090",
+      "module": "M19",
+      "req": "Admin responsive",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) RESPONSIVE",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-091",
+      "module": "M19",
+      "req": "Market responsive",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "m18a-web-e2e.json RESPONSIVE",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-092",
+      "module": "M19",
+      "req": "Android screen sizes (360×640, 390×844, 430×932, 1280×800)",
+      "platform": "ANDROID",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/flutter-m19.txt (288/288)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-093",
+      "module": "M19",
+      "req": "Route audit (72 routes render, none blank or 404)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F1",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-094",
+      "module": "M19",
+      "req": "Broken links",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F7",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-095",
+      "module": "M19",
+      "req": "Deep links / legacy redirects / 404",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F8, F9",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-096",
+      "module": "M19",
+      "req": "Legal (four pages, DRAFT / pending final approval)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F1",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Final legal text is a production blocker (CF-002)."
+    },
+    {
+      "id": "M19-097",
+      "module": "M19",
+      "req": "Privacy (PII exposure review across customer, restaurant, admin)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) B1, D1",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-098",
+      "module": "M19",
+      "req": "Frontend secrets",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "frontendGate.test.ts SECURITY",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-099",
+      "module": "M19",
+      "req": "Unsafe HTML",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "frontendGate.test.ts; BUG-068",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-100",
+      "module": "M19",
+      "req": "Validation",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "vitest suites",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-101",
+      "module": "M19",
+      "req": "Route guards (UX only — frontend authorization is not security)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F11",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-102",
+      "module": "M19",
+      "req": "Loading states",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "vitest suites",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-103",
+      "module": "M19",
+      "req": "Empty states",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "vitest suites",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-104",
+      "module": "M19",
+      "req": "Error states",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-105",
+      "module": "M19",
+      "req": "Offline / network failure",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "tracking + review + payment vitest",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Simulated in tests; no real network-loss run on a device."
+    },
+    {
+      "id": "M19-106",
+      "module": "M19",
+      "req": "Customer performance (paginated lists; bundle split)",
+      "platform": "WEB",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-build-lint-m19.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Customer chunk is still 952 KB (265 KB gzip) — CF-262."
+    },
+    {
+      "id": "M19-107",
+      "module": "M19",
+      "req": "Dashboard performance (paginated tables; separate chunks)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-build-lint-m19.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-108",
+      "module": "M19",
+      "req": "Web builds",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-build-lint-m19.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-109",
+      "module": "M19",
+      "req": "Console audit",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-web-e2e.json (68/68) F6",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-110",
+      "module": "M19",
+      "req": "Android build (analyze + tests + APK)",
+      "platform": "ANDROID",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/flutter-m19.txt (288/288)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-111",
+      "module": "M19",
+      "req": "Final review APK build022",
+      "platform": "ANDROID",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "FoodOnTheGo-local-review-v0.1.0-build022.apk · SHA-256 08BACAB7E130C26095F17D17042626983F02AFF7AF5C8314849290D2BAD1EBF4",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-112",
+      "module": "M19",
+      "req": "Customer tests",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-113",
+      "module": "M19",
+      "req": "Restaurant tests",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-114",
+      "module": "M19",
+      "req": "Admin tests",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-115",
+      "module": "M19",
+      "req": "Market tests",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-116",
+      "module": "M19",
+      "req": "Cross-module regression",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/test-results/m19-regression-e2e.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-117",
+      "module": "M19",
+      "req": "Visual regression (screenshots inspected by Claude; owner comparison pending)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m19/",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-118",
+      "module": "M19",
+      "req": "Screenshot evidence (117 files)",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "docs/local-review/screenshots/web-m19/",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-119",
+      "module": "M19",
+      "req": "Bug closure",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "Bug register BUG-066..074",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-120",
+      "module": "M19",
+      "req": "Pending classification",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-pending",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-121",
+      "module": "M19",
+      "req": "Backend requirements consolidated",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-backend",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-122",
+      "module": "M19",
+      "req": "Backend start gate",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-gate",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-123",
+      "module": "M19",
+      "req": "Production blockers",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "#qa-blockers",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-124",
+      "module": "M19",
+      "req": "Final frontend report",
+      "platform": "ALL",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Audit by Claude; owner acceptance pending",
+      "evidence": "Module 19 report",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-125",
+      "module": "M19",
+      "req": "Owner device verification of build022",
+      "platform": "ANDROID",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "PENDING",
+      "impl": "PENDING",
+      "test": "PENDING",
+      "manual": "PENDING",
+      "evidence": "-",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M19-126",
+      "module": "M19",
+      "req": "Owner browser acceptance of Modules 18, 18A and the design review",
+      "platform": "WEB",
+      "cat": "Final QA",
+      "pri": "P0",
+      "status": "PENDING",
+      "impl": "PENDING",
+      "test": "PENDING",
+      "manual": "PENDING",
+      "evidence": "-",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
     }
   ],
   "pages": [
@@ -16113,10 +18136,10 @@
       "resp": "NOT CAPTURED (no new Android screenshots this module)",
       "mock": "YES",
       "test": "unit PASS (market_test 11; suite 237)",
-      "apk": "YES (build021)",
+      "apk": "YES (build021, build022)",
       "manual": "PENDING (owner device)",
       "backend": "NOT STARTED",
-      "status": "VERIFIED"
+      "status": "IMPLEMENTED"
     }
   ],
   "decisions": [
@@ -16827,6 +18850,42 @@
       "India market is the default context for Module 19 QA. The Market Control Center lives inside the Admin Dashboard at /admin/markets.",
       "Module 18A spec",
       "M18A-001"
+    ],
+    [
+      "2026-09-30",
+      "Module 19 confirms the permanent decisions: India is the first active market (IN, INR, en-IN, Asia/Kolkata, metric, +91); other countries are future / draft; customers never see inactive-market restaurants; global test fixtures stay separate; India-first is configuration-driven.",
+      "Module 19",
+      "M19-124"
+    ],
+    [
+      "2026-09-30",
+      "Confirmed: web + Android customer apps stay parallel; iOS deferred; local-first development; frontend complete before backend; Laravel + PostgreSQL + PostGIS + Redis (Redis never the primary database); modular monolith, no premature microservices.",
+      "Module 19",
+      "M19-124"
+    ],
+    [
+      "2026-09-30",
+      "Confirmed: pickup-first V1, no delivery without approval, one active cart = one restaurant, phone + OTP customer authentication, Restaurant Design A canonical, generic variants / modifiers.",
+      "Module 19",
+      "M19-124"
+    ],
+    [
+      "2026-09-30",
+      "Confirmed: taxes and fees are configuration-driven (no percentage in the frontend), payment provider abstracted, frontend payment result never authoritative, order snapshots retained, tracking event-driven, secure pickup token / QR later, reviews tied to eligible orders.",
+      "Module 19",
+      "M19-124"
+    ],
+    [
+      "2026-09-30",
+      "Confirmed: Restaurant Dashboard separate from Admin Dashboard; Admin controls market configuration; RBAC is backend-authoritative; sensitive actions audited by the backend; final legal content needs approval; no production deployment before backend, security and integration readiness.",
+      "Module 19",
+      "M19-124"
+    ],
+    [
+      "2026-09-30",
+      "Module 19 result: BACKEND DEVELOPMENT MAY START = YES (no backend start blocker). Owner acceptance of Modules 18 / 18A and the tablet check of build021 / build022 remain open as frontend acceptance and production items.",
+      "Module 19",
+      "M19-124"
     ]
   ],
   "carry": [
@@ -19961,6 +22020,78 @@
       "NOT STARTED",
       "2026-09-30",
       "-"
+    ],
+    [
+      "CF-262",
+      "CUSTOMER PERFORMANCE: route-level code splitting for the customer app (chunk 952 KB), responsive images / CDN",
+      "M19",
+      "Module 19 audit",
+      "P1",
+      "Claude",
+      "Frontend / Performance",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-263",
+      "Remove the Module 01 legacy order model (web OrdersContext, Android OrdersState / app_state Order) once nothing depends on it",
+      "M19",
+      "Module 19 audit",
+      "P2",
+      "Claude",
+      "Frontend cleanup",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-264",
+      "Unify i18n MarketConfig (formatting defaults) and the admin registry Market type into the Market configuration served by the backend",
+      "M19",
+      "Module 19 audit",
+      "P1",
+      "Claude",
+      "Backend Markets module",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-265",
+      "Keep shots/m19_e2e.js as the regression suite; retire the per-module e2e scripts that assert interim UI text",
+      "M19",
+      "Module 19 audit",
+      "P2",
+      "Claude",
+      "Test tooling",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-266",
+      "Payment provider timeout and pending outcomes in e2e (unit-tested only today)",
+      "M19",
+      "Module 19 audit",
+      "P2",
+      "Claude",
+      "Test tooling",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-267",
+      "verify-local.ps1: warm the API or raise the 5 s health timeout (first call after idle takes about 9 s)",
+      "M19",
+      "Module 19 audit",
+      "P3",
+      "Claude",
+      "Local tooling",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
     ]
   ],
   "bugs": [
@@ -20872,6 +23003,132 @@
       "Extra header control",
       "Compact selector and tighter header spacing at ≤480px",
       "docs/local-review/screenshots/web-m18a/30-mobile-india.png",
+      "FIXED / VERIFIED (visual)"
+    ],
+    [
+      "BUG-066",
+      "M01 / M09",
+      "WEB + ANDROID",
+      "Legacy cart / sample orders",
+      "High",
+      "A 5% tax rate was hardcoded (web GST_RATE + OrdersContext, Android CartState.tax)",
+      "No tax percentage in the frontend",
+      "Module 19 tax audit",
+      "Module 01 legacy code never removed",
+      "Rate removed; legacy tax is 0 unless supplied by the caller",
+      "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files); docs/local-review/test-results/flutter-m19.txt (288/288)",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-067",
+      "M04",
+      "WEB + ANDROID",
+      "My Profile",
+      "Medium",
+      "Profile counted and listed fabricated Module 01 sample orders; the links opened orders that do not exist",
+      "Real order history",
+      "Module 19 mock-data audit",
+      "Legacy provider still wired to the profile",
+      "Profile reads the real order repository",
+      "docs/local-review/test-results/m19-web-e2e.json (68/68) E5",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-068",
+      "M02",
+      "WEB",
+      "About page",
+      "Medium",
+      "Hero text rendered with dangerouslySetInnerHTML",
+      "No raw HTML rendering",
+      "Module 19 unsafe-HTML audit",
+      "Content stored as HTML",
+      "Content is structured text segments",
+      "frontendGate.test.ts",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-069",
+      "M10–M13",
+      "WEB + ANDROID",
+      "Checkout / payment / pickup copy",
+      "Medium",
+      "Customer-facing text said \"arrives in Module 12\" and similar",
+      "No internal naming in customer copy",
+      "Module 19 design review",
+      "Interim strings never updated",
+      "Six strings rewritten on both platforms",
+      "frontendGate.test.ts COPY",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-070",
+      "M17",
+      "WEB",
+      "Restaurant Dashboard — Accept button",
+      "Medium",
+      "White on green failed WCAG AA contrast",
+      "Contrast at least 4.5:1",
+      "axe in the Module 19 run",
+      "Green too light",
+      "Button uses #15733a",
+      "docs/local-review/test-results/m19-web-e2e.json (68/68) A11Y",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-071",
+      "M04 / M05 / M17 / M18",
+      "WEB",
+      "Literal locales and currency fallbacks",
+      "Low",
+      "Profile and journey pages used literal en-GB / en-IN; two screens fell back to literal INR / USD",
+      "Locale and currency from the market",
+      "Module 19 hardcoding audit",
+      "Literals in page code",
+      "Locale provider + market / location currency",
+      "frontendGate.test.ts MARKET",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-072",
+      "M18",
+      "WEB",
+      "Admin order details",
+      "Low",
+      "Pickup verification status shown as a raw enum",
+      "Friendly label",
+      "Module 19 enum audit",
+      "Missing string mapping",
+      "adm.pickupStatus.* labels",
+      "frontendGate.test.ts ENUMS",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-073",
+      "M17 / M18",
+      "WEB",
+      "Bundle",
+      "Medium",
+      "One 1.45 MB script shipped dashboard and admin code to every customer",
+      "Portals load on demand",
+      "Module 19 build audit",
+      "Static imports in App.tsx",
+      "Dashboard and admin are lazy route chunks (customer chunk 952 KB; CF-262)",
+      "docs/local-review/test-results/web-build-lint-m19.txt",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-074",
+      "M17",
+      "WEB",
+      "Restaurant order card (mobile)",
+      "Low",
+      "Status badge stretched across the card",
+      "Badge sized to its text",
+      "Module 19 screenshot review",
+      "Flex column stretch",
+      "Badge aligned to start",
+      "docs/local-review/screenshots/web-m19/v-390-restaurant-dashboard_orders.png",
       "FIXED / VERIFIED (visual)"
     ]
   ],
@@ -22525,6 +24782,96 @@
       "PENDING",
       "-",
       "2026-09-30"
+    ],
+    [
+      "TE-166",
+      "M19",
+      "WEB",
+      "Module 19 e2e in the India scope: customer full flow, the restaurant fulfils the same order, review + reorder, admin view, direct flow with payment failure / cancel / unknown, 72-route crawl, link audit, console audit, axe on 15 views, keyboard, 5 viewports",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m19-web-e2e.json (68/68)",
+      "2026-09-30"
+    ],
+    [
+      "TE-167",
+      "M19",
+      "WEB",
+      "Full vitest suite incl. frontendGate.test.ts (static guards)",
+      "unit + component",
+      "PASS",
+      "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files)",
+      "2026-09-30"
+    ],
+    [
+      "TE-168",
+      "M19",
+      "ANDROID",
+      "Flutter analyze + full suite incl. 4 screen sizes and 1.3× text for 17 screens",
+      "unit + widget",
+      "PASS",
+      "docs/local-review/test-results/flutter-m19.txt (288/288)",
+      "2026-09-30"
+    ],
+    [
+      "TE-169",
+      "M19",
+      "WEB",
+      "Cross-module e2e regression (M18A India; M17, M18, M16, M08 global fixtures)",
+      "regression",
+      "PASS",
+      "docs/local-review/test-results/m19-regression-e2e.txt",
+      "2026-09-30"
+    ],
+    [
+      "TE-170",
+      "M19",
+      "WEB",
+      "Type-check, production build (3 route chunks), lint",
+      "static",
+      "PASS",
+      "docs/local-review/test-results/web-build-lint-m19.txt",
+      "2026-09-30"
+    ],
+    [
+      "TE-171",
+      "M19",
+      "ALL",
+      "Local environment verification",
+      "environment",
+      "PASS",
+      "docs/local-review/test-results/verify-local-m19.txt (first run timed out on a cold API; warm re-run passed — CF-267)",
+      "2026-09-30"
+    ],
+    [
+      "TE-172",
+      "M19",
+      "ANDROID",
+      "Owner device verification of build022",
+      "manual (device)",
+      "PENDING",
+      "-",
+      "2026-09-30"
+    ],
+    [
+      "TE-173",
+      "M19",
+      "WEB",
+      "Owner acceptance of the design review (customer, restaurant, admin, market)",
+      "manual (browser)",
+      "PENDING",
+      "-",
+      "2026-09-30"
+    ],
+    [
+      "TE-174",
+      "M19",
+      "WEB",
+      "Per-module e2e scripts for Modules 03–07 and 09–15",
+      "e2e",
+      "SUPERSEDED",
+      "Assert interim UI text of their module; replaced by TE-166 (CF-265)",
+      "2026-09-30"
     ]
   ],
   "artifacts": [
@@ -23119,6 +25466,30 @@
       "docs/local-review/test-results/m18a-web-e2e.json",
       "Evidence",
       "YES"
+    ],
+    [
+      "Module 19 screenshot matrix (customer, restaurant, admin, 5 viewports)",
+      "M19",
+      "WEB",
+      "docs/local-review/screenshots/web-m19/",
+      "Evidence + design review",
+      "YES"
+    ],
+    [
+      "Module 19 e2e results",
+      "M19",
+      "WEB",
+      "docs/local-review/test-results/m19-web-e2e.json",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Module 19 regression summary",
+      "M19",
+      "WEB",
+      "docs/local-review/test-results/m19-regression-e2e.txt",
+      "Evidence",
+      "YES"
     ]
   ],
   "apks": [
@@ -23391,6 +25762,19 @@
       "7e7e3e1 (Module 18A)",
       "2026-09-30",
       "63BAD4BCB48E6FD36E9EB60285EE94E7A692E22D3EC927029F50D9775367634E",
+      "NO",
+      "PENDING",
+      "PENDING"
+    ],
+    [
+      "FoodOnTheGo-local-review-v0.1.0-build022.apk",
+      "0.1.0",
+      "22 (local/debug)",
+      "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+      "MOCK REPOSITORIES + INDIA MARKET SCOPE — final frontend-review build",
+      "5c38ea6 (Module 19)",
+      "2026-09-30",
+      "08BACAB7E130C26095F17D17042626983F02AFF7AF5C8314849290D2BAD1EBF4",
       "NO",
       "PENDING",
       "PENDING"
@@ -24042,5 +26426,1284 @@
       "IMPLEMENTED — India is the only active market (IN / INR / en-IN / Asia/Kolkata / metric / +91) through MarketRepository + MarketAvailabilityService; other countries are drafts; global fixtures kept as controlled tests (USD, GBP, JPY, EUR, AED, imperial, Unicode, RTL)",
       "Backend market / geography / availability services (CF-248..251)"
     ]
+  ],
+  "qa": [
+    {
+      "id": "qa-gate",
+      "title": "Module 19 — Backend start gate",
+      "note": "BACKEND DEVELOPMENT MAY START = YES (no backend start blocker). Owner acceptance items (browser review of Modules 18 / 18A, tablet check of build021 / build022) stay open as frontend acceptance and production items; per the Module 19 spec they do not block backend work. PRODUCTION = NO.",
+      "headers": [
+        "Gate item",
+        "Status",
+        "Evidence"
+      ],
+      "rows": [
+        [
+          "Customer Web functionally complete",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68)"
+        ],
+        [
+          "Customer Android functionally complete",
+          "VERIFIED",
+          "docs/local-review/test-results/flutter-m19.txt (288/288); build022"
+        ],
+        [
+          "Restaurant Dashboard functionally complete",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-regression-e2e.txt"
+        ],
+        [
+          "Admin Dashboard functionally complete",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-regression-e2e.txt"
+        ],
+        [
+          "India Market Control Center functionally complete",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-regression-e2e.txt"
+        ],
+        [
+          "India-first configuration works",
+          "VERIFIED",
+          "market.test.tsx"
+        ],
+        [
+          "Foreign content does not leak into the India experience",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68) F3, F4"
+        ],
+        [
+          "Global architecture intact",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-regression-e2e.txt"
+        ],
+        [
+          "Customer E2E works",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68) A–C, E"
+        ],
+        [
+          "Restaurant operations E2E works",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68) B"
+        ],
+        [
+          "Admin E2E works",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68) D; docs/local-review/test-results/m19-regression-e2e.txt"
+        ],
+        [
+          "Design audits completed",
+          "VERIFIED",
+          "#qa-design"
+        ],
+        [
+          "Major clutter / hierarchy issues fixed",
+          "VERIFIED",
+          "#qa-screens"
+        ],
+        [
+          "Design references verified",
+          "VERIFIED (Claude inspection; owner acceptance pending)",
+          "docs/local-review/design-reference/"
+        ],
+        [
+          "Shared domain conflicts resolved or assigned",
+          "VERIFIED",
+          "#qa-domain"
+        ],
+        [
+          "Repository / API abstraction ready",
+          "VERIFIED",
+          "#qa-map"
+        ],
+        [
+          "Market configuration centralized",
+          "VERIFIED",
+          "customer-web/src/market; mobile/lib/market"
+        ],
+        [
+          "No critical bugs",
+          "VERIFIED",
+          "Bug register: 0 critical open"
+        ],
+        [
+          "No architecture-blocking high bugs",
+          "VERIFIED",
+          "BUG-009 open with a working workaround (Windows Gradle; builds run in WSL)"
+        ],
+        [
+          "Global readiness audit completed",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-regression-e2e.txt"
+        ],
+        [
+          "Frontend security audit completed",
+          "VERIFIED",
+          "frontendGate.test.ts"
+        ],
+        [
+          "Accessibility critical issues resolved",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68) A11Y"
+        ],
+        [
+          "Responsive critical issues resolved",
+          "VERIFIED",
+          "docs/local-review/test-results/m19-web-e2e.json (68/68) RESPONSIVE"
+        ],
+        [
+          "Android builds successfully",
+          "VERIFIED",
+          "FoodOnTheGo-local-review-v0.1.0-build022.apk"
+        ],
+        [
+          "Automated tests pass",
+          "VERIFIED",
+          "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files); docs/local-review/test-results/flutter-m19.txt (288/288)"
+        ],
+        [
+          "All unresolved tasks classified",
+          "VERIFIED",
+          "#qa-pending"
+        ],
+        [
+          "Backend requirements consolidated",
+          "VERIFIED",
+          "#qa-backend"
+        ],
+        [
+          "project-progress.html updated",
+          "VERIFIED",
+          "this page"
+        ]
+      ],
+      "badges": [
+        1
+      ]
+    },
+    {
+      "id": "qa-inventory",
+      "title": "Module 19 — Application inventory",
+      "note": "Counted from the project files and compared with this tracker. No undocumented page or route was found; two stale tracker rows (M04-036, M06-036) were corrected.",
+      "headers": [
+        "Area",
+        "Count",
+        "Source of truth"
+      ],
+      "rows": [
+        [
+          "Customer web routes (incl. 4 legal, 2 coming-soon, 404)",
+          "31 + 7 redirects",
+          "customer-web/src/App.tsx"
+        ],
+        [
+          "Customer web page components",
+          "31",
+          "customer-web/src/pages"
+        ],
+        [
+          "Restaurant Dashboard routes",
+          "14",
+          "customer-web/src/dashboard/DashboardApp.tsx"
+        ],
+        [
+          "Admin routes (incl. 9 market routes)",
+          "40",
+          "customer-web/src/admin/AdminApp.tsx"
+        ],
+        [
+          "Android routes / screens",
+          "27 routes, 20 screen files",
+          "mobile/lib/main.dart, mobile/lib/screens"
+        ],
+        [
+          "Web repository / service interfaces",
+          "restaurants, menu, cart, pickup, checkout, promotions, payment, orders, tracking, receipts, reviews, account, auth, journey, content, market (3), dashboard (7), admin (20)",
+          "customer-web/src/**/repositories.ts, types.ts"
+        ],
+        [
+          "Web test files / tests",
+          "29 / 377",
+          "docs/local-review/test-results/web-vitest-m19.txt (377/377, 29 files)"
+        ],
+        [
+          "Flutter test files / tests",
+          "27 / 288",
+          "docs/local-review/test-results/flutter-m19.txt (288/288)"
+        ],
+        [
+          "Routes crawled by the e2e",
+          "72",
+          "docs/local-review/test-results/m19-web-e2e.json"
+        ],
+        [
+          "Internal links checked",
+          "135",
+          "docs/local-review/test-results/m19-web-e2e.json"
+        ],
+        [
+          "Tracker requirement rows",
+          "1024",
+          "docs/tracker/data.json"
+        ],
+        [
+          "Redirect-only routes (kept on purpose)",
+          "/about, /signup, /forgot-password, /reset-password, /restaurant/:id, /restaurant/:id/item/:itemId",
+          "App.tsx (legacy links → canonical routes)"
+        ]
+      ]
+    },
+    {
+      "id": "qa-design",
+      "title": "Module 19 — Design quality status",
+      "note": "VERIFIED = inspected by Claude on real screenshots against the owner references and the semantic colour / hierarchy rules; it is not an owner sign-off. Issues found during the review were fixed (BUG-069, 070, 074).",
+      "headers": [
+        "Dimension",
+        "Status"
+      ],
+      "rows": [
+        [
+          "Customer UI",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant Dashboard",
+          "VERIFIED"
+        ],
+        [
+          "Admin Dashboard",
+          "VERIFIED"
+        ],
+        [
+          "India Market Dashboard",
+          "VERIFIED"
+        ],
+        [
+          "Brand consistency",
+          "VERIFIED"
+        ],
+        [
+          "Visual hierarchy",
+          "VERIFIED"
+        ],
+        [
+          "Primary action clarity",
+          "VERIFIED"
+        ],
+        [
+          "Information density",
+          "VERIFIED"
+        ],
+        [
+          "Clutter",
+          "VERIFIED"
+        ],
+        [
+          "Typography",
+          "VERIFIED"
+        ],
+        [
+          "Spacing",
+          "VERIFIED"
+        ],
+        [
+          "Color (semantic)",
+          "VERIFIED"
+        ],
+        [
+          "Tables",
+          "VERIFIED"
+        ],
+        [
+          "Forms",
+          "VERIFIED"
+        ],
+        [
+          "Mobile",
+          "VERIFIED"
+        ],
+        [
+          "Accessibility",
+          "VERIFIED"
+        ],
+        [
+          "5-second test",
+          "VERIFIED"
+        ],
+        [
+          "Final imagery (44 placeholder images)",
+          "BLOCKED"
+        ],
+        [
+          "Owner design acceptance",
+          "PENDING"
+        ]
+      ],
+      "badges": [
+        1
+      ]
+    },
+    {
+      "id": "qa-screens",
+      "title": "Module 19 — UI quality classification per major screen",
+      "note": "Classification after fixes. Each screen was checked for: where am I, current status, what matters, what needs attention, primary action.",
+      "headers": [
+        "Screen",
+        "Hierarchy / primary action",
+        "Status"
+      ],
+      "rows": [
+        [
+          "Customer · Home",
+          "Hero with Plan a Journey as the one primary action",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Plan a Journey",
+          "Two fields, route preview, one primary button",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Restaurants",
+          "Scope banner, filters aside, cards with status",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Restaurant details (Design A)",
+          "Hero, hours, menu",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Item",
+          "Options, quantity, total, Add to cart",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Cart",
+          "Lines, summary, Proceed",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Pickup time",
+          "ASAP / schedule, restaurant zone",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Checkout",
+          "Sections + sticky summary, one primary button",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Payment",
+          "Summary, state panel, one action",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Confirmation",
+          "Reference, pickup code + QR first",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Tracking",
+          "Status headline, timeline",
+          "VERIFIED"
+        ],
+        [
+          "Customer · My Orders",
+          "Tabs, cards",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Order details",
+          "Status, timeline, receipt",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Review",
+          "Rating first",
+          "VERIFIED"
+        ],
+        [
+          "Customer · Profile",
+          "Real history and stats",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant · Overview",
+          "Operational KPIs first, recent orders with actions",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant · Orders",
+          "New orders first, Accept primary",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant · Pickup verification",
+          "Code entry primary",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant · Menu",
+          "Categories + items, availability",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant · Profile / Hours / Pickup settings",
+          "Tabs, one Save",
+          "VERIFIED"
+        ],
+        [
+          "Restaurant · Reviews / Staff / Analytics",
+          "Secondary to operations",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Overview",
+          "Critical strip, KPIs, health, approvals",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Restaurants + approval",
+          "Tabs, table, Review action; approval dialog with gate",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Orders / exceptions",
+          "Exception tab, read-only details",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Payments / Refunds / Settlements",
+          "Status first, drawers for detail",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Reviews / Support",
+          "Queues, drawer / case page",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Users / Audit / Security / System",
+          "Tables with filters",
+          "VERIFIED"
+        ],
+        [
+          "Admin · Market Control Center",
+          "India status, coverage, attention, Manage India",
+          "VERIFIED"
+        ],
+        [
+          "Admin · India market pages",
+          "Sub-tabs, one table per page, status control",
+          "VERIFIED"
+        ]
+      ],
+      "badges": [
+        2
+      ]
+    },
+    {
+      "id": "qa-domain",
+      "title": "Module 19 — Shared domain model audit (conflict report)",
+      "note": "Conflicts found: 5. Resolved in Module 19: 2 (tax in legacy cart, legacy orders on the profile). Assigned to a carry-forward with a defined resolution: 3. None blocks backend design.",
+      "headers": [
+        "Model",
+        "Used by",
+        "Definition",
+        "Conflict",
+        "Resolution",
+        "Backend readiness"
+      ],
+      "rows": [
+        [
+          "Market / Region / City / ServiceArea / RouteCorridor",
+          "Web market domain, admin, Android market service",
+          "market/types.ts; Android mirrors the availability part",
+          "Formatting defaults also live in i18n/markets.ts; admin registry has a second Market shape",
+          "Market is canonical; unify when the backend serves configuration (CF-264)",
+          "READY"
+        ],
+        [
+          "Restaurant / RestaurantLocation",
+          "Customer web + Android, dashboard, admin",
+          "One Restaurant type (location-level) + LocationProfile + Organization",
+          "None (approval status and operational status are separate on purpose)",
+          "Keep: restaurant_locations with organization, market, city, service area",
+          "READY"
+        ],
+        [
+          "Menu / Category / MenuItem / VariantGroup / ModifierGroup",
+          "Customer web + Android, dashboard",
+          "menu/repositories.ts (shared by dashboard)",
+          "None",
+          "-",
+          "READY"
+        ],
+        [
+          "OpeningHours / PickupSettings",
+          "Customer, dashboard",
+          "Periods per day, overnight, closures, special hours; pickup settings per location",
+          "None",
+          "-",
+          "READY"
+        ],
+        [
+          "Customer",
+          "Auth, profile, admin (masked)",
+          "AuthUser + profile; admin view is masked",
+          "None",
+          "PII policy in the backend (CF-229)",
+          "READY"
+        ],
+        [
+          "Journey / Location",
+          "Customer web + Android",
+          "Location with lat/lng, placeId, countryCode, adminArea, locality, postalCode, timezone",
+          "None",
+          "WGS84 / SRID 4326 in the backend",
+          "READY"
+        ],
+        [
+          "Cart / PickupSelection",
+          "Customer web + Android",
+          "Structured cart in minor units, one restaurant",
+          "Module 01 legacy cart getters remain on Android for old callers",
+          "Remove with CF-263",
+          "READY"
+        ],
+        [
+          "Order / OrderItem / OrderEvent",
+          "Customer, dashboard, admin",
+          "order/repositories.ts snapshots + sequenced events",
+          "A second Module 01 sample-order model still exists (no longer shown on the profile)",
+          "Canonical model is order/repositories; remove legacy (CF-263)",
+          "READY"
+        ],
+        [
+          "Payment",
+          "Customer attempt state; admin payment record",
+          "Client PaymentStatus (IDLE … VERIFIED) vs admin PaymentState (CREATED … REFUNDED)",
+          "Two vocabularies for two layers",
+          "Backend record uses the admin PaymentState; the client state machine stays client-only",
+          "READY"
+        ],
+        [
+          "Refund",
+          "Order payment status; admin refund record",
+          "Order carries REFUND_PENDING / PARTIALLY_REFUNDED / REFUNDED; admin refund record has PENDING / PROCESSING / PARTIAL / COMPLETED / FAILED",
+          "Naming differs by layer",
+          "Backend refund entity uses the admin set and projects onto the order payment status",
+          "READY"
+        ],
+        [
+          "Review",
+          "Customer web + Android, dashboard, admin",
+          "review/repositories.ts incl. moderation + restaurant response",
+          "None",
+          "-",
+          "READY"
+        ],
+        [
+          "Money / Currency",
+          "All",
+          "Integer minor units + ISO 4217, formatter per locale",
+          "Module 01 legacy sample orders used major units",
+          "Removed from display; legacy model to delete (CF-263)",
+          "READY"
+        ]
+      ],
+      "badges": [
+        5
+      ]
+    },
+    {
+      "id": "qa-enums",
+      "title": "Module 19 — Status / enum audit",
+      "note": "Every enum has a friendly label table; no raw enum text is rendered on customer, restaurant or operational admin pages (e2e F2, frontendGate ENUMS). Audit and configuration pages show technical codes on purpose.",
+      "headers": [
+        "Enum",
+        "Values",
+        "Parity"
+      ],
+      "rows": [
+        [
+          "MarketStatus",
+          "DRAFT, PILOT, ACTIVE, PAUSED, CLOSED",
+          "web"
+        ],
+        [
+          "Region / City / ServiceArea / Route status",
+          "AVAILABLE…DISABLED; PLANNED…UNAVAILABLE; PLANNED…DISABLED; PLANNED…PAUSED",
+          "web"
+        ],
+        [
+          "RestaurantStatus (operational)",
+          "active, inactive, temporarily_closed",
+          "web = Android"
+        ],
+        [
+          "Restaurant approval status",
+          "DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, SUSPENDED",
+          "dashboard = admin"
+        ],
+        [
+          "MenuItem availability",
+          "available, unavailable, sold_out, temporarily_unavailable",
+          "web = Android"
+        ],
+        [
+          "OrderStatus",
+          "13 values PAYMENT_PENDING … REFUNDED",
+          "web = Android (value for value)"
+        ],
+        [
+          "OrderPaymentStatus",
+          "PAYMENT_PENDING, PAID, FAILED, REFUND_PENDING, PARTIALLY_REFUNDED, REFUNDED",
+          "web = Android"
+        ],
+        [
+          "PickupVerificationStatus",
+          "NOT_READY … EXPIRED",
+          "web = Android"
+        ],
+        [
+          "PaymentStatus (client attempt)",
+          "IDLE … ERROR (14)",
+          "web = Android"
+        ],
+        [
+          "PaymentState (server record)",
+          "CREATED … REFUNDED (9)",
+          "admin"
+        ],
+        [
+          "RefundStatus",
+          "see domain report",
+          "two layers"
+        ],
+        [
+          "ReviewStatus",
+          "SUBMITTED, PENDING_MODERATION, PUBLISHED, HIDDEN, REJECTED, FLAGGED",
+          "web = Android"
+        ],
+        [
+          "SupportStatus",
+          "OPEN, IN_PROGRESS, WAITING_CUSTOMER, WAITING_RESTAURANT, RESOLVED, CLOSED",
+          "admin"
+        ]
+      ]
+    },
+    {
+      "id": "qa-mock",
+      "title": "Module 19 — Mock data audit",
+      "headers": [
+        "Class",
+        "What",
+        "Where / rule"
+      ],
+      "rows": [
+        [
+          "India primary fixtures",
+          "Restaurants (16), menus, places, states / cities / service areas / corridors, India pipeline applicants, India demo order history",
+          "Behind repositories"
+        ],
+        [
+          "Global test fixtures",
+          "US / GB / JP / FR / AE restaurants, places, orders, payments, settlements",
+          "Only in fixture scope \"global\" (tests, fotg.fixtures=global)"
+        ],
+        [
+          "Reusable fixtures",
+          "Dashboard org / staff / seeds, admin users / roles / support / promotions / audit / security / system",
+          "Behind repositories, deterministic"
+        ],
+        [
+          "Screen-local mock",
+          "Marketing illustration on How it works / For restaurants (two demo prices through the formatter)",
+          "Acceptable illustration"
+        ],
+        [
+          "Hardcoded UI data",
+          "Admin settings legal versions and integration statuses",
+          "Readiness shells; backend later"
+        ],
+        [
+          "Temporary placeholders",
+          "44 images (6 temporary photos, 38 fallbacks); emoji fallbacks",
+          "Production blocker CF-001"
+        ],
+        [
+          "Randomness",
+          "Only id generation (cart id, journey id, toast id); no random outcome in payment, orders, approval, refunds, support or security",
+          "Deterministic flows"
+        ]
+      ]
+    },
+    {
+      "id": "qa-map",
+      "title": "Module 19 — Frontend → backend capability map",
+      "note": "Every page consumes a repository / service; replacing Mock* with Api* needs no UI rewrite.",
+      "headers": [
+        "Module",
+        "Feature",
+        "Repository / service",
+        "Backend domain",
+        "API needed",
+        "Realtime",
+        "Authorization",
+        "Market scope",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "M18A",
+          "Market configuration + availability",
+          "MarketRepository, MarketAvailabilityService, MarketLocationRepository",
+          "Market",
+          "GET markets, config, availability, resolve",
+          "No",
+          "Public read; admin write",
+          "Per market",
+          "P0"
+        ],
+        [
+          "M03",
+          "Phone + OTP sign-in",
+          "AuthRepository",
+          "Auth",
+          "OTP request / verify, session, logout",
+          "No",
+          "Public → customer",
+          "Market phone default",
+          "P0"
+        ],
+        [
+          "M04",
+          "Profile, favourites, saved addresses, notification preferences, payment method references",
+          "Account repositories",
+          "Customer",
+          "CRUD",
+          "No",
+          "Customer (own data)",
+          "Global",
+          "P1"
+        ],
+        [
+          "M05",
+          "Journey planning",
+          "LocationRepository, RouteRepository, JourneyRepository",
+          "Journey / Geo",
+          "Place search, route, journey CRUD",
+          "No",
+          "Public / customer",
+          "Market",
+          "P0"
+        ],
+        [
+          "M06",
+          "Restaurant discovery (scope + corridor)",
+          "RestaurantRepository",
+          "Restaurants / Geo",
+          "Search by scope, by journey corridor (PostGIS)",
+          "No",
+          "Public",
+          "Active market + service area",
+          "P0"
+        ],
+        [
+          "M07–M08",
+          "Restaurant details, menu, item options",
+          "RestaurantRepository, MenuRepository",
+          "Restaurants / Menu",
+          "GET restaurant, menu, item",
+          "No",
+          "Public",
+          "Market",
+          "P0"
+        ],
+        [
+          "M09",
+          "Cart",
+          "CartRepository (context)",
+          "Cart",
+          "Cart CRUD, merge, revalidate",
+          "No",
+          "Guest / customer",
+          "Restaurant currency",
+          "P0"
+        ],
+        [
+          "M10",
+          "Pickup time",
+          "PickupRepository",
+          "Pickup",
+          "Slots, validate selection",
+          "No",
+          "Guest / customer",
+          "Restaurant zone",
+          "P0"
+        ],
+        [
+          "M11",
+          "Checkout + promotions",
+          "CheckoutContext, PromotionRepository, PricingService",
+          "Checkout / Pricing",
+          "Price, validate, promo, checkout snapshot",
+          "No",
+          "Customer",
+          "Market tax / fees",
+          "P0"
+        ],
+        [
+          "M12",
+          "Payment",
+          "PaymentRepository, PaymentProvider, PaymentVerificationService",
+          "Payments",
+          "Create payment, verify, webhook, status",
+          "No (webhooks)",
+          "Customer",
+          "Market provider",
+          "P0"
+        ],
+        [
+          "M13",
+          "Order confirmation, pickup code, receipt",
+          "OrderRepository, PickupVerificationRepository, ReceiptRepository",
+          "Orders",
+          "Create from payment, get, receipt",
+          "No",
+          "Customer (own order)",
+          "Market",
+          "P0"
+        ],
+        [
+          "M14",
+          "Tracking",
+          "TrackingService (events)",
+          "Orders / Realtime",
+          "Events stream, polling fallback",
+          "Yes",
+          "Customer (own order)",
+          "Market",
+          "P0"
+        ],
+        [
+          "M15",
+          "Order history + reorder",
+          "OrderRepository, ReorderService",
+          "Orders",
+          "List, details, reorder plan",
+          "No",
+          "Customer",
+          "Market",
+          "P1"
+        ],
+        [
+          "M16",
+          "Reviews",
+          "ReviewRepository, ReviewEligibilityService",
+          "Reviews",
+          "Eligibility, submit, read",
+          "No",
+          "Customer (eligible order)",
+          "Market config",
+          "P1"
+        ],
+        [
+          "M17",
+          "Restaurant Dashboard",
+          "7 dashboard repositories",
+          "Restaurant operations",
+          "Profile, hours, pickup settings, menu, orders, verification, staff, reviews, analytics, notifications, uploads",
+          "Yes (orders)",
+          "Restaurant staff RBAC, tenant isolation",
+          "Location market",
+          "P0"
+        ],
+        [
+          "M18",
+          "Platform Admin",
+          "20 admin repositories",
+          "Administration",
+          "Restaurants / approval, customers, orders, payments, refunds, settlements, moderation, promotions, support, notifications, configuration, users, audit, security, analytics, system",
+          "Optional",
+          "Admin RBAC + MFA",
+          "Market selector",
+          "P1"
+        ]
+      ]
+    },
+    {
+      "id": "qa-backend",
+      "title": "Module 19 — Backend implementation requirements (consolidated)",
+      "note": "One place for the backend scope; details of each item are in the carry-forward register under the listed ids.",
+      "headers": [
+        "Domain",
+        "Requirements",
+        "Register"
+      ],
+      "rows": [
+        [
+          "Market domain",
+          "markets, status, ISO country codes, regions / states, cities, service areas, route corridors, market configuration (currency, locale, time zone, units, phone default), feature flags, availability + resolution APIs",
+          "CF-248..261, CF-264"
+        ],
+        [
+          "Auth / RBAC",
+          "customer phone + OTP (hashing, expiry, retries, rate limits), sessions / tokens, restaurant staff auth, admin auth with MFA readiness, roles + permissions enforced on every endpoint, lockout, security logging",
+          "M03 register, CF-220, CF-240, CF-241"
+        ],
+        [
+          "Restaurants",
+          "organizations, locations with market assignment, profile, coordinates, opening hours, special hours, pickup settings, staff, onboarding + documents",
+          "CF-211..213, CF-227, CF-228"
+        ],
+        [
+          "Menu",
+          "categories, items, generic variant / modifier groups, availability, prices in minor units, images",
+          "M08 / M17 registers"
+        ],
+        [
+          "Geo",
+          "PostgreSQL + PostGIS, WGS84 / SRID 4326, GiST indexes, service area + route geometry, corridor search, restaurant shortlist, places / routing provider abstraction",
+          "M05 / M06 registers, CF-251"
+        ],
+        [
+          "Cart",
+          "guest + customer cart, merge, one restaurant, currency, price snapshot, expiry, version, availability revalidation",
+          "M09 register"
+        ],
+        [
+          "Pickup",
+          "lead time, prep time, slots, capacity, schedule horizon, restaurant time zone, concurrency, validation",
+          "M10 register"
+        ],
+        [
+          "Checkout",
+          "authoritative pricing, tax, fees, promotions, legal acceptance, checkout snapshot, expiry, idempotency",
+          "M11 register, CF-235, CF-252"
+        ],
+        [
+          "Payment",
+          "provider abstraction (Razorpay candidate), server payment creation, verification, amount + currency checks, webhooks, idempotency, recovery, refunds, reconciliation",
+          "M12 register, CF-231, CF-232, CF-259"
+        ],
+        [
+          "Orders",
+          "creation from verified payment, public references, snapshots, state machine, events, acceptance, preparing, ready, pickup, completion, cancellation, rejection, authorization",
+          "M13–M15 registers, CF-230"
+        ],
+        [
+          "Pickup verification",
+          "secure code, opaque QR token, restaurant + location validation, staff RBAC, atomic single-use verification, audit",
+          "CF-214"
+        ],
+        [
+          "Realtime",
+          "Redis, queues, Laravel Reverb / WebSockets, order + restaurant updates, customer tracking, polling fallback, reconnection",
+          "CF-173, CF-179, CF-217"
+        ],
+        [
+          "Notifications",
+          "FCM, email, SMS where configured, in-app, templates, localization, preferences, delivery state",
+          "CF-237"
+        ],
+        [
+          "Reviews",
+          "eligibility, order ownership, ratings, text, tags, moderation, restaurant responses, reports, aggregation, audit",
+          "M16 register, CF-234"
+        ],
+        [
+          "Admin",
+          "approval, customers, orders, payments, refunds, settlements, reviews, promotions, support, markets, admin RBAC, audit, security, analytics, system health",
+          "CF-226..247"
+        ],
+        [
+          "Storage",
+          "restaurant / menu images, verification documents, receipts, upload validation, object storage, secure access, CDN",
+          "M17 image register, CF-097, CF-228"
+        ],
+        [
+          "Audit",
+          "restaurant approval / suspension, menu price, staff permissions, order state, pickup verification, refund, admin role, market configuration, service area, feature flags",
+          "CF-223, CF-242, CF-254"
+        ],
+        [
+          "Concurrency",
+          "order processing, pickup capacity, pickup verification, refunds, menu updates, admin actions, market configuration (optimistic locking / idempotency keys)",
+          "CF-224"
+        ],
+        [
+          "Decisions (permanent)",
+          "Laravel modular monolith, PostgreSQL + PostGIS (no MySQL / MariaDB), Redis for cache / queues / rate limits / locks only, object storage, provider abstractions, no premature microservices",
+          "Decision register"
+        ]
+      ]
+    },
+    {
+      "id": "qa-order",
+      "title": "Module 19 — Recommended backend implementation order",
+      "note": "Not started. Market configuration comes before restaurants because every restaurant, price and time depends on it.",
+      "headers": [
+        "Step",
+        "Phase"
+      ],
+      "rows": [
+        [
+          "1",
+          "Backend foundation"
+        ],
+        [
+          "2",
+          "Database / PostGIS / Redis"
+        ],
+        [
+          "3",
+          "Authentication / RBAC"
+        ],
+        [
+          "4",
+          "Market / India configuration"
+        ],
+        [
+          "5",
+          "Restaurant organizations / locations"
+        ],
+        [
+          "6",
+          "Menu"
+        ],
+        [
+          "7",
+          "Customer profile"
+        ],
+        [
+          "8",
+          "Journey / geo / route discovery"
+        ],
+        [
+          "9",
+          "Cart"
+        ],
+        [
+          "10",
+          "Pickup availability"
+        ],
+        [
+          "11",
+          "Checkout / pricing"
+        ],
+        [
+          "12",
+          "Payments"
+        ],
+        [
+          "13",
+          "Orders"
+        ],
+        [
+          "14",
+          "Real-time tracking"
+        ],
+        [
+          "15",
+          "Notifications"
+        ],
+        [
+          "16",
+          "Reviews"
+        ],
+        [
+          "17",
+          "Restaurant Dashboard APIs"
+        ],
+        [
+          "18",
+          "Admin APIs"
+        ],
+        [
+          "19",
+          "Analytics / reporting"
+        ],
+        [
+          "20",
+          "Security / audit / operations hardening"
+        ]
+      ]
+    },
+    {
+      "id": "qa-pending",
+      "title": "Module 19 — Pending task classification",
+      "note": "232 open carry-forward items were classified by owner area; none is a frontend blocker for backend start. Nothing was removed from the register.",
+      "headers": [
+        "Class",
+        "Open items",
+        "Examples"
+      ],
+      "rows": [
+        [
+          "FRONTEND BLOCKER",
+          "0",
+          "None"
+        ],
+        [
+          "BACKEND DEPENDENCY",
+          "140",
+          "All CF items owned by backend modules (auth, markets, restaurants, cart, pickup, checkout, payments, orders, realtime, reviews, admin)"
+        ],
+        [
+          "INTEGRATION DEPENDENCY",
+          "18",
+          "Maps / Places / Routes, SMS OTP provider, FCM, camera QR scanner, Google sign-in"
+        ],
+        [
+          "BUSINESS DECISION",
+          "14",
+          "CF-021 social links, CF-022 About statistics, CF-023 support contacts, CF-168, CF-185, CF-192, CF-203, CF-206, CF-258"
+        ],
+        [
+          "LEGAL DEPENDENCY",
+          "9",
+          "CF-002 final legal text, India tax confirmation (CF-252), document requirements per market (CF-228)"
+        ],
+        [
+          "ASSET DEPENDENCY",
+          "8",
+          "CF-001 44 placeholder images, CF-097 photography / CDN"
+        ],
+        [
+          "USER DEVICE VERIFICATION",
+          "5",
+          "build021, build022 on the tablet; browser review of Modules 18 / 18A; image upload re-check (TE-150)"
+        ],
+        [
+          "DEFERRED FUTURE FEATURE",
+          "20",
+          "iOS, delivery, cash at pickup (NOT APPROVED), cross-border ordering, social sign-in, optional order features"
+        ],
+        [
+          "NON-BLOCKING FRONTEND / TOOLING",
+          "20",
+          "CF-262..267, local tooling items (CF-010, CF-018, CF-020), translations"
+        ]
+      ]
+    },
+    {
+      "id": "qa-counts",
+      "title": "Module 19 — Frontend completion counts",
+      "note": "Counted from the requirement rows in this tracker (frontend rows only; backend / database / carry-forward / deferred rows excluded; \"ALL\" rows count for both customer platforms). \"Built and tested\" = VERIFIED + COMPLETE + IMPLEMENTED. \"Owner-verified / audit complete\" excludes rows still waiting for owner review.",
+      "headers": [
+        "Surface",
+        "Built and tested / total",
+        "Owner-verified or audit complete / total",
+        "Open (partial, blocked, pending)"
+      ],
+      "rows": [
+        [
+          "Customer Web",
+          "506 / 516",
+          "505 / 516",
+          "10"
+        ],
+        [
+          "Customer Android",
+          "523 / 528",
+          "493 / 528",
+          "5"
+        ],
+        [
+          "Restaurant Dashboard",
+          "71 / 71",
+          "71 / 71",
+          "0"
+        ],
+        [
+          "Admin Dashboard",
+          "101 / 102",
+          "0 / 102",
+          "1"
+        ],
+        [
+          "India Market Control",
+          "64 / 65",
+          "0 / 65",
+          "1"
+        ],
+        [
+          "Module 19 QA",
+          "124 / 126",
+          "124 / 126",
+          "2"
+        ],
+        [
+          "Overall (unique rows)",
+          "923 / 937",
+          "755 / 937",
+          "14"
+        ]
+      ]
+    },
+    {
+      "id": "qa-blockers",
+      "title": "Module 19 — Backend start blockers vs production blockers",
+      "headers": [
+        "Type",
+        "Item",
+        "Status"
+      ],
+      "badges": [
+        2
+      ],
+      "rows": [
+        [
+          "BACKEND START BLOCKER",
+          "None",
+          "VERIFIED"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Backend, real database, authentication, RBAC, audit",
+          "NOT STARTED"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Real payments (provider contract, server verification, webhooks, refunds)",
+          "NOT STARTED"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Maps / Places / Routes, SMS, push notifications",
+          "NOT STARTED"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Final legal content (India) and tax confirmation",
+          "PENDING"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Final images (44 placeholders)",
+          "BLOCKED"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Security testing, monitoring, backups, production infrastructure",
+          "NOT STARTED"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Owner device verification (build021, build022) and browser acceptance (Modules 18, 18A, design review)",
+          "PENDING"
+        ],
+        [
+          "PRODUCTION BLOCKER",
+          "Business decisions (support contacts, social links, review / order policies)",
+          "PENDING"
+        ]
+      ]
+    }
   ]
 }

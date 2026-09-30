@@ -1,0 +1,12 @@
+Module 19 cross-module regression (e2e)
+India scope — Module 19 quality gate (shots/m19_e2e.js): 68/68 passed
+India scope — Module 18A (shots/m18a_e2e.js): 87/87 passed
+Global fixture scope — Restaurant Dashboard M17: 71/71 passed
+Global fixture scope — Platform Admin M18: 125/125 passed
+Global fixture scope — Reviews M16: 38/38 passed
+Global fixture scope — Item / customization M08: 31/31 passed
+
+Not re-run as-is: the per-module scripts for Modules 03–07 and 09–15 assert interim UI text of their own module
+(for example 'arrives in Module 12') and are superseded by the Module 19 script, which covers the same flows end to end.
+
+FAIL lines:

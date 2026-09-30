@@ -1,0 +1,4 @@
+Analyzing mobile...                                             
+No issues found! (ran in 5.1s)
+00:22 +288: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:23 +288: All tests passed!

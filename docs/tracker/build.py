@@ -109,7 +109,7 @@ h2{font-size:20px;margin:36px 0 12px;display:flex;align-items:center;gap:10px}h2
 @media(max-width:1000px){.g4,.g6{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}}@media(max-width:600px){.g2,.g4,.g6{grid-template-columns:1fr}main{padding:14px}.top h1{font-size:14px;white-space:normal}.top-in{gap:10px;padding:10px 14px}.top img{height:34px}.mini{font-size:10px}}
 </style></head><body>
 <div class="top"><div class="top-in"><img src="../customer-web/public/brand/foodonthego-logo-no-tagline.svg" alt="FoodOnTheGo"><h1>FOODONTHEGO — <span>MASTER PROJECT STATUS</span></h1>
-<nav class="nav"><a href="#summary">Summary</a><a href="#progress">Progress</a><a href="#modules">Modules</a><a href="#detail">Module detail</a><a href="#web">Web</a><a href="#android">Android</a><a href="#backend">Backend</a><a href="#decisions">Decisions</a><a href="#carry">Carry-forward</a><a href="#bugs">Bugs</a><a href="#tests">Tests</a><a href="#artifacts">Artifacts</a><a href="#apk">APK</a><a href="#assets">Assets</a><a href="#prod">Production</a><a href="#closing">Closing</a></nav></div></div>
+<nav class="nav"><a href="#summary">Summary</a><a href="#progress">Progress</a><a href="#modules">Modules</a><a href="#detail">Module detail</a><a href="#web">Web</a><a href="#android">Android</a><a href="#backend">Backend</a><a href="#qa-gate">Module 19 QA</a><a href="#decisions">Decisions</a><a href="#carry">Carry-forward</a><a href="#bugs">Bugs</a><a href="#tests">Tests</a><a href="#artifacts">Artifacts</a><a href="#apk">APK</a><a href="#assets">Assets</a><a href="#prod">Production</a><a href="#closing">Closing</a></nav></div></div>
 <main>''')
 
 # ---- summary
@@ -181,6 +181,11 @@ parts.append('<h2 id="carry"><i></i>Pending / carry-forward register</h2>' + tab
 parts.append('<h2 id="bugs"><i></i>Bug register</h2>' + table(['Bug ID', 'Module', 'Platform', 'Screen', 'Severity', 'Description', 'Expected', 'Actual', 'Root cause', 'Fix', 'Retest', 'Status'], d['bugs'], badge_cols=(10, 11)))
 # ---- tests
 parts.append('<h2 id="tests"><i></i>Test evidence</h2>' + table(['Test ID', 'Module', 'Platform', 'Feature', 'Test type', 'Result', 'Evidence', 'Date'], d['tests'], badge_cols=(5,)))
+# ---- Module 19 QA sections (inventory, audits, domain model, capability map, backend requirements, gates)
+for sec in d.get('qa', []):
+    parts.append('<h2 id="%s"><i></i>%s</h2>' % (e(sec['id']), e(sec['title'])))
+    if sec.get('note'): parts.append('<div class="card"><p class="small" style="margin:0">%s</p></div>' % e(sec['note']))
+    parts.append(table(sec['headers'], sec['rows'], badge_cols=tuple(sec.get('badges', ()))))
 # ---- artifacts
 parts.append('<h2 id="artifacts"><i></i>Screenshot / artifact index</h2>' + table(['Artifact', 'Module', 'Platform', 'Path', 'Purpose', 'Verified'], d['artifacts'], badge_cols=(5,)))
 # ---- apk

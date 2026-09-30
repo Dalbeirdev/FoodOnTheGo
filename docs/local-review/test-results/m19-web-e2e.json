@@ -1,0 +1,353 @@
+{
+  "module": "M19",
+  "ranAt": "2026-09-30T10:21:58.354Z",
+  "base": "http://localhost:5173",
+  "fixtureScope": "india",
+  "order": "FOTG-CKPV-GKZU",
+  "total": 68,
+  "passed": 68,
+  "routes": 72,
+  "links": 135,
+  "results": [
+    {
+      "name": "A1 home: India-first content (lang en-IN), hero + primary CTA, no foreign restaurants / currency",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2 journey: India origin + destination, route preview with distance in km and duration",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A3 discovery (journey-aware): India restaurants along the route with detour / arrival info, ₹ price level, km",
+      "pass": true,
+      "detail": "Burger Hub, Ambala Chai Point, Spice Nest, Brew & Bites, Wok Express"
+    },
+    {
+      "name": "A4 restaurant details (Design A): hero, rating, hours in IST, India address, menu with ₹ prices, favourite control",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 item customization: variant + modifier + quantity + Unicode instruction update the total through safe minor-unit maths (₹, no NaN)",
+      "pass": true,
+      "detail": "Item total₹250.00₹250.00 each Add to cart → Item total₹820.00₹410.00 each Add to cart"
+    },
+    {
+      "name": "A6 cart: one restaurant, line with options, ₹ subtotal, no tax percentage, no delivery fee",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 pickup: restaurant-local time (IST) although the device clock is Europe/London",
+      "pass": true,
+      "detail": "asap"
+    },
+    {
+      "name": "A8 guest gate: the guest browsed, customised, carted and chose pickup; sign-in is required only at checkout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AUTH invalid OTP is rejected with a message and the customer stays on /verify-otp",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A9 auth return: after phone + OTP the customer lands on /checkout with cart, restaurant and pickup preserved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A10 checkout: customer, restaurant, pickup, items, pricing, legal acceptance; no invented tax / fee, no delivery",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (checkout) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11 payment: INR amount, provider-driven method, no card / CVV / UPI PIN / password field, secure note, no secrets in page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status",
+      "pass": true,
+      "detail": "FOTG-CKPV-GKZU"
+    },
+    {
+      "name": "A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside",
+      "pass": true,
+      "detail": "pv_dev_20c7c8ab9c48083adf4b17d781156766"
+    },
+    {
+      "name": "A13 order snapshot: integer minor-unit pricing in INR, restaurant zone Asia/Kolkata, market IN",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (order confirmation) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A14 tracking opens for the order; friendly status text (no raw enum)",
+      "pass": true,
+      "detail": "Order confirmed"
+    },
+    {
+      "name": "B1 shared domain: the customer order appears in the Restaurant Dashboard (Burger Hub · New) with the customer display name only",
+      "pass": true,
+      "detail": "Rahul"
+    },
+    {
+      "name": "B2 restaurant workflow: Accept → (preparing) → Mark Ready through guarded transitions with restaurant events",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B3 pickup verification rejects an invalid code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B4 valid customer code verifies the pickup → order PICKED_UP / COMPLETED in the shared store",
+      "pass": true,
+      "detail": "COMPLETED"
+    },
+    {
+      "name": "B5 duplicate attempt with the same code is refused (already used)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 customer tracking reflects the restaurant actions (picked up / completed); pickup code no longer shown",
+      "pass": true,
+      "detail": "Order completed"
+    },
+    {
+      "name": "C2 order details: timeline, receipt, safe payment info, Rate your experience offered for the completed order",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 review tied to the eligible order: rating 5, Unicode text kept, restaurant derived from the order",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C4 duplicate protection: opening the review again shows the existing review, not a new form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C5 My Orders lists the order with friendly statuses and ₹ total",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 reorder builds a NEW cart at current prices — no old payment, pickup or order identity reused",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 admin order details for the same order: timeline with customer / restaurant / system actors, payment record, no phone number, friendly pickup status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 the new customer review reaches admin moderation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E1 direct browsing without a journey works (journey is optional)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E2 one active cart = one restaurant: the cart holds only Pizza Point",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 payment failure: clear state, no order created, retry offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 payment cancelled: clear state, no order created, retry offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 payment unknown: neutral \"could not confirm\" state with Check status — no order is created from an unverified result",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E4 status check succeeds: exactly one order created for the checkout (no duplicate from earlier attempts)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E5 profile: name, masked / formatted +91 phone, favourites, saved journey addresses, no delivery-address wording",
+      "pass": true,
+      "detail": "Rahul"
+    },
+    {
+      "name": "F1 route audit: 72 routes render (none blank, none 404, each with an h1)",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F2 no raw enum text (LIKE_THIS) on customer, restaurant or operational admin pages",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F3 India-first: no foreign restaurant names on any page",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F4 India-first: no foreign currency on any page",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F5 no horizontal page overflow at 1440",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F6 console audit: no runtime errors or uncaught exceptions on any route",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F7 broken-link audit: 135 distinct internal links resolve (no 404)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F8 unknown URL → 404 page with a way home",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F9 legacy /restaurant/:id redirects to the canonical /restaurants/:slug",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (home) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (plan journey) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (restaurants) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (restaurant) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (item) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (my orders) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (tracking) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (restaurant overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (restaurant orders) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (restaurant menu) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (admin overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (admin restaurants) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "A11Y axe (admin support) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F10 keyboard: plan-journey is operable by Tab (distinct focus stops, visible focus indicator)",
+      "pass": true,
+      "detail": "14 stops, 13 with focus ring"
+    },
+    {
+      "name": "F11 session gone → protected route sends the customer to /login (UX guard; backend enforces later)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE 1920px: 16 customer / restaurant / admin pages without horizontal page overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE 1366px: 16 customer / restaurant / admin pages without horizontal page overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE 1024px: 16 customer / restaurant / admin pages without horizontal page overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE 768px: 16 customer / restaurant / admin pages without horizontal page overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE 390px: 16 customer / restaurant / admin pages without horizontal page overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "No uncaught page errors during the whole run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}
