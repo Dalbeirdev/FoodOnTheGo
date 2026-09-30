@@ -12,3 +12,9 @@ VITE_ROUTER=hash VITE_SHARE_BUILD=1 npx vite build --base ./ --outDir dist-share
 - `VITE_SHARE_BUILD=1` rewrites absolute `/brand/…` and `/images/…` references to relative paths.
 - The bundle is wrapped into `dist-share/page.html` (title, fonts, stylesheet, root, hash bootstrap, module script) and published with `assets/`, `brand/`, `images/`, `favicon.svg`, `icons.svg`.
 - Current preview: https://claude.ai/artifact/YUJz1HeHohVmuY62aUjVsY (private; share from the page's Share menu). Data lives only in the viewer's browser.
+
+## Platform Admin preview (Module 18)
+
+Same build with `--outDir dist-share-admin`, wrapped as `dist-share-admin/admin.html` with the hash bootstrap `#/admin/overview`.
+
+- Current preview: https://claude.ai/artifact/XQyLJ52ZW1KQu1qWWnFzyy (private; share from the page's Share menu). Data lives only in the viewer's browser.
