@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useStaffSession } from '../auth/staff/StaffSession'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { t } from '../i18n/strings'
 import { useDashboard } from './DashboardContext'
@@ -72,7 +73,7 @@ function NotificationsMenu() {
 }
 
 function ProfileMenu() {
-  const d = useDashboard(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
+  const d = useDashboard(); const session = useStaffSession(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
   return (
     <div className="db-profile" ref={ref}>
       <button type="button" className="db-profile__btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)} data-testid="db-profile" aria-label={`${d.staff.name} · ${t(`dash.role.${d.staff.role}`, undefined, d.locale)}`}><Avatar name={d.staff.name} src={d.staff.avatar} /><span className="db-profile__text"><b dir="auto">{d.staff.name}</b><small>{t(`dash.role.${d.staff.role}`, undefined, d.locale)}</small></span><Icon name="chevron" size={16} /></button>
@@ -80,10 +81,13 @@ function ProfileMenu() {
         <div className="db-profile__menu" role="menu" aria-label={t('dash.header.profileMenu', undefined, d.locale)}>
           <Link role="menuitem" to={`${BASE}/settings`} onClick={() => setOpen(false)}>{t('dash.nav.settings', undefined, d.locale)}</Link>
           <Link role="menuitem" to={`${BASE}/help`} onClick={() => setOpen(false)}>{t('dash.nav.help', undefined, d.locale)}</Link>
+          {session.mode !== 'api' && (<>
           <div className="db-profile__dev"><p className="db-muted">{t('dash.header.switchStaff', undefined, d.locale)}</p>
             {d.staffList.filter((s) => s.status !== 'suspended').map((s) => <button key={s.id} type="button" role="menuitemradio" aria-checked={s.id === d.staff.id} className={s.id === d.staff.id ? 'is-on' : ''} onClick={() => { d.switchStaff(s.id); setOpen(false) }} data-testid={`db-staff-${s.id}`}><span dir="auto">{s.name}</span> <small>{t(`dash.role.${s.role}`, undefined, d.locale)}</small></button>)}
           </div>
+          </>)}
           <Link role="menuitem" to="/" className="db-profile__signout"><Icon name="logout" size={16} /> {t('dash.header.exit', undefined, d.locale)}</Link>
+          {session.mode === 'api' && <button type="button" role="menuitem" className="db-profile__signout" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout"><Icon name="logout" size={16} /> Sign out</button>}
         </div>
       )}
     </div>

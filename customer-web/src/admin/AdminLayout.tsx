@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useStaffSession } from '../auth/staff/StaffSession'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { t } from '../i18n/strings'
 import { Avatar, ErrorState, Icon, Skeleton } from '../dashboard/components/ui'
@@ -91,18 +92,22 @@ function AlertsMenu() {
   )
 }
 function ProfileMenu() {
-  const a = useAdmin(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
+  const a = useAdmin(); const session = useStaffSession(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
   return (
     <div className="db-profile" ref={ref}>
       <button type="button" className="db-profile__btn" aria-expanded={open} aria-label={`${a.admin.name} · ${t(`adm.role.${a.admin.role}`, undefined, a.locale)}`} onClick={() => setOpen((o) => !o)} data-testid="profile-btn"><Avatar name={a.admin.name} size={38} /><span className="db-profile__text"><b dir="auto">{a.admin.name}</b><small>{t(`adm.role.${a.admin.role}`, undefined, a.locale)}</small></span><Icon name="chevron" size={16} /></button>
       {open && (
         <div className="db-profile__menu" role="menu">
+          {session.mode !== 'api' && (<>
           <div className="db-profile__dev"><p className="db-muted">{t('adm.header.switchAdmin', undefined, a.locale)}</p>
             <label className="db-sr-only" htmlFor="adm-switch">{t('adm.header.switchAdmin', undefined, a.locale)}</label>
             <select id="adm-switch" className="db-select db-input--sm" value={a.admin.id} onChange={(e) => { a.switchAdmin(e.target.value); setOpen(false) }} data-testid="admin-switch">{a.admins.map((u) => <option key={u.id} value={u.id}>{u.name} · {t(`adm.role.${u.role}`, undefined, a.locale)}{u.status !== 'ACTIVE' ? ` (${t(`adm.userStatus.${u.status}`, undefined, a.locale)})` : ''}</option>)}</select>
             <p className="db-muted adm-small">{t('adm.header.devNote', undefined, a.locale)}</p></div>
+          </>)}
           <Link to={`${BASE}/settings`} className="db-profile__signout" role="menuitem" onClick={() => setOpen(false)}>{t('adm.nav.settings', undefined, a.locale)}</Link>
+          {session.mode === 'api' && <p className="db-muted adm-small" dir="auto">{a.admin.email}</p>}
           <Link to="/" className="db-profile__signout" role="menuitem">{t('adm.header.exit', undefined, a.locale)}</Link>
+          {session.mode === 'api' && <button type="button" className="db-profile__signout" role="menuitem" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout">Sign out</button>}
         </div>
       )}
     </div>

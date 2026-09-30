@@ -1,4 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { setUnauthenticatedHandler } from '../api/client'
+import { ApiAuthRepository } from './api/ApiAuthRepository'
+import { authMode } from './authMode'
 import { MockAuthRepository } from './mock/MockAuthRepository'
 import { AuthError, type AuthRepository, type AuthUser, type OtpRequest, type VerifyResult } from './repository'
 
@@ -32,8 +35,8 @@ export type AuthApi = {
 const AuthContext = createContext<AuthApi | null>(null)
 const KEY_PENDING = 'fotg.auth.pending'
 
-/** Default wiring for Module 03: the development mock. ApiAuthRepository replaces it later. */
-export const defaultAuthRepository: AuthRepository = new MockAuthRepository()
+/** Default wiring: the real backend when the build says so (VITE_AUTH_MODE=api), otherwise the development mock. */
+export const defaultAuthRepository: AuthRepository = authMode() === 'api' ? new ApiAuthRepository() : new MockAuthRepository()
 
 export function AuthProvider({ children, repository = defaultAuthRepository }: { children: ReactNode; repository?: AuthRepository }) {
   const [status, setStatus] = useState<AuthStatus>('loggedOut')
@@ -60,6 +63,9 @@ export function AuthProvider({ children, repository = defaultAuthRepository }: {
   }, [repo])
 
   useEffect(() => { const t = setTimeout(() => { void refresh() }, 0); return () => clearTimeout(t) }, [refresh])
+  // A 401 on any customer API call (expired / revoked session) ends the session once — no retry loop: the guard
+  // then sends the customer to sign in with a return route.
+  useEffect(() => { setUnauthenticatedHandler(() => { setUser(null); setStatus('sessionExpired') }, 'customer'); return () => setUnauthenticatedHandler(null, 'customer') }, [])
 
   const value = useMemo<AuthApi>(() => ({
     status, user, loading, pending, repository: repo,
@@ -98,10 +104,8 @@ export function AuthProvider({ children, repository = defaultAuthRepository }: {
     refresh,
     expire: () => { setUser(null); setStatus('sessionExpired') },
     updateProfile: async (patch) => {
-      // Profile identity edits stay in the mock directory until the backend module.
       if (!user) throw new AuthError('session_expired', 'Please sign in again.')
-      const next = { ...user, ...(patch.name !== undefined && { name: patch.name }), ...(patch.email !== undefined && { email: patch.email }) }
-      try { const list = JSON.parse(localStorage.getItem('fotg.mock.customers') ?? '[]') as AuthUser[]; localStorage.setItem('fotg.mock.customers', JSON.stringify(list.map((u) => (u.id === next.id ? next : u)))) } catch { /* unavailable */ }
+      const next = await repo.updateProfile(patch)
       setUser(next)
       return next
     },

@@ -113,6 +113,14 @@ export class MockAuthRepository implements AuthRepository {
     return user
   }
 
+  async updateProfile(patch: { name?: string; email?: string | null }): Promise<AuthUser> {
+    const user = await this.getCurrentUser()
+    if (!user) throw new AuthError('session_expired', 'Please sign in again.')
+    const next = { ...user, ...(patch.name !== undefined && { name: patch.name }), ...(patch.email !== undefined && { email: patch.email }) }
+    this.saveDirectory(this.directory().map((u) => (u.id === next.id ? next : u)))
+    return next
+  }
+
   async logout(): Promise<void> {
     await delay(Math.min(this.latencyMs, 200))
     storage.set(sessionStorage, KEY_SESSION, null)

@@ -7,7 +7,7 @@ const respond = (status: number, body: unknown, headers: Record<string, string> 
 const fetchMock = vi.fn<typeof fetch>()
 const failure = async (p: Promise<unknown>): Promise<ApiError> => { try { await p } catch (e) { return e as ApiError } throw new Error('expected the request to fail') }
 
-beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); tokenStore.set(null); setUnauthenticatedHandler(null) })
+beforeEach(() => { fetchMock.mockReset(); vi.stubGlobal('fetch', fetchMock); sessionStorage.clear(); tokenStore.set(null); setUnauthenticatedHandler(null) })
 afterEach(() => { vi.unstubAllGlobals() })
 
 describe('API client (Module 20 backend contract)', () => {

@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { StaffAuthGate } from '../auth/staff/StaffSession'
 import { AdminProvider } from './AdminContext'
 import AdminLayout, { RequirePermission as RequireAdminPermission } from './AdminLayout'
 import AdminOverviewPage from './pages/OverviewPage'
@@ -22,7 +23,7 @@ import { AnalyticsPage as AdminAnalyticsPage, SystemPage as AdminSystemPage, Set
 export default function AdminApp() {
   return (
     <Routes>
-    <Route path="/" element={<AdminProvider><AdminLayout /></AdminProvider>}>
+    <Route path="/" element={<StaffAuthGate context="admin"><AdminProvider><AdminLayout /></AdminProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<AdminOverviewPage />} />
       <Route path="restaurants" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantsPage /></RequireAdminPermission>} />

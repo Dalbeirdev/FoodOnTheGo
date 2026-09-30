@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { adminPermissionsFromApi, adminRoleFromApi } from '../auth/staff/staffAuth'
+import { useStaffSession } from '../auth/staff/StaffSession'
 import { useLocale } from '../i18n/strings'
 import { ADMIN_USERS, DEFAULT_ADMIN_ID } from './mock/fixtures'
 import { adminPermissionsForRole, adminRepositories, currentAdminUsers, K, seedAdminFixtures } from './mock/mockAdmin'
@@ -53,15 +55,20 @@ export function AdminProvider({ children, repos = adminRepositories }: { childre
   // Default context = the active market (India launch). 'all' is prepared for future multi-market operation.
   const [market, setMarketState] = useState<string>(() => { const saved = read(MARKET_KEY); return saved && (saved === 'all' || marketRepository.getMarketByCode(saved)) ? saved : fixtureScope() === 'global' ? 'all' : marketRepository.getActiveMarket().countryCode })
   const setMarket = useCallback((code: string) => { write(MARKET_KEY, code); setMarketState(code) }, [])
-  const admin = useMemo(() => admins.find((a) => a.id === adminId) ?? admins[0], [admins, adminId])
-  const permissions = useMemo(() => new Set(admin.status === 'ACTIVE' ? adminPermissionsForRole(admin.role) : []), [admin])
+  // Signed in against the backend (Module 21): identity, role and permissions come from the session. They gate what is
+  // shown; the backend decides every protected action. Without a backend session (tests, share builds) the fixture switch applies.
+  const session = useStaffSession()
+  const admin = useMemo<AdminUser>(() => (session.mode === 'api'
+    ? { id: session.principal.id, name: session.principal.name, email: session.principal.email, role: adminRoleFromApi(session.principal.roles), status: 'ACTIVE', lastLoginAt: session.principal.lastLoginAt, createdAt: session.principal.lastLoginAt ?? new Date(0).toISOString(), mfaEnrolled: session.principal.mfaEnabled }
+    : admins.find((a) => a.id === adminId) ?? admins[0]), [session, admins, adminId])
+  const permissions = useMemo(() => new Set(session.mode === 'api' ? adminPermissionsFromApi(session.principal.permissions) : admin.status === 'ACTIVE' ? adminPermissionsForRole(admin.role) : []), [session, admin])
   const refreshAlerts = useCallback(async () => { try { setAlerts(await repos.notifications.alerts()) } catch { /* keep previous */ } }, [repos])
   const reload = useCallback(async () => {
     setStatus('loading')
     try { seedAdminFixtures(); setAdmins(currentAdminUsers()); setMarkets(marketRepository.getMarkets()); await repos.overview.snapshot(); await refreshAlerts(); setStatus('ready') } catch { setStatus('error') }
   }, [repos, refreshAlerts])
   useEffect(() => { void reload() }, [reload])
-  const switchAdmin = useCallback((id: string) => { write(K.session, id); setAdminId(id) }, [])
+  const switchAdmin = useCallback((id: string) => { if (session.mode === 'api') return; write(K.session, id); setAdminId(id) }, [session.mode])
   const markRead = useCallback(async (id: string) => { await repos.notifications.markRead(id); await refreshAlerts() }, [repos, refreshAlerts])
   const markAllRead = useCallback(async () => { await repos.notifications.markAllRead(); await refreshAlerts() }, [repos, refreshAlerts])
   const value = useMemo<AdminState>(() => ({ repos, status, admin, admins, permissions, can: (p) => permissions.has(p), switchAdmin, reload, environment: detectEnvironment(), mockData: true, alerts, unreadCount: alerts.filter((a) => !a.read).length, criticalCount: alerts.filter((a) => !a.read && a.severity === 'critical').length, markRead, markAllRead, refreshAlerts, locale, market, marketModel: market === 'all' ? null : markets.find((m) => m.countryCode === market) ?? null, markets, setMarket }), [market, markets, setMarket, repos, status, admin, admins, permissions, switchAdmin, reload, alerts, markRead, markAllRead, refreshAlerts, locale])

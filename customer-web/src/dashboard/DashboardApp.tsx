@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { StaffAuthGate } from '../auth/staff/StaffSession'
 import { DashboardProvider } from './DashboardContext'
 import DashboardLayout, { RequirePermission } from './DashboardLayout'
 import OverviewPage from './pages/OverviewPage'
@@ -22,7 +23,7 @@ import HelpDashboardPage from './pages/HelpPage'
 export default function DashboardApp() {
   return (
     <Routes>
-    <Route path="/" element={<DashboardProvider><DashboardLayout /></DashboardProvider>}>
+    <Route path="/" element={<StaffAuthGate context="restaurant"><DashboardProvider><DashboardLayout /></DashboardProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<OverviewPage />} />
       <Route path="orders" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />

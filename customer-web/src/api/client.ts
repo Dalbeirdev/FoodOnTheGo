@@ -2,7 +2,11 @@
  * The one HTTP client for the FoodOnTheGo backend (Customer Web, Restaurant Dashboard and Platform Admin).
  *
  * - Base URL comes from VITE_API_BASE_URL (never a literal in a component).
- * - Sends the bearer token when present and an X-Request-Id for support / log correlation.
+ * - Three separate sign-in contexts — customer, restaurant, admin — each with its own token. The backend accepts a
+ *   token only on routes of its own context, and the client never sends one context's token for another.
+ * - Tokens live in sessionStorage: they are gone when the tab closes and are never written to disk-persistent
+ *   storage. They expire and can be revoked server-side (Module 21 decision; see docs/backend/README.md).
+ * - Sends an X-Request-Id for support / log correlation.
  * - Understands the backend error envelope {error: {code, message, details, request_id}} and turns every
  *   failure into an ApiError, so callers handle 401 / 403 / 404 / 409 / 422 / 429 / 5xx the same way.
  *
@@ -10,7 +14,8 @@
  */
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://127.0.0.1:8001/api/v1'
 
-const TOKEN_KEY = 'fotg.auth.token'
+export type AuthContextName = 'customer' | 'restaurant' | 'admin'
+const tokenKey = (context: AuthContextName) => `fotg.auth.token.${context}`
 
 export type ApiErrorKind = 'network' | 'unauthenticated' | 'forbidden' | 'not_found' | 'conflict' | 'validation' | 'rate_limited' | 'server' | 'client'
 
@@ -20,7 +25,7 @@ const kindOf = (status: number): ApiErrorKind =>
 
 export class ApiError extends Error {
   status: number
-  /** Stable machine-readable code from the backend (e.g. validation_failed, market_unavailable). */
+  /** Stable machine-readable code from the backend (e.g. validation_failed, otp_invalid, market_unavailable). */
   code: string
   kind: ApiErrorKind
   /** Field errors of a 422. */
@@ -43,14 +48,16 @@ export class ApiError extends Error {
   field(name: string): string | undefined { return this.errors[name]?.[0] }
 }
 
-export const tokenStore = {
-  get(): string | null { try { return localStorage.getItem(TOKEN_KEY) } catch { return null } },
-  set(token: string | null) { try { if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY) } catch { /* storage unavailable */ } },
+export const tokens = {
+  get(context: AuthContextName): string | null { try { return sessionStorage.getItem(tokenKey(context)) } catch { return null } },
+  set(context: AuthContextName, token: string | null) { try { if (token) sessionStorage.setItem(tokenKey(context), token); else sessionStorage.removeItem(tokenKey(context)) } catch { /* storage unavailable */ } },
 }
+/** Customer token store (kept for callers written before the three contexts existed). */
+export const tokenStore = { get: () => tokens.get('customer'), set: (token: string | null) => tokens.set('customer', token) }
 
-/** Called when the backend answers 401 for an authenticated request (expired / revoked token). */
-let onUnauthenticated: (() => void) | null = null
-export function setUnauthenticatedHandler(handler: (() => void) | null) { onUnauthenticated = handler }
+/** Called when the backend answers 401 for an authenticated request of that context (expired / revoked token). */
+const unauthenticatedHandlers: Partial<Record<AuthContextName, () => void>> = {}
+export function setUnauthenticatedHandler(handler: (() => void) | null, context: AuthContextName = 'customer') { if (handler) unauthenticatedHandlers[context] = handler; else delete unauthenticatedHandlers[context] }
 
 const newRequestId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)
 
@@ -66,16 +73,25 @@ const FALLBACK: Record<ApiErrorKind, string> = {
   client: 'The request could not be completed.',
 }
 
-export type ApiRequest = { method?: string; body?: unknown; auth?: boolean; query?: Record<string, string | number | boolean | null | undefined>; idempotencyKey?: string; signal?: AbortSignal }
+export type ApiRequest = {
+  method?: string; body?: unknown
+  /** false = public call (no token). */
+  auth?: boolean
+  /** Which sign-in context the call belongs to (default: customer). */
+  context?: AuthContextName
+  /** Use this token instead of the stored one (e.g. a just-issued token that is not a session yet). */
+  token?: string
+  query?: Record<string, string | number | boolean | null | undefined>; idempotencyKey?: string; signal?: AbortSignal
+}
 
 export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const requestId = newRequestId()
+  const context = init.context ?? 'customer'
   const headers: Record<string, string> = { Accept: 'application/json', 'X-Request-Id': requestId }
   if (init.body !== undefined) headers['Content-Type'] = 'application/json'
   if (init.idempotencyKey) headers['Idempotency-Key'] = init.idempotencyKey
-  const token = tokenStore.get()
-  const authenticated = init.auth !== false && !!token
-  if (authenticated) headers.Authorization = `Bearer ${token}`
+  const token = init.auth === false ? null : init.token ?? tokens.get(context)
+  if (token) headers.Authorization = `Bearer ${token}`
 
   const query = Object.entries(init.query ?? {}).filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&')
   const url = `${API_BASE_URL}${path}${query ? (path.includes('?') ? '&' : '?') + query : ''}`
@@ -96,7 +112,8 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
     const error = (data.error ?? {}) as { code?: string; message?: string; details?: Record<string, unknown>; request_id?: string }
     const details = error.details ?? {}
     const retryHeader = Number(res.headers.get('Retry-After'))
-    if (kind === 'unauthenticated' && authenticated) { tokenStore.set(null); onUnauthenticated?.() }
+    // Only a rejected *stored* session ends the session. A 403 never signs anyone out.
+    if (kind === 'unauthenticated' && token && !init.token) { tokens.set(context, null); unauthenticatedHandlers[context]?.() }
     throw new ApiError(res.status, typeof error.message === 'string' && error.message && kind !== 'server' ? error.message : FALLBACK[kind], {
       code: error.code,
       errors: (details.fields as Record<string, string[]> | undefined) ?? {},

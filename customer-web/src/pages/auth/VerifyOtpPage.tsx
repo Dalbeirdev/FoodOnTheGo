@@ -114,7 +114,7 @@ export default function VerifyOtpPage() {
           ? <span>Resend in {fmt(resendIn)}</span>
           : <button type="button" className="auth__link" onClick={resend} disabled={busy}>{state === 'resending' ? 'Sending…' : 'Resend OTP'}</button>}
       </p>
-      <p className="auth__switch auth__dev" role="note">LOCAL preview: the development code is <b>123456</b>.</p>
+      {pending?.otp?.devOtp && <p className="auth__switch auth__dev" role="note" data-testid="dev-otp">LOCAL preview: the development code is <b>{pending.otp.devOtp}</b>.</p>}
     </AuthLayout>
   )
 }

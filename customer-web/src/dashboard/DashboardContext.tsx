@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { restaurantPermissionsFromApi, restaurantRoleFromApi } from '../auth/staff/staffAuth'
+import { useStaffSession } from '../auth/staff/StaffSession'
 import { useLocale } from '../i18n/strings'
 import { STAFF } from './mock/fixtures'
 import { dashboardRepositories, permissionsForRole, seedDashboardFixtures } from './mock/mockDashboard'
@@ -48,8 +50,14 @@ export function DashboardProvider({ children, repos = dashboardRepositories }: {
   const [staffId, setStaffId] = useState(() => read(STAFF_KEY) ?? STAFF[0].id)
   const [locationId, setLocationId] = useState<string | null>(() => read(LOC_KEY))
   const [notifications, setNotifications] = useState<DashboardNotification[]>([])
-  const staff = useMemo(() => staffList.find((s) => s.id === staffId) ?? staffList[0] ?? STAFF[0], [staffList, staffId])
-  const permissions = useMemo(() => new Set(permissionsForRole(staff.role)), [staff])
+  // Signed in against the backend (Module 21): identity, role and permissions come from the session (display only —
+  // the backend decides every action). Location access stays "all" of the mock organization until the restaurant
+  // module links staff to real organizations and locations.
+  const session = useStaffSession()
+  const staff = useMemo<StaffMember>(() => (session.mode === 'api'
+    ? { id: session.principal.id, name: session.principal.name, email: session.principal.email, role: restaurantRoleFromApi(session.principal.roles), locationAccess: 'all', status: 'active' }
+    : staffList.find((s) => s.id === staffId) ?? staffList[0] ?? STAFF[0]), [session, staffList, staffId])
+  const permissions = useMemo(() => new Set(session.mode === 'api' ? restaurantPermissionsFromApi(session.principal.permissions) : permissionsForRole(staff.role)), [session, staff])
   const accessibleLocations = useMemo(() => locations.filter((l) => staff.locationAccess === 'all' || staff.locationAccess.includes(l.restaurant.id)), [locations, staff])
   const location = useMemo(() => accessibleLocations.find((l) => l.restaurant.id === locationId) ?? accessibleLocations[0] ?? null, [accessibleLocations, locationId])
 
@@ -70,7 +78,7 @@ export function DashboardProvider({ children, repos = dashboardRepositories }: {
     repos, status, organization, locations, location, accessibleLocations, staff, staffList, permissions, locale,
     can: (p) => permissions.has(p),
     selectLocation: (id) => { setLocationId(id); write(LOC_KEY, id) },
-    switchStaff: (id) => { setStaffId(id); write(STAFF_KEY, id) },
+    switchStaff: (id) => { if (session.mode === 'api') return; setStaffId(id); write(STAFF_KEY, id) },
     reload, refreshLocation,
     setAcceptingOrders: async (v) => { if (!location) return; await repos.management.setAcceptingOrders(location.restaurant.id, v); await refreshLocation() },
     notifications, unreadCount: notifications.filter((n) => !n.read).length,

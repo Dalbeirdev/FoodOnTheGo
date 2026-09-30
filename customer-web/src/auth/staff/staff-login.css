@@ -1,0 +1,11 @@
+/* Sign-in screen shared by the Restaurant Dashboard and Platform Admin (Module 21). Uses the dashboard tokens. */
+.staff-login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: #f4f6fa; font-family: Outfit, system-ui, sans-serif; color: #0b1c33; }
+.staff-login__card { inline-size: min(420px, 100%); display: flex; flex-direction: column; gap: 14px; padding: 28px; }
+.staff-login__brand { margin: 0; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #c2410c; }
+.staff-login__title { margin: 0; font-size: 1.5rem; line-height: 1.2; }
+.staff-login__card .db-field { display: flex; flex-direction: column; gap: 6px; }
+.staff-login__card .db-field label { font-weight: 600; font-size: 0.875rem; }
+.staff-login__submit { min-block-size: 44px; justify-content: center; }
+.staff-login__error { margin: 0; padding: 10px 12px; border-radius: 10px; background: #fdecec; color: #9f1d1d; font-size: 0.9375rem; }
+.staff-login__notice { margin: 0; padding: 10px 12px; border-radius: 10px; background: #eaf2ff; color: #123a7a; font-size: 0.9375rem; }
+.staff-login__back { align-self: center; color: #475467; font-size: 0.875rem; }

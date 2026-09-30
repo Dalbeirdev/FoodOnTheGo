@@ -1,4 +1,5 @@
 import { useEffect, useId, useState, type FormEvent } from 'react'
+import { authMode } from '../../auth/authMode'
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { COUNTRIES, DEFAULT_COUNTRY, countryByCode, toE164, validatePhone } from '../../auth/phone'
@@ -67,7 +68,10 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="auth__switch">By continuing you agree to our <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>.</p>
-      <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. Use the development code <b>123456</b>. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.</p>
+      {/* Development note: only in the mock build or in a local build configured with the backend test code. A production build shows nothing here. */}
+      {authMode() === 'mock'
+        ? <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. Use the development code <b>123456</b>. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.</p>
+        : import.meta.env.VITE_DEV_OTP ? <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. The test code is shown on the next screen. 98765 43210 = existing customer.</p> : null}
     </AuthLayout>
   )
 }

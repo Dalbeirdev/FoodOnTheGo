@@ -1,25 +1,30 @@
 /**
- * Authentication repository abstraction (Module 03: phone + OTP, frontend-first).
+ * Authentication repository abstraction (phone + OTP).
  *
- * MockAuthRepository is the ONLY implementation in this module. ApiAuthRepository
- * will talk to the Laravel OTP endpoints in the backend module and must replace the
- * mock without UI changes. Nothing in the pages knows which implementation runs.
+ * Two implementations, chosen by auth/authMode.ts: ApiAuthRepository (the real backend, Module 21) and
+ * MockAuthRepository (development mock; unit tests and share builds). Nothing in the pages knows which one runs.
  */
 export type AuthUser = { id: string; name: string; phone: string; email: string | null; memberSince: string }
 
-export type OtpRequest = { phone: string; expiresAt: number; resendAfter: number; attemptsAllowed: number; /** DEV ONLY: set by the mock so testers can see the code */ devOtp?: string }
+export type OtpRequest = { phone: string; expiresAt: number; resendAfter: number; attemptsAllowed: number; /** DEV ONLY: the local test code, shown in development builds so testers can sign in. Never sent by the backend. */ devOtp?: string }
 
 export type VerifyResult = { status: 'authenticated'; user: AuthUser } | { status: 'setup_required'; setupToken: string }
 
 export type AuthErrorCode = 'invalid_phone' | 'send_failed' | 'network' | 'invalid_otp' | 'expired_otp' | 'too_many_attempts' | 'session_expired' | 'unexpected'
+  /** The backend is throttling this action (429); retryAfterSeconds says how long. */
+  | 'rate_limited'
+  /** The account exists but may not sign in (suspended / deactivated). */
+  | 'account_blocked'
 
 export class AuthError extends Error {
   code: AuthErrorCode
   attemptsLeft?: number
-  constructor(code: AuthErrorCode, message: string, attemptsLeft?: number) {
+  retryAfterSeconds?: number | null
+  constructor(code: AuthErrorCode, message: string, attemptsLeft?: number, retryAfterSeconds?: number | null) {
     super(message)
     this.code = code
     this.attemptsLeft = attemptsLeft
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
@@ -29,6 +34,7 @@ export interface AuthRepository {
   completeSetup(setupToken: string, input: { name: string; email?: string; acceptTerms: boolean }): Promise<AuthUser>
   getCurrentUser(): Promise<AuthUser | null>
   refreshSession(): Promise<AuthUser | null>
+  updateProfile(patch: { name?: string; email?: string | null }): Promise<AuthUser>
   logout(): Promise<void>
 }
 
