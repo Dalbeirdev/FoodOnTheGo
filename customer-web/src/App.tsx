@@ -57,6 +57,20 @@ import AnalyticsPage from './dashboard/pages/AnalyticsPage'
 import NotificationsDashboardPage from './dashboard/pages/NotificationsPage'
 import SettingsPage from './dashboard/pages/SettingsPage'
 import HelpDashboardPage from './dashboard/pages/HelpPage'
+import { AdminProvider } from './admin/AdminContext'
+import AdminLayout, { RequirePermission as RequireAdminPermission } from './admin/AdminLayout'
+import AdminOverviewPage from './admin/pages/OverviewPage'
+import AdminRestaurantsPage, { RestaurantDetailsPage as AdminRestaurantDetailsPage } from './admin/pages/RestaurantsPage'
+import AdminCustomersPage, { CustomerDetailsPage as AdminCustomerDetailsPage } from './admin/pages/CustomersPage'
+import AdminOrdersPage, { OrderDetailsPage as AdminOrderDetailsPage } from './admin/pages/OrdersPage'
+import { PaymentsPage as AdminPaymentsPage, RefundsPage as AdminRefundsPage, SettlementsPage as AdminSettlementsPage } from './admin/pages/FinancePages'
+import AdminReviewsPage from './admin/pages/ReviewsPage'
+import AdminPromotionsPage from './admin/pages/PromotionsPage'
+import AdminSupportPage, { SupportCasePage as AdminSupportCasePage } from './admin/pages/SupportPage'
+import AdminNotificationsPage from './admin/pages/NotificationsPage'
+import { MarketsPage as AdminMarketsPage, ConfigurationPage as AdminConfigurationPage } from './admin/pages/PlatformPages'
+import { AdminUsersPage, AuditLogsPage as AdminAuditLogsPage, SecurityPage as AdminSecurityPage } from './admin/pages/SecurityPages'
+import { AnalyticsPage as AdminAnalyticsPage, SystemPage as AdminSystemPage, SettingsPage as AdminSettingsPage, HelpPage as AdminHelpPage } from './admin/pages/InsightPages'
 
 /** Static share builds (VITE_ROUTER=hash) run from a single file host where only hash routes survive a reload. */
 const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRouter
@@ -64,7 +78,7 @@ const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRout
 /** Canonical restaurant routes are /restaurants/:slug and /restaurants/:slug/item/:itemId — old /restaurant/… links redirect. */
 function LegacyItemRedirect() { const { rid, itemId } = useParams(); return <Navigate to={`/restaurants/${rid}/item/${itemId}`} replace /> }
 /** The restaurant dashboard has its own shell — the public footer stays off its routes. */
-function SiteFooter() { const l = useLocation(); return l.pathname.startsWith('/restaurant-dashboard') ? null : <Footer /> }
+function SiteFooter() { const l = useLocation(); return l.pathname.startsWith('/restaurant-dashboard') || l.pathname.startsWith('/admin') ? null : <Footer /> }
 function LegacyRestaurantRedirect() { const { rid } = useParams(); return <Navigate to={`/restaurants/${rid}`} replace /> }
 
 /** Provider stack + route table, router-agnostic so tests can mount it inside a MemoryRouter. */
@@ -137,6 +151,34 @@ export function AppShell() {
               <Route path="notifications" element={<RequirePermission perm="notifications.view"><NotificationsDashboardPage /></RequirePermission>} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="help" element={<HelpDashboardPage />} />
+            </Route>
+            {/* Module 18 — Platform Admin Dashboard (responsive web, own shell, shared domain, RBAC = UX gating only) */}
+            <Route path="/admin" element={<AdminProvider><AdminLayout /></AdminProvider>}>
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<AdminOverviewPage />} />
+              <Route path="restaurants" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantsPage /></RequireAdminPermission>} />
+              <Route path="restaurants/:id" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantDetailsPage /></RequireAdminPermission>} />
+              <Route path="customers" element={<RequireAdminPermission perm="customers.view"><AdminCustomersPage /></RequireAdminPermission>} />
+              <Route path="customers/:id" element={<RequireAdminPermission perm="customers.view"><AdminCustomerDetailsPage /></RequireAdminPermission>} />
+              <Route path="orders" element={<RequireAdminPermission perm="orders.view"><AdminOrdersPage /></RequireAdminPermission>} />
+              <Route path="orders/:orderNumber" element={<RequireAdminPermission perm="orders.view"><AdminOrderDetailsPage /></RequireAdminPermission>} />
+              <Route path="payments" element={<RequireAdminPermission perm="payments.view"><AdminPaymentsPage /></RequireAdminPermission>} />
+              <Route path="refunds" element={<RequireAdminPermission perm="refunds.view"><AdminRefundsPage /></RequireAdminPermission>} />
+              <Route path="settlements" element={<RequireAdminPermission perm="settlements.view"><AdminSettlementsPage /></RequireAdminPermission>} />
+              <Route path="reviews" element={<RequireAdminPermission perm="reviews.view"><AdminReviewsPage /></RequireAdminPermission>} />
+              <Route path="promotions" element={<RequireAdminPermission perm="promotions.view"><AdminPromotionsPage /></RequireAdminPermission>} />
+              <Route path="support" element={<RequireAdminPermission perm="support.view"><AdminSupportPage /></RequireAdminPermission>} />
+              <Route path="support/:id" element={<RequireAdminPermission perm="support.view"><AdminSupportCasePage /></RequireAdminPermission>} />
+              <Route path="notifications" element={<RequireAdminPermission perm="notifications.manage"><AdminNotificationsPage /></RequireAdminPermission>} />
+              <Route path="markets" element={<RequireAdminPermission perm="markets.view"><AdminMarketsPage /></RequireAdminPermission>} />
+              <Route path="configuration" element={<RequireAdminPermission perm="configuration.manage"><AdminConfigurationPage /></RequireAdminPermission>} />
+              <Route path="admin-users" element={<RequireAdminPermission perm="admin_users.view"><AdminUsersPage /></RequireAdminPermission>} />
+              <Route path="audit-logs" element={<RequireAdminPermission perm="audit.view"><AdminAuditLogsPage /></RequireAdminPermission>} />
+              <Route path="security" element={<RequireAdminPermission perm="security.view"><AdminSecurityPage /></RequireAdminPermission>} />
+              <Route path="analytics" element={<RequireAdminPermission perm="analytics.view"><AdminAnalyticsPage /></RequireAdminPermission>} />
+              <Route path="system" element={<RequireAdminPermission perm="system.view"><AdminSystemPage /></RequireAdminPermission>} />
+              <Route path="settings" element={<RequireAdminPermission perm="settings.manage"><AdminSettingsPage /></RequireAdminPermission>} />
+              <Route path="help" element={<AdminHelpPage />} />
             </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

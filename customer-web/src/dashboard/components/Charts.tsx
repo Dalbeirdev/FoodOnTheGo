@@ -26,7 +26,7 @@ export function BarChart({ title, data, format = (v) => String(v), height = 180,
         <title id={`${id}-t`}>{title}</title>
         {ticks.map((tv) => <g key={tv}><line x1={padL} x2={W - 8} y1={y(tv)} y2={y(tv)} className="db-chart__grid" /><text x={padL - 6} y={y(tv) + 4} textAnchor="end" className="db-chart__tick">{format(tv)}</text></g>)}
         {data.map((d, i) => { const x = padL + i * bw + bw * 0.18; const w = bw * 0.64; const on = hover === i; return (
-          <g key={d.label} tabIndex={0} onFocus={() => setHover(i)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(i)} aria-label={`${d.label}: ${format(d.value)}`}>
+          <g key={d.label} role="img" tabIndex={0} onFocus={() => setHover(i)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(i)} aria-label={`${d.label}: ${format(d.value)}`}>
             <rect x={x} y={y(d.value)} width={w} height={Math.max(0, innerH + padT - y(d.value))} rx={4} fill={color} opacity={on ? 1 : 0.85} />
             {(data.length <= 14 || i % Math.ceil(data.length / 10) === 0) && <text x={x + w / 2} y={H - 8} textAnchor="middle" className="db-chart__tick">{d.label}</text>}
           </g>) })}
@@ -53,7 +53,7 @@ export function LineChart({ title, data, format = (v) => String(v), height = 180
         {[0, 0.5, 1].map((f) => <g key={f}><line x1={padL} x2={W - 12} y1={y(f * max)} y2={y(f * max)} className="db-chart__grid" /><text x={padL - 6} y={y(f * max) + 4} textAnchor="end" className="db-chart__tick">{format(f * max)}</text></g>)}
         {area && <path d={area} fill={`url(#${id}-g)`} />}
         <path d={path} fill="none" stroke={color} strokeWidth={2.5} strokeLinejoin="round" />
-        {data.map((d, i) => <g key={d.label} tabIndex={0} onFocus={() => setHover(i)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(i)} aria-label={`${d.label}: ${format(d.value)}`}><circle cx={x(i)} cy={y(d.value)} r={hover === i ? 5 : 3.5} fill="#fff" stroke={color} strokeWidth={2} />{(data.length <= 14 || i % Math.ceil(data.length / 8) === 0) && <text x={x(i)} y={H - 8} textAnchor="middle" className="db-chart__tick">{d.label}</text>}</g>)}
+        {data.map((d, i) => <g key={d.label} role="img" tabIndex={0} onFocus={() => setHover(i)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(i)} aria-label={`${d.label}: ${format(d.value)}`}><circle cx={x(i)} cy={y(d.value)} r={hover === i ? 5 : 3.5} fill="#fff" stroke={color} strokeWidth={2} />{(data.length <= 14 || i % Math.ceil(data.length / 8) === 0) && <text x={x(i)} y={H - 8} textAnchor="middle" className="db-chart__tick">{d.label}</text>}</g>)}
         {hover !== null && data[hover] && <g className="db-chart__tip" transform={`translate(${Math.min(W - 130, Math.max(padL, x(hover) - 55))},${Math.max(0, y(data[hover].value) - 36)})`}><rect width="110" height="26" rx="6" /><text x="55" y="17" textAnchor="middle">{data[hover].label} · {format(data[hover].value)}</text></g>}
       </svg>
       <DataTable title={title} data={data} format={format} />

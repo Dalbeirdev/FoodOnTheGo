@@ -25,6 +25,18 @@ export const Icon = ({ name, size = 20 }: { name: string; size?: number }) => {
     star: <path d="m12 3 2.7 5.6 6.2.9-4.5 4.3 1.1 6.1L12 17l-5.5 2.9 1.1-6.1L3.1 9.5l6.2-.9z" />, edit: <><path d="M4 20h4l10-10-4-4L4 16z" /><path d="m12.5 7.5 4 4" /></>, copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></>,
     trash: <><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></>, qr: <><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><path d="M14 14h3v3h-3zM20 14v7h-3" /></>, keypad: <><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h8" /></>,
     timer: <><path d="M10 2h4M12 8v5l3 2" /><circle cx="12" cy="14" r="8" /></>, image: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="2" /><path d="m21 17-6-6-9 9" /></>, location: <><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z" /><circle cx="12" cy="10" r="2.5" /></>, logout: <><path d="M10 17l5-5-5-5M15 12H3" /><path d="M13 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" /></>,
+    restaurants: <><path d="M3 10h18l-1 10H4z" /><path d="M5 10V6a7 7 0 0 1 14 0v4" /><path d="M9 14h6" /></>,
+    customers: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></>,
+    support: <><circle cx="12" cy="12" r="9" /><path d="M8 12a4 4 0 0 1 8 0M12 16v.5" /><path d="M9 9l-3-3M15 9l3-3M9 15l-3 3M15 15l3 3" /></>,
+    payments: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20M6 15h4" /></>,
+    refunds: <><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /><path d="M12 8v8M9.5 10.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" /></>,
+    settlements: <><path d="M3 21h18M5 21V10M19 21V10M9 21v-6h6v6" /><path d="M2 10 12 3l10 7" /></>,
+    promotions: <><path d="M20 12v8H4v-8M2 7h20v5H2zM12 7v13M12 7c-2-4-6-3-6-1s4 1 6 1M12 7c2-4 6-3 6-1s-4 1-6 1" /></>,
+    markets: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>,
+    audit: <><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4M9 12h6M9 16h6M9 8h2" /></>,
+    shield: <><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" /><path d="m9 12 2 2 4-4" /></>,
+    system: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4M7 10l2 2 4-4" /></>,
+    filter: <path d="M3 5h18l-7 8v6l-4-2v-4z" />, external: <><path d="M14 4h6v6M20 4l-9 9" /><path d="M20 14v6H4V4h6" /></>, flag: <><path d="M5 21V4h12l-2 4 2 4H5" /></>,
     eye: <><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>, info: <><circle cx="12" cy="12" r="9" /><path d="M12 8h.01M11 12h1v4h1" /></>,
   }
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="db-icon">{P[name] ?? P.info}</svg>
@@ -53,8 +65,8 @@ export function Delta({ value, suffix = '%', invert = false, locale }: { value: 
   const good = invert ? value <= 0 : value >= 0
   return <span className={`db-delta ${good ? 'db-delta--up' : 'db-delta--down'}`}><Icon name={value >= 0 ? 'up' : 'down'} size={12} /> {Math.abs(value).toLocaleString(locale, { maximumFractionDigits: 1 })}{suffix}</span>
 }
-export function KpiCard({ icon, tone = 'orange', value, label, delta, invert, locale, testId }: { icon: string; tone?: 'orange' | 'blue' | 'green' | 'purple' | 'amber' | 'red'; value: ReactNode; label: string; delta?: number; invert?: boolean; locale: string; testId?: string }) {
-  return <div className="db-kpi" data-testid={testId}><span className={`db-kpi__icon db-kpi__icon--${tone}`}><Icon name={icon} size={22} /></span><div className="db-kpi__body"><p className="db-kpi__value">{value}</p><p className="db-kpi__label">{label}</p></div>{delta !== undefined && <Delta value={delta} invert={invert} locale={locale} />}</div>
+export function KpiCard({ icon, tone = 'orange', value, label, delta, invert, locale, testId, suffix }: { icon: string; tone?: 'orange' | 'blue' | 'green' | 'purple' | 'amber' | 'red'; value: ReactNode; label: string; delta?: number; invert?: boolean; locale: string; testId?: string; suffix?: string }) {
+  return <div className="db-kpi" data-testid={testId}><span className={`db-kpi__icon db-kpi__icon--${tone}`}><Icon name={icon} size={22} /></span><div className="db-kpi__body"><p className="db-kpi__value">{value}</p><p className="db-kpi__label">{label}</p></div>{delta !== undefined && <Delta value={delta} invert={invert} locale={locale} suffix={suffix} />}</div>
 }
 
 const ORDER_TONE: Record<OrderStatus, string> = { PAYMENT_PENDING: 'muted', CONFIRMED: 'red', AWAITING_RESTAURANT_ACCEPTANCE: 'red', ACCEPTED: 'blue', PREPARING: 'blue', READY_FOR_PICKUP: 'green', PICKUP_VERIFICATION: 'green', PICKED_UP: 'muted', COMPLETED: 'muted', CANCELLED: 'red', REJECTED: 'red', REFUND_PENDING: 'amber', REFUNDED: 'muted' }
