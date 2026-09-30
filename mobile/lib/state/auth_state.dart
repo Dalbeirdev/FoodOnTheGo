@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import '../auth/api_auth_repository.dart';
 import '../auth/auth_repository.dart';
+import '../core/app_config.dart';
 
 export '../auth/auth_repository.dart' show AuthErrorCode, AuthException, AuthUser, Authenticated, OtpRequest, SetupRequired, VerifyResult;
 
@@ -8,8 +10,17 @@ enum AuthStatus { loggedOut, authenticating, authenticated, sessionExpired }
 
 /// Centralised session state for the Android app. Screens never talk to the repository directly.
 class AuthState extends ChangeNotifier {
-  AuthState({AuthRepository? repository}) : _repo = repository ?? MockAuthRepository(store: SecureKeyValueStore());
+  AuthState({AuthRepository? repository}) : _repo = repository ?? defaultRepository() {
+    // A session rejected by the backend (expired / revoked) ends here once; the router then shows sign-in.
+    final repo = _repo;
+    if (repo is ApiAuthRepository) repo.onSessionEnded = expire;
+  }
   final AuthRepository _repo;
+
+  /// The real backend when the build says so (--dart-define=AUTH_MODE=api), otherwise the development mock.
+  static AuthRepository defaultRepository() =>
+      AppConfig.authMode == 'api' ? ApiAuthRepository(store: SecureKeyValueStore()) : MockAuthRepository(store: SecureKeyValueStore());
+
 
   AuthStatus status = AuthStatus.loggedOut;
   AuthUser? user;

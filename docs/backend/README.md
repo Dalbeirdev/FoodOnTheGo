@@ -1,4 +1,4 @@
-# FoodOnTheGo backend — foundation (Module 20)
+# FoodOnTheGo backend — foundation (Module 20) and identity (Module 21)
 
 Laravel API in `/backend`. This document records what exists, how to run it locally, and the conventions
 every later backend module must follow. Commands below were run on the development PC on 2026-09-30;
@@ -32,7 +32,8 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 90 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 159 tests, real PostgreSQL + PostGIS + Redis
+php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
 
 pwsh -File scripts/local/verify-local.ps1   # ports, readiness, market API, no production references
@@ -48,12 +49,13 @@ Environments: `local` (current), `testing` (phpunit.xml), `staging`, `production
 routes/api.php                      everything under /api/v1
 app/Http/Controllers/Api            thin: authorize, validate (FormRequest), call a service, return a Resource
 app/Http/Requests, Resources        validation; response mapping (models are never returned raw)
-app/Http/Middleware                 AssignRequestId, ApiSecurityHeaders, EnsurePrincipalType, EnforceIdempotency
+app/Http/Middleware                 AssignRequestId, ApiSecurityHeaders, EnsureAccountActive, EnforceIdempotency
 app/Http/Support/ListQuery          pagination / filter / sort convention
 app/Exceptions                      ApiException + ApiExceptionRenderer (the error envelope)
-app/Auth                            AccessControl, Scope (permission decisions)
+app/Auth                            Principal, AccessControl, Scope (permission decisions)
 app/Enums                           PrincipalType, Permission, MarketStatus, DistanceUnit
-app/Services                        application logic (Market\MarketContext, Foundation\DependencyChecks, Sms, Auth)
+app/Services                        application logic (Auth\*: OTP, customer login, staff login, MFA, password reset, account status,
+                                    tokens, security events; Rbac\RoleService; Market\MarketContext; Foundation; Sms)
 app/Contracts                       provider contracts (Sms\SmsProvider)
 app/Support                         Money, Distance, Geo\Geo, Logging\*
 app/Models (+ Concerns)             HasPublicId, StoresUtcTimestamps
@@ -82,9 +84,12 @@ Eloquent lazy loading throws outside production, so N+1 queries fail in developm
 - Documentation: `openapi/openapi.json`. A test fails when a route is undocumented or a response does not
   match its schema.
 
-Endpoints today: `GET /health` (public, minimal), `GET /ready` (per dependency; public only in local /
-testing, otherwise `admin.system.view`), `GET /markets/current`, `GET /config`, `GET /admin/markets`
-(`admin.markets.view`), and the interim password endpoints under `/auth/*` from the Module 03 prototype.
+Endpoints today (25, all in `openapi/openapi.json`): `GET /health`, `GET /ready`, `GET /markets/current`,
+`GET /config`, `GET /admin/markets`; customer `POST /auth/customer/otp/request`, `POST /auth/customer/otp/verify`,
+`PATCH /auth/customer/profile`; restaurant and admin `POST /auth/{restaurant|admin}/login`, `/mfa/verify`,
+`/password/forgot`, `/password/reset`; any signed-in principal `GET /auth/me`, `POST /auth/logout`,
+`POST /auth/logout-all`, `GET /auth/sessions`, `DELETE /auth/sessions/{id}`; restaurant / admin
+`POST /auth/password`, `POST /auth/mfa/totp/setup`, `POST /auth/mfa/totp/confirm`, `DELETE /auth/mfa/totp`.
 
 ## 5. Database conventions
 
@@ -103,26 +108,109 @@ testing, otherwise `admin.system.view`), `GET /markets/current`, `GET /config`, 
 - Spatial: WGS84 / SRID 4326. Searchable points are `geography(Point, 4326)` (distances in metres, GiST);
   lines and areas are `geometry(<Type>, 4326)`. PostGIS shortlists; the routing provider computes detours.
 
-## 6. Security foundation
+## 6. Identity, authentication and authorization (Module 21)
 
-- Three principal types — `CUSTOMER`, `RESTAURANT_USER`, `ADMIN_USER` (`users.principal_type`, check
-  constraint, not mass-assignable). `principal:<TYPE>` guards a route group.
-- Permissions are the `App\Enums\Permission` catalogue, stored in `permission_grants` with an optional
-  scope (organization / location / market). Checks go through the Gate: `can:admin.markets.view`,
-  `$user->can('restaurant.orders.view', Scope::location($id))`. Restaurant permissions are always scoped;
-  an admin has nothing without a grant.
-- Tokens: Laravel Sanctum opaque bearer tokens for web, Android and both dashboards (no cookies, so no
-  CSRF surface). Stored hashed, revocable per device or all at once, expiry via
-  `SANCTUM_TOKEN_EXPIRATION_MINUTES`. Android must keep the token in secure storage.
-- OTP: policy in `config/otp.php`, SMS behind `SmsProvider` (`log` driver today). The development code works
-  only in local / testing; `DevelopmentOtp` refuses staging and production whatever the configuration.
-- Rate limits: named limiters (`api`, `auth`, `password-reset`, `otp`, `search`, `payment`,
-  `admin-sensitive`) with values in `config/rate_limits.php` — development defaults, not production numbers.
+### Identity model
+
+Three separate tables, models and token guards — a token always belongs to exactly one of them, and the client
+never says which it is:
+
+| Principal | Table | Signs in with | Guard | States |
+|---|---|---|---|---|
+| Customer | `customers` | phone + one-time code (no password) | `auth:customer` | ACTIVE, RESTRICTED (may sign in; later modules limit actions), SUSPENDED, DEACTIVATED (cannot sign in) |
+| Restaurant user | `restaurant_users` | e-mail + password, optional TOTP | `auth:restaurant` | INVITED (no password yet), ACTIVE, SUSPENDED, DISABLED |
+| Admin user | `admin_users` | e-mail + password, optional / mandatory TOTP | `auth:admin` | same as restaurant user |
+
+The prototype `users` table is gone. Status, phone, verification, e-mail and password are never mass-assignable.
+There is no public way to create a restaurant or admin account: admins come from `php artisan admin:create`
+(hidden password prompt), restaurant staff from the restaurant module later.
+
+### Tokens and sessions
+
+- **Decision: opaque bearer tokens (Laravel Sanctum) for every client — web, Android and both dashboards.**
+  Cookie / session authentication is not used (`sanctum.guard = []`), so there is no CSRF surface; a test proves a
+  cookie never authenticates. Reason: the three portals share one web origin and need three independent
+  sessions, Android needs tokens anyway, and one mechanism is listed, revoked and tested once.
+  The trade-off is that a web token is readable by script: it is kept in `sessionStorage` (gone when the tab
+  closes, never on disk), lives 8 h (admin) / 12 h (restaurant) / 30 days (customer), is revocable, and the web
+  app renders no raw HTML. Moving the web portals to HttpOnly cookies is a recorded pre-production decision.
+- One token = one device. Stored as SHA-256, with its own `expires_at`, device label, IP and user agent.
+  `GET /auth/sessions`, `DELETE /auth/sessions/{id}`, `POST /auth/logout`, `POST /auth/logout-all`.
+- Android keeps the token in `flutter_secure_storage` (Keystore-backed), never in plain preferences.
+- `active` middleware re-reads the account state on every request: a suspended / disabled account is refused
+  even if a token survived. `AccountStatusService` also revokes all tokens when it suspends.
+- Password change signs out every other device; password reset signs out all devices.
+
+### Customer phone + OTP
+
+- `PhoneNumber::parse($input, $market)` normalises to E.164. The dialling code, the national rule and the trunk
+  prefix are columns of the market row (India: `+91`, `^[6-9][0-9]{9}$`, `0`) — nothing is hardcoded.
+- A challenge (`otp_challenges`, PostgreSQL) holds only `HMAC-SHA256(challenge id | code)` keyed with the
+  application key. It expires (`OTP_TTL_SECONDS`), allows `OTP_MAX_ATTEMPTS` wrong codes, and is verified under a
+  row lock, so two simultaneous requests cannot both succeed. PostgreSQL rather than Redis because verification
+  must be atomic, single-use and auditable; Redis supplies the rate limiters.
+- A new request invalidates the previous code. Resend cooldown and an hourly cap per phone are enforced by the
+  server; the client countdown is decoration. Rate limits apply per phone and per address.
+- The response is the same for a new and an existing customer and never contains the code.
+- First verification creates the customer (`INSERT … ON CONFLICT DO NOTHING` + unique `phone_e164`).
+- Local / testing: `OTP_DEV_CODE` is the code; `SMS_DRIVER=log` writes a masked line instead of sending.
+  `DevelopmentOtp` refuses staging and production whatever the configuration.
+
+### Restaurant / admin sign-in
+
+- One generic failure (`invalid_credentials`) for unknown e-mail and wrong password, with the same work done in
+  both cases; the account state is disclosed only to someone who proved the password.
+- MFA (TOTP, RFC 6238, verified against the RFC vectors): secret encrypted at rest and shown once, a code works
+  once, 8 single-use recovery codes stored hashed, disabling needs password + code. With
+  `AUTH_MFA_REQUIRED_ADMIN=true` an admin without MFA receives a token that can only enrol.
+- Password policy: minimum length (`AUTH_PASSWORD_MIN_LENGTH`, 12), no composition rules, framework hashing.
+  Reset tokens: random 256 bit, stored as SHA-256, 30 minutes, single use, same answer whether or not the
+  account exists. E-mail delivery is the `log` mailer locally — no mail provider is integrated yet.
+
+### Authorization
+
+- Customers: ownership. `Gate::authorize('own', $record)` — the record must carry the caller's `customer_id`.
+- Restaurant and admin users: roles → permissions → scoped assignments (`roles`, `role_permissions`,
+  `role_assignments`). Code checks permissions (`can:admin.refunds.issue`,
+  `Gate::authorize('restaurant.orders.view', Scope::location($id, $organizationId))`), never role names.
+- A restaurant assignment is always scoped to an organization or a location (also a database constraint); a
+  location check is satisfied by that location or by the organization that owns it. The organization is looked
+  up by the server — scope sent by the client is ignored.
+- An admin assignment is platform-wide or limited to a market. SUPER_ADMIN is a role like any other.
+- Wrong principal type on a route = 401 (that token is not an authentication there). Authenticated but not
+  permitted = 403. Another account's session id = 404 (existence is not revealed).
+- Effective permissions are cached per principal under a global version; every role / permission / assignment
+  change bumps the version, so nothing stale can be read.
+
+### Events, logs, limits
+
+- `security_events` (append-only): OTP requested / failed / verified, login success / failure, logout, session
+  revoked, password reset / changed, account status changed, permission changed, MFA enabled / disabled / failed.
+  Unknown identifiers are stored as a hash; metadata passes through the log redactor.
+- Audit hooks (Laravel events) for the later audit module: `AccountStatusChanged`, `RoleAssignmentChanged`,
+  `MfaChanged`.
+- Stack traces never contain call arguments (`zend.exception_ignore_args` forced on + `#[SensitiveParameter]`),
+  and expected client errors are not written to the error log.
+- Rate limits (`config/rate_limits.php`, development defaults): `otp-request`, `otp-verify`, `staff-login`,
+  `admin-login` (stricter), `mfa-verify`, `password-reset`, plus `api`, `search`, `payment`, `admin-sensitive`.
 - Idempotency: `idempotent:<operation>` middleware + `Idempotency-Key` header, scoped to actor + operation,
   bound to the request hash, expiring (`API_IDEMPOTENCY_TTL_MINUTES`).
 - CORS: origins from `FRONTEND_URLS`, explicit methods and headers, no wildcard.
 - Logs: text locally, JSON lines with `LOG_STACK=structured`; sensitive keys and bearer tokens are redacted.
 - Provider secrets live only in the backend `.env` / `config/services.php`.
+
+### Local fixture accounts
+
+`php artisan db:seed` (local / testing only) creates test accounts on reserved `.example` domains:
+
+| Context | Accounts |
+|---|---|
+| Customer (any number works; code = `OTP_DEV_CODE`) | 98765 43210 existing customer, 98765 00001 suspended |
+| Restaurant | john@ (owner), sarah@ (manager), mike@ (order staff, one location), emily@ (menu manager), yuki@ (invited), suspended@ — all `@riverside.example`; owner@second-kitchen.example (a second organization) |
+| Admin | alex.morgan@ (super admin), nina.patel@ (operations, India scope), tom.okafor@ (onboarding), lea.dubois@ (support), kenji.watanabe@ (finance), mia.fernandes@ (moderation), ravi.menon@ (invited), sam.reyes@ (suspended) — all `@foodonthego.example` |
+
+Their password is the value of `LOCAL_FIXTURE_PASSWORD` in the git-ignored `backend/.env` (nothing is hardcoded;
+without it no password account is created). Seeding again resets the fixtures to this state.
 
 ## 7. Concurrency guide (for later modules)
 
@@ -142,6 +230,12 @@ or payment.
 - One HTTP client per platform: `customer-web/src/api/client.ts` (`VITE_API_BASE_URL`) and
   `mobile/lib/data/api_client.dart` (`--dart-define=API_BASE_URL`). Both send `X-Request-Id`, understand the
   error envelope and classify 401 / 403 / 404 / 409 / 422 / 429 / 5xx / network the same way.
+- Authentication is the first domain on the real backend (Module 21). `VITE_AUTH_MODE=api` /
+  `--dart-define=AUTH_MODE=api` selects `ApiAuthRepository`; unit tests and the static share builds always use
+  the mock. The Restaurant Dashboard and Platform Admin sit behind `StaffAuthGate` (sign-in screen, identity,
+  roles and permissions from the backend; their operational data is still mock).
+- 401 ends the session once and returns to sign-in with the return route; 403 shows access denied and keeps the
+  session; 429 shows how long to wait.
 - Mock → API: each `Mock*Repository` keeps its interface; an `Api*` adapter maps the snake_case DTO onto the
   existing domain type and is swapped in where the repository is constructed, one domain per backend module.
   `customer-web/src/api/marketApi.ts` is the first adapter (tested, not wired in). Mocks stay for tests.

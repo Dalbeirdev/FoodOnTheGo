@@ -24,6 +24,8 @@
         "127.0.0.1",
         "--dart-define=APP_ENV=local",
         "--dart-define=API_BASE_URL=http://127.0.0.1:8001/api/v1",
+        "--dart-define=AUTH_MODE=api",
+        "--dart-define=DEV_OTP=123456",
         "--dart-define=BUILD_LABEL=web-preview"
       ],
       "cwd": "mobile",

@@ -3,16 +3,21 @@
 param(
   [string]$ApiBaseUrl = 'http://192.168.1.221:8001/api/v1',
   [string]$Version = '0.1.0',
-  [int]$Build = 1
+  [int]$Build = 1,
+  # api = sign in against the local backend (it must be running and reachable from the device); mock = in-app development mock
+  [ValidateSet('api', 'mock')][string]$AuthMode = 'api',
+  # Local test code shown on the OTP screen of LOCAL builds. Default: OTP_DEV_CODE from the git-ignored backend/.env.
+  [string]$DevOtp = ''
 )
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+if ($AuthMode -eq 'api' -and -not $DevOtp) { $m = Select-String -Path (Join-Path $root 'backend\.env') -Pattern '^OTP_DEV_CODE=(.*)$'; if ($m) { $DevOtp = $m.Matches[0].Groups[1].Value.Trim() } }
 $out = Join-Path $root 'docs\local-review\apk'; New-Item -ItemType Directory -Force $out | Out-Null
 $name = "FoodOnTheGo-local-review-v$Version-build$($Build.ToString('000')).apk"
 $commit = try { (git -C $root rev-parse --short HEAD 2>$null) } catch { $null }; if (-not $commit) { $commit = 'no-git' }
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 
 Write-Host "Syncing mobile/ into WSL and building $name (API $ApiBaseUrl)…"
-$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
+$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
 wsl.exe -d Ubuntu -u root -e bash -lc $cmd
 $apk = Join-Path $out $name
 if (-not (Test-Path $apk)) { Write-Host 'APK not produced' -ForegroundColor Red; exit 1 }
@@ -31,7 +36,8 @@ $manifest = @"
 | Build timestamp | $stamp |
 | Size | $size MB |
 | SHA-256 | $sha |
-| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl |
+| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=DEV_OTP=<local test code> |
+| Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Install (USB) | adb install -r $name |
 | Install tested | PENDING |
 | Manual user tested | PENDING USER DEVICE VERIFICATION |

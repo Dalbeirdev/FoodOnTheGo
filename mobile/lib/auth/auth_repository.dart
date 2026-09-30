@@ -3,9 +3,8 @@ import 'dart:math';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Authentication repository abstraction (Module 03: phone + OTP, frontend-first).
-/// MockAuthRepository is the only implementation in this module; ApiAuthRepository
-/// will talk to the Laravel OTP endpoints later without changing the screens.
+/// Authentication repository abstraction (phone + OTP). Two implementations, chosen by AppConfig.authMode:
+/// ApiAuthRepository (the real backend, Module 21) and MockAuthRepository (development mock, used by tests).
 class AuthUser {
   const AuthUser({required this.id, required this.name, required this.phone, this.email, required this.memberSince});
   final String id, name, phone, memberSince;
@@ -21,17 +20,26 @@ class OtpRequest {
   final String phone;
   final DateTime expiresAt, resendAfter;
   final int attemptsAllowed;
-  /// DEV ONLY: exposed by the mock so testers can see the code.
+  /// DEV ONLY: the local test code, shown in local builds so testers can sign in. Never sent by the backend.
   final String? devOtp;
 }
 
-enum AuthErrorCode { invalidPhone, sendFailed, network, invalidOtp, expiredOtp, tooManyAttempts, sessionExpired, unexpected }
+enum AuthErrorCode {
+  invalidPhone, sendFailed, network, invalidOtp, expiredOtp, tooManyAttempts, sessionExpired, unexpected,
+
+  /// The backend is throttling this action (429); retryAfterSeconds says how long.
+  rateLimited,
+
+  /// The account exists but may not sign in (suspended / deactivated).
+  accountBlocked,
+}
 
 class AuthException implements Exception {
-  AuthException(this.code, this.message, {this.attemptsLeft});
+  AuthException(this.code, this.message, {this.attemptsLeft, this.retryAfterSeconds});
   final AuthErrorCode code;
   final String message;
   final int? attemptsLeft;
+  final int? retryAfterSeconds;
   @override
   String toString() => message;
 }

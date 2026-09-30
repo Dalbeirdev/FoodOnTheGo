@@ -108,10 +108,7 @@ class LocalFixtureSeeder extends Seeder
             ['+919876543210', 'Rahul Sharma', 'rahul.sharma@example.com', CustomerStatus::Active],
             ['+919876500001', 'Suspended Customer', null, CustomerStatus::Suspended],
         ] as [$phone, $name, $email, $status]) {
-            if (Customer::query()->where('phone_e164', $phone)->exists()) {
-                continue;
-            }
-            (new Customer)->forceFill([
+            (Customer::query()->where('phone_e164', $phone)->first() ?? new Customer)->forceFill([
                 'phone_e164' => $phone,
                 'phone_verified_at' => now(),
                 'name' => $name,
@@ -136,6 +133,10 @@ class LocalFixtureSeeder extends Seeder
             'password' => $status === StaffStatus::Invited ? null : $password,
             'status' => $status,
             'email_verified_at' => $status === StaffStatus::Invited ? null : now(),
+            'mfa_secret' => null,
+            'mfa_enabled_at' => null,
+            'mfa_recovery_codes' => null,
+            'mfa_last_used_step' => null,
         ])->save();
 
         return $user;

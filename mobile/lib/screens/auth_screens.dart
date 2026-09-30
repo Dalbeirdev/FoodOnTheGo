@@ -1,3 +1,4 @@
+import '../core/app_config.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -42,7 +43,13 @@ class _AuthHeader extends StatelessWidget {
 
 Widget _errorBox(String? message) => message == null ? const SizedBox.shrink() : Padding(padding: const EdgeInsets.only(bottom: 12), child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFFE9E9), child: Text(message, style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13.5))));
 
-const _devNote = InfoBox(icon: Icons.science_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text('LOCAL preview — no SMS is sent. Development code: 123456. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.', style: TextStyle(fontSize: 12.5, color: Color(0xFF7C3D00), fontWeight: FontWeight.w600)));
+/// Development note: only in the mock build or in a local build configured with the backend test code.
+/// A staging / production build shows nothing here.
+final Widget _devNote = AppConfig.authMode != 'api'
+    ? const InfoBox(icon: Icons.science_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text('LOCAL preview — no SMS is sent. Development code: 123456. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.', style: TextStyle(fontSize: 12.5, color: Color(0xFF7C3D00), fontWeight: FontWeight.w600)))
+    : AppConfig.devOtp.isEmpty
+        ? const SizedBox.shrink()
+        : InfoBox(icon: Icons.science_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text('LOCAL preview — no SMS is sent. Development code: ${AppConfig.devOtp}. 98765 43210 = existing customer.', style: const TextStyle(fontSize: 12.5, color: Color(0xFF7C3D00), fontWeight: FontWeight.w600)));
 
 String _friendly(Object e) => e is AuthException ? e.message : 'Something went wrong. Please try again.';
 

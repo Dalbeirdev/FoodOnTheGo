@@ -63,6 +63,7 @@ class ApiException implements Exception {
 class ApiClient {
   ApiClient({http.Client? client, String? baseUrl, this.tokenProvider, this.onUnauthenticated}) : _client = client ?? http.Client(), baseUrl = baseUrl ?? AppConfig.apiBaseUrl;
   final http.Client _client;
+  http.Client get httpClient => _client;
   final String baseUrl;
   final Future<String?> Function()? tokenProvider;
 
