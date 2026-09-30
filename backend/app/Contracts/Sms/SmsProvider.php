@@ -2,17 +2,29 @@
 
 namespace App\Contracts\Sms;
 
+use App\Exceptions\SmsDeliveryException;
 use SensitiveParameter;
 
 /**
- * Outbound SMS abstraction. The live provider is chosen per environment in config/services.php (sms.driver);
- * business code depends on this contract only. Implementations must apply timeouts, map provider errors
- * and never log message bodies (they may contain one-time codes).
+ * Delivers a one-time code to a phone. The code is always generated, hashed, expired and verified by
+ * FoodOnTheGo (OtpService); a provider only carries the message. That keeps every provider interchangeable:
+ * which one runs is configuration (SMS_DRIVER), and none of them can sign anybody in.
+ *
+ * Implementations apply timeouts, map provider errors to SmsDeliveryException and never log the code, the
+ * message body or their credentials.
  */
 interface SmsProvider
 {
     /**
-     * @param  string  $phone  E.164 number, e.g. +919876543210
+     * Driver name as used in configuration ("log", "msg91", "twilio", "twofactor").
      */
-    public function send(string $phone, #[SensitiveParameter] string $message): void;
+    public function name(): string;
+
+    /**
+     * @param  string  $phone  E.164 number, e.g. +919876543210
+     * @param  int  $minutes  validity told to the customer
+     *
+     * @throws SmsDeliveryException
+     */
+    public function sendOtp(string $phone, #[SensitiveParameter] string $code, int $minutes): void;
 }

@@ -43,6 +43,8 @@
         <env name="MARKET_DEFAULT_COUNTRY" value="IN" force="true"/>
         <env name="OTP_DEV_CODE" value="123456" force="true"/>
         <env name="SMS_DRIVER" value="log" force="true"/>
+        <env name="SMS_FALLBACK_DRIVER" value="" force="true"/>
+        <env name="OTP_SMS_TEMPLATE" value="Your FoodOnTheGo verification code is :code. It expires in :minutes minutes. Do not share it with anyone." force="true"/>
         <env name="OTP_LENGTH" value="6" force="true"/>
         <env name="OTP_TTL_SECONDS" value="300" force="true"/>
         <env name="OTP_MAX_ATTEMPTS" value="5" force="true"/>

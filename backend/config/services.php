@@ -39,11 +39,33 @@ return [
     |
     */
 
+    /*
+    | SMS (one-time codes). driver: log (sends nothing; local / testing only), msg91, twofactor, twilio.
+    | fallback: optional second driver used when the first cannot deliver.
+    | FoodOnTheGo generates and verifies the code itself; the provider only delivers it.
+    */
+
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),
-        'key' => env('SMS_API_KEY'),
-        'sender' => env('SMS_SENDER_ID'),
+        'fallback' => env('SMS_FALLBACK_DRIVER'),
         'timeout' => (int) env('SMS_TIMEOUT', 10),
+
+        'msg91' => [
+            'auth_key' => env('SMS_MSG91_AUTH_KEY'),
+            'otp_template_id' => env('SMS_MSG91_OTP_TEMPLATE_ID'),
+        ],
+
+        'twofactor' => [
+            'api_key' => env('SMS_2FACTOR_API_KEY'),
+            'template' => env('SMS_2FACTOR_TEMPLATE'),
+        ],
+
+        'twilio' => [
+            'account_sid' => env('SMS_TWILIO_ACCOUNT_SID'),
+            'auth_token' => env('SMS_TWILIO_AUTH_TOKEN'),
+            'messaging_service_sid' => env('SMS_TWILIO_MESSAGING_SERVICE_SID'),
+            'from' => env('SMS_TWILIO_FROM'),
+        ],
     ],
 
     'maps' => [

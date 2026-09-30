@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'otp_sms' => 'Your FoodOnTheGo verification code is :code. It expires in :minutes minutes. Do not share it with anyone.',
     'password_reset_subject' => 'Reset your FoodOnTheGo password',
     'password_reset_line' => 'We received a request to reset the password for this account. The link expires in :minutes minutes and can be used once.',
     'password_reset_action' => 'Choose a new password',

@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use App\Contracts\Sms\SmsProvider;
 use App\Enums\SecurityEventType;
 use App\Exceptions\ApiException;
+use App\Exceptions\SmsDeliveryException;
 use App\Models\Market;
 use App\Models\OtpChallenge;
 use App\Support\PhoneNumber;
@@ -71,10 +72,10 @@ final class OtpService
         $challenge->forceFill(['code_hash' => $this->hash($challenge, $code)])->save();
 
         try {
-            $this->sms->send($phone->e164, __('auth.otp_sms', ['code' => $code, 'minutes' => (int) ceil(config('otp.ttl_seconds') / 60)]));
+            $this->sms->sendOtp($phone->e164, $code, (int) ceil(config('otp.ttl_seconds') / 60));
         } catch (Throwable $e) {
             $challenge->forceFill(['invalidated_at' => now()])->save();
-            Log::warning('otp.delivery_failed', ['challenge' => $challenge->public_id, 'exception' => $e::class]);
+            Log::warning('otp.delivery_failed', ['challenge' => $challenge->public_id, 'provider' => $e instanceof SmsDeliveryException ? $e->provider : null, 'reason' => $e instanceof SmsDeliveryException ? $e->reason : $e::class]);
 
             throw new ApiException(503, 'otp_delivery_failed', 'We could not send the code right now. Please try again in a moment.');
         }

@@ -32,7 +32,8 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 159 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 172 tests, real PostgreSQL + PostGIS + Redis
+php artisan sms:check          # which SMS provider delivers one-time codes here, and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
 
@@ -153,8 +154,32 @@ There is no public way to create a restaurant or admin account: admins come from
   server; the client countdown is decoration. Rate limits apply per phone and per address.
 - The response is the same for a new and an existing customer and never contains the code.
 - First verification creates the customer (`INSERT … ON CONFLICT DO NOTHING` + unique `phone_e164`).
-- Local / testing: `OTP_DEV_CODE` is the code; `SMS_DRIVER=log` writes a masked line instead of sending.
-  `DevelopmentOtp` refuses staging and production whatever the configuration.
+- Local / testing: `SMS_DRIVER=log` sends nothing and `OTP_DEV_CODE` is the code. `DevelopmentOtp` refuses
+  staging and production whatever the configuration, and any environment with a real SMS driver.
+
+### OTP delivery by SMS
+
+FoodOnTheGo generates, hashes, expires and verifies every code itself. An SMS provider only delivers the
+message, so providers are interchangeable and choosing one is configuration, not code.
+
+| `SMS_DRIVER` | What it does | Needs |
+|---|---|---|
+| `log` | **Sends nothing.** Writes a masked line to the log. Local / testing only; refused in production. | — |
+| `msg91` | MSG91 OTP endpoint with our code; text, sender and DLT id live in the MSG91 template | `SMS_MSG91_AUTH_KEY`, `SMS_MSG91_OTP_TEMPLATE_ID` |
+| `twofactor` | 2Factor.in OTP route with our code and an approved template | `SMS_2FACTOR_API_KEY`, `SMS_2FACTOR_TEMPLATE` |
+| `twilio` | Twilio Programmable Messaging; text from `OTP_SMS_TEMPLATE` | `SMS_TWILIO_ACCOUNT_SID`, `SMS_TWILIO_AUTH_TOKEN`, `SMS_TWILIO_MESSAGING_SERVICE_SID` or `SMS_TWILIO_FROM` |
+
+- `SMS_FALLBACK_DRIVER` names a second provider that is used when the first cannot deliver.
+- With a real driver the code is always random, also on the development PC; the fixed `OTP_DEV_CODE` exists only
+  while `SMS_DRIVER=log`.
+- Providers get a timeout and one retry on a connection failure. A failure becomes `503 otp_delivery_failed` for
+  the client; errors and logs never contain the code, the request URL or a credential.
+- India: transactional SMS needs DLT registration (business entity, sender header, the OTP template) with a
+  telecom operator before any provider will deliver. With Twilio, `OTP_SMS_TEMPLATE` must match the registered
+  template word for word.
+- Going live: open the provider account → DLT registration → put the credentials in the environment →
+  `php artisan sms:check` (shows readiness, prints no secret) → `php artisan sms:test <phone>` (one real message).
+- The providers are tested against faked HTTP. **No real SMS has been sent yet** — there is no provider account.
 
 ### Restaurant / admin sign-in
 

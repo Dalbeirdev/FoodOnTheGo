@@ -18354,7 +18354,7 @@
       "evidence": "docs/local-review/test-results/backend-m21-tests.txt (159 tests, 1322 assertions, 0 failed) SecurityBaseline",
       "issue": "-",
       "carry": "-",
-      "notes": "Live SMS provider is CF-026."
+      "notes": "Drivers: log (local), msg91, twofactor, twilio, optional fallback."
     },
     {
       "id": "M21-021",
@@ -19627,14 +19627,174 @@
       "platform": "BACKEND",
       "cat": "Identity & security",
       "pri": "P0",
-      "status": "NOT STARTED",
-      "impl": "NOT STARTED",
+      "status": "PARTIAL",
+      "impl": "PARTIAL",
       "test": "-",
       "manual": "PENDING",
-      "evidence": "-",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
       "issue": "-",
       "carry": "CF-026",
-      "notes": "Out of scope for Module 21 (local first)."
+      "notes": "Three provider drivers are implemented and tested against faked HTTP (M21-102..104). Real delivery is pending the owner account + DLT registration (M21-110, CF-294)."
+    },
+    {
+      "id": "M21-101",
+      "module": "M21",
+      "req": "SMS provider contract: FoodOnTheGo generates, hashes and verifies the code; a provider only delivers it (sendOtp)",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-102",
+      "module": "M21",
+      "req": "MSG91 driver (India) — OTP endpoint with our own code and the panel template",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Verified against faked HTTP only. Real delivery needs the owner account, DLT registration and credentials (CF-294)."
+    },
+    {
+      "id": "M21-103",
+      "module": "M21",
+      "req": "2Factor.in driver (India) — custom-code OTP route with an approved template",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Verified against faked HTTP only (CF-294)."
+    },
+    {
+      "id": "M21-104",
+      "module": "M21",
+      "req": "Twilio driver (global) — Programmable Messaging with the configured text",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Verified against faked HTTP only (CF-294)."
+    },
+    {
+      "id": "M21-105",
+      "module": "M21",
+      "req": "Provider selection by configuration (SMS_DRIVER) and optional fallback provider (SMS_FALLBACK_DRIVER)",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-106",
+      "module": "M21",
+      "req": "Provider failures: timeout, one retry on connection failure, safe error (no code, URL or credential), clean 503 to the client, challenge invalidated",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-107",
+      "module": "M21",
+      "req": "With a real SMS driver the code is always random (the fixed development code only exists with SMS_DRIVER=log)",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-108",
+      "module": "M21",
+      "req": "The log driver (no SMS) is refused in production",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-109",
+      "module": "M21",
+      "req": "Operator commands: sms:check (readiness without secrets) and sms:test <phone> (one real test message)",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-110",
+      "module": "M21",
+      "req": "Real SMS received on a phone through the chosen provider",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (SMS)",
+      "pri": "P0",
+      "status": "PENDING",
+      "impl": "PENDING",
+      "test": "-",
+      "manual": "PENDING (owner)",
+      "evidence": "-",
+      "issue": "-",
+      "carry": "CF-294",
+      "notes": "Needs: provider account, DLT registration in India, credentials in the environment, then php artisan sms:test. Not done — no account exists yet."
     }
   ],
   "pages": [
@@ -22063,6 +22223,12 @@
       "Module 21 result: MODULE 22 MAY START = YES. Live SMS = NOT COMPLETE. Business APIs = NOT COMPLETE. PRODUCTION = NO.",
       "Module 21",
       "M21-002"
+    ],
+    [
+      "2026-09-30",
+      "OTP delivery: the code is generated and verified by FoodOnTheGo; SMS providers are interchangeable drivers (MSG91, 2Factor, Twilio) selected by configuration with an optional fallback. Recommendation: MSG91 primary + 2Factor fallback for India; Twilio for future markets. Provider choice and account are the owner's (CF-294). Locally no SMS is sent.",
+      "Module 21",
+      "M21-101"
     ]
   ],
   "carry": [
@@ -22374,9 +22540,9 @@
       "P1",
       "Owner",
       "Backend Authentication module",
-      "PENDING",
+      "PARTIAL",
       "2026-09-25",
-      "-"
+      "Module 21: MSG91, 2Factor and Twilio drivers + fallback implemented and tested against faked HTTP. Account, DLT and real delivery test are CF-294"
     ],
     [
       "CF-027",
@@ -25581,6 +25747,42 @@
       "NOT STARTED",
       "2026-09-30",
       "-"
+    ],
+    [
+      "CF-294",
+      "OWNER: choose the SMS provider(s), open the account, complete DLT registration for India (entity, sender header, OTP template), put the credentials in the environment, run php artisan sms:test and confirm the code arrives",
+      "M21",
+      "Module 21 (SMS)",
+      "P0",
+      "Owner",
+      "Owner + live environment",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-295",
+      "SMS delivery reports / webhooks (delivered, failed), monthly spend alerts and per-provider delivery rate",
+      "M21",
+      "Module 21 (SMS)",
+      "P1",
+      "Claude",
+      "Backend integration",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-296",
+      "Optional cheaper channels for the same code: WhatsApp OTP, voice-call fallback",
+      "M21",
+      "Module 21 (SMS)",
+      "P2",
+      "Claude",
+      "Owner decision",
+      "DECISION PENDING",
+      "2026-09-30",
+      "-"
     ]
   ],
   "bugs": [
@@ -28779,6 +28981,26 @@
       "PENDING",
       "-",
       "2026-09-30"
+    ],
+    [
+      "TE-193",
+      "M21",
+      "BACKEND",
+      "SMS providers: exact request per provider (MSG91, 2Factor, Twilio), rejection / outage handling, retry, fallback, no secret in errors or logs, random code with a real driver, production guard, sms:check, sms:test",
+      "feature (HTTP faked)",
+      "PASS",
+      "docs/local-review/test-results/backend-m21-sms-tests.txt (172 tests, 0 failed; SmsProvider 13)",
+      "2026-09-30"
+    ],
+    [
+      "TE-194",
+      "M21",
+      "BACKEND",
+      "Real SMS received on a phone (php artisan sms:test, then a real sign-in)",
+      "manual (live provider)",
+      "PENDING",
+      "Needs CF-294",
+      "2026-09-30"
     ]
   ],
   "artifacts": [
@@ -29891,7 +30113,7 @@
       "COMPLETE"
     ],
     [
-      "Authentication — customer phone + OTP, restaurant / admin password + TOTP MFA, sessions, password reset (Module 21). Live SMS and mail delivery NOT STARTED",
+      "Authentication — customer phone + OTP, restaurant / admin password + TOTP MFA, sessions, password reset (Module 21). SMS drivers for MSG91, 2Factor, Twilio implemented; real delivery needs the provider account + DLT (CF-294). Mail delivery NOT STARTED",
       "COMPLETE"
     ],
     [
@@ -32155,6 +32377,132 @@
           "DELETE /auth/mfa/totp",
           "restaurant / admin",
           "mfa-verify"
+        ]
+      ]
+    },
+    {
+      "id": "local-vs-live",
+      "title": "Local server vs live server — what works where",
+      "note": "\"Works\" in the local column means it runs today on the development PC. Nothing is deployed to a live server yet (PRODUCTION = NO). The right-hand column is what is still needed before the live behaviour exists.",
+      "headers": [
+        "Capability",
+        "Local server (today)",
+        "Live server (target)",
+        "Still needed for live"
+      ],
+      "rows": [
+        [
+          "OTP code generation, hashing, expiry, attempt limit, resend rules, verification, sign-in",
+          "WORKS — real backend on the PC",
+          "Same code, no change",
+          "Nothing"
+        ],
+        [
+          "OTP delivery to the phone",
+          "NO SMS is sent. SMS_DRIVER=log writes a masked line; the code is the fixed local test code shown on the screen of local builds",
+          "REAL SMS through MSG91 / 2Factor / Twilio (drivers built). Code is random",
+          "Owner: provider account, DLT registration (India), credentials; then sms:test (CF-294)"
+        ],
+        [
+          "Fixed test code 123456",
+          "Active (local / testing only, only while SMS_DRIVER=log)",
+          "Impossible: refused in staging / production and whenever a real SMS driver is set",
+          "Nothing"
+        ],
+        [
+          "Customer web, Restaurant Dashboard, Platform Admin sign-in",
+          "WORKS against the PC backend",
+          "Same, against the live API URL",
+          "Live hosting, HTTPS, web build with the live API URL and without VITE_DEV_OTP"
+        ],
+        [
+          "Android sign-in",
+          "Works when the PC backend is reachable on the same Wi-Fi (build024)",
+          "Release build pointing at the live HTTPS API",
+          "Release signing, live API URL, Play listing"
+        ],
+        [
+          "Restaurant / admin password reset e-mail",
+          "Written to the local log (no e-mail sent)",
+          "Real e-mail",
+          "Mail provider (CF-290) + reset screens (CF-282)"
+        ],
+        [
+          "Admin MFA",
+          "Available, optional",
+          "Mandatory (AUTH_MFA_REQUIRED_ADMIN=true)",
+          "Enrolment screen (CF-282, CF-292)"
+        ],
+        [
+          "Rate limits",
+          "Relaxed in the local .env for automated runs; real defaults in tests",
+          "Production values",
+          "Decide final numbers (CF-280)"
+        ],
+        [
+          "Database, Redis",
+          "PostgreSQL 18.6 + PostGIS 3.6.2 and Redis 5 on the PC",
+          "Managed PostgreSQL + PostGIS, current Redis, backups",
+          "Live infrastructure (CF-271, CF-274)"
+        ],
+        [
+          "Restaurants, menus, journeys, cart, pickup, checkout, payments, orders, tracking, reviews, dashboards data",
+          "MOCK data in the apps (no backend yet)",
+          "Real APIs",
+          "Backend Modules 22 onward"
+        ],
+        [
+          "Maps / places / routing, payments (Razorpay), push notifications",
+          "Not connected",
+          "Real providers",
+          "Accounts + keys + their modules"
+        ]
+      ]
+    },
+    {
+      "id": "sms-providers",
+      "title": "OTP delivery — SMS providers",
+      "note": "Prices are public list prices found on 2026-09-30 (third-party comparison pages and provider pricing pages) and must be confirmed with the provider before signing up. FoodOnTheGo generates and verifies every code itself; the provider only delivers the message, so switching provider is a configuration change. No real SMS has been sent yet: no provider account exists (CF-294).",
+      "headers": [
+        "Provider",
+        "Use",
+        "Indicative price",
+        "India DLT",
+        "Status",
+        "Configuration"
+      ],
+      "rows": [
+        [
+          "MSG91",
+          "India-first (recommended primary)",
+          "about Rs 0.18–0.25 per OTP + 18% GST",
+          "DLT: yes. Template and sender set in the MSG91 panel",
+          "Built + tested (faked HTTP)",
+          "SMS_DRIVER=msg91, SMS_MSG91_AUTH_KEY, SMS_MSG91_OTP_TEMPLATE_ID"
+        ],
+        [
+          "2Factor.in",
+          "India (recommended fallback)",
+          "about Rs 0.18–0.30 per delivered OTP",
+          "DLT: yes. Template approved in their panel",
+          "Built + tested (faked HTTP)",
+          "SMS_FALLBACK_DRIVER=twofactor, SMS_2FACTOR_API_KEY, SMS_2FACTOR_TEMPLATE"
+        ],
+        [
+          "Twilio",
+          "Global (for future markets)",
+          "about USD 0.083 per SMS to India (roughly Rs 7) — 25 to 40 times the Indian gateways",
+          "DLT still required for India",
+          "Built + tested (faked HTTP)",
+          "SMS_DRIVER=twilio, SMS_TWILIO_ACCOUNT_SID, SMS_TWILIO_AUTH_TOKEN, SMS_TWILIO_MESSAGING_SERVICE_SID or SMS_TWILIO_FROM"
+        ],
+        [
+          "log",
+          "Local / testing only",
+          "free",
+          "No SMS is sent",
+          "In use on the PC",
+          "SMS_DRIVER=log (refused in production)"
         ]
       ]
     }

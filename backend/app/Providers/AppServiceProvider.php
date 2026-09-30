@@ -13,7 +13,7 @@ use App\Models\Customer;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\RolePermission;
-use App\Services\Sms\LogSmsProvider;
+use App\Services\Sms\SmsManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +23,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use InvalidArgumentException;
 use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,10 +31,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AccessControl::class);
 
-        $this->app->bind(SmsProvider::class, fn () => match (config('services.sms.driver')) {
-            'log' => new LogSmsProvider,
-            default => throw new InvalidArgumentException('No SMS provider is configured for driver ['.config('services.sms.driver').'].'),
-        });
+        $this->app->bind(SmsProvider::class, fn () => $this->app->make(SmsManager::class)->provider());
     }
 
     public function boot(): void

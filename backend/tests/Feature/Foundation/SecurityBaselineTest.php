@@ -47,7 +47,7 @@ class SecurityBaselineTest extends TestCase
 
         $provider = app(SmsProvider::class);
         $this->assertInstanceOf(LogSmsProvider::class, $provider);
-        $provider->send('+919876543210', 'Your FoodOnTheGo code is 482913');
+        $provider->sendOtp('+919876543210', '482913', 5);
 
         Log::shouldHaveReceived('info')->once()->withArgs(function (string $message, array $context): bool {
             $serialised = $message.json_encode($context);
@@ -77,7 +77,7 @@ class SecurityBaselineTest extends TestCase
     {
         $example = (string) File::get(base_path('.env.example'));
 
-        foreach (['APP_KEY', 'DB_PASSWORD', 'SMS_API_KEY', 'PAYMENT_KEY_SECRET', 'PAYMENT_WEBHOOK_SECRET', 'PLACES_API_KEY', 'ROUTING_API_KEY', 'AWS_SECRET_ACCESS_KEY', 'OTP_DEV_CODE', 'LOCAL_FIXTURE_PASSWORD', 'ADMIN_BOOTSTRAP_PASSWORD'] as $key) {
+        foreach (['APP_KEY', 'DB_PASSWORD', 'SMS_MSG91_AUTH_KEY', 'SMS_2FACTOR_API_KEY', 'SMS_TWILIO_AUTH_TOKEN', 'SMS_TWILIO_ACCOUNT_SID', 'PAYMENT_KEY_SECRET', 'PAYMENT_WEBHOOK_SECRET', 'PLACES_API_KEY', 'ROUTING_API_KEY', 'AWS_SECRET_ACCESS_KEY', 'OTP_DEV_CODE', 'LOCAL_FIXTURE_PASSWORD', 'ADMIN_BOOTSTRAP_PASSWORD'] as $key) {
             $this->assertMatchesRegularExpression('/^'.$key.'=$/m', $example, "{$key} must be empty in .env.example");
         }
 

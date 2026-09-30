@@ -7,17 +7,22 @@ use Illuminate\Support\Facades\Log;
 use SensitiveParameter;
 
 /**
- * Development / test driver: records that a message would have been sent. The number is masked and the
- * body is never written, so one-time codes cannot end up in log files.
+ * Development / test driver: NO message is sent. It records that one would have been — with the number
+ * masked and without the code — so one-time codes cannot end up in log files. Refused in production.
  */
 final class LogSmsProvider implements SmsProvider
 {
-    public function send(string $phone, #[SensitiveParameter] string $message): void
+    public function name(): string
+    {
+        return 'log';
+    }
+
+    public function sendOtp(string $phone, #[SensitiveParameter] string $code, int $minutes): void
     {
         Log::info('sms.sent', [
             'driver' => 'log',
             'to' => str_repeat('*', max(0, strlen($phone) - 4)).substr($phone, -4),
-            'length' => strlen($message),
+            'kind' => 'otp',
         ]);
     }
 }
