@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Foundation;
 
+use App\Models\Customer;
 use App\Models\Market;
-use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -39,10 +39,10 @@ class DatabaseFoundationTest extends TestCase
         ];
 
         foreach ($names as $name) {
-            $user = User::factory()->create(['name' => $name]);
+            $user = Customer::factory()->create(['name' => $name]);
 
             $this->assertSame($name, $user->fresh()->name);
-            $this->assertSame(mb_strlen($name), (int) DB::selectOne('select char_length(name) as n from users where id = ?', [$user->id])->n);
+            $this->assertSame(mb_strlen($name), (int) DB::selectOne('select char_length(name) as n from customers where id = ?', [$user->id])->n);
         }
     }
 
@@ -90,8 +90,8 @@ class DatabaseFoundationTest extends TestCase
         }
 
         try {
-            DB::transaction(fn () => DB::table('permission_grants')->insert(['user_id' => 999999, 'permission' => 'admin.markets.view']));
-            $this->fail('Orphan permission grant was accepted.');
+            DB::transaction(fn () => DB::table('role_permissions')->insert(['role_id' => 999999, 'permission' => 'admin.markets.view']));
+            $this->fail('Orphan role permission was accepted.');
         } catch (QueryException $e) {
             $this->assertStringContainsString('foreign key constraint', $e->getMessage());
         }
@@ -99,11 +99,12 @@ class DatabaseFoundationTest extends TestCase
 
     public function test_foundation_tables_exist_after_migrating(): void
     {
-        foreach (['users', 'markets', 'permission_grants', 'idempotency_keys', 'personal_access_tokens', 'jobs', 'failed_jobs', 'cache'] as $table) {
+        foreach (['customers', 'restaurant_users', 'admin_users', 'roles', 'role_permissions', 'role_assignments', 'otp_challenges', 'security_events', 'credential_reset_tokens', 'markets', 'idempotency_keys', 'personal_access_tokens', 'jobs', 'failed_jobs', 'cache'] as $table) {
             $this->assertTrue(Schema::hasTable($table), "Missing table {$table}");
         }
 
-        $this->assertTrue(Schema::hasColumn('users', 'principal_type'));
-        $this->assertFalse(Schema::hasColumn('users', 'role'));
+        foreach (['users', 'permission_grants', 'password_reset_tokens'] as $prototype) {
+            $this->assertFalse(Schema::hasTable($prototype), "Prototype table {$prototype} still exists");
+        }
     }
 }

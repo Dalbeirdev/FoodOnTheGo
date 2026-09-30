@@ -27,6 +27,8 @@ class MarketSeeder extends Seeder
             'default_timezone' => 'Asia/Kolkata',
             'distance_unit' => DistanceUnit::Metric,
             'phone_country_code' => '+91',
+            'phone_national_pattern' => '^[6-9][0-9]{9}$',
+            'phone_trunk_prefix' => '0',
             'features' => [
                 'journey_ordering' => true,
                 'asap_pickup' => true,

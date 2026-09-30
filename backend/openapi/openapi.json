@@ -3,241 +3,1975 @@
   "info": {
     "title": "FoodOnTheGo API",
     "version": "v1",
-    "description": "Contract for /api/v1. Conventions: snake_case JSON; single resources are returned unwrapped; collections are {data, links, meta}; every error is {error: {code, message, details?, request_id}}; money is {amount, currency} with amount in integer minor units and an ISO 4217 currency; identifiers are public UUIDs (internal numeric ids are never exposed); timestamps are ISO 8601 in UTC; countries are ISO 3166-1 alpha-2; time zones are IANA ids. Every response carries X-Request-Id. tests/Feature/Foundation/OpenApiContractTest.php fails when the routes or the documented response shapes drift from this file."
+    "description": "Contract for /api/v1. Conventions: snake_case JSON; single resources are returned unwrapped; collections are {data, links, meta}; every error is {error: {code, message, details?, request_id}}; money is {amount, currency} with amount in integer minor units and an ISO 4217 currency; identifiers are public UUIDs (internal numeric ids are never exposed); timestamps are ISO 8601 in UTC; countries are ISO 3166-1 alpha-2; time zones are IANA ids. Every response carries X-Request-Id. Authentication: three separate bearer-token contexts (customer, restaurant, admin); a token is accepted only by routes of its own context, the account state is re-checked on every request, and sensitive endpoints are rate limited (429 rate_limited with Retry-After). tests/Feature/Foundation/OpenApiContractTest.php fails when the routes or the documented response shapes drift from this file."
   },
-  "servers": [{ "url": "/api/v1" }],
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
   "paths": {
     "/health": {
       "get": {
         "summary": "Public availability check (no infrastructure detail)",
         "responses": {
-          "200": { "description": "Available", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } } },
-          "503": { "description": "Degraded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Health" } } } }
+          "200": {
+            "description": "Available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Degraded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/ready": {
       "get": {
         "summary": "Per-dependency readiness. Public only in local / testing; otherwise requires admin.system.view",
-        "security": [{ "bearer": [] }, {}],
+        "security": [
+          {
+            "admin": []
+          },
+          {}
+        ],
         "responses": {
-          "200": { "description": "Ready", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Readiness" } } } },
-          "401": { "$ref": "#/components/responses/Error" },
-          "403": { "$ref": "#/components/responses/Error" },
-          "503": { "description": "Not ready", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Readiness" } } } }
+          "200": {
+            "description": "Ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "description": "Not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Readiness"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/config": {
       "get": {
         "summary": "Client bootstrap configuration (safe values only)",
-        "parameters": [{ "$ref": "#/components/parameters/Country" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
         "responses": {
-          "200": { "description": "Configuration", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClientConfig" } } } },
-          "404": { "$ref": "#/components/responses/Error" },
-          "422": { "$ref": "#/components/responses/Error" }
+          "200": {
+            "description": "Configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientConfig"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
     "/markets/current": {
       "get": {
         "summary": "The market serving this client (default market, or ?country= when it serves customers)",
-        "parameters": [{ "$ref": "#/components/parameters/Country" }],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
         "responses": {
-          "200": { "description": "Market", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Market" } } } },
-          "404": { "$ref": "#/components/responses/Error" },
-          "422": { "$ref": "#/components/responses/Error" }
+          "200": {
+            "description": "Market",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Market"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
     "/admin/markets": {
       "get": {
         "summary": "All markets in any status (admin.markets.view)",
-        "security": [{ "bearer": [] }],
+        "security": [
+          {
+            "admin": []
+          }
+        ],
         "parameters": [
-          { "name": "filter[status]", "in": "query", "schema": { "$ref": "#/components/schemas/MarketStatus" } },
-          { "name": "filter[country_code]", "in": "query", "schema": { "type": "string" } },
-          { "name": "sort", "in": "query", "description": "Comma list of name, country_code, status, created_at; prefix - for descending", "schema": { "type": "string" } },
-          { "name": "page[number]", "in": "query", "schema": { "type": "integer", "minimum": 1 } },
-          { "name": "page[size]", "in": "query", "schema": { "type": "integer", "minimum": 1 } }
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/MarketStatus"
+            }
+          },
+          {
+            "name": "filter[country_code]",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Comma list of name, country_code, status, created_at; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Page of markets", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarketPage" } } } },
-          "401": { "$ref": "#/components/responses/Error" },
-          "403": { "$ref": "#/components/responses/Error" },
-          "422": { "$ref": "#/components/responses/Error" }
+          "200": {
+            "description": "Page of markets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
         }
       }
     },
-    "/auth/register": {
+    "/auth/customer/otp/request": {
       "post": {
-        "summary": "INTERIM (Module 03 prototype): password registration. Replaced by phone + OTP in the identity module",
-        "responses": { "201": { "description": "Token and user", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenResponse" } } } }, "422": { "$ref": "#/components/responses/Error" }, "429": { "$ref": "#/components/responses/Error" } }
+        "summary": "Send a one-time code to a phone number. Same answer for new and existing customers; never returns the code. Limits: per phone and per address per minute, resend cooldown, hourly cap per phone",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Code sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpChallenge"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
       }
     },
-    "/auth/login": {
+    "/auth/customer/otp/verify": {
       "post": {
-        "summary": "INTERIM (Module 03 prototype): password sign-in. Replaced by phone + OTP in the identity module",
-        "responses": { "200": { "description": "Token and user", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenResponse" } } } }, "422": { "$ref": "#/components/responses/Error" }, "429": { "$ref": "#/components/responses/Error" } }
+        "summary": "Verify the code and sign in. Creates the customer on first use (201). Errors: otp_invalid (details.attempts_left), otp_expired, otp_attempts_exceeded (429), account_not_active (403)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing customer signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSession"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New customer created and signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSession"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
       }
     },
-    "/auth/forgot-password": {
-      "post": { "summary": "INTERIM: request a password reset link", "responses": { "200": { "description": "Accepted (same answer whether or not the account exists)" }, "422": { "$ref": "#/components/responses/Error" }, "429": { "$ref": "#/components/responses/Error" } } }
+    "/auth/customer/profile": {
+      "patch": {
+        "summary": "Update the signed-in customer's own name, e-mail, locale; accept the terms",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPrincipal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     },
-    "/auth/reset-password": {
-      "post": { "summary": "INTERIM: set a new password with a reset token", "responses": { "200": { "description": "Password changed" }, "422": { "$ref": "#/components/responses/Error" }, "429": { "$ref": "#/components/responses/Error" } } }
+    "/auth/restaurant/login": {
+      "post": {
+        "summary": "Restaurant user sign-in with e-mail and password. With MFA enabled the answer is a challenge, not a token. Errors: invalid_credentials (401, generic), account_not_active (403)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token, or MFA challenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/StaffSession"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MfaChallenge"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/restaurant/mfa/verify": {
+      "post": {
+        "summary": "Restaurant user: complete sign-in with a TOTP code or a recovery code. Errors: mfa_challenge_invalid (401), mfa_code_invalid (422), mfa_attempts_exceeded (429)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/restaurant/password/forgot": {
+      "post": {
+        "summary": "Restaurant user: request a password reset link. The answer is identical whether or not the account exists",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/restaurant/password/reset": {
+      "post": {
+        "summary": "Restaurant user: set a new password with a reset token (expiring, single use). All sessions are signed out. Error: reset_token_invalid",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/admin/login": {
+      "post": {
+        "summary": "Admin user sign-in with e-mail and password. With MFA enabled the answer is a challenge, not a token. Errors: invalid_credentials (401, generic), account_not_active (403)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token, or MFA challenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/StaffSession"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MfaChallenge"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/admin/mfa/verify": {
+      "post": {
+        "summary": "Admin user: complete sign-in with a TOTP code or a recovery code. Errors: mfa_challenge_invalid (401), mfa_code_invalid (422), mfa_attempts_exceeded (429)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffSession"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/admin/password/forgot": {
+      "post": {
+        "summary": "Admin user: request a password reset link. The answer is identical whether or not the account exists",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/admin/password/reset": {
+      "post": {
+        "summary": "Admin user: set a new password with a reset token (expiring, single use). All sessions are signed out. Error: reset_token_invalid",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     },
     "/auth/me": {
-      "get": { "summary": "The authenticated principal", "security": [{ "bearer": [] }], "responses": { "200": { "description": "User", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } }, "401": { "$ref": "#/components/responses/Error" } } }
-    },
-    "/auth/profile": {
-      "patch": { "summary": "Update own name, e-mail or phone", "security": [{ "bearer": [] }], "responses": { "200": { "description": "User", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } }, "401": { "$ref": "#/components/responses/Error" }, "422": { "$ref": "#/components/responses/Error" } } }
+      "get": {
+        "summary": "The signed-in principal. Roles and permissions are for navigation only; the backend decides every action",
+        "security": [
+          {
+            "customer": []
+          },
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/CustomerPrincipal"
+                    },
+                    {
+                      "$ref": "#/components/schemas/StaffPrincipal"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     },
     "/auth/logout": {
-      "post": { "summary": "Revoke the current token", "security": [{ "bearer": [] }], "responses": { "200": { "description": "Signed out" }, "401": { "$ref": "#/components/responses/Error" } } }
+      "post": {
+        "summary": "Revoke the current session",
+        "security": [
+          {
+            "customer": []
+          },
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Signed out"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     },
     "/auth/logout-all": {
-      "post": { "summary": "Revoke every token of the principal", "security": [{ "bearer": [] }], "responses": { "200": { "description": "Signed out everywhere" }, "401": { "$ref": "#/components/responses/Error" } } }
+      "post": {
+        "summary": "Revoke every session of the account",
+        "security": [
+          {
+            "customer": []
+          },
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Signed out everywhere"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/sessions": {
+      "get": {
+        "summary": "The account's own active sessions (devices)",
+        "security": [
+          {
+            "customer": []
+          },
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Session"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/sessions/{session}": {
+      "delete": {
+        "summary": "Revoke one of the account's own sessions. Another account's session id answers 404 session_not_found",
+        "security": [
+          {
+            "customer": []
+          },
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Revoked"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/password": {
+      "post": {
+        "summary": "Change the password of the signed-in restaurant or admin user (needs the current password). Other sessions are signed out",
+        "security": [
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/mfa/totp/setup": {
+      "post": {
+        "summary": "Start MFA enrolment: returns the TOTP secret once",
+        "security": [
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaSetup"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/mfa/totp/confirm": {
+      "post": {
+        "summary": "Confirm enrolment with a first code: returns recovery codes once (and a full token when the current one could only enrol)",
+        "security": [
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaCode"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaConfirmed"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/mfa/totp": {
+      "delete": {
+        "summary": "Disable MFA (needs password and a valid code; refused with 409 mfa_required where MFA is mandatory)",
+        "security": [
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaDisable"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Disabled"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
     "securitySchemes": {
-      "bearer": { "type": "http", "scheme": "bearer", "description": "Opaque Sanctum API token. Revocable server-side; stored hashed." }
+      "customer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque access token of a customer. Stored hashed, expiring, revocable. Not accepted by routes of another context."
+      },
+      "restaurant": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque access token of a restaurant user. Stored hashed, expiring, revocable. Not accepted by routes of another context."
+      },
+      "admin": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Opaque access token of a admin user. Stored hashed, expiring, revocable. Not accepted by routes of another context."
+      }
     },
     "parameters": {
-      "Country": { "name": "country", "in": "query", "required": false, "description": "ISO 3166-1 alpha-2, upper case", "schema": { "type": "string", "pattern": "^[A-Z]{2}$" } }
+      "Country": {
+        "name": "country",
+        "in": "query",
+        "required": false,
+        "description": "ISO 3166-1 alpha-2, upper case",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        }
+      }
     },
     "responses": {
-      "Error": { "description": "Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+      "Error": {
+        "description": "Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
     },
     "schemas": {
       "Error": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "additionalProperties": false,
         "properties": {
           "error": {
             "type": "object",
-            "required": ["code", "message"],
+            "required": [
+              "code",
+              "message"
+            ],
             "additionalProperties": false,
             "properties": {
-              "code": { "type": "string", "description": "Stable machine-readable code, e.g. validation_failed, unauthenticated, forbidden, not_found, conflict, rate_limited, internal_error, or a domain code such as market_unavailable" },
-              "message": { "type": "string", "description": "Customer-safe text" },
-              "details": { "type": "object", "description": "validation_failed: {fields: {name: [messages]}}; rate_limited: {retry_after_seconds}" },
-              "request_id": { "type": "string" }
+              "code": {
+                "type": "string",
+                "description": "Stable machine-readable code, e.g. validation_failed, unauthenticated, forbidden, not_found, conflict, rate_limited, internal_error, or a domain code such as market_unavailable"
+              },
+              "message": {
+                "type": "string",
+                "description": "Customer-safe text"
+              },
+              "details": {
+                "type": "object",
+                "description": "validation_failed: {fields: {name: [messages]}}; rate_limited: {retry_after_seconds}"
+              },
+              "request_id": {
+                "type": "string"
+              }
             }
           },
-          "debug": { "type": "object", "description": "Only when APP_DEBUG is on (never in production)" }
+          "debug": {
+            "type": "object",
+            "description": "Only when APP_DEBUG is on (never in production)"
+          }
         }
       },
       "Money": {
         "type": "object",
-        "required": ["amount", "currency"],
+        "required": [
+          "amount",
+          "currency"
+        ],
         "additionalProperties": false,
         "properties": {
-          "amount": { "type": "integer", "description": "Minor units (24900 = INR 249.00)" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+          "amount": {
+            "type": "integer",
+            "description": "Minor units (24900 = INR 249.00)"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
         }
       },
       "Health": {
         "type": "object",
-        "required": ["status", "service", "version", "time"],
+        "required": [
+          "status",
+          "service",
+          "version",
+          "time"
+        ],
         "additionalProperties": false,
         "properties": {
-          "status": { "type": "string", "enum": ["ok", "degraded"] },
-          "service": { "type": "string" },
-          "version": { "type": "string" },
-          "time": { "type": "string" }
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "service": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          }
         }
       },
       "Readiness": {
         "type": "object",
-        "required": ["status", "environment", "checks", "version", "time"],
+        "required": [
+          "status",
+          "environment",
+          "checks",
+          "version",
+          "time"
+        ],
         "additionalProperties": false,
         "properties": {
-          "status": { "type": "string", "enum": ["ok", "degraded"] },
-          "environment": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "environment": {
+            "type": "string"
+          },
           "checks": {
             "type": "object",
-            "required": ["application", "database", "postgis", "redis"],
+            "required": [
+              "application",
+              "database",
+              "postgis",
+              "redis"
+            ],
             "additionalProperties": false,
             "properties": {
-              "application": { "type": "string", "enum": ["ok", "error"] },
-              "database": { "type": "string", "enum": ["ok", "error"] },
-              "postgis": { "type": "string", "enum": ["ok", "error"] },
-              "redis": { "type": "string", "enum": ["ok", "error"] }
+              "application": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              },
+              "database": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              },
+              "postgis": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              },
+              "redis": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              }
             }
           },
-          "version": { "type": "string" },
-          "time": { "type": "string" }
+          "version": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          }
         }
       },
-      "MarketStatus": { "type": "string", "enum": ["DRAFT", "PILOT", "ACTIVE", "PAUSED", "CLOSED"] },
+      "MarketStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "PILOT",
+          "ACTIVE",
+          "PAUSED",
+          "CLOSED"
+        ]
+      },
       "Market": {
         "type": "object",
-        "required": ["id", "slug", "country_code", "name", "status", "default_currency", "supported_currencies", "default_locale", "supported_locales", "timezone_strategy", "default_timezone", "distance_unit", "phone_country_code", "features", "launched_at"],
+        "required": [
+          "id",
+          "slug",
+          "country_code",
+          "name",
+          "status",
+          "default_currency",
+          "supported_currencies",
+          "default_locale",
+          "supported_locales",
+          "timezone_strategy",
+          "default_timezone",
+          "distance_unit",
+          "phone_country_code",
+          "features",
+          "launched_at"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "slug": { "type": "string" },
-          "country_code": { "type": "string", "pattern": "^[A-Z]{2}$" },
-          "name": { "type": "string" },
-          "status": { "$ref": "#/components/schemas/MarketStatus" },
-          "default_currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "supported_currencies": { "type": "array", "items": { "type": "string" } },
-          "default_locale": { "type": "string" },
-          "supported_locales": { "type": "array", "items": { "type": "string" } },
-          "timezone_strategy": { "type": "string", "enum": ["single", "per-location"] },
-          "default_timezone": { "type": "string", "description": "IANA time zone id" },
-          "distance_unit": { "type": "string", "enum": ["metric", "imperial"] },
-          "phone_country_code": { "type": "string", "description": "UX default for phone inputs, not a validation rule" },
-          "features": { "type": "object", "description": "Feature key → enabled" },
-          "launched_at": { "type": ["string", "null"] }
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "country_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MarketStatus"
+          },
+          "default_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "supported_currencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default_locale": {
+            "type": "string"
+          },
+          "supported_locales": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timezone_strategy": {
+            "type": "string",
+            "enum": [
+              "single",
+              "per-location"
+            ]
+          },
+          "default_timezone": {
+            "type": "string",
+            "description": "IANA time zone id"
+          },
+          "distance_unit": {
+            "type": "string",
+            "enum": [
+              "metric",
+              "imperial"
+            ]
+          },
+          "phone_country_code": {
+            "type": "string",
+            "description": "UX default for phone inputs, not a validation rule"
+          },
+          "features": {
+            "type": "object",
+            "description": "Feature key → enabled"
+          },
+          "launched_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "MarketPage": {
         "type": "object",
-        "required": ["data", "links", "meta"],
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Market" } },
-          "links": { "type": "object", "required": ["first", "last", "prev", "next"] },
-          "meta": { "type": "object", "required": ["current_page", "per_page", "total", "last_page"] }
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Market"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
         }
       },
       "ClientConfig": {
         "type": "object",
-        "required": ["api", "app", "market"],
+        "required": [
+          "api",
+          "app",
+          "market"
+        ],
         "additionalProperties": false,
         "properties": {
-          "api": { "type": "object", "required": ["version"], "additionalProperties": false, "properties": { "version": { "type": "string" } } },
-          "app": { "type": "object", "required": ["name", "version"], "additionalProperties": false, "properties": { "name": { "type": "string" }, "version": { "type": "string" } } },
-          "market": { "$ref": "#/components/schemas/Market" }
+          "api": {
+            "type": "object",
+            "required": [
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "version": {
+                "type": "string"
+              }
+            }
+          },
+          "app": {
+            "type": "object",
+            "required": [
+              "name",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          },
+          "market": {
+            "$ref": "#/components/schemas/Market"
+          }
         }
       },
-      "User": {
+      "Message": {
         "type": "object",
-        "required": ["id", "name", "email", "email_verified", "phone", "phone_verified", "principal_type", "member_since", "last_login_at"],
+        "required": [
+          "message"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string" },
-          "name": { "type": "string" },
-          "email": { "type": ["string", "null"] },
-          "email_verified": { "type": "boolean" },
-          "phone": { "type": ["string", "null"] },
-          "phone_verified": { "type": "boolean" },
-          "principal_type": { "type": "string", "enum": ["CUSTOMER", "RESTAURANT_USER", "ADMIN_USER"] },
-          "member_since": { "type": ["string", "null"] },
-          "last_login_at": { "type": ["string", "null"] }
+          "message": {
+            "type": "string"
+          }
         }
       },
-      "TokenResponse": {
+      "OtpRequest": {
         "type": "object",
-        "required": ["token", "token_type", "user"],
+        "required": [
+          "phone"
+        ],
+        "properties": {
+          "phone": {
+            "type": "string",
+            "description": "Any common format; normalised to E.164 by the server in the market's context"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "Market of the number; defaults to the default market"
+          }
+        }
+      },
+      "OtpVerify": {
+        "type": "object",
+        "required": [
+          "phone",
+          "challenge_id",
+          "code"
+        ],
+        "properties": {
+          "phone": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "challenge_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{4,8}$"
+          },
+          "device_name": {
+            "type": "string",
+            "maxLength": 60
+          }
+        }
+      },
+      "OtpChallenge": {
+        "type": "object",
+        "required": [
+          "challenge_id",
+          "phone_masked",
+          "expires_at",
+          "resend_available_at",
+          "attempts_allowed",
+          "server_time",
+          "delivery"
+        ],
         "additionalProperties": false,
         "properties": {
-          "token": { "type": "string" },
-          "token_type": { "type": "string", "enum": ["Bearer"] },
-          "user": { "$ref": "#/components/schemas/User" }
+          "challenge_id": {
+            "type": "string"
+          },
+          "phone_masked": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "resend_available_at": {
+            "type": "string",
+            "description": "Server decides; the client countdown is decoration"
+          },
+          "attempts_allowed": {
+            "type": "integer"
+          },
+          "server_time": {
+            "type": "string"
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "development"
+            ],
+            "description": "development = local / testing environment with a fixed test code; the code itself is never returned"
+          }
+        }
+      },
+      "CustomerPrincipal": {
+        "type": "object",
+        "required": [
+          "principal_type",
+          "id",
+          "status",
+          "name",
+          "email",
+          "phone",
+          "phone_masked",
+          "phone_verified",
+          "profile_complete",
+          "preferred_locale",
+          "market",
+          "member_since"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "principal_type": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "RESTRICTED",
+              "SUSPENDED",
+              "DEACTIVATED"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "description": "E.164 — the customer's own number"
+          },
+          "phone_masked": {
+            "type": "string"
+          },
+          "phone_verified": {
+            "type": "boolean"
+          },
+          "profile_complete": {
+            "type": "boolean",
+            "description": "name present and terms accepted"
+          },
+          "preferred_locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "member_since": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CustomerSession": {
+        "type": "object",
+        "required": [
+          "token",
+          "token_type",
+          "expires_at",
+          "new_account",
+          "principal"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Shown once"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "new_account": {
+            "type": "boolean"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/CustomerPrincipal"
+          }
+        }
+      },
+      "CustomerProfileUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preferred_locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "accept_terms": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StaffLogin": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "device_name": {
+            "type": "string",
+            "maxLength": 60
+          }
+        }
+      },
+      "RoleAssignment": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "scope"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "type",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "organization",
+                  "location",
+                  "market"
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "StaffPrincipal": {
+        "type": "object",
+        "required": [
+          "principal_type",
+          "id",
+          "status",
+          "name",
+          "email",
+          "mfa_enabled",
+          "last_login_at",
+          "roles",
+          "permissions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "principal_type": {
+            "type": "string",
+            "enum": [
+              "RESTAURANT_USER",
+              "ADMIN_USER"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "INVITED",
+              "ACTIVE",
+              "SUSPENDED",
+              "DISABLED"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "mfa_enabled": {
+            "type": "boolean"
+          },
+          "last_login_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleAssignment"
+            }
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Distinct permission codes held in any scope — display convenience only"
+          }
+        }
+      },
+      "StaffSession": {
+        "type": "object",
+        "required": [
+          "mfa_required",
+          "mfa_enrollment_required",
+          "token",
+          "token_type",
+          "expires_at",
+          "principal"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "mfa_required": {
+            "type": "boolean",
+            "enum": [
+              false
+            ]
+          },
+          "mfa_enrollment_required": {
+            "type": "boolean",
+            "description": "true = this token can only enrol in MFA"
+          },
+          "token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "principal": {
+            "$ref": "#/components/schemas/StaffPrincipal"
+          }
+        }
+      },
+      "MfaChallenge": {
+        "type": "object",
+        "required": [
+          "mfa_required",
+          "mfa_challenge",
+          "methods"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "mfa_required": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "mfa_challenge": {
+            "type": "string",
+            "description": "Short-lived, single use"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "totp",
+                "recovery_code"
+              ]
+            }
+          }
+        }
+      },
+      "MfaVerify": {
+        "type": "object",
+        "required": [
+          "mfa_challenge"
+        ],
+        "properties": {
+          "mfa_challenge": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$"
+          },
+          "recovery_code": {
+            "type": "string"
+          }
+        }
+      },
+      "MfaSetup": {
+        "type": "object",
+        "required": [
+          "secret",
+          "otpauth_uri"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "secret": {
+            "type": "string",
+            "description": "Base32 TOTP secret — shown once"
+          },
+          "otpauth_uri": {
+            "type": "string"
+          }
+        }
+      },
+      "MfaCode": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$"
+          }
+        }
+      },
+      "MfaConfirmed": {
+        "type": "object",
+        "required": [
+          "recovery_codes",
+          "principal"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "recovery_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Shown once; each works once"
+          },
+          "principal": {
+            "$ref": "#/components/schemas/StaffPrincipal"
+          },
+          "token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "MfaDisable": {
+        "type": "object",
+        "required": [
+          "password",
+          "code"
+        ],
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$"
+          }
+        }
+      },
+      "ForgotPassword": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPassword": {
+        "type": "object",
+        "required": [
+          "token",
+          "password",
+          "password_confirmation"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12
+          },
+          "password_confirmation": {
+            "type": "string"
+          }
+        }
+      },
+      "ChangePassword": {
+        "type": "object",
+        "required": [
+          "current_password",
+          "password",
+          "password_confirmation"
+        ],
+        "properties": {
+          "current_password": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12
+          },
+          "password_confirmation": {
+            "type": "string"
+          }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "required": [
+          "id",
+          "device",
+          "current",
+          "created_at",
+          "last_used_at",
+          "expires_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          },
+          "current": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_used_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     }

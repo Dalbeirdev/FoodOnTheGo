@@ -11,7 +11,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(MarketSeeder::class);
+        $this->call([MarketSeeder::class, RoleSeeder::class]);
 
         if (app()->environment(['local', 'testing'])) {
             $this->call(LocalFixtureSeeder::class);

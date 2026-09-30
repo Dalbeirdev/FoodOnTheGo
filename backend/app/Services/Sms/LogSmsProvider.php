@@ -4,6 +4,7 @@ namespace App\Services\Sms;
 
 use App\Contracts\Sms\SmsProvider;
 use Illuminate\Support\Facades\Log;
+use SensitiveParameter;
 
 /**
  * Development / test driver: records that a message would have been sent. The number is masked and the
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Log;
  */
 final class LogSmsProvider implements SmsProvider
 {
-    public function send(string $phone, string $message): void
+    public function send(string $phone, #[SensitiveParameter] string $message): void
     {
         Log::info('sms.sent', [
             'driver' => 'log',

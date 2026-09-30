@@ -37,7 +37,7 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    'guard' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ return [
     |
     */
 
-    'expiration' => env('SANCTUM_TOKEN_EXPIRATION_MINUTES') === null ? null : (int) env('SANCTUM_TOKEN_EXPIRATION_MINUTES'),
+    'expiration' => null, // every token carries its own expires_at (config/auth_security.php)
 
     /*
     |--------------------------------------------------------------------------

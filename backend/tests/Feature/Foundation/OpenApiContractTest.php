@@ -2,14 +2,15 @@
 
 namespace Tests\Feature\Foundation;
 
-use App\Auth\AccessControl;
 use App\Enums\Permission;
+use App\Enums\PrincipalType;
+use App\Models\AdminUser;
 use App\Models\Market;
-use App\Models\User;
+use App\Services\Rbac\RoleService;
+use Database\Factories\AdminUserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 /**
@@ -56,8 +57,9 @@ class OpenApiContractTest extends TestCase
     public function test_real_responses_match_their_documented_schemas(): void
     {
         Market::factory()->india()->create();
-        $admin = User::factory()->admin()->create();
-        app(AccessControl::class)->grant($admin, Permission::AdminMarketsView);
+        $admin = AdminUser::factory()->create();
+        $roles = app(RoleService::class);
+        $roles->assign($admin, $roles->define(PrincipalType::AdminUser, 'MARKET_VIEWER', 'Market viewer', [Permission::AdminMarketsView]));
 
         $this->assertMatchesSchema('Health', $this->getJson('/api/v1/health')->assertOk()->json());
         $this->assertMatchesSchema('Readiness', $this->getJson('/api/v1/ready')->assertOk()->json());
@@ -67,14 +69,29 @@ class OpenApiContractTest extends TestCase
         $this->assertMatchesSchema('Error', $this->getJson('/api/v1/markets/current?country=zz')->assertUnprocessable()->json());
         $this->assertMatchesSchema('Error', $this->getJson('/api/v1/auth/me')->assertUnauthorized()->json());
 
-        $register = $this->postJson('/api/v1/auth/register', [
-            'name' => 'Asha Verma', 'identity' => 'asha@example.com', 'password' => 'Secret123', 'password_confirmation' => 'Secret123', 'accept_terms' => true,
-        ])->assertCreated();
-        $this->assertMatchesSchema('TokenResponse', $register->json());
+        // Customer: request a code, verify it, read the identity and the session list.
+        $challenge = $this->postJson('/api/v1/auth/customer/otp/request', ['phone' => '98765 43210'])->assertOk();
+        $this->assertMatchesSchema('OtpChallenge', $challenge->json());
+        $this->assertMatchesSchema('Error', $this->postJson('/api/v1/auth/customer/otp/verify', ['phone' => '9876543210', 'challenge_id' => $challenge->json('challenge_id'), 'code' => '000000'])->assertUnprocessable()->json());
+        $signedIn = $this->postJson('/api/v1/auth/customer/otp/verify', ['phone' => '9876543210', 'challenge_id' => $challenge->json('challenge_id'), 'code' => '123456', 'device_name' => 'web'])->assertCreated();
+        $this->assertMatchesSchema('CustomerSession', $signedIn->json());
 
-        Sanctum::actingAs($admin);
-        $this->assertMatchesSchema('User', $this->getJson('/api/v1/auth/me')->assertOk()->json());
-        $this->assertMatchesSchema('MarketPage', $this->getJson('/api/v1/admin/markets')->assertOk()->json());
+        $customer = ['Authorization' => 'Bearer '.$signedIn->json('token')];
+        $this->assertMatchesSchema('CustomerPrincipal', $this->getJson('/api/v1/auth/me', $customer)->assertOk()->json());
+        $this->assertMatchesSchema('CustomerPrincipal', $this->patchJson('/api/v1/auth/customer/profile', ['name' => 'Asha Verma', 'accept_terms' => true], $customer)->assertOk()->json());
+        $sessions = $this->getJson('/api/v1/auth/sessions', $customer)->assertOk()->json();
+        $this->assertMatchesSchema('Session', $sessions[0]);
+
+        // Admin: password sign-in, identity with roles and permissions, a protected collection.
+        $this->app['auth']->forgetGuards();
+        $login = $this->postJson('/api/v1/auth/admin/login', ['email' => $admin->email, 'password' => AdminUserFactory::PASSWORD])->assertOk();
+        $this->assertMatchesSchema('StaffSession', $login->json());
+        $this->assertMatchesSchema('Error', $this->postJson('/api/v1/auth/admin/login', ['email' => $admin->email, 'password' => 'wrong-password-value'])->assertUnauthorized()->json());
+
+        $staff = ['Authorization' => 'Bearer '.$login->json('token')];
+        $this->assertMatchesSchema('StaffPrincipal', $this->getJson('/api/v1/auth/me', $staff)->assertOk()->json());
+        $this->assertMatchesSchema('MarketPage', $this->getJson('/api/v1/admin/markets', $staff)->assertOk()->json());
+        $this->assertMatchesSchema('MfaSetup', $this->postJson('/api/v1/auth/mfa/totp/setup', [], $staff)->assertOk()->json());
     }
 
     private function assertMatchesSchema(string $name, mixed $value): void

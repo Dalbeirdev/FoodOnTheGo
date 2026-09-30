@@ -2,12 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Auth\AccessControl;
 use App\Enums\Permission;
-use App\Models\User;
+use App\Enums\PrincipalType;
+use App\Models\AdminUser;
+use App\Models\Customer;
+use App\Services\Rbac\RoleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Redis;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class HealthEndpointTest extends TestCase
@@ -52,14 +53,15 @@ class HealthEndpointTest extends TestCase
 
         $this->getJson('/api/v1/ready')->assertUnauthorized()->assertJsonPath('error.code', 'unauthenticated');
 
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
+        $this->getJson('/api/v1/ready')->assertUnauthorized();
+
+        $admin = AdminUser::factory()->create();
+        $this->actingAsPrincipal($admin);
         $this->getJson('/api/v1/ready')->assertForbidden();
 
-        $admin = User::factory()->admin()->create();
-        Sanctum::actingAs($admin);
-        $this->getJson('/api/v1/ready')->assertForbidden();
-
-        app(AccessControl::class)->grant($admin, Permission::AdminSystemView);
+        $role = app(RoleService::class)->define(PrincipalType::AdminUser, 'SYSTEM_VIEWER', 'System viewer', [Permission::AdminSystemView]);
+        app(RoleService::class)->assign($admin, $role);
         $this->getJson('/api/v1/ready')->assertOk()->assertJsonPath('checks.postgis', 'ok');
     }
 

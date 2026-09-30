@@ -2,13 +2,12 @@
 
 namespace Tests\Feature\Foundation;
 
+use App\Models\Customer;
 use App\Models\IdempotencyKey;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class IdempotencyTest extends TestCase
@@ -23,7 +22,7 @@ class IdempotencyTest extends TestCase
 
         self::$executions = 0;
 
-        Route::middleware(['api', 'auth:sanctum', 'idempotent:test.charge'])->post('/api/v1/_test/charge', function (Request $request) {
+        Route::middleware(['api', 'auth:customer', 'idempotent:test.charge'])->post('/api/v1/_test/charge', function (Request $request) {
             self::$executions++;
 
             return response()->json(['execution' => self::$executions, 'amount' => $request->integer('amount')], 201);
@@ -32,7 +31,7 @@ class IdempotencyTest extends TestCase
 
     public function test_a_missing_or_malformed_key_is_rejected(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
 
         $this->postJson('/api/v1/_test/charge', ['amount' => 24900])->assertStatus(400)->assertJsonPath('error.code', 'idempotency_key_required');
         $this->postJson('/api/v1/_test/charge', ['amount' => 24900], ['Idempotency-Key' => 'short'])->assertStatus(400);
@@ -41,7 +40,7 @@ class IdempotencyTest extends TestCase
 
     public function test_a_retry_with_the_same_key_and_request_replays_the_first_outcome_without_running_again(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
         $headers = ['Idempotency-Key' => 'checkout-0001-aaaa-bbbb'];
 
         $first = $this->postJson('/api/v1/_test/charge', ['amount' => 24900], $headers)->assertCreated();
@@ -54,7 +53,7 @@ class IdempotencyTest extends TestCase
 
     public function test_reusing_a_key_for_a_different_request_is_a_conflict(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
         $headers = ['Idempotency-Key' => 'checkout-0002-aaaa-bbbb'];
 
         $this->postJson('/api/v1/_test/charge', ['amount' => 24900], $headers)->assertCreated();
@@ -66,10 +65,10 @@ class IdempotencyTest extends TestCase
     {
         $headers = ['Idempotency-Key' => 'checkout-0003-aaaa-bbbb'];
 
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
         $this->postJson('/api/v1/_test/charge', ['amount' => 24900], $headers)->assertCreated();
 
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
         $this->postJson('/api/v1/_test/charge', ['amount' => 24900], $headers)->assertCreated()->assertHeaderMissing('Idempotency-Replayed');
 
         $this->assertSame(2, self::$executions);
@@ -77,8 +76,8 @@ class IdempotencyTest extends TestCase
 
     public function test_a_request_still_in_progress_is_not_executed_twice(): void
     {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $user = Customer::factory()->create();
+        $this->actingAsPrincipal($user);
         $body = ['amount' => 24900];
 
         IdempotencyKey::query()->create([
@@ -93,7 +92,7 @@ class IdempotencyTest extends TestCase
 
     public function test_keys_expire_and_expired_keys_are_pruned(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsPrincipal(Customer::factory()->create());
         $headers = ['Idempotency-Key' => 'checkout-0005-aaaa-bbbb'];
 
         $this->postJson('/api/v1/_test/charge', ['amount' => 24900], $headers)->assertCreated();

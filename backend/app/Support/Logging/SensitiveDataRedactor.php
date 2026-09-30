@@ -11,7 +11,8 @@ final class SensitiveDataRedactor
     public const MASK = '[REDACTED]';
 
     /**
-     * @param  list<string>  $sensitiveKeys  lower-case fragments; a key is sensitive when it contains one
+     * @param  list<string>  $sensitiveKeys  lower-case fragments; a key is sensitive when it contains one.
+     *                                       A fragment written "=name" must equal the key exactly.
      */
     public function __construct(private readonly array $sensitiveKeys) {}
 
@@ -44,7 +45,8 @@ final class SensitiveDataRedactor
         $normalised = strtolower(str_replace(['-', ' '], '_', $key));
 
         foreach ($this->sensitiveKeys as $fragment) {
-            if (str_contains($normalised, $fragment)) {
+            $exact = str_starts_with($fragment, '=');
+            if ($exact ? $normalised === substr($fragment, 1) : str_contains($normalised, $fragment)) {
                 return true;
             }
         }

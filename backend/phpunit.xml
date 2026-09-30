@@ -43,6 +43,33 @@
         <env name="MARKET_DEFAULT_COUNTRY" value="IN" force="true"/>
         <env name="OTP_DEV_CODE" value="123456" force="true"/>
         <env name="SMS_DRIVER" value="log" force="true"/>
+        <env name="OTP_LENGTH" value="6" force="true"/>
+        <env name="OTP_TTL_SECONDS" value="300" force="true"/>
+        <env name="OTP_MAX_ATTEMPTS" value="5" force="true"/>
+        <env name="OTP_RESEND_COOLDOWN_SECONDS" value="30" force="true"/>
+        <env name="OTP_MAX_SENDS_PER_HOUR" value="5" force="true"/>
+        <env name="RATE_LIMIT_API" value="120" force="true"/>
+        <env name="RATE_LIMIT_OTP_IP" value="10" force="true"/>
+        <env name="RATE_LIMIT_OTP_PHONE" value="3" force="true"/>
+        <env name="RATE_LIMIT_OTP_VERIFY_IP" value="20" force="true"/>
+        <env name="RATE_LIMIT_OTP_VERIFY_CHALLENGE" value="10" force="true"/>
+        <env name="RATE_LIMIT_STAFF_LOGIN_IP" value="20" force="true"/>
+        <env name="RATE_LIMIT_STAFF_LOGIN_IDENTITY" value="5" force="true"/>
+        <env name="RATE_LIMIT_ADMIN_LOGIN_IP" value="10" force="true"/>
+        <env name="RATE_LIMIT_ADMIN_LOGIN_IDENTITY" value="3" force="true"/>
+        <env name="RATE_LIMIT_MFA_VERIFY" value="10" force="true"/>
+        <env name="RATE_LIMIT_PASSWORD_RESET" value="5" force="true"/>
+        <env name="AUTH_TOKEN_TTL_CUSTOMER_MINUTES" value="43200" force="true"/>
+        <env name="AUTH_TOKEN_TTL_RESTAURANT_MINUTES" value="720" force="true"/>
+        <env name="AUTH_TOKEN_TTL_ADMIN_MINUTES" value="480" force="true"/>
+        <env name="AUTH_PASSWORD_MIN_LENGTH" value="12" force="true"/>
+        <env name="AUTH_PASSWORD_RESET_TTL_MINUTES" value="30" force="true"/>
+        <env name="AUTH_MFA_REQUIRED_ADMIN" value="false" force="true"/>
+        <env name="AUTH_MFA_REQUIRED_RESTAURANT" value="false" force="true"/>
+        <env name="AUTH_MFA_CHALLENGE_TTL_SECONDS" value="300" force="true"/>
+        <env name="AUTH_MFA_CHALLENGE_MAX_ATTEMPTS" value="5" force="true"/>
+        <env name="LOCAL_FIXTURE_PASSWORD" value="fixture-password-for-tests" force="true"/>
+        <env name="ADMIN_BOOTSTRAP_PASSWORD" value="" force="true"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

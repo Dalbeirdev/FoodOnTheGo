@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'country_code', 'slug', 'name', 'status', 'default_currency', 'supported_currencies', 'default_locale',
-    'supported_locales', 'timezone_strategy', 'default_timezone', 'distance_unit', 'phone_country_code',
+    'supported_locales', 'timezone_strategy', 'default_timezone', 'distance_unit', 'phone_country_code', 'phone_national_pattern', 'phone_trunk_prefix',
     'features', 'launched_at',
 ])]
 class Market extends Model

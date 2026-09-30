@@ -2,6 +2,8 @@
 
 namespace App\Contracts\Sms;
 
+use SensitiveParameter;
+
 /**
  * Outbound SMS abstraction. The live provider is chosen per environment in config/services.php (sms.driver);
  * business code depends on this contract only. Implementations must apply timeouts, map provider errors
@@ -12,5 +14,5 @@ interface SmsProvider
     /**
      * @param  string  $phone  E.164 number, e.g. +919876543210
      */
-    public function send(string $phone, string $message): void;
+    public function send(string $phone, #[SensitiveParameter] string $message): void;
 }

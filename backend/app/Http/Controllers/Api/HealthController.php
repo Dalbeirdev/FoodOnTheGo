@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\Permission;
-use App\Enums\PrincipalType;
 use App\Http\Controllers\Controller;
+use App\Models\AccessToken;
 use App\Services\Foundation\DependencyChecks;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -35,9 +35,9 @@ class HealthController extends Controller
     public function ready(Request $request, DependencyChecks $checks): JsonResponse
     {
         if (! config('api.readiness.public')) {
-            $user = $request->user('sanctum') ?? throw new AuthenticationException;
+            $admin = $request->user('admin') ?? throw new AuthenticationException;
 
-            if ($user->principal_type !== PrincipalType::AdminUser || $user->cannot(Permission::AdminSystemView->value)) {
+            if (! $admin->canAuthenticate() || ! $admin->tokenCan(AccessToken::ACCESS) || $admin->cannot(Permission::AdminSystemView->value)) {
                 throw new AuthorizationException;
             }
         }

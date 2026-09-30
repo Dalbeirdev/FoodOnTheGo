@@ -54,7 +54,8 @@ return [
 
     'redact_keys' => [
         'password', 'otp', 'one_time', 'cvv', 'cvc', 'pin', 'secret', 'token', 'authorization', 'cookie',
-        'api_key', 'apikey', 'private_key', 'card_number', 'signature', 'credential',
+        'api_key', 'apikey', 'private_key', 'card_number', 'signature', 'credential', 'recovery_code', 'mfa_challenge',
+        '=code',
     ],
 
     'channels' => [
