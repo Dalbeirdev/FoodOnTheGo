@@ -2,7 +2,7 @@
 
 namespace App\Contracts\Sms;
 
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use SensitiveParameter;
 
 /**
@@ -10,7 +10,7 @@ use SensitiveParameter;
  * FoodOnTheGo (OtpService); a provider only carries the message. That keeps every provider interchangeable:
  * which one runs is configuration (SMS_DRIVER), and none of them can sign anybody in.
  *
- * Implementations apply timeouts, map provider errors to SmsDeliveryException and never log the code, the
+ * Implementations apply timeouts, map provider errors to DeliveryException and never log the code, the
  * message body or their credentials.
  */
 interface SmsProvider
@@ -24,7 +24,7 @@ interface SmsProvider
      * @param  string  $phone  E.164 number, e.g. +919876543210
      * @param  int  $minutes  validity told to the customer
      *
-     * @throws SmsDeliveryException
+     * @throws DeliveryException
      */
     public function sendOtp(string $phone, #[SensitiveParameter] string $code, int $minutes): void;
 }

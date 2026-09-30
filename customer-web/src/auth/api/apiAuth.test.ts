@@ -43,9 +43,17 @@ describe('ApiAuthRepository — customer phone + OTP against the backend (Module
     expect(otp.resendAfter - Date.now()).toBe(30_000)
   })
 
-  it('shows no development code when the backend delivers by SMS', async () => {
-    fetchMock.mockResolvedValue(json(200, challenge({ delivery: 'sms' })))
-    expect((await repo.requestOtp('+919876543210')).devOtp).toBeUndefined()
+  it('live delivery: no development code; the channel and the resend channel are passed to the screen', async () => {
+    fetchMock.mockResolvedValue(json(200, challenge({ delivery: 'live', channel: 'whatsapp', resend_channel: 'sms', channels: ['whatsapp', 'sms'] })))
+    const otp = await repo.requestOtp('+919876543210')
+    expect(otp.devOtp).toBeUndefined()
+    expect([otp.channel, otp.resendChannel]).toEqual(['whatsapp', 'sms'])
+  })
+
+  it('development delivery: the channel is not shown because nothing was sent', async () => {
+    fetchMock.mockResolvedValue(json(200, challenge({ channel: 'sms', resend_channel: 'sms' })))
+    const otp = await repo.requestOtp('+919876543210')
+    expect([otp.channel, otp.resendChannel, otp.devOtp]).toEqual([undefined, undefined, '123456'])
   })
 
   it('existing customer: verifies with the challenge and keeps the token in sessionStorage only', async () => {

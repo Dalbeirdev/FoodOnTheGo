@@ -26,6 +26,7 @@ class OtpRequestRequest extends FormRequest
         return [
             'phone' => ['required', 'string', 'max:32'],
             'country' => ['sometimes', 'string', 'regex:/^[A-Z]{2}$/'],
+            'channel' => ['sometimes', 'string', 'in:sms,whatsapp'],
         ];
     }
 

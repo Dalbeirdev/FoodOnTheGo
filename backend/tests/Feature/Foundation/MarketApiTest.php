@@ -106,7 +106,7 @@ class MarketApiTest extends TestCase
             ->assertJsonPath('market.default_currency', 'INR')
             ->assertJsonPath('market.features.cash_at_pickup', false);
 
-        $this->assertSame(['api', 'app', 'market'], array_keys($response->json()));
+        $this->assertSame(['api', 'app', 'market', 'auth'], array_keys($response->json()));
         foreach (['secret', 'password', 'key', 'DB_', 'redis'] as $internal) {
             $this->assertStringNotContainsStringIgnoringCase($internal, $response->getContent());
         }

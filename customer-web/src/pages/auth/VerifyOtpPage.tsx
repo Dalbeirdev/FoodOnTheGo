@@ -91,7 +91,7 @@ export default function VerifyOtpPage() {
   return (
     <AuthLayout step={2}>
       <h1 id="auth-title">Enter the code</h1>
-      <p className="auth__sub">We sent a 6-digit code to <b>{maskPhone(pending.phone)}</b>. <button type="button" className="auth__link" onClick={() => { changePhone(); navigate('/login', { state: { from: pending.returnTo } }) }}>Change number</button></p>
+      <p className="auth__sub" data-testid="otp-sent-to">We sent a 6-digit code to <b>{maskPhone(pending.phone)}</b>{otp?.channel === 'whatsapp' ? ' on WhatsApp' : otp?.channel === 'sms' ? ' by SMS' : ''}. <button type="button" className="auth__link" onClick={() => { changePhone(); navigate('/login', { state: { from: pending.returnTo } }) }}>Change number</button></p>
       <form onSubmit={submit} noValidate aria-busy={busy}>
         <fieldset className="auth__otp" disabled={busy}>
           <legend className="sr-only">One-time code</legend>
@@ -112,7 +112,7 @@ export default function VerifyOtpPage() {
         Didn't get it?{' '}
         {resendIn > 0 && !locked
           ? <span>Resend in {fmt(resendIn)}</span>
-          : <button type="button" className="auth__link" onClick={resend} disabled={busy}>{state === 'resending' ? 'Sending…' : 'Resend OTP'}</button>}
+          : <button type="button" className="auth__link" onClick={resend} disabled={busy}>{state === 'resending' ? 'Sending…' : otp?.resendChannel && otp.resendChannel !== otp.channel ? (otp.resendChannel === 'sms' ? 'Send the code by SMS instead' : 'Send the code on WhatsApp instead') : 'Resend OTP'}</button>}
       </p>
       {pending?.otp?.devOtp && <p className="auth__switch auth__dev" role="note" data-testid="dev-otp">LOCAL preview: the development code is <b>{pending.otp.devOtp}</b>.</p>}
     </AuthLayout>

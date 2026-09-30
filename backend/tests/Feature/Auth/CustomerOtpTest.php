@@ -43,7 +43,8 @@ class CustomerOtpTest extends TestCase
     public function test_requesting_a_code_returns_a_challenge_and_never_the_code(): void
     {
         $response = $this->requestCode()->assertOk()
-            ->assertJsonStructure(['challenge_id', 'phone_masked', 'expires_at', 'resend_available_at', 'attempts_allowed', 'server_time', 'delivery'])
+            ->assertJsonStructure(['challenge_id', 'phone_masked', 'expires_at', 'resend_available_at', 'attempts_allowed', 'server_time', 'delivery', 'channel', 'resend_channel', 'channels'])
+            ->assertJsonPath('delivery', 'development')->assertJsonPath('channel', 'sms')
             ->assertJsonPath('phone_masked', '+91 ******3210')
             ->assertJsonPath('attempts_allowed', 5);
 

@@ -104,6 +104,9 @@ class ApiAuthRepository implements AuthRepository {
         resendAfter: DateTime.parse(c['resend_available_at'] as String).add(skew),
         attemptsAllowed: c['attempts_allowed'] as int,
         devOtp: c['delivery'] == 'development' && _devOtp.isNotEmpty ? _devOtp : null,
+        // Told to the customer only when a real message went out; the backend escalates a resend by itself.
+        channel: c['delivery'] == 'live' ? c['channel'] as String? : null,
+        resendChannel: c['delivery'] == 'live' ? c['resend_channel'] as String? : null,
       );
     } catch (e) {
       throw toAuthException(e);

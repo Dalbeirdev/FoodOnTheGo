@@ -3,7 +3,7 @@
 namespace App\Services\Sms;
 
 use App\Contracts\Sms\SmsProvider;
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use Closure;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
@@ -39,14 +39,14 @@ abstract class HttpSmsProvider implements SmsProvider
         $value = $this->config[$key] ?? null;
 
         if (! is_string($value) || $value === '') {
-            throw SmsDeliveryException::notConfigured($this->name(), $key);
+            throw DeliveryException::notConfigured($this->name(), $key);
         }
 
         return $value;
     }
 
     /**
-     * Runs the provider call and converts anything that goes wrong into a safe SmsDeliveryException.
+     * Runs the provider call and converts anything that goes wrong into a safe DeliveryException.
      *
      * @param  Closure(): Response  $call
      */
@@ -54,14 +54,14 @@ abstract class HttpSmsProvider implements SmsProvider
     {
         try {
             $response = $call();
-        } catch (SmsDeliveryException $e) {
+        } catch (DeliveryException $e) {
             throw $e;
         } catch (Throwable $e) {
-            throw new SmsDeliveryException($this->name(), 'provider unreachable ('.class_basename($e).')');
+            throw new DeliveryException($this->name(), 'provider unreachable ('.class_basename($e).')');
         }
 
         if ($response->failed()) {
-            throw new SmsDeliveryException($this->name(), 'provider answered HTTP '.$response->status());
+            throw new DeliveryException($this->name(), 'provider answered HTTP '.$response->status());
         }
 
         return $response;

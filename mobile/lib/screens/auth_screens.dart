@@ -255,7 +255,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
             padding: const EdgeInsets.all(20),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               _AuthHeader(step: 2, title: 'Enter the code', sub: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
-                Text('We sent a 6-digit code to ${maskPhone(phone)}. '),
+                Text('We sent a 6-digit code to ${maskPhone(phone)}${otp?.channel == 'whatsapp' ? ' on WhatsApp' : otp?.channel == 'sms' ? ' by SMS' : ''}. '),
                 InkWell(onTap: () { auth.changePhone(); context.pop(); }, child: const Text('Change number', style: TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700, decoration: TextDecoration.underline))),
               ])),
               Semantics(
@@ -307,7 +307,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               const SizedBox(height: 14),
               Center(
                 child: resendIn.isNegative || expired
-                    ? TextButton(onPressed: busy ? null : _resend, child: const Text('Resend OTP', style: TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700)))
+                    ? TextButton(onPressed: busy ? null : _resend, child: Text(otp?.resendChannel != null && otp?.resendChannel != otp?.channel ? (otp?.resendChannel == 'sms' ? 'Send the code by SMS instead' : 'Send the code on WhatsApp instead') : 'Resend OTP', style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700)))
                     : Text("Didn't get it? Resend in ${_fmt(resendIn)}", style: const TextStyle(color: Brand.grey, fontSize: 13.5)),
               ),
             ]),

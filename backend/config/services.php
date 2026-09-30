@@ -68,6 +68,30 @@ return [
         ],
     ],
 
+    /*
+    | WhatsApp Cloud API (Meta) for one-time codes. Enabled by listing "whatsapp" in OTP_CHANNELS and
+    | filling these. otp_template is an approved AUTHENTICATION template with a copy-code button.
+    */
+
+    'whatsapp' => [
+        'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'otp_template' => env('WHATSAPP_OTP_TEMPLATE'),
+        'otp_template_language' => env('WHATSAPP_OTP_TEMPLATE_LANGUAGE', 'en'),
+        'api_version' => env('WHATSAPP_API_VERSION', 'v21.0'),
+        'timeout' => (int) env('WHATSAPP_TIMEOUT', 10),
+    ],
+
+    /*
+    | Truecaller one-tap verification (Android). Enabled when client_id is set.
+    */
+
+    'truecaller' => [
+        'client_id' => env('TRUECALLER_CLIENT_ID'),
+        'base_url' => env('TRUECALLER_BASE_URL', 'https://oauth-account-noneu.truecaller.com'),
+        'timeout' => (int) env('TRUECALLER_TIMEOUT', 8),
+    ],
+
     'maps' => [
         'driver' => env('MAPS_DRIVER'),
         'browser_key' => env('MAPS_BROWSER_KEY'),

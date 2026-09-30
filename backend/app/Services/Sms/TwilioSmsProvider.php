@@ -2,7 +2,7 @@
 
 namespace App\Services\Sms;
 
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use SensitiveParameter;
 
 /**
@@ -27,7 +27,7 @@ final class TwilioSmsProvider extends HttpSmsProvider
         $from = (string) ($this->config['from'] ?? '');
 
         if ($service === '' && $from === '') {
-            throw SmsDeliveryException::notConfigured($this->name(), 'messaging_service_sid or from');
+            throw DeliveryException::notConfigured($this->name(), 'messaging_service_sid or from');
         }
 
         $body = strtr((string) config('otp.sms_template'), [':code' => $code, ':minutes' => (string) $minutes]);

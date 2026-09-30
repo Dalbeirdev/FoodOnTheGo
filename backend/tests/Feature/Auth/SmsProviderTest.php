@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Contracts\Sms\SmsProvider;
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use App\Models\Customer;
 use App\Models\Market;
 use App\Services\Auth\DevelopmentOtp;
@@ -110,7 +110,7 @@ class SmsProviderTest extends TestCase
             try {
                 $this->use($driver)->sendOtp('+919876543210', '482913', 5);
                 $this->fail("{$driver} should have failed");
-            } catch (SmsDeliveryException $e) {
+            } catch (DeliveryException $e) {
                 $this->assertSame($driver, $e->provider);
                 foreach (['482913', 'auth-key-value', 'api-key-value', 'auth-token-value', 'ACtest', 'http', '9876543210'] as $secret) {
                     $this->assertStringNotContainsString($secret, $e->getMessage(), "{$driver} failure leaks [{$secret}]");
@@ -131,7 +131,7 @@ class SmsProviderTest extends TestCase
         try {
             $this->use('twofactor')->sendOtp('+919876543210', '482913', 5);
             $this->fail('should have failed');
-        } catch (SmsDeliveryException $e) {
+        } catch (DeliveryException $e) {
             $this->assertSame(2, $attempts);
             $this->assertSame('SMS delivery through [twofactor] failed: provider unreachable (ConnectionException)', $e->getMessage());
         }
@@ -144,13 +144,13 @@ class SmsProviderTest extends TestCase
         try {
             $this->use('msg91')->sendOtp('+919876543210', '482913', 5);
             $this->fail('should have failed');
-        } catch (SmsDeliveryException $e) {
+        } catch (DeliveryException $e) {
             $this->assertTrue($e->configuration);
             $this->assertStringContainsString('auth_key', $e->getMessage());
         }
         Http::assertNothingSent();
 
-        $this->expectException(SmsDeliveryException::class);
+        $this->expectException(DeliveryException::class);
         $this->use('carrier-pigeon');
     }
 
@@ -177,7 +177,7 @@ class SmsProviderTest extends TestCase
         Http::assertNothingSent();
 
         $this->app->detectEnvironment(fn (): string => 'production');
-        $this->expectException(SmsDeliveryException::class);
+        $this->expectException(DeliveryException::class);
         $this->use('log');
     }
 
@@ -195,7 +195,7 @@ class SmsProviderTest extends TestCase
 
         $this->assertNull(app(DevelopmentOtp::class)->code(), 'the fixed development code must be off once a real SMS driver is configured');
 
-        $first = $this->postJson('/api/v1/auth/customer/otp/request', ['phone' => '9876543210'])->assertOk()->assertJsonPath('delivery', 'sms');
+        $first = $this->postJson('/api/v1/auth/customer/otp/request', ['phone' => '9876543210'])->assertOk()->assertJsonPath('delivery', 'live')->assertJsonPath('channel', 'sms');
         $this->assertMatchesRegularExpression('/^\d{6}$/', $sent[0]);
         $this->assertStringNotContainsString($sent[0], $first->getContent());
         $this->assertStringNotContainsString($sent[0], json_encode(DB::table('otp_challenges')->get()));
@@ -224,11 +224,11 @@ class SmsProviderTest extends TestCase
     public function test_sms_check_reports_readiness_without_printing_a_secret(): void
     {
         config(['services.sms.driver' => 'log']);
-        $this->artisan('sms:check')->expectsOutputToContain('sends real SMS:     NO')->expectsOutputToContain('FIXED development code')->assertSuccessful();
+        $this->artisan('otp:check')->expectsOutputToContain('real messages:      NO')->expectsOutputToContain('FIXED development code')->assertSuccessful();
 
         config(['services.sms.driver' => 'msg91', 'services.sms.fallback' => 'twofactor', 'services.sms.twofactor.api_key' => null]);
-        $this->artisan('sms:check')
-            ->expectsOutputToContain('sends real SMS:     YES')
+        $this->artisan('otp:check')
+            ->expectsOutputToContain('real messages:      YES')
             ->expectsOutputToContain('INCOMPLETE — set: SMS_2FACTOR_API_KEY')
             ->doesntExpectOutputToContain('msg91-auth-key-value')
             ->assertFailed();
@@ -243,10 +243,10 @@ class SmsProviderTest extends TestCase
         config(['services.sms.driver' => 'twofactor']);
         Http::fake(['2factor.in/*' => Http::response(['Status' => 'Success'])]);
 
-        $this->artisan('sms:test', ['phone' => '98765 43210'])->expectsOutputToContain('Accepted by [twofactor] for +91 ******3210')->assertSuccessful();
+        $this->artisan('otp:test', ['phone' => '98765 43210'])->expectsOutputToContain('Accepted on [sms] for +91 ******3210')->assertSuccessful();
         Http::assertSentCount(1);
 
-        $this->artisan('sms:test', ['phone' => '12345'])->assertFailed();
+        $this->artisan('otp:test', ['phone' => '12345'])->assertFailed();
         Http::assertSentCount(1);
     }
 

@@ -206,7 +206,7 @@
     },
     "/auth/customer/otp/request": {
       "post": {
-        "summary": "Send a one-time code to a phone number. Same answer for new and existing customers; never returns the code. Limits: per phone and per address per minute, resend cooldown, hourly cap per phone",
+        "summary": "Send a one-time code. Channels are tried cheapest first (e.g. WhatsApp, then SMS): the first code uses the first channel, each resend the next; `channel` asks for a specific one. Same answer for new and existing customers; never returns the code. Limits: per phone and per address per minute, resend cooldown, hourly cap per phone",
         "requestBody": {
           "required": true,
           "content": {
@@ -972,6 +972,58 @@
           }
         }
       }
+    },
+    "/auth/customer/truecaller": {
+      "post": {
+        "summary": "Truecaller one-tap sign-in (Android). The app sends the authorization code from the Truecaller SDK; the phone number comes from Truecaller, never from the app. 404 truecaller_unavailable when not enabled; 422 truecaller_verification_failed; 503 truecaller_unreachable",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TruecallerSignIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing customer signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSession"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New customer created and signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSession"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1309,7 +1361,8 @@
         "required": [
           "api",
           "app",
-          "market"
+          "market",
+          "auth"
         ],
         "additionalProperties": false,
         "properties": {
@@ -1343,6 +1396,29 @@
           },
           "market": {
             "$ref": "#/components/schemas/Market"
+          },
+          "auth": {
+            "type": "object",
+            "required": [
+              "otp_channels",
+              "truecaller"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "otp_channels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "sms",
+                    "whatsapp"
+                  ]
+                }
+              },
+              "truecaller": {
+                "type": "boolean"
+              }
+            }
           }
         }
       },
@@ -1372,6 +1448,14 @@
             "type": "string",
             "pattern": "^[A-Z]{2}$",
             "description": "Market of the number; defaults to the default market"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Optional: ask for this channel instead of the automatic order"
           }
         }
       },
@@ -1413,7 +1497,10 @@
           "resend_available_at",
           "attempts_allowed",
           "server_time",
-          "delivery"
+          "delivery",
+          "channel",
+          "resend_channel",
+          "channels"
         ],
         "additionalProperties": false,
         "properties": {
@@ -1439,10 +1526,36 @@
           "delivery": {
             "type": "string",
             "enum": [
-              "sms",
+              "live",
               "development"
             ],
-            "description": "development = local / testing environment with a fixed test code; the code itself is never returned"
+            "description": "live = a real message was sent on `channel`; development = local / testing, nothing was sent. The code itself is never returned"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Channel that carried this code"
+          },
+          "resend_channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Channel a resend would start with"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sms",
+                "whatsapp"
+              ]
+            }
           }
         }
       },
@@ -1971,6 +2084,31 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "TruecallerSignIn": {
+        "type": "object",
+        "required": [
+          "authorization_code",
+          "code_verifier"
+        ],
+        "properties": {
+          "authorization_code": {
+            "type": "string"
+          },
+          "code_verifier": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 128
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "device_name": {
+            "type": "string",
+            "maxLength": 60
           }
         }
       }

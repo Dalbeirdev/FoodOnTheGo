@@ -6,7 +6,9 @@
  */
 export type AuthUser = { id: string; name: string; phone: string; email: string | null; memberSince: string }
 
-export type OtpRequest = { phone: string; expiresAt: number; resendAfter: number; attemptsAllowed: number; /** DEV ONLY: the local test code, shown in development builds so testers can sign in. Never sent by the backend. */ devOtp?: string }
+/** How a code was (or will be) delivered. Set only when a real message was sent; absent in local / mock runs. */
+export type OtpChannel = 'sms' | 'whatsapp'
+export type OtpRequest = { phone: string; expiresAt: number; resendAfter: number; attemptsAllowed: number; channel?: OtpChannel; resendChannel?: OtpChannel; /** DEV ONLY: the local test code, shown in development builds so testers can sign in. Never sent by the backend. */ devOtp?: string }
 
 export type VerifyResult = { status: 'authenticated'; user: AuthUser } | { status: 'setup_required'; setupToken: string }
 

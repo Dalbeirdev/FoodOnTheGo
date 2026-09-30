@@ -18,6 +18,14 @@ return [
     'max_sends_per_hour' => (int) env('OTP_MAX_SENDS_PER_HOUR', 5),
 
     /*
+    | Delivery channels in order of preference (cheapest first), comma separated: whatsapp, sms.
+    | The first code goes out on the first channel; every resend moves to the next one. A channel
+    | without credentials is skipped. SMS is always available as the last resort.
+    */
+
+    'channels' => env('OTP_CHANNELS', 'sms'),
+
+    /*
     | Text of the SMS for providers that take free text (Twilio). :code and :minutes are replaced.
     | In India it must match the DLT-registered template word for word. Template-based providers
     | (MSG91, 2Factor) keep the text in their own panel and ignore this.
@@ -27,8 +35,9 @@ return [
 
     /*
     | A fixed development code is honoured only in the environments listed here,
-    | only when OTP_DEV_CODE is set and only while SMS_DRIVER=log (nothing is
-    | sent). With a real SMS driver the code is always random, also locally.
+    | only when OTP_DEV_CODE is set and only while nothing real is sent (SMS
+    | through the log driver, no WhatsApp). With a real channel the code is
+    | always random, also locally.
     | App\Services\Auth\DevelopmentOtp refuses "production" and "staging" even
     | if they are added to the list.
     */

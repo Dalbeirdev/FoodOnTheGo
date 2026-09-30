@@ -2,7 +2,7 @@
 
 namespace App\Services\Sms;
 
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use SensitiveParameter;
 
 /**
@@ -35,7 +35,7 @@ final class Msg91SmsProvider extends HttpSmsProvider
 
         // MSG91 can answer HTTP 200 with {"type": "error"}.
         if ($response->json('type') !== 'success') {
-            throw new SmsDeliveryException($this->name(), 'provider rejected the request');
+            throw new DeliveryException($this->name(), 'provider rejected the request');
         }
     }
 }

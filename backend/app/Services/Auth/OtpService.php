@@ -2,12 +2,12 @@
 
 namespace App\Services\Auth;
 
-use App\Contracts\Sms\SmsProvider;
 use App\Enums\SecurityEventType;
 use App\Exceptions\ApiException;
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use App\Models\Market;
 use App\Models\OtpChallenge;
+use App\Services\Otp\OtpDelivery;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,15 +26,22 @@ final class OtpService
 {
     public const PURPOSE_CUSTOMER_LOGIN = 'customer_login';
 
+    /** How many codes this sign-in has been sent so far (1 = first), set by request(). */
+    public int $lastSendNumber = 1;
+
     public function __construct(
-        private readonly SmsProvider $sms,
+        private readonly OtpDelivery $delivery,
         private readonly DevelopmentOtp $developmentOtp,
         private readonly SecurityEventRecorder $events,
     ) {}
 
-    public function request(PhoneNumber $phone, Market $market, string $purpose = self::PURPOSE_CUSTOMER_LOGIN): OtpChallenge
+    /**
+     * @param  string|null  $channel  channel the customer asked for ("sms" / "whatsapp"); null = automatic
+     */
+    public function request(PhoneNumber $phone, Market $market, string $purpose = self::PURPOSE_CUSTOMER_LOGIN, ?string $channel = null): OtpChallenge
     {
-        $challenge = DB::transaction(function () use ($phone, $market, $purpose): OtpChallenge {
+        $sendNumber = 1;
+        $challenge = DB::transaction(function () use ($phone, $market, $purpose, &$sendNumber): OtpChallenge {
             // Serialise requests for the same phone so cooldown and hourly cap cannot be raced.
             DB::select('select pg_advisory_xact_lock(hashtext(?))', ['otp:'.$phone->e164]);
 
@@ -51,6 +58,9 @@ final class OtpService
             if ((clone $recent)->where('sent_at', '>', now()->subHour())->count() >= (int) config('otp.max_sends_per_hour')) {
                 throw new ApiException(429, 'otp_send_limit', 'Too many codes were requested for this number. Please try again later.', ['retry_after_seconds' => 3600]);
             }
+
+            // A resend while an unverified code is still within its validity moves on to the next channel.
+            $sendNumber = 1 + (clone $recent)->whereNull('verified_at')->where('sent_at', '>', now()->subSeconds((int) config('otp.ttl_seconds')))->count();
 
             (clone $recent)->whereNull('verified_at')->whereNull('invalidated_at')->update(['invalidated_at' => now()]);
 
@@ -72,15 +82,18 @@ final class OtpService
         $challenge->forceFill(['code_hash' => $this->hash($challenge, $code)])->save();
 
         try {
-            $this->sms->sendOtp($phone->e164, $code, (int) ceil(config('otp.ttl_seconds') / 60));
+            $used = $this->delivery->deliver($phone->e164, $code, (int) ceil(config('otp.ttl_seconds') / 60), $channel, $sendNumber);
+            $challenge->forceFill(['channel' => $used])->save();
         } catch (Throwable $e) {
             $challenge->forceFill(['invalidated_at' => now()])->save();
-            Log::warning('otp.delivery_failed', ['challenge' => $challenge->public_id, 'provider' => $e instanceof SmsDeliveryException ? $e->provider : null, 'reason' => $e instanceof SmsDeliveryException ? $e->reason : $e::class]);
+            Log::warning('otp.delivery_failed', ['challenge' => $challenge->public_id, 'provider' => $e instanceof DeliveryException ? $e->provider : null, 'reason' => $e instanceof DeliveryException ? $e->reason : $e::class]);
 
             throw new ApiException(503, 'otp_delivery_failed', 'We could not send the code right now. Please try again in a moment.');
         }
 
-        $this->events->record(SecurityEventType::OtpRequested, null, ['challenge' => $challenge->public_id, 'market' => $market->country_code], $phone->e164);
+        $this->events->record(SecurityEventType::OtpRequested, null, ['challenge' => $challenge->public_id, 'market' => $market->country_code, 'channel' => $challenge->channel, 'send_number' => $sendNumber], $phone->e164);
+
+        $this->lastSendNumber = $sendNumber;
 
         return $challenge;
     }

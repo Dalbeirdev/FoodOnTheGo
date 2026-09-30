@@ -2,7 +2,7 @@
 
 namespace App\Services\Sms;
 
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use SensitiveParameter;
 
 /**
@@ -32,7 +32,7 @@ final class TwoFactorSmsProvider extends HttpSmsProvider
         )));
 
         if ($response->json('Status') !== 'Success') {
-            throw new SmsDeliveryException($this->name(), 'provider rejected the request');
+            throw new DeliveryException($this->name(), 'provider rejected the request');
         }
     }
 }

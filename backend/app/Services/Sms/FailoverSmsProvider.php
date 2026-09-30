@@ -3,7 +3,7 @@
 namespace App\Services\Sms;
 
 use App\Contracts\Sms\SmsProvider;
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 use Illuminate\Support\Facades\Log;
 use SensitiveParameter;
 
@@ -24,7 +24,7 @@ final class FailoverSmsProvider implements SmsProvider
     {
         try {
             $this->primary->sendOtp($phone, $code, $minutes);
-        } catch (SmsDeliveryException $e) {
+        } catch (DeliveryException $e) {
             Log::warning('sms.failover', ['from' => $this->primary->name(), 'to' => $this->fallback->name(), 'reason' => $e->reason]);
             $this->fallback->sendOtp($phone, $code, $minutes);
         }

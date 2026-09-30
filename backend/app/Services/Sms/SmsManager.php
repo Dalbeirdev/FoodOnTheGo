@@ -3,7 +3,7 @@
 namespace App\Services\Sms;
 
 use App\Contracts\Sms\SmsProvider;
-use App\Exceptions\SmsDeliveryException;
+use App\Exceptions\DeliveryException;
 
 /**
  * Builds the configured SMS provider (config/services.php → sms). Adding a provider = one driver class and
@@ -30,7 +30,7 @@ final class SmsManager
             'msg91' => new Msg91SmsProvider((array) config('services.sms.msg91'), $timeout),
             'twofactor' => new TwoFactorSmsProvider((array) config('services.sms.twofactor'), $timeout),
             'twilio' => new TwilioSmsProvider((array) config('services.sms.twilio'), $timeout),
-            default => throw SmsDeliveryException::notConfigured($name === '' ? 'none' : $name, 'SMS_DRIVER must be one of '.implode(', ', self::DRIVERS)),
+            default => throw DeliveryException::notConfigured($name === '' ? 'none' : $name, 'SMS_DRIVER must be one of '.implode(', ', self::DRIVERS)),
         };
     }
 
@@ -84,7 +84,7 @@ final class SmsManager
     private function logDriver(): SmsProvider
     {
         if (app()->isProduction()) {
-            throw SmsDeliveryException::notConfigured('log', 'a real SMS_DRIVER is required in production');
+            throw DeliveryException::notConfigured('log', 'a real SMS_DRIVER is required in production');
         }
 
         return new LogSmsProvider;

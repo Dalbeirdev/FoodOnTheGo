@@ -16,12 +16,16 @@ class AuthUser {
 }
 
 class OtpRequest {
-  const OtpRequest({required this.phone, required this.expiresAt, required this.resendAfter, required this.attemptsAllowed, this.devOtp});
+  const OtpRequest({required this.phone, required this.expiresAt, required this.resendAfter, required this.attemptsAllowed, this.devOtp, this.channel, this.resendChannel});
   final String phone;
   final DateTime expiresAt, resendAfter;
   final int attemptsAllowed;
   /// DEV ONLY: the local test code, shown in local builds so testers can sign in. Never sent by the backend.
   final String? devOtp;
+
+  /// 'sms' or 'whatsapp' — how this code was delivered and how a resend would be. Set only when a real
+  /// message was sent; null in local / mock runs.
+  final String? channel, resendChannel;
 }
 
 enum AuthErrorCode {

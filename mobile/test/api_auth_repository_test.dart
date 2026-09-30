@@ -64,8 +64,10 @@ void main() {
       expect(otp.resendAfter.difference(DateTime.parse('2026-09-30T11:00:00Z')), const Duration(seconds: 30));
       expect([otp.attemptsAllowed, otp.devOtp], [5, '123456']);
 
-      final sms = _setup([_json(200, _challenge(delivery: 'sms'))]);
-      expect((await sms.repo.requestOtp('+919876543210')).devOtp, isNull);
+      final live = _setup([_json(200, {..._challenge(delivery: 'live'), 'channel': 'whatsapp', 'resend_channel': 'sms'})]);
+      final sent = await live.repo.requestOtp('+919876543210');
+      expect([sent.devOtp, sent.channel, sent.resendChannel], [null, 'whatsapp', 'sms']);
+      expect([otp.channel, otp.resendChannel], [null, null]); // development: nothing was sent, so no channel is shown
       final production = _setup([_json(200, _challenge())], devOtp: '');
       expect((await production.repo.requestOtp('+919876543210')).devOtp, isNull);
     });
