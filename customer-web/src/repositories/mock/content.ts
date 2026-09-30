@@ -102,7 +102,7 @@ const ABOUT: AboutContent = {
     eyebrow: 'About us',
     title: 'Good Food',
     accent: 'For Every Journey',
-    leadHtml: 'At FoodOnTheGo, we believe great food should fit <b>seamlessly into your journey</b>. We help you discover amazing <b>restaurants along your route, pre-order</b> your favourite meals, and pick them up at the perfect time — so you can enjoy fresh, delicious food without detours.',
+    lead: [{ text: 'At FoodOnTheGo, we believe great food should fit ' }, { text: 'seamlessly into your journey', strong: true }, { text: '. We help you discover amazing ' }, { text: 'restaurants along your route, pre-order', strong: true }, { text: ' your favourite meals, and pick them up at the perfect time — so you can enjoy fresh, delicious food without detours.' }],
     script: 'Delicious Food Travels With You',
     pills: [
       { icon: 'fork', tone: 'orange', title: 'Discover Restaurants', sub: 'Along Your Route' },

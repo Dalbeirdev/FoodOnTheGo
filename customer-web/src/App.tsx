@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { CartProvider } from './cart/CartContext'
 import { PickupProvider } from './pickup/PickupContext'
@@ -42,36 +43,10 @@ import LegalPage from './pages/LegalPage'
 import NotFoundPage from './pages/NotFoundPage'
 import GetAppPage from './pages/GetAppPage'
 import ComingSoonPage from './pages/ComingSoonPage'
-import { DashboardProvider } from './dashboard/DashboardContext'
-import DashboardLayout, { RequirePermission } from './dashboard/DashboardLayout'
-import OverviewPage from './dashboard/pages/OverviewPage'
-import OrdersPage from './dashboard/pages/OrdersPage'
-import PickupVerificationPage from './dashboard/pages/PickupVerificationPage'
-import MenuPage from './dashboard/pages/MenuPage'
-import ProfilePage from './dashboard/pages/ProfilePage'
-import HoursPage from './dashboard/pages/HoursPage'
-import PickupSettingsPage from './dashboard/pages/PickupSettingsPage'
-import ReviewsPage from './dashboard/pages/ReviewsPage'
-import StaffPage from './dashboard/pages/StaffPage'
-import AnalyticsPage from './dashboard/pages/AnalyticsPage'
-import NotificationsDashboardPage from './dashboard/pages/NotificationsPage'
-import SettingsPage from './dashboard/pages/SettingsPage'
-import HelpDashboardPage from './dashboard/pages/HelpPage'
-import { AdminProvider } from './admin/AdminContext'
-import AdminLayout, { RequirePermission as RequireAdminPermission } from './admin/AdminLayout'
-import AdminOverviewPage from './admin/pages/OverviewPage'
-import AdminRestaurantsPage, { RestaurantDetailsPage as AdminRestaurantDetailsPage } from './admin/pages/RestaurantsPage'
-import AdminCustomersPage, { CustomerDetailsPage as AdminCustomerDetailsPage } from './admin/pages/CustomersPage'
-import AdminOrdersPage, { OrderDetailsPage as AdminOrderDetailsPage } from './admin/pages/OrdersPage'
-import { PaymentsPage as AdminPaymentsPage, RefundsPage as AdminRefundsPage, SettlementsPage as AdminSettlementsPage } from './admin/pages/FinancePages'
-import AdminReviewsPage from './admin/pages/ReviewsPage'
-import AdminPromotionsPage from './admin/pages/PromotionsPage'
-import AdminSupportPage, { SupportCasePage as AdminSupportCasePage } from './admin/pages/SupportPage'
-import AdminNotificationsPage from './admin/pages/NotificationsPage'
-import { MarketsOverviewPage, MarketLayout, MarketOverviewTab, MarketStatesTab, MarketCitiesTab, MarketServiceAreasTab, MarketRoutesTab, MarketConfigurationTab, MarketFeaturesTab } from './admin/pages/MarketPages'
-import { MarketsPage as AdminMarketsPage, ConfigurationPage as AdminConfigurationPage } from './admin/pages/PlatformPages'
-import { AdminUsersPage, AuditLogsPage as AdminAuditLogsPage, SecurityPage as AdminSecurityPage } from './admin/pages/SecurityPages'
-import { AnalyticsPage as AdminAnalyticsPage, SystemPage as AdminSystemPage, SettingsPage as AdminSettingsPage, HelpPage as AdminHelpPage } from './admin/pages/InsightPages'
+
+const DashboardApp = lazy(() => import('./dashboard/DashboardApp'))
+const AdminApp = lazy(() => import('./admin/AdminApp'))
+const PortalLoading = () => <div role="status" aria-live="polite" style={{ padding: 32, fontFamily: 'Outfit, system-ui, sans-serif', color: '#667085' }}>Loading…</div>
 
 /** Static share builds (VITE_ROUTER=hash) run from a single file host where only hash routes survive a reload. */
 const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRouter
@@ -135,63 +110,9 @@ export function AppShell() {
             <Route path="/privacy" element={<LegalPage slug="privacy" />} />
             <Route path="/refund-policy" element={<LegalPage slug="refund-policy" />} />
             <Route path="/cookie-policy" element={<LegalPage slug="cookie-policy" />} />
-            {/* Module 17 — Restaurant Dashboard (responsive web, own shell, shared domain) */}
-            <Route path="/restaurant-dashboard" element={<DashboardProvider><DashboardLayout /></DashboardProvider>}>
-              <Route index element={<Navigate to="overview" replace />} />
-              <Route path="overview" element={<OverviewPage />} />
-              <Route path="orders" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />
-              <Route path="orders/:orderNumber" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />
-              <Route path="pickup-verification" element={<RequirePermission perm="pickup.verify"><PickupVerificationPage /></RequirePermission>} />
-              <Route path="menu" element={<RequirePermission perm="menu.view"><MenuPage /></RequirePermission>} />
-              <Route path="profile" element={<RequirePermission perm="restaurant.profile.view"><ProfilePage /></RequirePermission>} />
-              <Route path="hours" element={<RequirePermission perm="restaurant.profile.view"><HoursPage /></RequirePermission>} />
-              <Route path="pickup-settings" element={<RequirePermission perm="restaurant.profile.view"><PickupSettingsPage /></RequirePermission>} />
-              <Route path="reviews" element={<RequirePermission perm="reviews.view"><ReviewsPage /></RequirePermission>} />
-              <Route path="staff" element={<RequirePermission perm="staff.view"><StaffPage /></RequirePermission>} />
-              <Route path="analytics" element={<RequirePermission perm="analytics.view"><AnalyticsPage /></RequirePermission>} />
-              <Route path="notifications" element={<RequirePermission perm="notifications.view"><NotificationsDashboardPage /></RequirePermission>} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="help" element={<HelpDashboardPage />} />
-            </Route>
-            {/* Module 18 — Platform Admin Dashboard (responsive web, own shell, shared domain, RBAC = UX gating only) */}
-            <Route path="/admin" element={<AdminProvider><AdminLayout /></AdminProvider>}>
-              <Route index element={<Navigate to="overview" replace />} />
-              <Route path="overview" element={<AdminOverviewPage />} />
-              <Route path="restaurants" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantsPage /></RequireAdminPermission>} />
-              <Route path="restaurants/:id" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantDetailsPage /></RequireAdminPermission>} />
-              <Route path="customers" element={<RequireAdminPermission perm="customers.view"><AdminCustomersPage /></RequireAdminPermission>} />
-              <Route path="customers/:id" element={<RequireAdminPermission perm="customers.view"><AdminCustomerDetailsPage /></RequireAdminPermission>} />
-              <Route path="orders" element={<RequireAdminPermission perm="orders.view"><AdminOrdersPage /></RequireAdminPermission>} />
-              <Route path="orders/:orderNumber" element={<RequireAdminPermission perm="orders.view"><AdminOrderDetailsPage /></RequireAdminPermission>} />
-              <Route path="payments" element={<RequireAdminPermission perm="payments.view"><AdminPaymentsPage /></RequireAdminPermission>} />
-              <Route path="refunds" element={<RequireAdminPermission perm="refunds.view"><AdminRefundsPage /></RequireAdminPermission>} />
-              <Route path="settlements" element={<RequireAdminPermission perm="settlements.view"><AdminSettlementsPage /></RequireAdminPermission>} />
-              <Route path="reviews" element={<RequireAdminPermission perm="reviews.view"><AdminReviewsPage /></RequireAdminPermission>} />
-              <Route path="promotions" element={<RequireAdminPermission perm="promotions.view"><AdminPromotionsPage /></RequireAdminPermission>} />
-              <Route path="support" element={<RequireAdminPermission perm="support.view"><AdminSupportPage /></RequireAdminPermission>} />
-              <Route path="support/:id" element={<RequireAdminPermission perm="support.view"><AdminSupportCasePage /></RequireAdminPermission>} />
-              <Route path="notifications" element={<RequireAdminPermission perm="notifications.manage"><AdminNotificationsPage /></RequireAdminPermission>} />
-              {/* Module 18A — Market Control Center (India-first launch configuration, global-ready) */}
-              <Route path="markets" element={<RequireAdminPermission perm="markets.view"><MarketsOverviewPage /></RequireAdminPermission>} />
-              <Route path="markets/registry" element={<RequireAdminPermission perm="markets.view"><AdminMarketsPage /></RequireAdminPermission>} />
-              <Route path="markets/:slug" element={<RequireAdminPermission perm="markets.view"><MarketLayout /></RequireAdminPermission>}>
-                <Route index element={<MarketOverviewTab />} />
-                <Route path="states" element={<MarketStatesTab />} />
-                <Route path="cities" element={<RequireAdminPermission perm="cities.view"><MarketCitiesTab /></RequireAdminPermission>} />
-                <Route path="service-areas" element={<RequireAdminPermission perm="service_areas.view"><MarketServiceAreasTab /></RequireAdminPermission>} />
-                <Route path="routes" element={<RequireAdminPermission perm="service_areas.view"><MarketRoutesTab /></RequireAdminPermission>} />
-                <Route path="configuration" element={<MarketConfigurationTab />} />
-                <Route path="features" element={<MarketFeaturesTab />} />
-              </Route>
-              <Route path="configuration" element={<RequireAdminPermission perm="configuration.manage"><AdminConfigurationPage /></RequireAdminPermission>} />
-              <Route path="admin-users" element={<RequireAdminPermission perm="admin_users.view"><AdminUsersPage /></RequireAdminPermission>} />
-              <Route path="audit-logs" element={<RequireAdminPermission perm="audit.view"><AdminAuditLogsPage /></RequireAdminPermission>} />
-              <Route path="security" element={<RequireAdminPermission perm="security.view"><AdminSecurityPage /></RequireAdminPermission>} />
-              <Route path="analytics" element={<RequireAdminPermission perm="analytics.view"><AdminAnalyticsPage /></RequireAdminPermission>} />
-              <Route path="system" element={<RequireAdminPermission perm="system.view"><AdminSystemPage /></RequireAdminPermission>} />
-              <Route path="settings" element={<RequireAdminPermission perm="settings.manage"><AdminSettingsPage /></RequireAdminPermission>} />
-              <Route path="help" element={<AdminHelpPage />} />
-            </Route>
+            {/* Restaurant Dashboard + Platform Admin: own shells, shared domain, loaded on demand as separate chunks (Module 19) */}
+            <Route path="/restaurant-dashboard/*" element={<Suspense fallback={<PortalLoading />}><DashboardApp /></Suspense>} />
+            <Route path="/admin/*" element={<Suspense fallback={<PortalLoading />}><AdminApp /></Suspense>} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <SiteFooter />

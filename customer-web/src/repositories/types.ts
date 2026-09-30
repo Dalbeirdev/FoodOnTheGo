@@ -57,7 +57,7 @@ export type HowItWorksContent = {
 }
 
 export type AboutContent = {
-  hero: { eyebrow: string; title: string; accent: string; leadHtml: string; script: string; pills: Array<{ icon: IconName; tone: Tone; title: string; sub: string }> }
+  hero: { eyebrow: string; title: string; accent: string; /** Plain text segments (no HTML): emphasised phrases carry strong=true. */ lead: Array<{ text: string; strong?: boolean }>; script: string; pills: Array<{ icon: IconName; tone: Tone; title: string; sub: string }> }
   /** Figures come from the approved mockup and are NOT verified business data (tracked as pending content). */
   stats: { illustrative: true; items: Array<{ icon: IconName; tone: Tone; value: string; label: string }> }
   mission: string

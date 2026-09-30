@@ -97,7 +97,7 @@ export function OrderDetailsDrawer({ onChanged }: { onChanged: () => void }) {
   const load = useCallback(async () => { if (!orderNumber) { setOrder(null); setState('idle'); return } setState('loading'); const o = await d.repos.orders.get(rid, orderNumber); setOrder(o); setState(o ? 'ready' : 'missing') }, [d.repos, rid, orderNumber])
   useEffect(() => { void load() }, [load])
   const close = useCallback(() => nav(`${BASE}/orders`), [nav])
-  const money = (m: number) => formatMoney(m, order?.pricing.currency ?? 'USD', locale)
+  const money = (m: number) => formatMoney(m, order?.pricing.currency ?? d.location!.restaurant.currency, locale)
   return (
     <Drawer open={!!orderNumber} onClose={close} title={order ? `${t('dash.orders.detailsTitle', undefined, locale)} ${order.orderNumber}` : t('dash.orders.detailsTitle', undefined, locale)} wide footer={order ? <><OrderActions order={order} onChanged={() => { toast(t('dash.orders.updated', undefined, locale)); void load(); onChanged() }} /></> : undefined}>
       {state === 'loading' && <Skeleton rows={6} />}

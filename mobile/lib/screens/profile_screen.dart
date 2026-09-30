@@ -1,3 +1,5 @@
+import '../order/order_history.dart';
+import '../state/order_state.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,7 +9,6 @@ import '../core/app_config.dart';
 import '../core/theme.dart';
 import '../data/mock_data.dart';
 import '../state/account_state.dart';
-import '../state/app_state.dart';
 import '../state/auth_state.dart';
 import '../widgets/common.dart';
 import 'account_pages.dart' show avatarWidget, confirmDialog;
@@ -90,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthState>();
     final account = context.watch<AccountState>();
-    final orders = context.watch<OrdersState>().orders;
+    final orderRepo = context.read<OrderState>().orders;
     final user = auth.user;
     if (user == null) {
       return Scaffold(
@@ -206,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            SectionCard(title: 'Quick stats', icon: Icons.bar_chart, child: Row(children: [for (final (n, l, r) in [(orders.length, 'Orders', '/my-orders'), (account.favorites.data.length, 'Favorites', '/favorites'), (account.addresses.data.length, 'Addresses', '/addresses')]) Expanded(child: InkWell(onTap: () => context.push(r), borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: Brand.peach, borderRadius: BorderRadius.circular(12)), child: Column(children: [Text('$n', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)), Text(l, style: const TextStyle(color: Brand.grey, fontSize: 12))]))))].expand((w) => [w, const SizedBox(width: 8)]).toList()..removeLast())),
+            FutureBuilder<OrderPage>(future: orderRepo.listSummaries(user.id, const OrderListQuery(limit: 1)), builder: (context, snap) { final orderCount = snap.data?.total ?? 0; return SectionCard(title: 'Quick stats', icon: Icons.bar_chart, child: Row(children: [for (final (n, l, r) in [(orderCount, 'Orders', '/my-orders'), (account.favorites.data.length, 'Favorites', '/favorites'), (account.addresses.data.length, 'Addresses', '/addresses')]) Expanded(child: InkWell(onTap: () => context.push(r), borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.symmetric(vertical: 12), decoration: BoxDecoration(color: Brand.peach, borderRadius: BorderRadius.circular(12)), child: Column(children: [Text('$n', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)), Text(l, style: const TextStyle(color: Brand.grey, fontSize: 12))]))))].expand((w) => [w, const SizedBox(width: 8)]).toList()..removeLast())); }),
           ],
           if (!AppConfig.isProduction) ...[
             const SizedBox(height: 14),

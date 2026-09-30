@@ -37,7 +37,6 @@ function Img({ src, fallback, alt = '' }: { src: string; fallback: string; alt?:
 }
 
 /** Legacy Module 01 checkout mockup constant — replaced by market pricing policy (CF-107). */
-export const GST_RATE = 0.05
 
 export default function CartPage() {
   const cart = useCart()

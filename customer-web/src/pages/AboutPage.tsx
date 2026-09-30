@@ -34,7 +34,7 @@ export default function AboutPage() {
                 <span>{about.hero.title}</span>
                 <span className="about-accent">{about.hero.accent}</span>
               </h1>
-              <p className="about-hero__lead" dangerouslySetInnerHTML={{ __html: about.hero.leadHtml }} />
+              <p className="about-hero__lead">{about.hero.lead.map((s, i) => (s.strong ? <b key={i}>{s.text}</b> : <span key={i}>{s.text}</span>))}</p>
             </div>
 
             <p className="about-hero__script" aria-hidden="true">{about.hero.script}</p>

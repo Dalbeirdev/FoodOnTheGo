@@ -23,7 +23,7 @@ export type Order = {
 
 type OrdersApi = {
   orders: Order[]
-  placeOrder: (input: { restaurantId: string; lines: CartLine[]; note: string; taxRate: number; discount?: number; payment?: Order['payment']; contact?: Order['contact'] }) => Order
+  placeOrder: (input: { restaurantId: string; lines: CartLine[]; note: string; taxMinor?: number; discount?: number; payment?: Order['payment']; contact?: Order['contact'] }) => Order
   getOrder: (number: string) => Order | undefined
 }
 
@@ -41,7 +41,7 @@ const daysAgo = (d: number, h: number, m: number) => {
 function fixture(number: string, restaurantId: string, placedAt: Date, status: OrderStatus, payment: Order['payment'], items: Array<[string, string, number, number, string, string]>): Order {
   const lines: CartLine[] = items.map(([itemId, name, unitPrice, qty, image, fallback]) => ({ key: `${restaurantId}:${itemId}`, itemId, restaurantId, name, unitPrice, qty, image, fallback }))
   const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0)
-  const tax = Math.round(subtotal * 0.05)
+  const tax = 0 // taxes are backend / configuration driven — never computed from a rate in the frontend
   return {
     number, restaurantId, lines, note: '', subtotal, discount: 0, tax, total: subtotal + tax, placedAt,
     confirmedAt: new Date(placedAt.getTime() + 2 * 60_000),
@@ -71,9 +71,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
   const api = useMemo<OrdersApi>(() => ({
     orders,
-    placeOrder: ({ restaurantId, lines, note, taxRate, discount = 0, payment, contact }) => {
+    placeOrder: ({ restaurantId, lines, note, taxMinor = 0, discount = 0, payment, contact }) => {
       const subtotal = lines.reduce((a, l) => a + l.qty * l.unitPrice, 0)
-      const tax = Math.round((subtotal - discount) * taxRate)
+      const tax = taxMinor // supplied by the caller (backend later); no rate is applied here
       const placedAt = new Date()
       const order: Order = {
         number: nextNumber(),

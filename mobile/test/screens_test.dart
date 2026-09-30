@@ -89,7 +89,8 @@ void main() {
     'Notifications': const NotificationsScreen(),
   };
 
-  for (final size in [const Size(390, 844), const Size(1280, 800)]) {
+  // Module 19: compact phone (360×640), common phone (390×844), large phone (430×932), tablet (1280×800).
+  for (final size in [const Size(360, 640), const Size(390, 844), const Size(430, 932), const Size(1280, 800)]) {
     for (final e in screens.entries) {
       testWidgets('${e.key} lays out at ${size.width.toInt()}×${size.height.toInt()}', (t) async {
         t.view.physicalSize = size;
@@ -102,6 +103,21 @@ void main() {
         expect(find.byType(Scaffold), findsWidgets);
       });
     }
+  }
+
+  // Module 19: larger system text (1.3×) on a compact phone must not break the layouts.
+  for (final e in screens.entries) {
+    testWidgets('${e.key} lays out at 360×640 with 1.3× text', (t) async {
+      t.view.physicalSize = const Size(360, 640);
+      t.view.devicePixelRatio = 1;
+      t.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+      await t.pumpWidget(app(e.value));
+      await t.pump();
+      expect(t.takeException(), isNull);
+    });
   }
 
   testWidgets('Cart with a combo shows the saving and totals', (t) async {

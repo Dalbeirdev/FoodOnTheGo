@@ -4,7 +4,7 @@ import 'package:foodonthego/state/app_state.dart';
 
 void main() {
   group('CartState', () {
-    test('adds, steps and totals items with GST and combo discount', () {
+    test('adds, steps and totals items with the combo discount (no tax rate in the app)', () {
       final cart = CartState();
       final burger = menuItemById('classic-burger')!;
       final combo = menuItemById('classic-combo')!;
@@ -13,8 +13,8 @@ void main() {
       expect(cart.count, 2);
       expect(cart.subtotal, 600);
       expect(cart.comboSaving, 50);
-      expect(cart.tax, 28);
-      expect(cart.total, 578);
+      expect(cart.tax, 0);
+      expect(cart.total, 550);
       cart.remove('classic-burger');
       expect(cart.count, 1);
       cart.clear();
@@ -29,7 +29,7 @@ void main() {
       final order = orders.place(cart, 'UPI');
       expect(order.number, startsWith('FTG'));
       expect(order.status, OrderStatus.preparing);
-      expect(order.total, 63);
+      expect(order.total, 60);
       expect(orders.byNumber(order.number), isNotNull);
     });
   });

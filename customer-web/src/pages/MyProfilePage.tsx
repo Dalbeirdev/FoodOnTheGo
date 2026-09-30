@@ -7,10 +7,12 @@ import { ChevronRightIcon, ClockIcon, PinIcon } from '../components/Icons'
 import { useToast } from '../components/Toast'
 import LogoutButton from '../auth/LogoutButton'
 import { initials, useProfile, type Gender } from '../profile/ProfileContext'
-import { useOrders } from '../orders/OrdersContext'
+import { useAuth } from '../auth/AuthContext'
+import { formatMoney } from '../i18n/format'
+import { useLocale } from '../i18n/strings'
+import type { OrderSummary } from '../order/repositories'
+import { orderRepositories } from '../order/useOrderConfirmation'
 import { useAccount } from '../account/AccountContext'
-import { inr } from '../data/menu'
-import { restaurantRepository } from '../repositories'
 import './MyProfilePage.css'
 
 type P = { size?: number }
@@ -47,8 +49,10 @@ const RADII = [5, 10, 15, 20, 30]
 const ALL_CUISINES = ['Indian', 'Fast Food', 'Healthy', 'Beverages', 'Italian', 'Chinese', 'American', 'Desserts']
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
 
-const fmtDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
-const fmtTime = (d: Date) => d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase()
+// Locale comes from the LocaleProvider (market-driven) — never a literal locale in the page.
+let pageLocale = 'en'
+const fmtDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString(pageLocale, { day: '2-digit', month: 'short', year: 'numeric' }) : '—')
+const fmtTime = (d: Date, timeZone?: string) => d.toLocaleTimeString(pageLocale, { hour: 'numeric', minute: '2-digit', timeZone })
 
 type Form = { name: string; email: string; dob: string; gender: Gender; language: string }
 
@@ -62,7 +66,9 @@ export function validateProfile(f: Form): Record<string, string> {
 
 export default function MyProfilePage() {
   const { profile, status, error, reload, update, setAvatar, requestDeletion } = useProfile()
-  const { orders } = useOrders()
+  const { user } = useAuth(); const { locale } = useLocale(); pageLocale = locale
+  const [recent, setRecent] = useState<{ items: OrderSummary[]; total: number }>({ items: [], total: 0 })
+  useEffect(() => { let alive = true; if (!user) return; void orderRepositories.orders.listSummaries(user.id, { limit: 3 }).then((p) => { if (alive) setRecent({ items: p.items, total: p.total }) }).catch(() => {}); return () => { alive = false } }, [user])
   const { favorites, addresses } = useAccount()
   const toast = useToast()
   const fileInput = useRef<HTMLInputElement>(null)
@@ -123,10 +129,11 @@ export default function MyProfilePage() {
   const pref = async (patch: Parameters<typeof update>[0]) => { setPrefBusy(true); try { await update(patch); toast.success('Preference saved') } catch { toast.error('Could not save the preference') } finally { setPrefBusy(false) } }
   const confirmDelete = async () => { setDeleteBusy(true); try { await requestDeletion(); setDeleteOpen(false); toast.success('Deletion request received') } catch { toast.error('Could not submit the request') } finally { setDeleteBusy(false) } }
 
-  const activity = orders.slice(0, 3).map((o) => ({
-    key: o.number, title: 'Order Placed', sub: restaurantRepository.byId(o.restaurantId)?.name ?? '', amount: inr(o.total),
-    status: o.status === 'picked_up' ? 'Completed' : o.status === 'cancelled' ? 'Cancelled' : 'In progress', when: o.placedAt,
-    image: o.lines[0]?.image, fallback: o.lines[0]?.fallback ?? '🍽️', to: `/order/${o.number}`,
+  const DONE = ['PICKED_UP', 'COMPLETED'], STOPPED = ['CANCELLED', 'REJECTED', 'REFUND_PENDING', 'REFUNDED']
+  const activity = recent.items.map((o) => ({
+    key: o.orderNumber, title: 'Order placed', sub: o.restaurantName, amount: formatMoney(o.totalMinor, o.currency, locale),
+    status: DONE.includes(o.orderStatus) ? 'Completed' : STOPPED.includes(o.orderStatus) ? 'Cancelled' : 'In progress', when: new Date(o.createdAt), zone: o.restaurantTimezone,
+    image: o.restaurantImage ?? undefined, fallback: '🍽️', to: `/order/${o.orderNumber}`,
   }))
 
   return (
@@ -214,7 +221,7 @@ export default function MyProfilePage() {
             <section className="pf-card">
               <div className="pf-side__head"><h2><StatsIcon /> Quick Stats</h2><Link to="/my-orders">View All Orders <ChevronRightIcon size={14} /></Link></div>
               <div className="pf-stats">
-                <Link to="/my-orders" className="pf-stat pf-stat--orange"><ForkIcon size={26} /><b>{orders.length}</b><span>Orders Placed</span></Link>
+                <Link to="/my-orders" className="pf-stat pf-stat--orange"><ForkIcon size={26} /><b>{recent.total}</b><span>Orders Placed</span></Link>
                 <Link to="/favorites" className="pf-stat pf-stat--green"><StarOutline size={26} /><b>{favorites.status === 'ready' ? favorites.data.length : '…'}</b><span>Favorite Restaurants</span></Link>
                 <Link to="/addresses" className="pf-stat pf-stat--blue"><PinIcon size={26} /><b>{addresses.status === 'ready' ? addresses.data.length : '…'}</b><span>Saved Addresses</span></Link>
               </div>
@@ -256,7 +263,7 @@ export default function MyProfilePage() {
                   <li key={a.key}>
                     <Link to={a.to} className="pf-activity__img" aria-label={`Order ${a.key} at ${a.sub}`}>{a.image && <img src={a.image} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />}<span aria-hidden="true">{a.fallback}</span></Link>
                     <span className="pf-activity__info"><b>{a.title}</b>{a.sub}<strong>{a.amount}</strong></span>
-                    <span className="pf-activity__when">{fmtDate(a.when.toISOString())}<br />{fmtTime(a.when)}<span className={`pf-pill ${a.status === 'Completed' ? 'is-green' : a.status === 'Cancelled' ? 'is-red' : 'is-blue'}`}>{a.status === 'Completed' && <CheckIcon size={11} />} {a.status}</span></span>
+                    <span className="pf-activity__when">{fmtDate(a.when.toISOString())}<br />{fmtTime(a.when, a.zone)}<span className={`pf-pill ${a.status === 'Completed' ? 'is-green' : a.status === 'Cancelled' ? 'is-red' : 'is-blue'}`}>{a.status === 'Completed' && <CheckIcon size={11} />} {a.status}</span></span>
                   </li>
                 ))}
                 {activity.length === 0 && <li className="pf-activity__empty">No orders yet — your activity will appear here.</li>}

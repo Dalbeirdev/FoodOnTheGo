@@ -143,7 +143,8 @@ class CartState extends ChangeNotifier {
   List<CartLine> get lines => [for (final i in items) CartLine(item: MenuItem(id: i.id, name: i.itemName, desc: i.detail, price: _major(i.unitPriceMinor), image: i.image, veg: i.selectedModifiers.isEmpty && false), restaurantId: i.restaurantId, qty: i.quantity)];
   int get subtotal => _major(subtotalMinor);
   int get comboSaving => items.any((l) => l.menuItemId.contains('combo') || l.menuItemId.contains('pack')) ? 50 : 0;
-  int get tax => ((subtotal - comboSaving) * 0.05).round();
+  /// No tax rate lives in the app: taxes are backend / configuration driven (legacy getter kept for Module 01 callers).
+  int get tax => 0;
   int get total => subtotal - comboSaving + tax;
   int qtyOf(String itemId) => items.where((i) => i.menuItemId == itemId || i.id == itemId).fold(0, (a, i) => a + i.quantity);
   /// Legacy add: a plain line without options (reorder, quick add). Prices arrive in major units of the cart currency.

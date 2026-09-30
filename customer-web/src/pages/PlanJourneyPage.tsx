@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useLocale } from '../i18n/strings'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import LocationInput from '../components/LocationInput'
@@ -26,11 +27,13 @@ const BENEFITS = [
 ]
 
 const today = () => new Date().toISOString().slice(0, 10)
-const fmtDeparture = (iso: string | null) => iso ? new Date(iso).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Leaving now'
-const fmtCreated = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+let journeyLocale = 'en' // set from the LocaleProvider on render
+const fmtDeparture = (iso: string | null) => iso ? new Date(iso).toLocaleString(journeyLocale, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Leaving now'
+const fmtCreated = (iso: string) => new Date(iso).toLocaleDateString(journeyLocale, { day: 'numeric', month: 'short' })
 
 /** Plan a Journey — approved design kept; inputs now run on LocationRepository / JourneyRepository / RouteRepository. */
 export default function PlanJourneyPage() {
+  journeyLocale = useLocale().locale
   const navigate = useNavigate()
   const j = useJourney()
   const [originText, setOriginText] = useState('')
