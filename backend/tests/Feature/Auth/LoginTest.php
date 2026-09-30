@@ -34,7 +34,7 @@ class LoginTest extends TestCase
         $wrong = $this->postJson('/api/v1/auth/login', ['identity' => 'rahul@example.com', 'password' => 'nope-1234'])->assertUnprocessable();
         $unknown = $this->postJson('/api/v1/auth/login', ['identity' => 'ghost@example.com', 'password' => 'Secret123'])->assertUnprocessable();
 
-        $this->assertSame($wrong->json('errors.identity'), $unknown->json('errors.identity'));
+        $this->assertSame($wrong->json('error.details.fields.identity'), $unknown->json('error.details.fields.identity'));
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
@@ -76,6 +76,6 @@ class LoginTest extends TestCase
         $user = User::factory()->create();
         Sanctum::actingAs($user);
 
-        $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('id', $user->public_id)->assertJsonPath('role', 'customer');
+        $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('id', $user->public_id)->assertJsonPath('principal_type', 'CUSTOMER');
     }
 }

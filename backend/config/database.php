@@ -97,6 +97,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Sessions always run in UTC: timestamps are stored normalised, business time zones are explicit data.
+            'timezone' => 'UTC',
         ],
 
         'sqlsrv' => [

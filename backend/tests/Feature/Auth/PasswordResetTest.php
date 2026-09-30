@@ -53,7 +53,7 @@ class PasswordResetTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 0);
 
         $this->postJson('/api/v1/auth/reset-password', ['token' => $token, 'email' => 'rahul@example.com', 'password' => 'Another123', 'password_confirmation' => 'Another123'])
-            ->assertUnprocessable()->assertJsonValidationErrors(['token']);
+            ->assertUnprocessable()->assertJsonValidationErrors(['token'], 'error.details.fields');
     }
 
     public function test_reset_password_rejects_invalid_tokens(): void
@@ -61,6 +61,6 @@ class PasswordResetTest extends TestCase
         User::factory()->create(['email' => 'rahul@example.com']);
 
         $this->postJson('/api/v1/auth/reset-password', ['token' => 'bogus', 'email' => 'rahul@example.com', 'password' => 'NewPass123', 'password_confirmation' => 'NewPass123'])
-            ->assertUnprocessable()->assertJsonValidationErrors(['token']);
+            ->assertUnprocessable()->assertJsonValidationErrors(['token'], 'error.details.fields');
     }
 }

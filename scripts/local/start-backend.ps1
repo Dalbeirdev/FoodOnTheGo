@@ -32,4 +32,6 @@ else {
   Start-Process -FilePath $php -ArgumentList 'artisan serve --host=0.0.0.0 --port=8001' -WorkingDirectory (Join-Path $root 'backend') -WindowStyle Minimized
   Start-Sleep 3; Ok 'Laravel started on http://0.0.0.0:8001'
 }
-try { $h = Invoke-RestMethod 'http://127.0.0.1:8001/api/health' -TimeoutSec 5; Ok "health: status=$($h.status) database=$($h.database) redis=$($h.redis)" } catch { Warn "health check failed: $($_.Exception.Message)" }
+# The first request after a cold start compiles the framework and can take several seconds.
+try { $h = Invoke-RestMethod 'http://127.0.0.1:8001/api/v1/ready' -TimeoutSec 20; Ok "ready: status=$($h.status) database=$($h.checks.database) postgis=$($h.checks.postgis) redis=$($h.checks.redis)" } catch { Warn "readiness check failed: $($_.Exception.Message)" }
+Write-Host 'Queue worker (separate terminal, only needed when jobs are dispatched): php artisan queue:work redis' -ForegroundColor DarkGray

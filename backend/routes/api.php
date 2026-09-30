@@ -1,15 +1,21 @@
 <?php
 
+use App\Enums\Permission;
+use App\Enums\PrincipalType;
+use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\PasswordResetController;
 use App\Http\Controllers\Api\Auth\ProfileController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\MarketController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/health', HealthController::class)->name('api.health');
+Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
+    Route::get('/health', [HealthController::class, 'health'])->name('health');
+    Route::get('/ready', [HealthController::class, 'ready'])->name('ready');
 
-Route::prefix('v1')->name('api.v1.')->group(function (): void {
-    Route::get('/health', HealthController::class)->name('health');
+    Route::get('/config', [MarketController::class, 'config'])->name('config');
+    Route::get('/markets/current', [MarketController::class, 'current'])->name('markets.current');
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
         Route::middleware('throttle:auth')->group(function (): void {
@@ -27,5 +33,9 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
             Route::post('/logout-all', [AuthController::class, 'logoutEverywhere'])->name('logout-all');
         });
+    });
+
+    Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'principal:'.PrincipalType::AdminUser->value])->group(function (): void {
+        Route::get('/markets', [AdminMarketController::class, 'index'])->middleware('can:'.Permission::AdminMarketsView->value)->name('markets.index');
     });
 });

@@ -32,7 +32,7 @@ class ProfileTest extends TestCase
 
         $this->patchJson('/api/v1/auth/profile', ['email' => 'taken@example.com', 'phone' => '9999999999'])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['email', 'phone']);
+            ->assertJsonValidationErrors(['email', 'phone'], 'error.details.fields');
     }
 
     public function test_profile_update_requires_authentication(): void

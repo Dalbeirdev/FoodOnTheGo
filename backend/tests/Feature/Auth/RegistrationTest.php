@@ -22,9 +22,9 @@ class RegistrationTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonStructure(['token', 'token_type', 'user' => ['id', 'name', 'email', 'phone', 'role', 'member_since']])
+            ->assertJsonStructure(['token', 'token_type', 'user' => ['id', 'name', 'email', 'phone', 'principal_type', 'member_since']])
             ->assertJsonPath('user.email', 'rahul.sharma@example.com')
-            ->assertJsonPath('user.role', 'customer')
+            ->assertJsonPath('user.principal_type', 'CUSTOMER')
             ->assertJsonMissingPath('user.password');
 
         $user = User::query()->where('email', 'rahul.sharma@example.com')->firstOrFail();
@@ -55,7 +55,7 @@ class RegistrationTest extends TestCase
             'password' => 'short',
             'password_confirmation' => 'short',
             'accept_terms' => false,
-        ])->assertUnprocessable()->assertJsonValidationErrors(['name', 'identity', 'password', 'accept_terms']);
+        ])->assertUnprocessable()->assertJsonValidationErrors(['name', 'identity', 'password', 'accept_terms'], 'error.details.fields');
 
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Nobody',
@@ -63,7 +63,7 @@ class RegistrationTest extends TestCase
             'password' => 'Secret123',
             'password_confirmation' => 'Secret123',
             'accept_terms' => true,
-        ])->assertUnprocessable()->assertJsonValidationErrors(['identity']);
+        ])->assertUnprocessable()->assertJsonValidationErrors(['identity'], 'error.details.fields');
     }
 
     public function test_registration_is_rate_limited(): void

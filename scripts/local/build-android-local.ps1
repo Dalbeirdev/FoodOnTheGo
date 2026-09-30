@@ -36,7 +36,7 @@ $manifest = @"
 | Install tested | PENDING |
 | Manual user tested | PENDING USER DEVICE VERIFICATION |
 
-Phone must be on the same Wi-Fi as the PC (or use adb reverse). Check http://$($ApiBaseUrl -replace '/api/v1','')/api/health in the phone browser first.
+Phone must be on the same Wi-Fi as the PC (or use adb reverse). Check http://$($ApiBaseUrl -replace '/api/v1','')/api/v1/health in the phone browser first.
 "@
 Set-Content -Path (Join-Path $out "$name.manifest.md") -Value $manifest
 Set-Content -Path (Join-Path $out "$name.sha256") -Value "$sha  $name"

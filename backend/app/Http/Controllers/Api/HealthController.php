@@ -2,47 +2,55 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Permission;
+use App\Enums\PrincipalType;
 use App\Http\Controllers\Controller;
+use App\Services\Foundation\DependencyChecks;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use Throwable;
+use Illuminate\Http\Request;
 
-/**
- * Safe readiness probe for local Web/Android bootstrap checks.
- * Reports only status flags — never hosts, credentials or connection strings.
- */
 class HealthController extends Controller
 {
-    public function __invoke(): JsonResponse
+    /**
+     * Public health: availability only. No environment, hosts or dependency names.
+     */
+    public function health(DependencyChecks $checks): JsonResponse
     {
-        $database = $this->probe(fn () => DB::connection()->getPdo());
-        $redis = $this->probe(fn () => Redis::connection()->ping());
-
-        $healthy = $database === 'ok' && $redis === 'ok';
+        $healthy = $checks->healthy();
 
         return response()->json([
             'status' => $healthy ? 'ok' : 'degraded',
-            'app' => config('app.name'),
-            'environment' => config('app.env'),
-            'database' => $database,
-            'redis' => $redis,
+            'service' => config('app.name'),
             'version' => config('app.version'),
             'time' => now()->toIso8601String(),
         ], $healthy ? 200 : 503);
     }
 
     /**
-     * Run a connectivity check and collapse any failure to a plain "error" flag.
+     * Readiness diagnostics per dependency. Open only where config api.readiness.public allows it
+     * (local / testing); everywhere else it needs an admin holding admin.system.view.
      */
-    private function probe(callable $check): string
+    public function ready(Request $request, DependencyChecks $checks): JsonResponse
     {
-        try {
-            $check();
+        if (! config('api.readiness.public')) {
+            $user = $request->user('sanctum') ?? throw new AuthenticationException;
 
-            return 'ok';
-        } catch (Throwable) {
-            return 'error';
+            if ($user->principal_type !== PrincipalType::AdminUser || $user->cannot(Permission::AdminSystemView->value)) {
+                throw new AuthorizationException;
+            }
         }
+
+        $results = $checks->run();
+        $healthy = ! in_array('error', $results, true);
+
+        return response()->json([
+            'status' => $healthy ? 'ok' : 'degraded',
+            'environment' => config('app.env'),
+            'checks' => ['application' => 'ok'] + $results,
+            'version' => config('app.version'),
+            'time' => now()->toIso8601String(),
+        ], $healthy ? 200 : 503);
     }
 }

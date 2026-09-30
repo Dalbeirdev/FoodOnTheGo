@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Logging\RedactSensitiveData;
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -50,6 +52,11 @@ return [
     |
     */
 
+    'redact_keys' => [
+        'password', 'otp', 'one_time', 'cvv', 'cvc', 'pin', 'secret', 'token', 'authorization', 'cookie',
+        'api_key', 'apikey', 'private_key', 'card_number', 'signature', 'credential',
+    ],
+
     'channels' => [
 
         'stack' => [
@@ -63,6 +70,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'tap' => [RedactSensitiveData::class],
         ],
 
         'daily' => [
@@ -71,6 +79,18 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+            'tap' => [RedactSensitiveData::class],
+        ],
+
+        // One JSON object per line (timestamp, level, message, context, extra.request_id / environment):
+        // the format log shippers expect in staging and production. Select with LOG_STACK=structured.
+        'structured' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/app.json.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'max_files' => env('LOG_DAILY_DAYS', 14),
+            'formatter' => JsonFormatter::class,
+            'tap' => [RedactSensitiveData::class],
         ],
 
         'monthly' => [
@@ -111,6 +131,7 @@ return [
             ],
             'formatter' => env('LOG_STDERR_FORMATTER'),
             'processors' => [PsrLogMessageProcessor::class],
+            'tap' => [RedactSensitiveData::class],
         ],
 
         'syslog' => [

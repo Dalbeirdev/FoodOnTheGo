@@ -9,10 +9,15 @@ foreach ($p in @(@{n = 'PostgreSQL'; port = 5432 }, @{n = 'Redis'; port = 6379 }
   if (Get-NetTCPConnection -LocalPort $p.port -State Listen -ErrorAction SilentlyContinue) { Pass "$($p.n) listening on :$($p.port)" } else { Fail "$($p.n) not listening on :$($p.port)" }
 }
 # Health
-try { $h = Invoke-RestMethod 'http://127.0.0.1:8001/api/health' -TimeoutSec 5
-  if ($h.status -eq 'ok' -and $h.environment -eq 'local') { Pass "API health ok (environment=$($h.environment) db=$($h.database) redis=$($h.redis))" } else { Fail "API health: status=$($h.status) environment=$($h.environment) db=$($h.database) redis=$($h.redis)" }
-  if (($h | ConvertTo-Json) -match 'password|secret|CHANGE_ME') { Fail 'health payload leaks secrets' } else { Pass 'health payload contains no secrets' }
-} catch { Fail "API health unreachable: $($_.Exception.Message)" }
+# Timeout 20 s: the first request after a cold start can take ~9 s (CF-267).
+try { $h = Invoke-RestMethod 'http://127.0.0.1:8001/api/v1/ready' -TimeoutSec 20
+  if ($h.status -eq 'ok' -and $h.environment -eq 'local') { Pass "API ready (environment=$($h.environment) db=$($h.checks.database) postgis=$($h.checks.postgis) redis=$($h.checks.redis))" } else { Fail "API readiness: status=$($h.status) environment=$($h.environment) db=$($h.checks.database) postgis=$($h.checks.postgis) redis=$($h.checks.redis)" }
+  if (($h | ConvertTo-Json -Depth 5) -match 'password|secret|CHANGE_ME') { Fail 'readiness payload leaks secrets' } else { Pass 'readiness payload contains no secrets' }
+  $pub = Invoke-RestMethod 'http://127.0.0.1:8001/api/v1/health' -TimeoutSec 10
+  if (($pub.PSObject.Properties.Name -join ',') -eq 'status,service,version,time') { Pass 'public health is minimal (status, service, version, time)' } else { Fail "public health exposes: $($pub.PSObject.Properties.Name -join ',')" }
+  $m = Invoke-RestMethod 'http://127.0.0.1:8001/api/v1/markets/current' -TimeoutSec 10
+  if ($m.country_code -eq 'IN' -and $m.status -eq 'ACTIVE' -and $m.default_currency -eq 'INR') { Pass "market API: $($m.country_code) $($m.status) $($m.default_currency) $($m.default_locale) $($m.default_timezone) $($m.distance_unit) $($m.phone_country_code)" } else { Fail 'market API did not return the active India market' }
+} catch { Fail "API unreachable: $($_.Exception.Message)" }
 # Web
 try { $w = Invoke-WebRequest 'http://localhost:5173/' -TimeoutSec 5 -UseBasicParsing; if ($w.StatusCode -eq 200) { Pass 'Customer Web responds 200' } } catch { Fail 'Customer Web not responding' }
 

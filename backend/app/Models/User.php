@@ -2,45 +2,43 @@
 
 namespace App\Models;
 
+use App\Enums\PrincipalType;
+use App\Models\Concerns\HasPublicId;
+use App\Models\Concerns\StoresUtcTimestamps;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'role'])]
+#[Fillable(['name', 'email', 'phone', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
-
-    public const ROLE_CUSTOMER = 'customer';
-
-    public const ROLE_RESTAURANT = 'restaurant';
-
-    public const ROLE_ADMIN = 'admin';
+    use HasApiTokens, HasFactory, HasPublicId, Notifiable, StoresUtcTimestamps;
 
     protected static function booted(): void
     {
         static::creating(function (User $user): void {
-            $user->public_id ??= (string) Str::uuid();
-            $user->role ??= self::ROLE_CUSTOMER;
+            $user->principal_type ??= PrincipalType::Customer;
         });
     }
 
-    /** Public identifier used in API responses and URLs. */
-    public function getRouteKeyName(): string
+    /**
+     * @return HasMany<PermissionGrant, $this>
+     */
+    public function permissionGrants(): HasMany
     {
-        return 'public_id';
+        return $this->hasMany(PermissionGrant::class);
     }
 
     public function isCustomer(): bool
     {
-        return $this->role === self::ROLE_CUSTOMER;
+        return $this->principal_type === PrincipalType::Customer;
     }
 
     /**
@@ -53,6 +51,7 @@ class User extends Authenticatable
             'phone_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'principal_type' => PrincipalType::class,
         ];
     }
 }

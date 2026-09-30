@@ -24,7 +24,7 @@ class HealthState extends ChangeNotifier {
       final res = await http.get(Uri.parse('${AppConfig.apiBaseUrl}/health')).timeout(const Duration(seconds: 6));
       payload = jsonDecode(res.body) as Map<String, dynamic>;
       status = res.statusCode == 200 ? ApiStatus.ok : ApiStatus.degraded;
-      detail = 'HTTP ${res.statusCode} · db ${payload?['database']} · redis ${payload?['redis']}';
+      detail = 'HTTP ${res.statusCode} · ${payload?['status']} · version ${payload?['version']}';
     } catch (e) {
       status = ApiStatus.unreachable;
       detail = e.toString().split('\n').first;

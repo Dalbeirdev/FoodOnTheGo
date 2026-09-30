@@ -28,7 +28,6 @@ class AuthController extends Controller
             'name' => trim((string) $request->input('name')),
             $identity['column'] => $identity['value'],
             'password' => (string) $request->input('password'),
-            'role' => User::ROLE_CUSTOMER,
         ]);
 
         return $this->tokenResponse($user, (string) $request->input('device_name', 'web'), 201);
