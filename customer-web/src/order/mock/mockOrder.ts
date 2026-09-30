@@ -3,6 +3,7 @@
  * is a real backend order. Controls: sessionStorage fotg.mock.fail contains "order" → loading fails (retry recovers).
  * Fixture references (development only): FOTG-DEMO-PEND (payment pending), FOTG-DEMO-CANC (cancelled).
  */
+import { fixtureScope } from '../../market/fixtureScope'
 import type { CreateOrderInput, Order, OrderEvent, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRepository, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, Receipt, ReceiptRepository } from '../repositories'
 import { groupOf, pageSummaries } from '../history'
 import { reduceOrder } from '../tracking'
@@ -52,7 +53,9 @@ export class MockOrderRepository implements OrderRepository {
     const list = load<Order>(ORDERS_KEY)
     if (list.some((o) => o.customerId === customerId && o.orderNumber.startsWith('FOTG-SEED'))) return 0
     const now = Date.now()
-    const F: Array<[string, string, string, string, string, string, number, string, OrderStatus, OrderPaymentStatus, number | null]> = [
+    type Row = [string, string, string, string, string, string, number, string, OrderStatus, OrderPaymentStatus, number | null]
+    // CONTROLLED GLOBAL TEST FIXTURES (several currencies / zones / scripts) — used only in the global fixture scope.
+    const GLOBAL_F: Row[] = [
       ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', 'COMPLETED', 'PAID', null],
       ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 32000, 'INR', 'PREPARING', 'PAID', null],
       ['kettleman-diner', 'route-5-diner', 'Route 5 Diner', '33400 Bernard Dr, Kettleman City, CA 93239, USA', 'US', 'America/Los_Angeles', 1899, 'USD', 'PICKED_UP', 'PAID', null],
@@ -62,7 +65,20 @@ export class MockOrderRepository implements OrderRepository {
       ['grapevine-burgers', 'grapevine-burgers', 'Grapevine Burgers', '5602 Dennis McCarthy Dr, Lebec, CA 93243, USA', 'US', 'America/Los_Angeles', 1499, 'USD', 'READY_FOR_PICKUP', 'PAID', null],
       ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', 'COMPLETED', 'PAID', null],
     ]
-    const names = ['Classic Burger', 'Truck Stop Breakfast', 'Œufs en meurette', '白丸元味', 'Spicy Paneer Wrap']
+    // India launch scope: the same status variety with India restaurants only.
+    const INDIA_F: Row[] = [
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', 'COMPLETED', 'PAID', null],
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 32000, 'INR', 'PREPARING', 'PAID', null],
+      ['pizza-point', 'pizza-point', 'Pizza Point', 'Sector 18, Noida, Uttar Pradesh 201301, India', 'IN', 'Asia/Kolkata', 38000, 'INR', 'PICKED_UP', 'PAID', null],
+      ['jaipur-thali', 'jaipur-rajwada-thali', 'Rajwada Thali House', 'MI Road, Jaipur, Rajasthan 302001, India', 'IN', 'Asia/Kolkata', 65000, 'INR', 'CANCELLED', 'REFUNDED', 65000],
+      ['spice-nest', 'spice-nest', 'Spice Nest', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 29000, 'INR', 'REJECTED', 'REFUND_PENDING', null],
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 64000, 'INR', 'CANCELLED', 'PARTIALLY_REFUNDED', 32000],
+      ['dhaba-junction-ropar', 'dhaba-junction-ropar', 'Dhaba Junction', 'NH205, Rupnagar, Punjab 140001, India', 'IN', 'Asia/Kolkata', 22000, 'INR', 'READY_FOR_PICKUP', 'PAID', null],
+      ['burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', 'COMPLETED', 'PAID', null],
+    ]
+    const india = fixtureScope() !== 'global'
+    const F = india ? INDIA_F : GLOBAL_F
+    const names = india ? ['Classic Burger', 'Veg Delight Burger', 'Margherita Pizza', 'Rajasthani Thali', 'Spicy Paneer Wrap'] : ['Classic Burger', 'Truck Stop Breakfast', 'Œufs en meurette', '白丸元味', 'Spicy Paneer Wrap']
     let made = 0
     for (let i = 0; i < n; i++) {
       const [rid, slug, name, addr, cc, tz, unit, cur, os, ps, refunded] = F[i % F.length]

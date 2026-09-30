@@ -1,8 +1,13 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
+import { setFixtureScope } from '../market/fixtureScope'
 
 afterEach(() => cleanup())
+
+// Module 18A: the suite runs on the CONTROLLED GLOBAL TEST FIXTURES by default (multi-currency / time zone / unit coverage).
+// India launch-configuration tests opt in with setFixtureScope('india').
+setFixtureScope('global')
 
 // jsdom has no layout engine; pages that call these must not crash.
 window.scrollTo = () => {}

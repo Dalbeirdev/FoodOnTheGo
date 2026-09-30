@@ -2,6 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useLocale } from '../i18n/strings'
 import { ADMIN_USERS, DEFAULT_ADMIN_ID } from './mock/fixtures'
 import { adminPermissionsForRole, adminRepositories, currentAdminUsers, K, seedAdminFixtures } from './mock/mockAdmin'
+import { fixtureScope } from '../market/fixtureScope'
+import { marketRepository } from '../market/mock/mockMarket'
+import type { Market } from '../market/types'
 import type { AdminNotification, AdminPermission, AdminRepositories, AdminUser, Environment } from './types'
 
 /**
@@ -27,8 +30,14 @@ export type AdminState = {
   markAllRead: () => Promise<void>
   refreshAlerts: () => Promise<void>
   locale: string
+  /** Market context (Module 18A): an ISO country code or 'all'. Always visible in the header; operational lists are scoped to it. */
+  market: string
+  marketModel: Market | null
+  markets: Market[]
+  setMarket: (code: string) => void
 }
 const Ctx = createContext<AdminState | null>(null)
+const MARKET_KEY = 'fotg.adm.market'
 const read = (k: string) => { try { return localStorage.getItem(k) } catch { return null } }
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } catch { /* ignore */ } }
 /** The environment comes from build configuration, never from a hardcoded string; local development shows LOCAL / MOCK DATA. */
@@ -40,18 +49,22 @@ export function AdminProvider({ children, repos = adminRepositories }: { childre
   const [admins, setAdmins] = useState<AdminUser[]>(() => ADMIN_USERS(new Date()))
   const [adminId, setAdminId] = useState(() => read(K.session) ?? DEFAULT_ADMIN_ID)
   const [alerts, setAlerts] = useState<AdminNotification[]>([])
+  const [markets, setMarkets] = useState<Market[]>(() => marketRepository.getMarkets())
+  // Default context = the active market (India launch). 'all' is prepared for future multi-market operation.
+  const [market, setMarketState] = useState<string>(() => { const saved = read(MARKET_KEY); return saved && (saved === 'all' || marketRepository.getMarketByCode(saved)) ? saved : fixtureScope() === 'global' ? 'all' : marketRepository.getActiveMarket().countryCode })
+  const setMarket = useCallback((code: string) => { write(MARKET_KEY, code); setMarketState(code) }, [])
   const admin = useMemo(() => admins.find((a) => a.id === adminId) ?? admins[0], [admins, adminId])
   const permissions = useMemo(() => new Set(admin.status === 'ACTIVE' ? adminPermissionsForRole(admin.role) : []), [admin])
   const refreshAlerts = useCallback(async () => { try { setAlerts(await repos.notifications.alerts()) } catch { /* keep previous */ } }, [repos])
   const reload = useCallback(async () => {
     setStatus('loading')
-    try { seedAdminFixtures(); setAdmins(currentAdminUsers()); await repos.overview.snapshot(); await refreshAlerts(); setStatus('ready') } catch { setStatus('error') }
+    try { seedAdminFixtures(); setAdmins(currentAdminUsers()); setMarkets(marketRepository.getMarkets()); await repos.overview.snapshot(); await refreshAlerts(); setStatus('ready') } catch { setStatus('error') }
   }, [repos, refreshAlerts])
   useEffect(() => { void reload() }, [reload])
   const switchAdmin = useCallback((id: string) => { write(K.session, id); setAdminId(id) }, [])
   const markRead = useCallback(async (id: string) => { await repos.notifications.markRead(id); await refreshAlerts() }, [repos, refreshAlerts])
   const markAllRead = useCallback(async () => { await repos.notifications.markAllRead(); await refreshAlerts() }, [repos, refreshAlerts])
-  const value = useMemo<AdminState>(() => ({ repos, status, admin, admins, permissions, can: (p) => permissions.has(p), switchAdmin, reload, environment: detectEnvironment(), mockData: true, alerts, unreadCount: alerts.filter((a) => !a.read).length, criticalCount: alerts.filter((a) => !a.read && a.severity === 'critical').length, markRead, markAllRead, refreshAlerts, locale }), [repos, status, admin, admins, permissions, switchAdmin, reload, alerts, markRead, markAllRead, refreshAlerts, locale])
+  const value = useMemo<AdminState>(() => ({ repos, status, admin, admins, permissions, can: (p) => permissions.has(p), switchAdmin, reload, environment: detectEnvironment(), mockData: true, alerts, unreadCount: alerts.filter((a) => !a.read).length, criticalCount: alerts.filter((a) => !a.read && a.severity === 'critical').length, markRead, markAllRead, refreshAlerts, locale, market, marketModel: market === 'all' ? null : markets.find((m) => m.countryCode === market) ?? null, markets, setMarket }), [market, markets, setMarket, repos, status, admin, admins, permissions, switchAdmin, reload, alerts, markRead, markAllRead, refreshAlerts, locale])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 export function useAdmin(): AdminState { const v = useContext(Ctx); if (!v) throw new Error('useAdmin outside AdminProvider'); return v }

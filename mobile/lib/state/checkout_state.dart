@@ -1,3 +1,4 @@
+import '../market/market.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -125,7 +126,7 @@ class CheckoutState extends ChangeNotifier {
     promoBusy = true; notifyListeners();
     try {
       final c = cart.cart; final r = restaurant;
-      final res = await promotionsRepo.evaluate(code, PromoContext(subtotalMinor: c?.subtotalMinor ?? 0, currency: c?.currency ?? 'INR', restaurantId: r?.id ?? c?.restaurantId ?? '', countryCode: r?.countryCode ?? 'ZZ', now: now));
+      final res = await promotionsRepo.evaluate(code, PromoContext(subtotalMinor: c?.subtotalMinor ?? 0, currency: c?.currency ?? marketAvailability.activeMarket.defaultCurrency, restaurantId: r?.id ?? c?.restaurantId ?? '', countryCode: r?.countryCode ?? 'ZZ', now: now));
       promo = res;
       if (res.applied) { cart.applyPromo(res.code); } else { cart.removePromo(); }
       if (c != null) summary = await checkoutRepo.buildSummary(c, res.applied ? res.discountMinor : 0, (now ?? DateTime.now()).toUtc());

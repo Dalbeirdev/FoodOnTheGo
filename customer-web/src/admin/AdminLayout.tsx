@@ -48,6 +48,26 @@ function GlobalSearch() {
     </div>
   )
 }
+/** Market context selector: current market is always visible; future markets are listed but cannot be selected. */
+function MarketSelector() {
+  const a = useAdmin(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
+  const current = a.marketModel; const selectable = a.markets.filter((m) => m.status !== 'DRAFT' && m.status !== 'CLOSED'); const future = a.markets.filter((m) => m.status === 'DRAFT')
+  return (
+    <div className="adm-market" ref={ref}>
+      <button type="button" className="adm-market__btn" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)} data-testid="market-selector" aria-label={t('adm.market.selector', { market: current ? current.displayName : t('adm.market.allMarkets', undefined, a.locale) }, a.locale)}>
+        <Icon name="markets" size={18} /><span className="adm-market__text"><small>{t('adm.market.label', undefined, a.locale)}</small><b>{current ? current.displayName : t('adm.market.allMarkets', undefined, a.locale)}</b></span>{current && <span className="adm-market__code">{current.countryCode}</span>}<Icon name="chevron" size={14} />
+      </button>
+      {open && (
+        <ul className="adm-market__menu" role="listbox" aria-label={t('adm.market.label', undefined, a.locale)} data-testid="market-menu">
+          {selectable.map((m) => <li key={m.countryCode} role="option" aria-selected={a.market === m.countryCode}><button type="button" className={`adm-market__opt ${a.market === m.countryCode ? 'is-on' : ''}`} onClick={() => { a.setMarket(m.countryCode); setOpen(false) }}><span><b>{m.displayName}</b><small>{m.countryCode} · {m.defaultCurrency} · {m.defaultTimezone}</small></span><span className={`db-badge db-badge--${m.status === 'ACTIVE' ? 'green' : m.status === 'PILOT' ? 'blue' : 'red'}`}>{t(`adm.marketStatus.${m.status}`, undefined, a.locale)}</span></button></li>)}
+          <li role="option" aria-selected={a.market === 'all'}><button type="button" className={`adm-market__opt ${a.market === 'all' ? 'is-on' : ''}`} onClick={() => { a.setMarket('all'); setOpen(false) }}><span><b>{t('adm.market.allMarkets', undefined, a.locale)}</b><small>{t('adm.market.allNote', { n: selectable.length }, a.locale)}</small></span></button></li>
+          {future.length > 0 && <li className="adm-market__heading" role="presentation">{t('adm.market.future', undefined, a.locale)}</li>}
+          {future.map((m) => <li key={m.countryCode} role="option" aria-selected={false} aria-disabled="true" className="adm-market__opt adm-market__opt--disabled"><span><b>{m.displayName}</b><small>{m.countryCode} · {m.defaultCurrency}</small></span><span className="db-badge db-badge--muted">{t('adm.market.comingLater', undefined, a.locale)}</span></li>)}
+        </ul>
+      )}
+    </div>
+  )
+}
 function EnvironmentBadge() {
   const a = useAdmin()
   return <span className={`adm-env adm-env--${a.environment.toLowerCase()}`} data-testid="env-badge" title={t('adm.env.title', undefined, a.locale)}><span className="adm-env__dot" aria-hidden="true" />{t(`adm.env.${a.environment}`, undefined, a.locale)}{a.mockData && <span className="adm-env__mock"> · {t('adm.env.mock', undefined, a.locale)}</span>}</span>
@@ -126,6 +146,7 @@ export default function AdminLayout() {
           <button type="button" className="db-iconbtn db-header__burger" aria-label={t('adm.nav.open', undefined, a.locale)} onClick={() => setDrawer(true)}><Icon name="burger" /></button>
           <Link to={`${BASE}/overview`} className="db-header__mark" aria-label="FoodOnTheGo"><img src="/brand/foodonthego-icon.svg" alt="" width={36} height={36} /></Link>
           <GlobalSearch />
+          <MarketSelector />
           <EnvironmentBadge />
           <div className="db-header__spacer" />
           <AlertsMenu />

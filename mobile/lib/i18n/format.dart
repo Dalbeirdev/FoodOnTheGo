@@ -6,12 +6,14 @@
 /// by the `timezone` package + tzdata before any production build (carry-forward CF-078).
 library;
 
+import '../market/market.dart';
 import 'package:intl/intl.dart';
 
 import 'markets.dart';
 
 /// amountMinor = integer minor units (paise, cents…). Currencies with 0 minor digits (JPY) handled by intl.
-String formatMoney(int amountMinor, String currency, {String locale = 'en_US'}) {
+String formatMoney(int amountMinor, String currency, {String? locale}) {
+  locale ??= marketAvailability.formatLocale;
   final f = NumberFormat.simpleCurrency(locale: locale, name: currency);
   final digits = f.decimalDigits ?? 2;
   final amount = amountMinor / pow10(digits);
@@ -21,7 +23,8 @@ String formatMoney(int amountMinor, String currency, {String locale = 'en_US'}) 
 int pow10(int n) { var r = 1; for (var i = 0; i < n; i++) { r *= 10; } return r; }
 
 /// "₹₹" style indicator: the currency's symbol repeated priceLevel times (1–4).
-String priceLevelLabel(int priceLevel, String currency, {String locale = 'en_US'}) {
+String priceLevelLabel(int priceLevel, String currency, {String? locale}) {
+  locale ??= marketAvailability.formatLocale;
   final symbol = NumberFormat.simpleCurrency(locale: locale, name: currency).currencySymbol;
   final level = priceLevel.clamp(1, 4);
   // Alphabetic symbols ("AED", "dh") read badly when repeated: show the ISO code once plus level dots.
@@ -29,7 +32,8 @@ String priceLevelLabel(int priceLevel, String currency, {String locale = 'en_US'
 }
 
 /// Internal distances are metres; display converts by unit system.
-String formatDistance(int meters, UnitSystem units, {String locale = 'en_US'}) {
+String formatDistance(int meters, UnitSystem units, {String? locale}) {
+  locale ??= marketAvailability.formatLocale;
   final nf = NumberFormat.decimalPattern(locale);
   if (units == UnitSystem.imperial) {
     final miles = meters / 1609.344;

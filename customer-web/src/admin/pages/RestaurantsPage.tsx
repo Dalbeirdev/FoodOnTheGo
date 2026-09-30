@@ -6,7 +6,7 @@ import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, ReasonDialog, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminRestaurant, DocumentStatus, RejectionCategory, RestaurantFilter } from '../types'
-import { Cell, KNOWN_MARKET_CODES, Stars, StatusPill, fmtDate, fmtDateTime, marketOptions, useLoad, usePageTitle } from './shared'
+import { MarketScopeChip, Cell, KNOWN_MARKET_CODES, Stars, StatusPill, fmtDate, fmtDateTime, marketOptions, useLoad, usePageTitle } from './shared'
 
 const DEFAULTS = { tab: 'all', q: '', market: 'all', cuisine: 'all', sort: 'created', page: '1' }
 const TABS: RestaurantFilter['tab'][] = ['all', 'pending', 'approved', 'suspended', 'rejected', 'inactive']
@@ -15,7 +15,7 @@ const TABS: RestaurantFilter['tab'][] = ['all', 'pending', 'approved', 'suspende
 export default function RestaurantsPage() {
   const a = useAdmin(); const locale = a.locale; const nav = useNavigate(); usePageTitle('adm.nav.restaurants')
   const [s, set] = useUrlState(DEFAULTS)
-  const filter = useMemo<RestaurantFilter>(() => ({ tab: (TABS.includes(s.tab as RestaurantFilter['tab']) ? s.tab : 'all') as RestaurantFilter['tab'], query: s.q, market: s.market, cuisine: s.cuisine, sort: s.sort as RestaurantFilter['sort'], page: Number(s.page) || 1, pageSize: 10 }), [s])
+  const filter = useMemo<RestaurantFilter>(() => ({ tab: (TABS.includes(s.tab as RestaurantFilter['tab']) ? s.tab : 'all') as RestaurantFilter['tab'], query: s.q, market: a.market === 'all' ? s.market : a.market, cuisine: s.cuisine, sort: s.sort as RestaurantFilter['sort'], page: Number(s.page) || 1, pageSize: 10 }), [s, a.market])
   const { data, state, reload } = useLoad(() => a.repos.restaurants.list(filter), [a.repos, filter])
   const cuisines = useMemo(() => a.repos.restaurants.cuisines(), [a.repos])
   const columns: Array<Column<AdminRestaurant>> = [
@@ -34,7 +34,7 @@ export default function RestaurantsPage() {
       <Tabs tabs={TABS.map((id) => ({ id, label: t(`adm.restaurants.tab.${id}`, undefined, locale) }))} value={filter.tab} onChange={(tab) => set({ tab })} label={t('adm.restaurants.tabs', undefined, locale)} />
       <Card>
         <Toolbar search={s.q} onSearch={(q) => set({ q })} placeholder={t('adm.restaurants.search', undefined, locale)} locale={locale}>
-          <Select label={t('adm.restaurants.col.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" />
+          {a.market === 'all' ? <Select label={t('adm.restaurants.col.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" /> : <MarketScopeChip />}
           <Select label={t('adm.restaurants.cuisine.all', undefined, locale)} value={s.cuisine} onChange={(cuisine) => set({ cuisine })} options={[{ value: 'all', label: t('adm.restaurants.cuisine.all', undefined, locale) }, ...cuisines.map((c) => ({ value: c, label: c }))]} testId="filter-cuisine" />
           <Select label={t('adm.restaurants.sort', undefined, locale)} value={s.sort} onChange={(sort) => set({ sort })} options={['created', 'name', 'orders', 'rating'].map((v) => ({ value: v, label: t(`adm.restaurants.sort.${v}`, undefined, locale) }))} testId="filter-sort" />
         </Toolbar>

@@ -10,6 +10,7 @@ import 'dart:math';
 import '../data/mock_data.dart' show imgInterior, imgGallery, imgCurry, imgShake, imgSalad;
 import '../i18n/format.dart' show toZone;
 import '../i18n/markets.dart';
+import '../market/market.dart';
 import '../journey/journey_repositories.dart' show Journey;
 import 'restaurant_models.dart';
 
@@ -164,22 +165,26 @@ class MockRestaurantRepository implements RestaurantRepository {
   bool fail = false;
   Future<void> _wait([Duration? d]) { final dur = d ?? latency; return dur == Duration.zero ? Future.value() : Future.delayed(dur); }
 
-  GlobalRestaurant? byId(String id) { for (final r in globalRestaurants) { if (r.id == id || r.slug == id) return r; } return null; }
+  /// Customer-visible restaurants: active market + serviceable area only (Module 18A).
+  List<GlobalRestaurant> get customerRestaurants => [for (final r in globalRestaurants) if (marketAvailability.isRestaurantAvailable(countryCode: r.countryCode, lat: r.lat, lng: r.lng)) r];
+  static ResultPage _unavailable(UnavailableReason reason, int? corridorM) => ResultPage(items: const [], nextCursor: null, total: 0, corridorM: corridorM, unavailable: MarketAvailabilityResult.unavailable(reason));
+
+  GlobalRestaurant? byId(String id) { for (final r in customerRestaurants) { if (r.id == id || r.slug == id) return r; } return null; }
   @override
   Future<GlobalRestaurant?> getRestaurantBySlug(String slug) async { await _wait(latency ~/ 3); return byId(slug); }
 
   @override
   List<String> getCuisineTaxonomy() {
     final counts = <String, int>{};
-    for (final r in globalRestaurants) { for (final c in r.cuisines) { counts[c] = (counts[c] ?? 0) + 1; } }
+    for (final r in customerRestaurants) { for (final c in r.cuisines) { counts[c] = (counts[c] ?? 0) + 1; } }
     final keys = counts.keys.toList()..sort((a, b) { final d = counts[b]! - counts[a]!; return d != 0 ? d : a.compareTo(b); });
     return keys;
   }
 
   @override
   List<FilterDefinition> getFilterDefinitions(Journey? journey) {
-    final cuisines = [for (final c in getCuisineTaxonomy()) FilterOption(c, c, globalRestaurants.where((r) => r.cuisines.contains(c)).length)];
-    final dietary = [for (final d in ['Vegetarian', 'Vegan', 'Halal', 'Pure Veg']) FilterOption(d, d, globalRestaurants.where((r) => r.features.contains(d)).length)].where((o) => (o.count ?? 0) > 0).toList();
+    final cuisines = [for (final c in getCuisineTaxonomy()) FilterOption(c, c, customerRestaurants.where((r) => r.cuisines.contains(c)).length)];
+    final dietary = [for (final d in ['Vegetarian', 'Vegan', 'Halal', 'Pure Veg']) FilterOption(d, d, customerRestaurants.where((r) => r.features.contains(d)).length)].where((o) => (o.count ?? 0) > 0).toList();
     return [
       FilterDefinition(id: 'cuisine', labelKey: 'filter.cuisine', kind: FilterKind.multi, options: cuisines),
       const FilterDefinition(id: 'openNow', labelKey: 'filter.openNow', kind: FilterKind.toggle),
@@ -261,9 +266,10 @@ class MockRestaurantRepository implements RestaurantRepository {
     if (fail) throw Exception('Restaurant data is unavailable right now. Please try again.');
     final now = q.now ?? DateTime.now().toUtc();
     final scope = q.scope;
+    if (scope != null) { final av = marketAvailability.checkLocation(countryCode: scope.countryCode, lat: scope.lat, lng: scope.lng); if (!av.supported) return _unavailable(av.reason!, null); }
     final all = <RouteRestaurantResult>[];
     final ringCounts = <int, int>{0: 0, 1: 0, 2: 0, 3: 0};
-    for (final r in globalRestaurants) {
+    for (final r in customerRestaurants) {
       int? ring;
       int? dist;
       if (scope != null) {
@@ -296,8 +302,9 @@ class MockRestaurantRepository implements RestaurantRepository {
     final dLat = corridorM / 111320, dLng = corridorM / (111320 * max(cos(_rad((minLat + maxLat) / 2)), 0.01));
     final departure = (journey.departureAt ?? now).toUtc();
     final durationMin = journey.route?.durationMin ?? 0;
+    for (final end in [journey.origin, journey.destination]) { if (!marketAvailability.isCountrySupported(end.countryCode)) return _unavailable(UnavailableReason.market, corridorM); }
     final all = <RouteRestaurantResult>[];
-    for (final r in globalRestaurants) {
+    for (final r in customerRestaurants) {
       if (r.lat < minLat - dLat || r.lat > maxLat + dLat || r.lng < minLng - dLng || r.lng > maxLng + dLng) continue;
       final (meters, position) = distanceToPolyline(r.lat, r.lng, line);
       if (meters > corridorM) continue;
@@ -307,6 +314,8 @@ class MockRestaurantRepository implements RestaurantRepository {
       final ready = arrival.isAfter(now.add(Duration(minutes: r.prepTimeMin))) ? arrival : now.add(Duration(minutes: r.prepTimeMin));
       all.add(RouteRestaurantResult(restaurant: r, availability: computeAvailability(r, arrival), distanceFromRouteM: meters.round(), detourDistanceM: detourDistanceM, detourDurationMin: detourDurationMin, estimatedArrival: arrival, estimatedPickupReady: ready, routePosition: position));
     }
+    // No serviceable restaurant along the journey and neither end inside coverage → outside current coverage.
+    if (all.isEmpty && [journey.origin, journey.destination].every((e) => !marketAvailability.checkLocation(countryCode: e.countryCode, lat: e.lat, lng: e.lng).supported)) return _unavailable(UnavailableReason.route, corridorM);
     return _page(all, q, corridorM);
   }
 }

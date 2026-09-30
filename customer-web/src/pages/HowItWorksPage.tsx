@@ -3,7 +3,12 @@ import Header from '../components/Header'
 import { ArrowRightIcon, ClockIcon, ChevronRightIcon, PinIcon, SearchIcon, StarIcon } from '../components/Icons'
 import PublicIcon from '../components/PublicIcons'
 import { contentRepository, restaurantRepository } from '../repositories'
+import { formatMoney } from '../i18n/format'
+import { marketRepository } from '../market/mock/mockMarket'
 import './HowItWorksPage.css'
+
+/** Illustration prices: active market currency + locale through the shared formatter (no concatenated symbol). */
+const demoPrice = (minor: number) => { const m = marketRepository.getActiveMarket(); return formatMoney(minor, m.defaultCurrency, m.defaultLocale).replace(/\.00$/, '') }
 
 const hiw = contentRepository.getHowItWorksContent()
 const STEPS = hiw.steps
@@ -151,7 +156,7 @@ export default function HowItWorksPage() {
                           <div>
                             <strong>Classic Burger</strong>
                             <span className="phone__meta">Juicy grilled patty with fresh veggies</span>
-                            <span className="phone__price">₹250</span>
+                            <span className="phone__price">{demoPrice(25000)}</span>
                           </div>
                           <span className="phone__qty"><b>−</b>1<b className="is-plus">+</b></span>
                         </li>
@@ -160,7 +165,7 @@ export default function HowItWorksPage() {
                           <div>
                             <strong>Cheese Burger</strong>
                             <span className="phone__meta">Loaded with melted cheese</span>
-                            <span className="phone__price">₹280</span>
+                            <span className="phone__price">{demoPrice(28000)}</span>
                           </div>
                           <span className="phone__qty"><b className="is-plus">+</b></span>
                         </li>

@@ -1,5 +1,6 @@
 import type { Order, OrderEvent, OrderStatus, PickupVerification } from '../../order/repositories'
 import type { Review } from '../../review/repositories'
+import { fixtureScope } from '../../market/fixtureScope'
 import type { DashboardNotification, LocationProfile, Organization, Role, StaffMember } from '../types'
 
 /**
@@ -14,6 +15,21 @@ export const PROFILES: LocationProfile[] = [
   { restaurantId: 'kettleman-diner', organizationId: ORG.id, locationName: 'Kettleman City · I-5', contact: { phone: '+1 (559) 555-0142', website: null, publicEmail: 'hello@route5diner.example' }, logo: null, coverImage: '/images/gallery-interior.jpg', gallery: [], onboardingStatus: 'APPROVED', active: true },
   { restaurantId: 'ippudo-shizuoka', organizationId: ORG.id, locationName: '静岡駅前', contact: { phone: '+81 54-000-0000', website: null, publicEmail: null }, logo: null, coverImage: '/images/food-curry.jpg', gallery: ['/images/food-curry.jpg'], onboardingStatus: 'UNDER_REVIEW', active: true },
 ]
+
+/**
+ * India launch scope (Module 18A): the organization's customer-facing locations are its India locations. The US / JP
+ * locations above stay as CONTROLLED GLOBAL TEST FIXTURES (multi-currency / time zone coverage) and only load in the
+ * global fixture scope.
+ */
+export const INDIA_LOCATION_IDS = ['burger-hub', 'brew-bites', 'healthy-bites']
+export const INDIA_EXTRA_PROFILES: LocationProfile[] = [
+  { restaurantId: 'brew-bites', organizationId: ORG.id, locationName: 'Sector 63 · Noida', contact: { phone: '+91 120 400 2210', website: null, publicEmail: null }, logo: null, coverImage: '/images/gallery-interior.jpg', gallery: [], onboardingStatus: 'APPROVED', active: true },
+  { restaurantId: 'healthy-bites', organizationId: ORG.id, locationName: 'Sector 18 · Noida', contact: { phone: '+91 120 400 3344', website: null, publicEmail: null }, logo: null, coverImage: '/images/food-salad.jpg', gallery: [], onboardingStatus: 'APPROVED', active: true },
+]
+export const orgLocationIds = (): string[] => (fixtureScope() === 'global' ? ORG.locationIds : INDIA_LOCATION_IDS)
+const INDIA_REMAP: Record<string, string> = { 'kettleman-diner': 'brew-bites', 'ippudo-shizuoka': 'healthy-bites' }
+/** Staff fixtures with location access mapped onto the locations of the current fixture scope. */
+export const seedStaff = (): StaffMember[] => (fixtureScope() === 'global' ? STAFF : STAFF.map((m) => ({ ...m, locationAccess: m.locationAccess === 'all' ? 'all' : m.locationAccess.map((l) => INDIA_REMAP[l] ?? l) })))
 
 /** Roles are permission bundles (starting examples; the backend / admin manage them later). */
 export const ROLES: Role[] = [

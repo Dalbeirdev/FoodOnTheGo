@@ -1,3 +1,4 @@
+import '../market/market.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -211,7 +212,8 @@ class MockOrderRepository implements OrderRepository {
     final list = await _orders();
     if (list.any((o) => o.customerId == customerId && o.orderNumber.startsWith('FOTG-SEED'))) return 0;
     final now = DateTime.now().toUtc();
-    const f = <(String, String, String, String, String, String, int, String, OrderStatus, OrderPaymentStatus, int?)>[
+    // CONTROLLED GLOBAL TEST FIXTURES (several currencies / zones / scripts) — used only in the global fixture scope.
+    const globalF = <(String, String, String, String, String, String, int, String, OrderStatus, OrderPaymentStatus, int?)>[
       ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', OrderStatus.completed, OrderPaymentStatus.paid, null),
       ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 32000, 'INR', OrderStatus.preparing, OrderPaymentStatus.paid, null),
       ('kettleman-diner', 'route-5-diner', 'Route 5 Diner', '33400 Bernard Dr, Kettleman City, CA 93239, USA', 'US', 'America/Los_Angeles', 1899, 'USD', OrderStatus.pickedUp, OrderPaymentStatus.paid, null),
@@ -221,7 +223,20 @@ class MockOrderRepository implements OrderRepository {
       ('grapevine-burgers', 'grapevine-burgers', 'Grapevine Burgers', '5602 Dennis McCarthy Dr, Lebec, CA 93243, USA', 'US', 'America/Los_Angeles', 1499, 'USD', OrderStatus.readyForPickup, OrderPaymentStatus.paid, null),
       ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', OrderStatus.completed, OrderPaymentStatus.paid, null),
     ];
-    const names = ['Classic Burger', 'Truck Stop Breakfast', 'Œufs en meurette', '白丸元味', 'Spicy Paneer Wrap'];
+    // India launch scope: the same status variety with India restaurants only.
+    const indiaF = <(String, String, String, String, String, String, int, String, OrderStatus, OrderPaymentStatus, int?)>[
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', OrderStatus.completed, OrderPaymentStatus.paid, null),
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 32000, 'INR', OrderStatus.preparing, OrderPaymentStatus.paid, null),
+      ('pizza-point', 'pizza-point', 'Pizza Point', 'Sector 18, Noida, Uttar Pradesh 201301, India', 'IN', 'Asia/Kolkata', 38000, 'INR', OrderStatus.pickedUp, OrderPaymentStatus.paid, null),
+      ('jaipur-thali', 'jaipur-rajwada-thali', 'Rajwada Thali House', 'MI Road, Jaipur, Rajasthan 302001, India', 'IN', 'Asia/Kolkata', 65000, 'INR', OrderStatus.cancelled, OrderPaymentStatus.refunded, 65000),
+      ('spice-nest', 'spice-nest', 'Spice Nest', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 29000, 'INR', OrderStatus.rejected, OrderPaymentStatus.refundPending, null),
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 64000, 'INR', OrderStatus.cancelled, OrderPaymentStatus.partiallyRefunded, 32000),
+      ('dhaba-junction-ropar', 'dhaba-junction-ropar', 'Dhaba Junction', 'NH205, Rupnagar, Punjab 140001, India', 'IN', 'Asia/Kolkata', 22000, 'INR', OrderStatus.readyForPickup, OrderPaymentStatus.paid, null),
+      ('burger-hub', 'burger-hub', 'Burger Hub', 'Sector 62, Noida, Uttar Pradesh 201309, India', 'IN', 'Asia/Kolkata', 25000, 'INR', OrderStatus.completed, OrderPaymentStatus.paid, null),
+    ];
+    final india = fixtureScope != FixtureScope.global;
+    final f = india ? indiaF : globalF;
+    final names = india ? const ['Classic Burger', 'Veg Delight Burger', 'Margherita Pizza', 'Rajasthani Thali', 'Spicy Paneer Wrap'] : const ['Classic Burger', 'Truck Stop Breakfast', 'Œufs en meurette', '白丸元味', 'Spicy Paneer Wrap'];
     var made = 0;
     for (var i = 0; i < n; i++) {
       final (rid, slug, name, addr, cc, tz, unit, cur, os, ps, refunded) = f[i % f.length];

@@ -6,7 +6,7 @@ import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, ReasonDialog, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminCustomer, CustomerFilter, CustomerStatus } from '../types'
-import { Cell, KNOWN_MARKET_CODES, StatusPill, Stars, fmtDate, fmtDateTime, marketOptions, money, useLoad, usePageTitle } from './shared'
+import { MarketScopeChip, Cell, KNOWN_MARKET_CODES, StatusPill, Stars, fmtDate, fmtDateTime, marketOptions, money, useLoad, usePageTitle } from './shared'
 
 const DEFAULTS = { q: '', status: 'all', market: 'all', page: '1' }
 const STATUSES: CustomerStatus[] = ['ACTIVE', 'RESTRICTED', 'SUSPENDED', 'DEACTIVATED']
@@ -15,7 +15,7 @@ const STATUSES: CustomerStatus[] = ['ACTIVE', 'RESTRICTED', 'SUSPENDED', 'DEACTI
 export default function CustomersPage() {
   const a = useAdmin(); const locale = a.locale; const nav = useNavigate(); usePageTitle('adm.nav.customers')
   const [s, set] = useUrlState(DEFAULTS)
-  const filter = useMemo<CustomerFilter>(() => ({ query: s.q, status: s.status as CustomerFilter['status'], market: s.market, page: Number(s.page) || 1, pageSize: 10 }), [s])
+  const filter = useMemo<CustomerFilter>(() => ({ query: s.q, status: s.status as CustomerFilter['status'], market: a.market === 'all' ? s.market : a.market, page: Number(s.page) || 1, pageSize: 10 }), [s, a.market])
   const { data, state, reload } = useLoad(() => a.repos.customers.list(filter), [a.repos, filter])
   const columns: Array<Column<AdminCustomer>> = [
     { id: 'name', label: t('adm.customers.col.customer', undefined, locale), primary: true, render: (c) => <Cell thumb={<Avatar name={c.name} size={36} />} primary={c.name} secondary={c.emailMasked ?? '—'} /> },
@@ -33,7 +33,7 @@ export default function CustomersPage() {
       <Card>
         <Toolbar search={s.q} onSearch={(q) => set({ q })} placeholder={t('adm.customers.search', undefined, locale)} locale={locale}>
           <Select label={t('adm.customers.col.status', undefined, locale)} value={s.status} onChange={(status) => set({ status })} options={[{ value: 'all', label: t('adm.status.all', undefined, locale) }, ...STATUSES.map((v) => ({ value: v, label: t(`adm.customerStatus.${v}`, undefined, locale) }))]} testId="filter-status" />
-          <Select label={t('adm.customers.col.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" />
+          {a.market === 'all' ? <Select label={t('adm.customers.col.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" /> : <MarketScopeChip />}
         </Toolbar>
         <DataTable columns={columns} rows={data?.items ?? []} keyOf={(c) => c.id} state={state} total={data?.total ?? 0} page={filter.page!} pageSize={10} onPage={(page) => set({ page: String(page) })} empty={{ icon: 'customers', title: t('adm.customers.empty', undefined, locale) }} onRetry={() => { void reload() }} locale={locale} testId="customers-table" caption={t('adm.customers.title', undefined, locale)} onRowClick={(c) => nav(`${BASE}/customers/${c.id}`)} actions={(c) => <Link to={`${BASE}/customers/${c.id}`} className="db-btn db-btn--outline db-btn--sm">{t('adm.table.view', undefined, locale)}</Link>} />
       </Card>

@@ -12,6 +12,8 @@
 import type { Address } from '../account/repositories'
 import type { Journey, Location } from '../journey/repositories'
 import type { DiscoveryScope } from '../repositories/types'
+import { fixtureScope } from '../market/fixtureScope'
+import { marketAvailability, marketRepository } from '../market/mock/mockMarket'
 
 const KEY = 'fotg.discovery.scope'
 
@@ -45,5 +47,15 @@ export function resolveScope(input: { manual: DiscoveryScope | null; addresses: 
   if (def && input.addressCountry) return scopeFromAddress(def, input.addressCountry)
   const j = input.recentJourneys[0]
   if (j) { const s = scopeFromLocation(j.origin, 'journey'); if (s) return s }
-  return scopeFromLocale(input.locale)
+  // Locale is only a hint: a device set to another country's locale still resolves to the active market (India launch).
+  const fromLocale = scopeFromLocale(input.locale)
+  if (fixtureScope() === 'global') return fromLocale // controlled global test fixtures keep the locale-only behaviour
+  if (fromLocale && marketAvailability.isCountrySupported(fromLocale.countryCode) && fromLocale.countryCode !== marketRepository.getActiveMarket().countryCode) return fromLocale
+  return activeMarketScope(input.locale)
+}
+
+export function activeMarketScope(locale: string): DiscoveryScope {
+  const m = marketRepository.getActiveMarket(); let name = m.displayName
+  try { name = new Intl.DisplayNames([locale], { type: 'region' }).of(m.countryCode) ?? name } catch { /* keep */ }
+  return { countryCode: m.countryCode, lat: null, lng: null, label: name, source: 'market' }
 }

@@ -2,13 +2,16 @@
  * Reusable phone/country handling. India first, but nothing else in the app assumes India:
  * add a country here and the login form, validation and masking follow.
  */
-export type Country = { code: string; name: string; dial: string; nationalLength: number; example: string; flag: string }
+import { marketRepository } from '../market/mock/mockMarket'
+
+export type Country = { code: string; name: string; dial: string; nationalLength: number; example: string; flag: string; /** Market-specific national-number rule (data, not logic). */ nationalPattern?: RegExp }
 
 export const COUNTRIES: Country[] = [
-  { code: 'IN', name: 'India', dial: '+91', nationalLength: 10, example: '98765 43210', flag: '🇮🇳' },
+  { code: 'IN', name: 'India', dial: '+91', nationalLength: 10, example: '98765 43210', flag: '🇮🇳', nationalPattern: /^[6-9]/ },
 ]
 
-export const DEFAULT_COUNTRY = COUNTRIES[0]
+/** UX default = the active market's phone country code; storage stays E.164 for every market. */
+export const DEFAULT_COUNTRY = COUNTRIES.find((c) => c.dial === marketRepository.getActiveMarket().phoneCountryCode) ?? COUNTRIES[0]
 
 export const countryByCode = (code: string): Country => COUNTRIES.find((c) => c.code === code) ?? DEFAULT_COUNTRY
 
@@ -21,7 +24,7 @@ export function toE164(country: Country, input: string): string | null {
   const dial = country.dial.replace('+', '')
   if (digits.length === country.nationalLength + dial.length && digits.startsWith(dial)) digits = digits.slice(dial.length)
   if (digits.length !== country.nationalLength) return null
-  if (country.code === 'IN' && !/^[6-9]/.test(digits)) return null
+  if (country.nationalPattern && !country.nationalPattern.test(digits)) return null
   return `${country.dial}${digits}`
 }
 

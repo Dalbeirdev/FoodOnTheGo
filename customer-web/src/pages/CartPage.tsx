@@ -1,3 +1,4 @@
+import { marketRepository } from '../market/mock/mockMarket'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
@@ -84,7 +85,7 @@ export default function CartPage() {
   const availability = useMemo(() => (restaurant ? computeAvailability(restaurant, new Date().toISOString()) : null), [restaurant])
   const route = useMemo(() => (restaurant && journey ? routeContextFor(restaurant, journey) : null), [restaurant, journey])
   const units = resolveUnitSystem(unitPreference, restaurant?.countryCode)
-  const currency = c?.currency ?? 'INR'
+  const currency = c?.currency ?? marketRepository.getActiveMarket().defaultCurrency
   const money = (minor: number) => formatMoney(minor, currency, locale)
   const subtotal = cart.subtotalMinor
   const discount = cart.discountMinor

@@ -30,6 +30,7 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean,
   const [total, setTotal] = useState(0)
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [availability, setAvailability] = useState<ResultPage['availability']>(undefined)
   const seq = useRef(0)
   const first = useRef(true)
 
@@ -48,7 +49,7 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean,
       const page: ResultPage = journey ? await restaurantRepository.getRestaurantsForJourney(journey, query) : await restaurantRepository.getRestaurants(query)
       if (my !== seq.current) return // cancelled by a newer request
       setItems((prev) => (mode === 'more' ? [...prev, ...page.items] : page.items))
-      setTotal(page.total); setNextCursor(page.nextCursor); setRingApplied(page.ringApplied); setNextRing(page.nextRing ?? null); setRingCounts(page.ringCounts); setStatus('ready'); first.current = false
+      setTotal(page.total); setAvailability(page.availability); setNextCursor(page.nextCursor); setRingApplied(page.ringApplied); setNextRing(page.nextRing ?? null); setRingCounts(page.ringCounts); setStatus('ready'); first.current = false
     } catch (e) {
       if (my !== seq.current) return
       setError(e instanceof Error ? e.message : 'Something went wrong.'); setStatus('error')
@@ -65,5 +66,5 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean,
   const widenCorridor = () => setCorridorM(Math.min((corridorM ?? effectiveCorridor ?? 5000) * 2, 50_000))
   const showMoreAreas = () => { if (nextRing !== null) setRingOverride({ key: scopeKey, value: nextRing }) }
 
-  return { search, setSearch, filters, setFilter, toggleOption, clearFilters, activeFilterCount, sort, setSort, definitions, corridorM: effectiveCorridor, setCorridorM, widenCorridor, status, items, total, nextCursor, error, loadMore: () => run(nextCursor, 'more'), retry: () => run(null, 'load'), scope, maxRing, ringApplied, nextRing, ringCounts, showMoreAreas }
+  return { search, setSearch, filters, setFilter, toggleOption, clearFilters, activeFilterCount, sort, setSort, definitions, corridorM: effectiveCorridor, setCorridorM, widenCorridor, status, items, total, nextCursor, error, loadMore: () => run(nextCursor, 'more'), retry: () => run(null, 'load'), scope, maxRing, ringApplied, nextRing, ringCounts, showMoreAreas, availability }
 }

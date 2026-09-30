@@ -38,4 +38,6 @@ export function StatusPill({ status, prefix, dot }: { status: string; prefix: st
 export function Stars({ rating }: { rating: number }) { return <span className="adm-stars" aria-label={`${rating} / 5`} role="img">{'★'.repeat(Math.round(rating))}<span style={{ color: '#d1d5db' }}>{'★'.repeat(5 - Math.round(rating))}</span></span> }
 export function Cell({ primary, secondary, thumb }: { primary: ReactNode; secondary?: ReactNode; thumb?: ReactNode }) { return <span className="adm-cell">{thumb}<span className="adm-cell__text"><b dir="auto">{primary}</b>{secondary && <small dir="auto">{secondary}</small>}</span></span> }
 export const marketOptions = (codes: string[], locale: string) => [{ value: 'all', label: t('adm.market.all', undefined, locale) }, ...codes.map((c) => ({ value: c, label: c }))]
+/** Shows the market the list is scoped to (set in the header selector). */
+export function MarketScopeChip() { const a = useAdmin(); return a.marketModel ? <span className="adm-scope-chip" data-testid="market-scope"><span className="db-sr-only">{t('adm.market.label', undefined, a.locale)}: </span>{a.marketModel.displayName} · {a.marketModel.defaultCurrency}</span> : null }
 export const KNOWN_MARKET_CODES = ['IN', 'US', 'GB', 'JP', 'FR', 'AE']

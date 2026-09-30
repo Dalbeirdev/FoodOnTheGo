@@ -4,6 +4,8 @@
 /// coordinates, flexible address components, opening periods that can run overnight.
 library;
 
+import '../market/market.dart';
+
 /// Flexible address — only `formatted` and `countryCode` are guaranteed.
 class AddressComponents {
   const AddressComponents({required this.formatted, required this.countryCode, this.line1, this.locality, this.adminArea, this.postalCode});
@@ -126,7 +128,9 @@ class DiscoveryQuery {
 }
 
 class ResultPage {
-  const ResultPage({required this.items, required this.nextCursor, required this.total, required this.corridorM, this.ringApplied, this.nextRing, this.ringCounts = const {}});
+  const ResultPage({required this.items, required this.nextCursor, required this.total, required this.corridorM, this.ringApplied, this.nextRing, this.ringCounts = const {}, this.unavailable});
+  /// Module 18A: set when the journey / location lies outside active market coverage (nothing is fabricated).
+  final MarketAvailabilityResult? unavailable;
   final List<RouteRestaurantResult> items;
   final String? nextCursor;
   final int total;

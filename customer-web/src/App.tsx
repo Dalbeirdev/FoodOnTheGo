@@ -68,6 +68,7 @@ import AdminReviewsPage from './admin/pages/ReviewsPage'
 import AdminPromotionsPage from './admin/pages/PromotionsPage'
 import AdminSupportPage, { SupportCasePage as AdminSupportCasePage } from './admin/pages/SupportPage'
 import AdminNotificationsPage from './admin/pages/NotificationsPage'
+import { MarketsOverviewPage, MarketLayout, MarketOverviewTab, MarketStatesTab, MarketCitiesTab, MarketServiceAreasTab, MarketRoutesTab, MarketConfigurationTab, MarketFeaturesTab } from './admin/pages/MarketPages'
 import { MarketsPage as AdminMarketsPage, ConfigurationPage as AdminConfigurationPage } from './admin/pages/PlatformPages'
 import { AdminUsersPage, AuditLogsPage as AdminAuditLogsPage, SecurityPage as AdminSecurityPage } from './admin/pages/SecurityPages'
 import { AnalyticsPage as AdminAnalyticsPage, SystemPage as AdminSystemPage, SettingsPage as AdminSettingsPage, HelpPage as AdminHelpPage } from './admin/pages/InsightPages'
@@ -170,7 +171,18 @@ export function AppShell() {
               <Route path="support" element={<RequireAdminPermission perm="support.view"><AdminSupportPage /></RequireAdminPermission>} />
               <Route path="support/:id" element={<RequireAdminPermission perm="support.view"><AdminSupportCasePage /></RequireAdminPermission>} />
               <Route path="notifications" element={<RequireAdminPermission perm="notifications.manage"><AdminNotificationsPage /></RequireAdminPermission>} />
-              <Route path="markets" element={<RequireAdminPermission perm="markets.view"><AdminMarketsPage /></RequireAdminPermission>} />
+              {/* Module 18A — Market Control Center (India-first launch configuration, global-ready) */}
+              <Route path="markets" element={<RequireAdminPermission perm="markets.view"><MarketsOverviewPage /></RequireAdminPermission>} />
+              <Route path="markets/registry" element={<RequireAdminPermission perm="markets.view"><AdminMarketsPage /></RequireAdminPermission>} />
+              <Route path="markets/:slug" element={<RequireAdminPermission perm="markets.view"><MarketLayout /></RequireAdminPermission>}>
+                <Route index element={<MarketOverviewTab />} />
+                <Route path="states" element={<MarketStatesTab />} />
+                <Route path="cities" element={<RequireAdminPermission perm="cities.view"><MarketCitiesTab /></RequireAdminPermission>} />
+                <Route path="service-areas" element={<RequireAdminPermission perm="service_areas.view"><MarketServiceAreasTab /></RequireAdminPermission>} />
+                <Route path="routes" element={<RequireAdminPermission perm="service_areas.view"><MarketRoutesTab /></RequireAdminPermission>} />
+                <Route path="configuration" element={<MarketConfigurationTab />} />
+                <Route path="features" element={<MarketFeaturesTab />} />
+              </Route>
               <Route path="configuration" element={<RequireAdminPermission perm="configuration.manage"><AdminConfigurationPage /></RequireAdminPermission>} />
               <Route path="admin-users" element={<RequireAdminPermission perm="admin_users.view"><AdminUsersPage /></RequireAdminPermission>} />
               <Route path="audit-logs" element={<RequireAdminPermission perm="audit.view"><AdminAuditLogsPage /></RequireAdminPermission>} />

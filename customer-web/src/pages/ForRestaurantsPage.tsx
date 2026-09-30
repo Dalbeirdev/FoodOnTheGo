@@ -3,7 +3,11 @@ import Header from '../components/Header'
 import { ArrowRightIcon } from '../components/Icons'
 import PublicIcon from '../components/PublicIcons'
 import { contentRepository } from '../repositories'
+import { formatMoney } from '../i18n/format'
+import { marketRepository } from '../market/mock/mockMarket'
 import './ForRestaurantsPage.css'
+
+const demoRevenue = (() => { const m = marketRepository.getActiveMarket(); return formatMoney(986000, m.defaultCurrency, m.defaultLocale).replace(/\.00$/, '') })()
 
 const fr = contentRepository.getForRestaurantsContent()
 const BENEFITS = fr.benefits
@@ -29,7 +33,7 @@ export default function ForRestaurantsPage() {
               <div className="fr-hero__tablet">
                 <div className="fr-hero__screen">
                   <b>Orders Today</b>
-                  <div className="fr-hero__stats"><span><i>24</i>Pickups</span><span><i>₹9,860</i>Revenue</span><span><i>4.6★</i>Rating</span></div>
+                  <div className="fr-hero__stats"><span><i>24</i>Pickups</span><span><i>{demoRevenue}</i>Revenue</span><span><i>4.6★</i>Rating</span></div>
                   <ul>{['Classic Combo · 12:45', 'Veg Delight · 12:50', 'BBQ Bacon Burger · 1:05', 'Family Pack · 1:20'].map((l) => <li key={l}>{l}<em>Ready</em></li>)}</ul>
                 </div>
               </div>

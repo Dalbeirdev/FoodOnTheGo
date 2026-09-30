@@ -1,3 +1,4 @@
+import { marketRepository } from '../market/mock/mockMarket'
 import { Link } from 'react-router-dom'
 import { useCart } from '../cart/CartContext'
 import { formatMoney } from '../i18n/format'
@@ -19,7 +20,7 @@ export default function CartBar() {
     <div className="cart-bar" role="status">
       <div className="cart-bar__inner">
         <span className="cart-bar__icon"><CartIcon /><b>{count}</b></span>
-        <span className="cart-bar__text"><b>{count} {count === 1 ? 'item' : 'items'} in Cart</b>{formatMoney(subtotalMinor, currency ?? 'INR', locale)}</span>
+        <span className="cart-bar__text"><b>{count} {count === 1 ? 'item' : 'items'} in Cart</b>{formatMoney(subtotalMinor, currency ?? marketRepository.getActiveMarket().defaultCurrency, locale)}</span>
         <Link to="/cart" className="btn btn--primary cart-bar__btn">View Cart <ArrowRightIcon size={18} /></Link>
       </div>
     </div>

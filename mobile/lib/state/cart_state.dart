@@ -1,3 +1,4 @@
+import '../market/market.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -150,7 +151,7 @@ class CartState extends ChangeNotifier {
     final existing = items.where((i) => i.id == item.id).firstOrNull;
     if (existing != null) { updateQuantity(existing.id, existing.quantity + 1); return; }
     final gr = globalRestaurants.where((r) => r.id == restaurantId).firstOrNull;
-    final cur = cart != null && cart!.restaurantId == restaurantId ? cart!.currency : (gr?.currency ?? 'INR');
+    final cur = cart != null && cart!.restaurantId == restaurantId ? cart!.currency : (gr?.currency ?? marketAvailability.activeMarket.defaultCurrency);
     final scale = pow10(NumberFormat.simpleCurrency(locale: 'en_US', name: cur).decimalDigits ?? 2);
     addItem(AddItemInput(menuItemId: item.id, itemSlug: item.id, itemName: item.name, image: item.image, basePriceMinor: item.price * scale, currency: cur, restaurantId: restaurantId, restaurantSlug: gr?.slug ?? restaurantId, restaurantName: gr?.name ?? restaurantId, restaurantCurrency: cur, unitPriceMinor: item.price * scale, lineKey: item.id));
   }

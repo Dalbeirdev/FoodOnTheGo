@@ -9,6 +9,7 @@
 import { boundsOf, distanceToPolyline, haversineM, inBounds, type LatLng } from '../../geo/geo'
 import { formatDistance, formatMinutes, localClock } from '../../i18n/format'
 import { marketFor, regionsAdjacent } from '../../i18n/markets'
+import { marketAvailability } from '../../market/mock/mockMarket'
 import type { Availability, DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, OpeningHours, Restaurant, ResultPage, RestaurantRepository, RouteRestaurantResult, ScopeRing, SortKey } from '../types'
 
 type Fixture = Omit<Restaurant, 'publicId' | 'image' | 'distance' | 'time' | 'detour' | 'tags' | 'reviewCount' | 'categories' | 'images' | 'acceptingOrders' | 'status' | 'market' | 'description' | 'openingHours' | 'features'> & {
@@ -172,21 +173,26 @@ const rank = (a: RouteRestaurantResult, b: RouteRestaurantResult, sort: SortKey)
   }
 }
 
+/** Customer-visible restaurants: only locations in an ACTIVE market and a serviceable city / service area (Module 18A). */
+export const customerRestaurants = (): Restaurant[] => RESTAURANTS.filter((r) => marketAvailability.isRestaurantAvailable(r))
+const unavailablePage = (a: { supported: boolean; reason: 'ok' | 'market' | 'area' | 'paused'; messageKey: string }, corridorM: number | null): ResultPage => ({ items: [], nextCursor: null, total: 0, corridorM, availability: a })
+
 export class MockRestaurantRepository implements RestaurantRepository {
-  list() { return RESTAURANTS.map(withOverrides) }
-  byId(id: string) { const r = RESTAURANTS.find((x) => x.id === id || x.slug === id); return r ? withOverrides(r) : undefined }
-  async getRestaurantBySlug(slug: string) { await wait(latency / 3); const r = RESTAURANTS.find((x) => x.slug === slug || x.id === slug); return r ? withOverrides(r) : null }
+  list() { return customerRestaurants().map(withOverrides) }
+  byId(id: string) { const r = customerRestaurants().find((x) => x.id === id || x.slug === id); return r ? withOverrides(r) : undefined }
+  async getRestaurantBySlug(slug: string) { await wait(latency / 3); const r = customerRestaurants().find((x) => x.slug === slug || x.id === slug); return r ? withOverrides(r) : null }
 
   getCuisineTaxonomy() {
     // Derived from data (admin-managed taxonomy later). Latin-script duplicates of local names are kept — the market decides display.
     const counts = new Map<string, number>()
-    for (const r of RESTAURANTS) for (const c of r.cuisines) counts.set(c, (counts.get(c) ?? 0) + 1)
+    for (const r of customerRestaurants()) for (const c of r.cuisines) counts.set(c, (counts.get(c) ?? 0) + 1)
     return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([c]) => c)
   }
 
   getFilterDefinitions(journey: JourneyLike | null): FilterDefinition[] {
-    const cuisines = this.getCuisineTaxonomy().map((c) => ({ value: c, label: c, count: RESTAURANTS.filter((r) => r.cuisines.includes(c)).length }))
-    const dietary = ['Vegetarian', 'Vegan', 'Halal', 'Pure Veg'].map((d) => ({ value: d, label: d, count: RESTAURANTS.filter((r) => r.features.includes(d)).length })).filter((o) => o.count > 0)
+    const visible = customerRestaurants()
+    const cuisines = this.getCuisineTaxonomy().map((c) => ({ value: c, label: c, count: visible.filter((r) => r.cuisines.includes(c)).length }))
+    const dietary = ['Vegetarian', 'Vegan', 'Halal', 'Pure Veg'].map((d) => ({ value: d, label: d, count: visible.filter((r) => r.features.includes(d)).length })).filter((o) => o.count > 0)
     const defs: FilterDefinition[] = [
       { id: 'cuisine', labelKey: 'filter.cuisine', kind: 'multi', options: cuisines },
       { id: 'openNow', labelKey: 'filter.openNow', kind: 'toggle', default: false },
@@ -244,9 +250,11 @@ export class MockRestaurantRepository implements RestaurantRepository {
     if (failing()) throw new Error('Restaurant data is unavailable right now. Please try again.')
     const now = query.now ?? new Date().toISOString()
     const scope = query.scope ?? null
+    // Outside active market coverage → a clear availability state, never fabricated nearby / foreign restaurants.
+    if (scope) { const av = marketAvailability.checkLocation({ countryCode: scope.countryCode, lat: scope.lat, lng: scope.lng }); if (!av.supported) return unavailablePage(av, null) }
     const all: RouteRestaurantResult[] = []
     const ringCounts: Record<ScopeRing, number> = { 0: 0, 1: 0, 2: 0, 3: 0 }
-    for (const r of RESTAURANTS) {
+    for (const r of customerRestaurants()) {
       let ring: ScopeRing | undefined, distanceFromScopeM: number | null = null
       if (scope) {
         const c = MockRestaurantRepository.ringFor(r, scope)
@@ -276,8 +284,9 @@ export class MockRestaurantRepository implements RestaurantRepository {
     const box = boundsOf(line, corridorM)
     const departure = journey.departureAt ? new Date(journey.departureAt).getTime() : new Date(now).getTime()
     const durationMin = journey.route?.durationMin ?? 0
+    for (const end of [journey.origin, journey.destination]) { if (!marketAvailability.isCountrySupported(end.countryCode)) return unavailablePage({ supported: false, reason: 'market', messageKey: 'market.unavailable.market' }, corridorM) }
     const all: RouteRestaurantResult[] = []
-    for (const r of RESTAURANTS) {
+    for (const r of customerRestaurants()) {
       if (!inBounds([r.lat, r.lng], box)) continue
       const { meters, position } = distanceToPolyline([r.lat, r.lng], line)
       if (meters > corridorM) continue
@@ -287,8 +296,14 @@ export class MockRestaurantRepository implements RestaurantRepository {
       const arrivalIso = new Date(arrivalMs).toISOString()
       all.push({ restaurant: r, distanceFromRouteM: Math.round(meters), detourDistanceM, detourDurationMin, estimatedArrival: arrivalIso, estimatedPickupReady: new Date(Math.max(arrivalMs, new Date(now).getTime() + r.prepTimeMin * 60_000)).toISOString(), routePosition: position, availability: computeAvailability(r, arrivalIso) })
     }
+    // A journey with no serviceable restaurant along it lies outside current coverage (never true in the global test scope).
+    if (all.length === 0 && journeyOutsideCoverage(journey)) return unavailablePage({ supported: false, reason: 'area', messageKey: 'market.unavailable.route' }, corridorM)
     return this.page(all, query, corridorM)
   }
+}
+/** True when neither end of the journey is inside a serviceable area (India launch scope). */
+function journeyOutsideCoverage(journey: JourneyLike) {
+  return [journey.origin, journey.destination].every((e) => !marketAvailability.checkLocation({ countryCode: e.countryCode, lat: e.lat, lng: e.lng }).supported)
 }
 
 

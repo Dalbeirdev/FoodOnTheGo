@@ -8,6 +8,7 @@
 /// restaurant. There is no delivery destination anywhere in this model.
 library;
 
+import '../market/market.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -221,7 +222,7 @@ class MockLocationRepository implements LocationRepository {
       if (names.any((n) => n.contains(q)) || _norm(p.sub).contains(q)) return 2;
       return -1;
     }
-    final scored = [for (final p in _places) (score(p), p)].where((e) => e.$1 >= 0).toList()..sort((a, b) => a.$1.compareTo(b.$1));
+    final scored = [for (final p in _places) (score(p), p)].where((e) => e.$1 >= 0).toList()..sort((a, b) { final am = marketAvailability.isCountrySupported(a.$2.location.countryCode) ? 0 : 1, bm = marketAvailability.isCountrySupported(b.$2.location.countryCode) ? 0 : 1; return am != bm ? am.compareTo(bm) : a.$1.compareTo(b.$1); });
     return scored.take(6).map((e) => e.$2.location).toList();
   }
   @override

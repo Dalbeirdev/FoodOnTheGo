@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import '../discovery/discovery_repository.dart';
 import '../discovery/restaurant_models.dart';
 import '../i18n/markets.dart';
+import '../market/market.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../account/account_repositories.dart' show SavedAddress;
 import '../journey/journey_repositories.dart' show Journey, JourneyLocation;
@@ -52,6 +53,8 @@ class DiscoveryState extends ChangeNotifier {
   int get maxRing => _ringKey == _scopeKey ? _maxRing : 1;
   String get _scopeKey => scope == null ? '' : '${scope!.countryCode}|${scope!.adminArea ?? ''}|${scope!.lat ?? ''}|${scope!.lng ?? ''}';
   int? get corridorM => _corridorOverride != null && _corridorJourneyId == journey?.id ? _corridorOverride : (journey != null ? marketFor(journey!.origin.countryCode).corridorM : null);
+  /// Set when the current journey / location is outside active market coverage.
+  MarketAvailabilityResult? unavailable;
   int get activeFilterCount => filters.length + (_debounced.isNotEmpty ? 1 : 0);
   UnitSystem get units => resolveUnitSystem(unitPreference, journey?.origin.countryCode ?? scope?.countryCode ?? (items.isEmpty ? null : items.first.restaurant.countryCode));
   String? get currency => journey == null ? null : marketFor(journey!.origin.countryCode).currency;
@@ -74,8 +77,9 @@ class DiscoveryState extends ChangeNotifier {
     if (def != null && region != null) return DiscoveryScope(countryCode: region, adminArea: def.state, locality: def.city, lat: def.lat, lng: def.lng, label: '${def.label} · ${def.city}', source: 'saved-address');
     final j = recentJourneys.firstOrNull;
     if (j != null && j.origin.countryCode != null) return scopeFromLocation(j.origin, 'journey');
-    if (region != null) return DiscoveryScope(countryCode: region, label: region, source: 'locale');
-    return null;
+    // Device region is only a hint: outside the active markets the scope resolves to the active market (India launch).
+    if (fixtureScope == FixtureScope.global) return region != null ? DiscoveryScope(countryCode: region, label: region, source: 'locale') : null;
+    return DiscoveryScope(countryCode: marketAvailability.activeMarket.countryCode, label: marketAvailability.activeMarket.displayName, source: 'market');
   }
 
   static DiscoveryScope? scopeFromLocation(JourneyLocation l, [String source = 'manual']) => l.countryCode == null ? null : DiscoveryScope(countryCode: l.countryCode!, adminArea: l.adminArea, locality: l.locality ?? l.name, lat: l.lat, lng: l.lng, label: l.name, source: source);
@@ -106,7 +110,7 @@ class DiscoveryState extends ChangeNotifier {
       final page = journey != null ? await repo.getRestaurantsForJourney(journey!, q) : await repo.getRestaurants(q);
       if (my != _seq) return;
       items = more ? [...items, ...page.items] : page.items;
-      total = page.total; nextCursor = page.nextCursor; ringApplied = page.ringApplied; nextRing = page.nextRing; ringCounts = page.ringCounts; status = DiscoveryStatus.ready; _first = false;
+      total = page.total; unavailable = page.unavailable; nextCursor = page.nextCursor; ringApplied = page.ringApplied; nextRing = page.nextRing; ringCounts = page.ringCounts; status = DiscoveryStatus.ready; _first = false;
     } catch (e) {
       if (my != _seq) return;
       error = e.toString().replaceFirst('Exception: ', ''); status = DiscoveryStatus.error;

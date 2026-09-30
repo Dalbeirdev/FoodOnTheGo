@@ -5,19 +5,19 @@ import { Card, ErrorState, Field, KpiCard, Skeleton, Toggle, ToastLine, useToast
 import { useAdmin } from '../AdminContext'
 import { Badge, DevNote, Select, Stat, useUrlState } from '../components/DataTable'
 import type { AnalyticsQuery } from '../types'
-import { KNOWN_MARKET_CODES, Stars, StatusPill, fmtDateTime, marketOptions, money, pct, useLoad, usePageTitle } from './shared'
+import { MarketScopeChip, KNOWN_MARKET_CODES, Stars, StatusPill, fmtDateTime, marketOptions, money, pct, useLoad, usePageTitle } from './shared'
 
 /* ------------------------------------------------------------------ Analytics */
 const AN_DEFAULTS = { range: '7d', market: 'all', from: '', to: '' }
 export function AnalyticsPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.analytics')
   const [s, set] = useUrlState(AN_DEFAULTS)
-  const q = useMemo<AnalyticsQuery>(() => ({ range: s.range as AnalyticsQuery['range'], market: s.market, from: s.from || undefined, to: s.to || undefined }), [s])
+  const q = useMemo<AnalyticsQuery>(() => ({ range: s.range as AnalyticsQuery['range'], market: a.market === 'all' ? s.market : a.market, from: s.from || undefined, to: s.to || undefined }), [s, a.market])
   const { data, state, reload } = useLoad(() => a.repos.analytics.platform(q), [a.repos, q])
   return (
     <div className="db-page" data-testid="adm-analytics">
       <div className="db-page__head"><div><h1 className="db-page__title">{t('adm.analytics.title', undefined, locale)}</h1><p className="db-page__lead">{t('adm.analytics.lead', undefined, locale)}</p></div>
-        <div className="db-page__actions"><Select label={t('adm.analytics.range', undefined, locale)} value={s.range} onChange={(range) => set({ range })} options={(['today', '7d', '30d', 'quarter', 'custom'] as const).map((r) => ({ value: r, label: t(`adm.range.${r}`, undefined, locale) }))} testId="filter-range" /><Select label={t('adm.analytics.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" /></div></div>
+        <div className="db-page__actions"><Select label={t('adm.analytics.range', undefined, locale)} value={s.range} onChange={(range) => set({ range })} options={(['today', '7d', '30d', 'quarter', 'custom'] as const).map((r) => ({ value: r, label: t(`adm.range.${r}`, undefined, locale) }))} testId="filter-range" />{a.market === 'all' ? <Select label={t('adm.analytics.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" /> : <MarketScopeChip />}</div></div>
       {s.range === 'custom' && <div className="adm-inline-form"><Field label={t('adm.analytics.from', undefined, locale)} id="an-from"><input id="an-from" type="date" className="db-input" value={s.from} onChange={(e) => set({ from: e.target.value })} /></Field><Field label={t('adm.analytics.to', undefined, locale)} id="an-to"><input id="an-to" type="date" className="db-input" value={s.to} onChange={(e) => set({ to: e.target.value })} /></Field></div>}
       {state === 'loading' && <div className="db-grid db-grid--kpi">{[0, 1, 2, 3].map((i) => <div key={i} className="db-kpi"><Skeleton rows={2} className="db-skeleton--card" /></div>)}</div>}
       {state === 'error' && <ErrorState title={t('adm.error.loadTitle', undefined, locale)} onRetry={() => { void reload() }} locale={locale} />}

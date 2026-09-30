@@ -6,6 +6,8 @@
  * admin-managed market records (CF: MARKET CONFIGURATION = NOT STARTED). Unknown countries
  * fall back to the neutral defaults below.
  */
+import { unitChoiceAvailable } from '../market/mock/mockMarket'
+
 export type UnitSystem = 'metric' | 'imperial'
 
 export type MarketConfig = {
@@ -59,7 +61,8 @@ export const knownMarkets = () => Object.keys(MARKETS)
 
 /** Unit preference resolution: explicit user preference → market → metric. */
 export function resolveUnitSystem(pref: UnitSystem | 'auto' | null | undefined, countryCode: string | null | undefined): UnitSystem {
-  if (pref && pref !== 'auto') return pref
+  // A stored preference only applies while the launched markets offer a choice (India launch = metric only).
+  if (pref && pref !== 'auto' && unitChoiceAvailable()) return pref
   return marketFor(countryCode).unitSystem
 }
 

@@ -1,3 +1,4 @@
+import { marketRepository } from '../market/mock/mockMarket'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
@@ -116,7 +117,7 @@ export function CheckoutProvider({ children, promotions = defaultPromos, payment
     setPromoBusy(true)
     try {
       const r = restaurant
-      const res = await promotions.evaluate(code, { subtotalMinor: c ? cartSubtotal(c) : 0, currency: c?.currency ?? 'INR', restaurantId: r?.id ?? c?.restaurantId ?? '', countryCode: r?.countryCode ?? 'ZZ' })
+      const res = await promotions.evaluate(code, { subtotalMinor: c ? cartSubtotal(c) : 0, currency: c?.currency ?? marketRepository.getActiveMarket().defaultCurrency, restaurantId: r?.id ?? c?.restaurantId ?? '', countryCode: r?.countryCode ?? 'ZZ' })
       setPromo(res)
       if (res.status === 'applied') cart.applyPromo(res.code); else cart.removePromo()
       if (c) setSummary(await checkout.buildSummary(c, res.status === 'applied' ? res.discountMinor : 0, new Date().toISOString()))

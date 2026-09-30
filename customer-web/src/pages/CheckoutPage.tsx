@@ -1,3 +1,4 @@
+import { marketRepository } from '../market/mock/mockMarket'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
 
   const r = co.restaurant
   const tz = pickup.selection?.restaurantTimezone ?? r?.timezone ?? 'UTC'
-  const currency = c?.currency ?? 'INR'
+  const currency = c?.currency ?? marketRepository.getActiveMarket().defaultCurrency
   const money = (m: number) => formatMoney(m, currency, locale)
   const time = (iso: string) => formatLocalTime(iso, tz, locale)
   const availability = useMemo(() => (r ? computeAvailability(r, new Date().toISOString()) : null), [r])

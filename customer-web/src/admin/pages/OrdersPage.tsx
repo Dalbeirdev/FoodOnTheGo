@@ -7,7 +7,7 @@ import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminOrder, AdminOrderFilter } from '../types'
-import { Cell, KNOWN_MARKET_CODES, StatusPill, fmtDateTime, marketOptions, money, useLoad, usePageTitle } from './shared'
+import { MarketScopeChip, Cell, KNOWN_MARKET_CODES, StatusPill, fmtDateTime, marketOptions, money, useLoad, usePageTitle } from './shared'
 
 const DEFAULTS = { tab: 'all', q: '', market: 'all', date: 'all', page: '1' }
 const TABS: AdminOrderFilter['tab'][] = ['all', 'active', 'preparing', 'ready', 'completed', 'cancelled', 'rejected', 'exception']
@@ -16,7 +16,7 @@ const TABS: AdminOrderFilter['tab'][] = ['all', 'active', 'preparing', 'ready', 
 export default function OrdersPage() {
   const a = useAdmin(); const locale = a.locale; const nav = useNavigate(); usePageTitle('adm.nav.orders')
   const [s, set] = useUrlState(DEFAULTS)
-  const filter = useMemo<AdminOrderFilter>(() => ({ tab: (TABS.includes(s.tab as AdminOrderFilter['tab']) ? s.tab : 'all') as AdminOrderFilter['tab'], query: s.q, market: s.market, date: s.date as AdminOrderFilter['date'], page: Number(s.page) || 1, pageSize: 10 }), [s])
+  const filter = useMemo<AdminOrderFilter>(() => ({ tab: (TABS.includes(s.tab as AdminOrderFilter['tab']) ? s.tab : 'all') as AdminOrderFilter['tab'], query: s.q, market: a.market === 'all' ? s.market : a.market, date: s.date as AdminOrderFilter['date'], page: Number(s.page) || 1, pageSize: 10 }), [s, a.market])
   const { data, state, reload } = useLoad(() => a.repos.orders.list(filter), [a.repos, filter])
   const columns: Array<Column<AdminOrder>> = [
     { id: 'n', label: t('adm.orders.col.order', undefined, locale), primary: true, render: (o) => <span className="db-table__num">{o.order.orderNumber}{o.exceptions.length > 0 && <> <Badge tone="red">{t(`adm.exception.${o.exceptions[0].kind}`, undefined, locale)}</Badge></>}</span> },
@@ -34,7 +34,7 @@ export default function OrdersPage() {
       <Card>
         <Toolbar search={s.q} onSearch={(q) => set({ q })} placeholder={t('adm.orders.search', undefined, locale)} locale={locale}>
           <Select label={t('adm.analytics.range', undefined, locale)} value={s.date} onChange={(date) => set({ date })} options={[{ value: 'all', label: t('adm.range.all', undefined, locale) }, { value: 'today', label: t('adm.range.today', undefined, locale) }, { value: '7d', label: t('adm.range.7d', undefined, locale) }]} testId="filter-date" />
-          <Select label={t('adm.orders.col.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" />
+          {a.market === 'all' ? <Select label={t('adm.orders.col.market', undefined, locale)} value={s.market} onChange={(market) => set({ market })} options={marketOptions(KNOWN_MARKET_CODES, locale)} testId="filter-market" /> : <MarketScopeChip />}
         </Toolbar>
         <DataTable columns={columns} rows={data?.items ?? []} keyOf={(o) => o.order.publicId} state={state} total={data?.total ?? 0} page={filter.page!} pageSize={10} onPage={(page) => set({ page: String(page) })} empty={{ icon: 'orders', title: filter.tab === 'exception' ? t('adm.orders.emptyException', undefined, locale) : t('adm.orders.empty', undefined, locale) }} onRetry={() => { void reload() }} locale={locale} testId="orders-table" caption={t('adm.orders.title', undefined, locale)} onRowClick={(o) => nav(`${BASE}/orders/${o.order.orderNumber}`)} actions={(o) => <Link to={`${BASE}/orders/${o.order.orderNumber}`} className="db-btn db-btn--outline db-btn--sm">{t('adm.table.details', undefined, locale)}</Link>} />
       </Card>

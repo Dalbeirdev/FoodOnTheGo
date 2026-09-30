@@ -2,6 +2,7 @@ import type { Order } from '../order/repositories'
 import type { Restaurant } from '../repositories/types'
 import type { Review } from '../review/repositories'
 import type { LocationProfile, OnboardingStatus } from '../dashboard/types'
+import type { City, CityStatus, Market as MarketModel, MarketConfiguration, MarketFeatureKey, MarketRegion, MarketStatus, RegionStatus, RouteCorridor, RouteStatus, ServiceArea, ServiceAreaStatus } from '../market/types'
 
 /**
  * Platform Admin Dashboard (Module 18) — domain contracts. The admin operates on the SAME domain as the customer app and
@@ -18,6 +19,7 @@ export type AdminPermission =
   | 'promotions.view' | 'promotions.manage'
   | 'support.view' | 'support.manage'
   | 'markets.view' | 'markets.manage' | 'configuration.manage'
+  | 'cities.view' | 'cities.manage' | 'service_areas.view' | 'service_areas.manage' | 'market_configuration.view' | 'market_configuration.manage' | 'market_features.manage'
   | 'notifications.manage'
   | 'admin_users.view' | 'admin_users.manage'
   | 'audit.view' | 'security.view' | 'analytics.view' | 'system.view' | 'settings.manage'
@@ -115,6 +117,23 @@ export type PlatformAnalytics = { orders: number; ordersDelta: number; activeRes
 export type OverviewSnapshot = { restaurants: number; activeRestaurants: number; pendingApprovals: number; customers: number; ordersToday: number; ordersInProgress: number; gmvByCurrency: CurrencyTotal[]; refundsPending: number; failedPayments24h: number; openSupport: number; platformRating: number | null; health: ServiceHealth[]; activity: Array<{ id: string; at: string; kind: string; title: string; detail: string; link: string | null }>; ordersByHour: SeriesPoint[]; pendingRestaurants: AdminRestaurant[]; topRestaurants: PlatformAnalytics['topRestaurants'] }
 export type SearchHit = { kind: 'restaurant' | 'order' | 'customer' | 'payment' | 'support'; ref: string; title: string; subtitle: string; link: string }
 
+/* ---------------- market control center (Module 18A) ---------------- */
+export type MarketRestaurantPin = { id: string; name: string; lat: number; lng: number; cityId: string | null; serviceAreaId: string | null; status: AdminRestaurantStatus; customerVisible: boolean }
+export type MarketStats = { activeCities: number; pilotCities: number; serviceAreas: number; activeServiceAreas: number; restaurants: number; visibleRestaurants: number; ordersToday: number; orders: number; customers: number; gmvMinor: number; currency: string; pendingApprovals: number; activeRoutes: number; byCity: Record<string, { restaurants: number; serviceAreas: number; orders: number }>; byArea: Record<string, { restaurants: number }>; byRegion: Record<string, { cities: number; activeCities: number; restaurants: number; serviceAreas: number }>; byRoute: Record<string, { restaurants: number }> }
+export type MarketAttention = { id: string; severity: 'info' | 'warning'; text: string; link: string }
+export type MarketSnapshot = { market: MarketModel; configuration: MarketConfiguration | null; states: MarketRegion[]; cities: City[]; serviceAreas: ServiceArea[]; routes: RouteCorridor[]; restaurants: MarketRestaurantPin[]; stats: MarketStats; attention: MarketAttention[] }
+export type MarketsOverview = { markets: MarketModel[]; active: MarketSnapshot; activeMarkets: number; futureMarkets: number }
+export interface AdminMarketControlRepository {
+  overview(): Promise<MarketsOverview>
+  snapshot(slug: string): Promise<MarketSnapshot | null>
+  setMarketStatus(code: string, status: MarketStatus, actor: string, reason: string): Promise<void>
+  setStateStatus(id: string, status: RegionStatus, actor: string, reason: string): Promise<void>
+  setCityStatus(id: string, status: CityStatus, actor: string, reason: string): Promise<void>
+  setServiceAreaStatus(id: string, status: ServiceAreaStatus, actor: string, reason: string): Promise<void>
+  setRouteStatus(id: string, status: RouteStatus, actor: string, reason: string): Promise<void>
+  setFeature(code: string, key: MarketFeatureKey, enabled: boolean, actor: string, reason: string): Promise<void>
+}
+
 /* ---------------- repositories ---------------- */
 export interface AdminOverviewRepository { snapshot(): Promise<OverviewSnapshot> }
 export interface AdminRestaurantRepository {
@@ -149,5 +168,5 @@ export interface AdminSearchService { search(q: string, permissions: Set<AdminPe
 export type AdminRepositories = {
   overview: AdminOverviewRepository; restaurants: AdminRestaurantRepository; customers: AdminCustomerRepository; orders: AdminOrderRepository; payments: AdminPaymentRepository; refunds: AdminRefundRepository; settlements: AdminSettlementRepository
   reviews: AdminReviewRepository; promotions: AdminPromotionRepository; support: AdminSupportRepository; notifications: AdminNotificationRepository; markets: AdminMarketRepository; configuration: AdminConfigurationRepository
-  adminUsers: AdminUserRepository; audit: AdminAuditRepository; security: AdminSecurityRepository; analytics: AdminAnalyticsRepository; system: AdminSystemRepository; search: AdminSearchService
+  adminUsers: AdminUserRepository; audit: AdminAuditRepository; security: AdminSecurityRepository; analytics: AdminAnalyticsRepository; system: AdminSystemRepository; search: AdminSearchService; marketControl: AdminMarketControlRepository
 }

@@ -5,6 +5,9 @@
 /// (MARKET CONFIGURATION = NOT STARTED). Unknown countries get the neutral defaults.
 library;
 
+import '../market/market.dart';
+
+
 enum UnitSystem { metric, imperial }
 
 class MarketConfig {
@@ -37,7 +40,7 @@ MarketConfig marketFor(String? countryCode) {
 }
 
 /// Explicit user preference → market → metric.
-UnitSystem resolveUnitSystem(UnitSystem? preference, String? countryCode) => preference ?? marketFor(countryCode).unitSystem;
+UnitSystem resolveUnitSystem(UnitSystem? preference, String? countryCode) => (marketAvailability.unitChoiceAvailable ? preference : null) ?? marketFor(countryCode).unitSystem;
 
 /// True when two regions of the same country are configured as neighbours (symmetric).
 bool regionsAdjacent(String countryCode, String? a, String? b) {

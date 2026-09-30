@@ -7,6 +7,7 @@ import { PinIcon } from '../components/Icons'
 import { useAccount } from '../account/AccountContext'
 import { useAuth } from '../auth/AuthContext'
 import { useJourney } from '../journey/JourneyContext'
+import { unitChoiceAvailable } from '../market/mock/mockMarket'
 import { useDiscovery } from '../discovery/useDiscovery'
 import { loadManualScope, resolveScope, saveManualScope, scopeFromLocale, scopeFromLocation } from '../discovery/scope'
 import LocationInput from '../components/LocationInput'
@@ -173,14 +174,14 @@ export default function RestaurantsPage() {
                     <ChevronDown />
                   </span>
                 </label>
-                <label className="sort units">
+                {unitChoiceAvailable() && <label className="sort units">
                   <span className="select-wrap">
                     <select aria-label={t('units.label', undefined, locale)} value={unitPreference} onChange={(e) => setUnitPreference(e.target.value as 'auto' | 'metric' | 'imperial')}>
                       <option value="auto">{t('units.auto', undefined, locale)}</option><option value="metric">{t('units.metric', undefined, locale)}</option><option value="imperial">{t('units.imperial', undefined, locale)}</option>
                     </select>
                     <ChevronDown />
                   </span>
-                </label>
+                </label>}
                 <div className="view-toggle" role="group" aria-label="View">
                   <button type="button" className={view === 'list' ? 'is-on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}><ListIcon /> {t('discovery.view.list', undefined, locale)}</button>
                   <button type="button" className={`view-toggle__both ${view === 'both' ? 'is-on' : ''}`} aria-pressed={view === 'both'} onClick={() => setView('both')}><SplitIcon /> {t('discovery.view.both', undefined, locale)}</button>
@@ -209,7 +210,16 @@ export default function RestaurantsPage() {
                       <div className="disc-state__actions"><button type="button" className="btn btn--primary" onClick={() => setScopeDialog(true)}>{t('scope.set', undefined, locale)}</button></div>
                     </div>
                   )}
-                  {(d.status === 'ready' || d.status === 'updating') && d.items.length === 0 && (
+                  {(d.status === 'ready' || d.status === 'updating') && d.availability && !d.availability.supported && (
+                    <div className="disc-state disc-state--empty disc-state--unavailable" role="status" data-testid="market-unavailable" data-reason={d.availability.reason}>
+                      <b>{t(d.availability.messageKey, undefined, locale)}</b>
+                      <p>{t(`${d.availability.messageKey}.text`, undefined, locale)}</p>
+                      <div className="disc-state__actions">
+                        {journey ? <Link to="/plan-journey" className="btn btn--primary" onClick={() => journeyApi.edit()}>{t('market.unavailable.changeRoute', undefined, locale)}</Link> : <button type="button" className="btn btn--primary" onClick={() => setScopeDialog(true)}>{t('market.unavailable.changeLocation', undefined, locale)}</button>}
+                      </div>
+                    </div>
+                  )}
+                  {(d.status === 'ready' || d.status === 'updating') && d.items.length === 0 && !(d.availability && !d.availability.supported) && (
                     <div className="disc-state disc-state--empty">
                       <b>{t(journey ? 'discovery.empty.route.title' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title', { label: scope?.label ?? '' }, locale)}</b>
                       <p>{t(journey ? 'discovery.empty.route.text' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text', undefined, locale)}</p>

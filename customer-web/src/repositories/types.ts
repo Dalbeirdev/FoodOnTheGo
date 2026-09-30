@@ -188,7 +188,7 @@ export type DiscoveryScope = {
   lng: number | null
   /** Human label shown in the "Showing restaurants near …" banner. */
   label: string
-  source: 'device' | 'saved-address' | 'journey' | 'manual' | 'locale' | 'dev'
+  source: 'device' | 'saved-address' | 'journey' | 'manual' | 'locale' | 'dev' | 'market'
 }
 /** 0 = within the scope radius, 1 = same region, 2 = neighbouring region, 3 = elsewhere in the country. */
 export type ScopeRing = 0 | 1 | 2 | 3
@@ -217,6 +217,8 @@ export type ResultPage = {
   ringApplied?: ScopeRing
   nextRing?: ScopeRing | null
   ringCounts?: Record<ScopeRing, number>
+  /** Module 18A: set when the journey / location lies outside active market coverage (no restaurants are fabricated). */
+  availability?: { supported: boolean; reason: 'ok' | 'market' | 'area' | 'paused'; messageKey: string }
 }
 
 export interface ContentRepository {

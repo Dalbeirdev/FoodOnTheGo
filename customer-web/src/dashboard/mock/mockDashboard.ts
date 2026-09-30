@@ -16,7 +16,8 @@ import { RESTAURANTS, saveRestaurantOverride, withOverrides } from '../../reposi
 import type { OpeningHours, Restaurant } from '../../repositories/types'
 import type { Review } from '../../review/repositories'
 import { minorDigits } from '../../i18n/format'
-import { NOTIFICATION_SEEDS, ORDER_SEEDS, ORG, PROFILES, REVIEW_SEEDS, ROLES, STAFF, buildSeedOrder } from './fixtures'
+import { INDIA_EXTRA_PROFILES, NOTIFICATION_SEEDS, ORDER_SEEDS, ORG, PROFILES, REVIEW_SEEDS, ROLES, buildSeedOrder, orgLocationIds, seedStaff } from './fixtures'
+import { marketAvailability } from '../../market/mock/mockMarket'
 import type { AnalyticsQuery, AnalyticsSummary, DashboardLocation, DashboardNotification, DashboardRepositories, DelayReason, LocationProfile, LocationSettings, ManagedMenu, MenuItemInput, MenuManagementRepository, Organization, OrderListFilter, OrderTab, OverviewSnapshot, Permission, ProfilePatch, RejectReason, RestaurantAnalyticsRepository, RestaurantManagementRepository, RestaurantNotificationRepository, RestaurantOrderRepository, RestaurantReviewRepository, RestaurantStaffRepository, RoleId, SpecialHours, StaffInvite, StaffMember, VerificationResult } from '../types'
 
 const ORDERS_KEY = 'fotg.orders.v1', PV_KEY = 'fotg.pickup_verifications.v1', REVIEWS_KEY = 'fotg.reviews.v1'
@@ -41,23 +42,24 @@ export function seedDashboardFixtures(now = new Date()) {
     for (const s of ORDER_SEEDS) {
       if (orders.some((o) => o.orderNumber === s.n)) continue
       const { order, verification } = buildSeedOrder(s, now)
+      if (!marketAvailability.isCountrySupported(order.restaurant.countryCode)) continue // foreign fixtures stay in the global test scope
       orders.push(order); pvs.push(verification)
     }
     ssSave(ORDERS_KEY, orders); ssSave(PV_KEY, pvs)
     const reviews = ssLoad<Review>(REVIEWS_KEY)
-    for (const r of REVIEW_SEEDS) if (!reviews.some((x) => x.reviewId === r.reviewId)) reviews.push({ ...r, categoryRatings: r.categoryRatings ?? {}, itemFeedback: [], version: 1, moderation: { reason: null, moderatedAt: null } })
+    for (const r of REVIEW_SEEDS) if (!reviews.some((x) => x.reviewId === r.reviewId) && marketAvailability.isCountrySupported(RESTAURANTS.find((x) => x.id === r.restaurantId)?.countryCode)) reviews.push({ ...r, categoryRatings: r.categoryRatings ?? {}, itemFeedback: [], version: 1, moderation: { reason: null, moderatedAt: null } })
     ssSave(REVIEWS_KEY, reviews)
     sessionStorage.setItem(K.seeded, now.toISOString())
   } catch { /* ignore */ }
 }
 
 /* ------------------------------------------------------------------ management */
-const profiles = () => lsLoad<LocationProfile[]>(K.profiles, PROFILES)
+const profiles = () => { const list = lsLoad<LocationProfile[]>(K.profiles, [...PROFILES, ...INDIA_EXTRA_PROFILES]); for (const p of INDIA_EXTRA_PROFILES) if (!list.some((x) => x.restaurantId === p.restaurantId)) list.push(p); return list }
 const restaurantOf = (rid: string): Restaurant | null => { const r = RESTAURANTS.find((x) => x.id === rid); return r ? withOverrides(r) : null }
 const locationOf = (rid: string): DashboardLocation | null => { const r = restaurantOf(rid); const p = profiles().find((x) => x.restaurantId === rid); return r && p ? { restaurant: r, profile: p } : null }
 export class MockRestaurantManagementRepository implements RestaurantManagementRepository {
-  async getOrganization(): Promise<Organization> { await wait(); if (failing()) throw new Error('dashboard_load_failed'); return ORG }
-  async getLocations() { await wait(); if (failing()) throw new Error('dashboard_load_failed'); return ORG.locationIds.map(locationOf).filter((x): x is DashboardLocation => !!x) }
+  async getOrganization(): Promise<Organization> { await wait(); if (failing()) throw new Error('dashboard_load_failed'); return { ...ORG, locationIds: orgLocationIds() } }
+  async getLocations() { await wait(); if (failing()) throw new Error('dashboard_load_failed'); return orgLocationIds().map(locationOf).filter((x): x is DashboardLocation => !!x) }
   async getLocation(rid: string) { await wait(); return locationOf(rid) }
   async updateProfile(rid: string, patch: ProfilePatch) {
     await wait(); if (failing()) throw new Error('dashboard_save_failed')
@@ -186,7 +188,7 @@ export class MockRestaurantOrderRepository implements RestaurantOrderRepository 
 
 /* ------------------------------------------------------------------ staff */
 export class MockRestaurantStaffRepository implements RestaurantStaffRepository {
-  private all() { return lsLoad<StaffMember[]>(K.staff, STAFF) }
+  private all() { return lsLoad<StaffMember[]>(K.staff, seedStaff()) }
   async list() { await wait(); if (failing()) throw new Error('staff_load_failed'); return this.all() }
   async invite(i: StaffInvite) { await wait(); const list = this.all(); if (list.some((s) => s.email.toLowerCase() === i.email.toLowerCase())) throw new Error('staff_duplicate_email'); const m: StaffMember = { id: id('stf'), ...i, status: 'invited' }; list.push(m); lsSave(K.staff, list); return m }
   async update(sid: string, patch: Partial<Pick<StaffMember, 'role' | 'locationAccess' | 'status' | 'avatar'>>) { await wait(); const list = this.all(); const i = list.findIndex((s) => s.id === sid); if (i < 0) throw new Error('staff_not_found'); if (list[i].role === 'owner' && patch.role && patch.role !== 'owner' && list.filter((s) => s.role === 'owner').length === 1) throw new Error('last_owner'); list[i] = { ...list[i], ...patch }; lsSave(K.staff, list); return list[i] }

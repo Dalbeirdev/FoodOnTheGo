@@ -8,6 +8,7 @@ import '../core/theme.dart';
 import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart';
 import '../i18n/markets.dart';
+import '../market/market.dart';
 import '../i18n/strings.dart';
 import '../journey/journey_repositories.dart' show Journey, formatDuration;
 import '../state/account_state.dart';
@@ -140,6 +141,15 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                 const SizedBox(height: 4), Text(S.t('scope.none.text'), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
                 const SizedBox(height: 14), BrandButton(label: S.t('scope.set'), expand: false, height: 42, onPressed: _changeLocation),
               ])))
+            else if ((ds.status == DiscoveryStatus.ready || ds.status == DiscoveryStatus.updating) && ds.unavailable != null)
+              Semantics(container: true, label: S.t(ds.unavailable!.messageKey), child: Card(key: const Key('market-unavailable'), child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
+                const Icon(Icons.location_off_outlined, size: 40, color: Brand.orangeDeep), const SizedBox(height: 8),
+                Text(S.t(ds.unavailable!.messageKey), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4), Text(S.t('${ds.unavailable!.messageKey}.text'), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
+                const SizedBox(height: 14),
+                if (journey != null) BrandButton(label: S.t('market.unavailable.changeRoute'), expand: false, height: 42, onPressed: () { js.edit(); context.go('/plan-journey'); })
+                else BrandButton(label: S.t('market.unavailable.changeLocation'), expand: false, height: 42, onPressed: _changeLocation),
+              ]))))
             else if ((ds.status == DiscoveryStatus.ready || ds.status == DiscoveryStatus.updating || ds.status == DiscoveryStatus.loadingMore) && ds.items.isEmpty)
               Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
                 const Icon(Icons.search_off, size: 40, color: Brand.orangeDeep), const SizedBox(height: 8),
@@ -359,7 +369,7 @@ class _UnitsMenu extends StatelessWidget {
   const _UnitsMenu({required this.ds});
   final DiscoveryState ds;
   @override
-  Widget build(BuildContext context) => PopupMenuButton<String>(
+  Widget build(BuildContext context) => !marketAvailability.unitChoiceAvailable ? const SizedBox.shrink() : PopupMenuButton<String>(
         tooltip: S.t('units.label'),
         onSelected: (v) => ds.setUnitPreference(v == 'auto' ? null : v == 'metric' ? UnitSystem.metric : UnitSystem.imperial),
         itemBuilder: (_) => [PopupMenuItem(value: 'auto', child: Text(S.t('units.auto'))), PopupMenuItem(value: 'metric', child: Text(S.t('units.metric'))), PopupMenuItem(value: 'imperial', child: Text(S.t('units.imperial')))],

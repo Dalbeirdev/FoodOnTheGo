@@ -9,6 +9,7 @@
  * "route" → route lookup rejects, "network" → network-style failure. Special query "nowhere"
  * returns no results; origin/destination pair including "Port Blair" has no road route.
  */
+import { marketAvailability } from '../../market/mock/mockMarket'
 import { JourneyError, type Journey, type JourneyInput, type JourneyRepository, type Location, type LocationRepository, type RouteRepository, type RouteSummary } from '../repositories'
 
 type Place = { id: string; name: string; sub: string; kind: Location['kind']; lat: number; lng: number; aliases?: string[]; cc: string; tz: string; admin?: string }
@@ -100,7 +101,9 @@ export class MockLocationRepository implements LocationRepository {
       if (names.some((n) => n.includes(q)) || norm(p.sub).includes(q)) return 2
       return -1
     }
-    return PLACES.map((p) => [score(p), p] as const).filter(([s]) => s >= 0).sort((a, b) => a[0] - b[0]).slice(0, 6).map(([, p]) => toLocation(p))
+    // Active-market places first (India launch): other countries only surface when the text really matches them.
+    const active = (p: Place) => (marketAvailability.isCountrySupported(p.cc) ? 0 : 1)
+    return PLACES.map((p) => [score(p), p] as const).filter(([s]) => s >= 0).sort((a, b) => active(a[1]) - active(b[1]) || a[0] - b[0]).slice(0, 6).map(([, p]) => toLocation(p))
   }
   async recent() { return read<Location[]>(this.key, []) }
   async remember(location: Location) {

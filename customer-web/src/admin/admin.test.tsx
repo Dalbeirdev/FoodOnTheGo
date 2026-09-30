@@ -43,7 +43,7 @@ function mount(path: string) {
             <Route path="promotions" element={<RequirePermission perm="promotions.view"><PromotionsPage /></RequirePermission>} />
             <Route path="support" element={<RequirePermission perm="support.view"><SupportPage /></RequirePermission>} />
             <Route path="support/:id" element={<RequirePermission perm="support.view"><SupportCasePage /></RequirePermission>} />
-            <Route path="markets" element={<RequirePermission perm="markets.view"><MarketsPage /></RequirePermission>} />
+            <Route path="markets/registry" element={<RequirePermission perm="markets.view"><MarketsPage /></RequirePermission>} />
             <Route path="configuration" element={<RequirePermission perm="configuration.manage"><ConfigurationPage /></RequirePermission>} />
             <Route path="admin-users" element={<RequirePermission perm="admin_users.view"><AdminUsersPage /></RequirePermission>} />
             <Route path="audit-logs" element={<RequirePermission perm="audit.view"><AuditLogsPage /></RequirePermission>} />
@@ -222,7 +222,7 @@ describe('Moderation, growth & support', () => {
 
 describe('Platform, security & analytics', () => {
   it('TEST 19 markets validate ISO codes; configuration and feature flags need a reason and write before/after audit entries', async () => {
-    const user = userEvent.setup(); mount('/admin/markets'); await screen.findByTestId('markets-table'); expect(within(screen.getByTestId('markets-table')).getAllByRole('row')).toHaveLength(8)
+    const user = userEvent.setup(); mount('/admin/markets/registry'); await screen.findByTestId('markets-table'); expect(within(screen.getByTestId('markets-table')).getAllByRole('row')).toHaveLength(8)
     await user.click(screen.getByTestId('market-edit-AE')); const f = await screen.findByTestId('market-form'); await user.clear(screen.getByTestId('market-currency')); await user.type(screen.getByTestId('market-currency'), 'AE'); await user.click(screen.getByTestId('market-save')); expect(within(f).getByRole('alert')).toBeInTheDocument()
     cleanup(); mount('/admin/configuration'); await screen.findByTestId('config-ordering'); expect(screen.getByTestId('adm-configuration')).toHaveTextContent(/NOT APPROVED/)
     await user.click(screen.getByTestId('config-edit-ordering.min_lead_minutes')); await user.clear(screen.getByTestId('config-value')); await user.type(screen.getByTestId('config-value'), '20'); await confirmWithReason(user, 'Kitchen feedback')

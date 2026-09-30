@@ -6,7 +6,7 @@ import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, Select, Stat, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminPayment, AdminRefund, PaymentState, RefundStatus, Settlement, SettlementStatus } from '../types'
-import { Cell, StatusPill, fmtDateTime, money, useLoad, usePageTitle } from './shared'
+import { MarketScopeChip, Cell, StatusPill, fmtDateTime, money, useLoad, usePageTitle } from './shared'
 
 const CURRENCIES = ['INR', 'USD', 'GBP', 'JPY', 'EUR', 'AED']
 const PAY_STATES: PaymentState[] = ['CREATED', 'PENDING', 'AUTHORIZED', 'CAPTURED', 'FAILED', 'CANCELLED', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED']
@@ -36,7 +36,7 @@ export function PaymentsPage() {
       <Card>
         <Toolbar search={s.q} onSearch={(q) => set({ q })} placeholder={t('adm.payments.search', undefined, locale)} locale={locale}>
           <Select label={t('adm.payments.col.status', undefined, locale)} value={s.status} onChange={(status) => set({ status })} options={[{ value: 'all', label: t('adm.status.all', undefined, locale) }, ...PAY_STATES.map((v) => ({ value: v, label: t(`adm.payState.${v}`, undefined, locale) }))]} testId="filter-status" />
-          <Select label={t('adm.currency.all', undefined, locale)} value={s.currency} onChange={(currency) => set({ currency })} options={[{ value: 'all', label: t('adm.currency.all', undefined, locale) }, ...CURRENCIES.map((c) => ({ value: c, label: c }))]} testId="filter-currency" />
+          {a.marketModel ? <MarketScopeChip /> : <Select label={t('adm.currency.all', undefined, locale)} value={s.currency} onChange={(currency) => set({ currency })} options={[{ value: 'all', label: t('adm.currency.all', undefined, locale) }, ...CURRENCIES.map((c) => ({ value: c, label: c }))]} testId="filter-currency" />}
         </Toolbar>
         <DataTable columns={columns} rows={data?.items ?? []} keyOf={(p) => p.reference} state={state} total={data?.total ?? 0} page={filter.page} pageSize={10} onPage={(page) => set({ page: String(page) })} empty={{ icon: 'payments', title: t('adm.payments.empty', undefined, locale) }} onRetry={() => { void reload() }} locale={locale} testId="payments-table" caption={t('adm.payments.title', undefined, locale)} onRowClick={setOpen} actions={(p) => <button type="button" className="db-btn db-btn--outline db-btn--sm" onClick={() => setOpen(p)}>{t('adm.table.view', undefined, locale)}</button>} />
       </Card>
@@ -110,7 +110,7 @@ export function SettlementsPage() {
       <Card>
         <Toolbar locale={locale}>
           <Select label={t('adm.settlements.col.status', undefined, locale)} value={s.status} onChange={(status) => set({ status })} options={[{ value: 'all', label: t('adm.status.all', undefined, locale) }, ...S_STATUSES.map((v) => ({ value: v, label: t(`adm.settlementStatus.${v}`, undefined, locale) }))]} testId="filter-status" />
-          <Select label={t('adm.currency.all', undefined, locale)} value={s.currency} onChange={(currency) => set({ currency })} options={[{ value: 'all', label: t('adm.currency.all', undefined, locale) }, ...CURRENCIES.map((c) => ({ value: c, label: c }))]} testId="filter-currency" />
+          {a.marketModel ? <MarketScopeChip /> : <Select label={t('adm.currency.all', undefined, locale)} value={s.currency} onChange={(currency) => set({ currency })} options={[{ value: 'all', label: t('adm.currency.all', undefined, locale) }, ...CURRENCIES.map((c) => ({ value: c, label: c }))]} testId="filter-currency" />}
         </Toolbar>
         <DataTable columns={columns} rows={data?.items ?? []} keyOf={(x) => x.id} state={state} total={data?.total ?? 0} page={filter.page} pageSize={10} onPage={(page) => set({ page: String(page) })} empty={{ icon: 'settlements', title: t('adm.settlements.empty', undefined, locale) }} onRetry={() => { void reload() }} locale={locale} testId="settlements-table" caption={t('adm.settlements.title', undefined, locale)} />
       </Card>

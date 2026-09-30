@@ -1,12 +1,14 @@
 /// Reusable phone/country handling (India first; add countries here, nothing else assumes India).
 class Country {
-  const Country({required this.code, required this.name, required this.dial, required this.nationalLength, required this.example, required this.flag});
+  const Country({required this.code, required this.name, required this.dial, required this.nationalLength, required this.example, required this.flag, this.nationalPattern});
   final String code, name, dial, example, flag;
   final int nationalLength;
+  /// Market-specific national-number rule (data, not logic).
+  final String? nationalPattern;
 }
 
 const countries = <Country>[
-  Country(code: 'IN', name: 'India', dial: '+91', nationalLength: 10, example: '98765 43210', flag: '🇮🇳'),
+  Country(code: 'IN', name: 'India', dial: '+91', nationalLength: 10, example: '98765 43210', flag: '🇮🇳', nationalPattern: r'^[6-9]'),
 ];
 
 const defaultCountry = countries;
@@ -19,7 +21,7 @@ String? toE164(Country country, String input) {
   final dial = country.dial.replaceFirst('+', '');
   if (digits.length == country.nationalLength + dial.length && digits.startsWith(dial)) digits = digits.substring(dial.length);
   if (digits.length != country.nationalLength) return null;
-  if (country.code == 'IN' && !RegExp(r'^[6-9]').hasMatch(digits)) return null;
+  if (country.nationalPattern != null && !RegExp(country.nationalPattern!).hasMatch(digits)) return null;
   return '${country.dial}$digits';
 }
 
