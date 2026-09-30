@@ -1,0 +1,5 @@
+Module 18A global regression: Module 17 + Module 18 e2e suites run in the CONTROLLED GLOBAL TEST FIXTURE scope (localStorage fotg.fixtures=global)
+-- Restaurant Dashboard (M17):
+71/71 passed
+-- Platform Admin (M18):
+125/125 passed

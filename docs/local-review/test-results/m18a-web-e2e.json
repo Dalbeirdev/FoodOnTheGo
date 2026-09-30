@@ -1,0 +1,445 @@
+{
+  "module": "M18A",
+  "ranAt": "2026-09-30T08:30:34.797Z",
+  "base": "http://localhost:5173",
+  "fixtureScope": "india",
+  "total": 87,
+  "passed": 87,
+  "results": [
+    {
+      "name": "TEST 1 market overview: header, 4 primary KPIs (Active Markets 1, Active Cities, Service Areas, Active Restaurants) + 4 secondary (orders, customers, GMV in INR, pending approvals)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 2 India market card: India · IN · ACTIVE · INR · en-IN · Asia/Kolkata · Kilometres · +91 with service area / restaurant / order counts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 3 future markets shown only as Draft / Coming later (US, UK, UAE, Singapore, Australia) — never active",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 4 coverage map: schematic SVG with accessible name, layer toggles, legend with shapes + text, honest \"not a geographic basemap\" note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (market overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 5 admin header market selector: India (active) selected by default, All markets option, 5 future markets listed as disabled \"Coming later\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 6 India details (/admin/markets/india): status badge, regional summary line, sub-navigation (Overview / States & UTs / Cities / Service Areas / Route Corridors / Configuration / Features), Pause market action",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 7 map + list interaction: selecting Jaipur in the list highlights it on the map (aria-pressed) and shows its counts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 map layer filter: hiding Routes removes corridor lines",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 8 map extent \"Whole market\" plots planned cities too (Mumbai, Bengaluru, Chennai as hollow markers)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 9 attention list: paused city (Vapi) hides a restaurant; an applicant in a planned city (Bombay Bites, Mumbai) is flagged as not serviceable",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (india market) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 10 States & UTs: 14 rows with code, kind, status (Available / Pilot / Planned / Disabled), live cities, service areas, restaurants; note that a state ≠ full coverage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 Cities: 23 fixtures with State / UT, status (Active / Pilot / Planned / Paused / Unavailable), service areas, restaurants, orders, launch stage; city ≠ coverage note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 status filter Planned → only planned cities (Mumbai, Pune, Bengaluru …)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 11 empty state when no city matches",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 pausing a city is a high-impact change: confirmation with impact + mandatory reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 no reason → blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 12 city paused: stored override + audit city.paused with the reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 (customer) paused city: Rajwada Thali House is no longer reachable for customers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 13 reactivated → audit city.activated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 14 Service areas: 15 areas with city, status, restaurants, route coverage, boundary (radius fixtures), updated; PostGIS note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 15 Route corridors: 7 corridors with region, restaurants on the corridor, status (Active / Testing / Planned / Paused), highway + via cities",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (route corridors) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 16 Configuration (grouped tabs Regional / Payments / Tax / Legal): currency locked with formatter sample ₹249.00 · ₹1,249.00 · ₹12,499.00, en-IN date / time samples, planned locales, IANA zone, km, +91, India address fields, PIN code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 17 Payments: UPI + Cards enabled (sandbox), net banking / wallets planned, cash at pickup NOT APPROVED, provider abstraction (Razorpay only a candidate)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 18 Tax: GST regime reference only — no tax rate anywhere, pending backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 18 Legal: 4 market documents all DRAFT · Pending final approval",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 19 Market feature flags: 10 features; cash at pickup + cross-border locked OFF; non-authoritative note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 19 feature toggle with reason → stored + audit market_feature.enabled",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (market features) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 20 future market page: Draft, no geography or configuration, invisible to customers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 21 admin restaurants scoped to India: market chip \"India · INR\", 23 India restaurants, no foreign restaurants, India pipeline applicants (Highway Tandoor, Delhi Chaat Co., Bombay Bites)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 admin orders in India context: INR only, no foreign currency or restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 admin payments in India context: INR only, no foreign currency or restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 admin refunds in India context: INR only, no foreign currency or restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 admin settlements in India context: INR only, no foreign currency or restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 admin customers in India context: INR only, no foreign currency or restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 22 admin support in India context: INR only, no foreign currency or restaurant",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 23 admin analytics: market is an explicit dimension (India chip), orders by market = IN only, currency table INR only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 24 admin overview in India context: GMV list INR only, no foreign restaurants in pending / top lists",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 25 tax registry: India GST reference with no hardcoded rate (provider / backend supplied)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 26 Restaurant Dashboard inherits the India market: ₹ revenue, India location",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 26 location selector lists only the organization's India locations (no US / JP)",
+      "pass": true,
+      "detail": "🍔\nBurger Hub\nSector 62 · Noida · Noida · INR | ☕\nBrew & Bites\nSector 63 · Noida · Noida · INR | 🥗\nHealthy Bites\nSector 18 · Noida · Noida · INR"
+    },
+    {
+      "name": "TEST 27 dashboard profile shows platform-controlled market fields (India / IN, INR, Asia/Kolkata) with no currency control for staff",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 28 customer home (device locale en-US): India content only — no foreign restaurants, no foreign currency, no country selector",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 29 customer restaurants: market resolves to India although the device region is US (\"Showing restaurants in India (current market)\"), 14 India restaurants, IST times, km, ₹",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 30 unsupported foreign location: \"FoodOnTheGo isn't available in this location yet.\" + Change location, zero restaurant cards, no launch-date promise",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 31 unsupported India location (Lucknow): \"FoodOnTheGo is not available in this area yet.\" — India recognised, no restaurants fabricated from other cities",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (customer unavailable state) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "TEST 32 Change location search: provider stays global-capable but results are query-matched (typing \"lon\" finds London); typing \"del\" puts India first",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 32 choosing a supported India location (Sector 62, Noida) restores restaurants",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 33 a foreign restaurant URL does not open a restaurant in the India experience",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 34 India restaurant detail: ₹ prices via the formatter, IST hours, India address",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 35 pausing India: high-impact confirmation listing how many restaurants disappear, mandatory reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 35 with India paused the customer sees the unavailable state everywhere (no market = no restaurants); audit market.paused",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 35 resume → ACTIVE again, audit market.activated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 36 permission denied: a Support Admin (no markets.view) gets the forbidden state on the Market Control Center",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 36 Finance Admin: can view cities, no status controls, no Pause market",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "TEST 37 market data failure → error state with retry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 markets: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 india: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 cities: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 service-areas: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920 configuration: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1920,\"cw\":1920}"
+    },
+    {
+      "name": "RESPONSIVE desktop-1920: market selector visible in the header (market context always shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 markets: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 india: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 cities: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 service-areas: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366 configuration: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":1366,\"cw\":1366}"
+    },
+    {
+      "name": "RESPONSIVE laptop-1366: market selector visible in the header (market context always shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE tablet markets: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet india: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet cities: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet service-areas: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet configuration: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":768,\"cw\":768}"
+    },
+    {
+      "name": "RESPONSIVE tablet: market selector visible in the header (market context always shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "RESPONSIVE mobile markets: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile india: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile cities: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile service-areas: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile configuration: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "RESPONSIVE mobile: market selector visible in the header (market context always shown)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (mobile market overview) no serious/critical violations",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "RESPONSIVE mobile customer restaurants: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "No uncaught page errors during the run",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

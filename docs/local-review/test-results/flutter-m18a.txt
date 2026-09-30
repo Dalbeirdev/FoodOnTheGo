@@ -1,0 +1,5 @@
+Analyzing mobile...                                             
+No issues found! (ran in 3.4s)
+00:09 +236: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:10 +237: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:10 +237: All tests passed!
