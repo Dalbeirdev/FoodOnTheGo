@@ -1,7 +1,8 @@
 # FoodOnTheGo — build the LOCAL-review APK and write its manifest + SHA-256 into docs/local-review/apk.
 # Builds inside WSL Ubuntu because the Windows JVM on this PC cannot run Gradle (BUG-009).
 param(
-  [string]$ApiBaseUrl = 'http://192.168.1.221:8001/api/v1',
+  # Default: this PC's current Wi-Fi / LAN address (it is assigned by DHCP and can change — rebuild if it does).
+  [string]$ApiBaseUrl = '',
   [string]$Version = '0.1.0',
   [int]$Build = 1,
   # api = sign in against the local backend (it must be running and reachable from the device); mock = in-app development mock
@@ -10,6 +11,7 @@ param(
   [string]$DevOtp = ''
 )
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+if (-not $ApiBaseUrl) { $ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -eq 'Dhcp' -and $_.IPAddress -notlike '169.*' } | Select-Object -First 1).IPAddress; if (-not $ip) { Write-Host 'Could not detect the LAN address; pass -ApiBaseUrl' -ForegroundColor Red; exit 1 }; $ApiBaseUrl = "http://${ip}:8001/api/v1" }
 if ($AuthMode -eq 'api' -and -not $DevOtp) { $m = Select-String -Path (Join-Path $root 'backend\.env') -Pattern '^OTP_DEV_CODE=(.*)$'; if ($m) { $DevOtp = $m.Matches[0].Groups[1].Value.Trim() } }
 $out = Join-Path $root 'docs\local-review\apk'; New-Item -ItemType Directory -Force $out | Out-Null
 $name = "FoodOnTheGo-local-review-v$Version-build$($Build.ToString('000')).apk"
