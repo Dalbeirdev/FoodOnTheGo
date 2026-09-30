@@ -19767,7 +19767,7 @@
     {
       "id": "M21-109",
       "module": "M21",
-      "req": "Operator commands: sms:check (readiness without secrets) and sms:test <phone> (one real test message)",
+      "req": "Operator commands (superseded by otp:check / otp:test, M21-118)",
       "platform": "BACKEND",
       "cat": "OTP delivery (SMS)",
       "pri": "P0",
@@ -19794,7 +19794,167 @@
       "evidence": "-",
       "issue": "-",
       "carry": "CF-294",
-      "notes": "Needs: provider account, DLT registration in India, credentials in the environment, then php artisan sms:test. Not done — no account exists yet."
+      "notes": "Needs: provider account, DLT registration in India, credentials in the environment, then php artisan otp:test <phone> --channel=sms. Not done — no account exists yet."
+    },
+    {
+      "id": "M21-111",
+      "module": "M21",
+      "req": "Delivery channels in cost order (OTP_CHANNELS): first code on the first channel, each resend on the next, explicit channel on request, automatic fall-through when a channel cannot deliver",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-112",
+      "module": "M21",
+      "req": "WhatsApp channel — Meta WhatsApp Cloud API authentication template with copy-code button",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Verified against faked HTTP only. Needs the owner WhatsApp Business account, Meta verification and an approved template (CF-297)."
+    },
+    {
+      "id": "M21-113",
+      "module": "M21",
+      "req": "Channel recorded per challenge and in the security event; a channel without credentials is skipped",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-114",
+      "module": "M21",
+      "req": "Fixed development code exists only while no channel sends a real message",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-115",
+      "module": "M21",
+      "req": "Truecaller one-tap sign-in — backend endpoint (authorization code exchange; phone number taken from Truecaller only)",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Verified against faked HTTP only. Off until TRUECALLER_CLIENT_ID is set (CF-298)."
+    },
+    {
+      "id": "M21-116",
+      "module": "M21",
+      "req": "Client bootstrap lists the available verification methods (otp_channels, truecaller)",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-117",
+      "module": "M21",
+      "req": "OTP screens show the delivery channel and the resend channel (\"on WhatsApp\", \"Send the code by SMS instead\") — web and Android",
+      "platform": "WEB + ANDROID",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/web-vitest-m21.txt; flutter-m21.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Only shown when a real message was sent; unchanged in local runs."
+    },
+    {
+      "id": "M21-118",
+      "module": "M21",
+      "req": "Operator commands otp:check and otp:test (replace sms:check / sms:test), with --channel",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated (provider HTTP faked) by Claude",
+      "evidence": "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M21-119",
+      "module": "M21",
+      "req": "Truecaller one-tap in the Android app (SDK screen)",
+      "platform": "ANDROID",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "NOT STARTED",
+      "impl": "NOT STARTED",
+      "test": "-",
+      "manual": "PENDING (owner)",
+      "evidence": "-",
+      "issue": "-",
+      "carry": "CF-298",
+      "notes": "Needs the Truecaller client id (build-time) and a device with the Truecaller app to build and verify honestly. Backend is ready (M21-115)."
+    },
+    {
+      "id": "M21-120",
+      "module": "M21",
+      "req": "Real WhatsApp message received on a phone",
+      "platform": "BACKEND",
+      "cat": "OTP delivery (channels)",
+      "pri": "P0",
+      "status": "PENDING",
+      "impl": "PENDING",
+      "test": "-",
+      "manual": "PENDING (owner)",
+      "evidence": "-",
+      "issue": "-",
+      "carry": "CF-297",
+      "notes": "Needs CF-297, then php artisan otp:test <phone> --channel=whatsapp."
     }
   ],
   "pages": [
@@ -22229,6 +22389,12 @@
       "OTP delivery: the code is generated and verified by FoodOnTheGo; SMS providers are interchangeable drivers (MSG91, 2Factor, Twilio) selected by configuration with an optional fallback. Recommendation: MSG91 primary + 2Factor fallback for India; Twilio for future markets. Provider choice and account are the owner's (CF-294). Locally no SMS is sent.",
       "Module 21",
       "M21-101"
+    ],
+    [
+      "2026-09-30",
+      "OTP delivery order (owner asked for the best recommendation, 2026-09-30): Truecaller one-tap on Android (free) → WhatsApp authentication message → SMS (MSG91, 2Factor backup). A resend moves to the next channel. Locally nothing is sent.",
+      "Module 21",
+      "M21-111"
     ]
   ],
   "carry": [
@@ -25750,7 +25916,7 @@
     ],
     [
       "CF-294",
-      "OWNER: choose the SMS provider(s), open the account, complete DLT registration for India (entity, sender header, OTP template), put the credentials in the environment, run php artisan sms:test and confirm the code arrives",
+      "OWNER: choose the SMS provider(s), open the account, complete DLT registration for India (entity, sender header, OTP template), put the credentials in the environment, run php artisan otp:test and confirm the code arrives",
       "M21",
       "Module 21 (SMS)",
       "P0",
@@ -25780,7 +25946,43 @@
       "P2",
       "Claude",
       "Owner decision",
-      "DECISION PENDING",
+      "PARTIAL",
+      "2026-09-30",
+      "WhatsApp channel implemented (M21-112). Voice-call fallback remains an open option"
+    ],
+    [
+      "CF-297",
+      "OWNER: WhatsApp Business Platform account, Meta business verification, approved AUTHENTICATION template with copy-code button; put WHATSAPP_* in the environment, set OTP_CHANNELS=whatsapp,sms, run php artisan otp:test --channel=whatsapp",
+      "M21",
+      "Module 21 (OTP channels)",
+      "P0",
+      "Owner",
+      "Owner + live environment",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-298",
+      "Truecaller: owner creates the Truecaller developer app (client id); then add the Truecaller SDK screen to the Android app as the first sign-in option and verify on a device",
+      "M21",
+      "Module 21 (OTP channels)",
+      "P1",
+      "Owner",
+      "Owner + Android",
+      "NOT STARTED",
+      "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-299",
+      "WhatsApp delivery status webhook (delivered / failed) so an undelivered WhatsApp code can trigger SMS without the customer pressing resend",
+      "M21",
+      "Module 21 (OTP channels)",
+      "P2",
+      "Claude",
+      "Backend integration",
+      "NOT STARTED",
       "2026-09-30",
       "-"
     ]
@@ -28996,10 +29198,40 @@
       "TE-194",
       "M21",
       "BACKEND",
-      "Real SMS received on a phone (php artisan sms:test, then a real sign-in)",
+      "Real SMS received on a phone (php artisan otp:test --channel=sms, then a real sign-in)",
       "manual (live provider)",
       "PENDING",
       "Needs CF-294",
+      "2026-09-30"
+    ],
+    [
+      "TE-195",
+      "M21",
+      "BACKEND",
+      "OTP channels: WhatsApp request shape, WhatsApp → SMS on resend, explicit channel, fall-through on failure, all channels down → 503, unconfigured channel skipped, development code off with a real channel; Truecaller: exchange, number from Truecaller only, failures, account status, disabled",
+      "feature (HTTP faked)",
+      "PASS",
+      "docs/local-review/test-results/backend-m21-otp-channels-tests.txt (186 tests, 0 failed; OtpChannels 14, SmsProvider 13)",
+      "2026-09-30"
+    ],
+    [
+      "TE-196",
+      "M21",
+      "WEB + ANDROID",
+      "Regression after the channel change: web 408, Flutter 303, live auth e2e 48/48 on the local backend",
+      "unit + e2e",
+      "PASS",
+      "docs/local-review/test-results/m21-web-auth-e2e.txt",
+      "2026-09-30"
+    ],
+    [
+      "TE-197",
+      "M21",
+      "ANDROID",
+      "Owner device verification of build025",
+      "manual (device)",
+      "PENDING",
+      "-",
       "2026-09-30"
     ]
   ],
@@ -29978,6 +30210,19 @@
       "b6d2173 (Module 21)",
       "2026-09-30",
       "46859184BF19FAD828F4C7C44DDC27BF9B116F5F9C24427CEA45685430BC2AC9",
+      "NO",
+      "PENDING",
+      "PENDING"
+    ],
+    [
+      "FoodOnTheGo-local-review-v0.1.0-build025.apk",
+      "0.1.0",
+      "25 (local/debug)",
+      "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+      "REAL AUTHENTICATION against the PC backend; OTP screen shows the delivery channel",
+      "ef6bf6a (Module 21, OTP channels)",
+      "2026-09-30",
+      "2FA1DFDD4478D1A72BD21251FF147D0356AB8429089FF5A8C7ADD5594742ADE6",
       "NO",
       "PENDING",
       "PENDING"
@@ -32400,8 +32645,8 @@
         [
           "OTP delivery to the phone",
           "NO SMS is sent. SMS_DRIVER=log writes a masked line; the code is the fixed local test code shown on the screen of local builds",
-          "REAL SMS through MSG91 / 2Factor / Twilio (drivers built). Code is random",
-          "Owner: provider account, DLT registration (India), credentials; then sms:test (CF-294)"
+          "REAL message: Truecaller one-tap (Android) → WhatsApp → SMS (MSG91 / 2Factor / Twilio). Code is random",
+          "Owner: WhatsApp Business account + template (CF-297), SMS provider + DLT (CF-294), Truecaller client id + Android screen (CF-298); then otp:test"
         ],
         [
           "Fixed test code 123456",
@@ -32461,8 +32706,8 @@
     },
     {
       "id": "sms-providers",
-      "title": "OTP delivery — SMS providers",
-      "note": "Prices are public list prices found on 2026-09-30 (third-party comparison pages and provider pricing pages) and must be confirmed with the provider before signing up. FoodOnTheGo generates and verifies every code itself; the provider only delivers the message, so switching provider is a configuration change. No real SMS has been sent yet: no provider account exists (CF-294).",
+      "title": "OTP delivery — channels and providers",
+      "note": "Order used: Truecaller one-tap (free, Android) → WhatsApp → SMS. Prices are public figures found on 2026-09-30 on provider and comparison pages and must be confirmed before signing up. FoodOnTheGo generates and verifies every code itself; providers only deliver, so switching is a configuration change. No real message has been sent yet: no provider account exists (CF-294, CF-297, CF-298).",
       "headers": [
         "Provider",
         "Use",
@@ -32473,34 +32718,50 @@
       ],
       "rows": [
         [
-          "MSG91",
-          "India-first (recommended primary)",
+          "Truecaller one-tap",
+          "First choice on Android (no code typed)",
+          "Free",
+          "None",
+          "Backend built + tested (faked HTTP); Android SDK screen NOT built",
+          "TRUECALLER_CLIENT_ID"
+        ],
+        [
+          "WhatsApp (Meta Cloud API)",
+          "First code",
+          "about Rs 0.115 per message",
+          "None (Meta verification + approved template)",
+          "Built + tested (faked HTTP)",
+          "OTP_CHANNELS=whatsapp,sms, WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_OTP_TEMPLATE"
+        ],
+        [
+          "MSG91 (SMS)",
+          "Resend / no WhatsApp — recommended SMS provider",
           "about Rs 0.18–0.25 per OTP + 18% GST",
-          "DLT: yes. Template and sender set in the MSG91 panel",
+          "DLT required",
           "Built + tested (faked HTTP)",
           "SMS_DRIVER=msg91, SMS_MSG91_AUTH_KEY, SMS_MSG91_OTP_TEMPLATE_ID"
         ],
         [
-          "2Factor.in",
-          "India (recommended fallback)",
+          "2Factor.in (SMS)",
+          "Backup SMS provider",
           "about Rs 0.18–0.30 per delivered OTP",
-          "DLT: yes. Template approved in their panel",
+          "DLT required",
           "Built + tested (faked HTTP)",
           "SMS_FALLBACK_DRIVER=twofactor, SMS_2FACTOR_API_KEY, SMS_2FACTOR_TEMPLATE"
         ],
         [
-          "Twilio",
-          "Global (for future markets)",
-          "about USD 0.083 per SMS to India (roughly Rs 7) — 25 to 40 times the Indian gateways",
+          "Twilio (SMS)",
+          "Future markets outside India",
+          "about USD 0.083 per SMS to India (roughly Rs 7)",
           "DLT still required for India",
           "Built + tested (faked HTTP)",
-          "SMS_DRIVER=twilio, SMS_TWILIO_ACCOUNT_SID, SMS_TWILIO_AUTH_TOKEN, SMS_TWILIO_MESSAGING_SERVICE_SID or SMS_TWILIO_FROM"
+          "SMS_DRIVER=twilio, SMS_TWILIO_*"
         ],
         [
           "log",
           "Local / testing only",
           "free",
-          "No SMS is sent",
+          "No message is sent",
           "In use on the PC",
           "SMS_DRIVER=log (refused in production)"
         ]

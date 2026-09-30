@@ -1,13 +1,13 @@
 PASS A1 guest opening a protected page is sent to sign-in (return route kept)
 PASS A11Y axe (customer sign-in) no serious / critical violations — []
 PASS A2 an invalid number is refused before any request is sent
-PASS A3 OTP requested from the backend; the screen shows the masked number and the local test code only because this is a local build — {"api":[{"url":"/auth/customer/otp/request","auth":"none","rid":true}],"masked":true,"dev":1,"text":"Skip to content Login Get the App 1 Mobile number 2 Verify code 3 Your details Enter the code We sent a 6-digit code to +91 ••••••3602. Change number One-time code Code expires in 5:00 Verify Didn't 
+PASS A3 OTP requested from the backend; the screen shows the masked number and the local test code only because this is a local build — {"api":[{"url":"/auth/customer/otp/request","auth":"none","rid":true}],"masked":true,"dev":1,"text":"Skip to content Login Get the App 1 Mobile number 2 Verify code 3 Your details Enter the code We sent a 6-digit code to +91 ••••••6511. Change number One-time code Code expires in 5:00 Verify Didn't 
 PASS A4 wrong code: backend counts the attempt, the message shows attempts left, the customer stays on the page — Incorrect code. 4 attempts left.
 PASS A5 resend is not offered while the cooldown runs (the backend would refuse it anyway)
-PASS A6 a resend forced before the cooldown is refused by the backend with a wait time (429) — {"code":"otp_resend_too_soon","message":"Please wait a moment before requesting another code.","details":{"retry_after_seconds":3},"request_id":"69361286-da12-452b-8b11-f07d06237e3f"}
+PASS A6 a resend forced before the cooldown is refused by the backend with a wait time (429) — {"code":"otp_resend_too_soon","message":"Please wait a moment before requesting another code.","details":{"retry_after_seconds":2},"request_id":"ee189bed-9720-43ca-9329-c763bdfb7a21"}
 PASS A7 new phone → account created by the backend → profile step; not yet a session
 PASS A8 after the profile step the customer returns to the page they wanted (/my-orders) signed in
-PASS A9 backend identity: CUSTOMER, E.164 phone, verified, profile complete, India market — {"principal_type":"CUSTOMER","id":"c9f79622-9959-4714-9305-9e39a6f9831b","status":"ACTIVE","name":"Meera Iyer","email":null,"phone":"+91******3602","phone_verified":true,"profile_complete":true,"preferred_locale":null,"market":"IN","member_since":"2026-09-30"}
+PASS A9 backend identity: CUSTOMER, E.164 phone, verified, profile complete, India market — {"principal_type":"CUSTOMER","id":"e75e6f95-1c76-43a9-9373-2a180470156a","status":"ACTIVE","name":"Meera Iyer","email":null,"phone":"+91******6511","phone_verified":true,"profile_complete":true,"preferred_locale":null,"market":"IN","member_since":"2026-09-30"}
 PASS A10 session restore: a reload keeps the customer signed in (token re-validated with the backend)
 PASS A11 profile shows the backend identity
 PASS A12 session revoked on the server → the app returns to sign-in with an explanation, once (no redirect loop)
