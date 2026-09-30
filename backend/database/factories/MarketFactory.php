@@ -56,7 +56,7 @@ class MarketFactory extends Factory
             'phone_national_pattern' => '^[6-9][0-9]{9}$',
             'phone_trunk_prefix' => '0',
             'features' => ['scheduled_pickup' => true, 'reviews' => true, 'cash_at_pickup' => false],
-        ]);
+        ])->afterCreating(fn (Market $market) => $market->setBounds(...Market::INDIA_BOUNDS));
     }
 
     public function active(): static

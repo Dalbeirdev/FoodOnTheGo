@@ -1,0 +1,26 @@
+# Module 22 — migration rollback / re-apply on the TEST database
+database: foodonthego_test
+
+ 2026_09_30_200200_create_auth_security_tables .. 50.46ms DONE
+ 2026_09_30_300000_add_channel_to_otp_challenges .. 1.95ms DONE
+ 2026_09_30_400000_create_geography_tables .. 173.44ms DONE
+
+--- rollback 1 step
+
+ 2026_09_30_400000_create_geography_tables .. 75.61ms DONE
+
+geography tables after rollback: [] | markets.bounds: false | markets.version: false
+
+--- migrate again
+
+ 2026_09_30_400000_create_geography_tables .. 218.29ms DONE
+
+cities center Point SRID 4326
+markets bounds POLYGON SRID 4326
+route_corridors centerline LINESTRING SRID 4326
+service_areas geometry MULTIPOLYGON SRID 4326
+GiST cities cities_center_gist
+GiST markets markets_bounds_gist
+GiST route_corridors route_corridors_centerline_gist
+GiST service_areas service_areas_geometry_gist
+PostGIS 3.6.2 | PostgreSQL 18.6 on x86_64-windows

@@ -1,13 +1,15 @@
 <?php
 
-use App\Enums\Permission;
 use App\Enums\PrincipalType;
+use App\Http\Controllers\Api\Admin\AuditEventController;
+use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
 use App\Http\Controllers\Api\Auth\CustomerProfileController;
 use App\Http\Controllers\Api\Auth\SessionController;
 use App\Http\Controllers\Api\Auth\StaffAuthController;
 use App\Http\Controllers\Api\Auth\StaffSecurityController;
+use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MarketController;
 use Illuminate\Support\Facades\Route;
@@ -18,12 +20,22 @@ use Illuminate\Support\Facades\Route;
 | A route prefix is never authorization: /admin/* still needs `auth:admin` + `active` + a permission.
 */
 
+// Public ids are UUIDs: anything else in these positions is a 404, never a database error.
+Route::pattern('market', '[0-9a-fA-F-]{36}');
+Route::pattern('region', '[0-9a-fA-F-]{36}');
+Route::pattern('city', '[0-9a-fA-F-]{36}');
+Route::pattern('serviceArea', '[0-9a-fA-F-]{36}');
+Route::pattern('routeCorridor', '[0-9a-fA-F-]{36}');
+
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
     Route::get('/ready', [HealthController::class, 'ready'])->name('ready');
 
     Route::get('/config', [MarketController::class, 'config'])->name('config');
+    Route::get('/markets', [MarketController::class, 'index'])->name('markets.index');
     Route::get('/markets/current', [MarketController::class, 'current'])->name('markets.current');
+    Route::get('/markets/current/coverage', [MarketController::class, 'coverage'])->name('markets.coverage');
+    Route::post('/availability/location', [AvailabilityController::class, 'location'])->middleware('throttle:availability')->name('availability.location');
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
         // Customer: phone + one-time code. No password, no public way to become anything but a customer.
@@ -70,7 +82,34 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         });
     });
 
+    // Permission and market scope are checked in the controllers: a grant for one market must not open another.
     Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'active'])->group(function (): void {
-        Route::get('/markets', [AdminMarketController::class, 'index'])->middleware('can:'.Permission::AdminMarketsView->value)->name('markets.index');
+        Route::get('/markets', [AdminMarketController::class, 'index'])->name('markets.index');
+        Route::get('/markets/{market}', [AdminMarketController::class, 'show'])->name('markets.show');
+        Route::get('/markets/{market}/configuration', [AdminMarketController::class, 'configuration'])->name('markets.configuration');
+        Route::get('/markets/{market}/regions', [GeographyController::class, 'regions'])->name('regions.index');
+        Route::get('/markets/{market}/cities', [GeographyController::class, 'cities'])->name('cities.index');
+        Route::get('/markets/{market}/service-areas', [GeographyController::class, 'serviceAreas'])->name('service-areas.index');
+        Route::get('/markets/{market}/route-corridors', [GeographyController::class, 'routeCorridors'])->name('route-corridors.index');
+        Route::get('/markets/{market}/map', [GeographyController::class, 'map'])->name('markets.map');
+        Route::post('/markets/{market}/availability-check', [GeographyController::class, 'checkAvailability'])->name('markets.availability-check');
+        Route::get('/cities/{city}', [GeographyController::class, 'showCity'])->name('cities.show');
+        Route::get('/service-areas/{serviceArea}', [GeographyController::class, 'showServiceArea'])->name('service-areas.show');
+        Route::get('/route-corridors/{routeCorridor}', [GeographyController::class, 'showRouteCorridor'])->name('route-corridors.show');
+        Route::get('/audit-events', [AuditEventController::class, 'index'])->name('audit-events.index');
+
+        Route::middleware('throttle:admin-sensitive')->group(function (): void {
+            Route::patch('/markets/{market}', [AdminMarketController::class, 'update'])->name('markets.update');
+            Route::patch('/markets/{market}/features', [AdminMarketController::class, 'updateFeatures'])->name('markets.features.update');
+            Route::patch('/markets/{market}/configuration', [AdminMarketController::class, 'updateConfiguration'])->name('markets.configuration.update');
+            Route::post('/markets/{market}/regions', [GeographyController::class, 'storeRegion'])->name('regions.store');
+            Route::patch('/regions/{region}', [GeographyController::class, 'updateRegion'])->name('regions.update');
+            Route::post('/markets/{market}/cities', [GeographyController::class, 'storeCity'])->name('cities.store');
+            Route::patch('/cities/{city}', [GeographyController::class, 'updateCity'])->name('cities.update');
+            Route::post('/markets/{market}/service-areas', [GeographyController::class, 'storeServiceArea'])->name('service-areas.store');
+            Route::patch('/service-areas/{serviceArea}', [GeographyController::class, 'updateServiceArea'])->name('service-areas.update');
+            Route::post('/markets/{market}/route-corridors', [GeographyController::class, 'storeRouteCorridor'])->name('route-corridors.store');
+            Route::patch('/route-corridors/{routeCorridor}', [GeographyController::class, 'updateRouteCorridor'])->name('route-corridors.update');
+        });
     });
 });

@@ -27,6 +27,7 @@ return [
     'mfa_verify' => (int) env('RATE_LIMIT_MFA_VERIFY', 10),
     'password_reset' => (int) env('RATE_LIMIT_PASSWORD_RESET', 5),
 
+    'availability' => (int) env('RATE_LIMIT_AVAILABILITY', 30),
     'search' => (int) env('RATE_LIMIT_SEARCH', 60),
     'payment' => (int) env('RATE_LIMIT_PAYMENT', 10),
     'admin_sensitive' => (int) env('RATE_LIMIT_ADMIN_SENSITIVE', 20),

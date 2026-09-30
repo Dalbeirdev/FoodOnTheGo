@@ -9,10 +9,17 @@ use App\Contracts\Sms\SmsProvider;
 use App\Enums\Permission;
 use App\Enums\PrincipalType;
 use App\Models\AccessToken;
+use App\Models\City;
 use App\Models\Customer;
+use App\Models\Market;
+use App\Models\MarketConfiguration;
+use App\Models\MarketRegion;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\RolePermission;
+use App\Models\RouteCorridor;
+use App\Models\ServiceArea;
+use App\Services\Market\MarketContext;
 use App\Services\Sms\SmsManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -30,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(AccessControl::class);
+        $this->app->singleton(MarketContext::class);
 
         $this->app->bind(SmsProvider::class, fn () => $this->app->make(SmsManager::class)->provider());
     }
@@ -91,6 +99,13 @@ class AppServiceProvider extends ServiceProvider
             $model::saved($flush);
             $model::deleted($flush);
         }
+
+        // Any write to market data makes the cached public market payloads unreachable.
+        $flushMarkets = fn () => app(MarketContext::class)->flush();
+        foreach ([Market::class, MarketConfiguration::class, MarketRegion::class, City::class, ServiceArea::class, RouteCorridor::class] as $model) {
+            $model::saved($flushMarkets);
+            $model::deleted($flushMarkets);
+        }
     }
 
     /**
@@ -129,6 +144,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('mfa-verify', fn (Request $request) => Limit::perMinute($perMinute('mfa_verify'))->by('mfa:'.$actor($request)));
 
         RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute($perMinute('password_reset'))->by('reset:'.$request->ip()));
+
+        RateLimiter::for('availability', fn (Request $request) => Limit::perMinute($perMinute('availability'))->by('availability:'.$request->ip()));
 
         RateLimiter::for('search', fn (Request $request) => Limit::perMinute($perMinute('search'))->by('search:'.$actor($request)));
 

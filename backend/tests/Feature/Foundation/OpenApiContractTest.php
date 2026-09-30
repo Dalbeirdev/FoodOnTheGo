@@ -11,6 +11,7 @@ use Database\Factories\AdminUserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Tests\Support\BuildsGeography;
 use Tests\TestCase;
 
 /**
@@ -19,7 +20,7 @@ use Tests\TestCase;
  */
 class OpenApiContractTest extends TestCase
 {
-    use RefreshDatabase;
+    use BuildsGeography, RefreshDatabase;
 
     /** @var array<string, mixed> */
     private array $spec;
@@ -94,6 +95,53 @@ class OpenApiContractTest extends TestCase
         $this->assertMatchesSchema('MfaSetup', $this->postJson('/api/v1/auth/mfa/totp/setup', [], $staff)->assertOk()->json());
     }
 
+    public function test_market_and_geography_responses_match_their_documented_schemas(): void
+    {
+        $india = $this->india();
+        $region = $this->region($india);
+        $city = $this->city($region);
+        $area = $this->area($city, [77.30, 28.50, 77.40, 28.60]);
+        $corridor = $this->corridor($india, [[77.0, 28.55], [78.0, 28.55]]);
+        $point = ['lat' => 28.55, 'lng' => 77.35];
+
+        $this->assertMatchesSchema('MarketList', $this->getJson('/api/v1/markets')->assertOk()->json());
+        $this->assertMatchesSchema('Coverage', $this->getJson('/api/v1/markets/current/coverage')->assertOk()->json());
+        $this->assertMatchesSchema('Availability', $this->postJson('/api/v1/availability/location', $point)->assertOk()->assertJsonPath('supported', true)->json());
+        $this->assertMatchesSchema('Availability', $this->postJson('/api/v1/availability/location', ['lat' => 48.85, 'lng' => 2.35])->assertOk()->json());
+        $this->assertMatchesSchema('Error', $this->postJson('/api/v1/availability/location', ['lat' => 99])->assertUnprocessable()->json());
+
+        $this->actingAsPrincipal($this->adminWith(array_values(array_filter(Permission::cases(), fn (Permission $p) => str_starts_with($p->value, 'admin.')))));
+        $m = '/api/v1/admin/markets/'.$india->public_id;
+
+        $this->assertMatchesSchema('AdminMarket', $this->getJson($m)->assertOk()->json());
+        $this->assertMatchesSchema('MarketConfiguration', $this->getJson($m.'/configuration')->assertOk()->json());
+        $this->assertMatchesSchema('RegionPage', $this->getJson($m.'/regions')->assertOk()->json());
+        $this->assertMatchesSchema('CityPage', $this->getJson($m.'/cities')->assertOk()->json());
+        $this->assertMatchesSchema('ServiceAreaPage', $this->getJson($m.'/service-areas')->assertOk()->json());
+        $this->assertMatchesSchema('RouteCorridorPage', $this->getJson($m.'/route-corridors')->assertOk()->json());
+        $this->assertMatchesSchema('AdminMap', $this->getJson($m.'/map')->assertOk()->json());
+        $this->assertMatchesSchema('AvailabilityDiagnostic', $this->postJson($m.'/availability-check', $point)->assertOk()->json());
+        $this->assertMatchesSchema('City', $this->getJson('/api/v1/admin/cities/'.$city->public_id)->assertOk()->json());
+        $this->assertMatchesSchema('ServiceArea', $this->getJson('/api/v1/admin/service-areas/'.$area->public_id)->assertOk()->json());
+        $this->assertMatchesSchema('RouteCorridor', $this->getJson('/api/v1/admin/route-corridors/'.$corridor->public_id)->assertOk()->json());
+
+        $this->assertMatchesSchema('Region', $this->postJson($m.'/regions', ['code' => 'IN-DL', 'name' => 'Delhi', 'type' => 'UNION_TERRITORY'])->assertCreated()->json());
+        $this->assertMatchesSchema('Region', $this->patchJson('/api/v1/admin/regions/'.$region->public_id, ['version' => 1, 'name' => 'UP'])->assertOk()->json());
+        $this->assertMatchesSchema('City', $this->postJson($m.'/cities', ['region_id' => $region->public_id, 'name' => 'Agra', 'latitude' => 27.17, 'longitude' => 78.0])->assertCreated()->json());
+        $this->assertMatchesSchema('City', $this->patchJson('/api/v1/admin/cities/'.$city->public_id, ['version' => 1, 'status' => 'PILOT'])->assertOk()->json());
+        $this->assertMatchesSchema('ServiceArea', $this->postJson($m.'/service-areas', ['city_id' => $city->public_id, 'name' => 'Second', 'geometry' => $this->square([77.5, 28.5, 77.6, 28.6])])->assertCreated()->json());
+        $this->assertMatchesSchema('ServiceArea', $this->patchJson('/api/v1/admin/service-areas/'.$area->public_id, ['version' => 1, 'priority' => 3])->assertOk()->json());
+        $this->assertMatchesSchema('RouteCorridor', $this->postJson($m.'/route-corridors', ['name' => 'Second', 'geometry' => ['type' => 'LineString', 'coordinates' => [[77.0, 28.0], [77.5, 28.5]]], 'corridor_width_meters' => 3000])->assertCreated()->json());
+        $this->assertMatchesSchema('RouteCorridor', $this->patchJson('/api/v1/admin/route-corridors/'.$corridor->public_id, ['version' => 1, 'corridor_width_meters' => 6000])->assertOk()->json());
+        $this->assertMatchesSchema('MarketConfiguration', $this->patchJson($m.'/configuration', ['version' => 1, 'reason' => 'Contract test', 'tax' => ['regime' => 'GST']])->assertOk()->json());
+        $this->assertMatchesSchema('AdminMarket', $this->patchJson($m.'/features', ['version' => 1, 'features' => ['reviews' => false], 'reason' => 'Contract test'])->assertOk()->json());
+        $this->assertMatchesSchema('AdminMarket', $this->patchJson($m, ['version' => 2, 'status' => 'PAUSED', 'reason' => 'Contract test'])->assertOk()->json());
+        $this->assertMatchesSchema('AuditEventPage', $this->getJson('/api/v1/admin/audit-events')->assertOk()->assertJsonCount(11, 'data')->json());
+
+        $this->assertMatchesSchema('Error', $this->patchJson($m, ['version' => 1, 'status' => 'ACTIVE', 'reason' => 'Stale'])->assertConflict()->json());
+        $this->assertMatchesSchema('Error', $this->postJson($m.'/service-areas', ['city_id' => $city->public_id, 'name' => 'Bad', 'geometry' => ['type' => 'Point', 'coordinates' => [77, 28]]])->assertUnprocessable()->json());
+    }
+
     private function assertMatchesSchema(string $name, mixed $value): void
     {
         $errors = $this->validate($this->spec['components']['schemas'][$name], $value, $name);
@@ -125,7 +173,8 @@ class OpenApiContractTest extends TestCase
             default => 'object',
         };
 
-        if ($types !== [] && ! in_array($actual, $types, true)) {
+        // JSON Schema: every integer is also a number.
+        if ($types !== [] && ! in_array($actual, $types, true) && ! ($actual === 'integer' && in_array('number', $types, true))) {
             return ["{$path}: expected ".implode('|', $types).", got {$actual}"];
         }
         if (isset($schema['enum']) && ! in_array($value, $schema['enum'], true)) {
