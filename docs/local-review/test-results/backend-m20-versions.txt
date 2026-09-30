@@ -1,0 +1,20 @@
+# Module 20 — actual versions on the local machine — 2026-09-30T11:20:44Z
+PHP 8.3.33 (cli) (built: Jul 28 2026 18:10:28) (ZTS Visual C++ 2019 x64)
+Laravel Framework 13.33.0
+Composer version 2.10.3 2026-08-27 13:34:23
+psql (PostgreSQL) 18.6
+PostGIS POSTGIS="3.6.2 3.6.2" [EXTENSION] PGSQL="180" GEOS="3.14.1dev-CAPI-1.20.4" PROJ="8.2.1 NETWORK_ENABLED=OFF URL_ENDPOINT= USER_WRITABLE_DIRECTORY=C:\Users\DalbeirSingh\AppData\Local/proj" (compiled against PROJ 8.2.1) LIBXML="2.12.5" LIBJSON="0.12" LIBPROTOBUF="1.2.1" WAGYU="0.5.0 (Internal)"
+redis_version:5.0.14.1
+node v24.14.0
+fakerphp/faker       1.24.1  Faker is a PHP library that generates fake data for you.
+laravel/boost        2.10.0  Laravel Boost accelerates AI-assisted development by providing the essential context ...
+laravel/framework    13.33.0 The Laravel Framework.
+laravel/pail         1.2.7   Easily delve into your Laravel application's log files directly from the command line.
+laravel/pao          1.1.5   Agent-optimized output for PHP testing tools
+laravel/pint         1.32.1  An opinionated code formatter for PHP.
+laravel/sanctum      4.3.3   Laravel Sanctum provides a featherweight authentication system for SPAs and simple APIs.
+laravel/tinker       3.0.2   Powerful REPL for the Laravel framework.
+mockery/mockery      1.6.15  Mockery is a simple yet flexible PHP mock object framework
+nunomaduro/collision 8.9.5   Cli error handling for console/command-line PHP applications.
+phpunit/phpunit      12.5.35 The PHP Unit Testing framework.
+predis/predis        3.6.1   A flexible and feature-complete Redis/Valkey client for PHP.

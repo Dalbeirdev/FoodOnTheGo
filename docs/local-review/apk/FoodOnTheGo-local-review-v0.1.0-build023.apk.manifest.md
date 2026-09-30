@@ -1,0 +1,18 @@
+# APK BUILD MANIFEST — FoodOnTheGo-local-review-v0.1.0-build023.apk
+
+| Field | Value |
+|---|---|
+| App version / build | 0.1.0 (build 23) |
+| Flavor / build type | local / debug |
+| Build environment | LOCAL (WSL Ubuntu build host) |
+| API base URL | http://192.168.1.221:8001/api/v1 |
+| Git commit | 324a8a8 |
+| Build timestamp | 2026-09-30 16:52 |
+| Size | 195.3 MB |
+| SHA-256 | 2EF0ACEDA2724C046DA9ED031E71C64C9CEFAE76126EA7C8D17CE14B98DE99D6 |
+| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=http://192.168.1.221:8001/api/v1 |
+| Install (USB) | adb install -r FoodOnTheGo-local-review-v0.1.0-build023.apk |
+| Install tested | PENDING |
+| Manual user tested | PENDING USER DEVICE VERIFICATION |
+
+Phone must be on the same Wi-Fi as the PC (or use adb reverse). Check http://http://192.168.1.221:8001/api/v1/health in the phone browser first.

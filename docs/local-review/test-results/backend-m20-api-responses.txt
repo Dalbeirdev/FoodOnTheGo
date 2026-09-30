@@ -1,0 +1,164 @@
+# Module 20 — live API responses from the local server (http://127.0.0.1:8001/api/v1) — 2026-09-30T11:14:43Z
+
+## GET /health
+HTTP/1.1 200 OK
+Cache-Control: no-store, private
+Content-Type: application/json
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 119
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: 3b64378d-9c26-4c34-974e-3c7c1eaabead
+
+{"status":"ok","service":"FoodOnTheGo","version":"local-dev","time":"2026-09-30T11:14:43+00:00"}
+
+
+## GET /ready
+HTTP/1.1 200 OK
+Cache-Control: no-store, private
+Content-Type: application/json
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 118
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: ba4b58cf-8c6b-41ba-9add-1dacb1b25967
+
+{"status":"ok","environment":"local","checks":{"application":"ok","database":"ok","postgis":"ok","redis":"ok"},"version":"local-dev","time":"2026-09-30T11:14:44+00:00"}
+
+
+## GET /markets/current
+HTTP/1.1 200 OK
+Cache-Control: no-store, private
+Content-Type: application/json
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 117
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: d1f217ca-f718-4ac6-a08d-4070b8fdcd98
+
+{"id":"02cd6cc9-12d9-46c6-95f0-42068bcbac74","slug":"india","country_code":"IN","name":"India","status":"ACTIVE","default_currency":"INR","supported_currencies":["INR"],"default_locale":"en-IN","supported_locales":["en-IN"],"timezone_strategy":"single","default_timezone":"Asia\/Kolkata","distance_unit":"metric","phone_country_code":"+91","features":{"reviews":true,"promotions":true,"asap_pickup":true,"cash_at_pickup":false,"curbside_pickup":false,"journey_ordering":true,"scheduled_pickup":true,"restaurant_responses":true,"cross_border_ordering":false,"customer_notifications":true},"launched_at":null}
+
+
+## GET /config
+HTTP/1.1 200 OK
+Cache-Control: no-store, private
+Content-Type: application/json
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 116
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: c7130e97-2248-49de-bdd0-7b924d7abd49
+
+{"api":{"version":"v1"},"app":{"name":"FoodOnTheGo","version":"local-dev"},"market":{"id":"02cd6cc9-12d9-46c6-95f0-42068bcbac74","slug":"india","country_code":"IN","name":"India","status":"ACTIVE","default_currency":"INR","supported_currencies":["INR"],"default_locale":"en-IN","supported_locales":["en-IN"],"timezone_strategy":"single","default_timezone":"Asia\/Kolkata","distance_unit":"metric","phone_country_code":"+91","features":{"reviews":true,"promotions":true,"asap_pickup":true,"cash_at_pickup":false,"curbside_pickup":false,"journey_ordering":true,"scheduled_pickup":true,"restaurant_responses":true,"cross_border_ordering":false,"customer_notifications":true},"launched_at":null}}
+
+
+## GET /markets/current?country=US
+HTTP/1.1 404 Not Found
+Cache-Control: no-store, private
+Content-Type: application/json
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 115
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: 335fc9be-140c-4793-8b26-b33ba6a538ad
+
+{"error":{"code":"market_unavailable","message":"FoodOnTheGo is not available in this country yet.","request_id":"335fc9be-140c-4793-8b26-b33ba6a538ad"}}
+
+
+## GET /markets/current?country=india
+HTTP/1.1 422 Unprocessable Content
+Cache-Control: no-store, private
+Content-Type: application/json
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 114
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: 92ba4752-24d1-4bd7-9390-8ef29d334e19
+
+{"error":{"code":"validation_failed","message":"The submitted data is invalid.","details":{"fields":{"country":["The country must be an ISO 3166-1 alpha-2 code, e.g. IN."]}},"request_id":"92ba4752-24d1-4bd7-9390-8ef29d334e19"}}
+
+
+## GET /admin/markets
+HTTP/1.1 401 Unauthorized
+Cache-Control: no-cache, private
+Content-Type: application/json
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: 7e6589dc-f38b-44a9-828d-7e946607e9d0
+
+{"error":{"code":"unauthenticated","message":"Authentication is required.","request_id":"7e6589dc-f38b-44a9-828d-7e946607e9d0"}}
+
+
+## GET 
+ope
+HTTP/1.0 404 Not Found
+Cache-Control: no-cache, private
+Content-Type: application/json
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-Request-Id, Retry-After, Idempotency-Replayed
+X-Request-Id: 520150c7-d558-40f6-859d-c4b432f844d8
+
+{"error":{"code":"not_found","message":"The requested resource was not found.","request_id":"520150c7-d558-40f6-859d-c4b432f844d8"}}
+
+
+## GET /health with Origin https://evil.example (no CORS header expected)
+HTTP/1.1 200 OK
+
+## legacy GET /api/health
+404
+## error responses carry the security headers (after fix BUG-076)
+HTTP/1.1 401 Unauthorized
+Cache-Control: no-store, private
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+## baseline timing, local php artisan serve (single-threaded dev server), seconds per request
+/health 0.257049
+/health 0.246403
+/health 0.261802
+/health 0.241837
+/health 0.243748
+/markets/current 0.247945
+/markets/current 0.274956
+/markets/current 0.235537
+/markets/current 0.248606
+/markets/current 0.247867
+/config 0.255733
+/config 0.247247
+/config 0.336152
+/config 0.359738
+/config 0.279880

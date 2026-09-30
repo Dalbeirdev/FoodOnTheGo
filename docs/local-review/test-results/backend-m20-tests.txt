@@ -1,0 +1,141 @@
+# Module 20 — backend automated tests (PostgreSQL 18.6 + PostGIS 3.6.2 database foodonthego_test, Redis 5.0.14.1 db 14/15) — 2026-09-30T11:20:35Z
+PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.33
+Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
+
+Time: 00:07.070, Memory: 66.00 MB
+
+Api Conventions (Tests\Feature\Foundation\ApiConventions)
+ ✔ Every response carries a request id and a client supplied one is propagated
+ ✔ Unknown route returns the standard 404 error
+ ✔ Wrong method returns 405
+ ✔ Domain errors use their own status code and details
+ ✔ Server errors never leak sql paths or traces when debug is off
+ ✔ Debug detail appears only under a debug key when debug is on
+ ✔ Rate limited requests return 429 with retry information
+ ✔ The versioned api group is rate limited by the configurable api limiter
+ ✔ Api responses carry baseline security headers
+ ✔ Cors allows configured origins only
+
+Authorization (Tests\Feature\Foundation\Authorization)
+ ✔ Unauthenticated request is 401
+ ✔ Customer and restaurant tokens cannot enter the admin context
+ ✔ An admin without the permission is forbidden admins are not super admins
+ ✔ An admin holding the permission is allowed and sees every market status
+ ✔ A permission cannot be used outside its principal type even if a grant row exists
+ ✔ Restaurant permissions are isolated to the granted organization or location
+ ✔ An unscoped grant never gives a restaurant user platform wide access
+ ✔ Admin permissions can be limited to a market
+ ✔ Principal type cannot be mass assigned
+ ✔ Collection endpoints share one pagination filter and sort convention
+
+Database Foundation (Tests\Feature\Foundation\DatabaseFoundation)
+ ✔ Tests run on postgresql in a dedicated database with utf8 and utc sessions
+ ✔ Unicode text in indian scripts round trips unchanged
+ ✔ Timestamps are stored with a time zone and read back as the same instant
+ ✔ Database constraints reject invalid market rows even when application checks are bypassed
+ ✔ Unique and foreign key constraints exist at database level
+ ✔ Foundation tables exist after migrating
+
+Distance (Tests\Unit\Support\Distance)
+ ✔ Distance is held in metres and converted explicitly
+ ✔ Negative distances are rejected
+ ✔ Point sql uses srid 4326 with longitude first
+ ✔ Coordinates outside wgs84 are rejected
+
+Example (Tests\Feature\Example)
+ ✔ The application returns a successful response
+
+Example (Tests\Unit\Example)
+ ✔ That true is true
+
+Health Endpoint (Tests\Feature\HealthEndpoint)
+ ✔ Public health is minimal and exposes no infrastructure detail
+ ✔ Public health is degraded with 503 when a dependency is down without saying which
+ ✔ Readiness reports each real dependency where it is public
+ ✔ Readiness is restricted to permitted admins when it is not public
+ ✔ The unversioned health route no longer exists
+
+Idempotency (Tests\Feature\Foundation\Idempotency)
+ ✔ A missing or malformed key is rejected
+ ✔ A retry with the same key and request replays the first outcome without running again
+ ✔ Reusing a key for a different request is a conflict
+ ✔ Keys are scoped to the actor
+ ✔ A request still in progress is not executed twice
+ ✔ Keys expire and expired keys are pruned
+
+Login (Tests\Feature\Auth\Login)
+ ✔ Customer can login with email or phone and use the token
+ ✔ Login fails with wrong password or unknown identity without revealing which
+ ✔ Login is throttled per identity
+ ✔ Protected routes require a valid token
+ ✔ Logout revokes only the current token and logout all revokes every token
+ ✔ Me uses sanctum acting as
+
+Market Api (Tests\Feature\Foundation\MarketApi)
+ ✔ Seeded india market is returned as the current market
+ ✔ India is the only market serving customers after seeding and reseeding is idempotent
+ ✔ Market response never exposes the internal numeric id
+ ✔ A draft or unknown market is not available to customers
+ ✔ Another market becomes available purely through data
+ ✔ Invalid country parameter is rejected with the standard validation error
+ ✔ Client bootstrap config returns safe market configuration only
+
+Money (Tests\Unit\Support\Money)
+ ✔ Money is integer minor units with an iso currency and serialises consistently
+ ✔ Arithmetic stays exact where floats would drift
+ ✔ Basis points round half up in integer arithmetic
+ ✔ Currencies never mix
+ ✔ Symbols lowercase codes and float amounts are rejected
+ ✔ Minor unit digits come from currency data not from an assumption of two
+
+Open Api Contract (Tests\Feature\Foundation\OpenApiContract)
+ ✔ Documented operations are exactly the registered v1 routes
+ ✔ Real responses match their documented schemas
+
+Password Reset (Tests\Feature\Auth\PasswordReset)
+ ✔ Forgot password sends a frontend reset link and never reveals whether the email exists
+ ✔ Reset password with a valid token updates the password and revokes tokens
+ ✔ Reset password rejects invalid tokens
+
+Postgis (Tests\Feature\Foundation\Postgis)
+ ✔ Postgis extension is enabled and wgs84 is known
+ ✔ Geography distance between two points is returned in metres
+ ✔ Points near a route line are found with a gist index available
+
+Profile (Tests\Feature\Auth\Profile)
+ ✔ Customer can update name email and phone
+ ✔ Profile update rejects identities used by another account
+ ✔ Profile update requires authentication
+
+Redis And Queue (Tests\Feature\Foundation\RedisAndQueue)
+ ✔ Redis answers and tests use their own logical databases
+ ✔ Redis cache store writes reads expires and deletes
+ ✔ Redis lock is exclusive until released
+ ✔ Job is dispatched to redis and completed by a worker
+ ✔ A failing job is recorded in failed jobs instead of being lost
+
+Registration (Tests\Feature\Auth\Registration)
+ ✔ Customer can register with email and receives a token
+ ✔ Customer can register with an indian mobile number
+ ✔ Registration rejects duplicate identity weak password and missing terms
+ ✔ Registration is rate limited
+
+Security Baseline (Tests\Feature\Foundation\SecurityBaseline)
+ ✔ Log lines are structured redacted and carry the request id
+ ✔ Sms log driver never writes the message body or full number
+ ✔ Development otp exists only in local and testing and never in production
+ ✔ Env example contains no secret values and env is ignored by git
+ ✔ Application code reads configuration not env
+ ✔ Production defaults are safe
+
+Sensitive Data Redactor (Tests\Unit\Support\SensitiveDataRedactor)
+ ✔ Sensitive keys are masked at any depth and safe fields survive
+ ✔ Bearer tokens inside free text are masked
+
+OK (90 tests, 501 assertions)
+{"tool":"phpunit","result":"passed","tests":90,"passed":90,"assertions":501,"duration_ms":7070}
+
+# pint
+{"tool":"pint","result":"passed"}
