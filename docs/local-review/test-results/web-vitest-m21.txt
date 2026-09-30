@@ -1,0 +1,12 @@
+# Module 21 — web vitest (full suite, mock auth mode by design) — 2026-09-30T12:41:41Z
+ Test Files  32 passed (32)
+      Tests  407 passed (407)
+# tsc -b
+tsc exit 0
+# oxlint
+# build
+dist/assets/Charts-EWys-7WG.js         62.74 kB │ gzip:  18.94 kB
+dist/assets/DashboardApp-CQEiu-EL.js  138.25 kB │ gzip:  29.42 kB
+dist/assets/AdminApp-eKjnL4Yj.js      314.07 kB │ gzip:  65.28 kB
+dist/assets/index-DoUscCt5.js         959.78 kB │ gzip: 267.30 kB
+✓ built in 802ms

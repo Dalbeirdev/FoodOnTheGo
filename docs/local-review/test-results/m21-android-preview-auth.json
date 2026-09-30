@@ -1,0 +1,64 @@
+{
+  "module": "M21",
+  "surface": "Android app code in the Flutter web preview (AUTH_MODE=api) against the real local backend",
+  "date": "2026-09-30T13:01:23.107Z",
+  "total": 11,
+  "passed": 11,
+  "results": [
+    {
+      "name": "F1 protected screen while signed out → sign-in screen; the local note names the test code only because this is a local build",
+      "pass": true,
+      "detail": "LOCAL preview — no SMS is sent. Development code: 123456. 98765 43210 = existing customer. "
+    },
+    {
+      "name": "F2 the app asked the backend for a code (public call, request id, no token)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 wrong code → refused by the backend (422) and the attempt count is shown",
+      "pass": true,
+      "detail": "Incorrect code. 4 attempts left. Didn't get it? Resend in 0:00 "
+    },
+    {
+      "name": "F4 correct code → signed in by the backend and returned to the screen that was requested (My Orders)",
+      "pass": true,
+      "detail": "Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder. Sort | Search by order number or restaurant | All | Ongoing |"
+    },
+    {
+      "name": "F5 the access token is not stored in plain text (secure storage encrypts it; on Android this is the Keystore)",
+      "pass": true,
+      "detail": "keys: FlutterSecureStorage.fotg.auth.token.customer, FlutterSecureStorage, FlutterSecureStorage.fotg.mock.account.profile.8ecf50f7-0a92-4850-a2e5-576f1296cda7, FlutterSecureStorage.fotg.mock.account.notific"
+    },
+    {
+      "name": "F6 session restore after an app restart: the stored session is validated with the backend (GET /auth/me with the token) and the customer stays signed in",
+      "pass": true,
+      "detail": "Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder. Sort | Search by orde"
+    },
+    {
+      "name": "F7 profile shows the backend identity",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F8 logout revokes the session on the backend and the app shows the signed-out state",
+      "pass": true,
+      "detail": "logout call: true"
+    },
+    {
+      "name": "F9 after logout a restart does not restore the session (no token is sent)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F10 a suspended customer is refused with a plain message",
+      "pass": true,
+      "detail": "This account cannot sign in right now. Please contact support. Didn't get it? Resend in 0:00 "
+    },
+    {
+      "name": "F11 every API request carried an X-Request-Id",
+      "pass": true,
+      "detail": "8 requests"
+    }
+  ]
+}

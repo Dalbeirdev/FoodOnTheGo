@@ -1,0 +1,53 @@
+# Module 21 — migrations + seed on foodonthego_local — 2026-09-30T11:57:58Z
+
+ INFO Running migrations. 
+
+ 2026_09_30_200000_create_identity_tables .. 97.64ms DONE
+ 2026_09_30_200100_create_rbac_tables .. 25.47ms DONE
+ 2026_09_30_200200_create_auth_security_tables .. 27.09ms DONE
+
+
+ INFO Seeding database. 
+
+ Database\Seeders\MarketSeeder .. RUNNING 
+ Database\Seeders\MarketSeeder .. 60 ms DONE 
+
+ Database\Seeders\RoleSeeder .. RUNNING 
+ Database\Seeders\RoleSeeder .. 182 ms DONE 
+
+ Database\Seeders\LocalFixtureSeeder .. RUNNING 
+ Database\Seeders\LocalFixtureSeeder .. 2,917 ms DONE 
+
+ Database\Seeders\LocalFixtureSeeder .. RUNNING 
+ Database\Seeders\LocalFixtureSeeder .. 2,936 ms DONE 
+
+
+# rollback + re-migrate of the Module 21 batch on foodonthego_test
+ 2026_09_30_200000_create_identity_tables .. 62.17ms DONE
+ 2026_09_30_200100_create_rbac_tables .. 39.74ms DONE
+ 2026_09_30_200200_create_auth_security_tables .. 38.86ms DONE
+
+
+ INFO Rolling back migrations. 
+
+ 2026_09_30_200200_create_auth_security_tables .. 24.33ms DONE
+ 2026_09_30_200100_create_rbac_tables .. 12.17ms DONE
+ 2026_09_30_200000_create_identity_tables .. 60.54ms DONE
+
+
+ INFO Running migrations. 
+
+ 2026_09_30_200000_create_identity_tables .. 85.28ms DONE
+ 2026_09_30_200100_create_rbac_tables .. 25.08ms DONE
+ 2026_09_30_200200_create_auth_security_tables .. 26.09ms DONE
+
+
+# identity rows after seeding (no credentials shown)
+customers: 2
+restaurant_users: 7
+admin_users: 8
+roles: 12
+role_permissions: 157
+role_assignments: 15
+admin statuses: {"ACTIVE":6,"INVITED":1,"SUSPENDED":1}
+passwords hashed: yes

@@ -1,0 +1,13 @@
+PASS F1 protected screen while signed out → sign-in screen; the local note names the test code only because this is a local build — LOCAL preview — no SMS is sent. Development code: 123456. 98765 43210 = existing customer. 
+PASS F2 the app asked the backend for a code (public call, request id, no token)
+PASS F3 wrong code → refused by the backend (422) and the attempt count is shown — Incorrect code. 4 attempts left. Didn't get it? Resend in 0:00 
+PASS F4 correct code → signed in by the backend and returned to the screen that was requested (My Orders) — Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder. Sort | Search by order number or restaurant | All | Ongoing |
+PASS F5 the access token is not stored in plain text (secure storage encrypts it; on Android this is the Keystore) — keys: FlutterSecureStorage.fotg.auth.token.customer, FlutterSecureStorage, FlutterSecureStorage.fotg.mock.account.profile.8ecf50f7-0a92-4850-a2e5-576f1296cda7, FlutterSecureStorage.fotg.mock.account.notific
+PASS F6 session restore after an app restart: the stored session is validated with the backend (GET /auth/me with the token) and the customer stays signed in — Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder. Sort | Search by orde
+PASS F7 profile shows the backend identity
+PASS F8 logout revokes the session on the backend and the app shows the signed-out state — logout call: true
+PASS F9 after logout a restart does not restore the session (no token is sent)
+PASS F10 a suspended customer is refused with a plain message — This account cannot sign in right now. Please contact support. Didn't get it? Resend in 0:00 
+PASS F11 every API request carried an X-Request-Id — 8 requests
+
+11/11 passed

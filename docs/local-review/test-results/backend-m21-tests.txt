@@ -1,0 +1,220 @@
+# Module 21 — backend automated tests (PostgreSQL 18.6 + PostGIS 3.6.2 database foodonthego_test, Redis 5.0.14.1 db 14/15) — 2026-09-30T13:03:21Z
+PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.33
+Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
+
+Time: 00:21.710, Memory: 72.00 MB
+
+Api Conventions (Tests\Feature\Foundation\ApiConventions)
+ ✔ Every response carries a request id and a client supplied one is propagated
+ ✔ Unknown route returns the standard 404 error
+ ✔ Wrong method returns 405
+ ✔ Domain errors use their own status code and details
+ ✔ Server errors never leak sql paths or traces when debug is off
+ ✔ Debug detail appears only under a debug key when debug is on
+ ✔ Rate limited requests return 429 with retry information
+ ✔ The versioned api group is rate limited by the configurable api limiter
+ ✔ Api responses carry baseline security headers
+ ✔ Cors allows configured origins only
+
+Customer Otp (Tests\Feature\Auth\CustomerOtp)
+ ✔ Requesting a code returns a challenge and never the code
+ ✔ The code is stored only as a keyed hash
+ ✔ The response is identical for a new and an existing customer
+ ✔ A new phone creates one customer and signs them in
+ ✔ An existing customer is reused whatever format the phone is typed in
+ ✔ A wrong code is counted and the challenge locks after the attempt limit
+ ✔ An expired code is rejected
+ ✔ A verified code cannot be replayed
+ ✔ A challenge only works for the phone it was issued to
+ ✔ Resend respects the server cooldown and invalidates the previous code
+ ✔ Sends per phone are capped per hour
+ ✔ Request rate limit applies per phone and per address
+ ✔ Verify rate limit stops guessing across challenges
+ ✔ Invalid input is a field error
+ ✔ A market that does not serve customers cannot be used to sign in
+ ✔ An international number works once its market is active through data only
+ ✔ Suspended and deactivated customers cannot sign in but restricted ones can
+ ✔ Security events are recorded without the code or the phone number
+ ✔ Profile completion updates only the allowed fields
+
+Database Foundation (Tests\Feature\Foundation\DatabaseFoundation)
+ ✔ Tests run on postgresql in a dedicated database with utf8 and utc sessions
+ ✔ Unicode text in indian scripts round trips unchanged
+ ✔ Timestamps are stored with a time zone and read back as the same instant
+ ✔ Database constraints reject invalid market rows even when application checks are bypassed
+ ✔ Unique and foreign key constraints exist at database level
+ ✔ Foundation tables exist after migrating
+
+Distance (Tests\Unit\Support\Distance)
+ ✔ Distance is held in metres and converted explicitly
+ ✔ Negative distances are rejected
+ ✔ Point sql uses srid 4326 with longitude first
+ ✔ Coordinates outside wgs84 are rejected
+
+Example (Tests\Feature\Example)
+ ✔ The application returns a successful response
+
+Example (Tests\Unit\Example)
+ ✔ That true is true
+
+Health Endpoint (Tests\Feature\HealthEndpoint)
+ ✔ Public health is minimal and exposes no infrastructure detail
+ ✔ Public health is degraded with 503 when a dependency is down without saying which
+ ✔ Readiness reports each real dependency where it is public
+ ✔ Readiness is restricted to permitted admins when it is not public
+ ✔ The unversioned health route no longer exists
+
+Idempotency (Tests\Feature\Foundation\Idempotency)
+ ✔ A missing or malformed key is rejected
+ ✔ A retry with the same key and request replays the first outcome without running again
+ ✔ Reusing a key for a different request is a conflict
+ ✔ Keys are scoped to the actor
+ ✔ A request still in progress is not executed twice
+ ✔ Keys expire and expired keys are pruned
+
+Isolation (Tests\Feature\Rbac\Isolation)
+ ✔ Restaurant a staff cannot read restaurant b by changing the id in the url
+ ✔ Staff limited to one location cannot open a sibling location
+ ✔ Being in the right restaurant is not enough without the permission
+ ✔ Scope sent by the client is ignored
+ ✔ Customers and admins cannot use restaurant routes
+ ✔ Customer a cannot read customer b resources
+ ✔ An admin without the finance permission cannot issue a refund
+
+Market Api (Tests\Feature\Foundation\MarketApi)
+ ✔ Seeded india market is returned as the current market
+ ✔ India is the only market serving customers after seeding and reseeding is idempotent
+ ✔ Market response never exposes the internal numeric id
+ ✔ A draft or unknown market is not available to customers
+ ✔ Another market becomes available purely through data
+ ✔ Invalid country parameter is rejected with the standard validation error
+ ✔ Client bootstrap config returns safe market configuration only
+
+Mfa (Tests\Feature\Auth\Mfa)
+ ✔ Enrolment returns the secret once and stores it encrypted
+ ✔ With mfa the password alone never yields a token
+ ✔ A totp code cannot be used twice
+ ✔ The challenge expires and locks after too many wrong codes
+ ✔ A challenge issued in one context is useless in the other
+ ✔ A recovery code works once
+ ✔ Disabling needs the password and a valid code
+ ✔ When mfa is mandatory an unenrolled admin can only enrol
+ ✔ Restaurant users can use the same mfa and customers cannot reach it
+
+Money (Tests\Unit\Support\Money)
+ ✔ Money is integer minor units with an iso currency and serialises consistently
+ ✔ Arithmetic stays exact where floats would drift
+ ✔ Basis points round half up in integer arithmetic
+ ✔ Currencies never mix
+ ✔ Symbols lowercase codes and float amounts are rejected
+ ✔ Minor unit digits come from currency data not from an assumption of two
+
+Open Api Contract (Tests\Feature\Foundation\OpenApiContract)
+ ✔ Documented operations are exactly the registered v1 routes
+ ✔ Real responses match their documented schemas
+
+Password Reset (Tests\Feature\Auth\PasswordReset)
+ ✔ The answer is the same whether or not the account exists with data set "restaurant"
+ ✔ The answer is the same whether or not the account exists with data set "admin"
+ ✔ A valid token changes the password once and signs out every session with data set "restaurant"
+ ✔ A valid token changes the password once and signs out every session with data set "admin"
+ ✔ Invalid expired and cross context tokens are rejected
+ ✔ A newer reset makes older tokens useless after use and weak passwords are refused
+ ✔ Suspended and invited accounts get no reset link
+ ✔ Changing the password needs the current one and signs out other devices
+ ✔ Customers have no password endpoints
+
+Phone Number (Tests\Feature\Auth\PhoneNumber)
+ ✔ Equivalent india formats normalise to one e164 number
+ ✔ Invalid india numbers are rejected by the market rule
+ ✔ The dialling code and rule come from the market not from code
+ ✔ A market without a national rule still enforces e164 bounds
+ ✔ Masking hides all but the last four digits and hash is not the number
+
+Postgis (Tests\Feature\Foundation\Postgis)
+ ✔ Postgis extension is enabled and wgs84 is known
+ ✔ Geography distance between two points is returned in metres
+ ✔ Points near a route line are found with a gist index available
+
+Rbac (Tests\Feature\Rbac\Rbac)
+ ✔ Roles are permission bundles and system roles exist for both staff contexts
+ ✔ A permission is granted only through a role and absent otherwise
+ ✔ Super admin is a role like any other not a default
+ ✔ Role changes take effect immediately even with the permission cache warm
+ ✔ Changes made outside the service also invalidate the cache
+ ✔ The permission cache works on redis and is invalidated there too
+ ✔ An admin role can be limited to a market
+ ✔ Restaurant roles must be scoped and admin roles cannot take a restaurant scope
+ ✔ Customers hold no permissions and cannot be given roles
+ ✔ A suspended account has no permissions whatever its roles
+ ✔ Role changes are recorded and raise the audit hook
+ ✔ The identity endpoint lists roles and permissions for navigation
+ ✔ Protected admin endpoint follows the 401 403 200 pattern
+
+Redis And Queue (Tests\Feature\Foundation\RedisAndQueue)
+ ✔ Redis answers and tests use their own logical databases
+ ✔ Redis cache store writes reads expires and deletes
+ ✔ Redis lock is exclusive until released
+ ✔ Job is dispatched to redis and completed by a worker
+ ✔ A failing job is recorded in failed jobs instead of being lost
+
+Secret Leak Audit (Tests\Feature\Auth\SecretLeakAudit)
+ ✔ A full run of the auth flows writes no secret to the log or to security events
+ ✔ Stack traces never contain call arguments and client errors are not written to the error log
+ ✔ Api responses never carry credential material
+ ✔ Privileged attributes cannot be mass assigned on any identity model
+ ✔ Seeded fixture accounts use reserved domains hashed passwords and never a hardcoded credential
+
+Security Baseline (Tests\Feature\Foundation\SecurityBaseline)
+ ✔ Log lines are structured redacted and carry the request id
+ ✔ Sms log driver never writes the message body or full number
+ ✔ Development otp exists only in local and testing and never in production
+ ✔ Env example contains no secret values and env is ignored by git
+ ✔ Application code reads configuration not env
+ ✔ Production defaults are safe
+
+Sensitive Data Redactor (Tests\Unit\Support\SensitiveDataRedactor)
+ ✔ Sensitive keys are masked at any depth and safe fields survive
+ ✔ Bearer tokens inside free text are masked
+
+Session (Tests\Feature\Auth\Session)
+ ✔ Requests without a valid token are unauthenticated
+ ✔ The api is stateless a cookie or session never authenticates
+ ✔ Tokens are stored hashed carry an expiry and stop working after it
+ ✔ Admin and restaurant tokens live shorter than customer tokens
+ ✔ Logout revokes only the current session
+ ✔ Logout all revokes every session of the account and nobody elses
+ ✔ Sessions can be listed and revoked one by one
+ ✔ A session of another account cannot be seen or revoked
+ ✔ Suspending an account ends its existing sessions immediately
+ ✔ A token that outlives a status change is still refused on every request
+ ✔ Reactivation does not resurrect old sessions
+
+Staff Login (Tests\Feature\Auth\StaffLogin)
+ ✔ Valid credentials return a token and a safe identity with data set "restaurant"
+ ✔ Valid credentials return a token and a safe identity with data set "admin"
+ ✔ Wrong password and unknown email give the same generic answer with data set "restaurant"
+ ✔ Wrong password and unknown email give the same generic answer with data set "admin"
+ ✔ Invited suspended and disabled accounts cannot sign in with data set "restaurant"
+ ✔ Invited suspended and disabled accounts cannot sign in with data set "admin"
+ ✔ Passwords are stored only as a framework hash with data set "restaurant"
+ ✔ Passwords are stored only as a framework hash with data set "admin"
+ ✔ The two contexts are separate even for the same email and password
+ ✔ A client cannot choose its principal type
+ ✔ Login is rate limited and admin is stricter than restaurant
+ ✔ There is no public way to create a restaurant or admin account
+ ✔ The admin create command is the controlled bootstrap
+
+Totp (Tests\Unit\Support\Totp)
+ ✔ Codes match the rfc 6238 sha1 test vectors
+ ✔ Verification allows one step of clock drift and returns the matched step
+ ✔ Generated secrets are random base32 and round trip
+ ✔ Provisioning uri names issuer and account
+
+OK (159 tests, 1322 assertions)
+
+# pint
+{"tool":"pint","result":"passed"}# composer audit
+No security vulnerability advisories found.

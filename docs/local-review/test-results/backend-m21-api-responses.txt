@@ -1,0 +1,54 @@
+# Module 21 — live API checks (http://127.0.0.1:8001/api/v1) — 2026-09-30T12:02:01Z
+
+## 1. OTP request (new phone, last 4 digits 9721)
+{"challenge_id":"250e3c72-405f-48a2-9b08-ffb7adf38213","phone_masked":"+91 ******9721","expires_at":"2026-09-30T12:07:02+00:00","resend_available_at":"2026-09-30T12:02:07+00:00","attempts_allowed":5,"server_time":"2026-09-30T12:02:02+00:00","delivery":"development"}
+
+## 2. wrong code
+{"error":{"code":"otp_invalid","message":"That code is not correct.","details":{"attempts_left":4},"request_id":"6d8781ff-0fdf-4560-b554-2a5577b3fc14"}}
+
+## 3. CONCURRENCY: 8 simultaneous verifications of the same challenge with the right code
+status codes: 201 422 422 422 422 422 422 422 
+customers with this phone: 1  tokens issued for it: 1
+
+## 4. CONCURRENCY: 6 simultaneous first sign-ins for one new phone through 6 separate challenges is impossible (a new challenge invalidates the previous); database uniqueness check instead
+unique index: CREATE UNIQUE INDEX customers_phone_e164_unique ON public.customers USING btree (phone_e164)
+
+## 5. existing customer in another format, then identity, profile, sessions, logout
+{"token":"<redacted>","token_type":"Bearer","expires_at":"2026-10-30T12:02:13+00:00","new_account":false,"principal":{"principal_type":"CUSTOMER","id":"babe3ecd-c71f-4355-963f-5d29c9f811b6","status":"ACTIVE","name":null,"email":null,"phone":"+919790769721","phone_masked":"+91 ******9721","phone_verified":true,"profile_complete":false,"preferred_locale":null,"market":"IN","member_since":"2026-09-30"}}
+PATCH profile -> {"principal_type":"CUSTOMER","id":"babe3ecd-c71f-4355-963f-5d29c9f811b6","status":"ACTIVE","name":"Live Check","email":null,"phone":"+919790769721","phone_masked":"+91 ******9721","phone_verified":true,"profile_complete":true,"preferred_locale":null,"market":"IN","member_since":"2026-09-30"}
+sessions -> [{"id":"6317560b-1272-47da-a655-6f05830a6a39","device":"unknown","current":false,"created_at":"2026-09-30T12:02:03+00:00","last_used_at":null,"expires_at":"2026-10-30T12:02:03+00:00"},{"id":"0692b61d-5c38-4757-8acd-80f0ec9299cb","device":"curl","current":true,"created_at":"2026-09-30T12:02:13+00:00","last_used_at":"2026-09-30T12:02:15+00:00","expires_at":"2026-10-30T12:02:13+00:00"}]
+customer token on an admin route -> HTTP 401
+logout -> HTTP 204
+me after logout -> HTTP 401
+
+## 6. suspended fixture customer
+{"error":{"code":"account_not_active","message":"This account cannot sign in right now. Please contact support.","request_id":"c0cfed85-132d-4101-84d1-b0edbdace363"}}
+
+## 7. admin sign-in (finance fixture), permissions, 403 on a permission it lacks, 200 on one it has
+wrong password -> {"error":{"code":"invalid_credentials","message":"The e-mail or password is incorrect.","request_id":"d48757a8-aa23-47c5-aaa2-bda178acfc28"}}
+{"mfa_required":false,"mfa_enrollment_required":false,"token":"<redacted>","token_type":"Bearer","expires_at":"2026-09-30T20:02:20+00:00","principal":{"principal_type":"ADMIN_USER","id":"47d11430-dbcb-4d45-9cfe-eca629691c33","status":"ACTIVE","name":"Kenji Watanabe","email":"kenji.watanabe@foodonthego.example","mfa_enabled":false,"last_login_at":"2026-09-30T12:02:20+00:00","roles":[{"code":"FINANCE_ADMIN","name":"Finance admin","scope":null}],"permissions":["admin.analytics.view","admin.audit.view","admin.cities.view","admin.market_configuration.view","admin.markets.view","admin.orders.view","admin.payments.view","admin.refunds.issue","admin.refunds.view","admin.restaurants.view","admin.service_areas.view","admin.settlements.view"]}}
+GET /admin/markets (has admin.markets.view) -> HTTP 200
+moderation admin GET /admin/markets (no admin.markets.view) -> {"error":{"code":"forbidden","message":"You are not allowed to do this.","request_id":"be7a92da-820c-4221-aef8-118d41dc1655"}}
+suspended admin -> {"error":{"code":"account_not_active","message":"This account cannot sign in. Please contact your administrator.","request_id":"522ae81f-d588-44bc-8a7a-5e315ff231e2"}}
+invited admin (no password yet) -> {"error":{"code":"invalid_credentials","message":"The e-mail or password is incorrect.","request_id":"11085ff9-c973-4977-aab8-96fd8fe2672f"}}
+
+## 8. restaurant sign-in and context separation
+{"mfa_required":false,"mfa_enrollment_required":false,"token":"<redacted>","token_type":"Bearer","expires_at":"2026-10-01T00:02:24+00:00","principal":{"principal_type":"RESTAURANT_USER","id":"7436b204-6de0-46a2-88ae-44b9aa3ff9e5","status":"ACTIVE","name":"John Doe","email":"john@riverside.example","mfa_enabled":false,"last_login_at":"2026-09-30T12:02:24+00:00","roles":[{"code":"OWNER","name":"Owner","scope":{"type":"organization","id":"0a000000-0000-4000-8000-00000000000a"}}],"permissions":["res
+restaurant token on /admin/markets -> HTTP 401
+restaurant account on admin login -> {"error":{"code":"invalid_credentials","message":"The e-mail or password is incorrect.","request_id":"0e2c7f37-af13-4e25-b523-fe44d9f4ee27"}}
+
+## 9. password reset request (same answer for unknown account)
+{"message":"If an account exists for this e-mail, a reset link has been sent."}
+{"message":"If an account exists for this e-mail, a reset link has been sent."}
+
+## 10. what the database holds
+otp_challenges code_hash sample: a202c54cc218...(64 hex chars)
+token storage sample:            065ee8b74ce9...(64 hex chars, sha-256)
+reset token storage sample:      2b33b0ff170f...(64 hex chars, sha-256)
+security events by type:         LOGIN_FAILED=15, LOGIN_SUCCESS=15, LOGOUT=3, OTP_FAILED=24, OTP_REQUESTED=9, OTP_VERIFIED=9, PASSWORD_RESET_REQUESTED=6, PERMISSION_CHANGED=30
+events whose metadata contains an OTP value, the phone number or the password: 0
+
+## 11. application log written during this run
+lines: 146  sms.sent entries: 3  ERROR entries: 0
+occurrences of the OTP test code: 0  of the wrong code: 0  of the phone number: 0  of the fixture password: 0  of the wrong password: 0  of a bearer token: 0
+sample sms line: [2026-09-30 12:02:17] local.INFO: sms.sent {"driver":"log","to":"*********0001","length":99} {"request_id":"f87b3044-c258-4312-b30e-c8ef54a52f4e","operation":"POST api/v1/auth/customer/otp/request","environment":"local"}
