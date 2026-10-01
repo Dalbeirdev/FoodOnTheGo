@@ -245,6 +245,18 @@ class AdminGeographyApiTest extends TestCase
         $this->assertSame(['market.configuration_updated', 'markets', $this->india->public_id], [$event->action, $event->target_type, $event->target_public_id]);
     }
 
+    public function test_a_locked_payment_method_cannot_be_enabled_through_configuration(): void
+    {
+        (new MarketConfiguration)->forceFill(['market_id' => $this->india->id, 'locked_features' => ['cash_at_pickup'], 'payment' => ['methods' => ['upi' => 'PLANNED', 'cash_at_pickup' => 'NOT_APPROVED']]])->save();
+        $patch = fn (array $methods, int $version = 1) => $this->patchJson($this->url('/configuration'), ['version' => $version, 'reason' => 'Payment setup', 'payment' => ['methods' => $methods]]);
+
+        $patch(['upi' => 'PLANNED', 'cash_at_pickup' => 'ENABLED'])->assertConflict()->assertJsonPath('error.code', 'feature_locked')->assertJsonPath('error.details.feature', 'cash_at_pickup');
+        $patch(['upi' => 'LIVE'])->assertUnprocessable();
+        $this->assertSame(0, AuditEvent::query()->count());
+
+        $patch(['upi' => 'ENABLED', 'cash_at_pickup' => 'NOT_APPROVED'])->assertOk()->assertJsonPath('payment.methods.upi', 'ENABLED')->assertJsonPath('payment.methods.cash_at_pickup', 'NOT_APPROVED');
+    }
+
     public function test_market_configuration_refuses_anything_that_looks_like_a_secret(): void
     {
         $this->patchJson($this->url('/configuration'), ['version' => 1, 'reason' => 'Provider setup', 'payment' => ['provider' => 'razorpay', 'credentials' => ['api_secret' => 'rzp_live_should_never_be_here']]])

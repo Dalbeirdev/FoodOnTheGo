@@ -168,3 +168,7 @@
 .adm-geo-preview { margin: 0; display: grid; gap: 6px; justify-items: start; }
 .adm-geo-preview svg { width: 160px; height: 160px; background: var(--db-surface-2, #f8f9fb); border-radius: 10px; }
 @media (max-width: 520px) { .adm-geo-pair { grid-template-columns: 1fr; } }
+.adm-geo-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.adm-geo-via { display: flex; flex-wrap: wrap; gap: 6px; max-height: 148px; overflow: auto; padding: 2px; }
+.adm-geo-methods { display: grid; gap: 10px; }
+.adm-geo-method { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 180px); gap: 12px; align-items: center; }

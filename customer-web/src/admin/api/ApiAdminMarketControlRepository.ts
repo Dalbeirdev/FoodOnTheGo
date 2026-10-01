@@ -10,10 +10,10 @@
  * modules have no backend yet.
  */
 import { api } from '../../api/client'
-import { loadAdminMarketData, marketDataVersion, type MarketData } from '../../market/api/marketData'
+import { loadAdminMarketData, marketDataVersion, type MarketConfigurationDto, type MarketData } from '../../market/api/marketData'
 import type { CityStatus, MarketFeatureKey, MarketStatus, RegionStatus, RouteStatus, ServiceAreaStatus } from '../../market/types'
 import { MockAdminMarketControlRepository } from '../mock/mockAdmin'
-import type { AdminMarketControlRepository, CityInput, MarketsOverview, MarketSnapshot, ServiceAreaInput } from '../types'
+import type { AdminMarketControlRepository, CityInput, MarketConfigurationInput, MarketsOverview, MarketSnapshot, RegionInput, RouteInput, ServiceAreaInput } from '../types'
 
 export class ApiAdminMarketControlRepository extends MockAdminMarketControlRepository implements AdminMarketControlRepository {
   private data: MarketData | null = null
@@ -39,6 +39,30 @@ export class ApiAdminMarketControlRepository extends MockAdminMarketControlRepos
   async setCityStatus(id: string, status: CityStatus, _actor: string, reason: string) { await this.patch(`/admin/cities/${id}`, id, { status }, reason) }
   async setServiceAreaStatus(id: string, status: ServiceAreaStatus, _actor: string, reason: string) { await this.patch(`/admin/service-areas/${id}`, id, { status }, reason) }
   async setRouteStatus(id: string, status: RouteStatus, _actor: string, reason: string) { await this.patch(`/admin/route-corridors/${id}`, id, { status }, reason) }
+  async createRegion(marketCode: string, input: RegionInput) {
+    await api(`/admin/markets/${await this.marketId(marketCode)}/regions`, { method: 'POST', context: 'admin', body: { code: input.code, name: input.name, type: input.type } })
+  }
+  async updateRegion(id: string, input: RegionInput, reason: string) { await this.patch(`/admin/regions/${id}`, id, { name: input.name, type: input.type }, reason) }
+  async createRoute(marketCode: string, input: RouteInput) {
+    await api(`/admin/markets/${await this.marketId(marketCode)}/route-corridors`, { method: 'POST', context: 'admin', body: { name: input.name, highway: input.highway, origin_city_id: input.originCityId, destination_city_id: input.destinationCityId, via_city_ids: input.viaCityIds, corridor_width_meters: input.corridorWidthM, geometry: input.centreline } })
+  }
+  async updateRoute(id: string, input: RouteInput, reason: string) {
+    await this.patch(`/admin/route-corridors/${id}`, id, { name: input.name, highway: input.highway, corridor_width_meters: input.corridorWidthM, ...(input.centreline ? { geometry: input.centreline } : {}) }, reason)
+  }
+  /**
+   * A category is stored as one document, so the stored one is read first and only the fields of the form are
+   * changed in it. The version sent is the one the administrator was looking at.
+   */
+  async updateConfiguration(marketCode: string, input: MarketConfigurationInput, reason: string) {
+    const id = await this.marketId(marketCode)
+    const stored = await api<MarketConfigurationDto>(`/admin/markets/${id}/configuration`, { context: 'admin' })
+    await api(`/admin/markets/${id}/configuration`, { method: 'PATCH', context: 'admin', body: {
+      version: marketDataVersion(`configuration:${id}`), reason: reason.trim(),
+      payment: { ...stored.payment, methods: { ...(stored.payment.methods ?? {}), ...input.paymentMethods } },
+      tax: { ...stored.tax, regime: input.taxRegime, status: input.taxStatus },
+      address: { ...stored.address, postal_code_label: input.postalCodeLabel, postal_code_pattern: input.postalCodePattern, admin_area_label: input.adminAreaLabel },
+    } })
+  }
   async createCity(marketCode: string, input: CityInput) {
     await api(`/admin/markets/${await this.marketId(marketCode)}/cities`, { method: 'POST', context: 'admin', body: { region_id: input.regionId, name: input.name, latitude: input.lat, longitude: input.lng, timezone: input.timezone, aliases: input.aliases, launch_stage: input.launchStage } })
   }

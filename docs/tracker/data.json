@@ -21482,6 +21482,70 @@
       "issue": "-",
       "carry": "CF-301",
       "notes": "Owner request 2026-10-01. There is no map to draw on (no map provider yet): a boundary is a circle or pasted GeoJSON. Only shown when the admin runs against the backend."
+    },
+    {
+      "id": "M22-096",
+      "module": "M22",
+      "req": "Admin screen: add and edit a state / region (code, name, type) through the admin API; new regions start PLANNED; the code cannot be changed",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25); docs/local-review/test-results/web-vitest-m22.txt (445/445); docs/local-review/screenshots/web-m22/admin-forms/",
+      "issue": "-",
+      "carry": "CF-301",
+      "notes": "Owner request 2026-10-01. Only shown when the admin runs against the backend."
+    },
+    {
+      "id": "M22-097",
+      "module": "M22",
+      "req": "Admin screen: add and edit a route corridor (ends, via cities, highway, width; centreline as straight lines through the cities or pasted GeoJSON LineString); new corridors start PLANNED; cities fixed after creation",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25); docs/local-review/test-results/web-vitest-m22.txt (445/445); docs/local-review/screenshots/web-m22/admin-forms/",
+      "issue": "-",
+      "carry": "CF-301",
+      "notes": "Owner request 2026-10-01. Only shown when the admin runs against the backend."
+    },
+    {
+      "id": "M22-098",
+      "module": "M22",
+      "req": "Admin screen: edit market configuration (payment-method availability, tax regime / setup state, address labels and postal pattern) with a mandatory reason; locked methods disabled; fields the form does not show are kept as stored",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25); docs/local-review/test-results/web-vitest-m22.txt (445/445); docs/local-review/screenshots/web-m22/admin-forms/",
+      "issue": "-",
+      "carry": "CF-301",
+      "notes": "Owner request 2026-10-01. Only shown when the admin runs against the backend."
+    },
+    {
+      "id": "M22-099",
+      "module": "M22",
+      "req": "Configuration rule: a payment method status must be PLANNED / ENABLED / NOT_APPROVED, and a method that is locked for the market (cash at pickup) cannot be ENABLED through configuration (409 feature_locked)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (246 tests, 2242 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "CF-301",
+      "notes": "Found while building the configuration screen: the API accepted any value before."
     }
   ],
   "pages": [
@@ -27582,7 +27646,7 @@
     ],
     [
       "CF-301",
-      "Admin screens still missing: add / edit states (regions), route corridors (centreline), market configuration; drawing a boundary on a real map (needs the map provider). Cities and service areas are DONE (M22-094, M22-095)",
+      "Admin: drawing a boundary or a corridor on a real map (needs the map provider); editing legal document status, ordering settings, locked features, effective dates and a corridor's cities from the screens. Forms for states, cities, service areas, route corridors and configuration are DONE (M22-094 … M22-098)",
       "M22",
       "Module 22",
       "P1",
@@ -27590,7 +27654,7 @@
       "Web (admin)",
       "PARTIAL",
       "2026-10-01",
-      "City and service-area screens built 2026-10-01"
+      "All five forms built 2026-10-01; map drawing and the remaining fields open"
     ],
     [
       "CF-302",
@@ -29106,7 +29170,7 @@
       "WEB (tests)",
       "vitest",
       "Low",
-      "Two older UI tests (favorites, cart edit) each failed once with a timeout in runs that happened while other heavy jobs were using the PC; they pass when the suite runs on its own (three consecutive clean runs, 426 / 426)",
+      "Older UI tests fail now and then with a timeout when the suite runs while other heavy jobs use the PC (seen three times on 2026-09-30 / 10-01, each time different tests: favorites, cart edit, account address, admin reject, OTP sign-in). The suite passes when it runs on its own (445 / 445, repeated)",
       "Stable under load",
       "Module 22 test runs",
       "Timing-sensitive tests on a busy machine",
@@ -29140,6 +29204,20 @@
       "Type check too strict",
       "Checker follows JSON Schema",
       "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) OpenApiContract",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-103",
+      "M22",
+      "BACKEND",
+      "Market configuration",
+      "Medium",
+      "The configuration API accepted any payment-method status, so \"cash_at_pickup: ENABLED\" could have been stored although the feature is locked (cash at pickup is NOT APPROVED)",
+      "Locked methods cannot be enabled anywhere",
+      "Building the configuration screen",
+      "Only feature flags were checked against the locked list",
+      "Statuses validated; a locked method cannot be ENABLED (409 feature_locked)",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (246 tests, 2242 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25) F5",
       "FIXED / VERIFIED"
     ]
   ],
@@ -31218,7 +31296,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a city and a service area)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31242,6 +31320,26 @@
       "unit + static",
       "PASS",
       "docs/local-review/test-results/web-vitest-m22.txt (436/436)",
+      "2026-10-01"
+    ],
+    [
+      "TE-211",
+      "M22",
+      "WEB",
+      "Region, route-corridor and configuration forms against the real local backend: duplicate code refused, create / edit region, corridor through cities (PostGIS length), centreline outside the market refused, centreline replaced, configuration needs a reason, saved values + kept keys + audit, locked method and credential refused by the API, view-only admin, axe; test rows removed and configuration restored afterwards",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25)",
+      "2026-10-01"
+    ],
+    [
+      "TE-212",
+      "M22",
+      "WEB + BACKEND",
+      "Backend suite 246; web vitest 445 (9 new for these forms); market e2e 51/51 and city / service-area forms 25/25 re-run",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (246 tests, 2242 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (445/445)",
       "2026-10-01"
     ]
   ],
@@ -31955,6 +32053,14 @@
       "M22",
       "WEB",
       "docs/local-review/test-results/m22-web-geo-forms-e2e.json (25/25); docs/local-review/screenshots/web-m22/geo-forms/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Region, corridor and configuration admin forms: e2e result and screenshots",
+      "M22",
+      "WEB",
+      "docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25); docs/local-review/screenshots/web-m22/admin-forms/",
       "Evidence",
       "YES"
     ]
@@ -34859,7 +34965,7 @@
     {
       "id": "m22-gate",
       "title": "Module 22 — Market, geography and PostGIS completion gate",
-      "note": "MODULE 23 MAY START = YES. Everything here runs on the LOCAL PC only. Not complete and not blocking: real surveyed coverage data (CF-303), remaining admin screens — regions, corridors, configuration, map drawing (CF-301), audit screen (CF-302), region and border polygons (CF-300), owner checks (TE-207, TE-208). One procedural incident is recorded as BUG-095 (the local development database was rebuilt by mistake; fixtures restored; nothing else affected). PRODUCTION = NO.",
+      "note": "MODULE 23 MAY START = YES. Everything here runs on the LOCAL PC only. Not complete and not blocking: real surveyed coverage data (CF-303), drawing boundaries on a real map (CF-301), audit screen (CF-302), region and border polygons (CF-300), owner checks (TE-207, TE-208). One procedural incident is recorded as BUG-095 (the local development database was rebuilt by mistake; fixtures restored; nothing else affected). PRODUCTION = NO.",
       "headers": [
         "Gate item",
         "Status",
@@ -34928,7 +35034,7 @@
         ],
         [
           "Admin Market Dashboard uses the real backend",
-          "VERIFIED (status + feature changes; add / edit cities and service areas; regions, corridors, configuration screens = CF-301)",
+          "VERIFIED (status + feature changes; add / edit states, cities, service areas, corridors; edit configuration; map drawing = CF-301)",
           "docs/local-review/test-results/m22-web-market-e2e.json (51/51) B1–B26"
         ],
         [

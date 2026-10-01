@@ -49,7 +49,8 @@ export type Market = {
   /** Shown for future markets ("Coming later"); never a promised launch date. */
   note?: string
 }
-export type MarketRegion = { id: string; marketCode: string; name: string; code: string; kind: 'state' | 'union_territory' | 'region'; status: RegionStatus }
+export type MarketRegion = { id: string; marketCode: string; name: string; code: string; kind: 'state' | 'union_territory' | 'region'; status: RegionStatus; /** Backend only: the exact region type. */ type?: RegionType }
+export type RegionType = 'STATE' | 'UNION_TERRITORY' | 'PROVINCE' | 'REGION'
 export type City = { id: string; marketCode: string; regionId: string; name: string; aliases: string[]; lat: number; lng: number; timezone: string; status: CityStatus; launchStage: string; launchDate: string | null }
 /**
  * 'radius' is the development-fixture shape. The backend (PostGIS, SRID 4326) serves 'multipolygon': GeoJSON
@@ -66,10 +67,12 @@ export type MarketConfiguration = {
   marketCode: string
   payment: { id: string; providerStrategy: string; candidateProviders: string[]; methods: PaymentMethodConfig[] }
   /** No rate lives in the frontend: the backend / provider supplies taxes at checkout. */
-  tax: { id: string; regime: string; status: 'PENDING_BACKEND'; note: string }
+  tax: { id: string; regime: string; status: 'PENDING_BACKEND'; note: string; /** Backend only: PENDING or CONFIGURED. */ state?: string }
   legal: { id: string; documents: Array<{ key: 'terms' | 'privacy' | 'refund' | 'cookie'; version: string; status: 'DRAFT_PENDING_APPROVAL' }> }
   features: MarketFeature[]
-  address: { fields: string[]; postalCodeLabel: string; postalCodeExample: string; adminAreaLabel: string }
+  address: { fields: string[]; postalCodeLabel: string; postalCodeExample: string; adminAreaLabel: string; /** Backend only: validation pattern for the postal code. */ postalCodePattern?: string }
+  /** Backend only: feature keys that cannot be switched on for this market. */
+  lockedFeatures?: string[]
 }
 
 export type AvailabilityReason = 'ok' | 'market' | 'area' | 'paused'

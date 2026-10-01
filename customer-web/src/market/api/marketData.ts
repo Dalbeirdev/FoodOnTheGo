@@ -41,8 +41,9 @@ type GeometryDto = { type: string; coordinates: unknown }
 type AreaDto = { id: string; city_id: string; name: string; slug: string; status: ServiceAreaStatus; geometry?: GeometryDto; launch_stage?: string | null; updated_at?: string | null; version?: number; priority?: number }
 type CorridorDto = { id: string; name: string; slug: string; highway: string | null; status: RouteStatus; origin_city_id: string | null; destination_city_id: string | null; via_city_ids: string[]; corridor_width_meters: number; updated_at?: string | null; version?: number }
 type CoverageDto = { market_id: string; country_code: string; regions: RegionDto[]; cities: CityDto[]; service_areas: AreaDto[]; route_corridors: CorridorDto[]; generated_at: string }
+export type MarketConfigurationDto = ConfigurationDto
 export type AdminMarketDto = MarketDto & { serving_customers: boolean; version: number; updated_at: string | null }
-type ConfigurationDto = { payment: { provider_strategy?: string; methods?: Record<string, string> }; tax: { regime?: string; status?: string }; legal: { documents?: Record<string, string> }; address: { postal_code_label?: string; admin_area_label?: string }; ordering: Record<string, unknown>; locked_features: string[]; version: number }
+type ConfigurationDto = { payment: { provider_strategy?: string; methods?: Record<string, string> }; tax: { regime?: string; status?: string }; legal: { documents?: Record<string, string> }; address: { postal_code_label?: string; postal_code_pattern?: string; admin_area_label?: string }; ordering: Record<string, unknown>; locked_features: string[]; version: number }
 type AdminMapDto = { regions: RegionDto[]; cities: CityDto[]; service_areas: AreaDto[]; route_corridors: CorridorDto[] }
 type Page<T> = { data: T[] }
 export type AvailabilityDto = {
@@ -67,7 +68,7 @@ const toMarket = (dto: MarketDto | AdminMarketDto): Market => ({
 })
 const regionStatus = (s: RegionDto['status']): RegionStatus => (s === 'ACTIVE' ? 'AVAILABLE' : s)
 const regionKind = (t: RegionDto['type']): MarketRegion['kind'] => (t === 'STATE' ? 'state' : t === 'UNION_TERRITORY' ? 'union_territory' : 'region')
-const toRegion = (cc: string) => (d: RegionDto): MarketRegion => ({ id: d.id, marketCode: cc, name: d.name, code: d.code, kind: regionKind(d.type), status: regionStatus(d.status) })
+const toRegion = (cc: string) => (d: RegionDto): MarketRegion => ({ id: d.id, marketCode: cc, name: d.name, code: d.code, kind: regionKind(d.type), status: regionStatus(d.status), type: d.type })
 const toCity = (cc: string) => (d: CityDto): City => ({ id: d.id, marketCode: cc, regionId: d.region_id, name: d.name, aliases: d.aliases, lat: d.latitude, lng: d.longitude, timezone: d.timezone, status: d.status, launchStage: d.launch_stage ?? '', launchDate: d.launched_at ? d.launched_at.slice(0, 10) : null })
 const toGeometry = (g: GeometryDto | undefined): ServiceArea['geometry'] => ({ type: 'multipolygon', coordinates: !g ? [] : g.type === 'Polygon' ? [g.coordinates as number[][][]] : (g.coordinates as number[][][][]) })
 const toArea = (cc: string) => (d: AreaDto): ServiceArea => ({ id: d.id, marketCode: cc, cityId: d.city_id, name: d.name, status: d.status, geometry: toGeometry(d.geometry), launchStage: d.launch_stage ?? '', updatedAt: d.updated_at ?? '', ...(d.priority === undefined ? {} : { priority: d.priority }) })
@@ -79,10 +80,11 @@ function toConfiguration(cc: string, features: Record<string, boolean>, cfg: Con
   return {
     marketCode: cc,
     payment: { id: '', providerStrategy: cfg?.payment.provider_strategy ?? '', candidateProviders: [], methods: Object.entries(cfg?.payment.methods ?? {}).map(([method, status]) => ({ method, status })) as MarketConfiguration['payment']['methods'] },
-    tax: { id: '', regime: cfg?.tax.regime ?? '', status: 'PENDING_BACKEND', note: cfg?.tax.status ?? '' },
+    tax: { id: '', regime: cfg?.tax.regime ?? '', status: 'PENDING_BACKEND', note: cfg?.tax.status ?? '', state: cfg?.tax.status ?? '' },
     legal: { id: '', documents: Object.entries(cfg?.legal.documents ?? {}).map(([key, status]) => ({ key, version: '', status })) as MarketConfiguration['legal']['documents'] },
     features: Object.entries(features).map(([key, enabled]) => ({ key: key as MarketFeatureKey, enabled, locked: locked.includes(key) })),
-    address: { fields: [], postalCodeLabel: cfg?.address.postal_code_label ?? '', postalCodeExample: '', adminAreaLabel: cfg?.address.admin_area_label ?? '' },
+    address: { fields: [], postalCodeLabel: cfg?.address.postal_code_label ?? '', postalCodeExample: '', adminAreaLabel: cfg?.address.admin_area_label ?? '', postalCodePattern: cfg?.address.postal_code_pattern ?? '' },
+    lockedFeatures: locked,
   }
 }
 
@@ -160,6 +162,7 @@ export async function loadAdminMarketData(geography: string[] = []): Promise<Mar
     data.serviceAreas.push(...map.service_areas.map(toArea(cc))); data.routes.push(...map.route_corridors.map(toRoute(cc)))
     for (const row of [...map.regions, ...map.cities, ...map.service_areas, ...map.route_corridors]) data.versions[row.id] = row.version ?? 1
     data.configurations[cc] = toConfiguration(cc, m.features, cfg)
+    if (cfg) data.versions[`configuration:${m.id}`] = cfg.version
   }))
   adminData = data
   return data

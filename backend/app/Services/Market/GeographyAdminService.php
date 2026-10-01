@@ -96,6 +96,18 @@ final class GeographyAdminService
             throw new ApiException(422, 'secrets_not_allowed', 'Market configuration must not contain credentials or secrets.');
         }
 
+        // A payment method is PLANNED, ENABLED or NOT_APPROVED — and one that is locked for the market (cash at
+        // pickup) can never be switched on through configuration either.
+        $locked = $input['locked_features'] ?? $this->configuration($market)->locked_features ?? [];
+        foreach ((array) ($input['payment']['methods'] ?? []) as $method => $status) {
+            if (! in_array($status, ['PLANNED', 'ENABLED', 'NOT_APPROVED'], true)) {
+                throw ValidationException::withMessages(["payment.methods.{$method}" => ['The status must be PLANNED, ENABLED or NOT_APPROVED.']]);
+            }
+            if ($status === 'ENABLED' && in_array($method, $locked, true)) {
+                throw ApiException::conflict('feature_locked', 'This payment method is locked for the market and cannot be enabled.', ['feature' => $method]);
+            }
+        }
+
         return $this->change($this->configuration($market), $market, $input, $actor, 'market.configuration_updated', null, reasonAlways: true, fields: ['payment', 'tax', 'legal', 'address', 'ordering', 'locked_features']);
     }
 

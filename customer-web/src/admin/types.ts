@@ -128,7 +128,20 @@ export type GeoJsonArea = { type: 'Polygon'; coordinates: number[][][] } | { typ
 export type CityInput = { regionId: string; name: string; lat: number; lng: number; timezone: string; aliases: string[]; launchStage: string | null }
 /** geometry = null on an edit keeps the stored boundary. */
 export type ServiceAreaInput = { cityId: string; name: string; priority: number; launchStage: string | null; geometry: GeoJsonArea | null }
+export type RegionInput = { code: string; name: string; type: 'STATE' | 'UNION_TERRITORY' | 'PROVINCE' | 'REGION' }
+/** GeoJSON LineString, positions are [longitude, latitude]. centreline = null on an edit keeps the stored one. */
+export type GeoJsonLine = { type: 'LineString'; coordinates: number[][] }
+export type RouteInput = { name: string; highway: string | null; originCityId: string; destinationCityId: string; viaCityIds: string[]; corridorWidthM: number; centreline: GeoJsonLine | null }
+export type PaymentMethodStatus = 'PLANNED' | 'ENABLED' | 'NOT_APPROVED'
+export type MarketConfigurationInput = { paymentMethods: Record<string, PaymentMethodStatus>; taxRegime: string; taxStatus: string; postalCodeLabel: string; postalCodePattern: string; adminAreaLabel: string }
 export interface AdminMarketControlRepository {
+  createRegion(marketCode: string, input: RegionInput): Promise<void>
+  updateRegion(id: string, input: RegionInput, reason: string): Promise<void>
+  createRoute(marketCode: string, input: RouteInput): Promise<void>
+  /** The cities of a corridor are fixed once it exists; name, highway, width and centreline can change. */
+  updateRoute(id: string, input: RouteInput, reason: string): Promise<void>
+  /** Always needs a reason. Categories the form does not show (provider strategy, legal, ordering) are left as stored. */
+  updateConfiguration(marketCode: string, input: MarketConfigurationInput, reason: string): Promise<void>
   /** Creating and editing geography exists only against the backend; the fixture repository refuses. New records start PLANNED. */
   createCity(marketCode: string, input: CityInput): Promise<void>
   updateCity(id: string, input: CityInput, reason: string): Promise<void>

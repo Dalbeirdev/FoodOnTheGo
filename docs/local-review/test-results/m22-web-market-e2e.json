@@ -1,7 +1,7 @@
 {
   "module": "M22",
   "mode": "real local backend (VITE_MARKET_MODE=api, VITE_AUTH_MODE=api; PostgreSQL + PostGIS)",
-  "date": "2026-10-01T08:31:02.382Z",
+  "date": "2026-10-01T09:07:56.385Z",
   "total": 51,
   "passed": 51,
   "results": [
@@ -193,7 +193,7 @@
     {
       "name": "B26 every change of this run is in the backend audit trail (city, service area, features, market)",
       "pass": true,
-      "detail": "market.updated, market.features_updated, service_area.updated, city.updated"
+      "detail": "market.updated, market.features_updated, service_area.updated, city.updated, market.configuration_updated"
     },
     {
       "name": "C1 Operations admin (India scope, view only): sees the cities, gets no status controls and no Pause market",

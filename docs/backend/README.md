@@ -33,7 +33,7 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 245 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 246 tests, real PostgreSQL + PostGIS + Redis
 php artisan otp:check          # how one-time codes are delivered here (channels, providers) and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
@@ -407,7 +407,8 @@ write to market data — through the API or a model — changes the version, so 
 - Features: only keys the market already has; a key listed in `locked_features` cannot be enabled (409
   `feature_locked`). For India `cash_at_pickup` and `cross_border_ordering` are locked — cash at pickup is NOT APPROVED.
 - Configuration refuses anything that looks like a credential (422 `secrets_not_allowed`): provider secrets
-  live in server configuration only.
+  live in server configuration only. A payment method is PLANNED, ENABLED or NOT_APPROVED, and one listed in
+  `locked_features` cannot be ENABLED (409 `feature_locked`).
 - Writes are rate limited per administrator (`admin-sensitive`).
 
 ### Audit trail
@@ -448,9 +449,10 @@ updates or deletes a row. Authentication events stay in `security_events`.
   back to the snapshot (web) only when the request itself fails.
 - Platform Admin → Markets uses `ApiAdminMarketControlRepository`: it reads `/admin/markets`, `/map` and
   `/configuration`, and sends status and feature changes with the version shown and the reason. A refusal
-  (403, 409 transition, 409 stale) is displayed. Cities and service areas can be added and edited there
-  (`MarketGeoForms.tsx`): a boundary is entered as a circle (turned into a 32-point polygon) or as pasted GeoJSON,
-  because there is no map provider to draw on yet; new records start PLANNED. Restaurant pins, order counts and revenue in those screens are
+  (403, 409 transition, 409 stale) is displayed. States, cities, service areas and route corridors can be
+  added and edited there, and the market configuration edited (`MarketGeoForms.tsx`, `MarketAdminForms.tsx`). There
+  is no map provider to draw on yet: a boundary is a circle (turned into a 32-point polygon) or pasted GeoJSON, a
+  corridor centreline is straight lines through the chosen cities or a pasted LineString. New records start PLANNED. Restaurant pins, order counts and revenue in those screens are
   still development fixtures, and the Audit screen still lists the mock log — backend audit events are read
   through `GET /admin/audit-events`.
 
@@ -458,5 +460,4 @@ updates or deletes a row. Authentication events stay in `security_events`.
 
 Restaurants, menus, journeys, discovery, cart, pickup, checkout, payments, orders, tracking, reviews and the
 dashboard APIs; live SMS, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a
-surveyed market border; admin screens for regions, route corridors and market configuration, and drawing a
-boundary on a real map (the API exists; cities and service areas have screens); production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.
+surveyed market border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.

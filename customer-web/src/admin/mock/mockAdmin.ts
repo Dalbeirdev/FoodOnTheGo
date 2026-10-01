@@ -21,7 +21,7 @@ import { marketAvailability, marketLocationRepository, marketRepository } from '
 import type { CityStatus, MarketFeatureKey, MarketStatus, RegionStatus, RouteStatus, ServiceAreaStatus } from '../../market/types'
 import { INDIA_REFUND_EXTRAS, INDIA_SETTLEMENT_EXTRAS, countryInScope, scopedCurrencies } from './fixtures'
 import { ADMIN_ROLES, ADMIN_USERS, ALL_RESTAURANTS, ANNOUNCEMENT_SEEDS, AUDIT_SEEDS, CONFIG_SEEDS, CUSTOMER_SEEDS, DEFAULT_ADMIN_ID, DOC_REQUIREMENTS, FEE_SEEDS, FLAG_SEEDS, MARKET_SEEDS, NOTIFICATION_SEEDS, ORGANIZATION_LOCATIONS, ORGANIZATION_NAMES, PAYMENT_SEEDS, PROMOTION_SEEDS, QUEUE_SEEDS, REFUND_SEEDS, RESTAURANT_SEEDS, REVIEW_MODERATION_SEEDS, REVIEW_REPORTS, SECURITY_SEEDS, SERVICE_SEEDS, SETTLEMENT_SEEDS, SUPPORT_SEEDS, TAX_SEEDS, TEMPLATE_SEEDS, WEBHOOK_SEEDS, docsFor, rel, roleOf } from './fixtures'
-import type { MarketAttention, MarketRestaurantPin, CityInput, MarketSnapshot, ServiceAreaInput, MarketStats, MarketsOverview } from '../types'
+import type { MarketAttention, MarketRestaurantPin, CityInput, MarketConfigurationInput, MarketSnapshot, RegionInput, RouteInput, ServiceAreaInput, MarketStats, MarketsOverview } from '../types'
 import type { AdminCustomer, AdminNotification, AdminOrder, AdminOrderFilter, AdminPayment, AdminPermission, AdminRefund, AdminRepositories, AdminRestaurant, AdminRestaurantStatus, AdminReview, AdminRoleId, AdminUser, Announcement, AnalyticsQuery, AuditEvent, AuditFilter, ConfigItem, CurrencyTotal, CustomerFilter, CustomerStatus, DocumentStatus, FeatureFlag, FeeConfig, Market, ModerationAction, OrderException, OverviewSnapshot, Page, PaymentState, PlatformAnalytics, Promotion, PromotionIssue, PromotionStatus, RejectionCategory, RestaurantFilter, ReviewModerationFilter, SearchHit, SecuritySummary, Settlement, SupportCase, SupportFilter, SupportPriority, SupportStatus, SystemStatus, TaxConfig, VerificationDocument } from '../types'
 
 const ORDERS_KEY = 'fotg.orders.v1', REVIEWS_KEY = 'fotg.reviews.v1', DIRECTORY_KEY = 'fotg.mock.customers', RD_PROFILES_KEY = 'fotg.rd.profiles.v1'
@@ -416,6 +416,11 @@ export class MockAdminMarketControlRepository {
     return { market, configuration: marketRepository.getMarketConfiguration(code), states, cities, serviceAreas, routes, restaurants, stats, attention }
   }
   /* eslint-disable @typescript-eslint/no-unused-vars */
+  async createRegion(_marketCode: string, _input: RegionInput): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async updateRegion(_id: string, _input: RegionInput, _reason: string): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async createRoute(_marketCode: string, _input: RouteInput): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async updateRoute(_id: string, _input: RouteInput, _reason: string): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async updateConfiguration(_marketCode: string, _input: MarketConfigurationInput, _reason: string): Promise<void> { throw new Error('geography_editing_needs_backend') }
   async createCity(_marketCode: string, _input: CityInput): Promise<void> { throw new Error('geography_editing_needs_backend') }
   async updateCity(_id: string, _input: CityInput, _reason: string): Promise<void> { throw new Error('geography_editing_needs_backend') }
   async createServiceArea(_marketCode: string, _input: ServiceAreaInput): Promise<void> { throw new Error('geography_editing_needs_backend') }

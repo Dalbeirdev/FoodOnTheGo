@@ -3,12 +3,13 @@ import { Link, NavLink, Outlet, useParams } from 'react-router-dom'
 import { formatMoney } from '../../i18n/format'
 import { t } from '../../i18n/strings'
 import { marketMode } from '../../market/marketMode'
-import type { City, CityStatus, MarketFeature, MarketStatus, RegionStatus, RouteCorridor, RouteStatus, ServiceArea, ServiceAreaStatus } from '../../market/types'
+import type { City, CityStatus, MarketFeature, MarketRegion, MarketStatus, RegionStatus, RouteCorridor, RouteStatus, ServiceArea, ServiceAreaStatus } from '../../market/types'
 import { Card, EmptyState, ErrorState, Icon, KpiCard, Skeleton, Tabs, Toggle, ToastLine, useToastMessage } from '../../dashboard/components/ui'
 import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, Details, DevNote, ReasonDialog, Select, Stat } from '../components/DataTable'
 import type { MarketSnapshot } from '../types'
+import { ConfigurationFormDrawer, RegionFormDrawer, RouteFormDrawer } from './MarketAdminForms'
 import { CityFormDrawer, ServiceAreaFormDrawer } from './MarketGeoForms'
 import { Cell, fmtDate, useLoad, usePageTitle } from './shared'
 
@@ -200,14 +201,18 @@ function Filters({ q, setQ, status, setStatus, statuses, placeholder }: { q: str
 const has = (q: string, ...f: string[]) => !q.trim() || f.some((x) => x.toLowerCase().includes(q.trim().toLowerCase()))
 
 export function MarketStatesTab() {
-  const a = useAdmin(); const locale = a.locale; const { snap } = useSnapshot(); const { setTarget, node } = useStatusChange(); const can = a.can('markets.manage')
+  const a = useAdmin(); const locale = a.locale; const { snap, refresh } = useSnapshot(); const { setTarget, node } = useStatusChange(); const can = a.can('markets.manage')
+  const edit = can && api(); const [form, setForm] = useState<{ region: MarketRegion | null } | null>(null); const { msg, toast } = useToastMessage()
   const [q, setQ] = useState(''); const [st, setSt] = useState('all'); const rows = snap.states.filter((g) => (st === 'all' || g.status === st) && has(q, g.name, g.code))
   return (
-    <Card title={t('adm.mkt.tab.states', undefined, locale)} subtitle={t('adm.mkt.statesSub', undefined, locale)}>
+    <Card title={t('adm.mkt.tab.states', undefined, locale)} subtitle={t('adm.mkt.statesSub', undefined, locale)} actions={edit ? <button type="button" className="db-btn db-btn--primary" onClick={() => setForm({ region: null })} data-testid="region-add">{t('adm.geo.addRegion', undefined, locale)}</button> : undefined}>
       <Filters q={q} setQ={setQ} status={st} setStatus={setSt} statuses={REGION_STATUSES()} placeholder={t('adm.mkt.search.states', undefined, locale)} />
       {rows.length === 0 ? <EmptyState icon="markets" title={t('adm.mkt.empty.states', undefined, locale)} /> : <div className="db-table-wrap" tabIndex={0}><table className="db-table" data-testid="states-table"><caption className="db-sr-only">{t('adm.mkt.tab.states', undefined, locale)}</caption><thead><tr><th scope="col">{t('adm.mkt.col.state', undefined, locale)}</th><th scope="col">{t('adm.mkt.col.code', undefined, locale)}</th><th scope="col">{t('adm.mkt.col.status', undefined, locale)}</th><th scope="col" className="adm-td--end">{t('adm.mkt.col.activeCities', undefined, locale)}</th><th scope="col" className="adm-td--end adm-hide-mobile">{t('adm.mkt.col.serviceAreas', undefined, locale)}</th><th scope="col" className="adm-td--end adm-hide-mobile">{t('adm.mkt.col.restaurants', undefined, locale)}</th>{can && <th scope="col" className="adm-td--end">{t('adm.table.actions', undefined, locale)}</th>}</tr></thead>
-        <tbody>{rows.map((g) => { const r = snap.stats.byRegion[g.id]; return <tr key={g.id}><td><Cell primary={g.name} secondary={t(`adm.mkt.kind.${g.kind}`, undefined, locale)} /></td><td><span className="adm-code">{g.code}</span></td><td><MarketBadge status={g.status} /></td><td className="adm-td--end">{r.activeCities} / {r.cities}</td><td className="adm-td--end adm-hide-mobile">{r.serviceAreas}</td><td className="adm-td--end adm-hide-mobile">{r.restaurants}</td>{can && <td className="adm-td--end"><StatusSelect value={g.status} options={REGION_STATUSES()} label={t('adm.mkt.changeStatus', { name: g.name }, locale)} testId={`state-status-${g.id}`} onPick={(to) => setTarget({ kind: 'state', id: g.id, name: g.name, from: g.status, to, impact: to === 'DISABLED' || to === 'PLANNED' ? [t('adm.mkt.impact.state', { cities: r.activeCities, restaurants: r.restaurants }, locale)] : undefined })} /></td>}</tr> })}</tbody></table></div>}
+        <tbody>{rows.map((g) => { const r = snap.stats.byRegion[g.id]; return <tr key={g.id}><td><Cell primary={g.name} secondary={t(`adm.mkt.kind.${g.kind}`, undefined, locale)} /></td><td><span className="adm-code">{g.code}</span></td><td><MarketBadge status={g.status} /></td><td className="adm-td--end">{r.activeCities} / {r.cities}</td><td className="adm-td--end adm-hide-mobile">{r.serviceAreas}</td><td className="adm-td--end adm-hide-mobile">{r.restaurants}</td>{can && <td className="adm-td--end"><StatusSelect value={g.status} options={REGION_STATUSES()} label={t('adm.mkt.changeStatus', { name: g.name }, locale)} testId={`state-status-${g.id}`} onPick={(to) => setTarget({ kind: 'state', id: g.id, name: g.name, from: g.status, to, impact: to === 'DISABLED' || to === 'PLANNED' ? [t('adm.mkt.impact.state', { cities: r.activeCities, restaurants: r.restaurants }, locale)] : undefined })} />{edit && <button type="button" className="db-btn db-btn--ghost db-btn--sm" onClick={() => setForm({ region: g })} aria-label={t('adm.geo.editCity', { name: g.name }, locale)} data-testid={`region-edit-${g.id}`}>{t('adm.geo.edit', undefined, locale)}</button>}</td>}</tr> })}</tbody></table></div>}
       <DevNote>{t('adm.mkt.statesNote', undefined, locale)}</DevNote>{node}
+      <RegionFormDrawer open={!!form} region={form?.region ?? null} locale={locale} onClose={() => setForm(null)}
+        onSave={async (input, reason) => { const r = a.repos.marketControl; if (form?.region) await r.updateRegion(form.region.id, input, reason); else await r.createRegion(snap.market.countryCode, input); setForm(null); await refresh(); toast(t(form?.region ? 'adm.updated' : 'adm.geo.regionCreated', undefined, locale)) }} />
+      <ToastLine msg={msg} />
     </Card>
   )
 }
@@ -247,16 +252,20 @@ export function MarketServiceAreasTab() {
   )
 }
 export function MarketRoutesTab() {
-  const a = useAdmin(); const locale = a.locale; const { snap } = useSnapshot(); const { setTarget, node } = useStatusChange(); const can = a.can('service_areas.manage')
+  const a = useAdmin(); const locale = a.locale; const { snap, refresh } = useSnapshot(); const { setTarget, node } = useStatusChange(); const can = a.can('service_areas.manage')
+  const edit = can && api(); const [form, setForm] = useState<{ route: RouteCorridor | null } | null>(null); const { msg, toast } = useToastMessage()
   const [q, setQ] = useState(''); const [st, setSt] = useState('all'); const cn = (id: string) => snap.cities.find((c) => c.id === id)?.name ?? id
   const regionOf = (r: RouteCorridor) => Array.from(new Set([r.originCityId, r.destinationCityId].map((id) => snap.states.find((g) => g.id === snap.cities.find((c) => c.id === id)?.regionId)?.name).filter(Boolean))).join(' → ')
   const rows = snap.routes.filter((r) => (st === 'all' || r.status === st) && has(q, r.name, r.highway ?? ''))
   return (
-    <Card title={t('adm.mkt.tab.routes', undefined, locale)} subtitle={t('adm.mkt.routesSub', undefined, locale)}>
+    <Card title={t('adm.mkt.tab.routes', undefined, locale)} subtitle={t('adm.mkt.routesSub', undefined, locale)} actions={edit ? <button type="button" className="db-btn db-btn--primary" onClick={() => setForm({ route: null })} data-testid="route-add">{t('adm.geo.addRoute', undefined, locale)}</button> : undefined}>
       <Filters q={q} setQ={setQ} status={st} setStatus={setSt} statuses={ROUTE_STATUSES()} placeholder={t('adm.mkt.search.routes', undefined, locale)} />
       {rows.length === 0 ? <EmptyState icon="location" title={t('adm.mkt.empty.routes', undefined, locale)} /> : <div className="db-table-wrap" tabIndex={0}><table className="db-table" data-testid="routes-table"><caption className="db-sr-only">{t('adm.mkt.tab.routes', undefined, locale)}</caption><thead><tr><th scope="col">{t('adm.mkt.col.route', undefined, locale)}</th><th scope="col" className="adm-hide-mobile">{t('adm.mkt.col.region', undefined, locale)}</th><th scope="col" className="adm-td--end">{t('adm.mkt.col.restaurants', undefined, locale)}</th><th scope="col">{t('adm.mkt.col.status', undefined, locale)}</th><th scope="col" className="adm-hide-mobile">{t('adm.mkt.col.updated', undefined, locale)}</th>{can && <th scope="col" className="adm-td--end">{t('adm.table.actions', undefined, locale)}</th>}</tr></thead>
-        <tbody>{rows.map((r) => <tr key={r.id}><td><Cell primary={r.name} secondary={`${r.highway ?? ''}${r.viaCityIds.length ? ` · ${t('adm.mkt.via', { cities: r.viaCityIds.map(cn).join(', ') }, locale)}` : ''}`} /></td><td className="adm-hide-mobile">{regionOf(r)}</td><td className="adm-td--end">{snap.stats.byRoute[r.id].restaurants}</td><td><MarketBadge status={r.status} /></td><td className="adm-hide-mobile">{fmtDate(r.updatedAt, locale)}</td>{can && <td className="adm-td--end"><StatusSelect value={r.status} options={ROUTE_STATUSES()} label={t('adm.mkt.changeStatus', { name: r.name }, locale)} testId={`route-status-${r.id}`} onPick={(to) => setTarget({ kind: 'route', id: r.id, name: r.name, from: r.status, to })} /></td>}</tr>)}</tbody></table></div>}
+        <tbody>{rows.map((r) => <tr key={r.id}><td><Cell primary={r.name} secondary={`${r.highway ?? ''}${r.viaCityIds.length ? ` · ${t('adm.mkt.via', { cities: r.viaCityIds.map(cn).join(', ') }, locale)}` : ''}`} /></td><td className="adm-hide-mobile">{regionOf(r)}</td><td className="adm-td--end">{snap.stats.byRoute[r.id].restaurants}</td><td><MarketBadge status={r.status} /></td><td className="adm-hide-mobile">{fmtDate(r.updatedAt, locale)}</td>{can && <td className="adm-td--end"><StatusSelect value={r.status} options={ROUTE_STATUSES()} label={t('adm.mkt.changeStatus', { name: r.name }, locale)} testId={`route-status-${r.id}`} onPick={(to) => setTarget({ kind: 'route', id: r.id, name: r.name, from: r.status, to })} />{edit && <button type="button" className="db-btn db-btn--ghost db-btn--sm" onClick={() => setForm({ route: r })} aria-label={t('adm.geo.editCity', { name: r.name }, locale)} data-testid={`route-edit-${r.id}`}>{t('adm.geo.edit', undefined, locale)}</button>}</td>}</tr>)}</tbody></table></div>}
       <DevNote>{t('adm.mkt.routesNote', undefined, locale)}</DevNote>{node}
+      <RouteFormDrawer open={!!form} route={form?.route ?? null} cities={snap.cities} locale={locale} onClose={() => setForm(null)}
+        onSave={async (input, reason) => { const r = a.repos.marketControl; if (form?.route) await r.updateRoute(form.route.id, input, reason); else await r.createRoute(snap.market.countryCode, input); setForm(null); await refresh(); toast(t(form?.route ? 'adm.updated' : 'adm.geo.routeCreated', undefined, locale)) }} />
+      <ToastLine msg={msg} />
     </Card>
   )
 }
@@ -264,14 +273,19 @@ export function MarketRoutesTab() {
 /* ------------------------------------------------------------------ configuration & features */
 type CfgTab = 'regional' | 'payments' | 'tax' | 'legal'
 export function MarketConfigurationTab() {
-  const a = useAdmin(); const locale = a.locale; const { snap } = useSnapshot(); const m = snap.market; const c = snap.configuration; const [tab, setTab] = useState<CfgTab>('regional')
+  const a = useAdmin(); const locale = a.locale; const { snap, refresh } = useSnapshot(); const m = snap.market; const c = snap.configuration; const [tab, setTab] = useState<CfgTab>('regional')
+  const edit = api() && a.can('market_configuration.manage'); const [editing, setEditing] = useState(false); const { msg, toast } = useToastMessage()
   if (!a.can('market_configuration.view')) return <ErrorState title={t('adm.error.forbiddenTitle', undefined, locale)} text={t('adm.error.forbiddenText', { role: t(`adm.role.${a.admin.role}`, undefined, locale) }, locale)} locale={locale} />
   if (!c) return <Card><EmptyState title={t('adm.mkt.error.config', undefined, locale)} /></Card>
   const sample = [24900, 124900, 1249900].map((v) => formatMoney(v, m.defaultCurrency, m.defaultLocale)).join(' · ')
   const now = new Date()
   return (
     <div className="db-grid" style={{ gap: 16 }} data-testid="market-configuration">
-      <Tabs tabs={(['regional', 'payments', 'tax', 'legal'] as CfgTab[]).map((id) => ({ id, label: t(`adm.mkt.cfg.${id}`, undefined, locale) }))} value={tab} onChange={setTab} label={t('adm.mkt.tab.configuration', undefined, locale)} />
+      <div className="adm-geo-head"><Tabs tabs={(['regional', 'payments', 'tax', 'legal'] as CfgTab[]).map((id) => ({ id, label: t(`adm.mkt.cfg.${id}`, undefined, locale) }))} value={tab} onChange={setTab} label={t('adm.mkt.tab.configuration', undefined, locale)} />
+        {edit && <button type="button" className="db-btn db-btn--primary" onClick={() => setEditing(true)} data-testid="config-edit">{t('adm.geo.editConfig', undefined, locale)}</button>}</div>
+      <ConfigurationFormDrawer open={editing} configuration={c} locale={locale} onClose={() => setEditing(false)}
+        onSave={async (input, reason) => { await a.repos.marketControl.updateConfiguration(m.countryCode, input, reason); setEditing(false); await refresh(); toast(t('adm.updated', undefined, locale)) }} />
+      <ToastLine msg={msg} />
       {tab === 'regional' && <div className="adm-settings-grid">
         <Card title={t('adm.mkt.cfg.currency', undefined, locale)} subtitle={t('adm.mkt.cfg.currencySub', undefined, locale)} actions={<Badge tone="muted">{t('adm.config.locked', undefined, locale)}</Badge>}><Details rows={[[t('adm.mkt.f.currency', undefined, locale), `${m.defaultCurrency} (ISO 4217)`], [t('adm.mkt.cfg.sample', undefined, locale), <span key="s" data-testid="cfg-money-sample">{sample}</span>]]} /><DevNote>{t('adm.mkt.cfg.currencyNote', undefined, locale)}</DevNote></Card>
         <Card title={t('adm.mkt.cfg.locale', undefined, locale)} subtitle={t('adm.mkt.cfg.localeSub', undefined, locale)}><Details rows={[[t('adm.mkt.cfg.primaryLocale', undefined, locale), m.defaultLocale], [t('adm.mkt.cfg.dateSample', undefined, locale), now.toLocaleDateString(m.defaultLocale, { dateStyle: 'medium', timeZone: m.defaultTimezone })], [t('adm.mkt.cfg.timeSample', undefined, locale), now.toLocaleTimeString(m.defaultLocale, { timeStyle: 'short', timeZone: m.defaultTimezone })]]} /><p className="db-field__label" style={{ marginTop: 12 }}>{t('adm.mkt.cfg.plannedLocales', undefined, locale)}</p><div className="db-tags">{m.plannedLocales.map((l) => <Badge key={l} tone="amber">{l}</Badge>)}</div></Card>

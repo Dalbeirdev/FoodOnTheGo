@@ -1,0 +1,134 @@
+{
+  "module": "M22 (CF-301)",
+  "mode": "real local backend",
+  "date": "2026-10-01T09:01:32.696Z",
+  "total": 25,
+  "passed": 25,
+  "results": [
+    {
+      "name": "R1 States tab offers \"Add state / region\" and Edit on each of the 36 rows",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R2 a code that already exists is refused by the backend (422) and shown at the code field",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "A11Y axe (region form) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R3 region created (201): code upper-cased, union territory, PLANNED; listed in the table",
+      "pass": true,
+      "detail": "{\"id\":\"649d707d-2698-4aab-b4d2-b21b1f4c5f2e\",\"code\":\"IN-E2E\",\"name\":\"E2E Region\",\"type\":\"UNION_TERRITORY\",\"status\":\"PLANNED\",\"version\":1,\"updated_at\":\"2026-10-01T09:00:13+00:00\"}"
+    },
+    {
+      "name": "R4 Edit opens with the stored values; the code is read-only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R5 edit saved (200): name and type changed, version 2; audited as region.created + region.updated",
+      "pass": true,
+      "detail": "region.updated,region.created"
+    },
+    {
+      "name": "R6 a planned region is public only as \"Planned\" reference geography and serves nobody",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 an empty corridor form is refused in the browser (name, both ends)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C2 the centreline is drawn through the chosen cities in travel order (preview: Jaipur → Udaipur → Ahmedabad, 3 points)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (route corridor form) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 corridor created (201): PLANNED, 7 000 m wide, ends and via city stored, PostGIS length ≈ 545 km (Jaipur–Udaipur–Ahmedabad straight lines)",
+      "pass": true,
+      "detail": "540 km"
+    },
+    {
+      "name": "C4 a planned corridor is not in the public coverage (still 3 live corridors)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C5 Edit: the cities are read-only, the stored centreline is kept unless \"replace\" is ticked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 a pasted line with one position is refused in the browser",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C7 a centreline that leaves the market (mistyped longitude) is refused by the backend (422) and the reason is shown",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "C8 width and centreline replaced (200): 9 000 m, 4 positions, version 2",
+      "pass": true,
+      "detail": "v2"
+    },
+    {
+      "name": "F1 configuration form: payment methods with status, tax, address; cash at pickup is locked (disabled, Not approved)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F2 a configuration change without a reason is refused before anything is sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (configuration form) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 configuration saved (200): UPI ENABLED, tax CONFIGURED, label PIN; untouched keys kept (provider strategy, cash at pickup NOT_APPROVED, legal documents); audited with the reason",
+      "pass": true,
+      "detail": "v4 · E2E: UPI sandbox approved"
+    },
+    {
+      "name": "F4 the Payments tab shows the saved state after a reload from the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F5 calling the API directly cannot enable cash at pickup (409 feature_locked) or store a credential (422 secrets_not_allowed)",
+      "pass": true,
+      "detail": "409 / 422"
+    },
+    {
+      "name": "P1 a view-only admin gets none of the Add / Edit controls, and the backend refuses her direct request (403)",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z start state restored: test region and corridor removed (34 public regions, 3 live corridors), configuration values back (UPI planned, PIN code)",
+      "pass": true,
+      "detail": "34 regions / 3 corridors"
+    }
+  ]
+}

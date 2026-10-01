@@ -17,9 +17,9 @@ import type { City, MarketRegion, ServiceArea } from '../../market/types'
 import { Drawer, Field } from '../../dashboard/components/ui'
 import type { CityInput, GeoJsonArea, ServiceAreaInput } from '../types'
 
-const num = (v: string) => (v.trim() === '' || Number.isNaN(Number(v)) ? null : Number(v))
+export const num = (v: string) => (v.trim() === '' || Number.isNaN(Number(v)) ? null : Number(v))
 /** Backend refusal → message for the form: field errors of a 422 by field, anything else as one line. */
-function failure(e: unknown, locale: string): { fields: Record<string, string>; message: string } {
+export function failure(e: unknown, locale: string): { fields: Record<string, string>; message: string } {
   if (e instanceof ApiError) return { fields: Object.fromEntries(Object.entries(e.errors).map(([k, v]) => [k, v[0]])), message: Object.keys(e.errors).length ? t('adm.geo.checkFields', undefined, locale) : e.message }
   return { fields: {}, message: t('adm.error.saveFailed', undefined, locale) }
 }

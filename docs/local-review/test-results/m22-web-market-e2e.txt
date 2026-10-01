@@ -35,7 +35,7 @@ PASS B22 a self-intersecting polygon is rejected by PostGIS validation (422 inva
 PASS B23 India paused through the admin API: the backend answers MARKET_PAUSED and no public market is listed — 200 MARKET_PAUSED
 PASS B24 with the market paused the customer web (fresh load) offers nothing: unavailable state, zero restaurants
 PASS B25 India resumed: Delhi is serviceable again and the market is public again
-PASS B26 every change of this run is in the backend audit trail (city, service area, features, market) — market.updated, market.features_updated, service_area.updated, city.updated
+PASS B26 every change of this run is in the backend audit trail (city, service area, features, market) — market.updated, market.features_updated, service_area.updated, city.updated, market.configuration_updated
 PASS C1 Operations admin (India scope, view only): sees the cities, gets no status controls and no Pause market
 PASS C2 the backend is the authority: her token cannot write (403), cannot open another market (403) and lists only India — 403 / 403 / 1
 PASS C3 Support admin (no market permission): forbidden state in the UI and 403 from the API — 403

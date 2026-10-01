@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:27.557, Memory: 80.00 MB
+Time: 00:34.382, Memory: 80.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -17,6 +17,7 @@ Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ Market status changes need a reason and pausing stops customer service
  ✔ Feature flags change with a reason and locked features cannot be enabled
  ✔ Market configuration is read and updated with version and reason
+ ✔ A locked payment method cannot be enabled through configuration
  ✔ Market configuration refuses anything that looks like a secret
  ✔ The map endpoint returns every status with geometry and the diagnostic explains a point
  ✔ Lists are paginated filterable and never expose internal ids
@@ -314,5 +315,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (245 tests, 2234 assertions)
-{"tool":"phpunit","result":"passed","tests":245,"passed":245,"assertions":2234,"duration_ms":27557}
+OK (246 tests, 2242 assertions)
+{"tool":"phpunit","result":"passed","tests":246,"passed":246,"assertions":2242,"duration_ms":34381}
