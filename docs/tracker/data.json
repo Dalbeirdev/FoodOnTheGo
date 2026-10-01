@@ -1,13 +1,13 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Backend — Module 21 identity and security done; MODULE 22 MAY START = YES; owner items open: build021–024 device checks, sign-in browser check, Modules 18 / 18A review, version confirmation (CF-268)",
-  "currentModule": "Module 21",
+  "phase": "Backend — Module 22 market / geography done (local); MODULE 23 MAY START = YES; owner items open: build021–026 device checks, browser reviews (sign-ins, Markets on the backend, Modules 18 / 18A), version confirmation (CF-268), provider accounts (CF-294, CF-297, CF-298)",
+  "currentModule": "Module 22",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
   "database": "PostgreSQL 18.6 + PostGIS 3.6.2",
   "cache": "Redis 5",
   "ios": "DEFERRED UNTIL WEB + ANDROID ARE COMPLETE",
-  "backendPhase": "IN PROGRESS — foundation (M20) and identity / RBAC (M21) complete; business APIs NOT STARTED",
+  "backendPhase": "IN PROGRESS — foundation (M20), identity / RBAC (M21) and market / geography (M22) complete locally; restaurant, menu, journey, order and payment APIs NOT STARTED",
   "modules": [
     {
       "id": "M00",
@@ -173,7 +173,14 @@
     },
     {
       "id": "M22",
-      "name": "Module 22 — India Market, Geography, Service Areas, Route Corridors & PostGIS Backend (pending owner spec)",
+      "name": "Module 22 — India Market, Geography, Service Areas, Route Corridors & PostGIS Backend",
+      "started": "2026-09-30",
+      "completed": "2026-10-01",
+      "scope": "Owner spec 2026-09-30: real backend for markets, configuration, regions, cities, service areas, route corridors on PostGIS; location availability; admin APIs with RBAC, market scope, audit and concurrency; Customer Web, Android, Platform Admin and Restaurant Dashboard connected to it locally. Out of scope: restaurants, menus, journeys, routing providers."
+    },
+    {
+      "id": "M23",
+      "name": "Module 23 — Restaurant Organizations, Locations, Profiles, Staff Memberships & Operational Settings Backend (pending owner spec)",
       "started": "",
       "completed": "",
       "scope": ""
@@ -19955,6 +19962,1494 @@
       "issue": "-",
       "carry": "CF-297",
       "notes": "Needs CF-297, then php artisan otp:test <phone> --channel=whatsapp."
+    },
+    {
+      "id": "M22-001",
+      "module": "M22",
+      "req": "Existing market audit (Module 20 markets table + read API; Module 18A client mocks: 14 regions, 23 cities, 15 radius areas, 7 routes)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/backend/README.md §8",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-002",
+      "module": "M22",
+      "req": "Market model (public id, version, coarse bounds polygon; configuration, regions, cities relations)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Geo; docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-003",
+      "module": "M22",
+      "req": "Market status DRAFT / PILOT / ACTIVE / PAUSED / CLOSED with controlled transitions",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) GeographyStatus, AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-004",
+      "module": "M22",
+      "req": "India is the only market serving customers (ACTIVE); US / UK / UAE exist locally as DRAFT only",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt GET /markets; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-005",
+      "module": "M22",
+      "req": "Country code ISO 3166-1 alpha-2",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-006",
+      "module": "M22",
+      "req": "Currency ISO 4217 — India INR, from the market row",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-007",
+      "module": "M22",
+      "req": "Locale — India en-IN, from the market row",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-008",
+      "module": "M22",
+      "req": "Time zone IANA — India Asia/Kolkata; every city carries its own zone",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-009",
+      "module": "M22",
+      "req": "Distance unit — India metric, from the market row",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-010",
+      "module": "M22",
+      "req": "Market configuration (payment / tax / legal / address / ordering as data; secrets refused)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi (configuration, secrets)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-011",
+      "module": "M22",
+      "req": "Feature configuration (per-market flags; locked features cannot be enabled; cash at pickup locked)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B17–B20",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-012",
+      "module": "M22",
+      "req": "Region model (market_regions: code, name, type, status, version)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed); docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-013",
+      "module": "M22",
+      "req": "Region types STATE / UNION_TERRITORY / PROVINCE / REGION",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-014",
+      "module": "M22",
+      "req": "Region status PLANNED / PILOT / ACTIVE / PAUSED / DISABLED",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) GeographyStatus",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-015",
+      "module": "M22",
+      "req": "India states / union territories seeded (28 + 8, ISO 3166-2, all PLANNED = reference geography)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) PublicMarketApi (seed); docs/local-review/test-results/m22-web-market-e2e.json (51/51) B4",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-016",
+      "module": "M22",
+      "req": "City model (region, slug, aliases, time zone, status, launch stage, version)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-017",
+      "module": "M22",
+      "req": "City centre as geography(Point, 4326) with GiST index",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-018",
+      "module": "M22",
+      "req": "City status PLANNED / PILOT / ACTIVE / PAUSED / UNAVAILABLE",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) GeographyStatus",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-019",
+      "module": "M22",
+      "req": "Development city fixtures (23 cities, local / testing only, mixed statuses; not an operating claim)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) PublicMarketApi (seed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "DEVELOPMENT FIXTURES — a listed city does not mean FoodOnTheGo operates there."
+    },
+    {
+      "id": "M22-020",
+      "module": "M22",
+      "req": "Service area model (city, name, slug, priority, launch stage, version)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-021",
+      "module": "M22",
+      "req": "Service area geometry geometry(MultiPolygon, 4326) with ST_IsValid constraint",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-022",
+      "module": "M22",
+      "req": "Service area status PLANNED / TESTING / ACTIVE / PAUSED / DISABLED (only ACTIVE serves customers)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-023",
+      "module": "M22",
+      "req": "Service area effective dates (server clock)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (effective dates)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-024",
+      "module": "M22",
+      "req": "Route corridor model (origin / destination / via cities, highway, version)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-025",
+      "module": "M22",
+      "req": "Route centreline geometry(LineString, 4326)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-026",
+      "module": "M22",
+      "req": "Corridor width in metres (100 … 100 000, per corridor, geodesic)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-027",
+      "module": "M22",
+      "req": "Route status PLANNED / TESTING / ACTIVE / PAUSED / DISABLED + effective dates",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-028",
+      "module": "M22",
+      "req": "SRID 4326 on every spatial column",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-029",
+      "module": "M22",
+      "req": "GiST index on every spatial column (4)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (index used)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-030",
+      "module": "M22",
+      "req": "Geometry validation (type, no crs, WGS84 range, closed rings, ST_IsValid; rejected, never repaired; must lie inside the market)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi (invalid geometry); docs/local-review/test-results/m22-web-market-e2e.json (51/51) B22",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-031",
+      "module": "M22",
+      "req": "Location value object (lat / lng + optional country, address, place id, region, locality, postal code, time zone)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-032",
+      "module": "M22",
+      "req": "MarketLocationResolver (market by bounds, areas by ST_Covers, nearest city, nearest live area)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Limitation recorded: market = coarse envelope, not the legal border (CF-300)."
+    },
+    {
+      "id": "M22-033",
+      "module": "M22",
+      "req": "Region resolution (region of the resolved city)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Regions have no boundary polygons yet (CF-300)."
+    },
+    {
+      "id": "M22-034",
+      "module": "M22",
+      "req": "City resolution (city of the covering area, else nearest city within 40 km)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-035",
+      "module": "M22",
+      "req": "Service area resolution (covering areas, priority → smaller → older)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (overlap)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-036",
+      "module": "M22",
+      "req": "MarketAvailabilityService (market → region → city → service area; a child is never more available than its parent)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability; docs/local-review/test-results/backend-m22-api-responses.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-037",
+      "module": "M22",
+      "req": "Availability reason codes (6, machine-readable)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-038",
+      "module": "M22",
+      "req": "Current market API GET /markets/current (cached)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-039",
+      "module": "M22",
+      "req": "Public markets API GET /markets + GET /markets/current/coverage (customer-safe)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) PublicMarketApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-040",
+      "module": "M22",
+      "req": "Location availability API POST /availability/location (public, rate limited, location not stored)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-api-responses.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-041",
+      "module": "M22",
+      "req": "Admin market list (limited to the markets in scope)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-042",
+      "module": "M22",
+      "req": "Admin market detail",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) OpenApiContract",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-043",
+      "module": "M22",
+      "req": "Admin market update (status with reason; features; configuration)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B23–B25",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-044",
+      "module": "M22",
+      "req": "Region APIs (list, create, update / status)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-045",
+      "module": "M22",
+      "req": "City APIs (list, create, show, update / status)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B6–B11",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-046",
+      "module": "M22",
+      "req": "Service area APIs (list, create, show, update / status / geometry)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B12–B14",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-047",
+      "module": "M22",
+      "req": "Route corridor APIs (list, create, show, update / status / width / centreline)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-048",
+      "module": "M22",
+      "req": "GeoJSON convention (RFC 7946, [longitude, latitude]) for every geometry in and out",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/backend/README.md §8; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-049",
+      "module": "M22",
+      "req": "Geometry size protection (GEO_MAX_POSITIONS = 5000; 2 MB body at the local proxy)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi (max positions)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-050",
+      "module": "M22",
+      "req": "Map data API GET /admin/markets/{market}/map (every status, with geometry)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B1, B3",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-051",
+      "module": "M22",
+      "req": "Market RBAC (permission on every admin endpoint; checked in the backend)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope; docs/local-review/test-results/m22-web-market-e2e.json (51/51) C1–C4",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-052",
+      "module": "M22",
+      "req": "Market scope (a grant for one market never opens another; lists limited to scope)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope; docs/local-review/test-results/m22-web-market-e2e.json (51/51) C2",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-053",
+      "module": "M22",
+      "req": "Market audit events (actor, target, reason, before / after, request id; append-only)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B9, B26",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-054",
+      "module": "M22",
+      "req": "High-impact change reason (required when service is taken away; always for market status / features / configuration)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B7",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-055",
+      "module": "M22",
+      "req": "Concurrency protection (version column + row lock; stale write = 409, nothing written)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi (stale); docs/local-review/test-results/m22-web-market-e2e.json (51/51) B21",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-056",
+      "module": "M22",
+      "req": "Unique constraints (market+region code, market+city slug, city+area slug, market+corridor slug, public ids)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-057",
+      "module": "M22",
+      "req": "Foreign keys (restrict on parents; corridor city references nullable)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-058",
+      "module": "M22",
+      "req": "Normal indexes (status, region, market, audit target / market + time)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-059",
+      "module": "M22",
+      "req": "Spatial query performance (containment uses the GiST index — EXPLAIN in a test)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (spatial index)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Measured on fixture volumes only; load testing is CF-306."
+    },
+    {
+      "id": "M22-060",
+      "module": "M22",
+      "req": "Point containment test",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-061",
+      "module": "M22",
+      "req": "Boundary test (a point on the edge is inside — ST_Covers)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (boundary)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-062",
+      "module": "M22",
+      "req": "Overlap behaviour (allowed; priority, then smaller area)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (overlap)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-063",
+      "module": "M22",
+      "req": "Corridor intersection (topology) vs within the corridor band (proximity) — kept apart",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-064",
+      "module": "M22",
+      "req": "Distance query (geodesic metres)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor (distance)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-065",
+      "module": "M22",
+      "req": "Invalid geometry (bow tie, open ring, wrong type, out of range, crs, Feature, WKT, swapped lat / lng)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-066",
+      "module": "M22",
+      "req": "Customer Web uses the market backend (MarketGate snapshot; POST /availability/location for the chosen location)",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-web-market-e2e.json (51/51) A1–A9; docs/local-review/test-results/web-vitest-m22.txt (426/426)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "When the availability request itself fails the web falls back to the snapshot (CF-305). Restaurants shown are still fixtures (Module 23)."
+    },
+    {
+      "id": "M22-067",
+      "module": "M22",
+      "req": "Android uses the market backend (MARKET_MODE=api; start-up load; polygon coverage; backend availability check)",
+      "platform": "ANDROID",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-android-preview-e2e.json (7/7); docs/local-review/test-results/flutter-test-m22.txt (311/311)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Verified on the Flutter web preview of the same code. DEVICE verification of build026 = PENDING (owner)."
+    },
+    {
+      "id": "M22-068",
+      "module": "M22",
+      "req": "Admin market control center on the admin API (read every status; status and feature changes with version + reason; refusals shown)",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-web-market-e2e.json (51/51) B1–B26; docs/local-review/screenshots/web-m22/",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Status and feature changes only. Creating cities, drawing areas / corridors and editing configuration have an API but no screen yet (CF-301). Restaurant pins and order figures are still fixtures."
+    },
+    {
+      "id": "M22-069",
+      "module": "M22",
+      "req": "Restaurant Dashboard receives the market context served by the backend (currency, locale)",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-web-market-e2e.json (51/51) D1",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Location data of the dashboard is still fixture data until Module 23."
+    },
+    {
+      "id": "M22-070",
+      "module": "M22",
+      "req": "Market cache (public market payload + coverage, 300 s)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) PublicMarketApi (cache)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-071",
+      "module": "M22",
+      "req": "Cache invalidation (every write changes the cache version at once)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) PublicMarketApi (cache); docs/local-review/test-results/m22-web-market-e2e.json (51/51) B18",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-072",
+      "module": "M22",
+      "req": "API rate limits (availability 30 / min / address; admin writes per administrator)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (rate limit)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-073",
+      "module": "M22",
+      "req": "Validation (coordinates, codes, time zones, dates, widths, references to the same market)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-074",
+      "module": "M22",
+      "req": "Error codes (stale_update, invalid_status_transition, invalid_geometry, geometry_outside_market, feature_locked, secrets_not_allowed, market_unavailable)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed); docs/backend/README.md §8",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-075",
+      "module": "M22",
+      "req": "Security review (public leak checks, market scope, mass assignment, secrets refused, audit redaction)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope, PublicMarketApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-076",
+      "module": "M22",
+      "req": "SQL safety (coordinates, GeoJSON and search text are bound parameters; wildcards escaped)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability (injection), AdminGeographyApi (search)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-077",
+      "module": "M22",
+      "req": "Geometry DoS protection (position limit, body limit, rate limits, summary-only lists)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-078",
+      "module": "M22",
+      "req": "OpenAPI (52 operations; routes must match; responses validated against schemas)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) OpenApiContract; backend/openapi/openapi.json",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-079",
+      "module": "M22",
+      "req": "Unit tests (status transition tables)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) GeographyStatus",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-080",
+      "module": "M22",
+      "req": "PostGIS tests (containment, boundary, overlap, corridor, distance, SRID, index)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) Availability, RouteCorridor",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-081",
+      "module": "M22",
+      "req": "Admin API tests",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi (16)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-082",
+      "module": "M22",
+      "req": "Public API tests",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) PublicMarketApi, Availability",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-083",
+      "module": "M22",
+      "req": "RBAC tests (22 endpoints × unauthenticated / wrong principal / no permission / view only / other market)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope (8)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-084",
+      "module": "M22",
+      "req": "Audit tests",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-085",
+      "module": "M22",
+      "req": "Concurrency tests (stale version; row lock in the write path)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Optimistic version test + lockForUpdate in the service. A multi-process race test was not written (CF-306)."
+    },
+    {
+      "id": "M22-086",
+      "module": "M22",
+      "req": "Customer regression (full Module 19 suite with the market backend)",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-web-regression.txt (68/68)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-087",
+      "module": "M22",
+      "req": "Android regression (analyze + 311 tests; preview e2e)",
+      "platform": "ANDROID",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/flutter-test-m22.txt (311/311); docs/local-review/test-results/m22-android-preview-e2e.json (7/7)",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Device = PENDING (owner, build026)."
+    },
+    {
+      "id": "M22-088",
+      "module": "M22",
+      "req": "Admin regression (crawl of every admin route, auth suite)",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-web-regression.txt (68/68); docs/local-review/test-results/m22-web-auth-regression.txt (48/48)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-089",
+      "module": "M22",
+      "req": "Restaurant Dashboard regression",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/m22-web-regression.txt (68/68); docs/local-review/test-results/m22-web-auth-regression.txt (48/48)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-090",
+      "module": "M22",
+      "req": "Technical documentation",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/backend/README.md §8",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-091",
+      "module": "M22",
+      "req": "Data model diagram",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/backend/README.md §8 (Data model)",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-092",
+      "module": "M22",
+      "req": "Bugs recorded (BUG-092 … BUG-102)",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "#bugs",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
+    },
+    {
+      "id": "M22-093",
+      "module": "M22",
+      "req": "Evidence recorded",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P0",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-*, m22-*; docs/local-review/screenshots/web-m22/",
+      "issue": "-",
+      "carry": "-",
+      "notes": ""
     }
   ],
   "pages": [
@@ -21559,6 +23054,19 @@
       "manual": "PENDING (owner device)",
       "backend": "COMPLETE (auth)",
       "status": "IMPLEMENTED"
+    },
+    {
+      "screen": "Market from the backend (M22) — currency, locale, units and coverage loaded at start-up; location availability asked from the backend; Build Info shows the market data source",
+      "design": "Unchanged",
+      "ui": "IMPLEMENTED (M22, build026)",
+      "nav": "PASS",
+      "resp": "Preview screenshots docs/local-review/screenshots/android-preview/m22-*.png",
+      "mock": "NO for market / coverage (real backend); restaurants still fixtures",
+      "test": "unit PASS (8) + preview e2e 7/7",
+      "apk": "YES (build026)",
+      "manual": "PENDING (owner device)",
+      "backend": "COMPLETE (market / geography)",
+      "status": "IMPLEMENTED"
     }
   ],
   "decisions": [
@@ -22395,6 +23903,48 @@
       "OTP delivery order (owner asked for the best recommendation, 2026-09-30): Truecaller one-tap on Android (free) → WhatsApp authentication message → SMS (MSG91, 2Factor backup). A resend moves to the next channel. Locally nothing is sent.",
       "Module 21",
       "M21-111"
+    ],
+    [
+      "2026-10-01",
+      "India is the first ACTIVE market; the market architecture stays global-ready (a market, its regions, cities, coverage and features are data). Country = ISO 3166-1, currency = ISO 4217, time zone = IANA. India: INR, en-IN, Asia/Kolkata, metric.",
+      "Module 22",
+      "M22-002"
+    ],
+    [
+      "2026-10-01",
+      "Market availability is backend-authoritative: market → region → city → service area, a child never more available than its parent. A city existing does not imply coverage; service areas define operational availability; route corridors represent operational route coverage.",
+      "Module 22",
+      "M22-002"
+    ],
+    [
+      "2026-10-01",
+      "WGS84 / SRID 4326 is the spatial standard; PostGIS is authoritative for geographic queries; spatial columns use GiST; geometry is exchanged as GeoJSON ([longitude, latitude]). Invalid geometry is rejected, never repaired.",
+      "Module 22",
+      "M22-002"
+    ],
+    [
+      "2026-10-01",
+      "Service areas may overlap (priority, then the smaller area); a point on a boundary is inside. Only ACTIVE areas inside their effective dates serve customers; TESTING is internal.",
+      "Module 22",
+      "M22-002"
+    ],
+    [
+      "2026-10-01",
+      "Customer APIs never expose draft / future markets or internal fields. Admin APIs may show them according to permission and market scope. Every admin market change is authorised by the backend, needs the version it edited, a reason when service is taken away, and is audited.",
+      "Module 22",
+      "M22-002"
+    ],
+    [
+      "2026-10-01",
+      "Restaurant locations connect to this geography in Module 23; journey route discovery uses it later. No Google Routes / Places integration exists in Module 22. Development geographic fixtures are not business launch commitments.",
+      "Module 22",
+      "M22-002"
+    ],
+    [
+      "2026-10-01",
+      "Module 22 result: MODULE 23 MAY START = YES. Market backend, geography backend and PostGIS foundation = COMPLETE (local). Restaurant backend = NOT COMPLETE. Journey routing = NOT COMPLETE. PRODUCTION = NO.",
+      "Module 22",
+      "M22-002"
     ]
   ],
   "carry": [
@@ -23246,9 +24796,9 @@
       "P0",
       "Claude",
       "Backend Markets module",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-28",
-      "-"
+      "Module 22: admin-managed markets, regions, cities, coverage and features through the API. Corridor defaults and creation screens open (CF-301)"
     ],
     [
       "CF-072",
@@ -23426,9 +24976,9 @@
       "P0",
       "Claude",
       "Backend Markets module",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-28",
-      "-"
+      "Module 22: region → city hierarchy as data and PostGIS distance queries exist; \"near you\" rings and adjacency not built"
     ],
     [
       "CF-087",
@@ -25250,9 +26800,9 @@
       "P0",
       "Claude",
       "Backend",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: market configuration (payment / tax / legal / address as data, versioned) served to administrators. Tax rules themselves remain open (CF-073)"
     ],
     [
       "CF-239",
@@ -25262,9 +26812,9 @@
       "P1",
       "Claude",
       "Backend",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: per-market feature flags with locked features, reason and audit. Fees / commission and approval workflow open"
     ],
     [
       "CF-240",
@@ -25276,7 +26826,7 @@
       "Backend / Security",
       "PARTIAL",
       "2026-09-30",
-      "Module 21: enforcement framework (guards, permissions, market scope, tests). Each admin endpoint applies it when it is built"
+      "Modules 21 + 22: enforcement framework, and applied to every market / geography endpoint. Other admin domains follow with their modules"
     ],
     [
       "CF-241",
@@ -25298,9 +26848,9 @@
       "P0",
       "Claude",
       "Backend / Security",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: append-only audit_events table + AuditRecorder used by market changes. Tamper evidence, retention, export and other domains open"
     ],
     [
       "CF-243",
@@ -25370,9 +26920,9 @@
       "P0",
       "Claude",
       "Backend",
-      "NOT STARTED",
+      "DONE",
       "2026-09-30",
-      "-"
+      "Module 22: GET /markets, /markets/current, /markets/current/coverage; web and Android read them (VITE_MARKET_MODE / MARKET_MODE = api)"
     ],
     [
       "CF-249",
@@ -25382,9 +26932,9 @@
       "P0",
       "Claude",
       "Backend",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: regions, cities, service areas, route corridors — public coverage + admin APIs; clients read them. Restaurant ↔ geography relations arrive with Module 23"
     ],
     [
       "CF-250",
@@ -25394,9 +26944,9 @@
       "P0",
       "Claude",
       "Backend",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: POST /availability/location decides server-side; JourneyCoverage service prepared. Journey coverage over a real route arrives with the journey module"
     ],
     [
       "CF-251",
@@ -25406,9 +26956,9 @@
       "P0",
       "Claude",
       "Backend / Database",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: markets.bounds, cities.center, service_areas.geometry, route_corridors.centerline (SRID 4326, GiST). restaurant_locations = Module 23; region polygons = CF-300"
     ],
     [
       "CF-252",
@@ -25430,9 +26980,9 @@
       "P0",
       "Claude",
       "Backend / Security",
-      "NOT STARTED",
+      "DONE",
       "2026-09-30",
-      "-"
+      "Module 22: permission + market scope enforced on all 23 admin geography endpoints (MarketScopeTest)"
     ],
     [
       "CF-254",
@@ -25442,9 +26992,9 @@
       "P0",
       "Claude",
       "Backend / Security",
-      "NOT STARTED",
+      "DONE",
       "2026-09-30",
-      "-"
+      "Module 22: audit_events written by the backend for market / region / city / service area / corridor / feature / configuration changes. The admin Audit screen reading them is CF-302"
     ],
     [
       "CF-255",
@@ -25562,9 +27112,9 @@
       "P1",
       "Claude",
       "Backend Markets module",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Module 22: admin market screens use the backend Market; i18n formatting defaults for other countries are still local tables"
     ],
     [
       "CF-265",
@@ -25732,7 +27282,7 @@
       "Backend Module 21+",
       "PARTIAL",
       "2026-09-30",
-      "Module 21: security_events table + audit hook events. The immutable business audit log is still open"
+      "Module 22: audit_events + AuditRecorder in place and used for market configuration; approvals, refunds and roles follow with their modules"
     ],
     [
       "CF-279",
@@ -25742,9 +27292,9 @@
       "P1",
       "Claude",
       "Backend Market / Geo module",
-      "NOT STARTED",
+      "DONE",
       "2026-09-30",
-      "-"
+      "Module 22: web (MarketGate) and Android (start-up load) read the market from the backend"
     ],
     [
       "CF-280",
@@ -25984,6 +27534,150 @@
       "Backend integration",
       "NOT STARTED",
       "2026-09-30",
+      "-"
+    ],
+    [
+      "CF-300",
+      "Market border and region boundary polygons: the market is resolved through a coarse bounding envelope and regions have no geometry (region = region of the resolved city)",
+      "M22",
+      "Module 22",
+      "P2",
+      "Claude",
+      "Backend / data",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-301",
+      "Admin screens for creating regions / cities, drawing or importing service-area polygons and corridor centrelines, and editing market configuration — the API exists, the screens only change status and features",
+      "M22",
+      "Module 22",
+      "P1",
+      "Claude",
+      "Web (admin)",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-302",
+      "Admin Audit screen still lists the mock log; read backend audit events (GET /admin/audit-events) and security events",
+      "M22",
+      "Module 22",
+      "P1",
+      "Claude",
+      "Web (admin)",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-303",
+      "REAL COVERAGE DATA before launch: surveyed service-area boundaries and road centrelines replace the development circles and straight lines; owner decides which cities actually launch",
+      "M22",
+      "Module 22",
+      "P0 (launch)",
+      "Claude",
+      "Owner + operations",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-304",
+      "Market screens: restaurant pins, restaurant counts, orders and revenue are still fixture data placed on backend geography — replaced by Module 23+ APIs",
+      "M22",
+      "Module 22",
+      "P1",
+      "Claude",
+      "Backend + web",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-305",
+      "Customer Web falls back to the market snapshot when POST /availability/location itself fails (offline / rate limited); decide whether to show an error instead, as Android does",
+      "M22",
+      "Module 22",
+      "P2",
+      "Claude",
+      "Web",
+      "DECISION PENDING",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-306",
+      "Performance and load: PHP opcache / a real web server for staging (the PC uses PHP's one-connection development server behind a local proxy), spatial query timing on realistic volumes, a multi-process race test for admin writes",
+      "M22",
+      "Module 22",
+      "P1",
+      "Claude",
+      "Backend / infrastructure",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-307",
+      "Android: the market snapshot is not persisted between launches; without the backend the app starts on the bundled India defaults and screens that need the backend show an error",
+      "M22",
+      "Module 22",
+      "P2",
+      "Claude",
+      "Android",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-308",
+      "Public market payload does not carry address labels, planned locales or payment-method availability; customer clients therefore show none of them from the backend yet",
+      "M22",
+      "Module 22",
+      "P2",
+      "Claude",
+      "Backend + clients",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-309",
+      "Separate permissions for route corridors and regions (today corridors use admin.service_areas.*, regions use admin.markets.*)",
+      "M22",
+      "Module 22",
+      "P3",
+      "Claude",
+      "Backend",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-310",
+      "Admin header still says \"Mock data\" although market geography is now real; make the label per area",
+      "M22",
+      "Module 22",
+      "P3",
+      "Claude",
+      "Web (admin)",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-311",
+      "backend/CLAUDE.md is the Laravel scaffold note asking to install Laravel Boost through a remote installer; not run (not requested by the owner). Owner decides whether to install Boost or delete the note",
+      "M22",
+      "Module 22",
+      "P3",
+      "Claude",
+      "Owner",
+      "DECISION PENDING",
+      "2026-10-01",
       "-"
     ]
   ],
@@ -27260,6 +28954,160 @@
       "Assertions read mock storage",
       "m21_regression.js reads the identity from the API and removes the API token",
       "docs/local-review/test-results/m21-web-regression-e2e.json (68/68)",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-092",
+      "M22",
+      "BACKEND",
+      "Spatial models",
+      "High",
+      "The default column scope of the spatial models used select(), which discards columns a query added itself together with their bindings — distance and GeoJSON columns were silently missing",
+      "Derived columns survive the default scope",
+      "RouteCorridorTest (undefined column distance_m)",
+      "select() resets columns and select bindings",
+      "The scope sets the column list directly and keeps the query's own columns (HasSpatialColumns::selectSummary)",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) RouteCorridor, PublicMarketApi",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-093",
+      "M22",
+      "BACKEND",
+      "Admin routes",
+      "Medium",
+      "A non-UUID id in an admin URL (e.g. /admin/cities/11) reached PostgreSQL and produced a 500",
+      "404 for anything that is not a public id",
+      "AdminGeographyApiTest",
+      "Route parameters were unconstrained",
+      "UUID route patterns for market / region / city / service area / corridor",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) AdminGeographyApi (lists)",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-094",
+      "M22",
+      "BACKEND",
+      "Market configuration",
+      "Low",
+      "The first GET of a market configuration answered 201 Created (the row is created on first read)",
+      "200",
+      "MarketScopeTest / AdminGeographyApiTest",
+      "The resource was built from the just-created model",
+      "The row is re-read before it is returned",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-095",
+      "M22",
+      "LOCAL TOOLING",
+      "Local database",
+      "High",
+      "While checking the seeders, \"migrate:fresh --seed --env=testing\" was run by Claude; without an .env.testing file it used the LOCAL database, which was rebuilt and re-seeded. Lost: locally accumulated development rows (test customers created by e2e runs, sessions, security events, OTP challenges). No production system exists or was touched; fixtures were restored by the seeders",
+      "Destructive commands only against foodonthego_test",
+      "Noticed immediately from the command output",
+      "--env does not select the database; phpunit.xml does, artisan does not",
+      "Procedure: destructive artisan commands are run only with DB_DATABASE=foodonthego_test set and the database name printed first (done for the rollback evidence). A code guard is not possible for artisan itself",
+      "docs/local-review/test-results/backend-m22-migration-rollback.txt (shows the database name)",
+      "RECORDED — procedure changed"
+    ],
+    [
+      "BUG-096",
+      "M22",
+      "WEB",
+      "Market snapshot",
+      "Medium",
+      "When the market stopped serving customers (404 market_unavailable) the web kept its previous snapshot and went on presenting the market as open",
+      "A paused market offers nothing after the next refresh",
+      "Review while writing the e2e",
+      "Every failure was treated as an outage",
+      "\"Not served\" is treated as an answer: the market is held as PAUSED with no coverage",
+      "docs/local-review/test-results/web-vitest-m22.txt (426/426); docs/local-review/test-results/m22-web-market-e2e.json (51/51) B24",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-097",
+      "M22",
+      "WEB",
+      "Admin market screens",
+      "Medium",
+      "Every admin page load fetched the geography of every market, and after a change the table stayed stale for seconds, so a second status change picked from the old value was ignored",
+      "Load only what the page shows; no lost interaction",
+      "e2e (dialog did not open)",
+      "One loader for everything",
+      "Geography is loaded per market on demand; the list alone on other admin pages",
+      "docs/local-review/test-results/m22-web-market-e2e.json (51/51) B11–B14",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-098",
+      "M22",
+      "WEB + LOCAL TOOLING",
+      "Market loading",
+      "High",
+      "With the market read on every page load, a fast sequence of page loads (regression crawl) left the local API with a queue of abandoned requests and stalled it for 5–20 s; a request cut short by a navigation was retried on every following page",
+      "Page loads do not pile up on the API",
+      "Regression run (timeouts, API unresponsive)",
+      "No reuse of a fresh snapshot, no retry throttle; PHP's development server handles one connection at a time",
+      "A snapshot younger than 60 s is reused, at most one attempt per minute; local API proxy forwards only complete requests (scripts/local/api-proxy.mjs)",
+      "docs/local-review/test-results/m22-web-regression.txt (68/68); docs/local-review/test-results/m22-web-auth-regression.txt (48/48)",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-099",
+      "M22",
+      "ANDROID",
+      "Market loading",
+      "Medium",
+      "The market was loaded on the splash screen only; an app started on any other route kept the bundled defaults",
+      "Market loaded whatever the start route",
+      "Android preview e2e (no market requests)",
+      "Load tied to one screen",
+      "Loaded in main() before the first screen; the splash retries if it failed",
+      "docs/local-review/test-results/m22-android-preview-e2e.json (7/7) G1",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-100",
+      "M19",
+      "WEB (tests)",
+      "vitest",
+      "Low",
+      "Two older UI tests (favorites, cart edit) each failed once with a timeout in runs that happened while other heavy jobs were using the PC; they pass when the suite runs on its own (three consecutive clean runs, 426 / 426)",
+      "Stable under load",
+      "Module 22 test runs",
+      "Timing-sensitive tests on a busy machine",
+      "Not fixed — recorded. Re-run on its own before trusting a red result",
+      "docs/local-review/test-results/web-vitest-m22.txt (426/426)",
+      "OPEN (flaky under load)"
+    ],
+    [
+      "BUG-101",
+      "M18A",
+      "WEB",
+      "Admin market page",
+      "Low",
+      "While a market page was loading it had no heading (h1)",
+      "Every page state has a heading",
+      "Regression route audit",
+      "Loading state rendered only a status line",
+      "Heading added to the loading state",
+      "docs/local-review/test-results/m22-web-regression.txt (68/68) F1",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-102",
+      "M20",
+      "BACKEND (tests)",
+      "OpenAPI contract test",
+      "Low",
+      "The schema checker rejected an integer where the schema says \"number\" (78 instead of 78.0)",
+      "Every integer is a number",
+      "OpenApiContractTest",
+      "Type check too strict",
+      "Checker follows JSON Schema",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) OpenApiContract",
       "FIXED / VERIFIED"
     ]
   ],
@@ -29233,6 +31081,116 @@
       "PENDING",
       "-",
       "2026-09-30"
+    ],
+    [
+      "TE-198",
+      "M22",
+      "BACKEND",
+      "Backend suite incl. Module 22: availability on PostGIS (containment, boundary, overlap, hierarchy, effective dates, reasons, rate limit, injection, index), corridors and distance, public API and cache, admin API (launch flow, transitions, reasons, versions, geometry validation, features, configuration, search), market scope / RBAC over 22 endpoints, seed data, OpenAPI contract",
+      "unit + feature (PostgreSQL + PostGIS + Redis)",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)",
+      "2026-10-01"
+    ],
+    [
+      "TE-199",
+      "M22",
+      "BACKEND",
+      "Migration rollback and re-apply on foodonthego_test; spatial columns, SRIDs and GiST indexes listed from the catalog",
+      "database",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-migration-rollback.txt",
+      "2026-10-01"
+    ],
+    [
+      "TE-200",
+      "M22",
+      "BACKEND",
+      "Live responses of the local API: markets, coverage, six availability answers, unauthenticated admin call",
+      "manual (curl)",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-api-responses.txt",
+      "2026-10-01"
+    ],
+    [
+      "TE-201",
+      "M22",
+      "WEB",
+      "Market e2e against the real local backend: customer snapshot + availability, admin control center (read, status changes, refused transition, reason, audit, features, locked feature, stale version, invalid polygon, pause / resume market), permissions and market scope, dashboard context, storage, axe, 390 px",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-market-e2e.json (51/51)",
+      "2026-10-01"
+    ],
+    [
+      "TE-202",
+      "M22",
+      "WEB",
+      "Full regression of the Module 19 suite with real authentication and the market backend (72 routes, 134 links, axe, responsive)",
+      "regression",
+      "PASS",
+      "docs/local-review/test-results/m22-web-regression.txt (68/68)",
+      "2026-10-01"
+    ],
+    [
+      "TE-203",
+      "M22",
+      "WEB",
+      "Module 21 authentication suite re-run",
+      "regression",
+      "PASS",
+      "docs/local-review/test-results/m22-web-auth-regression.txt (48/48)",
+      "2026-10-01"
+    ],
+    [
+      "TE-204",
+      "M22",
+      "WEB",
+      "Web vitest full suite incl. market data from the API, admin API repository and MarketGate (19 new); tsc; build",
+      "unit + static",
+      "PASS",
+      "docs/local-review/test-results/web-vitest-m22.txt (426/426)",
+      "2026-10-01"
+    ],
+    [
+      "TE-205",
+      "M22",
+      "ANDROID",
+      "Flutter analyze + full suite incl. ApiMarketRepository (8 new)",
+      "unit + widget",
+      "PASS",
+      "docs/local-review/test-results/flutter-test-m22.txt (311/311)",
+      "2026-10-01"
+    ],
+    [
+      "TE-206",
+      "M22",
+      "ANDROID",
+      "Android app code (Flutter web preview, MARKET_MODE=api) against the real backend: start-up load, build info, restaurants, market paused → nothing offered → resumed. NOT a device test",
+      "e2e (preview)",
+      "PASS",
+      "docs/local-review/test-results/m22-android-preview-e2e.json (7/7)",
+      "2026-10-01"
+    ],
+    [
+      "TE-207",
+      "M22",
+      "ANDROID",
+      "Owner device verification of build026 (same Wi-Fi as the PC, local API running)",
+      "manual (device)",
+      "PENDING",
+      "-",
+      "2026-10-01"
+    ],
+    [
+      "TE-208",
+      "M22",
+      "WEB",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event)",
+      "manual (browser)",
+      "PENDING",
+      "-",
+      "2026-10-01"
     ]
   ],
   "artifacts": [
@@ -29899,6 +31857,46 @@
       "docs/backend/README.md §6",
       "Documentation",
       "YES"
+    ],
+    [
+      "Module 22 backend test output, routes, live API responses, migration rollback",
+      "M22",
+      "BACKEND",
+      "docs/local-review/test-results/backend-m22-*.txt",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Module 22 web e2e, regression, auth regression, Android preview results",
+      "M22",
+      "WEB + ANDROID",
+      "docs/local-review/test-results/m22-*",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Module 22 screenshots (customer states, admin market control center, 390 px, regression matrix)",
+      "M22",
+      "WEB",
+      "docs/local-review/screenshots/web-m22/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Market, geography and availability guide incl. data model diagram",
+      "M22",
+      "BACKEND",
+      "docs/backend/README.md §8",
+      "Documentation",
+      "YES"
+    ],
+    [
+      "Local API proxy for PHP's development server",
+      "M22",
+      "LOCAL TOOLING",
+      "scripts/local/api-proxy.mjs",
+      "Tooling",
+      "YES"
     ]
   ],
   "apks": [
@@ -30226,6 +32224,19 @@
       "NO",
       "PENDING",
       "PENDING"
+    ],
+    [
+      "FoodOnTheGo-local-review-v0.1.0-build026.apk",
+      "0.1.0",
+      "26 (local/debug)",
+      "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+      "REAL authentication AND market / coverage from the PC backend (AUTH_MODE=api, MARKET_MODE=api); restaurants, menus, orders still mock",
+      "a3df93d (Module 22)",
+      "2026-10-01",
+      "5D8268CF9C617DB7AB907CD10B9836F7965BB668457830F914558ABFCE28AB10",
+      "NO",
+      "PENDING",
+      "PENDING"
     ]
   ],
   "pendingAssets": {
@@ -30458,8 +32469,8 @@
       "NOT STARTED"
     ],
     [
-      "Market & geography — markets, statuses, regions, cities, service areas, route corridors, restaurant-market relations, configuration (locale / currency / tax refs / payments / legal / features), availability + market resolution APIs, PostGIS coverage, market RBAC + audit (frontend mocked in M18A; CF-248..261)",
-      "PARTIAL (markets table + read API in Module 20; regions, cities, service areas, corridors, admin writes NOT STARTED)"
+      "Market & geography — markets, configuration, features, regions, cities, service areas (PostGIS polygons), route corridors, availability decision, admin APIs with market scope + audit (Module 22). Restaurant ↔ geography relations = Module 23; journey routing NOT STARTED",
+      "COMPLETE"
     ]
   ],
   "databaseItems": [
@@ -30544,8 +32555,8 @@
       "NOT STARTED"
     ],
     [
-      "Development seeders / controlled fixtures",
-      "NOT STARTED"
+      "Development seeders / controlled fixtures: identity fixtures (M21) and geography fixtures (M22: 23 cities, 15 areas, 7 corridors — local / testing only); business fixtures follow with their modules",
+      "PARTIAL"
     ],
     [
       "Production DB provisioning + backups",
@@ -30556,8 +32567,8 @@
       "NOT STARTED"
     ],
     [
-      "Market & geography schema: markets, market_regions, cities, service_areas (geometry / geography, SRID 4326, GiST), route_corridors, restaurant_locations (market_id, city_id, service_area_id), market_configurations, market_features, market_payment_methods, market_legal_documents — exact schema finalised in the backend module",
-      "NOT STARTED"
+      "Market & geography schema: markets (+bounds, version), market_configurations, market_regions, cities, service_areas, route_corridors — SRID 4326, GiST — and audit_events (Module 22)",
+      "COMPLETE"
     ]
   ],
   "securityItems": [
@@ -30730,8 +32741,8 @@
       "IMPLEMENTED (client) / BACKEND PENDING"
     ],
     [
-      "Market control: permission-gated UI, reason-required high-impact changes, mock audit entries; frontend flags are non-authoritative — server RBAC + audit pending (CF-253, CF-254)",
-      "IMPLEMENTED (client) / BACKEND PENDING"
+      "Market control: backend-enforced permission + market scope, reason-required high-impact changes, optimistic concurrency, backend audit events (Module 22); the UI gating is a convenience",
+      "COMPLETE"
     ],
     [
       "Backend foundation (M20): one error envelope, no SQL / path / trace leak when debug is off",
@@ -30764,13 +32775,25 @@
     [
       "Identity (M21): no public admin / restaurant account creation; principal type never taken from the client",
       "COMPLETE"
+    ],
+    [
+      "Geography (M22): public APIs expose no draft market, no internal status, launch stage, priority, version or audit data (tests)",
+      "COMPLETE"
+    ],
+    [
+      "Geography (M22): coordinates, GeoJSON and search text are bound parameters; invalid geometry rejected; size and rate limits",
+      "COMPLETE"
+    ],
+    [
+      "Geography (M22): market configuration refuses credentials; audit values pass the redactor",
+      "COMPLETE"
     ]
   ],
   "globalReadiness": [
     [
       "Country neutrality",
       "IMPLEMENTED (frontend) — country is a hard discovery boundary; no country in reusable logic; markets table only",
-      "Market administration backend NOT STARTED (CF-071)"
+      "Market administration backend COMPLETE for status / features / geography (Module 22); creation screens CF-301"
     ],
     [
       "Currency",
@@ -32697,6 +34720,12 @@
           "Backend Modules 22 onward"
         ],
         [
+          "Markets, cities, service areas, corridors, \"can you serve this location?\"",
+          "WORKS — real backend + PostGIS on the PC; web, admin and the Android build read it. Coverage shapes are DEVELOPMENT FIXTURES (circles, straight lines)",
+          "Same code",
+          "A live server and database; REAL coverage data for the launch cities (CF-303); a real web server instead of PHP's development server (CF-306)"
+        ],
+        [
           "Maps / places / routing, payments (Razorpay), push notifications",
           "Not connected",
           "Real providers",
@@ -32764,6 +34793,188 @@
           "No message is sent",
           "In use on the PC",
           "SMS_DRIVER=log (refused in production)"
+        ]
+      ]
+    },
+    {
+      "id": "m22-gate",
+      "title": "Module 22 — Market, geography and PostGIS completion gate",
+      "note": "MODULE 23 MAY START = YES. Everything here runs on the LOCAL PC only. Not complete and not blocking: real surveyed coverage data (CF-303), admin creation / drawing screens (CF-301), audit screen (CF-302), region and border polygons (CF-300), owner checks (TE-207, TE-208). One procedural incident is recorded as BUG-095 (the local development database was rebuilt by mistake; fixtures restored; nothing else affected). PRODUCTION = NO.",
+      "headers": [
+        "Gate item",
+        "Status",
+        "Evidence"
+      ],
+      "rows": [
+        [
+          "Module 21 approved (MODULE 22 MAY START = YES)",
+          "VERIFIED",
+          "#m21-gate"
+        ],
+        [
+          "Market backend implemented; India ACTIVE; India configuration is data (one market row + configuration)",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-api-responses.txt"
+        ],
+        [
+          "Region, City, Service Area, Route Corridor backends implemented",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)"
+        ],
+        [
+          "PostGIS spatial fields, SRID 4326, GiST indexes",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-migration-rollback.txt"
+        ],
+        [
+          "Geometry validation works",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed); docs/local-review/test-results/m22-web-market-e2e.json (51/51) B22"
+        ],
+        [
+          "MarketLocationResolver, MarketAvailabilityService, reason codes",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed); docs/local-review/test-results/backend-m22-api-responses.txt"
+        ],
+        [
+          "Public market API and location availability API",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-api-responses.txt"
+        ],
+        [
+          "Admin market / region / city / service area / corridor APIs",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed); docs/local-review/test-results/backend-m22-routes.txt"
+        ],
+        [
+          "Admin RBAC and market scope enforced; important changes audited",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope; docs/local-review/test-results/m22-web-market-e2e.json (51/51) B9, C1–C4"
+        ],
+        [
+          "Spatial, API, RBAC, security tests pass",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)"
+        ],
+        [
+          "Customer Web uses the real market backend",
+          "VERIFIED (local)",
+          "docs/local-review/test-results/m22-web-market-e2e.json (51/51) A1–A9"
+        ],
+        [
+          "Android uses the real market backend",
+          "VERIFIED on the preview of the app code — DEVICE PENDING (owner, build026)",
+          "docs/local-review/test-results/m22-android-preview-e2e.json (7/7)"
+        ],
+        [
+          "Admin Market Dashboard uses the real backend",
+          "VERIFIED (status + feature changes; creation screens = CF-301)",
+          "docs/local-review/test-results/m22-web-market-e2e.json (51/51) B1–B26"
+        ],
+        [
+          "Restaurant Dashboard receives the real market context",
+          "VERIFIED (currency / locale; its location data is still fixture data)",
+          "docs/local-review/test-results/m22-web-market-e2e.json (51/51) D1"
+        ],
+        [
+          "No inactive-market data leaks to the India customer experience",
+          "VERIFIED",
+          "docs/local-review/test-results/m22-web-market-e2e.json (51/51) A3, A7, A9; docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed)"
+        ],
+        [
+          "Global architecture remains extensible (a second market is data only)",
+          "VERIFIED",
+          "docs/local-review/test-results/backend-m22-phpunit.txt (245 tests, 2234 assertions, 0 failed) MarketScope (second market), MarketApi"
+        ],
+        [
+          "Bugs recorded, evidence recorded, tracker updated",
+          "VERIFIED",
+          "#bugs"
+        ]
+      ],
+      "badges": [
+        1
+      ]
+    },
+    {
+      "id": "m22-endpoints",
+      "title": "Module 22 — Market and geography endpoint inventory",
+      "note": "Source of truth: backend/routes/api.php and backend/openapi/openapi.json (52 operations; a test fails when they differ). Admin endpoints need an admin token, an active account, the permission AND the market in scope.",
+      "headers": [
+        "Endpoint",
+        "Who",
+        "Rate limit"
+      ],
+      "rows": [
+        [
+          "GET /markets",
+          "Public",
+          "api"
+        ],
+        [
+          "GET /markets/current",
+          "Public",
+          "api"
+        ],
+        [
+          "GET /markets/current/coverage",
+          "Public",
+          "api"
+        ],
+        [
+          "POST /availability/location",
+          "Public",
+          "availability: 30 / min / address"
+        ],
+        [
+          "GET /admin/markets · GET /admin/markets/{market}",
+          "admin.markets.view (scope)",
+          "api"
+        ],
+        [
+          "PATCH /admin/markets/{market}",
+          "admin.markets.manage",
+          "admin-sensitive"
+        ],
+        [
+          "PATCH /admin/markets/{market}/features",
+          "admin.market_features.manage",
+          "admin-sensitive"
+        ],
+        [
+          "GET · PATCH /admin/markets/{market}/configuration",
+          "admin.market_configuration.view · manage",
+          "admin-sensitive (PATCH)"
+        ],
+        [
+          "GET · POST /admin/markets/{market}/regions · PATCH /admin/regions/{region}",
+          "admin.markets.view · manage",
+          "admin-sensitive (writes)"
+        ],
+        [
+          "GET · POST /admin/markets/{market}/cities · GET · PATCH /admin/cities/{city}",
+          "admin.cities.view · manage",
+          "admin-sensitive (writes)"
+        ],
+        [
+          "GET · POST /admin/markets/{market}/service-areas · GET · PATCH /admin/service-areas/{serviceArea}",
+          "admin.service_areas.view · manage",
+          "admin-sensitive (writes)"
+        ],
+        [
+          "GET · POST /admin/markets/{market}/route-corridors · GET · PATCH /admin/route-corridors/{routeCorridor}",
+          "admin.service_areas.view · manage",
+          "admin-sensitive (writes)"
+        ],
+        [
+          "GET /admin/markets/{market}/map · POST /admin/markets/{market}/availability-check",
+          "admin.service_areas.view",
+          "api"
+        ],
+        [
+          "GET /admin/audit-events",
+          "admin.audit.view (scope)",
+          "api"
         ]
       ]
     }
