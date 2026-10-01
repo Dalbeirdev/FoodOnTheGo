@@ -1597,6 +1597,24 @@
             }
           },
           {
+            "name": "q",
+            "in": "query",
+            "description": "Case-insensitive text contained in the name",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "region",
+            "in": "query",
+            "description": "Only cities of this region (id)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
             "name": "filter[status]",
             "in": "query",
             "schema": {
@@ -1830,6 +1848,24 @@
             "name": "market",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Case-insensitive text contained in the name",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Only service areas of this city (id)",
             "schema": {
               "type": "string",
               "pattern": "^[0-9a-f-]{36}$"
@@ -2072,6 +2108,15 @@
             "schema": {
               "type": "string",
               "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Case-insensitive text contained in the name",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
             }
           },
           {

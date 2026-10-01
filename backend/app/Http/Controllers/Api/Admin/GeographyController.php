@@ -26,9 +26,12 @@ use App\Services\Market\MarketAvailabilityService;
 use App\Services\Market\MarketLocationResolver;
 use App\Support\Geo\GeoJsonGeometry;
 use App\Support\Geo\Location;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -92,7 +95,13 @@ class GeographyController extends Controller
         $this->authorizeMarket(Permission::AdminCitiesView, $market);
         $list = new ListQuery($request, filterable: ['status'], sortable: ['name', 'status', 'created_at'], defaultSort: 'name');
 
-        return CityResource::collection($list->paginate(City::query()->with('region')->where('cities.market_id', $market->getKey())));
+        $query = City::query()->with('region')->where('cities.market_id', $market->getKey());
+        $this->search($request, $query, 'cities.name');
+        if (($region = $this->reference($request, 'region')) !== null) {
+            $query->whereIn('cities.region_id', MarketRegion::query()->where('public_id', $region)->select('id'));
+        }
+
+        return CityResource::collection($list->paginate($query));
     }
 
     public function storeCity(Request $request, Market $market): JsonResponse
@@ -152,7 +161,13 @@ class GeographyController extends Controller
         $this->authorizeMarket(Permission::AdminServiceAreasView, $market);
         $list = new ListQuery($request, filterable: ['status'], sortable: ['name', 'status', 'priority', 'created_at'], defaultSort: 'name');
 
-        return ServiceAreaResource::collection($list->paginate(ServiceArea::query()->with('city')->where('service_areas.market_id', $market->getKey())));
+        $query = ServiceArea::query()->with('city')->where('service_areas.market_id', $market->getKey());
+        $this->search($request, $query, 'service_areas.name');
+        if (($city = $this->reference($request, 'city')) !== null) {
+            $query->whereIn('service_areas.city_id', DB::table('cities')->where('public_id', $city)->select('id'));
+        }
+
+        return ServiceAreaResource::collection($list->paginate($query));
     }
 
     public function storeServiceArea(Request $request, Market $market): JsonResponse
@@ -212,7 +227,10 @@ class GeographyController extends Controller
         $this->authorizeMarket(Permission::AdminServiceAreasView, $market);
         $list = new ListQuery($request, filterable: ['status'], sortable: ['name', 'status', 'created_at'], defaultSort: 'name');
 
-        return RouteCorridorResource::collection($list->paginate(RouteCorridor::query()->with(['originCity', 'destinationCity'])->where('route_corridors.market_id', $market->getKey())));
+        $query = RouteCorridor::query()->with(['originCity', 'destinationCity'])->where('route_corridors.market_id', $market->getKey());
+        $this->search($request, $query, 'route_corridors.name');
+
+        return RouteCorridorResource::collection($list->paginate($query));
     }
 
     public function storeRouteCorridor(Request $request, Market $market): JsonResponse
@@ -312,6 +330,29 @@ class GeographyController extends Controller
             ])->all(),
             'nearest_active_service_area' => $nearest === null ? null : ['id' => $nearest['service_area']->public_id, 'name' => $nearest['service_area']->name, 'distance_meters' => (int) round($nearest['distance_m'])],
         ]);
+    }
+
+    /**
+     * ?q=text — case-insensitive "contains" on the name. The text is a bound parameter and its LIKE wildcards
+     * are escaped, so it can only ever match literally.
+     *
+     * @param  Builder<covariant Model>  $query
+     */
+    private function search(Request $request, Builder $query, string $column): void
+    {
+        $text = $request->validate(['q' => ['sometimes', 'nullable', 'string', 'max:80']])['q'] ?? null;
+
+        if ($text !== null && trim($text) !== '') {
+            $query->where($column, 'ilike', '%'.addcslashes(trim($text), '%_\\').'%');
+        }
+    }
+
+    /**
+     * ?region= / ?city= — narrows a list to one parent, named by its public id.
+     */
+    private function reference(Request $request, string $name): ?string
+    {
+        return $request->validate([$name => ['sometimes', 'uuid']])[$name] ?? null;
     }
 
     /**

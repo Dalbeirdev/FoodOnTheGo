@@ -289,6 +289,32 @@ class AdminGeographyApiTest extends TestCase
         $this->getJson('/api/v1/admin/cities/'.$region->id)->assertNotFound();
     }
 
+    public function test_lists_can_be_searched_by_name_and_narrowed_to_a_parent(): void
+    {
+        $up = $this->region($this->india);
+        $hr = $this->region($this->india, 'IN-HR', 'ACTIVE', 'Haryana');
+        $noida = $this->city($up, 'Noida');
+        $this->city($up, 'Greater Noida', 28.4744, 77.504);
+        $karnal = $this->city($hr, 'Karnal', 29.6857, 76.9905);
+        $this->area($noida, self::BOX, name: 'Noida 100% Central');
+        $this->area($karnal, [76.95, 29.65, 77.05, 29.75], name: 'Karnal NH44');
+        $this->corridor($this->india, [[77.0, 28.55], [78.0, 28.55]], name: 'Delhi → Karnal');
+
+        $names = fn (string $path) => array_column($this->getJson($this->url($path))->assertOk()->json('data'), 'name');
+
+        $this->assertSame(['Greater Noida', 'Noida'], $names('/cities?q=noida'));
+        $this->assertSame(['Karnal'], $names('/cities?region='.$hr->public_id));
+        $this->assertSame(['Noida'], $names('/cities?q=NOIDA&filter[status]=ACTIVE&region='.$up->public_id.'&sort=-name&page[size]=1'));
+        $this->assertSame(['Karnal NH44'], $names('/service-areas?city='.$karnal->public_id));
+        $this->assertSame(['Noida 100% Central'], $names('/service-areas?q='.urlencode('100%')));
+        $this->assertSame(['Noida 100% Central'], $names('/service-areas?q='.urlencode('%')), 'a wildcard is matched literally: only the name that contains a percent sign');
+        $this->assertSame([], $names('/service-areas?q=_'));
+        $this->assertSame([], $names('/cities?q='.urlencode("' or 1=1 --")));
+        $this->assertSame(['Delhi → Karnal'], $names('/route-corridors?q=karnal'));
+        $this->getJson($this->url('/cities?region=1'))->assertUnprocessable();
+        $this->assertSame(3, DB::table('cities')->count());
+    }
+
     public function test_the_audit_list_is_newest_first_and_filterable(): void
     {
         $city = $this->city($this->region($this->india));
