@@ -1,0 +1,134 @@
+{
+  "module": "M22 (CF-301)",
+  "mode": "real local backend",
+  "date": "2026-10-01T08:27:20.448Z",
+  "total": 25,
+  "passed": 25,
+  "results": [
+    {
+      "name": "C1 Cities tab offers \"Add city\" and an Edit action per row to an admin who may manage cities",
+      "pass": true,
+      "detail": "23 cities"
+    },
+    {
+      "name": "C2 an empty form is refused in the browser with a message per field; nothing is sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 swapped latitude / longitude: the backend refuses (422, outside the market) and the form says why and stays open",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "A11Y axe (city form) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C4 city created through the admin API (201): stored as PLANNED with the entered centre, time zone Asia/Kolkata, alias and launch note",
+      "pass": true,
+      "detail": "{\"status\":\"PLANNED\",\"lat\":27.1767,\"lng\":78.0081}"
+    },
+    {
+      "name": "C5 the new city appears in the table as Planned; a planned city is not offered to customers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 a second city with the same name is refused (422) and the message is shown at the name field",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "C7 Edit opens with the stored values; the state is read-only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C8 edit saved (200): name and centre changed, version 2, still PLANNED; audit trail has city.created and city.updated with before / after",
+      "pass": true,
+      "detail": "city.updated,city.created"
+    },
+    {
+      "name": "C9 an edit made from an outdated copy is refused (409 stale_update)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S1 Service areas tab offers \"Add service area\"; the boundary is entered as a circle or as pasted GeoJSON",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S2 \"Use city centre\" fills the centre from the city; the preview shows the 33-point outline",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (service area form) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S3 service area created (201): PLANNED, stored by PostGIS as a polygon of ≈ 154 km² (π · 7² km), 33 vertices",
+      "pass": true,
+      "detail": "152.7 km², 33 vertices"
+    },
+    {
+      "name": "S4 created is not live: a point inside the new area is still not serviceable",
+      "pass": true,
+      "detail": "CITY_UNAVAILABLE"
+    },
+    {
+      "name": "S5 Edit keeps the stored boundary unless \"Replace the stored boundary\" is ticked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S6 priority changed (200) without touching the boundary",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S7 a self-intersecting polygon is rejected by PostGIS (422); the reason is shown, the form stays open and the stored boundary is unchanged",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "S8 a valid pasted boundary (GeoJSON Feature from a GIS tool) replaces the old one (200): 5 vertices, version 3",
+      "pass": true,
+      "detail": "5 vertices v3"
+    },
+    {
+      "name": "S9 after the area is set ACTIVE and the city PILOT, the backend serves a point inside the new boundary and not one outside it",
+      "pass": true,
+      "detail": "true / OUTSIDE_SERVICE_AREA"
+    },
+    {
+      "name": "S10 the coverage map draws the new area",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P1 a view-only admin gets no Add / Edit controls, and the backend refuses her direct request (403)",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "name": "R1 the service-area form at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z test records removed from the local database; coverage back to 22 public cities and 15 service areas",
+      "pass": true,
+      "detail": "22 / 15"
+    }
+  ]
+}

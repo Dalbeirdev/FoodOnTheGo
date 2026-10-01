@@ -21450,6 +21450,38 @@
       "issue": "-",
       "carry": "-",
       "notes": ""
+    },
+    {
+      "id": "M22-094",
+      "module": "M22",
+      "req": "Admin screen: add and edit a city (name, state / UT, centre, time zone, other names, launch note) through the admin API; new cities start PLANNED; backend refusals shown at the field",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-geo-forms-e2e.json (25/25); docs/local-review/test-results/web-vitest-m22.txt (436/436); docs/local-review/screenshots/web-m22/geo-forms/",
+      "issue": "-",
+      "carry": "CF-301",
+      "notes": "Owner request 2026-10-01. There is no map to draw on (no map provider yet): a boundary is a circle or pasted GeoJSON. Only shown when the admin runs against the backend."
+    },
+    {
+      "id": "M22-095",
+      "module": "M22",
+      "req": "Admin screen: add and edit a service area (city, name, priority, launch note, boundary as a circle or pasted GeoJSON with an outline preview) through the admin API; new areas start PLANNED; PostGIS refusals shown",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-geo-forms-e2e.json (25/25); docs/local-review/test-results/web-vitest-m22.txt (436/436); docs/local-review/screenshots/web-m22/geo-forms/",
+      "issue": "-",
+      "carry": "CF-301",
+      "notes": "Owner request 2026-10-01. There is no map to draw on (no map provider yet): a boundary is a circle or pasted GeoJSON. Only shown when the admin runs against the backend."
     }
   ],
   "pages": [
@@ -27550,15 +27582,15 @@
     ],
     [
       "CF-301",
-      "Admin screens for creating regions / cities, drawing or importing service-area polygons and corridor centrelines, and editing market configuration — the API exists, the screens only change status and features",
+      "Admin screens still missing: add / edit states (regions), route corridors (centreline), market configuration; drawing a boundary on a real map (needs the map provider). Cities and service areas are DONE (M22-094, M22-095)",
       "M22",
       "Module 22",
       "P1",
       "Claude",
       "Web (admin)",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-10-01",
-      "-"
+      "City and service-area screens built 2026-10-01"
     ],
     [
       "CF-302",
@@ -31186,10 +31218,30 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a city and a service area)",
       "manual (browser)",
       "PENDING",
       "-",
+      "2026-10-01"
+    ],
+    [
+      "TE-209",
+      "M22",
+      "WEB",
+      "City and service-area forms against the real local backend: validation, swapped coordinates refused, create (PLANNED), duplicate, edit, stale version, circle boundary, pasted GeoJSON, self-intersection refused by PostGIS, boundary replaced, opened → location becomes serviceable, map, view-only admin, 390 px, axe; test rows removed afterwards",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-geo-forms-e2e.json (25/25)",
+      "2026-10-01"
+    ],
+    [
+      "TE-210",
+      "M22",
+      "WEB",
+      "Web vitest full suite incl. the geography forms (10 new); tsc; build; market e2e re-run 51/51",
+      "unit + static",
+      "PASS",
+      "docs/local-review/test-results/web-vitest-m22.txt (436/436)",
       "2026-10-01"
     ]
   ],
@@ -31896,6 +31948,14 @@
       "LOCAL TOOLING",
       "scripts/local/api-proxy.mjs",
       "Tooling",
+      "YES"
+    ],
+    [
+      "City and service-area admin forms: e2e result and screenshots",
+      "M22",
+      "WEB",
+      "docs/local-review/test-results/m22-web-geo-forms-e2e.json (25/25); docs/local-review/screenshots/web-m22/geo-forms/",
+      "Evidence",
       "YES"
     ]
   ],
@@ -34799,7 +34859,7 @@
     {
       "id": "m22-gate",
       "title": "Module 22 — Market, geography and PostGIS completion gate",
-      "note": "MODULE 23 MAY START = YES. Everything here runs on the LOCAL PC only. Not complete and not blocking: real surveyed coverage data (CF-303), admin creation / drawing screens (CF-301), audit screen (CF-302), region and border polygons (CF-300), owner checks (TE-207, TE-208). One procedural incident is recorded as BUG-095 (the local development database was rebuilt by mistake; fixtures restored; nothing else affected). PRODUCTION = NO.",
+      "note": "MODULE 23 MAY START = YES. Everything here runs on the LOCAL PC only. Not complete and not blocking: real surveyed coverage data (CF-303), remaining admin screens — regions, corridors, configuration, map drawing (CF-301), audit screen (CF-302), region and border polygons (CF-300), owner checks (TE-207, TE-208). One procedural incident is recorded as BUG-095 (the local development database was rebuilt by mistake; fixtures restored; nothing else affected). PRODUCTION = NO.",
       "headers": [
         "Gate item",
         "Status",
@@ -34868,7 +34928,7 @@
         ],
         [
           "Admin Market Dashboard uses the real backend",
-          "VERIFIED (status + feature changes; creation screens = CF-301)",
+          "VERIFIED (status + feature changes; add / edit cities and service areas; regions, corridors, configuration screens = CF-301)",
           "docs/local-review/test-results/m22-web-market-e2e.json (51/51) B1–B26"
         ],
         [

@@ -21,7 +21,7 @@ import { marketAvailability, marketLocationRepository, marketRepository } from '
 import type { CityStatus, MarketFeatureKey, MarketStatus, RegionStatus, RouteStatus, ServiceAreaStatus } from '../../market/types'
 import { INDIA_REFUND_EXTRAS, INDIA_SETTLEMENT_EXTRAS, countryInScope, scopedCurrencies } from './fixtures'
 import { ADMIN_ROLES, ADMIN_USERS, ALL_RESTAURANTS, ANNOUNCEMENT_SEEDS, AUDIT_SEEDS, CONFIG_SEEDS, CUSTOMER_SEEDS, DEFAULT_ADMIN_ID, DOC_REQUIREMENTS, FEE_SEEDS, FLAG_SEEDS, MARKET_SEEDS, NOTIFICATION_SEEDS, ORGANIZATION_LOCATIONS, ORGANIZATION_NAMES, PAYMENT_SEEDS, PROMOTION_SEEDS, QUEUE_SEEDS, REFUND_SEEDS, RESTAURANT_SEEDS, REVIEW_MODERATION_SEEDS, REVIEW_REPORTS, SECURITY_SEEDS, SERVICE_SEEDS, SETTLEMENT_SEEDS, SUPPORT_SEEDS, TAX_SEEDS, TEMPLATE_SEEDS, WEBHOOK_SEEDS, docsFor, rel, roleOf } from './fixtures'
-import type { MarketAttention, MarketRestaurantPin, MarketSnapshot, MarketStats, MarketsOverview } from '../types'
+import type { MarketAttention, MarketRestaurantPin, CityInput, MarketSnapshot, ServiceAreaInput, MarketStats, MarketsOverview } from '../types'
 import type { AdminCustomer, AdminNotification, AdminOrder, AdminOrderFilter, AdminPayment, AdminPermission, AdminRefund, AdminRepositories, AdminRestaurant, AdminRestaurantStatus, AdminReview, AdminRoleId, AdminUser, Announcement, AnalyticsQuery, AuditEvent, AuditFilter, ConfigItem, CurrencyTotal, CustomerFilter, CustomerStatus, DocumentStatus, FeatureFlag, FeeConfig, Market, ModerationAction, OrderException, OverviewSnapshot, Page, PaymentState, PlatformAnalytics, Promotion, PromotionIssue, PromotionStatus, RejectionCategory, RestaurantFilter, ReviewModerationFilter, SearchHit, SecuritySummary, Settlement, SupportCase, SupportFilter, SupportPriority, SupportStatus, SystemStatus, TaxConfig, VerificationDocument } from '../types'
 
 const ORDERS_KEY = 'fotg.orders.v1', REVIEWS_KEY = 'fotg.reviews.v1', DIRECTORY_KEY = 'fotg.mock.customers', RD_PROFILES_KEY = 'fotg.rd.profiles.v1'
@@ -415,6 +415,12 @@ export class MockAdminMarketControlRepository {
     attention.sort((p, q) => (p.severity === q.severity ? 0 : p.severity === 'warning' ? -1 : 1))
     return { market, configuration: marketRepository.getMarketConfiguration(code), states, cities, serviceAreas, routes, restaurants, stats, attention }
   }
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  async createCity(_marketCode: string, _input: CityInput): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async updateCity(_id: string, _input: CityInput, _reason: string): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async createServiceArea(_marketCode: string, _input: ServiceAreaInput): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  async updateServiceArea(_id: string, _input: ServiceAreaInput, _reason: string): Promise<void> { throw new Error('geography_editing_needs_backend') }
+  /* eslint-enable @typescript-eslint/no-unused-vars */
   async overview(): Promise<MarketsOverview> { await wait(); if (failing()) throw new Error('admin_load_failed'); const markets = marketRepository.getMarkets(); const active = this.build(marketRepository.getActiveMarket().countryCode)!; return { markets, active, activeMarkets: markets.filter((m) => m.status === 'ACTIVE').length, futureMarkets: markets.filter((m) => m.status === 'DRAFT').length } }
   async snapshot(slug: string) { await wait(); if (failing()) throw new Error('admin_load_failed'); const m = marketRepository.getMarketBySlug(slug); return m ? this.build(m.countryCode) : null }
   private guard(reason: string) { if (failing()) throw new Error('admin_save_failed'); if (!reason.trim()) throw new Error('reason_required') }

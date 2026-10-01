@@ -13,7 +13,7 @@ import { api } from '../../api/client'
 import { loadAdminMarketData, marketDataVersion, type MarketData } from '../../market/api/marketData'
 import type { CityStatus, MarketFeatureKey, MarketStatus, RegionStatus, RouteStatus, ServiceAreaStatus } from '../../market/types'
 import { MockAdminMarketControlRepository } from '../mock/mockAdmin'
-import type { AdminMarketControlRepository, MarketsOverview, MarketSnapshot } from '../types'
+import type { AdminMarketControlRepository, CityInput, MarketsOverview, MarketSnapshot, ServiceAreaInput } from '../types'
 
 export class ApiAdminMarketControlRepository extends MockAdminMarketControlRepository implements AdminMarketControlRepository {
   private data: MarketData | null = null
@@ -39,5 +39,18 @@ export class ApiAdminMarketControlRepository extends MockAdminMarketControlRepos
   async setCityStatus(id: string, status: CityStatus, _actor: string, reason: string) { await this.patch(`/admin/cities/${id}`, id, { status }, reason) }
   async setServiceAreaStatus(id: string, status: ServiceAreaStatus, _actor: string, reason: string) { await this.patch(`/admin/service-areas/${id}`, id, { status }, reason) }
   async setRouteStatus(id: string, status: RouteStatus, _actor: string, reason: string) { await this.patch(`/admin/route-corridors/${id}`, id, { status }, reason) }
+  async createCity(marketCode: string, input: CityInput) {
+    await api(`/admin/markets/${await this.marketId(marketCode)}/cities`, { method: 'POST', context: 'admin', body: { region_id: input.regionId, name: input.name, latitude: input.lat, longitude: input.lng, timezone: input.timezone, aliases: input.aliases, launch_stage: input.launchStage } })
+  }
+  async updateCity(id: string, input: CityInput, reason: string) {
+    await this.patch(`/admin/cities/${id}`, id, { name: input.name, latitude: input.lat, longitude: input.lng, timezone: input.timezone, aliases: input.aliases, launch_stage: input.launchStage }, reason)
+  }
+  async createServiceArea(marketCode: string, input: ServiceAreaInput) {
+    await api(`/admin/markets/${await this.marketId(marketCode)}/service-areas`, { method: 'POST', context: 'admin', body: { city_id: input.cityId, name: input.name, priority: input.priority, launch_stage: input.launchStage, geometry: input.geometry } })
+  }
+  /** The boundary is sent only when it is being replaced. */
+  async updateServiceArea(id: string, input: ServiceAreaInput, reason: string) {
+    await this.patch(`/admin/service-areas/${id}`, id, { name: input.name, priority: input.priority, launch_stage: input.launchStage, ...(input.geometry ? { geometry: input.geometry } : {}) }, reason)
+  }
   async setFeature(code: string, key: MarketFeatureKey, enabled: boolean, _actor: string, reason: string) { const id = await this.marketId(code); await this.patch(`/admin/markets/${id}/features`, id, { features: { [key]: enabled } }, reason) }
 }

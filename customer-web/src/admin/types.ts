@@ -123,7 +123,17 @@ export type MarketStats = { activeCities: number; pilotCities: number; serviceAr
 export type MarketAttention = { id: string; severity: 'info' | 'warning'; text: string; link: string }
 export type MarketSnapshot = { market: MarketModel; configuration: MarketConfiguration | null; states: MarketRegion[]; cities: City[]; serviceAreas: ServiceArea[]; routes: RouteCorridor[]; restaurants: MarketRestaurantPin[]; stats: MarketStats; attention: MarketAttention[] }
 export type MarketsOverview = { markets: MarketModel[]; active: MarketSnapshot; activeMarkets: number; futureMarkets: number }
+/** GeoJSON (RFC 7946): positions are [longitude, latitude]. */
+export type GeoJsonArea = { type: 'Polygon'; coordinates: number[][][] } | { type: 'MultiPolygon'; coordinates: number[][][][] }
+export type CityInput = { regionId: string; name: string; lat: number; lng: number; timezone: string; aliases: string[]; launchStage: string | null }
+/** geometry = null on an edit keeps the stored boundary. */
+export type ServiceAreaInput = { cityId: string; name: string; priority: number; launchStage: string | null; geometry: GeoJsonArea | null }
 export interface AdminMarketControlRepository {
+  /** Creating and editing geography exists only against the backend; the fixture repository refuses. New records start PLANNED. */
+  createCity(marketCode: string, input: CityInput): Promise<void>
+  updateCity(id: string, input: CityInput, reason: string): Promise<void>
+  createServiceArea(marketCode: string, input: ServiceAreaInput): Promise<void>
+  updateServiceArea(id: string, input: ServiceAreaInput, reason: string): Promise<void>
   overview(): Promise<MarketsOverview>
   snapshot(slug: string): Promise<MarketSnapshot | null>
   setMarketStatus(code: string, status: MarketStatus, actor: string, reason: string): Promise<void>

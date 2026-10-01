@@ -38,7 +38,7 @@ export type MarketData = {
 type RegionDto = { id: string; code: string; name: string; type: 'STATE' | 'UNION_TERRITORY' | 'PROVINCE' | 'REGION'; status: 'PLANNED' | 'PILOT' | 'ACTIVE' | 'PAUSED' | 'DISABLED'; version?: number }
 type CityDto = { id: string; region_id: string; name: string; slug: string; aliases: string[]; latitude: number; longitude: number; timezone: string; status: CityStatus; launch_stage?: string | null; launched_at?: string | null; version?: number }
 type GeometryDto = { type: string; coordinates: unknown }
-type AreaDto = { id: string; city_id: string; name: string; slug: string; status: ServiceAreaStatus; geometry?: GeometryDto; launch_stage?: string | null; updated_at?: string | null; version?: number }
+type AreaDto = { id: string; city_id: string; name: string; slug: string; status: ServiceAreaStatus; geometry?: GeometryDto; launch_stage?: string | null; updated_at?: string | null; version?: number; priority?: number }
 type CorridorDto = { id: string; name: string; slug: string; highway: string | null; status: RouteStatus; origin_city_id: string | null; destination_city_id: string | null; via_city_ids: string[]; corridor_width_meters: number; updated_at?: string | null; version?: number }
 type CoverageDto = { market_id: string; country_code: string; regions: RegionDto[]; cities: CityDto[]; service_areas: AreaDto[]; route_corridors: CorridorDto[]; generated_at: string }
 export type AdminMarketDto = MarketDto & { serving_customers: boolean; version: number; updated_at: string | null }
@@ -70,7 +70,7 @@ const regionKind = (t: RegionDto['type']): MarketRegion['kind'] => (t === 'STATE
 const toRegion = (cc: string) => (d: RegionDto): MarketRegion => ({ id: d.id, marketCode: cc, name: d.name, code: d.code, kind: regionKind(d.type), status: regionStatus(d.status) })
 const toCity = (cc: string) => (d: CityDto): City => ({ id: d.id, marketCode: cc, regionId: d.region_id, name: d.name, aliases: d.aliases, lat: d.latitude, lng: d.longitude, timezone: d.timezone, status: d.status, launchStage: d.launch_stage ?? '', launchDate: d.launched_at ? d.launched_at.slice(0, 10) : null })
 const toGeometry = (g: GeometryDto | undefined): ServiceArea['geometry'] => ({ type: 'multipolygon', coordinates: !g ? [] : g.type === 'Polygon' ? [g.coordinates as number[][][]] : (g.coordinates as number[][][][]) })
-const toArea = (cc: string) => (d: AreaDto): ServiceArea => ({ id: d.id, marketCode: cc, cityId: d.city_id, name: d.name, status: d.status, geometry: toGeometry(d.geometry), launchStage: d.launch_stage ?? '', updatedAt: d.updated_at ?? '' })
+const toArea = (cc: string) => (d: AreaDto): ServiceArea => ({ id: d.id, marketCode: cc, cityId: d.city_id, name: d.name, status: d.status, geometry: toGeometry(d.geometry), launchStage: d.launch_stage ?? '', updatedAt: d.updated_at ?? '', ...(d.priority === undefined ? {} : { priority: d.priority }) })
 const toRoute = (cc: string) => (d: CorridorDto): RouteCorridor => ({ id: d.id, marketCode: cc, name: d.name, originCityId: d.origin_city_id ?? '', destinationCityId: d.destination_city_id ?? '', viaCityIds: d.via_city_ids, highway: d.highway, corridorWidthM: d.corridor_width_meters, status: d.status, updatedAt: d.updated_at ?? '' })
 
 /** The shape the pages know, from what the backend stores. Anything the backend does not hold stays empty — nothing is invented. */

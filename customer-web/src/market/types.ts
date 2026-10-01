@@ -56,7 +56,7 @@ export type City = { id: string; marketCode: string; regionId: string; name: str
  * MultiPolygon coordinates, positions are [longitude, latitude].
  */
 export type AreaGeometry = { type: 'radius'; center: [number, number]; radiusM: number } | { type: 'polygon'; ring: Array<[number, number]> } | { type: 'multipolygon'; coordinates: number[][][][] }
-export type ServiceArea = { id: string; marketCode: string; cityId: string; name: string; status: ServiceAreaStatus; geometry: AreaGeometry; launchStage: string; updatedAt: string }
+export type ServiceArea = { id: string; marketCode: string; cityId: string; name: string; status: ServiceAreaStatus; geometry: AreaGeometry; launchStage: string; updatedAt: string; /** Backend only: where areas overlap, the higher priority wins. */ priority?: number }
 export type RouteCorridor = { id: string; marketCode: string; name: string; originCityId: string; destinationCityId: string; viaCityIds: string[]; highway: string | null; corridorWidthM: number; status: RouteStatus; updatedAt: string }
 
 export type MarketFeatureKey = 'journey_ordering' | 'scheduled_pickup' | 'asap_pickup' | 'reviews' | 'promotions' | 'curbside_pickup' | 'restaurant_responses' | 'customer_notifications' | 'cross_border_ordering' | 'cash_at_pickup'

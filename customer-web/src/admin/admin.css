@@ -157,3 +157,14 @@
 @media (max-width: 900px) { .adm-market__text small { display: none; } .adm-market__btn { padding: 5px 8px; gap: 6px; } .adm-market__menu { position: fixed; inset-inline: 12px; top: 64px; width: auto; } }
 @media (max-width: 480px) { .adm-market__text { display: none; } }
 @media (max-width: 480px) { .adm-market__btn > svg:first-child { display: none; } .adm-header { gap: 6px; padding-inline: 8px; } .adm-header .db-iconbtn { width: 38px; height: 38px; } .adm-header .db-profile__btn { padding: 2px; } }
+
+/* Market geography forms (Module 22 follow-up) */
+.adm-geo-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.adm-geo-boundary { border: 1px solid var(--db-line, #e4e7ec); border-radius: 12px; padding: 12px 14px 14px; display: grid; gap: 12px; min-width: 0; }
+.adm-geo-boundary legend { font-weight: 600; padding: 0 6px; }
+.adm-geo-modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-geo-check { display: flex; align-items: center; gap: 8px; }
+.adm-geo-json { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+.adm-geo-preview { margin: 0; display: grid; gap: 6px; justify-items: start; }
+.adm-geo-preview svg { width: 160px; height: 160px; background: var(--db-surface-2, #f8f9fb); border-radius: 10px; }
+@media (max-width: 520px) { .adm-geo-pair { grid-template-columns: 1fr; } }

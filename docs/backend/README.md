@@ -448,7 +448,9 @@ updates or deletes a row. Authentication events stay in `security_events`.
   back to the snapshot (web) only when the request itself fails.
 - Platform Admin → Markets uses `ApiAdminMarketControlRepository`: it reads `/admin/markets`, `/map` and
   `/configuration`, and sends status and feature changes with the version shown and the reason. A refusal
-  (403, 409 transition, 409 stale) is displayed. Restaurant pins, order counts and revenue in those screens are
+  (403, 409 transition, 409 stale) is displayed. Cities and service areas can be added and edited there
+  (`MarketGeoForms.tsx`): a boundary is entered as a circle (turned into a 32-point polygon) or as pasted GeoJSON,
+  because there is no map provider to draw on yet; new records start PLANNED. Restaurant pins, order counts and revenue in those screens are
   still development fixtures, and the Audit screen still lists the mock log — backend audit events are read
   through `GET /admin/audit-events`.
 
@@ -456,5 +458,5 @@ updates or deletes a row. Authentication events stay in `security_events`.
 
 Restaurants, menus, journeys, discovery, cart, pickup, checkout, payments, orders, tracking, reviews and the
 dashboard APIs; live SMS, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a
-surveyed market border; admin screens for creating cities, drawing service areas and editing configuration
-(the API exists, the screens change status and features only); production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.
+surveyed market border; admin screens for regions, route corridors and market configuration, and drawing a
+boundary on a real map (the API exists; cities and service areas have screens); production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.
