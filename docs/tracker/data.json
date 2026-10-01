@@ -21738,6 +21738,38 @@
       "issue": "-",
       "carry": "CF-282",
       "notes": "Owner request 2026-10-01."
+    },
+    {
+      "id": "M21-131",
+      "module": "M21",
+      "req": "POST /admin/users/{id}/mfa/reset: an administrator with admin.users.manage removes a colleague's MFA enrolment (lost authenticator app and recovery codes). Reason required; the enrolment is deleted and never returned; all sessions of that account end; MFA_DISABLED security event (via admin_reset) and admin_user.mfa_reset audit event. Refused on your own account, when there is nothing to reset, without the permission. With mandatory MFA the person must enrol again at the next sign-in",
+      "platform": "BACKEND",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2517 assertions, 0 failed) AdminUsersApi",
+      "issue": "-",
+      "carry": "CF-314",
+      "notes": "Owner request 2026-10-01. The backend cannot verify that the request really came from that person — the administrator confirms identity outside the system. The account owner is not notified by e-mail (CF-316)."
+    },
+    {
+      "id": "M21-132",
+      "module": "M21",
+      "req": "Admin Users screen: \"Reset MFA\" button on accounts that have MFA on (never your own row), dialog that names the person, warns to confirm their identity first, explains the effect and requires a reason; the backend's refusal is shown as worded",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (17/17); docs/local-review/test-results/web-vitest-m22.txt (467/467); docs/local-review/screenshots/web-m22/admin-mfa-reset/",
+      "issue": "-",
+      "carry": "CF-314",
+      "notes": "Owner request 2026-10-01. Only in API mode (real backend); the mock repository has no reset."
     }
   ],
   "pages": [
@@ -27994,15 +28026,15 @@
     ],
     [
       "CF-314",
-      "Admin Users screen: assign a role for one market only, disable an account, reset another administrator's MFA (a person who lost both the app and the recovery codes has no way back in today), and search / paging for large lists — the API supports market scope and DISABLED; MFA reset has no endpoint yet. Restaurant-user management (invite, role, suspend) is not built at all (Module 23)",
+      "Admin Users screen: assign a role for one market only, disable an account, and search / paging for large lists — the API supports market scope and DISABLED. Restaurant-user management (invite, role, suspend, MFA reset) is not built at all (Module 23)",
       "M21",
       "Module 21 follow-up",
       "P2",
       "Claude",
       "Web (admin) + backend",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-10-01",
-      "-"
+      "MFA reset for administrators built 2026-10-01 (M21-131, M21-132). Still open: market-scoped role in the UI, disable, search / paging"
     ],
     [
       "CF-315",
@@ -28012,6 +28044,18 @@
       "P0 (before live)",
       "Claude",
       "Owner + backend",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-316",
+      "Tell the account owner by e-mail when an administrator resets their MFA (and when MFA is turned on / off), so a wrongful reset is noticed. Needs the mail provider (CF-315)",
+      "M21",
+      "Module 21 follow-up",
+      "P1",
+      "Claude",
+      "Backend / Security",
       "NOT STARTED",
       "2026-10-01",
       "-"
@@ -31564,7 +31608,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31688,6 +31732,26 @@
       "unit + regression",
       "PASS",
       "docs/local-review/test-results/web-vitest-m22.txt (466/466); docs/local-review/test-results/m22-web-auth-regression.txt; docs/local-review/test-results/m22-web-regression.txt",
+      "2026-10-01"
+    ],
+    [
+      "TE-221",
+      "M21",
+      "WEB + BACKEND",
+      "Administrator resets a colleague's MFA against the real local backend: button only where MFA is on, not on your own row, warning dialog, nothing sent without a reason, 200 without any secret, list updated, the colleague's device signed out (401), password-only sign-in afterwards, audit event with who / whom / why, security event, Audit screen row, refusals (409 nothing to reset, 409 own account, 403 no permission, 401 no session), 390 px, axe; fixtures restored",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (17/17)",
+      "2026-10-01"
+    ],
+    [
+      "TE-222",
+      "M21",
+      "WEB + BACKEND",
+      "Backend suite 262 (2 new: MFA reset rules; re-enrolment at sign-in when MFA is mandatory); web vitest 467 (1 new); Admin Users e2e 27/27 re-run",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2517 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (467/467); docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27)",
       "2026-10-01"
     ]
   ],
@@ -32441,6 +32505,14 @@
       "M21",
       "WEB",
       "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28); docs/local-review/screenshots/web-m22/staff-security/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Administrator MFA reset: e2e result and screenshots",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (17/17); docs/local-review/screenshots/web-m22/admin-mfa-reset/",
       "Evidence",
       "YES"
     ]
@@ -33341,6 +33413,10 @@
     [
       "Administrator accounts (M21): invitation without a shared password (single-use hashed link), no self-change, no granting beyond own permissions, last full administrator protected, suspension ends sessions at once, all changes audited (tests)",
       "COMPLETE"
+    ],
+    [
+      "Administrator MFA reset (M21): permission + reason, never your own account, secret deleted not shown, sessions ended, audited and logged as a security event (tests). Identity of the requester is confirmed by the administrator outside the system; owner notification e-mail pending (CF-316)",
+      "COMPLETE (local); notification PENDING"
     ]
   ],
   "globalReadiness": [

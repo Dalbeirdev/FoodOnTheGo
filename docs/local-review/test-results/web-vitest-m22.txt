@@ -6,10 +6,10 @@ Not implemented: HTMLCanvasElement's getContext() method: without installing the
 Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
 
  Test Files  39 passed (39)
-      Tests  466 passed (466)
-   Start at  15:42:21
-   Duration  26.21s (tests 63%, environment 21%, transform 8%, setup 4%, import 4%)
+      Tests  467 passed (467)
+   Start at  16:46:20
+   Duration  38.65s (tests 63%, environment 21%, transform 9%, setup 4%, import 3%)
 
-    Isolate  39 workers spawned · ~1.66s startup each (spawn + environment, per file)
-             at least ~2.66s faster with isolate: false — reuses workers across files instead of one per file
+    Isolate  39 workers spawned · ~2.27s startup each (spawn + environment, per file)
+             at least ~3.63s faster with isolate: false — reuses workers across files instead of one per file
 

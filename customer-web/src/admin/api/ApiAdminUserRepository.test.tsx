@@ -50,6 +50,15 @@ describe('ApiAdminUserRepository', () => {
     expect(JSON.stringify(calls)).not.toContain('ignored-actor')
   })
 
+  it('resets a colleague\'s MFA with a reason and returns the account without MFA', async () => {
+    respond = () => ({ body: { ...USER, mfa_enabled: false } })
+    const user = await new ApiAdminUserRepository().resetMfa('u-1', ' Phone lost, confirmed by call ')
+    expect(calls.map((c) => [c.method, c.path, c.body, c.auth])).toEqual([['POST', '/admin/users/u-1/mfa/reset', { reason: 'Phone lost, confirmed by call' }, 'Bearer admin-token']])
+    expect(user).toMatchObject({ id: 'u-1', mfaEnrolled: false })
+    respond = () => ({ status: 409, body: { error: { code: 'mfa_not_enabled', message: 'Multi-factor authentication is not enabled for this account.' } } })
+    await expect(new ApiAdminUserRepository().resetMfa('u-1', 'Again')).rejects.toMatchObject({ code: 'mfa_not_enabled', kind: 'conflict' })
+  })
+
   it('passes a backend refusal on as an error with its message', async () => {
     respond = () => ({ status: 409, body: { error: { code: 'last_administrator', message: 'This is the last active administrator who can manage accounts and roles. Give that role to another administrator first.' } } })
     await expect(new ApiAdminUserRepository().update('u-1', { status: 'SUSPENDED' }, 'x', 'Why')).rejects.toMatchObject({ code: 'last_administrator', kind: 'conflict' })

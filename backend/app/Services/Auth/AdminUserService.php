@@ -25,7 +25,8 @@ use SensitiveParameter;
  * Administration of administrator accounts: invitation, status and role. Every change is authorised by the
  * controller (permission) and constrained here by rules that no permission overrides:
  *
- *  - nobody changes their own status or role (no self-lockout, no self-promotion);
+ *  - nobody changes their own status or role (no self-lockout, no self-promotion), and nobody resets their
+ *    own MFA here (that needs the password and a code, in Account security);
  *  - a role can only be granted by someone who holds every permission in it, platform-wide (no granting
  *    more than you have);
  *  - the platform must always keep one active administrator who can manage accounts and roles;
@@ -52,6 +53,7 @@ final class AdminUserService
         private readonly AuditRecorder $audit,
         private readonly TokenIssuer $tokens,
         private readonly SecurityEventRecorder $events,
+        private readonly MfaService $mfa,
     ) {}
 
     public function invite(string $name, string $email, Role $role, ?Market $market, AdminUser $actor): AdminUser
@@ -163,6 +165,29 @@ final class AdminUserService
         });
     }
 
+    /**
+     * For an administrator who lost the authenticator app and the recovery codes: removes the enrolment and
+     * signs the account out everywhere. The secret is deleted, never shown. The next sign-in needs the
+     * password only — or a new enrolment first, when MFA is mandatory.
+     */
+    public function resetMfa(AdminUser $admin, string $reason, AdminUser $actor): AdminUser
+    {
+        $this->assertNotSelf($admin, $actor);
+
+        return DB::transaction(function () use ($admin, $reason, $actor): AdminUser {
+            $locked = AdminUser::query()->whereKey($admin->getKey())->lockForUpdate()->firstOrFail();
+            if (! $locked->hasMfaEnabled()) {
+                throw ApiException::conflict('mfa_not_enabled', 'Multi-factor authentication is not enabled for this account.');
+            }
+
+            $revoked = $this->tokens->revokeAll($locked);
+            $this->mfa->resetByAdministrator($locked, $actor, $revoked);
+            $this->audit->record('admin_user.mfa_reset', $locked, $actor, ['mfa_enabled' => ['from' => true, 'to' => false]], $reason);
+
+            return $locked;
+        });
+    }
+
     private function sendInvitation(AdminUser $admin): void
     {
         $token = Str::random(64);
@@ -185,7 +210,7 @@ final class AdminUserService
     private function assertNotSelf(AdminUser $admin, AdminUser $actor): void
     {
         if ($admin->is($actor)) {
-            throw ApiException::conflict('cannot_change_own_account', 'You cannot change your own status or role. Ask another administrator.');
+            throw ApiException::conflict('cannot_change_own_account', 'You cannot change your own status, role or multi-factor authentication here. Ask another administrator.');
         }
     }
 

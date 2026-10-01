@@ -245,7 +245,7 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
 ### Administrator accounts
 
 `GET /admin/users`, `GET /admin/roles`, `POST /admin/users` (invite), `PATCH /admin/users/{id}/status`,
-`PUT /admin/users/{id}/role`, `POST /admin/users/{id}/invitation` (resend) — `admin.users.view` / `.manage`,
+`PUT /admin/users/{id}/role`, `POST /admin/users/{id}/invitation` (resend), `POST /admin/users/{id}/mfa/reset` — `admin.users.view` / `.manage`,
 `admin.roles.view` / `.manage`, each held platform-wide. `POST /auth/admin/invitation/accept` is public.
 
 - **Invitation**: the account is created INVITED with no password. The invited person gets a single-use link
@@ -258,6 +258,13 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   be granted by someone who holds every permission in it platform-wide; the last active administrator who can
   manage accounts and roles cannot be suspended, disabled or given a lesser role; DISABLED is final; a status that
   cannot sign in ends every session at once; a role change is effective on the next request of open sessions.
+- **MFA reset** (`POST /admin/users/{id}/mfa/reset`, `admin.users.manage`, reason required): for a colleague who
+  lost the authenticator app and the recovery codes. The enrolment is deleted (never returned), every session of
+  that account ends, a `MFA_DISABLED` security event (`via: admin_reset`) and an `admin_user.mfa_reset` audit event
+  are written. Not on your own account (409), nothing to reset (409 `mfa_not_enabled`). Afterwards the password
+  alone signs in — or, with `AUTH_MFA_REQUIRED_ADMIN=true`, the person must enrol again before getting a session.
+  The backend cannot check that the request really came from that person: the administrator must confirm it
+  outside the system, and the screen says so. The account owner is not notified by e-mail yet.
 - Every change writes an audit event (`admin_user.invited`, `.activated`, `.status_changed`, `.role_changed`) in
   addition to the security events. The response never contains the password, MFA secret or recovery codes.
 

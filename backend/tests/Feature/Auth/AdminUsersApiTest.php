@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Auth\Scope;
 use App\Enums\Permission as P;
 use App\Enums\PrincipalType;
+use App\Enums\SecurityEventType;
 use App\Enums\StaffStatus;
 use App\Models\AdminUser;
 use App\Models\AuditEvent;
@@ -12,8 +13,10 @@ use App\Models\Customer;
 use App\Models\Market;
 use App\Models\RestaurantUser;
 use App\Models\Role;
+use App\Models\SecurityEvent;
 use App\Notifications\AdminInvitationNotification;
 use App\Services\Rbac\RoleService;
+use App\Support\Totp;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -183,6 +186,57 @@ class AdminUsersApiTest extends TestCase
         $this->assertSame('Lea Dubois', collect($this->getJson('/api/v1/admin/audit-events?filter[target_type]=admin_users')->json('data'))->first()['target_label']);
     }
 
+    public function test_an_administrator_resets_the_mfa_of_a_colleague_who_lost_the_device(): void
+    {
+        $target = $this->adminWithRole('SUPPORT_ADMIN', ['name' => 'Lea Dubois']);
+        $target->forceFill(['mfa_secret' => Totp::generateSecret(), 'mfa_enabled_at' => now(), 'mfa_recovery_codes' => [hash('sha256', 'abcde-fghij')], 'mfa_last_used_step' => 1])->save();
+        $session = $this->bearer($target);
+        $this->getJson('/api/v1/auth/me', $session)->assertOk();
+        $url = "/api/v1/admin/users/{$target->public_id}/mfa/reset";
+
+        $this->actingAsPrincipal($this->super);
+        $this->assertTrue(collect($this->getJson('/api/v1/admin/users')->json('data'))->firstWhere('id', $target->public_id)['mfa_enabled']);
+        $this->postJson($url, [])->assertUnprocessable();
+        $this->postJson($url, ['reason' => 'x'])->assertUnprocessable();
+        $response = $this->postJson($url, ['reason' => 'Phone lost, identity confirmed by video call'])->assertOk()->assertJson(['id' => $target->public_id, 'mfa_enabled' => false, 'status' => 'ACTIVE']);
+        $this->assertStringNotContainsString('secret', strtolower($response->getContent()));
+
+        $target->refresh();
+        $this->assertSame([null, null, null, null], [$target->mfa_secret, $target->mfa_enabled_at, $target->mfa_recovery_codes, $target->mfa_last_used_step]);
+        $this->assertNull(DB::table('admin_users')->where('id', $target->id)->value('mfa_secret'));
+        // Signed out everywhere; the password alone signs in again (mandatory MFA is off in this test).
+        $this->assertSame(0, $target->tokens()->count());
+        $this->app['auth']->forgetGuards();
+        $this->getJson('/api/v1/auth/me', $session)->assertUnauthorized();
+
+        $audit = AuditEvent::query()->where('action', 'admin_user.mfa_reset')->sole();
+        $this->assertSame(['Phone lost, identity confirmed by video call', $this->super->public_id, $target->public_id, true, false], [$audit->reason, $audit->actor_public_id, $audit->target_public_id, $audit->changes['mfa_enabled']['from'], $audit->changes['mfa_enabled']['to']]);
+        $event = SecurityEvent::query()->where('event', SecurityEventType::MfaDisabled->value)->sole();
+        $this->assertSame([$target->id, 'admin_reset', 1], [$event->principal_id, $event->metadata['via'], $event->metadata['sessions_revoked']]);
+
+        // Nothing to reset a second time, and never your own.
+        $this->actingAsPrincipal($this->super);
+        $this->postJson($url, ['reason' => 'Again'])->assertConflict()->assertJsonPath('error.code', 'mfa_not_enabled');
+        $this->super->forceFill(['mfa_secret' => Totp::generateSecret(), 'mfa_enabled_at' => now()])->save();
+        $this->postJson("/api/v1/admin/users/{$this->super->public_id}/mfa/reset", ['reason' => 'My own'])->assertConflict()->assertJsonPath('error.code', 'cannot_change_own_account');
+        $this->assertTrue($this->super->refresh()->hasMfaEnabled());
+        $this->assertSame(1, AuditEvent::query()->where('action', 'admin_user.mfa_reset')->count());
+    }
+
+    public function test_after_a_reset_an_account_that_must_use_mfa_enrols_again_at_sign_in(): void
+    {
+        config(['auth_security.mfa.required.admin' => true]);
+        $target = $this->adminWithRole('SUPPORT_ADMIN', ['password' => self::PASSWORD]);
+        $target->forceFill(['mfa_secret' => Totp::generateSecret(), 'mfa_enabled_at' => now()])->save();
+
+        $this->actingAsPrincipal($this->super);
+        $this->postJson("/api/v1/admin/users/{$target->public_id}/mfa/reset", ['reason' => 'Authenticator app lost'])->assertOk();
+
+        $this->app['auth']->forgetGuards();
+        $this->postJson('/api/v1/auth/admin/login', ['email' => $target->email, 'password' => self::PASSWORD, 'device_name' => 'Test'])
+            ->assertOk()->assertJson(['mfa_required' => false, 'mfa_enrollment_required' => true]);
+    }
+
     public function test_a_role_change_takes_effect_at_once_and_replaces_the_previous_role(): void
     {
         $india = Market::factory()->india()->create();
@@ -255,7 +309,7 @@ class AdminUsersApiTest extends TestCase
         $endpoints = [
             ['GET', '/api/v1/admin/users', []], ['GET', '/api/v1/admin/roles', []],
             ['POST', '/api/v1/admin/users', ['name' => 'New', 'email' => 'new@foodonthego.example', 'role' => 'ANALYST']],
-            ['PATCH', $u.'/status', ['status' => 'SUSPENDED', 'reason' => 'Test']], ['PUT', $u.'/role', ['role' => 'ANALYST', 'reason' => 'Test']], ['POST', $u.'/invitation', []],
+            ['PATCH', $u.'/status', ['status' => 'SUSPENDED', 'reason' => 'Test']], ['PUT', $u.'/role', ['role' => 'ANALYST', 'reason' => 'Test']], ['POST', $u.'/invitation', []], ['POST', $u.'/mfa/reset', ['reason' => 'Test']],
         ];
 
         foreach ($endpoints as [$method, $url, $body]) {

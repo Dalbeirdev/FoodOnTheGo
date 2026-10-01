@@ -90,6 +90,13 @@ class AdminUserController extends Controller
         return new AdminUserResource($admin->load('roleAssignments.role'));
     }
 
+    public function resetMfa(Request $request, AdminUser $adminUser): AdminUserResource
+    {
+        $input = $request->validate(['reason' => self::REASON]);
+
+        return new AdminUserResource($this->admins->resetMfa($adminUser, $input['reason'], $request->user())->load('roleAssignments.role'));
+    }
+
     public function resendInvitation(AdminUser $adminUser): JsonResponse
     {
         $this->admins->resendInvitation($adminUser);

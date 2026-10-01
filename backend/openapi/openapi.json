@@ -2947,6 +2947,67 @@
         }
       }
     },
+    "/admin/users/{adminUser}/mfa/reset": {
+      "post": {
+        "summary": "Remove another administrator's MFA enrolment (lost device); reason required; ends that account's sessions; not your own account (admin.users.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "adminUser",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonOnly"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminUser",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/admin/users/{adminUser}/invitation": {
       "post": {
         "summary": "Send a new invitation link to an INVITED account; earlier links stop working (admin.users.manage)",
@@ -6445,6 +6506,20 @@
               "null"
             ]
           },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        }
+      },
+      "ReasonOnly": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
           "reason": {
             "type": "string",
             "minLength": 3,

@@ -20,6 +20,8 @@ use SensitiveParameter;
  * - A code is accepted once: the time step of the last accepted code is stored.
  * - Recovery codes are single use and stored hashed.
  * - Turning MFA off needs the password and a valid code; there is no "disable by e-mail" path.
+ * - A person who lost the authenticator app and the recovery codes is helped by an administrator, who removes
+ *   the enrolment (never reads it); the caller authorises, audits and ends the account's sessions.
  */
 final class MfaService
 {
@@ -108,6 +110,18 @@ final class MfaService
 
         $this->events->record(SecurityEventType::MfaDisabled, $user, ['method' => 'totp']);
         MfaChanged::dispatch($user, false, $actor ?? $user);
+    }
+
+    /**
+     * Removes the enrolment of someone else's account (lost device). No code is asked for — the caller has
+     * authorised the acting administrator. If MFA is mandatory the person enrols again at the next sign-in.
+     */
+    public function resetByAdministrator(AdminUser|RestaurantUser $user, Principal $actor, int $sessionsRevoked): void
+    {
+        $user->forceFill(['mfa_secret' => null, 'mfa_enabled_at' => null, 'mfa_recovery_codes' => null, 'mfa_last_used_step' => null])->save();
+
+        $this->events->record(SecurityEventType::MfaDisabled, $user, ['method' => 'totp', 'via' => 'admin_reset', 'sessions_revoked' => $sessionsRevoked]);
+        MfaChanged::dispatch($user, false, $actor);
     }
 
     /**

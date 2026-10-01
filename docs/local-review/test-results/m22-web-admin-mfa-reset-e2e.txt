@@ -1,0 +1,19 @@
+PASS P1 preparation: Kenji has MFA on (sign-in now asks for a code) and one signed-in device — 200/200
+PASS S1 "Reset MFA" is offered only for accounts that have MFA on — here exactly Kenji — 1 button(s)
+PASS S2 your own row has no reset button
+PASS D1 the dialog names the person, warns to confirm their identity first and says what happens (signed out, password only until set up again)
+PASS A11Y axe (reset MFA dialog) no serious / critical violations
+PASS D2 without a reason nothing is sent
+PASS D3 the backend resets it (200); the answer carries no secret — 200
+PASS D4 the list shows Kenji without MFA and the reset button is gone
+PASS E1 Kenji was signed out on his device (old token 401) — 401
+PASS E2 Kenji signs in with the password alone (mandatory MFA is off locally) and MFA is off
+PASS E3 audit trail: who, whom and why — Alex Morgan → Kenji Watanabe
+PASS E4 security event MFA_DISABLED for Kenji, marked as an administrator reset — {"id":"392c0725b03a1f423926","event":"MFA_DISABLED","severity":"high","principal_type":"admin_user","principal_name":"Kenji Watanabe","known_account":true,"ip":"127.0.0.1","user_agent":"Mozilla/5.0 (W
+PASS E5 the Audit screen lists the reset
+PASS R1 refused: nothing to reset (409), your own account (409), without the permission (403), without a session (401) — 409/409/403/401
+PASS V1 Admin Users at 390 px: no horizontal page overflow — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+PASS Z fixture accounts restored by the fixture seeder
+
+17/17 passed

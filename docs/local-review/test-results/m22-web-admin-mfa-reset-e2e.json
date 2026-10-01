@@ -1,0 +1,94 @@
+{
+  "module": "M21 follow-up (CF-314: administrator resets a colleague's MFA)",
+  "mode": "real local backend",
+  "date": "2026-10-01T11:16:12.209Z",
+  "total": 17,
+  "passed": 17,
+  "results": [
+    {
+      "name": "P1 preparation: Kenji has MFA on (sign-in now asks for a code) and one signed-in device",
+      "pass": true,
+      "detail": "200/200"
+    },
+    {
+      "name": "S1 \"Reset MFA\" is offered only for accounts that have MFA on — here exactly Kenji",
+      "pass": true,
+      "detail": "1 button(s)"
+    },
+    {
+      "name": "S2 your own row has no reset button",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 the dialog names the person, warns to confirm their identity first and says what happens (signed out, password only until set up again)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (reset MFA dialog) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 without a reason nothing is sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D3 the backend resets it (200); the answer carries no secret",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D4 the list shows Kenji without MFA and the reset button is gone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E1 Kenji was signed out on his device (old token 401)",
+      "pass": true,
+      "detail": "401"
+    },
+    {
+      "name": "E2 Kenji signs in with the password alone (mandatory MFA is off locally) and MFA is off",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 audit trail: who, whom and why",
+      "pass": true,
+      "detail": "Alex Morgan → Kenji Watanabe"
+    },
+    {
+      "name": "E4 security event MFA_DISABLED for Kenji, marked as an administrator reset",
+      "pass": true,
+      "detail": "{\"id\":\"392c0725b03a1f423926\",\"event\":\"MFA_DISABLED\",\"severity\":\"high\",\"principal_type\":\"admin_user\",\"principal_name\":\"Kenji Watanabe\",\"known_account\":true,\"ip\":\"127.0.0.1\",\"user_agent\":\"Mozilla/5.0 (W"
+    },
+    {
+      "name": "E5 the Audit screen lists the reset",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R1 refused: nothing to reset (409), your own account (409), without the permission (403), without a session (401)",
+      "pass": true,
+      "detail": "409/409/403/401"
+    },
+    {
+      "name": "V1 Admin Users at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z fixture accounts restored by the fixture seeder",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

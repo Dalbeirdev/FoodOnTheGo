@@ -42,6 +42,8 @@ export class ApiAdminUserRepository implements AdminUserRepository {
     if (patch.role) return toAdminUser(await api<AdminUserDto>(`/admin/users/${id}/role`, { method: 'PUT', context: 'admin', body: { role: patch.role.toUpperCase(), reason: reason.trim() } }))
     throw new Error('nothing_to_update')
   }
+  /** The enrolment is deleted, never returned; the account is signed out on every device. */
+  async resetMfa(id: string, reason: string): Promise<AdminUser> { return toAdminUser(await api<AdminUserDto>(`/admin/users/${id}/mfa/reset`, { method: 'POST', context: 'admin', body: { reason: reason.trim() } })) }
   async resendInvitation(id: string): Promise<void> { await api(`/admin/users/${id}/invitation`, { method: 'POST', context: 'admin' }) }
 }
 

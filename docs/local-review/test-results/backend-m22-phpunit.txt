@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:30.189, Memory: 82.00 MB
+Time: 00:34.735, Memory: 82.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -30,6 +30,8 @@ Admin Users Api (Tests\Feature\Auth\AdminUsersApi)
  ✔ An invitation creates an inactive account and the invited person sets the password
  ✔ Invitations are validated expire and can be resent
  ✔ Suspending ends access at once and status changes follow the rules
+ ✔ An administrator resets the mfa of a colleague who lost the device
+ ✔ After a reset an account that must use mfa enrols again at sign in
  ✔ A role change takes effect at once and replaces the previous role
  ✔ Nobody changes their own account or removes the last full administrator
  ✔ A role cannot be granted by someone who does not hold its permissions
@@ -333,5 +335,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (260 tests, 2490 assertions)
-{"tool":"phpunit","result":"passed","tests":260,"passed":260,"assertions":2490,"duration_ms":30189}
+OK (262 tests, 2517 assertions)
+{"tool":"phpunit","result":"passed","tests":262,"passed":262,"assertions":2517,"duration_ms":34749}
