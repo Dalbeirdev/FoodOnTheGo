@@ -1,0 +1,13 @@
+PASS P1 at 390 px every account row is compact (at most 90 px high; it was about 135–200 px) — 8 rows, heights 73,87,87,87,87,87,87,87
+PASS P2 no horizontal scrolling: neither the page nor the list — {"sw":390,"cw":390,"tw":332,"tc":332}
+PASS P3 a row shows name, e-mail, status and role
+PASS P4 the action buttons are folded away; your own row and nothing else lacks the "Actions" button
+PASS P5 "Actions" unfolds the buttons of that row only and announces it (aria-expanded) — 3 buttons
+PASS P6 an unfolded action works: Disable opens its warning dialog
+PASS P7 tapping "Actions" again folds them back
+PASS A11Y axe (admin users at 390 px) no serious / critical violations
+PASS P8 the table keeps its meaning for screen readers (rows and cells still exposed)
+PASS P9 on a desktop nothing changed: buttons visible in the row, no "Actions" button, table header shown
+PASS Z no uncaught page errors
+
+11/11 passed

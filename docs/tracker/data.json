@@ -21818,6 +21818,22 @@
       "issue": "-",
       "carry": "CF-314",
       "notes": "Owner request 2026-10-01. In mock mode (unit tests, share builds) the short list is shown whole, without search or pager."
+    },
+    {
+      "id": "M21-136",
+      "module": "M21",
+      "req": "Admin Users on a phone (up to 640 px): each account is a compact two-line block (name, e-mail and status; role and one \"Actions\" button) with no sideways scrolling; \"Actions\" unfolds the buttons of that row. Desktop layout unchanged",
+      "platform": "WEB",
+      "cat": "Responsive",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-users-phone-e2e.json (11/11); docs/local-review/screenshots/web-m22/admin-users-rest/v-390-users.png, v-390-users-actions-open.png",
+      "issue": "-",
+      "carry": "-",
+      "notes": "Owner request 2026-10-01. Row height at 390 px: 87 px (was about 135–200 px). MFA state and last sign-in stay hidden on a phone, as before."
     }
   ],
   "pages": [
@@ -31834,6 +31850,16 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2520 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (469/469); docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27); docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (17/17)",
+      "2026-10-01"
+    ],
+    [
+      "TE-225",
+      "M21",
+      "WEB",
+      "Admin Users at 390 px against the real local backend: row height, no horizontal scrolling of page or list, row content, actions folded / unfolded per row with aria-expanded, an unfolded action opens its dialog, table semantics kept, axe, desktop unchanged; web vitest 469; Admin Users e2e 27/27 and extras e2e 24/24 re-run",
+      "e2e + regression",
+      "PASS",
+      "docs/local-review/test-results/m22-web-admin-users-phone-e2e.json (11/11); docs/local-review/test-results/web-vitest-m22.txt (469/469)",
       "2026-10-01"
     ]
   ],

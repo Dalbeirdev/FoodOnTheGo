@@ -103,6 +103,22 @@
 .db-badge--muted { background: #eef0f4; color: #3f4756; } .db-badge--navy { background: #e6e9f2; color: #1f2a44; }
 
 @media (max-width: 1200px) { .adm-grid--kpi8 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .adm-grid--3 { grid-template-columns: 1fr 1fr; } .adm-grid--21, .adm-grid--12 { grid-template-columns: 1fr; } }
+.adm-users__toggle { display: none; }
+/* Admin Users on a phone: each account is a compact two-line block (name + status, role + one "Actions" button)
+   instead of a wide table row; the actions unfold under the row that was tapped. */
+@media (max-width: 640px) {
+  .adm-users thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .adm-users, .adm-users tbody { display: block; }
+  .adm-users tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 8px 2px; border-bottom: 1px solid var(--db-line); }
+  .adm-users td { padding: 0; border: 0; min-width: 0; }
+  .adm-users__user { grid-column: 1; grid-row: 1; overflow-wrap: anywhere; }
+  .adm-users__status { grid-column: 2; grid-row: 1; justify-self: end; }
+  .adm-users__role { grid-column: 1; grid-row: 2; padding-inline-start: 46px !important; font-size: 0.85rem; color: var(--db-muted); }
+  .adm-users__actions { display: contents; }
+  .adm-users__toggle { display: inline-flex; grid-column: 2; grid-row: 2; justify-self: end; }
+  .adm-users__actions .db-table__actions { display: none; grid-column: 1 / -1; justify-content: flex-start; padding-block: 6px 2px; }
+  .adm-users__actions .db-table__actions.is-open { display: flex; }
+}
 @media (max-width: 900px) {
   .adm-hide-mobile { display: none; }
   .adm-grid--3 { grid-template-columns: 1fr; }
