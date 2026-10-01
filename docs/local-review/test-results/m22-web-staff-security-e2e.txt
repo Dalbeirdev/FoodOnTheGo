@@ -1,0 +1,30 @@
+PASS P1 the admin sign-in links to "Forgot your password?" (/admin/forgot-password, no session needed)
+PASS A11Y axe (forgot password) no serious / critical violations
+PASS P2 the answer is identical for an unknown e-mail and a real account; only the real account gets a link (written to the local server log — no e-mail is sent here)
+PASS P3 the reset link opens "Choose a new password"; the token is removed from the address bar
+PASS P4 a short password and two different passwords are refused before anything is sent
+PASS A11Y axe (reset password) no serious / critical violations
+PASS P5 password changed through the link: the old password no longer signs in, the new one does, and the link cannot be used twice
+PASS S1 "Account security" is reached from the profile menu and shows MFA (Off), Password and Signed-in devices
+PASS A11Y axe (account security) no serious / critical violations
+PASS S2 another signed-in device is listed and can be signed out from here; this device has no such button — 3 sessions before
+PASS S3 changing the password needs the correct current password (refused by the backend)
+PASS S4 password changed back from the screen: the fixture password signs in again, the temporary one does not; this session stays signed in — 401
+PASS M1 setup shows a QR code drawn in the browser and the key for manual entry
+PASS A11Y axe (MFA setup) no serious / critical violations
+PASS M2 a wrong code does not switch MFA on — That code is not correct.
+PASS M3 the right code switches MFA on and the recovery codes are shown once; "Continue" waits for "I have saved these codes" — 8 codes
+PASS M4 the page shows MFA On (state re-read from the backend) and the codes are gone from the screen
+PASS M5 nothing secret is kept in the browser: no setup key, recovery code or password in storage
+PASS M6 the next sign-in asks for a code after the password (and the API issues no token before it)
+PASS M7 signed in with password + authenticator code
+PASS M8 turning MFA off needs the current password as well as a code (refused with a wrong password)
+PASS M9 MFA is off again: the password alone signs in
+PASS M10 the security events show the whole story (reset requested, password changed, MFA enabled, wrong MFA / sign-ins, MFA disabled) — without any secret — LOGIN_SUCCESS, MFA_DISABLED, LOGOUT, MFA_ENABLED, LOGIN_FAILED, PASSWORD_CHANGED, SESSION_REVOKED, PASSWORD_RESET_REQUESTED, PERMISSION_CHANGED
+PASS R1 the Restaurant Dashboard has the same screens: forgot-password link, reset page (an incomplete link sends nothing), Account security with MFA, password and devices
+PASS R2 "Sign out everywhere" ends this session too and returns to the sign-in form
+PASS V1 Account security at 390 px: no horizontal page overflow — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+PASS Z fixture accounts restored by the fixture seeder: Kenji signs in with the fixture password and has no MFA
+
+28/28 passed

@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import AccountSecurityPage from '../auth/staff/AccountSecurityPage'
+import { ForgotPasswordPage, ResetPasswordPage } from '../auth/staff/StaffPasswordPages'
 import { StaffAuthGate } from '../auth/staff/StaffSession'
 import { DashboardProvider } from './DashboardContext'
 import DashboardLayout, { RequirePermission } from './DashboardLayout'
@@ -23,9 +25,13 @@ import HelpDashboardPage from './pages/HelpPage'
 export default function DashboardApp() {
   return (
     <Routes>
+    {/* Public: no session yet. */}
+    <Route path="forgot-password" element={<ForgotPasswordPage context="restaurant" />} />
+    <Route path="reset-password" element={<ResetPasswordPage context="restaurant" />} />
     <Route path="/" element={<StaffAuthGate context="restaurant"><DashboardProvider><DashboardLayout /></DashboardProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<OverviewPage />} />
+      <Route path="account-security" element={<AccountSecurityPage context="restaurant" />} />
       <Route path="orders" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />
       <Route path="orders/:orderNumber" element={<RequirePermission perm="orders.view"><OrdersPage /></RequirePermission>} />
       <Route path="pickup-verification" element={<RequirePermission perm="pickup.verify"><PickupVerificationPage /></RequirePermission>} />

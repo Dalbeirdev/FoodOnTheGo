@@ -105,6 +105,7 @@ function ProfileMenu() {
             <p className="db-muted adm-small">{t('adm.header.devNote', undefined, a.locale)}</p></div>
           </>)}
           <Link to={`${BASE}/settings`} className="db-profile__signout" role="menuitem" onClick={() => setOpen(false)}>{t('adm.nav.settings', undefined, a.locale)}</Link>
+          {session.mode === 'api' && <Link to={`${BASE}/account-security`} className="db-profile__signout" role="menuitem" onClick={() => setOpen(false)} data-testid="account-security-link">Account security</Link>}
           {session.mode === 'api' && <p className="db-muted adm-small" dir="auto">{a.admin.email}</p>}
           <Link to="/" className="db-profile__signout" role="menuitem">{t('adm.header.exit', undefined, a.locale)}</Link>
           {session.mode === 'api' && <button type="button" className="db-profile__signout" role="menuitem" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout">Sign out</button>}

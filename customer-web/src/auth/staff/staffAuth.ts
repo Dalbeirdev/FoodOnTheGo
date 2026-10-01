@@ -16,7 +16,11 @@ export type StaffPrincipal = { id: string; name: string; email: string; status: 
 type PrincipalDto = { principal_type: string; id: string; name: string; email: string; status: string; mfa_enabled: boolean; last_login_at: string | null; roles: StaffRole[]; permissions: string[] }
 type LoginDto = { mfa_required: boolean; mfa_challenge?: string; mfa_enrollment_required?: boolean; token?: string; principal?: PrincipalDto }
 
-export type StaffLoginResult = { kind: 'signed_in'; principal: StaffPrincipal } | { kind: 'mfa_required'; challenge: string } | { kind: 'mfa_enrollment_required' }
+/** enrolToken: a token that can do nothing but enrol in MFA. It is kept in memory only — it is not a session. */
+export type StaffLoginResult = { kind: 'signed_in'; principal: StaffPrincipal } | { kind: 'mfa_required'; challenge: string } | { kind: 'mfa_enrollment_required'; enrolToken: string | null }
+export type StaffDeviceSession = { id: string; device: string | null; current: boolean; createdAt: string | null; lastUsedAt: string | null; expiresAt: string | null }
+export type MfaSetup = { secret: string; otpauthUri: string }
+type SessionDto = { id: string; device: string | null; current: boolean; created_at: string | null; last_used_at: string | null; expires_at: string | null }
 
 const toPrincipal = (p: PrincipalDto): StaffPrincipal => ({ id: p.id, name: p.name, email: p.email, status: p.status, mfaEnabled: p.mfa_enabled, lastLoginAt: p.last_login_at, roles: p.roles, permissions: p.permissions })
 const expected = { restaurant: 'RESTAURANT_USER', admin: 'ADMIN_USER' } as const
@@ -32,15 +36,20 @@ export function staffErrorMessage(e: unknown): string {
     case 'mfa_code_invalid': return 'That code is not correct.'
     case 'mfa_challenge_invalid': return 'This sign-in attempt has expired. Please sign in again.'
   }
-  if (e.kind === 'validation') return e.field('email') ?? e.field('password') ?? e.field('code') ?? 'Please check what you entered.'
+  switch (e.code) {
+    case 'reset_token_invalid': return 'This reset link is invalid or has expired. Request a new one.'
+    case 'mfa_already_enabled': return 'Multi-factor authentication is already enabled.'
+    case 'mfa_setup_not_started': return 'Start the setup again.'
+  }
+  if (e.kind === 'validation') return e.field('current_password') ?? e.field('email') ?? e.field('password') ?? e.field('code') ?? e.field('token') ?? 'Please check what you entered.'
   return e.kind === 'server' ? 'Something went wrong on our side. Please try again.' : e.message
 }
 
 export function staffAuth(context: StaffContext) {
   const finish = (dto: LoginDto): StaffLoginResult => {
     if (dto.mfa_required && dto.mfa_challenge) return { kind: 'mfa_required', challenge: dto.mfa_challenge }
-    // A token that can only enrol in MFA is not a dashboard session; enrolment has no screen yet (tracked).
-    if (dto.mfa_enrollment_required || !dto.token || !dto.principal) return { kind: 'mfa_enrollment_required' }
+    // A token that can only enrol in MFA is not a dashboard session: it is handed to the enrolment screen and never stored.
+    if (dto.mfa_enrollment_required || !dto.token || !dto.principal) return { kind: 'mfa_enrollment_required', enrolToken: dto.token ?? null }
     tokens.set(context, dto.token)
     return { kind: 'signed_in', principal: toPrincipal(dto.principal) }
   }
@@ -65,6 +74,30 @@ export function staffAuth(context: StaffContext) {
         throw e
       }
     },
+    /* ---- password reset (public; the answer never reveals whether the e-mail has an account) ---- */
+    async forgotPassword(email: string): Promise<void> { await api(`/auth/${context}/password/forgot`, { method: 'POST', auth: false, body: { email } }) },
+    async resetPassword(token: string, password: string): Promise<void> { await api(`/auth/${context}/password/reset`, { method: 'POST', auth: false, body: { token, password, password_confirmation: password } }) },
+
+    /* ---- credentials of the signed-in user. `enrolToken` is used instead of the session while enrolling at sign-in. ---- */
+    async mfaSetup(enrolToken?: string): Promise<MfaSetup> {
+      const d = await api<{ secret: string; otpauth_uri: string }>('/auth/mfa/totp/setup', { method: 'POST', context, token: enrolToken })
+      return { secret: d.secret, otpauthUri: d.otpauth_uri }
+    },
+    /** Completes enrolment. Returns the recovery codes (shown once). An enrol-only token is replaced by a real session. */
+    async mfaConfirm(code: string, enrolToken?: string): Promise<{ recoveryCodes: string[]; principal: StaffPrincipal }> {
+      const d = await api<{ recovery_codes: string[]; principal: PrincipalDto; token?: string }>('/auth/mfa/totp/confirm', { method: 'POST', context, token: enrolToken, body: { code: code.trim() } })
+      if (d.token) tokens.set(context, d.token)
+      return { recoveryCodes: d.recovery_codes, principal: toPrincipal(d.principal) }
+    },
+    async mfaDisable(password: string, code: string): Promise<void> { await api('/auth/mfa/totp', { method: 'DELETE', context, body: { password, code: code.trim() } }) },
+    async changePassword(current: string, password: string): Promise<void> { await api('/auth/password', { method: 'POST', context, body: { current_password: current, password, password_confirmation: password } }) },
+    async sessions(): Promise<StaffDeviceSession[]> {
+      const d = await api<SessionDto[] | { data: SessionDto[] }>('/auth/sessions', { context })
+      return (Array.isArray(d) ? d : d.data ?? []).map((s) => ({ id: s.id, device: s.device, current: s.current, createdAt: s.created_at, lastUsedAt: s.last_used_at, expiresAt: s.expires_at }))
+    },
+    async revokeSession(id: string): Promise<void> { await api(`/auth/sessions/${id}`, { method: 'DELETE', context }) },
+    /** Ends every session of the account, this one included. */
+    async logoutAll(): Promise<void> { try { await api('/auth/logout-all', { method: 'POST', context }) } finally { tokens.set(context, null) } },
     async logout(): Promise<void> {
       try { if (tokens.get(context)) await api('/auth/logout', { method: 'POST', context }) } catch { /* the local session ends either way */ }
       tokens.set(context, null)

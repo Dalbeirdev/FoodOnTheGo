@@ -1,9 +1,9 @@
 {
   "module": "M19",
-  "ranAt": "2026-10-01T07:38:29.757Z",
+  "ranAt": "2026-10-01T10:25:02.119Z",
   "base": "http://localhost:5173",
   "fixtureScope": "india",
-  "order": "FOTG-T96H-HT8L",
+  "order": "FOTG-RDJV-QE7M",
   "total": 68,
   "passed": 68,
   "routes": 72,
@@ -77,12 +77,12 @@
     {
       "name": "A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status",
       "pass": true,
-      "detail": "FOTG-T96H-HT8L"
+      "detail": "FOTG-RDJV-QE7M"
     },
     {
       "name": "A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside",
       "pass": true,
-      "detail": "pv_dev_891d8374a2e340c7dd600f14545fbc99"
+      "detail": "pv_dev_3335847c311080e804fbafeaf51e99d2"
     },
     {
       "name": "A13 order snapshot: integer minor-unit pricing in INR, restaurant zone Asia/Kolkata, market IN",

@@ -9,3 +9,21 @@
 .staff-login__error { margin: 0; padding: 10px 12px; border-radius: 10px; background: #fdecec; color: #9f1d1d; font-size: 0.9375rem; }
 .staff-login__notice { margin: 0; padding: 10px 12px; border-radius: 10px; background: #eaf2ff; color: #123a7a; font-size: 0.9375rem; }
 .staff-login__back { align-self: center; color: #475467; font-size: 0.875rem; }
+
+/* Multi-factor setup, password and session cards (shared by the sign-in screen and Account security). */
+.staff-mfa { display: flex; flex-direction: column; gap: 12px; max-inline-size: 460px; }
+.staff-mfa .db-field { display: flex; flex-direction: column; gap: 6px; }
+.staff-mfa .db-field label { font-weight: 600; font-size: 0.875rem; }
+.staff-mfa__title { margin: 0; font-size: 1.125rem; }
+.staff-mfa__steps { margin: 0; padding-inline-start: 20px; display: grid; gap: 4px; color: #344054; }
+.staff-mfa__qr { border: 1px solid #e4e7ec; border-radius: 12px; background: #fff; }
+.staff-mfa__key { margin: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.staff-mfa__key span { font-weight: 600; font-size: 0.875rem; }
+.staff-mfa__key code, .staff-mfa__codes code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9375rem; letter-spacing: 0.04em; overflow-wrap: anywhere; }
+.staff-mfa__codes { list-style: none; margin: 0; padding: 12px 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; background: #f4f6fa; border-radius: 12px; }
+.staff-mfa__row { display: flex; flex-wrap: wrap; gap: 10px; }
+.staff-mfa__check { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.staff-sec { display: flex; flex-direction: column; gap: 12px; padding: 20px; margin-block-end: 16px; }
+.staff-sec__head { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.staff-sec__head h2 { margin: 0; font-size: 1.125rem; }
+@media (max-width: 420px) { .staff-mfa__codes { grid-template-columns: 1fr; } }

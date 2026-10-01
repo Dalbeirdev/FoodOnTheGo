@@ -497,6 +497,13 @@ that were made are audited — a refused attempt is not an audit event.
   (`ApiAdminSecurityRepository`, `SecurityBackendPage.tsx`). The Admin Users screen (`ApiAdminUserRepository`) lists, invites,
   re-roles and suspends administrators on the backend; `/admin/accept-invitation` is the public page where an
   invited administrator sets a password.
+- Staff account security (both dashboards, `customer-web/src/auth/staff/`): `/…/forgot-password` and
+  `/…/reset-password` (public; the token travels in the URL fragment and is removed from the address bar),
+  `/…/account-security` (profile menu: MFA on / off, change password, signed-in devices). `MfaSetup.tsx` draws
+  the QR code in the browser, confirms with a first code and shows the recovery codes once; the same component
+  runs on the sign-in screen when the backend answers `mfa_enrollment_required` (the enrol-only token stays in
+  memory). Locally no e-mail is sent — the reset link is written to `storage/logs/laravel.log` — and mandatory
+  MFA is off (`AUTH_MFA_REQUIRED_ADMIN=false`), so enrol-at-sign-in is covered by a unit test only.
 
 ## 10. Not built yet
 

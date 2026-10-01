@@ -5,6 +5,8 @@ import { authMode } from '../authMode'
 import { staffAuth, staffErrorMessage, type StaffContext, type StaffPrincipal } from './staffAuth'
 import '../../dashboard/dashboard.css'
 import './staff-login.css'
+import { MfaSetup } from './MfaSetup'
+import { STAFF_BASE } from './StaffPasswordPages'
 
 /**
  * Sign-in gate for the Restaurant Dashboard and the Platform Admin (Module 21).
@@ -16,7 +18,8 @@ import './staff-login.css'
  * A 401 on any call of this context returns to the sign-in form once (no redirect loop). A 403 for one resource is
  * shown by the page as "access denied" and does not sign the user out.
  */
-export type StaffSession = { mode: 'mock' } | { mode: 'api'; principal: StaffPrincipal; logout: () => Promise<void> }
+/** refresh: re-reads the session from the backend (after the person changed MFA, or signed out everywhere). */
+export type StaffSession = { mode: 'mock' } | { mode: 'api'; principal: StaffPrincipal; logout: () => Promise<void>; refresh: () => Promise<void> }
 const Ctx = createContext<StaffSession>({ mode: 'mock' })
 export const useStaffSession = (): StaffSession => useContext(Ctx)
 
@@ -44,7 +47,8 @@ export function StaffAuthGate({ context, children }: { context: StaffContext; ch
   }, [live, context])
 
   const session = useMemo<StaffSession>(() => (live && principal
-    ? { mode: 'api', principal, logout: async () => { await auth.logout(); setPrincipal(null); setNotice('You have been signed out.'); setState('signed_out') } }
+    ? { mode: 'api', principal, logout: async () => { await auth.logout(); setPrincipal(null); setNotice('You have been signed out.'); setState('signed_out') },
+      refresh: async () => { try { const p = await auth.me(); setPrincipal(p); if (!p) { setNotice('You have been signed out.'); setState('signed_out') } } catch { /* keep the current view; the next request reports the problem */ } } }
     : { mode: 'mock' }), [live, principal, auth])
 
   if (!live) return <Ctx.Provider value={{ mode: 'mock' }}>{children}</Ctx.Provider>
@@ -63,6 +67,8 @@ export function StaffAuthGate({ context, children }: { context: StaffContext; ch
 function StaffLogin({ context, notice, onSignedIn }: { context: StaffContext; notice: string | null; onSignedIn: (p: StaffPrincipal) => void }) {
   const auth = useMemo(() => staffAuth(context), [context])
   const id = useId(); const copy = COPY[context]
+  // An account that must enrol in MFA first gets an enrol-only token: it is held here, in memory, for the setup screen.
+  const [enrolToken, setEnrolToken] = useState<string | null>(null)
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [code, setCode] = useState('')
   const [challenge, setChallenge] = useState<string | null>(null)
   const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null)
@@ -75,6 +81,7 @@ function StaffLogin({ context, notice, onSignedIn }: { context: StaffContext; no
       const result = challenge ? await auth.verifyMfa(challenge, code) : await auth.login(email.trim(), password)
       if (result.kind === 'signed_in') { setPassword(''); onSignedIn(result.principal); return }
       if (result.kind === 'mfa_required') { setChallenge(result.challenge); setPassword(''); setCode('') }
+      else if (result.enrolToken) { setPassword(''); setEnrolToken(result.enrolToken) }
       else setError('This account must set up multi-factor authentication before it can sign in. Please contact your administrator.')
     } catch (err) {
       const message = staffErrorMessage(err)
@@ -83,6 +90,16 @@ function StaffLogin({ context, notice, onSignedIn }: { context: StaffContext; no
       setError(message)
     } finally { setBusy(false) }
   }
+
+  if (enrolToken) return (
+    <main className="staff-login" id="main">
+      <div className="staff-login__card db-card" data-testid="staff-enrol">
+        <p className="staff-login__brand">{copy.brand}</p>
+        <p className="staff-login__notice" role="status">Your account must use multi-factor authentication. Set it up now to finish signing in.</p>
+        <MfaSetup context={context} enrolToken={enrolToken} onCancel={() => setEnrolToken(null)} onDone={(p) => { setEnrolToken(null); onSignedIn(p) }} />
+      </div>
+    </main>
+  )
 
   return (
     <main className="staff-login" id="main">
@@ -112,6 +129,7 @@ function StaffLogin({ context, notice, onSignedIn }: { context: StaffContext; no
         )}
         <button type="submit" className="db-btn db-btn--primary staff-login__submit" disabled={busy || (challenge ? !code.trim() : !email.trim() || !password)} data-testid="staff-login-submit">{busy ? 'Signing in…' : challenge ? 'Verify and sign in' : 'Sign in'}</button>
         {challenge && <button type="button" className="db-btn db-btn--ghost" onClick={() => { setChallenge(null); setCode(''); setError(null) }}>Use a different account</button>}
+        {!challenge && <Link to={`${STAFF_BASE[context]}/forgot-password`} className="staff-login__back" data-testid="staff-forgot-link">Forgot your password?</Link>}
         <Link to="/" className="staff-login__back">Back to FoodOnTheGo</Link>
       </form>
     </main>

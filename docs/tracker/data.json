@@ -21674,6 +21674,70 @@
       "issue": "-",
       "carry": "CF-285",
       "notes": "Owner request 2026-10-01. Disabling an account, market-scoped role assignment and MFA reset have an API path or are open (CF-314); the role dialog assigns platform-wide roles."
+    },
+    {
+      "id": "M21-127",
+      "module": "M21",
+      "req": "Forgot / reset password screens for the Restaurant Dashboard and the Platform Admin (/…/forgot-password, /…/reset-password): same answer whether or not the account exists; token in the URL fragment, removed from the address bar; single-use link; a reset signs out every device",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28); docs/local-review/test-results/web-vitest-m22.txt (466/466); docs/local-review/screenshots/web-m22/staff-security/",
+      "issue": "-",
+      "carry": "CF-282",
+      "notes": "Owner request 2026-10-01. Locally no e-mail is sent: the link is written to the server log (CF-315)."
+    },
+    {
+      "id": "M21-128",
+      "module": "M21",
+      "req": "MFA enrolment screen (authenticator app): QR code drawn in the browser + manual key, confirmation with a first code, recovery codes shown once with an \"I have saved them\" step; turning MFA off needs the current password and a code. Nothing secret is stored in the browser",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28); docs/local-review/test-results/web-vitest-m22.txt (466/466); docs/local-review/screenshots/web-m22/staff-security/",
+      "issue": "-",
+      "carry": "CF-282",
+      "notes": "Owner request 2026-10-01. Screenshots of the setup key and the recovery codes are deliberately not kept as evidence."
+    },
+    {
+      "id": "M21-129",
+      "module": "M21",
+      "req": "Sign-in for an account that must enrol in MFA: the enrol-only token stays in memory, the person enrols on the sign-in screen and only then receives a session",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28); docs/local-review/test-results/web-vitest-m22.txt (466/466)",
+      "issue": "-",
+      "carry": "CF-282",
+      "notes": "Owner request 2026-10-01. Verified by unit test with the backend's answer; the local backend has mandatory MFA switched off (AUTH_MFA_REQUIRED_ADMIN=false), so this path was not exercised end to end (CF-292)."
+    },
+    {
+      "id": "M21-130",
+      "module": "M21",
+      "req": "\"Account security\" page in both dashboards (profile menu): MFA state, change password (current password required; other devices signed out), signed-in devices with sign-out per device and \"sign out everywhere\"",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28); docs/local-review/test-results/web-vitest-m22.txt (466/466); docs/local-review/screenshots/web-m22/staff-security/",
+      "issue": "-",
+      "carry": "CF-282",
+      "notes": "Owner request 2026-10-01."
     }
   ],
   "pages": [
@@ -27062,7 +27126,7 @@
       "Backend / Security",
       "PARTIAL",
       "2026-09-30",
-      "Separate admin sign-in, TOTP MFA (optional; mandatory switch), token expiry, stricter limits, invitations with a self-chosen password (2026-10-01). Open: real e-mail delivery (CF-315), IP allow-list, MFA enrolment screen (CF-282, CF-292)"
+      "Separate admin sign-in, TOTP MFA with enrolment screen (optional; mandatory switch), token expiry, stricter limits, invitations, password reset screens (2026-10-01). Open: real e-mail delivery (CF-315), IP allow-list, mandatory MFA switched on (CF-292)"
     ],
     [
       "CF-242",
@@ -27552,9 +27616,9 @@
       "P1",
       "Claude",
       "Frontend (dashboards)",
-      "NOT STARTED",
+      "DONE",
       "2026-09-30",
-      "-"
+      "Built 2026-10-01 for both dashboards: forgot / reset password, MFA enrolment + recovery codes, change password, signed-in devices (M21-127..130)"
     ],
     [
       "CF-283",
@@ -27674,7 +27738,7 @@
       "Production security",
       "NOT STARTED",
       "2026-09-30",
-      "-"
+      "The enrolment screen now exists (M21-128, M21-129). Still to do for production: set AUTH_MFA_REQUIRED_ADMIN=true and run the enrol-at-sign-in path end to end against a backend with it on"
     ],
     [
       "CF-293",
@@ -27930,7 +27994,7 @@
     ],
     [
       "CF-314",
-      "Admin Users screen: assign a role for one market only, disable an account, reset another administrator's MFA, and search / paging for large lists — the API supports market scope and DISABLED; MFA reset has no endpoint yet. Restaurant-user management (invite, role, suspend) is not built at all (Module 23)",
+      "Admin Users screen: assign a role for one market only, disable an account, reset another administrator's MFA (a person who lost both the app and the recovery codes has no way back in today), and search / paging for large lists — the API supports market scope and DISABLED; MFA reset has no endpoint yet. Restaurant-user management (invite, role, suspend) is not built at all (Module 23)",
       "M21",
       "Module 21 follow-up",
       "P2",
@@ -29408,6 +29472,20 @@
       "Default sort had no descending tie-break",
       "Default order is occurred_at, then id, both descending",
       "docs/local-review/test-results/backend-m22-phpunit.txt (247 tests, 2279 assertions, 0 failed) AdminGeographyApi (audit); docs/local-review/test-results/m22-web-audit-e2e.json (17/17) A3",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-105",
+      "M21",
+      "WEB",
+      "MFA setup screen",
+      "High",
+      "In a development build the setup screen asked the backend for a secret twice (React runs effects twice in development); each request replaces the secret, so the key on screen could be one the backend had already discarded and the correct code was refused",
+      "One setup request per screen",
+      "e2e against the real backend (the right code was rejected)",
+      "The setup request ran in an unguarded effect",
+      "The request is made exactly once per screen",
+      "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28) M1–M3",
       "FIXED / VERIFIED"
     ]
   ],
@@ -31486,7 +31564,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31590,6 +31668,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (260 tests, 2490 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (457/457); docs/local-review/test-results/m22-web-auth-regression.txt",
+      "2026-10-01"
+    ],
+    [
+      "TE-219",
+      "M21",
+      "WEB",
+      "Staff security screens against the real local backend: forgot password (same answer for unknown e-mail), reset through the link (single use), Account security, sign out another device, change password (wrong current refused), MFA setup with real authenticator codes, recovery codes once, sign-in with MFA, turn MFA off (password + code), security events of the whole flow, Restaurant Dashboard screens, sign out everywhere, no secret in browser storage, 390 px, axe; fixtures restored by the seeder",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28)",
+      "2026-10-01"
+    ],
+    [
+      "TE-220",
+      "M21",
+      "WEB",
+      "Web vitest 466 (9 new: MFA setup, enrol at sign-in, forgot / reset, account security); sign-in regression 48/48; full regression 68/68 re-run",
+      "unit + regression",
+      "PASS",
+      "docs/local-review/test-results/web-vitest-m22.txt (466/466); docs/local-review/test-results/m22-web-auth-regression.txt; docs/local-review/test-results/m22-web-regression.txt",
       "2026-10-01"
     ]
   ],
@@ -32335,6 +32433,14 @@
       "M21",
       "WEB",
       "docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27); docs/local-review/screenshots/web-m22/admin-users/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Staff security screens (password reset, MFA, account security): e2e result and screenshots",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28); docs/local-review/screenshots/web-m22/staff-security/",
       "Evidence",
       "YES"
     ]
@@ -33209,8 +33315,8 @@
       "COMPLETE"
     ],
     [
-      "Identity (M21): TOTP MFA for restaurant / admin users implemented; mandatory mode available, off locally; enrolment screen pending (CF-282, CF-292)",
-      "PARTIAL"
+      "Identity (M21): TOTP MFA for restaurant / admin users with enrolment, recovery codes and turn-off screens; mandatory mode available, off locally (CF-292)",
+      "COMPLETE"
     ],
     [
       "Identity (M21): no public admin / restaurant account creation (administrators are invited by an authorised administrator and set their own password); principal type never taken from the client",

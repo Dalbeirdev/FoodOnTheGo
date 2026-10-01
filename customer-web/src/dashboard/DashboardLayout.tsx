@@ -81,6 +81,7 @@ function ProfileMenu() {
         <div className="db-profile__menu" role="menu" aria-label={t('dash.header.profileMenu', undefined, d.locale)}>
           <Link role="menuitem" to={`${BASE}/settings`} onClick={() => setOpen(false)}>{t('dash.nav.settings', undefined, d.locale)}</Link>
           <Link role="menuitem" to={`${BASE}/help`} onClick={() => setOpen(false)}>{t('dash.nav.help', undefined, d.locale)}</Link>
+          {session.mode === 'api' && <Link role="menuitem" to={`${BASE}/account-security`} onClick={() => setOpen(false)} data-testid="account-security-link">Account security</Link>}
           {session.mode !== 'api' && (<>
           <div className="db-profile__dev"><p className="db-muted">{t('dash.header.switchStaff', undefined, d.locale)}</p>
             {d.staffList.filter((s) => s.status !== 'suspended').map((s) => <button key={s.id} type="button" role="menuitemradio" aria-checked={s.id === d.staff.id} className={s.id === d.staff.id ? 'is-on' : ''} onClick={() => { d.switchStaff(s.id); setOpen(false) }} data-testid={`db-staff-${s.id}`}><span dir="auto">{s.name}</span> <small>{t(`dash.role.${s.role}`, undefined, d.locale)}</small></button>)}

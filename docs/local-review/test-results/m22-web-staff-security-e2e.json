@@ -1,0 +1,149 @@
+{
+  "module": "M21 follow-up (CF-282: password reset, MFA enrolment, account security)",
+  "mode": "real local backend",
+  "date": "2026-10-01T10:11:52.919Z",
+  "total": 28,
+  "passed": 28,
+  "results": [
+    {
+      "name": "P1 the admin sign-in links to \"Forgot your password?\" (/admin/forgot-password, no session needed)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (forgot password) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P2 the answer is identical for an unknown e-mail and a real account; only the real account gets a link (written to the local server log — no e-mail is sent here)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P3 the reset link opens \"Choose a new password\"; the token is removed from the address bar",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P4 a short password and two different passwords are refused before anything is sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (reset password) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P5 password changed through the link: the old password no longer signs in, the new one does, and the link cannot be used twice",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S1 \"Account security\" is reached from the profile menu and shows MFA (Off), Password and Signed-in devices",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (account security) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S2 another signed-in device is listed and can be signed out from here; this device has no such button",
+      "pass": true,
+      "detail": "3 sessions before"
+    },
+    {
+      "name": "S3 changing the password needs the correct current password (refused by the backend)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S4 password changed back from the screen: the fixture password signs in again, the temporary one does not; this session stays signed in",
+      "pass": true,
+      "detail": "401"
+    },
+    {
+      "name": "M1 setup shows a QR code drawn in the browser and the key for manual entry",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (MFA setup) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M2 a wrong code does not switch MFA on",
+      "pass": true,
+      "detail": "That code is not correct."
+    },
+    {
+      "name": "M3 the right code switches MFA on and the recovery codes are shown once; \"Continue\" waits for \"I have saved these codes\"",
+      "pass": true,
+      "detail": "8 codes"
+    },
+    {
+      "name": "M4 the page shows MFA On (state re-read from the backend) and the codes are gone from the screen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M5 nothing secret is kept in the browser: no setup key, recovery code or password in storage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M6 the next sign-in asks for a code after the password (and the API issues no token before it)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M7 signed in with password + authenticator code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M8 turning MFA off needs the current password as well as a code (refused with a wrong password)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M9 MFA is off again: the password alone signs in",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M10 the security events show the whole story (reset requested, password changed, MFA enabled, wrong MFA / sign-ins, MFA disabled) — without any secret",
+      "pass": true,
+      "detail": "LOGIN_SUCCESS, MFA_DISABLED, LOGOUT, MFA_ENABLED, LOGIN_FAILED, PASSWORD_CHANGED, SESSION_REVOKED, PASSWORD_RESET_REQUESTED, PERMISSION_CHANGED"
+    },
+    {
+      "name": "R1 the Restaurant Dashboard has the same screens: forgot-password link, reset page (an incomplete link sends nothing), Account security with MFA, password and devices",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R2 \"Sign out everywhere\" ends this session too and returns to the sign-in form",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "V1 Account security at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z fixture accounts restored by the fixture seeder: Kenji signs in with the fixture password and has no MFA",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

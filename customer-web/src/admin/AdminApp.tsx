@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import AccountSecurityPage from '../auth/staff/AccountSecurityPage'
+import { ForgotPasswordPage, ResetPasswordPage } from '../auth/staff/StaffPasswordPages'
 import { StaffAuthGate } from '../auth/staff/StaffSession'
 import { AdminProvider } from './AdminContext'
 import AdminLayout, { RequirePermission as RequireAdminPermission } from './AdminLayout'
@@ -26,9 +28,12 @@ export default function AdminApp() {
     <Routes>
     {/* Public: an invited administrator has no session yet. */}
     <Route path="accept-invitation" element={<AcceptInvitationPage />} />
+    <Route path="forgot-password" element={<ForgotPasswordPage context="admin" />} />
+    <Route path="reset-password" element={<ResetPasswordPage context="admin" />} />
     <Route path="/" element={<StaffAuthGate context="admin"><AdminProvider><AdminLayout /></AdminProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<AdminOverviewPage />} />
+      <Route path="account-security" element={<AccountSecurityPage context="admin" />} />
       <Route path="restaurants" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantsPage /></RequireAdminPermission>} />
       <Route path="restaurants/:id" element={<RequireAdminPermission perm="restaurants.view"><AdminRestaurantDetailsPage /></RequireAdminPermission>} />
       <Route path="customers" element={<RequireAdminPermission perm="customers.view"><AdminCustomersPage /></RequireAdminPermission>} />
