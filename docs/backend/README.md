@@ -274,6 +274,10 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   The notice is written in every language of `AUTH_NOTICE_LOCALES` (default `en`; `en,hi` for India) that has a
   translation in `lang/<code>/auth.php` — one message, the languages one after the other, subject in the first —
   because staff accounts have no language preference yet.
+- The invitation and the password-reset e-mail use the same layout and language rule (`WritesStaffNotice`):
+  English and Hindi in one message, each part with the button to the single-use link, and the address once in
+  plain text. The framework's default mail layout (header link to `APP_URL`, English greeting) is no longer used
+  for staff e-mails.
 - Every change writes an audit event (`admin_user.invited`, `.activated`, `.status_changed`, `.role_changed`) in
   addition to the security events. The response never contains the password, MFA secret or recovery codes.
 

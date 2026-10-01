@@ -2,10 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\WritesStaffNotice;
 use Carbon\CarbonInterface;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Lang;
 
 /**
  * Tells the owner of a restaurant or admin account that multi-factor authentication was turned on, turned
@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Lang;
  */
 class MfaChangedNotification extends Notification
 {
+    use WritesStaffNotice;
+
     public const ENABLED = 'enabled';
 
     public const DISABLED = 'disabled';
@@ -35,33 +37,11 @@ class MfaChangedNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        // Own plain layout: the framework's default mail layout puts a link to the application in its header.
-        $sections = $this->sections();
+        $change = $this->change;
 
-        return (new MailMessage)
-            ->subject($sections[0]['subject'])
-            ->view(['html' => 'mail.security-notice', 'text' => 'mail.security-notice-text'], ['subject' => $sections[0]['subject'], 'sections' => $sections]);
-    }
-
-    /**
-     * The notice once per configured language that has a translation; always at least the fallback language.
-     *
-     * @return list<array{locale: string, subject: string, lines: list<string>}>
-     */
-    private function sections(): array
-    {
-        $locales = array_values(array_filter((array) config('auth_security.notice_locales'), fn (string $l): bool => Lang::has('auth.mfa_not_you', $l, false)));
-        $locales = $locales === [] ? [(string) config('app.fallback_locale')] : $locales;
-
-        return array_map(function (string $locale): array {
-            $when = $this->at->copy()->utc()->locale($locale)->translatedFormat('j M Y, H:i').' UTC';
-
-            return [
-                'locale' => $locale,
-                'subject' => __("auth.mfa_{$this->change}_subject", [], $locale),
-                'lines' => [__("auth.mfa_{$this->change}_line", ['when' => $when], $locale), __("auth.mfa_{$this->change}_next", [], $locale), __('auth.mfa_not_you', [], $locale)],
-            ];
-        }, $locales);
+        return $this->staffNotice('mfa', ["{$change}_line", "{$change}_next", 'not_you'], [], fn (string $locale): array => [
+            'when' => $this->at->copy()->utc()->locale($locale)->translatedFormat('j M Y, H:i').' UTC',
+        ], subjectKey: "{$change}_subject");
     }
 
     public function change(): string

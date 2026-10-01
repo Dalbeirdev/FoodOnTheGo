@@ -11,4 +11,13 @@
 {!! $line !!}
 
 @endforeach
+@if ($url !== null)
+{!! $section['action'] !!}:
+{!! $url !!}
+
+@endif
+@foreach ($section['after'] as $line)
+{!! $line !!}
+
+@endforeach
 @endforeach

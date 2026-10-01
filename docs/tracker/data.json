@@ -21866,6 +21866,22 @@
       "issue": "-",
       "carry": "CF-317",
       "notes": "Owner request 2026-10-01. The subject line is English (first language). Both languages are sent to everyone because staff accounts have no language preference. Production must set AUTH_NOTICE_LOCALES (the code default is en only). LOCAL ONLY: written to the server log, not delivered (CF-315)."
+    },
+    {
+      "id": "M21-139",
+      "module": "M21",
+      "req": "Administrator invitation and staff password-reset e-mails in Hindi: with AUTH_NOTICE_LOCALES=en,hi one message carries English and then Hindi, each part with the button to the same single-use link. All staff e-mails now share one plain layout (no framework header link, no English-only greeting); the only address in a message is the link it exists to deliver",
+      "platform": "BACKEND",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; HINDI WORDING NOT REVIEWED BY A NATIVE SPEAKER (CF-317)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (270 tests, 2686 assertions, 0 failed) MfaChangeNotification (invitation and password reset); docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27); docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28)",
+      "issue": "-",
+      "carry": "CF-317",
+      "notes": "Owner request 2026-10-01. The subject line is English (first language). LOCAL ONLY: written to the server log, not delivered (CF-315). The customer side has no e-mails (sign-in by phone code)."
     }
   ],
   "pages": [
@@ -28158,15 +28174,15 @@
     ],
     [
       "CF-317",
-      "Hindi security notices: (1) owner or a native speaker reviews the Hindi wording in backend/lang/hi/auth.php; (2) a language preference per restaurant / admin user so each person gets one language (and a Hindi subject line) instead of a two-language message; (3) translate the invitation and password-reset e-mails too",
+      "Hindi staff e-mails: (1) owner or a native speaker reviews the Hindi wording in backend/lang/hi/auth.php (invitation, password reset, MFA notices); (2) a language preference per restaurant / admin user so each person gets one language (and a Hindi subject line) instead of a two-language message",
       "M21",
       "Module 21 follow-up",
       "P2",
       "Owner + Claude",
       "Backend / Localisation",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-10-01",
-      "-"
+      "Invitation and password-reset e-mails translated 2026-10-01 (M21-139). Open: native review, per-person language"
     ]
   ],
   "bugs": [
@@ -31938,6 +31954,16 @@
       "feature + e2e",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (269 tests, 2614 assertions, 0 failed); docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (19/19)",
+      "2026-10-01"
+    ],
+    [
+      "TE-228",
+      "M21",
+      "BACKEND + WEB",
+      "Invitation and password-reset e-mails in English + Hindi: recipient, subject, both languages in text and HTML parts, exactly one address (the single-use web link), Hindi part marked lang=\"hi\"; Hindi file has all 18 texts with the same placeholders (1 new test, suite 270). Real local backend: invitation accepted and password reset through the links taken from the new messages (Admin Users e2e 27/27, staff security e2e 28/28, MFA reset e2e 19/19)",
+      "feature + e2e",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (270 tests, 2686 assertions, 0 failed)",
       "2026-10-01"
     ]
   ],

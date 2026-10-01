@@ -1,4 +1,4 @@
-{{-- Security notice to an account owner, once per language. Deliberately no link, no button and no image: the reader is told to open the product the way they normally do. --}}
+{{-- E-mail to a restaurant or admin user, once per language (see WritesStaffNotice). No image, no tracking; a link only when the message exists to deliver one ($url). --}}
 <!DOCTYPE html>
 <html lang="{{ $sections[0]['locale'] }}">
 <head>
@@ -17,8 +17,17 @@
 @foreach ($section['lines'] as $line)
 <p style="margin:0 0 14px;">{{ $line }}</p>
 @endforeach
+@if ($url !== null)
+<p style="margin:0 0 14px;"><a href="{{ $url }}" style="display:inline-block;background:#c2380f;color:#ffffff;text-decoration:none;font-weight:bold;border-radius:10px;padding:12px 18px;">{{ $section['action'] }}</a></p>
+@endif
+@foreach ($section['after'] as $line)
+<p style="margin:0 0 14px;">{{ $line }}</p>
+@endforeach
 </div>
 @endforeach
+@if ($url !== null)
+<p style="margin:18px 0 0;font-size:13px;color:#475467;overflow-wrap:anywhere;word-break:break-all;">{{ $url }}</p>
+@endif
 </div>
 </body>
 </html>

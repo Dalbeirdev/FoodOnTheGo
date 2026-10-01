@@ -1,8 +1,16 @@
 <?php
 
-// Hindi. Only the security notices are translated so far; every other key falls back to English.
+// Hindi: the e-mails to restaurant and admin users. Every other key falls back to English.
 // "Account security" is kept in English because that is the label of the screen in the dashboards.
 return [
+    'invitation_subject' => 'आपको FoodOnTheGo एडमिनिस्ट्रेशन में आमंत्रित किया गया है',
+    'invitation_line' => 'एक एडमिनिस्ट्रेटर ने आपके लिए खाता बनाया है। इसे सक्रिय करने के लिए अपना पासवर्ड चुनें। यह लिंक :hours घंटे में समाप्त हो जाएगा और केवल एक बार इस्तेमाल किया जा सकता है।',
+    'invitation_action' => 'अपना पासवर्ड चुनें',
+    'invitation_ignore' => 'अगर आपको इसकी उम्मीद नहीं थी, तो आप इस ई-मेल को अनदेखा कर सकते हैं। खाता निष्क्रिय रहेगा।',
+    'password_reset_subject' => 'अपना FoodOnTheGo पासवर्ड रीसेट करें',
+    'password_reset_line' => 'हमें इस खाते का पासवर्ड रीसेट करने का अनुरोध मिला है। यह लिंक :minutes मिनट में समाप्त हो जाएगा और केवल एक बार इस्तेमाल किया जा सकता है।',
+    'password_reset_action' => 'नया पासवर्ड चुनें',
+    'password_reset_ignore' => 'अगर आपने यह अनुरोध नहीं किया, तो आप इस ई-मेल को अनदेखा कर सकते हैं। आपका पासवर्ड वही रहेगा।',
     'mfa_enabled_subject' => 'आपके FoodOnTheGo खाते के लिए मल्टी-फ़ैक्टर ऑथेंटिकेशन चालू किया गया',
     'mfa_enabled_line' => 'इस खाते के लिए :when को मल्टी-फ़ैक्टर ऑथेंटिकेशन चालू किया गया।',
     'mfa_enabled_next' => 'अब से साइन इन करने के लिए आपके पासवर्ड और आपके ऑथेंटिकेटर ऐप के कोड, दोनों की ज़रूरत होगी। अपने रिकवरी कोड किसी सुरक्षित जगह पर रखें।',

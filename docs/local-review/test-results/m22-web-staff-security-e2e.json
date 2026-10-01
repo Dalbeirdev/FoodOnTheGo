@@ -1,7 +1,7 @@
 {
   "module": "M21 follow-up (CF-282: password reset, MFA enrolment, account security)",
   "mode": "real local backend",
-  "date": "2026-10-01T12:33:23.075Z",
+  "date": "2026-10-01T13:18:29.150Z",
   "total": 28,
   "passed": 28,
   "results": [

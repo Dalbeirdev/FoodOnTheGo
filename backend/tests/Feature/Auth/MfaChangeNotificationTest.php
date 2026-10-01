@@ -150,15 +150,51 @@ class MfaChangeNotificationTest extends TestCase
         $this->assertStringContainsString('turned on for this account', (new MfaChangedNotification(MfaChangedNotification::ENABLED, now()))->toMail($target)->viewData['sections'][0]['lines'][0]);
     }
 
+    public function test_invitation_and_password_reset_are_written_in_both_languages_with_one_working_link(): void
+    {
+        config(['auth_security.notice_locales' => ['en', 'hi']]);
+        $super = $this->superAdmin();
+        $this->actingAsPrincipal($super);
+
+        $this->postJson('/api/v1/admin/users', ['name' => 'Priya Nair', 'email' => 'priya.nair@foodonthego.example', 'role' => 'ANALYST'])->assertCreated();
+        $this->app['auth']->forgetGuards();
+        $this->postJson('/api/v1/auth/admin/password/forgot', ['email' => $super->email])->assertOk();
+
+        $messages = app('mailer')->getSymfonyTransport()->messages();
+        $this->assertCount(2, $messages);
+        $expected = [
+            ['priya.nair@foodonthego.example', 'You have been invited to FoodOnTheGo administration', '/admin/accept-invitation#', ['expires in 72 hours', 'Choose your password', 'आपको FoodOnTheGo एडमिनिस्ट्रेशन में आमंत्रित किया गया है', '72 घंटे में समाप्त', 'अपना पासवर्ड चुनें', 'खाता निष्क्रिय रहेगा']],
+            [$super->email, 'Reset your FoodOnTheGo password', '/admin/reset-password#', ['Choose a new password', 'Your password stays the same', 'अपना FoodOnTheGo पासवर्ड रीसेट करें', 'मिनट में समाप्त', 'नया पासवर्ड चुनें', 'आपका पासवर्ड वही रहेगा']],
+        ];
+        foreach ($expected as $i => [$to, $subject, $path, $texts]) {
+            $mail = $messages[$i]->getOriginalMessage();
+            $this->assertSame([$to, $subject], [$mail->getTo()[0]->getAddress(), $mail->getSubject()]);
+            foreach ([$mail->getTextBody(), $mail->getHtmlBody()] as $body) {
+                foreach ($texts as $text) {
+                    $this->assertStringContainsString($text, $body);
+                }
+                $this->assertStringNotContainsString('auth.', $body);
+                // Exactly one address in the message — the single-use link on the web app — and nothing else.
+                preg_match_all('~https?://[^\s"<]+~', $body, $urls);
+                $this->assertCount(1, array_unique($urls[0]));
+                $this->assertStringStartsWith(rtrim((string) config('app.frontend_url'), '/').$path, $urls[0][0]);
+                $this->assertMatchesRegularExpression('/#[A-Za-z0-9]{64}$/', $urls[0][0]);
+            }
+            $this->assertSame(1, substr_count($mail->getHtmlBody(), '<div lang="hi"'));
+        }
+    }
+
     public function test_the_hindi_translation_covers_every_notice_text_with_the_same_placeholders(): void
     {
-        $en = array_filter(require lang_path('en/auth.php'), fn (string $k): bool => str_starts_with($k, 'mfa_'), ARRAY_FILTER_USE_KEY);
+        $en = require lang_path('en/auth.php');
         $hi = require lang_path('hi/auth.php');
 
-        $this->assertCount(10, $en);
+        $this->assertCount(18, $en);
         $this->assertSame(array_keys($en), array_keys($hi));
         foreach ($en as $key => $text) {
-            $this->assertSame(substr_count($text, ':when'), substr_count($hi[$key], ':when'), $key);
+            preg_match_all('/:[a-z]+/', $text, $expected);
+            preg_match_all('/:[a-z]+/', $hi[$key], $actual);
+            $this->assertSame($expected[0], $actual[0], $key);
             $this->assertMatchesRegularExpression('/\\p{Devanagari}/u', $hi[$key], $key);
             $this->assertStringNotContainsString('http', $hi[$key]);
         }
