@@ -105,10 +105,10 @@ function ProfileMenu() {
             <p className="db-muted adm-small">{t('adm.header.devNote', undefined, a.locale)}</p></div>
           </>)}
           <Link to={`${BASE}/settings`} className="db-profile__signout" role="menuitem" onClick={() => setOpen(false)}>{t('adm.nav.settings', undefined, a.locale)}</Link>
-          {session.mode === 'api' && <Link to={`${BASE}/account-security`} className="db-profile__signout" role="menuitem" onClick={() => setOpen(false)} data-testid="account-security-link">Account security</Link>}
+          {session.mode === 'api' && <Link to={`${BASE}/account-security`} className="db-profile__signout" role="menuitem" onClick={() => setOpen(false)} data-testid="account-security-link">{t('staff.sec.title', undefined, a.locale)}</Link>}
           {session.mode === 'api' && <p className="db-muted adm-small" dir="auto">{a.admin.email}</p>}
           <Link to="/" className="db-profile__signout" role="menuitem">{t('adm.header.exit', undefined, a.locale)}</Link>
-          {session.mode === 'api' && <button type="button" className="db-profile__signout" role="menuitem" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout">Sign out</button>}
+          {session.mode === 'api' && <button type="button" className="db-profile__signout" role="menuitem" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout">{t('staff.sec.signOut', undefined, a.locale)}</button>}
         </div>
       )}
     </div>
@@ -143,7 +143,7 @@ export default function AdminLayout() {
   )
   const tabs = NAV_ALL.filter((i) => ['overview', 'restaurants', 'orders'].includes(i.id) && visible(i))
   return (
-    <div className={`db-shell adm-shell ${collapsed ? 'db-shell--collapsed' : ''}`} data-testid="admin-shell">
+    <div className={`db-shell adm-shell ${collapsed ? 'db-shell--collapsed' : ''}`} data-testid="admin-shell" lang={a.locale}>
       <a href="#adm-main" className="db-skip">{t('dash.skip', undefined, a.locale)}</a>
       <aside className="db-sidebar adm-sidebar" aria-label={t('adm.brand', undefined, a.locale)}>{brand}{nav}<button type="button" className="db-sidebar__collapse" onClick={() => setCollapsed((c) => !c)} aria-pressed={collapsed} aria-label={t(collapsed ? 'adm.nav.expand' : 'dash.nav.collapse', undefined, a.locale)}><Icon name="back" /><span className="db-nav__text">{t('dash.nav.collapse', undefined, a.locale)}</span></button></aside>
       {drawer && <div className="db-drawer__backdrop db-drawer__backdrop--nav" onMouseDown={() => setDrawer(false)}><aside className="db-sidebar db-sidebar--drawer adm-sidebar" onMouseDown={(e) => e.stopPropagation()} aria-label={t('adm.brand', undefined, a.locale)}>{brand}{nav}</aside></div>}

@@ -16,6 +16,7 @@ use App\Models\Role;
 use App\Notifications\AdminInvitationNotification;
 use App\Services\Audit\AuditRecorder;
 use App\Services\Rbac\RoleService;
+use App\Support\NoticeLocales;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -203,7 +204,7 @@ final class AdminUserService
             'token_hash' => hash('sha256', $token), 'expires_at' => now()->addHours($hours), 'created_at' => now(),
         ]);
 
-        $admin->notify(new AdminInvitationNotification(rtrim((string) config('app.frontend_url'), '/').'/admin/accept-invitation#'.$token, $hours));
+        $admin->notify(new AdminInvitationNotification(rtrim((string) config('app.frontend_url'), '/').'/admin/accept-invitation'.NoticeLocales::linkQuery($admin).'#'.$token, $hours));
     }
 
     private function describe(Role $role, ?Market $market): string

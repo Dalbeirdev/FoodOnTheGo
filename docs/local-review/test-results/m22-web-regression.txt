@@ -1,6 +1,6 @@
 PASS A1 home: India-first content (lang en-IN), hero + primary CTA, no foreign restaurants / currency
 PASS A2 journey: India origin + destination, route preview with distance in km and duration
-PASS A3 discovery (journey-aware): India restaurants along the route with detour / arrival info, ₹ price level, km — Burger Hub, Ambala Chai Point, Spice Nest, Brew & Bites, Wok Express
+PASS A3 discovery (journey-aware): India restaurants along the route with detour / arrival info, ₹ price level, km — Burger Hub, Spice Nest, Brew & Bites, Ambala Chai Point, Wok Express
 PASS A4 restaurant details (Design A): hero, rating, hours in IST, India address, menu with ₹ prices, favourite control
 PASS A5 item customization: variant + modifier + quantity + Unicode instruction update the total through safe minor-unit maths (₹, no NaN) — Item total₹250.00₹250.00 each Add to cart → Item total₹820.00₹410.00 each Add to cart
 PASS A6 cart: one restaurant, line with options, ₹ subtotal, no tax percentage, no delivery fee
@@ -11,8 +11,8 @@ PASS A9 auth return: after phone + OTP the customer lands on /checkout with cart
 PASS A10 checkout: customer, restaurant, pickup, items, pricing, legal acceptance; no invented tax / fee, no delivery
 PASS A11Y axe (checkout) no serious/critical violations — []
 PASS A11 payment: INR amount, provider-driven method, no card / CVV / UPI PIN / password field, secure note, no secrets in page
-PASS A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status — FOTG-RDJV-QE7M
-PASS A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside — pv_dev_3335847c311080e804fbafeaf51e99d2
+PASS A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status — FOTG-TUFS-Y829
+PASS A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside — pv_dev_5d78315c86e119e7b581885cbba2ee18
 PASS A13 order snapshot: integer minor-unit pricing in INR, restaurant zone Asia/Kolkata, market IN
 PASS A11Y axe (order confirmation) no serious/critical violations — []
 PASS A14 tracking opens for the order; friendly status text (no raw enum) — Order confirmed

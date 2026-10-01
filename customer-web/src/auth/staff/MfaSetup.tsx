@@ -14,14 +14,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import QRCode from 'qrcode'
 import { staffAuth, staffErrorMessage, type MfaSetup as Setup, type StaffContext, type StaffPrincipal } from './staffAuth'
+import { useStaffStrings } from './staffLocale'
 
 export function MfaSetup({ context, enrolToken, onDone, onCancel }: { context: StaffContext; enrolToken?: string; onDone: (principal: StaffPrincipal) => void; onCancel?: () => void }) {
-  const auth = staffAuth(context)
+  const auth = staffAuth(context); const { tr } = useStaffStrings()
   const [setup, setSetup] = useState<Setup | null>(null); const [qr, setQr] = useState<string | null>(null)
   const [code, setCode] = useState(''); const [error, setError] = useState<string | null>(null); const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<{ codes: string[]; principal: StaffPrincipal } | null>(null); const [saved, setSaved] = useState(false); const [copied, setCopied] = useState(false)
 
-  const start = async () => { setBusy(true); setError(null); try { setSetup(await auth.mfaSetup(enrolToken)) } catch (e) { setError(staffErrorMessage(e)) } finally { setBusy(false) } }
+  const start = async () => { setBusy(true); setError(null); try { setSetup(await auth.mfaSetup(enrolToken)) } catch (e) { setError(staffErrorMessage(e, tr)) } finally { setBusy(false) } }
   // Asked exactly once per screen: every request creates a NEW secret on the backend, so a second request (React runs
   // effects twice in development) would leave the screen showing a key the backend has already replaced.
   const requested = useRef(false)
@@ -31,36 +32,36 @@ export function MfaSetup({ context, enrolToken, onDone, onCancel }: { context: S
   const confirm = async (e: FormEvent) => {
     e.preventDefault(); if (busy) return
     setBusy(true); setError(null)
-    try { const r = await auth.mfaConfirm(code, enrolToken); setSetup(null); setQr(null); setCode(''); setResult({ codes: r.recoveryCodes, principal: r.principal }) } catch (err) { setError(staffErrorMessage(err)) } finally { setBusy(false) }
+    try { const r = await auth.mfaConfirm(code, enrolToken); setSetup(null); setQr(null); setCode(''); setResult({ codes: r.recoveryCodes, principal: r.principal }) } catch (err) { setError(staffErrorMessage(err, tr)) } finally { setBusy(false) }
   }
   const copy = async () => { try { await navigator.clipboard.writeText(result!.codes.join('\n')); setCopied(true) } catch { setCopied(false) } }
 
   if (result) return (
     <div className="staff-mfa" data-testid="mfa-recovery">
-      <h2 className="staff-mfa__title">Save your recovery codes</h2>
-      <p>Multi-factor authentication is on. Each code below signs you in once if you lose your authenticator app. <b>They are shown only now.</b> Keep them somewhere safe — not in your e-mail.</p>
-      <ul className="staff-mfa__codes" aria-label="Recovery codes">{result.codes.map((c) => <li key={c}><code>{c}</code></li>)}</ul>
-      <div className="staff-mfa__row"><button type="button" className="db-btn db-btn--outline" onClick={() => { void copy() }} data-testid="mfa-copy">{copied ? 'Copied' : 'Copy codes'}</button></div>
-      <label className="staff-mfa__check"><input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} data-testid="mfa-saved" /> I have saved these codes</label>
-      <button type="button" className="db-btn db-btn--primary staff-login__submit" disabled={!saved} onClick={() => onDone(result.principal)} data-testid="mfa-finish">Continue</button>
+      <h2 className="staff-mfa__title">{tr('staff.mfa.codesTitle')}</h2>
+      <p>{tr('staff.mfa.codesLead')} <b>{tr('staff.mfa.codesOnce')}</b> {tr('staff.mfa.codesKeep')}</p>
+      <ul className="staff-mfa__codes" aria-label={tr('staff.mfa.codesLabel')} lang="en">{result.codes.map((c) => <li key={c}><code>{c}</code></li>)}</ul>
+      <div className="staff-mfa__row"><button type="button" className="db-btn db-btn--outline" onClick={() => { void copy() }} data-testid="mfa-copy">{copied ? tr('staff.mfa.copied') : tr('staff.mfa.copy')}</button></div>
+      <label className="staff-mfa__check"><input type="checkbox" checked={saved} onChange={(e) => setSaved(e.target.checked)} data-testid="mfa-saved" /> {tr('staff.mfa.saved')}</label>
+      <button type="button" className="db-btn db-btn--primary staff-login__submit" disabled={!saved} onClick={() => onDone(result.principal)} data-testid="mfa-finish">{tr('staff.continue')}</button>
     </div>
   )
   return (
     <form className="staff-mfa" onSubmit={(e) => { void confirm(e) }} noValidate data-testid="mfa-setup">
-      <h2 className="staff-mfa__title">Set up multi-factor authentication</h2>
+      <h2 className="staff-mfa__title">{tr('staff.mfa.setupTitle')}</h2>
       <ol className="staff-mfa__steps">
-        <li>Install an authenticator app (Google Authenticator, Microsoft Authenticator, Authy, 1Password …).</li>
-        <li>Scan this code with the app, or type the key by hand.</li>
-        <li>Enter the 6-digit code the app shows.</li>
+        <li>{tr('staff.mfa.step1')}</li>
+        <li>{tr('staff.mfa.step2')}</li>
+        <li>{tr('staff.mfa.step3')}</li>
       </ol>
       {error && <p className="staff-login__error" role="alert" data-testid="mfa-error">{error}</p>}
-      {!setup ? (busy ? <p className="db-muted" role="status">Preparing…</p> : <button type="button" className="db-btn db-btn--outline" onClick={() => { void start() }}>Try again</button>) : <>
-        {qr ? <img src={qr} width={200} height={200} alt="QR code for your authenticator app" className="staff-mfa__qr" data-testid="mfa-qr" /> : <p className="db-muted">The QR code could not be drawn. Use the key below.</p>}
-        <p className="staff-mfa__key"><span>Setup key</span> <code data-testid="mfa-secret">{setup.secret.replace(/(.{4})/g, '$1 ').trim()}</code></p>
-        <div className="db-field"><label htmlFor="mfa-code">6-digit code</label><input id="mfa-code" className="db-input" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" data-testid="mfa-code" /></div>
+      {!setup ? (busy ? <p className="db-muted" role="status">{tr('staff.mfa.preparing')}</p> : <button type="button" className="db-btn db-btn--outline" onClick={() => { void start() }}>{tr('staff.tryAgain')}</button>) : <>
+        {qr ? <img src={qr} width={200} height={200} alt={tr('staff.mfa.qrAlt')} className="staff-mfa__qr" data-testid="mfa-qr" /> : <p className="db-muted">{tr('staff.mfa.qrFail')}</p>}
+        <p className="staff-mfa__key"><span>{tr('staff.mfa.key')}</span> <code data-testid="mfa-secret" lang="en">{setup.secret.replace(/(.{4})/g, '$1 ').trim()}</code></p>
+        <div className="db-field"><label htmlFor="mfa-code">{tr('staff.mfa.code6')}</label><input id="mfa-code" className="db-input" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" data-testid="mfa-code" /></div>
         <div className="staff-mfa__row">
-          <button type="submit" className="db-btn db-btn--primary" disabled={busy || code.length !== 6} data-testid="mfa-confirm">{busy ? 'Checking…' : 'Turn on'}</button>
-          {onCancel && <button type="button" className="db-btn db-btn--ghost" onClick={onCancel} disabled={busy}>Cancel</button>}
+          <button type="submit" className="db-btn db-btn--primary" disabled={busy || code.length !== 6} data-testid="mfa-confirm">{busy ? tr('staff.checkingCode') : tr('staff.mfa.turnOn')}</button>
+          {onCancel && <button type="button" className="db-btn db-btn--ghost" onClick={onCancel} disabled={busy}>{tr('staff.cancel')}</button>}
         </div>
       </>}
     </form>

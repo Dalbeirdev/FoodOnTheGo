@@ -279,8 +279,10 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   null); `/auth/me` returns `preferred_locale` and `notice_locales` (configured AND translated, never empty —
   `App\Support\NoticeLocales`). With a choice, every e-mail to that person is in that one language, subject
   included; a stored choice that is no longer offered falls back to all offered languages. `POST /admin/users`
-  accepts `locale` so an invitation can be written in one language. Only e-mails follow this — the dashboards
-  are not translated.
+  accepts `locale` so an invitation can be written in one language. The same choice is the language of the
+  dashboards (see Front-end integration). Links in an e-mail to a person with a choice carry `?lang=<code>`
+  before the fragment, so the signed-out page they open (set password, reset password) uses that language; the
+  code carries no authority and an unknown one means English.
 - The invitation and the password-reset e-mail use the same layout and language rule (`WritesStaffNotice`):
   English and Hindi in one message, each part with the button to the single-use link, and the address once in
   plain text. The framework's default mail layout (header link to `APP_URL`, English greeting) is no longer used
@@ -526,6 +528,14 @@ that were made are audited — a refused attempt is not an audit event.
   invited administrator sets a password.
   The list is searched (name / e-mail), filtered by status and paged by the backend (10 per page); a role can be
   given for all markets or one market (`market_id`), and an account can be disabled (final).
+- **Dashboards in Hindi**: the Restaurant Dashboard, the Platform Admin and their sign-in / password / MFA screens
+  are translated (`dashboard/strings.hi.ts`, `admin/strings.hi.ts`, `auth/staff/strings.hi.ts`, `i18n/shared.hi.ts`;
+  about 1,990 texts, loaded on demand as a separate chunk — the customer site is not translated and does not
+  download it). The language is the signed-in person's `preferred_locale`; signed out it is `?lang=` of the link or
+  the language last used in that browser (`localStorage fotg.staff.lang`), else English. Dates, numbers and money
+  keep the market's region (`hi-IN`). `src/i18n/hi.test.tsx` fails when an English text has no Hindi one or a
+  placeholder differs. Not translated: data (names, addresses, menu items, fixture content) and messages written
+  by the backend (validation and refusal texts).
 - Staff account security (both dashboards, `customer-web/src/auth/staff/`): `/…/forgot-password` and
   `/…/reset-password` (public; the token travels in the URL fragment and is removed from the address bar),
   `/…/account-security` (profile menu: MFA on / off, change password, signed-in devices). `MfaSetup.tsx` draws

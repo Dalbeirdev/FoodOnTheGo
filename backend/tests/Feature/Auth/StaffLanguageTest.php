@@ -104,7 +104,8 @@ class StaffLanguageTest extends TestCase
         $this->assertStringContainsString('आपका पासवर्ड वही रहेगा', $hindi->getTextBody());
         $this->assertStringNotContainsString('Your password stays the same', $hindi->getTextBody().$hindi->getHtmlBody());
         $this->assertStringContainsString('<html lang="hi">', $hindi->getHtmlBody());
-        $this->assertMatchesRegularExpression('~/admin/reset-password#[A-Za-z0-9]{64}~', $hindi->getTextBody());
+        $this->assertMatchesRegularExpression('~/admin/reset-password\?lang=hi#[A-Za-z0-9]{64}~', $hindi->getTextBody());   // the page opens in Hindi too
+        $this->assertMatchesRegularExpression('~/admin/reset-password#[A-Za-z0-9]{64}~', $both->getTextBody());
 
         $admin->forceFill(['preferred_locale' => 'en'])->save();
         $english = $this->resetMailFor($admin);
@@ -133,6 +134,7 @@ class StaffLanguageTest extends TestCase
         $mail = $this->lastMail();
         $this->assertSame('आपको FoodOnTheGo एडमिनिस्ट्रेशन में आमंत्रित किया गया है', $mail->getSubject());
         $this->assertStringNotContainsString('Choose your password', $mail->getTextBody());
+        $this->assertMatchesRegularExpression('~/admin/accept-invitation\?lang=hi#[A-Za-z0-9]{64}~', $mail->getTextBody());
         $this->assertSame('hi', AdminUser::query()->where('email', 'priya.nair@foodonthego.example')->value('preferred_locale'));
 
         $this->postJson('/api/v1/admin/users', ['name' => 'Tom Okafor', 'email' => 'tom.o@foodonthego.example', 'role' => 'ANALYST'])->assertCreated()->assertJson(['preferred_locale' => null]);

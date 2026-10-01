@@ -22,6 +22,18 @@ final class NoticeLocales
     }
 
     /**
+     * `?lang=xx` for a link in an e-mail to a person who chose a language, so the page it opens (they are not
+     * signed in there) uses the same language as the message. Empty without a choice. A language code is not
+     * personal data and carries no authority — the page falls back to English for anything it does not know.
+     */
+    public static function linkQuery(object $notifiable): string
+    {
+        $locales = self::for($notifiable);
+
+        return count($locales) === 1 && is_string($notifiable->preferred_locale ?? null) ? '?lang='.rawurlencode($locales[0]) : '';
+    }
+
+    /**
      * The languages of one message: the person's own language when they chose one that is still available,
      * otherwise every available language.
      *

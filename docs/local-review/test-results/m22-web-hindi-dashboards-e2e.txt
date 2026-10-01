@@ -1,0 +1,19 @@
+PASS A1 Platform Admin is English until a language is chosen
+PASS A2 choosing Hindi on Account security switches the whole screen at once: heading, navigation and the lang attribute — खाते की सुरक्षा · lang=hi-IN
+PASS A3 all 29 Platform Admin pages have a Hindi heading
+PASS A4 no untranslated text key shows through on any admin page
+PASS A5 no admin page overflows sideways with the longer Hindi texts (1366 px)
+PASS A6 interface texts still in English on admin pages (headings, navigation, buttons, table headers, labels) — 0 found — listed in the report file
+PASS A7 axe (Admin Users in Hindi): no serious / critical violations
+PASS A8 money and dates keep the Indian format in Hindi (₹ amounts on the Payments page)
+PASS S1 after signing out the sign-in screen stays in Hindi in this browser
+PASS S2 the reset link in a Hindi e-mail carries ?lang=hi and opens the page in Hindi in a browser that has never signed in; the token leaves the address bar
+PASS R1 all 14 Restaurant Dashboard pages have a Hindi heading
+PASS R2 no untranslated text key shows through on any restaurant page
+PASS R3 no restaurant page overflows sideways (1366 px)
+PASS R4 interface texts still in English on restaurant pages — 0 found — listed in the report file
+PASS R5 at 390 px the Hindi restaurant pages do not overflow the page
+PASS Z no uncaught page errors or console errors
+PASS Z language choices of the fixture accounts cleared
+
+17/17 passed

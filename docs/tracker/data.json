@@ -21914,6 +21914,54 @@
       "issue": "-",
       "carry": "CF-317",
       "notes": "Owner request 2026-10-01. Only e-mails follow the choice: the dashboard screens are English and are not translated. The card is hidden when the backend offers a single language. LOCAL ONLY: e-mails are written to the server log, not delivered (CF-315)."
+    },
+    {
+      "id": "M21-142",
+      "module": "M21",
+      "req": "Restaurant Dashboard and Platform Admin in Hindi: all interface texts of both tools (about 1,880) translated with one glossary; the Hindi texts are a separate file loaded only when needed; dates, numbers and money keep the Indian format; the page language is announced to browsers and screen readers (lang attribute)",
+      "platform": "WEB",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208); HINDI WORDING NOT REVIEWED BY A NATIVE SPEAKER (CF-317)",
+      "evidence": "docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (17/17); docs/local-review/test-results/web-vitest-m22.txt (480/480) (src/i18n/hi.test.tsx); docs/local-review/screenshots/web-m22/hindi/",
+      "issue": "-",
+      "carry": "CF-318",
+      "notes": "Owner request 2026-10-01. Machine-assisted translation, NOT reviewed by a native speaker (CF-317). Not translated: data (restaurant and customer names, menu items, addresses, fixture content, activity entries) and messages that come from the backend (validation / refusal texts). The customer website and the Android app are not translated."
+    },
+    {
+      "id": "M21-143",
+      "module": "M21",
+      "req": "Staff sign-in, forgot / reset password, set-password (invitation), MFA setup and Account security screens moved from fixed English text to the translation tables and translated into Hindi (about 110 texts). Signed out, the screens use the language of the opened link (?lang=) or the language last used in that browser",
+      "platform": "WEB",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208); HINDI WORDING NOT REVIEWED BY A NATIVE SPEAKER (CF-317)",
+      "evidence": "docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (17/17) S1, S2; docs/local-review/test-results/web-vitest-m22.txt (480/480)",
+      "issue": "-",
+      "carry": "CF-318",
+      "notes": "Owner request 2026-10-01. Error texts produced by the backend stay English."
+    },
+    {
+      "id": "M21-144",
+      "module": "M21",
+      "req": "One language choice per staff account for screens and e-mails: the \"Language\" card on Account security (now first on the page) switches the dashboard at once; links in e-mails to a person with a choice carry ?lang= so the signed-out page opens in that language",
+      "platform": "WEB + BACKEND",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208); HINDI WORDING NOT REVIEWED BY A NATIVE SPEAKER (CF-317)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (275 tests, 2735 assertions, 0 failed) StaffLanguage; docs/local-review/test-results/m22-web-staff-language-e2e.json; docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (17/17) A2, S2",
+      "issue": "-",
+      "carry": "CF-318",
+      "notes": "Owner request 2026-10-01. Without a choice the screens are English and e-mails carry every offered language."
     }
   ],
   "pages": [
@@ -28206,7 +28254,7 @@
     ],
     [
       "CF-317",
-      "Hindi staff e-mails: the owner or a native speaker reviews the Hindi wording in backend/lang/hi/auth.php (invitation, password reset, MFA notices) before go-live",
+      "Hindi wording review: the owner or a native speaker reviews the Hindi before go-live — e-mails (backend/lang/hi/auth.php, 18 texts) and dashboards (customer-web/src/dashboard/strings.hi.ts, admin/strings.hi.ts, auth/staff/strings.hi.ts, i18n/shared.hi.ts, about 1,990 texts). Translators' open questions are listed in docs/local-review/hindi-translation-notes.md",
       "M21",
       "Module 21 follow-up",
       "P2",
@@ -28218,15 +28266,15 @@
     ],
     [
       "CF-318",
-      "Dashboards in Hindi: the Restaurant Dashboard and Platform Admin screens are English only; the e-mail language choice does not change them. Also: restaurant users cannot yet be invited (Module 23), so their language can only be set by themselves",
+      "Hindi beyond the dashboards: (1) messages written by the backend (validation and refusal texts) are English; (2) data shown in the dashboards (fixture content, activity entries, service names) is English; (3) the customer website and the Android app are not translated; (4) restaurant users cannot yet be invited (Module 23), so their language can only be set by themselves",
       "M21",
       "Module 21 follow-up",
       "P3",
       "Claude",
       "Web (dashboards) / Localisation",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-10-01",
-      "-"
+      "Dashboards and staff screens translated 2026-10-01 (M21-142..144). The listed parts remain"
     ]
   ],
   "bugs": [
@@ -31804,7 +31852,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague; Admin Users: search, role for one market, Disable; Account security: E-mail language)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague; Admin Users: search, role for one market, Disable; Account security: E-mail language; choose Hindi under Account security → Language and read the dashboards)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -32028,6 +32076,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (275 tests, 2733 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (470/470)",
+      "2026-10-01"
+    ],
+    [
+      "TE-231",
+      "M21",
+      "WEB",
+      "Dashboards in Hindi against the real local backend: English until chosen; choosing Hindi switches heading, navigation and lang at once; 33 Platform Admin pages and 14 Restaurant Dashboard pages each with a Hindi heading, no raw text key, no sideways overflow, and no English interface text found in headings / navigation / buttons / table headers / labels / tabs / badges; Indian money format kept; sign-in screen stays Hindi after sign-out; a reset link with ?lang=hi opens in Hindi in a fresh browser; 390 px; axe; language choices cleared",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (17/17); docs/local-review/screenshots/web-m22/hindi/",
+      "2026-10-01"
+    ],
+    [
+      "TE-232",
+      "M21",
+      "WEB + BACKEND",
+      "Web vitest 480 (10 new: Hindi tables complete with identical placeholders, written in Devanagari, loaded on demand with English fallback, both dashboards render in Hindi, ?lang= on a signed-out page); backend suite 275; re-run after the sign-in screens were rewritten: sign-in regression 48/48, full site regression 68/68, staff security 28/28, e-mail language 15/15, Admin Users 27/27 + 24/24 + phone 12/12, MFA reset 19/19",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/web-vitest-m22.txt (480/480); docs/local-review/test-results/backend-m22-phpunit.txt (275 tests, 2735 assertions, 0 failed); docs/local-review/test-results/m22-web-auth-regression.txt; docs/local-review/test-results/m22-web-regression.txt",
       "2026-10-01"
     ]
   ],
@@ -32805,6 +32873,14 @@
       "M21",
       "WEB",
       "docs/local-review/test-results/m22-web-staff-language-e2e.json (14/14); docs/local-review/screenshots/web-m22/staff-language/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Dashboards in Hindi: e2e result, 50+ screenshots, translators' notes",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (17/17); docs/local-review/screenshots/web-m22/hindi/; docs/local-review/hindi-translation-notes.md",
       "Evidence",
       "YES"
     ]

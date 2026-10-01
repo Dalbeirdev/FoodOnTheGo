@@ -6,6 +6,7 @@
  * the backend again, whatever the screen offers.
  */
 import { ApiError, api, tokens } from '../../api/client'
+import { t } from '../../i18n/strings'
 import type { AdminPermission, AdminRoleId } from '../../admin/types'
 import type { Permission as RestaurantPermission, RoleId as RestaurantRoleId } from '../../dashboard/types'
 
@@ -29,25 +30,29 @@ type SessionDto = { id: string; device: string | null; current: boolean; created
 const toPrincipal = (p: PrincipalDto): StaffPrincipal => ({ id: p.id, name: p.name, email: p.email, status: p.status, mfaEnabled: p.mfa_enabled, lastLoginAt: p.last_login_at, roles: p.roles, permissions: p.permissions, preferredLocale: p.preferred_locale ?? null, noticeLocales: p.notice_locales ?? [] })
 const expected = { restaurant: 'RESTAURANT_USER', admin: 'ADMIN_USER' } as const
 
-/** Customer-safe text for a failed staff sign-in; never reveals whether the e-mail exists. */
-export function staffErrorMessage(e: unknown): string {
-  if (!(e instanceof ApiError)) return 'Something went wrong. Please try again.'
-  if (e.kind === 'network') return 'Cannot reach FoodOnTheGo right now. Check your connection and try again.'
-  if (e.kind === 'rate_limited') return e.code === 'mfa_attempts_exceeded' ? 'Too many incorrect codes. Please sign in again.' : `Too many attempts. ${e.retryAfterSeconds ? `Try again in ${e.retryAfterSeconds} seconds.` : 'Please wait a moment and try again.'}`
+type Tr = (key: string, params?: Record<string, string | number>) => string
+/**
+ * Safe text for a failed staff request; never reveals whether the e-mail exists. `tr` puts it in the staff language
+ * (English when omitted). Field messages written by the backend are passed through as they are (English).
+ */
+export function staffErrorMessage(e: unknown, tr: Tr = t): string {
+  if (!(e instanceof ApiError)) return tr('staff.err.generic')
+  if (e.kind === 'network') return tr('staff.err.network')
+  if (e.kind === 'rate_limited') return e.code === 'mfa_attempts_exceeded' ? tr('staff.err.tooManyCodes') : e.retryAfterSeconds ? tr('staff.err.rateWait', { seconds: e.retryAfterSeconds }) : tr('staff.err.rate')
   switch (e.code) {
-    case 'invalid_credentials': return 'The e-mail or password is incorrect.'
-    case 'account_not_active': return 'This account cannot sign in. Please contact your administrator.'
-    case 'mfa_code_invalid': return 'That code is not correct.'
-    case 'mfa_challenge_invalid': return 'This sign-in attempt has expired. Please sign in again.'
+    case 'invalid_credentials': return tr('staff.err.credentials')
+    case 'account_not_active': return tr('staff.err.notActive')
+    case 'mfa_code_invalid': return tr('staff.err.codeInvalid')
+    case 'mfa_challenge_invalid': return tr('staff.err.challengeGone')
+    case 'reset_token_invalid': return tr('staff.err.resetInvalid')
+    case 'mfa_already_enabled': return tr('staff.err.mfaAlready')
+    case 'mfa_setup_not_started': return tr('staff.err.mfaSetupAgain')
   }
-  switch (e.code) {
-    case 'reset_token_invalid': return 'This reset link is invalid or has expired. Request a new one.'
-    case 'mfa_already_enabled': return 'Multi-factor authentication is already enabled.'
-    case 'mfa_setup_not_started': return 'Start the setup again.'
-  }
-  if (e.kind === 'validation') return e.field('current_password') ?? e.field('email') ?? e.field('password') ?? e.field('code') ?? e.field('token') ?? 'Please check what you entered.'
-  return e.kind === 'server' ? 'Something went wrong on our side. Please try again.' : e.message
+  if (e.kind === 'validation') return e.field('current_password') ?? e.field('email') ?? e.field('password') ?? e.field('code') ?? e.field('token') ?? tr('staff.err.check')
+  return e.kind === 'server' ? tr('staff.err.server') : e.message
 }
+/** The MFA challenge of a sign-in can no longer be used (expired, or too many wrong codes): back to the password step. */
+export const isChallengeGone = (e: unknown): boolean => e instanceof ApiError && (e.code === 'mfa_challenge_invalid' || e.code === 'mfa_attempts_exceeded')
 
 export function staffAuth(context: StaffContext) {
   const finish = (dto: LoginDto): StaffLoginResult => {

@@ -1,0 +1,94 @@
+{
+  "module": "CF-318: dashboards in Hindi",
+  "mode": "real local backend",
+  "date": "2026-10-01T14:29:10.048Z",
+  "total": 17,
+  "passed": 17,
+  "results": [
+    {
+      "name": "A1 Platform Admin is English until a language is chosen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2 choosing Hindi on Account security switches the whole screen at once: heading, navigation and the lang attribute",
+      "pass": true,
+      "detail": "खाते की सुरक्षा · lang=hi-IN"
+    },
+    {
+      "name": "A3 all 29 Platform Admin pages have a Hindi heading",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 no untranslated text key shows through on any admin page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 no admin page overflows sideways with the longer Hindi texts (1366 px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6 interface texts still in English on admin pages (headings, navigation, buttons, table headers, labels)",
+      "pass": true,
+      "detail": "0 found — listed in the report file"
+    },
+    {
+      "name": "A7 axe (Admin Users in Hindi): no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A8 money and dates keep the Indian format in Hindi (₹ amounts on the Payments page)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S1 after signing out the sign-in screen stays in Hindi in this browser",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S2 the reset link in a Hindi e-mail carries ?lang=hi and opens the page in Hindi in a browser that has never signed in; the token leaves the address bar",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R1 all 14 Restaurant Dashboard pages have a Hindi heading",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R2 no untranslated text key shows through on any restaurant page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R3 no restaurant page overflows sideways (1366 px)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R4 interface texts still in English on restaurant pages",
+      "pass": true,
+      "detail": "0 found — listed in the report file"
+    },
+    {
+      "name": "R5 at 390 px the Hindi restaurant pages do not overflow the page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z language choices of the fixture accounts cleared",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

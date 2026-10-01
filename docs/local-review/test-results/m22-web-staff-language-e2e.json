@@ -1,14 +1,14 @@
 {
   "module": "M21 follow-up (CF-317: e-mail language per staff account)",
   "mode": "real local backend",
-  "date": "2026-10-01T13:27:27.101Z",
-  "total": 14,
-  "passed": 14,
+  "date": "2026-10-01T14:29:45.497Z",
+  "total": 15,
+  "passed": 15,
   "results": [
     {
       "name": "L1 Account security has an \"E-mail language\" card: no preference by default, with the languages the backend offers (English, Hindi)",
       "pass": true,
-      "detail": "No preference — every language in one message (English + हिन्दी (Hindi)) | English | हिन्दी (Hindi)"
+      "detail": "No preference — screens in English, e-mails in every language (English + हिन्दी (Hindi)) | English | हिन्दी (Hindi)"
     },
     {
       "name": "A11Y axe (account security with e-mail language) no serious / critical violations",
@@ -26,7 +26,12 @@
       "detail": ""
     },
     {
-      "name": "L4 the next e-mail is in Hindi only, with its single-use link",
+      "name": "L4 the next e-mail is in Hindi only, with its single-use link (which opens the page in Hindi: ?lang=hi)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L4b the screen itself switched to Hindi",
       "pass": true,
       "detail": ""
     },

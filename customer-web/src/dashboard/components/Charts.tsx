@@ -1,4 +1,6 @@
 import { useId, useState } from 'react'
+import { useStaffLang } from '../../auth/staff/staffLocale'
+import { t } from '../../i18n/strings'
 import type { SeriesPoint } from '../types'
 
 /**
@@ -9,7 +11,8 @@ type Fmt = (v: number) => string
 const nice = (max: number) => { if (max <= 0) return 1; const p = 10 ** Math.floor(Math.log10(max)); const m = max / p; const step = m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10; return step * p }
 
 function DataTable({ title, data, format }: { title: string; data: SeriesPoint[]; format: Fmt }) {
-  return <table className="db-sr-only"><caption>{title}</caption><thead><tr><th scope="col">Label</th><th scope="col">Value</th></tr></thead><tbody>{data.map((p) => <tr key={p.label}><th scope="row">{p.label}</th><td>{format(p.value)}</td></tr>)}</tbody></table>
+  const lang = useStaffLang()
+  return <table className="db-sr-only"><caption>{title}</caption><thead><tr><th scope="col">{t('dash.chart.label', undefined, lang)}</th><th scope="col">{t('dash.chart.value', undefined, lang)}</th></tr></thead><tbody>{data.map((p) => <tr key={p.label}><th scope="row">{p.label}</th><td>{format(p.value)}</td></tr>)}</tbody></table>
 }
 
 export function BarChart({ title, data, format = (v) => String(v), height = 180, color = 'var(--db-orange)', testId }: { title: string; data: SeriesPoint[]; format?: Fmt; height?: number; color?: string; testId?: string }) {
