@@ -1,0 +1,44 @@
+{
+  "module": "M22",
+  "target": "Flutter web preview of the Android code (MARKET_MODE=api, AUTH_MODE=api) against the real local backend — NOT a device test",
+  "date": "2026-10-01T08:00:12.209Z",
+  "total": 7,
+  "passed": 7,
+  "results": [
+    {
+      "name": "G1 on start the app loads its market from the backend: GET /markets and GET /markets/current/coverage (200, no token, request id)",
+      "pass": true,
+      "detail": "GET /markets 200, GET /markets/current/coverage 200"
+    },
+    {
+      "name": "G2 home renders with the India restaurants that lie inside the service areas served by the backend (Burger Hub, Noida); no foreign currency",
+      "pass": true,
+      "detail": "Burger Hub Burgers • Fast Food 4.5 2 min detourPiz"
+    },
+    {
+      "name": "G3 Build Info states where market data comes from: \"Backend (PostGIS coverage)\"",
+      "pass": true,
+      "detail": "Market data Backend (PostGIS coverage) App version 0.1.0 (build 26) Build label web-preview Git commit no-gitRe-check"
+    },
+    {
+      "name": "G4 restaurants list shows India restaurants inside the backend's service areas",
+      "pass": true,
+      "detail": "14 restaurants Sorted by: open now, shortest detour, then rating. ELSEWHERE IN IN 6 Nothing closer yet — showing elsewhere in in 6 / 14 | Sh"
+    },
+    {
+      "name": "G5 market paused on the backend → after a restart the app gets 404 market_unavailable and offers nothing (\"isn't available in this location yet\")",
+      "pass": true,
+      "detail": "200 · /markets 200, /markets/current/coverage 404 ·  FoodOnTheGo isn't available in this location yet. "
+    },
+    {
+      "name": "G6 market resumed (start state restored)",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "G7 after the resume a restarted app lists restaurants again",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

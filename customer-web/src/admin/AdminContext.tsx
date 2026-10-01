@@ -5,7 +5,10 @@ import { useLocale } from '../i18n/strings'
 import { ADMIN_USERS, DEFAULT_ADMIN_ID } from './mock/fixtures'
 import { adminPermissionsForRole, adminRepositories, currentAdminUsers, K, seedAdminFixtures } from './mock/mockAdmin'
 import { fixtureScope } from '../market/fixtureScope'
+import { loadAdminMarketData } from '../market/api/marketData'
+import { marketMode } from '../market/marketMode'
 import { marketRepository } from '../market/mock/mockMarket'
+import { ApiAdminMarketControlRepository } from './api/ApiAdminMarketControlRepository'
 import type { Market } from '../market/types'
 import type { AdminNotification, AdminPermission, AdminRepositories, AdminUser, Environment } from './types'
 
@@ -45,7 +48,11 @@ const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } cat
 /** The environment comes from build configuration, never from a hardcoded string; local development shows LOCAL / MOCK DATA. */
 export const detectEnvironment = (): Environment => { const e = (import.meta.env.VITE_ENVIRONMENT as string | undefined)?.toUpperCase(); return e === 'PRODUCTION' || e === 'STAGING' ? e : 'LOCAL' }
 
-export function AdminProvider({ children, repos = adminRepositories }: { children: ReactNode; repos?: AdminRepositories }) {
+/** Module 22: with the backend, the market control center talks to the admin API; everything else is still the mock. */
+const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, marketControl: new ApiAdminMarketControlRepository() } : adminRepositories)
+
+export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {
+  const repos = useMemo(() => given ?? defaultRepositories(), [given])
   const { locale } = useLocale()
   const [status, setStatus] = useState<AdminState['status']>('loading')
   const [admins, setAdmins] = useState<AdminUser[]>(() => ADMIN_USERS(new Date()))
@@ -65,7 +72,7 @@ export function AdminProvider({ children, repos = adminRepositories }: { childre
   const refreshAlerts = useCallback(async () => { try { setAlerts(await repos.notifications.alerts()) } catch { /* keep previous */ } }, [repos])
   const reload = useCallback(async () => {
     setStatus('loading')
-    try { seedAdminFixtures(); setAdmins(currentAdminUsers()); setMarkets(marketRepository.getMarkets()); await repos.overview.snapshot(); await refreshAlerts(); setStatus('ready') } catch { setStatus('error') }
+    try { seedAdminFixtures(); setAdmins(currentAdminUsers()); setMarkets(marketRepository.getMarkets()); /* the market list arrives without holding up the shell; an admin without market permission simply keeps the public one */ if (marketMode() === 'api') void loadAdminMarketData().then(() => setMarkets(marketRepository.getMarkets())).catch(() => undefined); await repos.overview.snapshot(); await refreshAlerts(); setStatus('ready') } catch { setStatus('error') }
   }, [repos, refreshAlerts])
   useEffect(() => { void reload() }, [reload])
   const switchAdmin = useCallback((id: string) => { if (session.mode === 'api') return; write(K.session, id); setAdminId(id) }, [session.mode])

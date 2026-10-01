@@ -1,0 +1,334 @@
+   Woah! You appear to be trying to run flutter as root.
+   We strongly recommend running the flutter tool without superuser privileges.
+  /
+📎
+Resolving dependencies...
+Downloading packages...
+  cli_util 0.4.2 (0.6.0 available)
+  code_assets 1.2.1 (2.1.0 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.0 available)
+  qr 3.0.2 (4.0.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+Got dependencies!
+11 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /root/fotg/mobile/test/widget_test.dart
+00:00 +0: /root/fotg/mobile/test/widget_test.dart: CartState adds, steps and totals items with the combo discount (no tax rate in the app)
+00:00 +1: /root/fotg/mobile/test/widget_test.dart: CartState adds, steps and totals items with the combo discount (no tax rate in the app)
+00:00 +2: /root/fotg/mobile/test/widget_test.dart: CartState adds, steps and totals items with the combo discount (no tax rate in the app)
+00:00 +3: /root/fotg/mobile/test/orders_history_test.dart: MockOrderRepository.listSummaries pages the customer's orders only; seedDemoHistory is idempotent and mixes currencies / refunds
+00:00 +4: /root/fotg/mobile/test/orders_history_test.dart: MockOrderRepository.listSummaries pages the customer's orders only; seedDemoHistory is idempotent and mixes currencies / refunds
+00:00 +5: /root/fotg/mobile/test/orders_history_test.dart: MockOrderRepository.listSummaries pages the customer's orders only; seedDemoHistory is idempotent and mixes currencies / refunds
+00:00 +6: /root/fotg/mobile/test/journey_test.dart: mock journey repositories location search by name, alias and sub; empty for short / nowhere
+00:00 +7: /root/fotg/mobile/test/journey_test.dart: mock journey repositories location search by name, alias and sub; empty for short / nowhere
+00:00 +8: /root/fotg/mobile/test/orders_history_test.dart: MockReorderService price changed → new cart input carries the CURRENT price, old price kept for display
+00:00 +9: /root/fotg/mobile/test/orders_history_test.dart: MockReorderService price changed → new cart input carries the CURRENT price, old price kept for display
+00:00 +10: /root/fotg/mobile/test/journey_test.dart: mock journey repositories route corridor Chandigarh → Jammu with waypoints and estimate flag
+00:00 +11: /root/fotg/mobile/test/journey_test.dart: mock journey repositories route corridor Chandigarh → Jammu with waypoints and estimate flag
+00:00 +12: /root/fotg/mobile/test/journey_test.dart: mock journey repositories route corridor Chandigarh → Jammu with waypoints and estimate flag
+00:00 +13: /root/fotg/mobile/test/journey_test.dart: mock journey repositories no route to the island test case
+00:00 +14: /root/fotg/mobile/test/journey_test.dart: mock journey repositories journeys: create, recent (deduplicated), remove, get
+00:00 +15: /root/fotg/mobile/test/journey_test.dart: mock journey repositories validateJourney covers missing and same locations
+00:00 +16: /root/fotg/mobile/test/journey_test.dart: JourneyState TEST 1 Chandigarh → Jammu: editing → route available
+00:00 +17: /root/fotg/mobile/test/journey_test.dart: JourneyState TEST 2 swap exchanges origin and destination
+00:00 +18: /root/fotg/mobile/test/journey_test.dart: JourneyState TEST 3 same location rejected, TEST 4 missing origin rejected
+00:00 +19: /root/fotg/mobile/test/journey_test.dart: JourneyState route failure → error with retry; retry recovers
+00:00 +20: /root/fotg/mobile/test/journey_test.dart: JourneyState load by id restores a stored journey; unknown id → null
+00:00 +21: /root/fotg/mobile/test/journey_test.dart: JourneyState useAgain + removeRecent
+00:00 +22: /root/fotg/mobile/test/order_test.dart: TEST 1 / 2 / 3 — order created from a verified payment: public references, separate statuses, snapshot, pickup code + opaque QR token
+00:00 +23: /root/fotg/mobile/test/order_test.dart: idempotent — the same payment attempt never creates a second order or pickup code
+00:00 +24: /root/fotg/mobile/test/order_test.dart: TEST 6 — reload: a fresh state over the same store restores the order without creating anything
+00:00 +25: /root/fotg/mobile/test/order_test.dart: TEST 4 — payment pending fixture: no confirmed / paid claim, no pickup code
+00:00 +26: /root/fotg/mobile/test/order_test.dart: cancelled fixture and TEST 5 — invalid order number
+00:00 +27: /root/fotg/mobile/test/order_test.dart: authorization-ready — another customer's order is not found for this account
+00:00 +28: /root/fotg/mobile/test/order_test.dart: failed to load → failedToLoad, retry recovers
+00:00 +29: /root/fotg/mobile/test/order_test.dart: pending-<attempt> reference resolves to the created order or to a pending state; never creates anything
+00:00 +30: /root/fotg/mobile/test/order_test.dart: TEST 9 / 10 — USD order keeps its own currency and restaurant zone in the snapshot
+00:00 +31: /root/fotg/mobile/test/api_client_test.dart: ApiClient (Module 20 backend contract) uses the configured base URL, sends a request id, query and token
+00:00 +32: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +33: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +34: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +35: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +36: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +37: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +38: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +39: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +40: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +41: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +42: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +43: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:00 +44: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +45: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +46: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +47: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +48: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +49: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +50: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +51: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +52: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +53: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +54: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +55: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +56: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +57: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +58: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +59: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +60: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +61: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +62: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +63: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +64: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +65: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:01 +66: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +67: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +68: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +69: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +70: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +71: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +72: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +73: /root/fotg/mobile/test/pickup_screen_test.dart: TEST 4 — no journey: context, zone, modes; scheduled slots load with a recommended one
+00:02 +74: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +75: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +76: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +77: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +78: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +79: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +80: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +81: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +82: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +83: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +84: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +85: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +86: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +87: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +88: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +89: /root/fotg/mobile/test/order_confirmation_screen_test.dart: TEST 1 / 2 / 3 / 13 — confirmed order: number, statuses, QR + code, pickup, restaurant, items, pricing, payment, receipt
+00:02 +90: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:02 +91: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:03 +92: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:03 +93: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:03 +94: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:03 +95: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:03 +96: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 3 / 4 / 5 / 6 — eligible order: rating required, tags + item feedback + Unicode text, single review stored, confirmation + next actions
+00:03 +97: /root/fotg/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:04 +98: /root/fotg/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:04 +99: /root/fotg/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:04 +100: /root/fotg/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:04 +101: /root/fotg/mobile/test/payment_screen_test.dart: TEST 1 — summary, method, Pay button; success → verified → Module 13 order confirmation
+00:04 +102: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:04 +103: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:04 +104: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:04 +105: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:04 +106: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:04 +107: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:04 +108: /root/fotg/mobile/test/order_tracking_screen_test.dart: TEST 1 — status header, separate statuses, timeline advances through the normal flow to completed actions
+00:05 +109: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +110: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +111: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +112: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +113: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +114: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +115: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +116: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +117: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +118: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +119: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +120: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +121: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +122: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +123: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +124: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +125: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +126: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 1 / 4 / 9 — empty state, then seeded history renders grouped cards, badges and state-dependent actions
+00:05 +127: /root/fotg/mobile/test/item_detail_test.dart: TEST 1 — simple item adds straight to the cart
+00:05 +128: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 9 / offline — details entry point (Rate → Edit review) and offline blocks submit
+00:06 +129: /root/fotg/mobile/test/review_screen_test.dart: TEST 1 / 9 / offline — details entry point (Rate → Edit review) and offline blocks submit
+00:06 +130: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +131: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +132: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +133: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +134: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +135: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +136: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +137: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +138: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +139: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +140: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +141: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +142: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +143: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +144: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +145: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +146: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +147: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +148: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +149: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +150: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +151: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +152: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +153: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +154: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +155: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +156: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +157: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +158: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:06 +159: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +160: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +161: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +162: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +163: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +164: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +165: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +166: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +167: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +168: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +169: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +170: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +171: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +172: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +173: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +174: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +175: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +176: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +177: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +178: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +179: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +180: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +181: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +182: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +183: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +184: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +185: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +186: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +187: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +188: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +189: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +190: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +191: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +192: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +193: /root/fotg/mobile/test/tracking_test.dart: network_loss scenario reports stale then live around the accepted event
+00:07 +194: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +195: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +196: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +197: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +198: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +199: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +200: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +201: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +202: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +203: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +204: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +205: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +206: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +207: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +208: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +209: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +210: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +211: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +212: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +213: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +214: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +215: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:07 +216: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +217: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +218: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +219: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +220: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +221: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +222: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +223: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +224: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +225: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +226: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +227: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +228: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +229: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +230: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +231: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +232: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +233: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +234: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +235: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +236: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +237: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +238: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +239: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +240: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +241: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +242: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +243: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +244: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +245: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +246: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 1/7 — opens by slug without a journey: name, address, categories, prices, plan-journey hint
+00:08 +247: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 12 / 13 — reorder validates the current menu (price change), builds a NEW cart, and asks before replacing another restaurant's cart
+00:08 +248: /root/fotg/mobile/test/my_orders_screen_test.dart: TEST 12 / 13 — reorder validates the current menu (price change), builds a NEW cart, and asks before replacing another restaurant's cart
+00:08 +249: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:08 +250: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +251: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +252: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +253: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +254: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +255: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +256: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +257: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +258: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +259: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +260: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +261: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +262: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +263: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +264: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 1 — signed-in review shows customer, restaurant, pickup, items, promo, legal, payment and summary
+00:09 +265: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +266: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +267: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +268: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +269: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +270: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +271: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 4/5 — unavailable items are badged and "Available now" hides them
+00:09 +272: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +273: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +274: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +275: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +276: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +277: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +278: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +279: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +280: /root/fotg/mobile/test/checkout_screen_test.dart: TEST 11 — Continue is blocked until terms are accepted, then the payment stage shows the request
+00:10 +281: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 8 — Info tab shows hours with the restaurant zone label
+00:10 +282: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 8 — Info tab shows hours with the restaurant zone label
+00:10 +283: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 8 — Info tab shows hours with the restaurant zone label
+00:10 +284: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 8 — Info tab shows hours with the restaurant zone label
+00:10 +285: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen TEST 8 — Info tab shows hours with the restaurant zone label
+00:10 +286: /root/fotg/mobile/test/checkout_screen_test.dart: legal links open the DRAFT documents
+00:10 +287: /root/fotg/mobile/test/checkout_screen_test.dart: legal links open the DRAFT documents
+00:10 +288: /root/fotg/mobile/test/menu_test.dart: RestaurantDetailScreen Item details screen renders a generated Unicode item with its price (Module 08)
+00:10 +289: /root/fotg/mobile/test/screens_test.dart: Home lays out at 360×640 with 1.3× text
+00:10 +290: /root/fotg/mobile/test/screens_test.dart: Restaurants lays out at 360×640 with 1.3× text
+00:10 +291: /root/fotg/mobile/test/screens_test.dart: Restaurant detail lays out at 360×640 with 1.3× text
+00:10 +292: /root/fotg/mobile/test/screens_test.dart: Item lays out at 360×640 with 1.3× text
+00:10 +293: /root/fotg/mobile/test/screens_test.dart: Cart (empty) lays out at 360×640 with 1.3× text
+00:10 +294: /root/fotg/mobile/test/screens_test.dart: My orders lays out at 360×640 with 1.3× text
+00:10 +295: /root/fotg/mobile/test/screens_test.dart: Profile lays out at 360×640 with 1.3× text
+00:10 +296: /root/fotg/mobile/test/screens_test.dart: Plan a journey lays out at 360×640 with 1.3× text
+00:10 +297: /root/fotg/mobile/test/screens_test.dart: Login (mobile number) lays out at 360×640 with 1.3× text
+00:10 +298: /root/fotg/mobile/test/screens_test.dart: Verify OTP (no pending phone) lays out at 360×640 with 1.3× text
+00:10 +299: /root/fotg/mobile/test/screens_test.dart: Account setup (no token) lays out at 360×640 with 1.3× text
+00:10 +300: /root/fotg/mobile/test/screens_test.dart: Build info lays out at 360×640 with 1.3× text
+00:10 +301: /root/fotg/mobile/test/screens_test.dart: Help & Support lays out at 360×640 with 1.3× text
+00:10 +302: /root/fotg/mobile/test/screens_test.dart: Favorites (signed out guard) lays out at 360×640 with 1.3× text
+00:11 +303: /root/fotg/mobile/test/screens_test.dart: Addresses lays out at 360×640 with 1.3× text
+00:11 +304: /root/fotg/mobile/test/screens_test.dart: Payment methods lays out at 360×640 with 1.3× text
+00:11 +305: /root/fotg/mobile/test/screens_test.dart: Notifications lays out at 360×640 with 1.3× text
+00:11 +306: /root/fotg/mobile/test/screens_test.dart: Cart with a combo shows the saving and totals
+00:11 +307: /root/fotg/mobile/test/screens_test.dart: Item screen body is visible above its bottom bar
+00:11 +308: /root/fotg/mobile/test/screens_test.dart: Checkout (guest) redirects to login instead of rendering the review
+00:11 +309: /root/fotg/mobile/test/screens_test.dart: Home with items shows the cart bar without hiding the page
+00:11 +310: /root/fotg/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:11 +311: /root/fotg/mobile/test/screens_test.dart: (tearDownAll)
+00:11 +311: All tests passed!

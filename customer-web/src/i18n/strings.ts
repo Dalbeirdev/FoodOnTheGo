@@ -888,6 +888,7 @@ const en: Record<string, string> = {
   'ring.1': 'In {region}',
   'ring.2': 'Nearby region',
   'ring.3': 'Elsewhere in {country}',
+  'market.loading': 'Loading FoodOnTheGo…', 'market.loadError.title': 'FoodOnTheGo could not be loaded', 'market.loadError.text': 'We could not reach the service. Check your connection and try again.', 'market.loadError.retry': 'Try again',
   'market.unavailable.market': "FoodOnTheGo isn't available in this location yet.",
   'market.unavailable.market.text': 'We currently serve selected areas in India. Choose a location in a supported area to see restaurants.',
   'market.unavailable.area': 'FoodOnTheGo is not available in this area yet.',

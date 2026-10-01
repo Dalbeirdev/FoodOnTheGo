@@ -1,5 +1,5 @@
 # FoodOnTheGo — start/verify local backend services (LOCAL ONLY).
-# Starts Redis and PostgreSQL if needed, then Laravel on 0.0.0.0:8001 (8000 is taken by another process on this PC).
+# Starts Redis and PostgreSQL if needed, then the API on 0.0.0.0:8001 (Laravel on 127.0.0.1:8002 behind a small local proxy; 8000 is taken by another process on this PC).
 $ErrorActionPreference = 'Continue'
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $php = "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\PHP.PHP.8.3_Microsoft.Winget.Source_8wekyb3d8bbwe\php.exe"
@@ -25,12 +25,22 @@ else { Start-Process -FilePath "$redis\redis-server.exe" -ArgumentList '--port 6
 if (& "$pgBin\pg_ctl.exe" status -D $pgData 2>&1 | Select-String -Quiet 'server is running') { Ok 'PostgreSQL already running' }
 else { & "$pgBin\pg_ctl.exe" start -D $pgData -l 'C:\dev\pgsql.log' -w | Out-Null; Ok 'PostgreSQL started' }
 
-# Laravel
+# Laravel. PHP's built-in server handles one connection at a time and stalls behind idle or abandoned browser
+# connections, so it listens on 127.0.0.1:8002 and scripts/local/api-proxy.mjs (Node) serves 0.0.0.0:8001 in front of it.
+# Without Node the application is started directly on :8001 (works, but can stall for seconds under a busy browser).
+$node = (Get-Command node -ErrorAction SilentlyContinue).Source
 $listening = Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue
-if ($listening) { Ok 'Laravel already listening on :8001' }
+if ($listening) { Ok 'API already listening on :8001' }
+elseif ($node) {
+  if (-not (Get-NetTCPConnection -LocalPort 8002 -State Listen -ErrorAction SilentlyContinue)) {
+    Start-Process -FilePath $php -ArgumentList 'artisan serve --host=127.0.0.1 --port=8002' -WorkingDirectory (Join-Path $root 'backend') -WindowStyle Minimized
+  }
+  Start-Process -FilePath $node -ArgumentList 'scripts/local/api-proxy.mjs' -WorkingDirectory $root -WindowStyle Minimized
+  Start-Sleep 3; Ok 'Laravel on 127.0.0.1:8002, local API proxy on http://0.0.0.0:8001'
+}
 else {
   Start-Process -FilePath $php -ArgumentList 'artisan serve --host=0.0.0.0 --port=8001' -WorkingDirectory (Join-Path $root 'backend') -WindowStyle Minimized
-  Start-Sleep 3; Ok 'Laravel started on http://0.0.0.0:8001'
+  Start-Sleep 3; Ok 'Laravel started on http://0.0.0.0:8001 (Node not found: no proxy)'
 }
 # The first request after a cold start compiles the framework and can take several seconds.
 try { $h = Invoke-RestMethod 'http://127.0.0.1:8001/api/v1/ready' -TimeoutSec 20; Ok "ready: status=$($h.status) database=$($h.checks.database) postgis=$($h.checks.postgis) redis=$($h.checks.redis)" } catch { Warn "readiness check failed: $($_.Exception.Message)" }

@@ -1,0 +1,53 @@
+PASS A1 the app loads its market from the backend before rendering: GET /markets and GET /markets/current/coverage, no token — GET /markets, GET /markets/current/coverage, GET /markets, GET /markets/current/coverage
+PASS A2 snapshot = backend data: India (INR, en-IN, Asia/Kolkata, metric, +91), public ids are UUIDs, 22 public cities, 15 service areas as PostGIS polygons, 3 live corridors — {"markets":["IN"],"regions":34,"cities":22,"areas":15,"routes":3}
+PASS A3 nothing that customers must not see is in the snapshot: no draft market, no Kolkata (disabled state), no TESTING / PLANNED corridor, no launch stage or priority
+PASS A4 home renders in the market the backend serves: document language en-IN (device locale is en-US), no foreign currency, no country selector — en-IN
+PASS A5 Noida (inside an ACTIVE service area): the page asks POST /availability/location and lists restaurants — 6 cards
+PASS A6 Lucknow (India, outside every service area): backend says OUTSIDE_SERVICE_AREA → "not available in this area yet", zero restaurants — {"reason":"OUTSIDE_SERVICE_AREA"}
+PASS A11Y axe (customer unavailable state) no serious / critical violations
+PASS A7 San Francisco: backend says MARKET_UNSUPPORTED and names no market (the US draft stays invisible) → "isn't available in this location yet"
+PASS A8 Vapi (paused city): backend says CITY_UNAVAILABLE; the customer gets the unavailable state, not restaurants from elsewhere — CITY_UNAVAILABLE
+PASS A9 public API never exposes a draft market: /markets lists India only, /markets/current?country=US is 404 market_unavailable
+PASS B1 market overview is built from the admin API (GET /admin/markets, /map, /configuration with the admin token)
+PASS B2 India is the one active market; the backend's draft markets (US, UK, UAE) are listed as future / Draft only — 3 future
+PASS B3 coverage map draws the PostGIS service-area polygons (15 paths) and says where the data comes from — 15 polygons
+PASS A11Y axe (admin market overview) no serious / critical violations
+PASS B4 States & UTs: all 36 Indian states / union territories from the backend; 27 are only Planned (reference geography, not an operating claim)
+PASS B5 a status jump the backend does not allow (DISABLED → ACTIVE) is refused with 409 and the reason is shown; nothing changes — 409
+PASS B6 Cities: 23 cities from the backend with state, status and launch stage
+PASS B7 pausing a city is a high-impact change: the dialog demands a reason before anything is sent
+PASS B8 city paused through the admin API (200); the backend immediately stops serving Jaipur (CITY_UNAVAILABLE) and the public coverage shows it PAUSED — 200 CITY_UNAVAILABLE
+PASS B9 audit event written by the backend: city.updated, actor = the signed-in admin, the reason, ACTIVE → PAUSED, request id — {"status":{"to":"PAUSED","from":"ACTIVE"}}
+PASS B10 the table shows the new status after the reload from the backend
+PASS B11 reactivated (200): Jaipur is serviceable again
+PASS B12 Service areas: 15 areas, boundary = polygon (PostGIS), status choices are the backend's (Testing, not Pilot)
+PASS B13 a service area moved to TESTING is internal: a point only it covers is no longer serviceable (SERVICE_AREA_PAUSED) — 200 SERVICE_AREA_PAUSED
+PASS B14 back to ACTIVE: serviceable again
+PASS B15 Route corridors: 7 corridors from the backend (Active / Testing / Planned / Paused) with highway and via cities
+PASS B16 Configuration from the backend: INR / en-IN / Asia/Kolkata, PIN code label
+PASS B17 Features: the market's 10 feature flags; cash at pickup and cross-border are locked by the backend
+PASS B18 feature enabled through the admin API: the public market payload changes at once (cache invalidated) — 200 true
+PASS B19 feature switched back
+PASS B20 a locked feature cannot be enabled even by calling the API directly (409 feature_locked) — cash at pickup stays NOT APPROVED
+PASS A11Y axe (admin market features) no serious / critical violations
+PASS B21 optimistic concurrency: a write with an old version is refused (409 stale_update) and changes nothing
+PASS B22 a self-intersecting polygon is rejected by PostGIS validation (422 invalid_geometry) and not stored — Geometry is not valid: Self-intersection.
+PASS B23 India paused through the admin API: the backend answers MARKET_PAUSED and no public market is listed — 200 MARKET_PAUSED
+PASS B24 with the market paused the customer web (fresh load) offers nothing: unavailable state, zero restaurants
+PASS B25 India resumed: Delhi is serviceable again and the market is public again
+PASS B26 every change of this run is in the backend audit trail (city, service area, features, market) — market.updated, market.features_updated, service_area.updated, city.updated
+PASS C1 Operations admin (India scope, view only): sees the cities, gets no status controls and no Pause market
+PASS C2 the backend is the authority: her token cannot write (403), cannot open another market (403) and lists only India — 403 / 403 / 1
+PASS C3 Support admin (no market permission): forbidden state in the UI and 403 from the API — 403
+PASS C4 no token / a bad token → 401 on admin geography
+PASS D1 Restaurant Dashboard inherits the market served by the backend: ₹ revenue, no foreign currency
+PASS E1 no token or password in localStorage; the market snapshot is session-scoped
+PASS E2 every API request of the run carried an X-Request-Id; public market / availability calls carried no token — 166 requests
+PASS E3 no uncaught page errors and no console errors apart from the expected refused requests
+PASS E4 responsive 390px /admin/markets: no horizontal page overflow — {"sw":390,"cw":390}
+PASS E4 responsive 390px /admin/markets/india/cities: no horizontal page overflow — {"sw":390,"cw":390}
+PASS E4 responsive 390px /admin/markets/india/service-areas: no horizontal page overflow — {"sw":390,"cw":390}
+PASS A11Y axe (mobile service areas) no serious / critical violations
+PASS Z final state = start state: India ACTIVE, Jaipur ACTIVE, 15 public service areas, curbside pickup off
+
+51/51 passed

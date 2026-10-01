@@ -1,0 +1,15 @@
+
+ RUN  v5.0.2 E:/TechPio-Data/FoodOnTheGo/customer-web
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+
+ Test Files  33 passed (33)
+      Tests  426 passed (426)
+   Start at  13:21:25
+   Duration  26.60s (tests 62%, environment 20%, transform 9%, import 4%, setup 4%)
+
+    Isolate  33 workers spawned · ~1.72s startup each (spawn + environment, per file)
+             at least ~2.07s faster with isolate: false — reuses workers across files instead of one per file
+

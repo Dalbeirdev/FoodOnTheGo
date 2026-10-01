@@ -1,0 +1,264 @@
+{
+  "module": "M22",
+  "mode": "real local backend (VITE_MARKET_MODE=api, VITE_AUTH_MODE=api; PostgreSQL + PostGIS)",
+  "date": "2026-10-01T07:41:04.679Z",
+  "total": 51,
+  "passed": 51,
+  "results": [
+    {
+      "name": "A1 the app loads its market from the backend before rendering: GET /markets and GET /markets/current/coverage, no token",
+      "pass": true,
+      "detail": "GET /markets, GET /markets/current/coverage, GET /markets, GET /markets/current/coverage"
+    },
+    {
+      "name": "A2 snapshot = backend data: India (INR, en-IN, Asia/Kolkata, metric, +91), public ids are UUIDs, 22 public cities, 15 service areas as PostGIS polygons, 3 live corridors",
+      "pass": true,
+      "detail": "{\"markets\":[\"IN\"],\"regions\":34,\"cities\":22,\"areas\":15,\"routes\":3}"
+    },
+    {
+      "name": "A3 nothing that customers must not see is in the snapshot: no draft market, no Kolkata (disabled state), no TESTING / PLANNED corridor, no launch stage or priority",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 home renders in the market the backend serves: document language en-IN (device locale is en-US), no foreign currency, no country selector",
+      "pass": true,
+      "detail": "en-IN"
+    },
+    {
+      "name": "A5 Noida (inside an ACTIVE service area): the page asks POST /availability/location and lists restaurants",
+      "pass": true,
+      "detail": "6 cards"
+    },
+    {
+      "name": "A6 Lucknow (India, outside every service area): backend says OUTSIDE_SERVICE_AREA → \"not available in this area yet\", zero restaurants",
+      "pass": true,
+      "detail": "{\"reason\":\"OUTSIDE_SERVICE_AREA\"}"
+    },
+    {
+      "name": "A11Y axe (customer unavailable state) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 San Francisco: backend says MARKET_UNSUPPORTED and names no market (the US draft stays invisible) → \"isn't available in this location yet\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A8 Vapi (paused city): backend says CITY_UNAVAILABLE; the customer gets the unavailable state, not restaurants from elsewhere",
+      "pass": true,
+      "detail": "CITY_UNAVAILABLE"
+    },
+    {
+      "name": "A9 public API never exposes a draft market: /markets lists India only, /markets/current?country=US is 404 market_unavailable",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 market overview is built from the admin API (GET /admin/markets, /map, /configuration with the admin token)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B2 India is the one active market; the backend's draft markets (US, UK, UAE) are listed as future / Draft only",
+      "pass": true,
+      "detail": "3 future"
+    },
+    {
+      "name": "B3 coverage map draws the PostGIS service-area polygons (15 paths) and says where the data comes from",
+      "pass": true,
+      "detail": "15 polygons"
+    },
+    {
+      "name": "A11Y axe (admin market overview) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B4 States & UTs: all 36 Indian states / union territories from the backend; 27 are only Planned (reference geography, not an operating claim)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B5 a status jump the backend does not allow (DISABLED → ACTIVE) is refused with 409 and the reason is shown; nothing changes",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "B6 Cities: 23 cities from the backend with state, status and launch stage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B7 pausing a city is a high-impact change: the dialog demands a reason before anything is sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B8 city paused through the admin API (200); the backend immediately stops serving Jaipur (CITY_UNAVAILABLE) and the public coverage shows it PAUSED",
+      "pass": true,
+      "detail": "200 CITY_UNAVAILABLE"
+    },
+    {
+      "name": "B9 audit event written by the backend: city.updated, actor = the signed-in admin, the reason, ACTIVE → PAUSED, request id",
+      "pass": true,
+      "detail": "{\"status\":{\"to\":\"PAUSED\",\"from\":\"ACTIVE\"}}"
+    },
+    {
+      "name": "B10 the table shows the new status after the reload from the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B11 reactivated (200): Jaipur is serviceable again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B12 Service areas: 15 areas, boundary = polygon (PostGIS), status choices are the backend's (Testing, not Pilot)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B13 a service area moved to TESTING is internal: a point only it covers is no longer serviceable (SERVICE_AREA_PAUSED)",
+      "pass": true,
+      "detail": "200 SERVICE_AREA_PAUSED"
+    },
+    {
+      "name": "B14 back to ACTIVE: serviceable again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B15 Route corridors: 7 corridors from the backend (Active / Testing / Planned / Paused) with highway and via cities",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B16 Configuration from the backend: INR / en-IN / Asia/Kolkata, PIN code label",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B17 Features: the market's 10 feature flags; cash at pickup and cross-border are locked by the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B18 feature enabled through the admin API: the public market payload changes at once (cache invalidated)",
+      "pass": true,
+      "detail": "200 true"
+    },
+    {
+      "name": "B19 feature switched back",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B20 a locked feature cannot be enabled even by calling the API directly (409 feature_locked) — cash at pickup stays NOT APPROVED",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (admin market features) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B21 optimistic concurrency: a write with an old version is refused (409 stale_update) and changes nothing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B22 a self-intersecting polygon is rejected by PostGIS validation (422 invalid_geometry) and not stored",
+      "pass": true,
+      "detail": "Geometry is not valid: Self-intersection."
+    },
+    {
+      "name": "B23 India paused through the admin API: the backend answers MARKET_PAUSED and no public market is listed",
+      "pass": true,
+      "detail": "200 MARKET_PAUSED"
+    },
+    {
+      "name": "B24 with the market paused the customer web (fresh load) offers nothing: unavailable state, zero restaurants",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B25 India resumed: Delhi is serviceable again and the market is public again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B26 every change of this run is in the backend audit trail (city, service area, features, market)",
+      "pass": true,
+      "detail": "market.updated, market.features_updated, service_area.updated, city.updated"
+    },
+    {
+      "name": "C1 Operations admin (India scope, view only): sees the cities, gets no status controls and no Pause market",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C2 the backend is the authority: her token cannot write (403), cannot open another market (403) and lists only India",
+      "pass": true,
+      "detail": "403 / 403 / 1"
+    },
+    {
+      "name": "C3 Support admin (no market permission): forbidden state in the UI and 403 from the API",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "name": "C4 no token / a bad token → 401 on admin geography",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 Restaurant Dashboard inherits the market served by the backend: ₹ revenue, no foreign currency",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E1 no token or password in localStorage; the market snapshot is session-scoped",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E2 every API request of the run carried an X-Request-Id; public market / availability calls carried no token",
+      "pass": true,
+      "detail": "166 requests"
+    },
+    {
+      "name": "E3 no uncaught page errors and no console errors apart from the expected refused requests",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E4 responsive 390px /admin/markets: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "E4 responsive 390px /admin/markets/india/cities: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "E4 responsive 390px /admin/markets/india/service-areas: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "A11Y axe (mobile service areas) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z final state = start state: India ACTIVE, Jaipur ACTIVE, 15 public service areas, curbside pickup off",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

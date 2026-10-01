@@ -1,3 +1,5 @@
+import '../market/api_market.dart';
+import '../market/market.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Future.wait([context.read<HealthState>().check(), context.read<AuthState>().loading ? Future.value() : context.read<AuthState>().restore(), Future.delayed(const Duration(milliseconds: 1400))]);
+      await Future.wait([context.read<HealthState>().check(), if (marketFromApi && apiMarketData == null) marketRepository.hydrate(), context.read<AuthState>().loading ? Future.value() : context.read<AuthState>().restore(), Future.delayed(const Duration(milliseconds: 1400))]);
       if (mounted) context.go('/home');
     });
   }

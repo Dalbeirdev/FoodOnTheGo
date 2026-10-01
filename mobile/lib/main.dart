@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme.dart';
+import 'market/api_market.dart';
 import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
 import 'screens/plan_journey_screen.dart';
@@ -36,7 +37,14 @@ import 'state/orders_history_state.dart';
 import 'screens/order_confirmation_screen.dart';
 import 'state/journey_state.dart';
 
-void main() => runApp(const FoodOnTheGoApp());
+/// With MARKET_MODE=api the market the app is served by (currency, locale, units, coverage) is loaded before the
+/// first screen, whatever route the app starts on. If the backend cannot be reached the app still starts; the
+/// splash screen tries again and screens that need the backend say so.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (marketFromApi) await marketRepository.hydrate().timeout(const Duration(seconds: 8), onTimeout: () => false);
+  runApp(const FoodOnTheGoApp());
+}
 
 /// Screens that need an account. Everything else is available to guests.
 const protectedPrefixes = ['/my-orders', '/order/', '/my-profile', '/checkout', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];

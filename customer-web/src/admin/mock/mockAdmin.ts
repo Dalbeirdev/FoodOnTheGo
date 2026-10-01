@@ -395,7 +395,7 @@ export class MockAdminSearchService {
 /* ------------------------------------------------------------------ market control center (Module 18A) */
 const segDistM = (p: [number, number], a: [number, number], b: [number, number]) => { const kx = Math.cos(((a[0] + b[0]) / 2) * Math.PI / 180) * 111320, ky = 110540; const px = (p[1] - a[1]) * kx, py = (p[0] - a[0]) * ky, bx = (b[1] - a[1]) * kx, by = (b[0] - a[0]) * ky; const len = bx * bx + by * by; const tt = len ? Math.max(0, Math.min(1, (px * bx + py * by) / len)) : 0; return Math.hypot(px - tt * bx, py - tt * by) }
 export class MockAdminMarketControlRepository {
-  private build(code: string): MarketSnapshot | null {
+  protected build(code: string): MarketSnapshot | null {
     const market = marketRepository.getMarketByCode(code); if (!market) return null
     const st = rstate(); const now = new Date()
     const states = marketLocationRepository.getStates(code), cities = marketLocationRepository.getCities(code), serviceAreas = marketLocationRepository.getServiceAreas(code), routes = marketLocationRepository.getRouteCorridors(code)

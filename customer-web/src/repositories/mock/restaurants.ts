@@ -9,6 +9,7 @@
 import { boundsOf, distanceToPolyline, haversineM, inBounds, type LatLng } from '../../geo/geo'
 import { formatDistance, formatMinutes, localClock } from '../../i18n/format'
 import { marketFor, regionsAdjacent } from '../../i18n/markets'
+import { locationAvailability } from '../../market/api/marketData'
 import { marketAvailability } from '../../market/mock/mockMarket'
 import type { Availability, DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, OpeningHours, Restaurant, ResultPage, RestaurantRepository, RouteRestaurantResult, ScopeRing, SortKey } from '../types'
 
@@ -251,7 +252,7 @@ export class MockRestaurantRepository implements RestaurantRepository {
     const now = query.now ?? new Date().toISOString()
     const scope = query.scope ?? null
     // Outside active market coverage → a clear availability state, never fabricated nearby / foreign restaurants.
-    if (scope) { const av = marketAvailability.checkLocation({ countryCode: scope.countryCode, lat: scope.lat, lng: scope.lng }); if (!av.supported) return unavailablePage(av, null) }
+    if (scope) { const at = { countryCode: scope.countryCode, lat: scope.lat, lng: scope.lng }; const av = await locationAvailability(at, () => marketAvailability.checkLocation(at)); if (!av.supported) return unavailablePage(av, null) }
     const all: RouteRestaurantResult[] = []
     const ringCounts: Record<ScopeRing, number> = { 0: 0, 1: 0, 2: 0, 3: 0 }
     for (const r of customerRestaurants()) {

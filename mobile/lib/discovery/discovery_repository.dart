@@ -10,6 +10,8 @@ import 'dart:math';
 import '../data/mock_data.dart' show imgInterior, imgGallery, imgCurry, imgShake, imgSalad;
 import '../i18n/format.dart' show toZone;
 import '../i18n/markets.dart';
+import '../data/api_client.dart';
+import '../market/api_market.dart';
 import '../market/market.dart';
 import '../journey/journey_repositories.dart' show Journey;
 import 'restaurant_models.dart';
@@ -266,7 +268,12 @@ class MockRestaurantRepository implements RestaurantRepository {
     if (fail) throw Exception('Restaurant data is unavailable right now. Please try again.');
     final now = q.now ?? DateTime.now().toUtc();
     final scope = q.scope;
-    if (scope != null) { final av = marketAvailability.checkLocation(countryCode: scope.countryCode, lat: scope.lat, lng: scope.lng); if (!av.supported) return _unavailable(av.reason!, null); }
+    if (scope != null) {
+      final MarketAvailabilityResult av;
+      // With the backend, the backend decides. If it cannot be asked the customer gets an error with a retry, not a guess.
+      try { av = await locationAvailability(countryCode: scope.countryCode, lat: scope.lat, lng: scope.lng); } on ApiException catch (e) { throw Exception(e.kind == ApiErrorKind.rateLimited ? 'Too many requests. Please wait a moment and try again.' : 'Cannot reach FoodOnTheGo right now. Check your connection and try again.'); }
+      if (!av.supported) return _unavailable(av.reason!, null);
+    }
     final all = <RouteRestaurantResult>[];
     final ringCounts = <int, int>{0: 0, 1: 0, 2: 0, 3: 0};
     for (final r in customerRestaurants) {

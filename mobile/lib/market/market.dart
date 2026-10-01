@@ -2,7 +2,8 @@
 ///
 /// FoodOnTheGo is INDIA-FIRST, not India-only: the active market is configuration, never a literal
 /// in screen code. Screens ask [marketAvailability] whether a country / location / restaurant is
-/// available. The backend (PostgreSQL + PostGIS) owns markets and coverage later.
+/// available. With MARKET_MODE=api the market and its coverage come from the backend (PostgreSQL +
+/// PostGIS, see api_market.dart) and the fixtures below are not used; tests and mock builds use the fixtures.
 library;
 
 import 'dart:io' show Platform;
@@ -40,21 +41,54 @@ class Market {
   final bool metric;
   /// UX default for phone inputs; numbers stay in international (E.164) form.
   final String phoneCountryCode;
+
+  Market withStatus(MarketStatus status) => Market(countryCode: countryCode, displayName: displayName, status: status, defaultLocale: defaultLocale, defaultCurrency: defaultCurrency, defaultTimezone: defaultTimezone, metric: metric, phoneCountryCode: phoneCountryCode);
 }
 
 const indiaMarket = Market(countryCode: 'IN', displayName: 'India', status: MarketStatus.active, defaultLocale: 'en_IN', defaultCurrency: 'INR', defaultTimezone: 'Asia/Kolkata', metric: true, phoneCountryCode: '+91');
 
 enum AreaStatus { active, pilot, planned, paused }
 
-/// A service area: radius geometry today, polygon / corridor with PostGIS later.
+/// A service area. Fixtures are circles (centre + radius); the backend serves PostGIS polygons
+/// (GeoJSON MultiPolygon coordinates, positions are [longitude, latitude]).
 class ServiceArea {
-  const ServiceArea(this.id, this.name, this.lat, this.lng, this.radiusM, this.status);
+  const ServiceArea(this.id, this.name, this.lat, this.lng, this.radiusM, this.status) : polygons = null;
+  const ServiceArea.polygon(this.id, this.name, List<List<List<List<double>>>> this.polygons, this.status) : lat = 0, lng = 0, radiusM = 0;
   final String id, name;
   final double lat, lng;
   final int radiusM;
+  final List<List<List<List<double>>>>? polygons;
   final AreaStatus status;
   bool get serviceable => status == AreaStatus.active || status == AreaStatus.pilot;
+
+  /// Display-side containment; the backend decides with ST_Covers.
+  bool contains(double atLat, double atLng) {
+    final p = polygons;
+    if (p == null) return _haversineM(atLat, atLng, lat, lng) <= radiusM;
+    bool inRing(List<List<double>> ring) {
+      var inside = false;
+      for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        final xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+        if ((yi > atLat) != (yj > atLat) && atLng < (xj - xi) * (atLat - yi) / (yj - yi) + xi) inside = !inside;
+      }
+      return inside;
+    }
+    return p.any((polygon) => polygon.isNotEmpty && inRing(polygon.first) && !polygon.skip(1).any(inRing));
+  }
 }
+
+/// What the backend served at start-up (MARKET_MODE=api). Null = not loaded / mock mode.
+class MarketData {
+  const MarketData({required this.market, required this.markets, required this.areas, required this.cities, required this.loadedAt});
+  final Market market;
+  /// Markets open to customers (ACTIVE / PILOT). Draft markets are never sent to the app.
+  final List<Market> markets;
+  final List<ServiceArea> areas;
+  final int cities;
+  final DateTime loadedAt;
+}
+
+MarketData? apiMarketData;
 
 /// DEVELOPMENT FIXTURES — a listed area does not mean FoodOnTheGo operates there.
 const indiaServiceAreas = <ServiceArea>[
@@ -95,10 +129,13 @@ double _haversineM(double lat1, double lng1, double lat2, double lng2) {
 /// MockMarketAvailabilityService — ApiMarketAvailabilityService replaces it with the backend.
 class MarketAvailability {
   const MarketAvailability();
-  Market get activeMarket => indiaMarket;
-  List<String> get activeCountryCodes => [if (activeMarket.status == MarketStatus.active) activeMarket.countryCode];
+  Market get activeMarket => apiMarketData?.market ?? indiaMarket;
+  List<ServiceArea> get serviceAreas => apiMarketData?.areas ?? indiaServiceAreas;
+  List<String> get activeCountryCodes => apiMarketData != null
+      ? [for (final m in apiMarketData!.markets) if (m.status == MarketStatus.active || m.status == MarketStatus.pilot) m.countryCode]
+      : [if (activeMarket.status == MarketStatus.active) activeMarket.countryCode];
   bool isCountrySupported(String? countryCode) => fixtureScope == FixtureScope.global || (countryCode != null && activeCountryCodes.contains(countryCode.toUpperCase()));
-  List<ServiceArea> areasAt(double lat, double lng) => [for (final a in indiaServiceAreas) if (_haversineM(lat, lng, a.lat, a.lng) <= a.radiusM) a];
+  List<ServiceArea> areasAt(double lat, double lng) => [for (final a in serviceAreas) if (a.contains(lat, lng)) a];
 
   MarketAvailabilityResult checkLocation({String? countryCode, double? lat, double? lng}) {
     if (fixtureScope == FixtureScope.global) return const MarketAvailabilityResult.ok();

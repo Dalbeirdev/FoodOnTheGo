@@ -1,0 +1,9 @@
+PASS G1 on start the app loads its market from the backend: GET /markets and GET /markets/current/coverage (200, no token, request id) — GET /markets 200, GET /markets/current/coverage 200
+PASS G2 home renders with the India restaurants that lie inside the service areas served by the backend (Burger Hub, Noida); no foreign currency — Burger Hub Burgers • Fast Food 4.5 2 min detourPiz
+PASS G3 Build Info states where market data comes from: "Backend (PostGIS coverage)" — Market data Backend (PostGIS coverage) App version 0.1.0 (build 26) Build label web-preview Git commit no-gitRe-check
+PASS G4 restaurants list shows India restaurants inside the backend's service areas — 14 restaurants Sorted by: open now, shortest detour, then rating. ELSEWHERE IN IN 6 Nothing closer yet — showing elsewhere in in 6 / 14 | Sh
+PASS G5 market paused on the backend → after a restart the app gets 404 market_unavailable and offers nothing ("isn't available in this location yet") — 200 · /markets 200, /markets/current/coverage 404 ·  FoodOnTheGo isn't available in this location yet. 
+PASS G6 market resumed (start state restored) — 200
+PASS G7 after the resume a restarted app lists restaurants again
+
+7/7 passed

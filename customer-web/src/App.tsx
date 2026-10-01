@@ -12,6 +12,7 @@ import RequireAuth from './auth/RequireAuth'
 import { AccountProvider } from './account/AccountContext'
 import { JourneyProvider } from './journey/JourneyContext'
 import { LocaleProvider } from './i18n/LocaleProvider'
+import { MarketGate } from './market/MarketGate'
 import Footer from './components/Footer'
 import { ToastProvider } from './components/Toast'
 import HomePage from './pages/HomePage'
@@ -60,6 +61,7 @@ function LegacyRestaurantRedirect() { const { rid } = useParams(); return <Navig
 /** Provider stack + route table, router-agnostic so tests can mount it inside a MemoryRouter. */
 export function AppShell() {
   return (
+      <MarketGate>
       <LocaleProvider>
       <AuthProvider>
       <ToastProvider>
@@ -127,6 +129,7 @@ export function AppShell() {
       </ToastProvider>
       </AuthProvider>
       </LocaleProvider>
+      </MarketGate>
   )
 }
 

@@ -1,4 +1,4 @@
-# FoodOnTheGo backend — foundation (Module 20) and identity (Module 21)
+# FoodOnTheGo backend — foundation (Module 20), identity (Module 21), market geography (Module 22)
 
 Laravel API in `/backend`. This document records what exists, how to run it locally, and the conventions
 every later backend module must follow. Commands below were run on the development PC on 2026-09-30;
@@ -24,7 +24,8 @@ No Docker: the local environment is native Windows installs (portable PostgreSQL
 # once per machine: test database + PostGIS in both databases (needs the local superuser file C:\dev\pg-local-credentials.txt)
 pwsh -File scripts/local/setup-database.ps1
 
-# every session: Redis, PostgreSQL, Laravel on :8001
+# every session: Redis, PostgreSQL, the API on :8001 (Laravel on 127.0.0.1:8002 behind scripts/local/api-proxy.mjs —
+# PHP's one-connection development server stalls behind idle browser connections; local only)
 pwsh -File scripts/local/start-backend.ps1
 
 # in /backend (php = the PHP 8.3 binary)
@@ -32,7 +33,7 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 186 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 244 tests, real PostgreSQL + PostGIS + Redis
 php artisan otp:check          # how one-time codes are delivered here (channels, providers) and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
@@ -267,7 +268,164 @@ without it no password account is created). Seeding again resets the fixtures to
 Redis holds cache, queues, rate limits, locks and temporary state. It never holds the only copy of an order
 or payment.
 
-## 8. Front-end integration
+## 8. Markets, geography and availability (Module 22)
+
+India is the only market that serves customers. Nothing in the code is India-specific: a market is a row, and
+currency, locale, time zone, units, phone format, features, regions, cities, coverage and corridors are data.
+
+### Data model
+
+```
+markets ──1:1── market_configurations
+   │
+   ├──< market_regions ──< cities ──< service_areas
+   │                          ▲
+   └──< route_corridors ──────┘  (origin / destination city, optional)
+
+audit_events   (who changed what, when, why — append-only)
+```
+
+| Table | What it is | Spatial column (all SRID 4326, all GiST-indexed) |
+|---|---|---|
+| `markets` | a country FoodOnTheGo can operate in | `bounds geometry(Polygon)` — coarse envelope used to decide which market a point is in |
+| `market_configurations` | payment / tax / legal / address / ordering settings and `locked_features`, as jsonb | — |
+| `market_regions` | state, union territory, province (`code` = ISO 3166-2) | — (no boundary yet, see limitations) |
+| `cities` | a city of a region, with its time zone | `center geography(Point)` |
+| `service_areas` | operational coverage inside a city | `geometry geometry(MultiPolygon)`, `ST_IsValid` check constraint |
+| `route_corridors` | an operational highway corridor: centreline + `corridor_width_meters` (100 … 100 000) | `centerline geometry(LineString)` |
+
+Every editable row has `public_id` (UUID, exposed as `id`), `version` (optimistic concurrency) and timestamptz
+columns. Internal bigint keys never leave the backend. Rows are never deleted through the API — they are taken
+out of service with a status, which keeps history and foreign keys intact.
+
+**A row is reference geography, not an operating claim.** `IndiaGeographySeeder` creates all 28 states and
+8 union territories as `PLANNED`; a region, city or area serves customers only when an administrator opens it.
+
+### Spatial standard
+
+- WGS84 / SRID 4326 everywhere. GeoJSON (RFC 7946) is the only interchange format: positions are
+  `[longitude, latitude]`.
+- Containment and topology use `geometry`; anything measured in metres (distance, corridor width, area, length)
+  is computed on `geography` — never by buffering degrees.
+- Coordinates and GeoJSON reach SQL only as bound parameters (`HasSpatialColumns`, `Location::pointSql()`).
+- Raw spatial columns are never serialised. Lists return a summary (area in m², vertex count, bounding box,
+  length); the geometry itself is returned for a single record and by the map endpoint.
+- Submitted geometry is validated before it is stored (`GeoJsonGeometry`): expected type only, no `crs`
+  member, positions inside the WGS84 range, closed rings, at most `GEO_MAX_POSITIONS` (5000) positions, then
+  `ST_IsValid` / `ST_IsEmpty` in PostGIS. Invalid geometry is **rejected, never repaired** (422
+  `invalid_geometry`). Geometry outside the market's bounds — the usual sign of swapped latitude / longitude —
+  is refused with 422 `geometry_outside_market`.
+
+### Status hierarchy
+
+| Level | Statuses | Serves customers |
+|---|---|---|
+| Market | DRAFT, PILOT, ACTIVE, PAUSED, CLOSED | PILOT, ACTIVE |
+| Region | PLANNED, PILOT, ACTIVE, PAUSED, DISABLED | PILOT, ACTIVE |
+| City | PLANNED, PILOT, ACTIVE, PAUSED, UNAVAILABLE | PILOT, ACTIVE |
+| Service area / corridor | PLANNED, TESTING, ACTIVE, PAUSED, DISABLED | ACTIVE, inside `effective_from` … `effective_until` (server clock) |
+
+A child is never more available than its parent: an ACTIVE area in a paused city, or an ACTIVE city in a
+paused market, is not available. This is evaluated on every check — statuses are not cascaded, so reopening a
+market restores exactly what was open before. TESTING is internal and never serves customers.
+
+Status changes follow the transition table of each enum (`ControlledStatus`); anything else is 409
+`invalid_status_transition`. A retired state (CLOSED, DISABLED, UNAVAILABLE) can only go back to the first
+state (DRAFT / PLANNED) — never straight to live. New records always start PLANNED.
+
+### Location availability — `MarketAvailabilityService`
+
+`POST /api/v1/availability/location {lat, lng, country_code?}` — public, rate limited (`RATE_LIMIT_AVAILABILITY`,
+30 / minute / address), the location is not stored. Clients never decide this.
+
+1. **Market**: the market whose `bounds` covers the point. No market, or one that is DRAFT / CLOSED →
+   `MARKET_UNSUPPORTED` (the market is not named). PAUSED → `MARKET_PAUSED`.
+2. **Service areas** covering the point (`ST_Covers` — a point exactly on the boundary is inside), best first:
+   higher `priority`, then the smaller area, then the older row. **Overlap is allowed**; the first covering area
+   whose whole chain is open makes the location supported.
+3. If a covering area exists but none is open: `REGION_UNAVAILABLE`, `CITY_UNAVAILABLE` or `SERVICE_AREA_PAUSED`
+   (paused / testing / planned / disabled, or outside its effective dates).
+4. If no area covers the point: the nearest known city within `GEO_CITY_MATCH_RADIUS_METERS` (40 km) decides
+   between `REGION_UNAVAILABLE`, `CITY_UNAVAILABLE` and `OUTSIDE_SERVICE_AREA`.
+
+The response carries `supported`, the machine-readable `reason` (clients choose the wording), and the market /
+region / city / service area only when they are open to customers, plus the live corridors whose band contains
+the point. Availability never reads the cache.
+
+**Limitations, stated plainly.** The market is found through a bounding envelope, not a legal border: a point
+just across a border can fall inside India's envelope. A `country_code` sent with the location that contradicts
+the market is treated as "not this market", and real coverage is decided by service areas, so such a point ends
+as `OUTSIDE_SERVICE_AREA` — never as supported. Regions have no boundary geometry: the region is the one of the
+resolved city. Both are recorded as carry-forward items.
+
+### Route corridors, distance, journeys
+
+- `RouteCorridorQuery::containing(point)` — corridors in effect whose band (centreline ± its own width,
+  geodesic) contains the point. `intersecting(line)` is true topology (the line crosses the centreline);
+  `within(line)` is proximity (the line enters the band). They are different questions and are kept apart.
+- `DistanceService::between()` — geodesic metres on the WGS84 spheroid. Driving distance and detours come
+  from the routing provider later.
+- `JourneyCoverage` — availability of both ends of a journey and the corridors along a route line. It contains
+  no routing; the journey module supplies the route geometry. No Google Routes / Places call exists yet.
+
+### Public API (no token)
+
+| Endpoint | Returns |
+|---|---|
+| `GET /markets` | markets open to customers (ACTIVE / PILOT) |
+| `GET /markets/current[?country=IN]` | the market serving this client |
+| `GET /markets/current/coverage` | regions and cities (PLANNED, PILOT, ACTIVE, PAUSED), service areas (ACTIVE in effect, PAUSED) with geometry, corridors (ACTIVE in effect) with geometry |
+| `POST /availability/location` | the availability decision |
+
+Never public: DRAFT / CLOSED markets, DISABLED / UNAVAILABLE regions and cities, PLANNED / TESTING / DISABLED
+areas and corridors, launch stage, priority, effective dates, versions, configuration, audit data.
+
+The market payload and the coverage are cached (`GEO_MARKET_CACHE_SECONDS`, 300 s) under a version key; every
+write to market data — through the API or a model — changes the version, so stale entries are unreachable at once.
+
+### Admin API (`auth:admin` + `active`, then permission **and market scope** in the controller)
+
+| Endpoint | Permission |
+|---|---|
+| `GET /admin/markets`, `GET /admin/markets/{market}`, `GET …/regions` | `admin.markets.view` |
+| `PATCH /admin/markets/{market}` (status), `POST …/regions`, `PATCH /admin/regions/{region}` | `admin.markets.manage` |
+| `PATCH /admin/markets/{market}/features` | `admin.market_features.manage` |
+| `GET` / `PATCH /admin/markets/{market}/configuration` | `admin.market_configuration.view` / `.manage` |
+| `GET …/cities`, `GET /admin/cities/{city}` · `POST …/cities`, `PATCH /admin/cities/{city}` | `admin.cities.view` · `.manage` |
+| `GET …/service-areas`, `…/route-corridors`, `…/map`, `POST …/availability-check`, single records | `admin.service_areas.view` |
+| `POST` / `PATCH` service areas and route corridors | `admin.service_areas.manage` |
+| `GET /admin/audit-events` | `admin.audit.view` |
+
+- A permission held platform-wide covers every market; one held for a market (`Scope::market`) covers only
+  that market and its regions, cities, areas and corridors. Market and audit lists are limited to the markets
+  in scope. A record of one market can never be attached to another (422).
+- Every write (`GeographyAdminService`): the caller sends the `version` it edited (409 `stale_update` if it is
+  no longer current), the row is locked, the transition is checked, a **reason** is required when service is
+  taken away from customers — and always for market status, features and configuration — the change and an
+  audit event are written in one transaction, and the public cache is invalidated. An update that changes
+  nothing writes nothing.
+- Features: only keys the market already has; a key listed in `locked_features` cannot be enabled (409
+  `feature_locked`). For India `cash_at_pickup` and `cross_border_ordering` are locked — cash at pickup is NOT APPROVED.
+- Configuration refuses anything that looks like a credential (422 `secrets_not_allowed`): provider secrets
+  live in server configuration only.
+- Writes are rate limited per administrator (`admin-sensitive`).
+
+### Audit trail
+
+`audit_events`: action (`city.updated`, `market.features_updated`, …), actor type and public id, target type and
+public id, market, reason, `changes` (`field → {from, to}`; a geometry change records a summary, not the
+polygon), request id, address, time. Values pass through the log redactor. Append-only: the application never
+updates or deletes a row. Authentication events stay in `security_events`.
+
+### Seed data
+
+- Every environment: the India market and its bounds, 36 regions (all PLANNED), the India configuration.
+- Local / testing only (`LocalGeographyFixtureSeeder`): 23 cities, 15 service areas and 7 corridors with mixed
+  statuses — **development fixtures; a name here does not mean FoodOnTheGo operates there.** The areas are
+  32-gon circles generated by PostGIS and the corridor centrelines are straight lines between city centres,
+  stand-ins for surveyed boundaries and road geometry. Re-seeding never overwrites a row that already exists.
+
+## 9. Front-end integration
 
 - One HTTP client per platform: `customer-web/src/api/client.ts` (`VITE_API_BASE_URL`) and
   `mobile/lib/data/api_client.dart` (`--dart-define=API_BASE_URL`). Both send `X-Request-Id`, understand the
@@ -280,10 +438,23 @@ or payment.
   session; 429 shows how long to wait.
 - Mock → API: each `Mock*Repository` keeps its interface; an `Api*` adapter maps the snake_case DTO onto the
   existing domain type and is swapped in where the repository is constructed, one domain per backend module.
-  `customer-web/src/api/marketApi.ts` is the first adapter (tested, not wired in). Mocks stay for tests.
+  Mocks stay for tests.
+- Market and geography are on the real backend (Module 22): `VITE_MARKET_MODE=api` /
+  `--dart-define=MARKET_MODE=api`. The web app loads `GET /markets` + `GET /markets/current/coverage` once
+  before rendering (`MarketGate`; snapshot in sessionStorage, refreshed on reload and when a tab regains focus
+  after 5 minutes), Android does the same on the splash screen. The existing synchronous market repositories
+  read that read-only snapshot, so no page changed. The snapshot is display data: the restaurant list asks
+  `POST /availability/location` for the chosen location, and shows an error with a retry (Android) or falls
+  back to the snapshot (web) only when the request itself fails.
+- Platform Admin → Markets uses `ApiAdminMarketControlRepository`: it reads `/admin/markets`, `/map` and
+  `/configuration`, and sends status and feature changes with the version shown and the reason. A refusal
+  (403, 409 transition, 409 stale) is displayed. Restaurant pins, order counts and revenue in those screens are
+  still development fixtures, and the Audit screen still lists the mock log — backend audit events are read
+  through `GET /admin/audit-events`.
 
-## 9. Not in this module
+## 10. Not built yet
 
 Restaurants, menus, journeys, discovery, cart, pickup, checkout, payments, orders, tracking, reviews and the
-dashboard APIs; live SMS, Maps / Places / Routes, Razorpay, FCM, WebSockets; states, cities, service areas and
-corridors; production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.
+dashboard APIs; live SMS, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a
+surveyed market border; admin screens for creating cities, drawing service areas and editing configuration
+(the API exists, the screens change status and features only); production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.

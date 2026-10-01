@@ -10,10 +10,12 @@
  * The backend (PostgreSQL + PostGIS) owns all of this later; everything here is a development mock.
  */
 export type MarketStatus = 'DRAFT' | 'PILOT' | 'ACTIVE' | 'PAUSED' | 'CLOSED'
-export type RegionStatus = 'AVAILABLE' | 'PILOT' | 'PLANNED' | 'DISABLED'
+/** AVAILABLE is the backend's ACTIVE for a region (the word the control center has always shown). */
+export type RegionStatus = 'AVAILABLE' | 'PILOT' | 'PLANNED' | 'PAUSED' | 'DISABLED'
 export type CityStatus = 'PLANNED' | 'PILOT' | 'ACTIVE' | 'PAUSED' | 'UNAVAILABLE'
-export type ServiceAreaStatus = 'PLANNED' | 'PILOT' | 'ACTIVE' | 'PAUSED' | 'DISABLED'
-export type RouteStatus = 'PLANNED' | 'TESTING' | 'ACTIVE' | 'PAUSED'
+/** Backend statuses are PLANNED / TESTING / ACTIVE / PAUSED / DISABLED; PILOT exists only in the development fixtures. */
+export type ServiceAreaStatus = 'PLANNED' | 'PILOT' | 'TESTING' | 'ACTIVE' | 'PAUSED' | 'DISABLED'
+export type RouteStatus = 'PLANNED' | 'TESTING' | 'ACTIVE' | 'PAUSED' | 'DISABLED'
 export type DistanceUnit = 'metric' | 'imperial'
 
 export type Market = {
@@ -49,8 +51,11 @@ export type Market = {
 }
 export type MarketRegion = { id: string; marketCode: string; name: string; code: string; kind: 'state' | 'union_territory' | 'region'; status: RegionStatus }
 export type City = { id: string; marketCode: string; regionId: string; name: string; aliases: string[]; lat: number; lng: number; timezone: string; status: CityStatus; launchStage: string; launchDate: string | null }
-/** Geometry is a radius today; polygon / multipolygon / corridor arrive with PostGIS (SRID 4326). */
-export type AreaGeometry = { type: 'radius'; center: [number, number]; radiusM: number } | { type: 'polygon'; ring: Array<[number, number]> }
+/**
+ * 'radius' is the development-fixture shape. The backend (PostGIS, SRID 4326) serves 'multipolygon': GeoJSON
+ * MultiPolygon coordinates, positions are [longitude, latitude].
+ */
+export type AreaGeometry = { type: 'radius'; center: [number, number]; radiusM: number } | { type: 'polygon'; ring: Array<[number, number]> } | { type: 'multipolygon'; coordinates: number[][][][] }
 export type ServiceArea = { id: string; marketCode: string; cityId: string; name: string; status: ServiceAreaStatus; geometry: AreaGeometry; launchStage: string; updatedAt: string }
 export type RouteCorridor = { id: string; marketCode: string; name: string; originCityId: string; destinationCityId: string; viaCityIds: string[]; highway: string | null; corridorWidthM: number; status: RouteStatus; updatedAt: string }
 
