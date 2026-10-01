@@ -20,7 +20,7 @@ PASS M6 the next sign-in asks for a code after the password (and the API issues 
 PASS M7 signed in with password + authenticator code
 PASS M8 turning MFA off needs the current password as well as a code (refused with a wrong password)
 PASS M9 MFA is off again: the password alone signs in
-PASS M10 the security events show the whole story (reset requested, password changed, MFA enabled, wrong MFA / sign-ins, MFA disabled) — without any secret — LOGIN_SUCCESS, MFA_DISABLED, LOGOUT, MFA_ENABLED, LOGIN_FAILED, PASSWORD_CHANGED, SESSION_REVOKED, PASSWORD_RESET_REQUESTED, PERMISSION_CHANGED
+PASS M10 the security events show the whole story (reset requested, password changed, MFA enabled, wrong MFA / sign-ins, MFA disabled) — without any secret — LOGIN_SUCCESS, MFA_DISABLED, LOGOUT, MFA_ENABLED, LOGIN_FAILED, PASSWORD_CHANGED, SESSION_REVOKED, PASSWORD_RESET_REQUESTED, PERMISSION_CHANGED, ACCOUNT_STATUS_CHANGED
 PASS R1 the Restaurant Dashboard has the same screens: forgot-password link, reset page (an incomplete link sends nothing), Account security with MFA, password and devices
 PASS R2 "Sign out everywhere" ends this session too and returns to the sign-in form
 PASS V1 Account security at 390 px: no horizontal page overflow — {"sw":390,"cw":390}

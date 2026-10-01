@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { staffUiLocale, useStaffLang } from '../auth/staff/staffLocale'
 import { adminPermissionsFromApi, adminRoleFromApi } from '../auth/staff/staffAuth'
 import { useStaffSession } from '../auth/staff/StaffSession'
 import { useLocale } from '../i18n/strings'
@@ -57,8 +56,7 @@ const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? {
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {
   const repos = useMemo(() => given ?? defaultRepositories(), [given])
-  // Texts follow the staff member's language; dates, numbers and money keep the market's region.
-  const { locale: marketLocale } = useLocale(); const locale = staffUiLocale(useStaffLang(), marketLocale)
+  const { locale } = useLocale()
   const [status, setStatus] = useState<AdminState['status']>('loading')
   const [admins, setAdmins] = useState<AdminUser[]>(() => ADMIN_USERS(new Date()))
   const [adminId, setAdminId] = useState(() => read(K.session) ?? DEFAULT_ADMIN_ID)

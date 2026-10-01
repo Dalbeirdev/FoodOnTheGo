@@ -16,7 +16,6 @@ use App\Models\Role;
 use App\Notifications\AdminInvitationNotification;
 use App\Services\Audit\AuditRecorder;
 use App\Services\Rbac\RoleService;
-use App\Support\NoticeLocales;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -57,10 +56,7 @@ final class AdminUserService
         private readonly MfaService $mfa,
     ) {}
 
-    /**
-     * @param  string|null  $locale  language of the invitation and of later e-mails; the person can change it
-     */
-    public function invite(string $name, string $email, Role $role, ?Market $market, AdminUser $actor, ?string $locale = null): AdminUser
+    public function invite(string $name, string $email, Role $role, ?Market $market, AdminUser $actor): AdminUser
     {
         $email = StaffLoginService::normaliseEmail($email);
         if (AdminUser::query()->where('email', $email)->exists()) {
@@ -68,8 +64,8 @@ final class AdminUserService
         }
         $this->assertMayGrant($actor, $role);
 
-        return DB::transaction(function () use ($name, $email, $role, $market, $actor, $locale): AdminUser {
-            $admin = (new AdminUser)->forceFill(['name' => $name, 'email' => $email, 'password' => null, 'status' => StaffStatus::Invited, 'preferred_locale' => $locale]);
+        return DB::transaction(function () use ($name, $email, $role, $market, $actor): AdminUser {
+            $admin = (new AdminUser)->forceFill(['name' => $name, 'email' => $email, 'password' => null, 'status' => StaffStatus::Invited]);
             $admin->save();
             $this->roles->assign($admin, $role, $market === null ? null : Scope::market($market->public_id), $actor, $actor);
             $this->audit->record('admin_user.invited', $admin, $actor, ['status' => ['from' => null, 'to' => 'INVITED'], 'role' => ['from' => null, 'to' => $this->describe($role, $market)]], null, $market?->getKey());
@@ -122,7 +118,7 @@ final class AdminUserService
                 return $locked;
             }
             if (! in_array($status->value, self::STATUS_TRANSITIONS[$from->value], true)) {
-                throw ApiException::conflict('invalid_status_transition', __('An account that is :from cannot become :to.', ['from' => $from->value, 'to' => $status->value]), ['from' => $from->value, 'allowed' => self::STATUS_TRANSITIONS[$from->value]]);
+                throw ApiException::conflict('invalid_status_transition', "An account that is {$from->value} cannot become {$status->value}.", ['from' => $from->value, 'allowed' => self::STATUS_TRANSITIONS[$from->value]]);
             }
             if (! $status->canAuthenticate()) {
                 $this->assertNotLastAdministrator($locked);
@@ -204,7 +200,7 @@ final class AdminUserService
             'token_hash' => hash('sha256', $token), 'expires_at' => now()->addHours($hours), 'created_at' => now(),
         ]);
 
-        $admin->notify(new AdminInvitationNotification(rtrim((string) config('app.frontend_url'), '/').'/admin/accept-invitation'.NoticeLocales::linkQuery($admin).'#'.$token, $hours));
+        $admin->notify(new AdminInvitationNotification(rtrim((string) config('app.frontend_url'), '/').'/admin/accept-invitation#'.$token, $hours));
     }
 
     private function describe(Role $role, ?Market $market): string

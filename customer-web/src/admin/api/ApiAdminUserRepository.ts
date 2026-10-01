@@ -54,8 +54,8 @@ export class ApiAdminUserRepository implements AdminUserRepository {
   roles() { return this.roleList }
 
   /** Creates the account INVITED, without a password; the backend sends the single-use link. */
-  async invite(u: { name: string; email: string; role: AdminRoleId; marketId?: string | null; locale?: string | null }): Promise<AdminUser> {
-    return toAdminUser(await api<AdminUserDto>('/admin/users', { method: 'POST', context: 'admin', body: { name: u.name.trim(), email: u.email.trim(), role: u.role.toUpperCase(), ...(u.marketId ? { market_id: u.marketId } : {}), ...(u.locale ? { locale: u.locale } : {}) } }))
+  async invite(u: { name: string; email: string; role: AdminRoleId; marketId?: string | null }): Promise<AdminUser> {
+    return toAdminUser(await api<AdminUserDto>('/admin/users', { method: 'POST', context: 'admin', body: { name: u.name.trim(), email: u.email.trim(), role: u.role.toUpperCase(), ...(u.marketId ? { market_id: u.marketId } : {}) } }))
   }
   /** A role is given platform-wide unless `roleMarketId` names one market; it replaces the account's previous role. */
   async update(id: string, patch: Partial<Pick<AdminUser, 'role' | 'status' | 'roleMarketId'>>, _actor: string, reason: string): Promise<AdminUser> {

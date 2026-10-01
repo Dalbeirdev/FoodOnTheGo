@@ -1,5 +1,4 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { staffUiLocale, useStaffLang } from '../auth/staff/staffLocale'
 import { restaurantPermissionsFromApi, restaurantRoleFromApi } from '../auth/staff/staffAuth'
 import { useStaffSession } from '../auth/staff/StaffSession'
 import { useLocale } from '../i18n/strings'
@@ -43,8 +42,7 @@ const read = (k: string) => { try { return localStorage.getItem(k) } catch { ret
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } catch { /* ignore */ } }
 
 export function DashboardProvider({ children, repos = dashboardRepositories }: { children: ReactNode; repos?: DashboardRepositories }) {
-  // Texts follow the staff member's language; dates, numbers and money keep the market's region.
-  const { locale: marketLocale } = useLocale(); const locale = staffUiLocale(useStaffLang(), marketLocale)
+  const { locale } = useLocale()
   const [status, setStatus] = useState<DashboardState['status']>('loading')
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [locations, setLocations] = useState<DashboardLocation[]>([])

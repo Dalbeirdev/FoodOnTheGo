@@ -48,14 +48,14 @@ class StaffAuthController extends Controller
         $data = $request->validate(['email' => ['required', 'string', 'email', 'max:255']]);
         $service->request($this->context($request), $data['email']);
 
-        return response()->json(['message' => __('If an account exists for this e-mail, a reset link has been sent.')]);
+        return response()->json(['message' => 'If an account exists for this e-mail, a reset link has been sent.']);
     }
 
     public function resetPassword(ResetPasswordRequest $request, PasswordResetService $service): JsonResponse
     {
         $service->reset($this->context($request), (string) $request->validated('token'), (string) $request->validated('password'));
 
-        return response()->json(['message' => __('Your password has been changed. Please sign in again.')]);
+        return response()->json(['message' => 'Your password has been changed. Please sign in again.']);
     }
 
     private function context(Request $request): PrincipalType

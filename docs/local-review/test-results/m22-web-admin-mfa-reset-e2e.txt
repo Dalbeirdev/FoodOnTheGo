@@ -9,7 +9,7 @@ PASS D4 the list shows Kenji without MFA and the reset button is gone
 PASS E1 Kenji was signed out on his device (old token 401) — 401
 PASS E2 Kenji signs in with the password alone (mandatory MFA is off locally) and MFA is off
 PASS E3 audit trail: who, whom and why — Alex Morgan → Kenji Watanabe
-PASS E4 security event MFA_DISABLED for Kenji, marked as an administrator reset — {"id":"cf3ee594a4b6d1a3971d","event":"MFA_DISABLED","severity":"high","principal_type":"admin_user","principal_name":"Kenji Watanabe","known_account":true,"ip":"127.0.0.1","user_agent":"Mozilla/5.0 (W
+PASS E4 security event MFA_DISABLED for Kenji, marked as an administrator reset — {"id":"87f47f50f18e701522b8","event":"MFA_DISABLED","severity":"high","principal_type":"admin_user","principal_name":"Kenji Watanabe","known_account":true,"ip":"127.0.0.1","user_agent":"Mozilla/5.0 (W
 PASS E5 the Audit screen lists the reset
 PASS N1 Kenji is told by e-mail: "turned on" when he enrolled and "an administrator reset" now (locally written to the server log, not sent) — 2 message(s) to Kenji
 PASS N2 the reset e-mail contains no link, not the reason and not the name of the administrator

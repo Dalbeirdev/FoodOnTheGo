@@ -8,7 +8,6 @@ import { createContext, useContext } from 'react'
 import { isRtl } from './format'
 import { dashStrings } from '../dashboard/strings'
 import { adminStrings } from '../admin/strings'
-import { staffStrings } from '../auth/staff/strings'
 
 export type Locale = { locale: string; dir: 'ltr' | 'rtl'; unitPreference: 'auto' | 'metric' | 'imperial' }
 
@@ -908,14 +907,8 @@ const en: Record<string, string> = {
 Object.assign(en, dashStrings)
 // Module 18: platform admin strings.
 Object.assign(en, adminStrings)
-// Staff sign-in and account-security screens.
-Object.assign(en, staffStrings)
 
 const bundles: Record<string, Record<string, string>> = { en }
-// Other languages are loaded when a screen asks for them, so the customer site does not download them.
-const loaders: Record<string, () => Promise<Record<string, string>>> = { hi: () => import('./hi').then((m) => m.hi) }
-export const hasBundle = (lang: string): boolean => lang in bundles
-export async function ensureBundle(lang: string): Promise<void> { if (!bundles[lang] && loaders[lang]) bundles[lang] = await loaders[lang]() }
 
 export function t(key: string, params?: Record<string, string | number>, locale = 'en'): string {
   const lang = locale.split('-')[0]

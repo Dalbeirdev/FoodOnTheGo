@@ -16,8 +16,7 @@ use Throwable;
  *
  *   {"error": {"code": "...", "message": "...", "details": {...}, "request_id": "..."}}
  *
- * Messages are customer-safe and written in the language of the request (SetApiLocale): a message is looked up
- * by its English text in lang/<code>.json and stays English when there is no translation. SQL, stack traces and paths never leave the server unless APP_DEBUG is on,
+ * Messages are customer-safe. SQL, stack traces and paths never leave the server unless APP_DEBUG is on,
  * and then only under a separate "debug" key.
  */
 final class ApiExceptionRenderer
@@ -52,11 +51,8 @@ final class ApiExceptionRenderer
     {
         [$status, $code, $message, $details, $headers] = $this->describe($e);
 
-        $error = ['code' => $code, 'message' => __($message)];
+        $error = ['code' => $code, 'message' => $message];
         if ($details !== []) {
-            if (is_array($details['fields'] ?? null)) {
-                $details['fields'] = array_map(fn ($messages) => array_map(fn ($text) => is_string($text) ? __($text) : $text, (array) $messages), $details['fields']);
-            }
             $error['details'] = $details;
         }
         if (($requestId = Context::get('request_id')) !== null) {

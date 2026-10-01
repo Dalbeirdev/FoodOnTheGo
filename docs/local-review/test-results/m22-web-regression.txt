@@ -11,8 +11,8 @@ PASS A9 auth return: after phone + OTP the customer lands on /checkout with cart
 PASS A10 checkout: customer, restaurant, pickup, items, pricing, legal acceptance; no invented tax / fee, no delivery
 PASS A11Y axe (checkout) no serious/critical violations — []
 PASS A11 payment: INR amount, provider-driven method, no card / CVV / UPI PIN / password field, secure note, no secrets in page
-PASS A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status — FOTG-5TLD-SW35
-PASS A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside — pv_dev_c973e3aec779498f9a35d0aafd9c630b
+PASS A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status — FOTG-SZFW-CS3L
+PASS A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside — pv_dev_bdfee8281aad1df5288921bb208706df
 PASS A13 order snapshot: integer minor-unit pricing in INR, restaurant zone Asia/Kolkata, market IN
 PASS A11Y axe (order confirmation) no serious/critical violations — []
 PASS A14 tracking opens for the order; friendly status text (no raw enum) — Order confirmed

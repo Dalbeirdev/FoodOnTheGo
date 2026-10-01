@@ -6,19 +6,14 @@
  * the backend again, whatever the screen offers.
  */
 import { ApiError, api, tokens } from '../../api/client'
-import { t } from '../../i18n/strings'
 import type { AdminPermission, AdminRoleId } from '../../admin/types'
 import type { Permission as RestaurantPermission, RoleId as RestaurantRoleId } from '../../dashboard/types'
 
 export type StaffContext = 'restaurant' | 'admin'
 export type StaffRole = { code: string; name: string; scope: { type: 'organization' | 'location' | 'market'; id: string } | null }
-/** preferredLocale: the language of the e-mails this person receives (null = every available language); noticeLocales: the languages on offer. */
-export type StaffPrincipal = { id: string; name: string; email: string; status: string; mfaEnabled: boolean; lastLoginAt: string | null; roles: StaffRole[]; permissions: string[]; preferredLocale: string | null; noticeLocales: string[] }
-/** How a language is named in the language pickers: in its own script, so the person it is meant for can find it. */
-export const LOCALE_NAMES: Record<string, string> = { en: 'English', hi: 'हिन्दी (Hindi)' }
-export const localeName = (code: string) => LOCALE_NAMES[code] ?? code
+export type StaffPrincipal = { id: string; name: string; email: string; status: string; mfaEnabled: boolean; lastLoginAt: string | null; roles: StaffRole[]; permissions: string[] }
 
-type PrincipalDto = { principal_type: string; id: string; name: string; email: string; status: string; mfa_enabled: boolean; last_login_at: string | null; roles: StaffRole[]; permissions: string[]; preferred_locale?: string | null; notice_locales?: string[] }
+type PrincipalDto = { principal_type: string; id: string; name: string; email: string; status: string; mfa_enabled: boolean; last_login_at: string | null; roles: StaffRole[]; permissions: string[] }
 type LoginDto = { mfa_required: boolean; mfa_challenge?: string; mfa_enrollment_required?: boolean; token?: string; principal?: PrincipalDto }
 
 /** enrolToken: a token that can do nothing but enrol in MFA. It is kept in memory only — it is not a session. */
@@ -27,32 +22,28 @@ export type StaffDeviceSession = { id: string; device: string | null; current: b
 export type MfaSetup = { secret: string; otpauthUri: string }
 type SessionDto = { id: string; device: string | null; current: boolean; created_at: string | null; last_used_at: string | null; expires_at: string | null }
 
-const toPrincipal = (p: PrincipalDto): StaffPrincipal => ({ id: p.id, name: p.name, email: p.email, status: p.status, mfaEnabled: p.mfa_enabled, lastLoginAt: p.last_login_at, roles: p.roles, permissions: p.permissions, preferredLocale: p.preferred_locale ?? null, noticeLocales: p.notice_locales ?? [] })
+const toPrincipal = (p: PrincipalDto): StaffPrincipal => ({ id: p.id, name: p.name, email: p.email, status: p.status, mfaEnabled: p.mfa_enabled, lastLoginAt: p.last_login_at, roles: p.roles, permissions: p.permissions })
 const expected = { restaurant: 'RESTAURANT_USER', admin: 'ADMIN_USER' } as const
 
-type Tr = (key: string, params?: Record<string, string | number>) => string
-/**
- * Safe text for a failed staff request; never reveals whether the e-mail exists. `tr` puts it in the staff language
- * (English when omitted). Field messages written by the backend are passed through as they are (English).
- */
-export function staffErrorMessage(e: unknown, tr: Tr = t): string {
-  if (!(e instanceof ApiError)) return tr('staff.err.generic')
-  if (e.kind === 'network') return tr('staff.err.network')
-  if (e.kind === 'rate_limited') return e.code === 'mfa_attempts_exceeded' ? tr('staff.err.tooManyCodes') : e.retryAfterSeconds ? tr('staff.err.rateWait', { seconds: e.retryAfterSeconds }) : tr('staff.err.rate')
+/** Customer-safe text for a failed staff sign-in; never reveals whether the e-mail exists. */
+export function staffErrorMessage(e: unknown): string {
+  if (!(e instanceof ApiError)) return 'Something went wrong. Please try again.'
+  if (e.kind === 'network') return 'Cannot reach FoodOnTheGo right now. Check your connection and try again.'
+  if (e.kind === 'rate_limited') return e.code === 'mfa_attempts_exceeded' ? 'Too many incorrect codes. Please sign in again.' : `Too many attempts. ${e.retryAfterSeconds ? `Try again in ${e.retryAfterSeconds} seconds.` : 'Please wait a moment and try again.'}`
   switch (e.code) {
-    case 'invalid_credentials': return tr('staff.err.credentials')
-    case 'account_not_active': return tr('staff.err.notActive')
-    case 'mfa_code_invalid': return tr('staff.err.codeInvalid')
-    case 'mfa_challenge_invalid': return tr('staff.err.challengeGone')
-    case 'reset_token_invalid': return tr('staff.err.resetInvalid')
-    case 'mfa_already_enabled': return tr('staff.err.mfaAlready')
-    case 'mfa_setup_not_started': return tr('staff.err.mfaSetupAgain')
+    case 'invalid_credentials': return 'The e-mail or password is incorrect.'
+    case 'account_not_active': return 'This account cannot sign in. Please contact your administrator.'
+    case 'mfa_code_invalid': return 'That code is not correct.'
+    case 'mfa_challenge_invalid': return 'This sign-in attempt has expired. Please sign in again.'
   }
-  if (e.kind === 'validation') return e.field('current_password') ?? e.field('email') ?? e.field('password') ?? e.field('code') ?? e.field('token') ?? tr('staff.err.check')
-  return e.kind === 'server' ? tr('staff.err.server') : e.message
+  switch (e.code) {
+    case 'reset_token_invalid': return 'This reset link is invalid or has expired. Request a new one.'
+    case 'mfa_already_enabled': return 'Multi-factor authentication is already enabled.'
+    case 'mfa_setup_not_started': return 'Start the setup again.'
+  }
+  if (e.kind === 'validation') return e.field('current_password') ?? e.field('email') ?? e.field('password') ?? e.field('code') ?? e.field('token') ?? 'Please check what you entered.'
+  return e.kind === 'server' ? 'Something went wrong on our side. Please try again.' : e.message
 }
-/** The MFA challenge of a sign-in can no longer be used (expired, or too many wrong codes): back to the password step. */
-export const isChallengeGone = (e: unknown): boolean => e instanceof ApiError && (e.code === 'mfa_challenge_invalid' || e.code === 'mfa_attempts_exceeded')
 
 export function staffAuth(context: StaffContext) {
   const finish = (dto: LoginDto): StaffLoginResult => {
@@ -98,8 +89,6 @@ export function staffAuth(context: StaffContext) {
       if (d.token) tokens.set(context, d.token)
       return { recoveryCodes: d.recovery_codes, principal: toPrincipal(d.principal) }
     },
-    /** The language of the e-mails to this person; null = no preference. */
-    async setLanguage(locale: string | null): Promise<StaffPrincipal> { return toPrincipal(await api<PrincipalDto>('/auth/language', { method: 'PUT', context, body: { locale } })) },
     async mfaDisable(password: string, code: string): Promise<void> { await api('/auth/mfa/totp', { method: 'DELETE', context, body: { password, code: code.trim() } }) },
     async changePassword(current: string, password: string): Promise<void> { await api('/auth/password', { method: 'POST', context, body: { current_password: current, password, password_confirmation: password } }) },
     async sessions(): Promise<StaffDeviceSession[]> {

@@ -297,7 +297,7 @@ final class GeographyAdminService
                 $target = $statusEnum::from($input['status']);
 
                 if (! $locked->status->canBecome($target)) {
-                    throw ApiException::conflict('invalid_status_transition', __('Status cannot change from :from to :to.', ['from' => $locked->status->value, 'to' => $target->value]), [
+                    throw ApiException::conflict('invalid_status_transition', "Status cannot change from {$locked->status->value} to {$target->value}.", [
                         'from' => $locked->status->value, 'allowed' => $statusEnum::transitions()[$locked->status->value] ?? [],
                     ]);
                 }
@@ -365,7 +365,7 @@ final class GeographyAdminService
         $inside = DB::selectOne("select bounds is null or ST_Covers(bounds, {$expression}) as inside from markets where id = ?", [...$bindings, $market->getKey()]);
 
         if (! $inside->inside) {
-            throw new ApiException(422, 'geometry_outside_market', __('The :field lies outside the market. Coordinates are [longitude, latitude] in WGS84.', ['field' => $field]));
+            throw new ApiException(422, 'geometry_outside_market', "The {$field} lies outside the market. Coordinates are [longitude, latitude] in WGS84.");
         }
     }
 

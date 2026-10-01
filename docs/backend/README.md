@@ -236,14 +236,6 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   and expected client errors are not written to the error log.
 - Rate limits (`config/rate_limits.php`, development defaults): `otp-request`, `otp-verify`, `staff-login`,
   `admin-login` (stricter), `mfa-verify`, `password-reset`, plus `api`, `search`, `payment`, `admin-sensitive`.
-- **Language of messages**: the texts in an answer (error `message`, field messages, confirmations) follow the
-  request's `Accept-Language` (`SetApiLocale`): English by default, Hindi when asked; the answer carries
-  `Content-Language`. Codes, field names, numbers, dates and money never depend on the language — clients decide
-  on `error.code`, never on the text. Messages are looked up by their English text in `lang/<code>.json`
-  (94 texts in `lang/hi.json`); Laravel's rule messages and field names are in `lang/hi/validation.php`. A message
-  with values is built with `__('… :from …', [...])` where it is thrown; all others are translated by
-  `ApiExceptionRenderer`. `ApiMessageLanguageTest` reads the messages from the source and fails when one has no
-  Hindi text. A language is available as soon as `lang/<code>.json` exists.
 - Idempotency: `idempotent:<operation>` middleware + `Idempotency-Key` header, scoped to actor + operation,
   bound to the request hash, expiring (`API_IDEMPOTENCY_TTL_MINUTES`).
 - CORS: origins from `FRONTEND_URLS`, explicit methods and headers, no wildcard.
@@ -279,22 +271,6 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   change. The message has its own plain layout (`resources/views/mail/security-notice*`) with no link, button,
   code, reason or administrator name. Locally `MAIL_MAILER=log`: it is written to `storage/logs/laravel.log`,
   nothing is delivered until a mail provider is configured.
-  The notice is written in every language of `AUTH_NOTICE_LOCALES` (default `en`; `en,hi` for India) that has a
-  translation in `lang/<code>/auth.php` — one message, the languages one after the other, subject in the first —
-  for a person who has not chosen a language.
-- **E-mail language per person**: `admin_users.preferred_locale` / `restaurant_users.preferred_locale` (NULL = no
-  preference). `PUT /auth/language {locale}` (signed-in restaurant or admin user; one of the offered languages or
-  null); `/auth/me` returns `preferred_locale` and `notice_locales` (configured AND translated, never empty —
-  `App\Support\NoticeLocales`). With a choice, every e-mail to that person is in that one language, subject
-  included; a stored choice that is no longer offered falls back to all offered languages. `POST /admin/users`
-  accepts `locale` so an invitation can be written in one language. The same choice is the language of the
-  dashboards (see Front-end integration). Links in an e-mail to a person with a choice carry `?lang=<code>`
-  before the fragment, so the signed-out page they open (set password, reset password) uses that language; the
-  code carries no authority and an unknown one means English.
-- The invitation and the password-reset e-mail use the same layout and language rule (`WritesStaffNotice`):
-  English and Hindi in one message, each part with the button to the single-use link, and the address once in
-  plain text. The framework's default mail layout (header link to `APP_URL`, English greeting) is no longer used
-  for staff e-mails.
 - Every change writes an audit event (`admin_user.invited`, `.activated`, `.status_changed`, `.role_changed`) in
   addition to the security events. The response never contains the password, MFA secret or recovery codes.
 
@@ -536,15 +512,6 @@ that were made are audited — a refused attempt is not an audit event.
   invited administrator sets a password.
   The list is searched (name / e-mail), filtered by status and paged by the backend (10 per page); a role can be
   given for all markets or one market (`market_id`), and an account can be disabled (final).
-- **Dashboards in Hindi**: the Restaurant Dashboard, the Platform Admin and their sign-in / password / MFA screens
-  are translated (`dashboard/strings.hi.ts`, `admin/strings.hi.ts`, `auth/staff/strings.hi.ts`, `i18n/shared.hi.ts`;
-  about 1,990 texts, loaded on demand as a separate chunk — the customer site is not translated and does not
-  download it). The language is the signed-in person's `preferred_locale`; signed out it is `?lang=` of the link or
-  the language last used in that browser (`localStorage fotg.staff.lang`), else English. Dates, numbers and money
-  keep the market's region (`hi-IN`). `src/i18n/hi.test.tsx` fails when an English text has no Hindi one or a
-  placeholder differs. Requests of the staff tools send `Accept-Language` with that language (customer calls send
-  `en`), so messages written by the backend match the screen. Not translated: data (names, addresses, menu items,
-  fixture content).
 - Staff account security (both dashboards, `customer-web/src/auth/staff/`): `/…/forgot-password` and
   `/…/reset-password` (public; the token travels in the URL fragment and is removed from the address bar),
   `/…/account-security` (profile menu: MFA on / off, change password, signed-in devices). `MfaSetup.tsx` draws

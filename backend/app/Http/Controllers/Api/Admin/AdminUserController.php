@@ -12,7 +12,6 @@ use App\Models\AdminUser;
 use App\Models\Market;
 use App\Models\Role;
 use App\Services\Auth\AdminUserService;
-use App\Support\NoticeLocales;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,10 +60,9 @@ class AdminUserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255'],
             'role' => ['required', 'string', 'max:60'],
             'market_id' => ['sometimes', 'nullable', 'uuid'],
-            'locale' => ['sometimes', 'nullable', 'string', Rule::in(NoticeLocales::available())],
         ]);
 
-        $admin = $this->admins->invite($input['name'], $input['email'], $this->role($input['role']), $this->market($input['market_id'] ?? null), $request->user(), $input['locale'] ?? null);
+        $admin = $this->admins->invite($input['name'], $input['email'], $this->role($input['role']), $this->market($input['market_id'] ?? null), $request->user());
 
         return (new AdminUserResource($admin->load('roleAssignments.role')))->response()->setStatusCode(201);
     }
@@ -103,7 +101,7 @@ class AdminUserController extends Controller
     {
         $this->admins->resendInvitation($adminUser);
 
-        return response()->json(['message' => __('A new invitation link has been sent. Earlier links no longer work.')]);
+        return response()->json(['message' => 'A new invitation link has been sent. Earlier links no longer work.']);
     }
 
     /**
@@ -113,7 +111,7 @@ class AdminUserController extends Controller
     {
         $this->admins->acceptInvitation((string) $request->validated('token'), (string) $request->validated('password'));
 
-        return response()->json(['message' => __('Your password is set. You can sign in now.')]);
+        return response()->json(['message' => 'Your password is set. You can sign in now.']);
     }
 
     private function role(string $code): Role

@@ -33,11 +33,6 @@ return [
 
     'invitation_ttl_hours' => (int) env('AUTH_INVITATION_TTL_HOURS', 72),
 
-    // Languages of the e-mails to restaurant and admin users (invitation, password reset, MFA changed). A person
-    // can choose one of them; without a choice a message carries every language listed here, in this order, with
-    // the subject in the first. A language without a translation is skipped.
-    'notice_locales' => array_values(array_filter(array_map('trim', explode(',', (string) env('AUTH_NOTICE_LOCALES', 'en'))))),
-
     'password' => [
         'min_length' => (int) env('AUTH_PASSWORD_MIN_LENGTH', 12),
         'reset_ttl_minutes' => (int) env('AUTH_PASSWORD_RESET_TTL_MINUTES', 30),

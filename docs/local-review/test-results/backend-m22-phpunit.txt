@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:35.776, Memory: 84.00 MB
+Time: 00:30.835, Memory: 82.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -48,12 +48,6 @@ Api Conventions (Tests\Feature\Foundation\ApiConventions)
  ✔ The versioned api group is rate limited by the configurable api limiter
  ✔ Api responses carry baseline security headers
  ✔ Cors allows configured origins only
-
-Api Message Language (Tests\Feature\ApiMessageLanguage)
- ✔ Every message in the source has a hindi translation with the same placeholders
- ✔ Hindi validation messages have the same keys and placeholders as english
- ✔ Answers are english by default and hindi when the request asks for it
- ✔ Validation generic and confirmation texts follow the language
 
 Availability (Tests\Feature\Geo\Availability)
  ✔ A point inside an active area of an open city region and market is supported
@@ -180,9 +174,6 @@ Mfa Change Notification (Tests\Feature\Auth\MfaChangeNotification)
  ✔ Restaurant users are told as well
  ✔ A reset by an administrator tells the owner and only the owner
  ✔ The message goes to the account address and contains no link secret or reason
- ✔ The notice is written in every configured language that has a translation
- ✔ Invitation and password reset are written in both languages with one working link
- ✔ The hindi translation covers every notice text with the same placeholders
  ✔ A mail failure is reported and does not undo the reset
 
 Money (Tests\Unit\Support\Money)
@@ -330,13 +321,6 @@ Sms Provider (Tests\Feature\Auth\SmsProvider)
  ✔ Sms test command sends one message and never prints the full code
  ✔ No driver writes the code or a credential to the log
 
-Staff Language (Tests\Feature\Auth\StaffLanguage)
- ✔ The session shows the choice and the available languages
- ✔ A staff member chooses changes and clears their language
- ✔ Restaurant users have it too and nobody else reaches it
- ✔ E mails follow the choice and carry every language without one
- ✔ An invitation can be sent in one language which becomes the persons choice
-
 Staff Login (Tests\Feature\Auth\StaffLogin)
  ✔ Valid credentials return a token and a safe identity with data set "restaurant"
  ✔ Valid credentials return a token and a safe identity with data set "admin"
@@ -358,5 +342,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (279 tests, 3244 assertions)
-{"tool":"phpunit","result":"passed","tests":279,"passed":279,"assertions":3244,"duration_ms":35776}
+OK (267 tests, 2563 assertions)
+{"tool":"phpunit","result":"passed","tests":267,"passed":267,"assertions":2563,"duration_ms":30835}

@@ -6,7 +6,6 @@ use App\Http\Middleware\ApiSecurityHeaders;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnforceIdempotency;
 use App\Http\Middleware\EnsureAccountActive;
-use App\Http\Middleware\SetApiLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -26,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Global, so error responses produced before the route middleware runs carry them too.
-        $middleware->prepend([AssignRequestId::class, ApiSecurityHeaders::class, SetApiLocale::class]);
+        $middleware->prepend([AssignRequestId::class, ApiSecurityHeaders::class]);
         $middleware->alias([
             'active' => EnsureAccountActive::class,
             'idempotent' => EnforceIdempotency::class,

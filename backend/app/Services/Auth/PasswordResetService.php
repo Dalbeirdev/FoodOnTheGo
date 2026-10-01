@@ -9,7 +9,6 @@ use App\Models\AdminUser;
 use App\Models\CredentialResetToken;
 use App\Models\RestaurantUser;
 use App\Notifications\CredentialResetNotification;
-use App\Support\NoticeLocales;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use SensitiveParameter;
@@ -52,7 +51,7 @@ final class PasswordResetService
         ]);
 
         $path = $type === PrincipalType::AdminUser ? '/admin/reset-password' : '/restaurant-dashboard/reset-password';
-        $user->notify(new CredentialResetNotification(rtrim((string) config('app.frontend_url'), '/').$path.NoticeLocales::linkQuery($user).'#'.$token, $minutes));
+        $user->notify(new CredentialResetNotification(rtrim((string) config('app.frontend_url'), '/').$path.'#'.$token, $minutes));
     }
 
     public function reset(PrincipalType $type, #[SensitiveParameter] string $token, #[SensitiveParameter] string $password): void

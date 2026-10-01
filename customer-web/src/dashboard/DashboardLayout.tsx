@@ -81,14 +81,14 @@ function ProfileMenu() {
         <div className="db-profile__menu" role="menu" aria-label={t('dash.header.profileMenu', undefined, d.locale)}>
           <Link role="menuitem" to={`${BASE}/settings`} onClick={() => setOpen(false)}>{t('dash.nav.settings', undefined, d.locale)}</Link>
           <Link role="menuitem" to={`${BASE}/help`} onClick={() => setOpen(false)}>{t('dash.nav.help', undefined, d.locale)}</Link>
-          {session.mode === 'api' && <Link role="menuitem" to={`${BASE}/account-security`} onClick={() => setOpen(false)} data-testid="account-security-link">{t('staff.sec.title', undefined, d.locale)}</Link>}
+          {session.mode === 'api' && <Link role="menuitem" to={`${BASE}/account-security`} onClick={() => setOpen(false)} data-testid="account-security-link">Account security</Link>}
           {session.mode !== 'api' && (<>
           <div className="db-profile__dev"><p className="db-muted">{t('dash.header.switchStaff', undefined, d.locale)}</p>
             {d.staffList.filter((s) => s.status !== 'suspended').map((s) => <button key={s.id} type="button" role="menuitemradio" aria-checked={s.id === d.staff.id} className={s.id === d.staff.id ? 'is-on' : ''} onClick={() => { d.switchStaff(s.id); setOpen(false) }} data-testid={`db-staff-${s.id}`}><span dir="auto">{s.name}</span> <small>{t(`dash.role.${s.role}`, undefined, d.locale)}</small></button>)}
           </div>
           </>)}
           <Link role="menuitem" to="/" className="db-profile__signout"><Icon name="logout" size={16} /> {t('dash.header.exit', undefined, d.locale)}</Link>
-          {session.mode === 'api' && <button type="button" role="menuitem" className="db-profile__signout" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout"><Icon name="logout" size={16} /> {t('staff.sec.signOut', undefined, d.locale)}</button>}
+          {session.mode === 'api' && <button type="button" role="menuitem" className="db-profile__signout" onClick={() => { setOpen(false); void session.logout() }} data-testid="staff-signout"><Icon name="logout" size={16} /> Sign out</button>}
         </div>
       )}
     </div>
@@ -134,7 +134,7 @@ export default function DashboardLayout() {
   else if (!d.location) content = <div className="db-page"><ErrorState title={t('dash.error.noLocationTitle', undefined, d.locale)} text={t('dash.error.noLocationText', undefined, d.locale)} locale={d.locale} /></div>
   else content = <Outlet />
   return (
-    <div className={`db-shell ${collapsed ? 'db-shell--collapsed' : ''}`} data-testid="db-shell" lang={d.locale}>
+    <div className={`db-shell ${collapsed ? 'db-shell--collapsed' : ''}`} data-testid="db-shell">
       <a href="#db-main" className="db-skip">{t('dash.skip', undefined, d.locale)}</a>
       <aside className="db-sidebar" data-testid="db-sidebar">
         {brand}
