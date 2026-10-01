@@ -1,9 +1,9 @@
 {
   "module": "CF-318: dashboards in Hindi",
   "mode": "real local backend",
-  "date": "2026-10-01T14:29:10.048Z",
-  "total": 17,
-  "passed": 17,
+  "date": "2026-10-01T14:48:43.499Z",
+  "total": 21,
+  "passed": 21,
   "results": [
     {
       "name": "A1 Platform Admin is English until a language is chosen",
@@ -44,6 +44,26 @@
       "name": "A8 money and dates keep the Indian format in Hindi (₹ amounts on the Payments page)",
       "pass": true,
       "detail": ""
+    },
+    {
+      "name": "B1 a refusal written by the backend appears in Hindi on the screen (duplicate e-mail), and the request said Accept-Language: hi",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B2 a field message of the backend is Hindi too (wrong current password); the password was not changed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B3 the framework's validation texts are Hindi when asked and English otherwise; codes and field names are identical",
+      "pass": true,
+      "detail": "ई-मेल एक मान्य ई-मेल पता होना चाहिए। | The email field must be a valid email address."
+    },
+    {
+      "name": "B4 generic answers are Hindi as well (404 for an unknown account)",
+      "pass": true,
+      "detail": "मांगी गई चीज़ नहीं मिली।"
     },
     {
       "name": "S1 after signing out the sign-in screen stays in Hindi in this browser",

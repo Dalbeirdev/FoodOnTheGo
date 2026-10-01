@@ -6,6 +6,10 @@ PASS A5 no admin page overflows sideways with the longer Hindi texts (1366 px)
 PASS A6 interface texts still in English on admin pages (headings, navigation, buttons, table headers, labels) — 0 found — listed in the report file
 PASS A7 axe (Admin Users in Hindi): no serious / critical violations
 PASS A8 money and dates keep the Indian format in Hindi (₹ amounts on the Payments page)
+PASS B1 a refusal written by the backend appears in Hindi on the screen (duplicate e-mail), and the request said Accept-Language: hi
+PASS B2 a field message of the backend is Hindi too (wrong current password); the password was not changed
+PASS B3 the framework's validation texts are Hindi when asked and English otherwise; codes and field names are identical — ई-मेल एक मान्य ई-मेल पता होना चाहिए। | The email field must be a valid email address.
+PASS B4 generic answers are Hindi as well (404 for an unknown account) — मांगी गई चीज़ नहीं मिली।
 PASS S1 after signing out the sign-in screen stays in Hindi in this browser
 PASS S2 the reset link in a Hindi e-mail carries ?lang=hi and opens the page in Hindi in a browser that has never signed in; the token leaves the address bar
 PASS R1 all 14 Restaurant Dashboard pages have a Hindi heading
@@ -16,4 +20,4 @@ PASS R5 at 390 px the Hindi restaurant pages do not overflow the page
 PASS Z no uncaught page errors or console errors
 PASS Z language choices of the fixture accounts cleared
 
-17/17 passed
+21/21 passed

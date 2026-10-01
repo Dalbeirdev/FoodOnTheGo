@@ -32,7 +32,7 @@ class StaffSecurityController extends Controller
 
         $passwords->change($user, (string) $request->validated('password'), $user->currentAccessToken()->getKey());
 
-        return response()->json(['message' => 'Password changed. Other devices have been signed out.']);
+        return response()->json(['message' => __('Password changed. Other devices have been signed out.')]);
     }
 
     /**

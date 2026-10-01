@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:35.580, Memory: 82.00 MB
+Time: 00:35.776, Memory: 84.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -48,6 +48,12 @@ Api Conventions (Tests\Feature\Foundation\ApiConventions)
  ✔ The versioned api group is rate limited by the configurable api limiter
  ✔ Api responses carry baseline security headers
  ✔ Cors allows configured origins only
+
+Api Message Language (Tests\Feature\ApiMessageLanguage)
+ ✔ Every message in the source has a hindi translation with the same placeholders
+ ✔ Hindi validation messages have the same keys and placeholders as english
+ ✔ Answers are english by default and hindi when the request asks for it
+ ✔ Validation generic and confirmation texts follow the language
 
 Availability (Tests\Feature\Geo\Availability)
  ✔ A point inside an active area of an open city region and market is supported
@@ -352,5 +358,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (275 tests, 2735 assertions)
-{"tool":"phpunit","result":"passed","tests":275,"passed":275,"assertions":2735,"duration_ms":35579}
+OK (279 tests, 3244 assertions)
+{"tool":"phpunit","result":"passed","tests":279,"passed":279,"assertions":3244,"duration_ms":35776}

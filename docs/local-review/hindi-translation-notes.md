@@ -3,7 +3,7 @@
 Status: **machine-assisted translation, not yet reviewed by a native speaker** (tracker CF-317).
 Date: 2026-10-01. Scope: Restaurant Dashboard, Platform Admin, staff sign-in / password / MFA / account-security
 screens, and the staff e-mails. Not translated: the customer website, the Android app, data shown in the
-dashboards, and messages written by the backend.
+dashboards.
 
 ## Where the texts are
 
@@ -14,6 +14,8 @@ dashboards, and messages written by the backend.
 | Sign-in, password, MFA, account security | `customer-web/src/auth/staff/strings.hi.ts` | about 110 |
 | Customer-side texts the dashboards also show (review tags, payment and pickup-code states) | `customer-web/src/i18n/shared.hi.ts` | 34 |
 | E-mails (invitation, password reset, MFA notices) | `backend/lang/hi/auth.php` | 18 |
+| Messages in API answers (refusals, confirmations) | `backend/lang/hi.json` (English text → Hindi text) | 94 |
+| Standard validation messages and field names | `backend/lang/hi/validation.php` | about 170 |
 
 Each file has the same keys as its English counterpart (`strings.ts`, `lang/en/auth.php`); a test fails if a key
 is missing or a `{placeholder}` differs. To change a wording, edit the Hindi value only.
@@ -65,3 +67,18 @@ Delete हटाएं · Edit संपादित करें · Search ख�
 - **"Account security"** is "खाते की सुरक्षा" on the screens and in the e-mails.
 - **Internal development notes** on some screens (mentions of mock data, the backend, module numbers) are
   translated with technical nouns transliterated; they are meant for the team, not for restaurants.
+
+## Backend messages (added 2026-10-01)
+
+- Field names in validation messages are translated (ई-मेल, पासवर्ड, नाम, फ़ोन नंबर, कारण, भूमिका, स्थिति, भाषा …);
+  a field without a Hindi name appears with its technical name.
+- Verb gender in the standard validation messages is fixed per message ("होना चाहिए" / "होनी चाहिए"), so it does
+  not always agree with the field name that is inserted.
+- "must be missing" → "नहीं भेजा जाना चाहिए"; "prohibited" → "भरने की अनुमति नहीं है"; "array" → "सूची (ऐरे)";
+  "string" → "टेक्स्ट"; "true or false" → "सही या गलत में से एक"; lowercase / uppercase keep the English word in
+  brackets.
+- Technical messages meant for developers of a client (Idempotency-Key, GeoJSON geometry, filter / sort syntax)
+  are translated with the technical words in Latin.
+- Status values inside a message stay as codes: "स्थिति ACTIVE से INVITED नहीं बदली जा सकती।"
+- A reason reported by the database for an invalid geometry (e.g. "Self-intersection") stays English inside the
+  Hindi sentence.

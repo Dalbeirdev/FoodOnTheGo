@@ -122,7 +122,7 @@ final class AdminUserService
                 return $locked;
             }
             if (! in_array($status->value, self::STATUS_TRANSITIONS[$from->value], true)) {
-                throw ApiException::conflict('invalid_status_transition', "An account that is {$from->value} cannot become {$status->value}.", ['from' => $from->value, 'allowed' => self::STATUS_TRANSITIONS[$from->value]]);
+                throw ApiException::conflict('invalid_status_transition', __('An account that is :from cannot become :to.', ['from' => $from->value, 'to' => $status->value]), ['from' => $from->value, 'allowed' => self::STATUS_TRANSITIONS[$from->value]]);
             }
             if (! $status->canAuthenticate()) {
                 $this->assertNotLastAdministrator($locked);

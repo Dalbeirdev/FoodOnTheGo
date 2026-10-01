@@ -21962,6 +21962,22 @@
       "issue": "-",
       "carry": "CF-318",
       "notes": "Owner request 2026-10-01. Without a choice the screens are English and e-mails carry every offered language."
+    },
+    {
+      "id": "M21-145",
+      "module": "M21",
+      "req": "Backend messages in Hindi: every text the API can show a person (94 refusals, field messages and confirmations, plus the standard validation messages with translated field names) is available in Hindi. The API answers in the language of the request (Accept-Language; English by default) and says which with Content-Language; the staff tools send their screen language, the customer site sends English. Only texts change — codes, field names and values are identical in every language",
+      "platform": "BACKEND + WEB",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; HINDI WORDING NOT REVIEWED BY A NATIVE SPEAKER (CF-317)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (279 tests, 3244 assertions, 0 failed) ApiMessageLanguage; docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (21/21) B1–B4; docs/local-review/test-results/web-vitest-m22.txt (481/481)",
+      "issue": "-",
+      "carry": "CF-318",
+      "notes": "Owner request 2026-10-01. A test reads the messages from the source code and fails when one has no Hindi text. Still English: a reason reported by the database for an invalid map shape; texts stored as data (audit reasons typed by administrators, fixture content). The Android app does not ask for Hindi, so it keeps receiving English."
     }
   ],
   "pages": [
@@ -28254,7 +28270,7 @@
     ],
     [
       "CF-317",
-      "Hindi wording review: the owner or a native speaker reviews the Hindi before go-live — e-mails (backend/lang/hi/auth.php, 18 texts) and dashboards (customer-web/src/dashboard/strings.hi.ts, admin/strings.hi.ts, auth/staff/strings.hi.ts, i18n/shared.hi.ts, about 1,990 texts). Translators' open questions are listed in docs/local-review/hindi-translation-notes.md",
+      "Hindi wording review: the owner or a native speaker reviews the Hindi before go-live — e-mails (backend/lang/hi/auth.php), backend messages (backend/lang/hi.json, lang/hi/validation.php) and dashboards (customer-web/src/**/strings.hi.ts, i18n/shared.hi.ts); about 2,270 texts in all. Translators' open questions: docs/local-review/hindi-translation-notes.md",
       "M21",
       "Module 21 follow-up",
       "P2",
@@ -28266,7 +28282,7 @@
     ],
     [
       "CF-318",
-      "Hindi beyond the dashboards: (1) messages written by the backend (validation and refusal texts) are English; (2) data shown in the dashboards (fixture content, activity entries, service names) is English; (3) the customer website and the Android app are not translated; (4) restaurant users cannot yet be invited (Module 23), so their language can only be set by themselves",
+      "Hindi beyond the dashboards: (1) data shown in the dashboards (fixture content, activity entries, service names) is English; (2) the customer website and the Android app are not translated (the API can already answer them in Hindi once they ask for it); (3) restaurant users cannot yet be invited (Module 23), so their language can only be set by themselves",
       "M21",
       "Module 21 follow-up",
       "P3",
@@ -28274,7 +28290,7 @@
       "Web (dashboards) / Localisation",
       "PARTIAL",
       "2026-10-01",
-      "Dashboards and staff screens translated 2026-10-01 (M21-142..144). The listed parts remain"
+      "Dashboards, staff screens (M21-142..144) and backend messages (M21-145) translated 2026-10-01. The listed parts remain"
     ]
   ],
   "bugs": [
@@ -29774,6 +29790,20 @@
       "Default notification layout",
       "The notice has its own plain layout without links, buttons or images",
       "docs/local-review/test-results/backend-m22-phpunit.txt (267 tests, 2563 assertions, 0 failed) MfaChangeNotification",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-108",
+      "M21",
+      "BACKEND",
+      "Language of API messages",
+      "Medium",
+      "While building it: the language chosen for one request stayed set for the next one in the same process (the default was read from a value that the first request had changed)",
+      "Every request gets its own language; English when it asks for none",
+      "Feature test sending a Hindi request followed by a request without a language",
+      "The default language was read from app.locale, which setLocale() overwrites",
+      "The default is the fallback language and is set explicitly on every request",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (279 tests, 3244 assertions, 0 failed) ApiMessageLanguage",
       "FIXED / VERIFIED"
     ]
   ],
@@ -32096,6 +32126,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/web-vitest-m22.txt (480/480); docs/local-review/test-results/backend-m22-phpunit.txt (275 tests, 2735 assertions, 0 failed); docs/local-review/test-results/m22-web-auth-regression.txt; docs/local-review/test-results/m22-web-regression.txt",
+      "2026-10-01"
+    ],
+    [
+      "TE-233",
+      "M21",
+      "BACKEND + WEB",
+      "Language of backend messages: every message found in the source has a Hindi text with the same placeholders and none is unused; Hindi validation file has the same keys and placeholders as the English one; English by default, Hindi on request, English for an unknown or malformed language; no leak between requests; validation, generic, confirmation and application messages in Hindi with unchanged codes and field names (4 new tests, suite 279). Web: staff calls send the staff language, customer calls English (1 new test, 481). Real local backend: a backend refusal and a field message shown in Hindi on screen, framework validation Hindi vs English, 404 in Hindi (Hindi e2e 21/21)",
+      "feature + unit + e2e",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (279 tests, 3244 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (481/481); docs/local-review/test-results/m22-web-hindi-dashboards-e2e.json (21/21)",
+      "2026-10-01"
+    ],
+    [
+      "TE-234",
+      "M21",
+      "WEB + BACKEND",
+      "Regression after the API started answering per language: sign-in 48/48, full site 68/68, staff security 28/28, e-mail language 15/15, Admin Users 27/27 + 24/24 + phone 12/12, MFA reset 19/19",
+      "regression",
+      "PASS",
+      "docs/local-review/test-results/m22-web-auth-regression.txt; docs/local-review/test-results/m22-web-regression.txt",
       "2026-10-01"
     ]
   ],

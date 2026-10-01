@@ -103,7 +103,7 @@ class AdminUserController extends Controller
     {
         $this->admins->resendInvitation($adminUser);
 
-        return response()->json(['message' => 'A new invitation link has been sent. Earlier links no longer work.']);
+        return response()->json(['message' => __('A new invitation link has been sent. Earlier links no longer work.')]);
     }
 
     /**
@@ -113,7 +113,7 @@ class AdminUserController extends Controller
     {
         $this->admins->acceptInvitation((string) $request->validated('token'), (string) $request->validated('password'));
 
-        return response()->json(['message' => 'Your password is set. You can sign in now.']);
+        return response()->json(['message' => __('Your password is set. You can sign in now.')]);
     }
 
     private function role(string $code): Role

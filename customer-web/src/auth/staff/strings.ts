@@ -49,6 +49,6 @@ export const staffStrings: Record<string, string> = {
   'staff.sec.devices': 'Signed-in devices', 'staff.loading': 'Loading…', 'staff.sec.col.device': 'Device', 'staff.sec.col.signedIn': 'Signed in', 'staff.sec.col.lastUsed': 'Last used', 'staff.sec.col.expires': 'Expires', 'staff.sec.col.actions': 'Actions',
   'staff.sec.unknown': 'Unknown', 'staff.sec.thisDevice': 'This device', 'staff.sec.signOut': 'Sign out', 'staff.sec.everywhere': 'Sign out everywhere',
   'staff.you': 'you',
-  'staff.lang.title': 'Language', 'staff.lang.lead': 'The language of these screens and of the e-mails FoodOnTheGo sends you (password reset links and security notices). Messages that come from the server, such as some error texts, stay in English.',
+  'staff.lang.title': 'Language', 'staff.lang.lead': 'The language of these screens and of the e-mails FoodOnTheGo sends you (password reset links and security notices).',
   'staff.lang.saved': 'Saved.', 'staff.lang.label': 'Language', 'staff.lang.none': 'No preference — screens in English, e-mails in every language ({languages})',
 }

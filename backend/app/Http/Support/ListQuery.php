@@ -87,7 +87,7 @@ final class ListQuery
         foreach (array_filter(explode(',', $sort)) as $field) {
             $column = ltrim($field, '-');
             if (! in_array($column, $this->sortable, true)) {
-                throw ValidationException::withMessages(['sort' => ["Sorting by [{$column}] is not supported."]]);
+                throw ValidationException::withMessages(['sort' => [__('Sorting by [:column] is not supported.', ['column' => $column])]]);
             }
             $sorts[] = [$column, str_starts_with($field, '-') ? 'desc' : 'asc'];
         }

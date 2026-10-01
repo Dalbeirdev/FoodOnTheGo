@@ -6,9 +6,11 @@
  *                  in this browser, else English
  *
  * A language is only used once its strings are loaded; until then, and for a language without a translation, the
- * screens are English. Dates and numbers keep the region of the market locale (hi + en-IN → hi-IN).
+ * screens are English. Requests of the staff tools tell the backend this language (Accept-Language), so its messages
+ * match the screen. Dates and numbers keep the region of the market locale (hi + en-IN → hi-IN).
  */
 import { useCallback, useEffect, useState } from 'react'
+import { setStaffApiLanguage } from '../../api/client'
 import { ensureBundle, hasBundle, t } from '../../i18n/strings'
 import { useStaffSession } from './staffSessionContext'
 
@@ -25,7 +27,10 @@ export function useStaffLang(): string {
   const [, loaded] = useState(0)
   useEffect(() => { let on = true; if (!hasBundle(wanted)) void ensureBundle(wanted).then(() => { if (on) loaded((n) => n + 1) }); return () => { on = false } }, [wanted])
   useEffect(() => { if (session.mode === 'api') rememberStaffLang(session.principal.preferredLocale) }, [session])
-  return hasBundle(wanted) ? wanted : 'en'
+  const lang = hasBundle(wanted) ? wanted : 'en'
+  // The backend answers in the language of the screen (its error and confirmation texts).
+  useEffect(() => { setStaffApiLanguage(lang) }, [lang])
+  return lang
 }
 
 /** `tr(key, params)` in the staff language, plus the language itself (for `lang` attributes and date formatting). */

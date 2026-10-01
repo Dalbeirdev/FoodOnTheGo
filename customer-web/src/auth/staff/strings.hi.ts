@@ -49,6 +49,6 @@ export const staffStringsHi: Record<string, string> = {
   'staff.sec.devices': 'साइन इन किए हुए डिवाइस', 'staff.loading': 'लोड हो रहा है…', 'staff.sec.col.device': 'डिवाइस', 'staff.sec.col.signedIn': 'साइन इन किया', 'staff.sec.col.lastUsed': 'आख़िरी इस्तेमाल', 'staff.sec.col.expires': 'समाप्ति', 'staff.sec.col.actions': 'कार्रवाई',
   'staff.sec.unknown': 'अज्ञात', 'staff.sec.thisDevice': 'यह डिवाइस', 'staff.sec.signOut': 'साइन आउट करें', 'staff.sec.everywhere': 'हर जगह से साइन आउट करें',
   'staff.you': 'आप',
-  'staff.lang.title': 'भाषा', 'staff.lang.lead': 'इन स्क्रीन की और FoodOnTheGo से आपको मिलने वाले ई-मेल (पासवर्ड रीसेट लिंक और सुरक्षा सूचनाएं) की भाषा। सर्वर से आने वाले संदेश, जैसे कुछ त्रुटि संदेश, अंग्रेज़ी में ही रहेंगे।',
+  'staff.lang.title': 'भाषा', 'staff.lang.lead': 'इन स्क्रीन की और FoodOnTheGo से आपको मिलने वाले ई-मेल (पासवर्ड रीसेट लिंक और सुरक्षा सूचनाएं) की भाषा।',
   'staff.lang.saved': 'सेव हो गया।', 'staff.lang.label': 'भाषा', 'staff.lang.none': 'कोई पसंद नहीं — स्क्रीन अंग्रेज़ी में, ई-मेल हर भाषा में ({languages})',
 }

@@ -84,10 +84,19 @@ export type ApiRequest = {
   query?: Record<string, string | number | boolean | null | undefined>; idempotencyKey?: string; signal?: AbortSignal
 }
 
+/**
+ * Language of the texts in the backend's answers (error and confirmation messages). Each call says which language
+ * its screen is in: the staff tools their own language, the customer site English (it is not translated). Sent
+ * explicitly so the browser's own language list does not decide it.
+ */
+let staffLanguage = 'en'
+export function setStaffApiLanguage(lang: string): void { staffLanguage = /^[a-z]{2,3}$/.test(lang) ? lang : 'en' }
+const STAFF_PATH = /^\/(admin|auth\/(admin|restaurant))(\/|$)/
+
 export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const requestId = newRequestId()
   const context = init.context ?? 'customer'
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-Request-Id': requestId }
+  const headers: Record<string, string> = { Accept: 'application/json', 'Accept-Language': context !== 'customer' || STAFF_PATH.test(path) ? staffLanguage : 'en', 'X-Request-Id': requestId }
   if (init.body !== undefined) headers['Content-Type'] = 'application/json'
   if (init.idempotencyKey) headers['Idempotency-Key'] = init.idempotencyKey
   const token = init.auth === false ? null : init.token ?? tokens.get(context)

@@ -1,9 +1,9 @@
 {
   "module": "M19",
-  "ranAt": "2026-10-01T14:25:36.962Z",
+  "ranAt": "2026-10-01T15:08:36.621Z",
   "base": "http://localhost:5173",
   "fixtureScope": "india",
-  "order": "FOTG-TUFS-Y829",
+  "order": "FOTG-5TLD-SW35",
   "total": 68,
   "passed": 68,
   "routes": 72,
@@ -77,12 +77,12 @@
     {
       "name": "A12 confirmation: order reference, restaurant, pickup time, 6-character pickup code, QR, items, pricing, payment status separate from order status",
       "pass": true,
-      "detail": "FOTG-TUFS-Y829"
+      "detail": "FOTG-5TLD-SW35"
     },
     {
       "name": "A13 QR safety: the QR token is opaque — no phone, email, name, order number or payment reference inside",
       "pass": true,
-      "detail": "pv_dev_5d78315c86e119e7b581885cbba2ee18"
+      "detail": "pv_dev_c973e3aec779498f9a35d0aafd9c630b"
     },
     {
       "name": "A13 order snapshot: integer minor-unit pricing in INR, restaurant zone Asia/Kolkata, market IN",

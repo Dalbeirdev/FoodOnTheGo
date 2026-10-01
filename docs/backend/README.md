@@ -236,6 +236,14 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   and expected client errors are not written to the error log.
 - Rate limits (`config/rate_limits.php`, development defaults): `otp-request`, `otp-verify`, `staff-login`,
   `admin-login` (stricter), `mfa-verify`, `password-reset`, plus `api`, `search`, `payment`, `admin-sensitive`.
+- **Language of messages**: the texts in an answer (error `message`, field messages, confirmations) follow the
+  request's `Accept-Language` (`SetApiLocale`): English by default, Hindi when asked; the answer carries
+  `Content-Language`. Codes, field names, numbers, dates and money never depend on the language — clients decide
+  on `error.code`, never on the text. Messages are looked up by their English text in `lang/<code>.json`
+  (94 texts in `lang/hi.json`); Laravel's rule messages and field names are in `lang/hi/validation.php`. A message
+  with values is built with `__('… :from …', [...])` where it is thrown; all others are translated by
+  `ApiExceptionRenderer`. `ApiMessageLanguageTest` reads the messages from the source and fails when one has no
+  Hindi text. A language is available as soon as `lang/<code>.json` exists.
 - Idempotency: `idempotent:<operation>` middleware + `Idempotency-Key` header, scoped to actor + operation,
   bound to the request hash, expiring (`API_IDEMPOTENCY_TTL_MINUTES`).
 - CORS: origins from `FRONTEND_URLS`, explicit methods and headers, no wildcard.
@@ -534,8 +542,9 @@ that were made are audited — a refused attempt is not an audit event.
   download it). The language is the signed-in person's `preferred_locale`; signed out it is `?lang=` of the link or
   the language last used in that browser (`localStorage fotg.staff.lang`), else English. Dates, numbers and money
   keep the market's region (`hi-IN`). `src/i18n/hi.test.tsx` fails when an English text has no Hindi one or a
-  placeholder differs. Not translated: data (names, addresses, menu items, fixture content) and messages written
-  by the backend (validation and refusal texts).
+  placeholder differs. Requests of the staff tools send `Accept-Language` with that language (customer calls send
+  `en`), so messages written by the backend match the screen. Not translated: data (names, addresses, menu items,
+  fixture content).
 - Staff account security (both dashboards, `customer-web/src/auth/staff/`): `/…/forgot-password` and
   `/…/reset-password` (public; the token travels in the URL fragment and is removed from the address bar),
   `/…/account-security` (profile menu: MFA on / off, change password, signed-in devices). `MfaSetup.tsx` draws

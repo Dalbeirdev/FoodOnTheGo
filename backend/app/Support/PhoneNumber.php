@@ -52,7 +52,7 @@ final readonly class PhoneNumber
         }
 
         if (! self::matches($market, $national)) {
-            throw new InvalidArgumentException('Enter a valid mobile number for '.$market->name.'.');
+            throw new InvalidArgumentException(__('Enter a valid mobile number for :country.', ['country' => $market->name]));
         }
 
         $e164 = '+'.$dial.$national;

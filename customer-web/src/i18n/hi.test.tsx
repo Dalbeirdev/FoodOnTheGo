@@ -1,7 +1,8 @@
 /** Hindi for the staff tools: the translation is complete, keeps every placeholder, and both dashboards really show it. */
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { api, setStaffApiLanguage } from '../api/client'
 import { AdminProvider } from '../admin/AdminContext'
 import AdminLayout from '../admin/AdminLayout'
 import { resetAdminStores, setMockAdminLatency } from '../admin/mock/mockAdmin'
@@ -49,6 +50,18 @@ describe('Hindi translation tables', () => {
     expect(t('discovery.planJourney', undefined, 'hi-IN')).toBe('Plan a Journey') // the customer site is not translated
     await ensureBundle('fr'); expect(hasBundle('fr')).toBe(false); expect(t('dash.nav.orders', undefined, 'fr-FR')).toBe('Orders')
     expect(t('staff.err.rateWait', { seconds: 37 }, 'hi')).toBe('बहुत ज़्यादा कोशिशें हुईं। 37 सेकंड बाद फिर से कोशिश करें।')
+  })
+
+  it('tells the backend the language of the screen: staff calls the staff language, customer calls English', async () => {
+    const sent: Array<[string, string]> = []
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit = {}) => { sent.push([new URL(url).pathname.replace('/api/v1', ''), (init.headers as Record<string, string>)['Accept-Language']]); return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }) }))
+    try {
+      setStaffApiLanguage('hi')
+      await api('/admin/users', { context: 'admin' }); await api('/auth/restaurant/login', { method: 'POST', auth: false, body: {} }); await api('/auth/admin/invitation/accept', { method: 'POST', auth: false, body: {} }); await api('/auth/me', { context: 'restaurant' })
+      await api('/markets'); await api('/auth/customer/otp/request', { method: 'POST', auth: false, body: {} })
+      setStaffApiLanguage('../x'); await api('/admin/users', { context: 'admin' })
+      expect(sent).toEqual([['/admin/users', 'hi'], ['/auth/restaurant/login', 'hi'], ['/auth/admin/invitation/accept', 'hi'], ['/auth/me', 'hi'], ['/markets', 'en'], ['/auth/customer/otp/request', 'en'], ['/admin/users', 'en']])
+    } finally { setStaffApiLanguage('en'); vi.unstubAllGlobals() }
   })
 
   it('keeps the market region for dates, numbers and money', () => {

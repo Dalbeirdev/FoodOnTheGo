@@ -30,7 +30,7 @@ final readonly class GeoJsonGeometry
             throw self::invalid('Geometry must be a GeoJSON object with "type" and "coordinates".');
         }
         if (! in_array($value['type'], $allowedTypes, true)) {
-            throw self::invalid('Geometry type must be '.implode(' or ', $allowedTypes).'.');
+            throw self::invalid(__('Geometry type must be :types.', ['types' => implode(' / ', $allowedTypes)]));
         }
         if (array_diff(array_keys($value), ['type', 'coordinates', 'bbox']) !== []) {
             throw self::invalid('Only "type" and "coordinates" are accepted (coordinates are WGS84; no "crs").');
@@ -50,7 +50,7 @@ final readonly class GeoJsonGeometry
             }
             $count += count($line);
             if ($count > $limit) {
-                throw self::invalid("Geometry has too many positions (limit {$limit}).");
+                throw self::invalid(__('Geometry has too many positions (limit :limit).', ['limit' => $limit]));
             }
             foreach ($line as $position) {
                 if (! is_array($position) || count($position) < 2 || count($position) > 3 || ! is_numeric($position[0]) || ! is_numeric($position[1])
@@ -87,7 +87,7 @@ final readonly class GeoJsonGeometry
             throw self::invalid('Geometry is empty.');
         }
         if (! $check->valid) {
-            throw self::invalid('Geometry is not valid: '.preg_replace('/\[.*$/', '', (string) $check->reason).'.');
+            throw self::invalid(__('Geometry is not valid: :reason.', ['reason' => preg_replace('/\[.*$/', '', (string) $check->reason)]));
         }
     }
 
