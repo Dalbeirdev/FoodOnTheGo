@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { StaffAuthGate } from '../auth/staff/StaffSession'
 import { AdminProvider } from './AdminContext'
 import AdminLayout, { RequirePermission as RequireAdminPermission } from './AdminLayout'
+import AcceptInvitationPage from './pages/AcceptInvitationPage'
 import AdminOverviewPage from './pages/OverviewPage'
 import AdminRestaurantsPage, { RestaurantDetailsPage as AdminRestaurantDetailsPage } from './pages/RestaurantsPage'
 import AdminCustomersPage, { CustomerDetailsPage as AdminCustomerDetailsPage } from './pages/CustomersPage'
@@ -23,6 +24,8 @@ import { AnalyticsPage as AdminAnalyticsPage, SystemPage as AdminSystemPage, Set
 export default function AdminApp() {
   return (
     <Routes>
+    {/* Public: an invited administrator has no session yet. */}
+    <Route path="accept-invitation" element={<AcceptInvitationPage />} />
     <Route path="/" element={<StaffAuthGate context="admin"><AdminProvider><AdminLayout /></AdminProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<AdminOverviewPage />} />

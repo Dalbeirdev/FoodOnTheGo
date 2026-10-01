@@ -2,6 +2,7 @@
 
 use App\Enums\Permission;
 use App\Enums\PrincipalType;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
@@ -28,6 +29,7 @@ Route::pattern('region', '[0-9a-fA-F-]{36}');
 Route::pattern('city', '[0-9a-fA-F-]{36}');
 Route::pattern('serviceArea', '[0-9a-fA-F-]{36}');
 Route::pattern('routeCorridor', '[0-9a-fA-F-]{36}');
+Route::pattern('adminUser', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -57,6 +59,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
                 Route::post('/password/reset', [StaffAuthController::class, 'resetPassword'])->middleware('throttle:password-reset')->defaults('principal', $type->value)->name('password.reset');
             });
         }
+
+        // An invited administrator chooses a password with the single-use link from the invitation.
+        Route::post('/admin/invitation/accept', [AdminUserController::class, 'acceptInvitation'])->middleware('throttle:password-reset')->name('admin.invitation.accept');
 
         // Whoever is signed in, of any principal type.
         Route::middleware('auth:customer,restaurant,admin')->group(function (): void {
@@ -99,6 +104,16 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/service-areas/{serviceArea}', [GeographyController::class, 'showServiceArea'])->name('service-areas.show');
         Route::get('/route-corridors/{routeCorridor}', [GeographyController::class, 'showRouteCorridor'])->name('route-corridors.show');
         Route::get('/audit-events', [AuditEventController::class, 'index'])->name('audit-events.index');
+        // Administrator accounts and roles are platform data: the permission must be held without a market scope.
+        Route::get('/users', [AdminUserController::class, 'index'])->middleware('can:'.Permission::AdminUsersView->value)->name('users.index');
+        Route::get('/roles', [AdminUserController::class, 'roles'])->middleware('can:'.Permission::AdminRolesView->value)->name('roles.index');
+        Route::middleware('throttle:admin-sensitive')->group(function (): void {
+            Route::post('/users', [AdminUserController::class, 'store'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.store');
+            Route::patch('/users/{adminUser}/status', [AdminUserController::class, 'updateStatus'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.status');
+            Route::put('/users/{adminUser}/role', [AdminUserController::class, 'updateRole'])->middleware('can:'.Permission::AdminRolesManage->value)->name('users.role');
+            Route::post('/users/{adminUser}/invitation', [AdminUserController::class, 'resendInvitation'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.invitation');
+        });
+
         // Security events are platform-wide: the permission must be held without a market scope.
         Route::middleware('can:'.Permission::AdminSecurityView->value)->group(function (): void {
             Route::get('/security-events', [SecurityEventController::class, 'index'])->name('security-events.index');

@@ -1,6 +1,6 @@
 {
   "project": "FoodOnTheGo",
-  "phase": "Backend — Module 22 market / geography done (local); MODULE 23 MAY START = YES; owner items open: build021–026 device checks, browser reviews (sign-ins, Markets on the backend, Modules 18 / 18A), version confirmation (CF-268), provider accounts (CF-294, CF-297, CF-298)",
+  "phase": "Backend — Module 22 market / geography done (local) plus admin follow-ups (geography forms, audit, security, admin users on the backend); MODULE 23 MAY START = YES; owner items open: build021–026 device checks, browser reviews (TE-208 and earlier), version confirmation (CF-268), provider accounts (CF-294, CF-297, CF-298, mail CF-315)",
   "currentModule": "Module 22",
   "environment": "LOCAL DEVELOPMENT / TESTING",
   "production": "BLOCKED",
@@ -21610,6 +21610,70 @@
       "issue": "-",
       "carry": "CF-302",
       "notes": "Owner request 2026-10-01. Locally every address shows as 127.0.0.1 because requests pass the local API proxy (CF-312)."
+    },
+    {
+      "id": "M21-123",
+      "module": "M21",
+      "req": "Administrator accounts API: list (roles, market scope, status, MFA state, last sign-in), admin roles with permissions, invite, change status, change role, resend invitation — platform-wide permissions on every endpoint",
+      "platform": "BACKEND",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (260 tests, 2490 assertions, 0 failed) AdminUsersApi (8), OpenApiContract",
+      "issue": "-",
+      "carry": "CF-285",
+      "notes": "Never returned: password, MFA secret, recovery codes, internal ids."
+    },
+    {
+      "id": "M21-124",
+      "module": "M21",
+      "req": "Invitation flow: the account is created INVITED without a password; a single-use link (72 h, only its hash stored) lets the invited person choose their own password and become ACTIVE; a new link cancels the old one",
+      "platform": "BACKEND",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (260 tests, 2490 assertions, 0 failed) AdminUsersApi (invitation)",
+      "issue": "-",
+      "carry": "CF-285",
+      "notes": "Locally no e-mail is sent: the mailer writes the message to the server log (mail provider = open item). The ordinary password-reset flow does not activate an invited account."
+    },
+    {
+      "id": "M21-125",
+      "module": "M21",
+      "req": "Rules no permission overrides: nobody changes their own status or role; a role is granted only by someone holding all its permissions; the last active administrator who can manage accounts and roles cannot be suspended, disabled or stripped; DISABLED is final; suspending ends every session at once; every change is audited with actor and reason",
+      "platform": "BACKEND",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (260 tests, 2490 assertions, 0 failed) AdminUsersApi (self, last administrator, escalation, status)",
+      "issue": "-",
+      "carry": "CF-285",
+      "notes": ""
+    },
+    {
+      "id": "M21-126",
+      "module": "M21",
+      "req": "Admin Users screen on the backend: accounts and roles from the API, invite, resend invitation, change role, suspend / reactivate with a reason, backend refusals shown; public \"Set your password\" page for the invitation link (token in the URL fragment, removed from the address bar, nothing stored)",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27); docs/local-review/test-results/web-vitest-m22.txt (457/457); docs/local-review/screenshots/web-m22/admin-users/",
+      "issue": "-",
+      "carry": "CF-285",
+      "notes": "Owner request 2026-10-01. Disabling an account, market-scoped role assignment and MFA reset have an API path or are open (CF-314); the role dialog assigns platform-wide roles."
     }
   ],
   "pages": [
@@ -26816,9 +26880,9 @@
       "P0",
       "Claude",
       "Backend",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Admin API exists for: markets and geography, audit events, security events, administrator accounts and roles. Still mock: restaurants, customers, orders, payments, refunds, settlements, reviews, promotions, support, notifications, analytics, system, search"
     ],
     [
       "CF-227",
@@ -26998,7 +27062,7 @@
       "Backend / Security",
       "PARTIAL",
       "2026-09-30",
-      "Module 21: separate admin sign-in, TOTP MFA (optional; mandatory switch), token expiry, stricter limits. Open: IP allow-list, invitations, enrolment UI (CF-282, CF-286, CF-292)"
+      "Separate admin sign-in, TOTP MFA (optional; mandatory switch), token expiry, stricter limits, invitations with a self-chosen password (2026-10-01). Open: real e-mail delivery (CF-315), IP allow-list, MFA enrolment screen (CF-282, CF-292)"
     ],
     [
       "CF-242",
@@ -27524,9 +27588,9 @@
       "P0",
       "Claude",
       "Backend Module 23 / admin module",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-09-30",
-      "-"
+      "Admin users: invite, change role, suspend / reactivate / disable, resend invitation — DONE 2026-10-01 (M21-123..126). Open: restaurant users (Module 23), MFA reset (CF-314)"
     ],
     [
       "CF-286",
@@ -27860,6 +27924,30 @@
       "P2",
       "Claude",
       "Backend",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-314",
+      "Admin Users screen: assign a role for one market only, disable an account, reset another administrator's MFA, and search / paging for large lists — the API supports market scope and DISABLED; MFA reset has no endpoint yet. Restaurant-user management (invite, role, suspend) is not built at all (Module 23)",
+      "M21",
+      "Module 21 follow-up",
+      "P2",
+      "Claude",
+      "Web (admin) + backend",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-315",
+      "MAIL PROVIDER: invitation and password-reset e-mails are only written to the local server log (which therefore contains the single-use links — local machine only). A real mail provider and a log-free mailer are needed before any shared or live environment",
+      "M21",
+      "Module 21 follow-up",
+      "P0 (before live)",
+      "Claude",
+      "Owner + backend",
       "NOT STARTED",
       "2026-10-01",
       "-"
@@ -31398,7 +31486,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31482,6 +31570,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (252 tests, 2351 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (450/450); docs/local-review/test-results/m22-web-auth-regression.txt",
+      "2026-10-01"
+    ],
+    [
+      "TE-217",
+      "M21",
+      "WEB",
+      "Admin Users against the real local backend: list and roles, duplicate e-mail refused, invite (INVITED, no password), accept through the link (single use), first sign-in with exactly the role's permissions, role change effective in the open session, suspend (reason required; session dies at once), reactivate, audit trail of every step, own account protected, view-only admin 403, 390 px, axe; test account removed afterwards",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27)",
+      "2026-10-01"
+    ],
+    [
+      "TE-218",
+      "M21",
+      "WEB + BACKEND",
+      "Backend suite 260 (8 new); web vitest 457 (7 new); sign-in regression 48/48 re-run",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (260 tests, 2490 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (457/457); docs/local-review/test-results/m22-web-auth-regression.txt",
       "2026-10-01"
     ]
   ],
@@ -32219,6 +32327,14 @@
       "M21",
       "WEB",
       "docs/local-review/test-results/m22-web-security-e2e.json (17/17); docs/local-review/screenshots/web-m22/security/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Admin Users on the backend: e2e result and screenshots",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27); docs/local-review/screenshots/web-m22/admin-users/",
       "Evidence",
       "YES"
     ]
@@ -33097,7 +33213,7 @@
       "PARTIAL"
     ],
     [
-      "Identity (M21): no public admin / restaurant account creation; principal type never taken from the client",
+      "Identity (M21): no public admin / restaurant account creation (administrators are invited by an authorised administrator and set their own password); principal type never taken from the client",
       "COMPLETE"
     ],
     [
@@ -33114,6 +33230,10 @@
     ],
     [
       "Security events (M21): readable by administrators with the platform-wide security permission only; the API returns no secret, hash or internal id (test); shown on the admin Security screen",
+      "COMPLETE"
+    ],
+    [
+      "Administrator accounts (M21): invitation without a shared password (single-use hashed link), no self-change, no granting beyond own permissions, last full administrator protected, suspension ends sessions at once, all changes audited (tests)",
       "COMPLETE"
     ]
   ],

@@ -20,7 +20,7 @@ class AuditEventController extends Controller
     use AuthorizesMarketScope;
 
     /** Tables an audit target can live in, and the column that names the record for a reader. */
-    private const TARGET_LABELS = ['markets' => 'name', 'market_regions' => 'name', 'cities' => 'name', 'service_areas' => 'name', 'route_corridors' => 'name'];
+    private const TARGET_LABELS = ['markets' => 'name', 'market_regions' => 'name', 'cities' => 'name', 'service_areas' => 'name', 'route_corridors' => 'name', 'admin_users' => 'name'];
 
     /**
      * The audit trail, newest first. An administrator whose audit permission is scoped to markets sees

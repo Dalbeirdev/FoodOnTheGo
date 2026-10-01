@@ -33,7 +33,7 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 252 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 260 tests, real PostgreSQL + PostGIS + Redis
 php artisan otp:check          # how one-time codes are delivered here (channels, providers) and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
@@ -241,6 +241,25 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
 - CORS: origins from `FRONTEND_URLS`, explicit methods and headers, no wildcard.
 - Logs: text locally, JSON lines with `LOG_STACK=structured`; sensitive keys and bearer tokens are redacted.
 - Provider secrets live only in the backend `.env` / `config/services.php`.
+
+### Administrator accounts
+
+`GET /admin/users`, `GET /admin/roles`, `POST /admin/users` (invite), `PATCH /admin/users/{id}/status`,
+`PUT /admin/users/{id}/role`, `POST /admin/users/{id}/invitation` (resend) — `admin.users.view` / `.manage`,
+`admin.roles.view` / `.manage`, each held platform-wide. `POST /auth/admin/invitation/accept` is public.
+
+- **Invitation**: the account is created INVITED with no password. The invited person gets a single-use link
+  (`AUTH_INVITATION_TTL_HOURS`, 72; only its SHA-256 is stored; a new link cancels the old) and chooses their own
+  password, which makes the account ACTIVE. The inviting administrator never sets or sees a password. The ordinary
+  password-reset flow does not activate an invited account. Locally the mailer is `log`: the message, including
+  the link, is written to `storage/logs/laravel.log` and nothing is sent — a mail provider is required before any
+  shared environment.
+- **Rules no permission overrides** (`AdminUserService`): nobody changes their own status or role; a role can only
+  be granted by someone who holds every permission in it platform-wide; the last active administrator who can
+  manage accounts and roles cannot be suspended, disabled or given a lesser role; DISABLED is final; a status that
+  cannot sign in ends every session at once; a role change is effective on the next request of open sessions.
+- Every change writes an audit event (`admin_user.invited`, `.activated`, `.status_changed`, `.role_changed`) in
+  addition to the security events. The response never contains the password, MFA secret or recovery codes.
 
 ### Security events for administrators
 
@@ -475,7 +494,9 @@ that were made are audited — a refused attempt is not an audit event.
   corridor centreline is straight lines through the chosen cities or a pasted LineString. New records start PLANNED. Restaurant pins, order counts and revenue in those screens are
   still development fixtures. The Audit screen (`ApiAdminAuditRepository`) shows the backend audit trail; the
   development log of the areas that are still mock is a separate, labelled tab. The Security screen shows the backend's security events
-  (`ApiAdminSecurityRepository`, `SecurityBackendPage.tsx`).
+  (`ApiAdminSecurityRepository`, `SecurityBackendPage.tsx`). The Admin Users screen (`ApiAdminUserRepository`) lists, invites,
+  re-roles and suspends administrators on the backend; `/admin/accept-invitation` is the public page where an
+  invited administrator sets a password.
 
 ## 10. Not built yet
 

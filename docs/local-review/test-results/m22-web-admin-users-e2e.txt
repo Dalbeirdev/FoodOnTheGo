@@ -1,0 +1,29 @@
+PASS U1 the Admin Users page reads the backend: GET /admin/users and GET /admin/roles with the admin token
+PASS U2 it lists the backend accounts with role, market scope, status, MFA state and last sign-in (8 fixture administrators) — 8 accounts
+PASS U3 your own row has no status or role controls
+PASS A11Y axe (admin users list) no serious / critical violations
+PASS U4 the Roles tab shows the 7 backend roles with their permissions
+PASS I1 inviting an e-mail that already has an account is refused by the backend (422) with its message — 422
+PASS A11Y axe (invite form) no serious / critical violations
+PASS I2 invitation created (201): the account is listed as Invited with the Support Admin role and no MFA — 201
+PASS I3 an invited account has no password and cannot sign in; locally the invitation is written to the server log, not sent
+PASS A1 the invitation link opens the "Set your password" page without a session; the token is removed from the address bar
+PASS A2 a short password is refused before anything is sent
+PASS A3 the password is set; the link is single use (a second use is refused, 422 invitation_invalid)
+PASS A4 the new administrator signs in with the chosen password and has exactly the Support Admin permissions
+PASS R1 after acceptance the list shows the account as Active
+PASS R2 role changed (200): the SAME session now has the Analyst permissions — markets readable, support management gone — 200
+PASS S1 suspending needs a reason (blocked in the dialog)
+PASS S2 suspended (200): the open session of that administrator stops working at once (401) and a new sign-in is refused — 200
+PASS S3 reactivated (200): sign-in works again
+PASS S4 every step is in the backend audit trail with actor and reason (invited, activated, role changed, status changed ×2) — admin_user.status_changed,admin_user.status_changed,admin_user.role_changed,admin_user.activated,admin_user.invited
+PASS S5 no password appears in the audit trail or the security events
+PASS X1 an administrator cannot suspend or re-role their own account, even by calling the API directly (409)
+PASS X2 a fixture administrator was suspended and reactivated through the screen (start state restored); an unknown status is refused (422)
+PASS P1 an administrator without the user-management permission: access denied on screen, 403 from the API for reading and inviting — 403 / 403
+PASS P2 without a token the API answers 401
+PASS R3 admin users page at 390 px: no horizontal page overflow — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+PASS Z test account removed from the local database; the 8 fixture administrators are in their start state — 8 accounts
+
+27/27 passed

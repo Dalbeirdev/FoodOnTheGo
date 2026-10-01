@@ -27,6 +27,12 @@ return [
     | Restaurant / admin passwords: length over composition rules.
     */
 
+    /*
+    | Hours an administrator invitation link stays valid. It is single use; sending a new one cancels the old.
+    */
+
+    'invitation_ttl_hours' => (int) env('AUTH_INVITATION_TTL_HOURS', 72),
+
     'password' => [
         'min_length' => (int) env('AUTH_PASSWORD_MIN_LENGTH', 12),
         'reset_ttl_minutes' => (int) env('AUTH_PASSWORD_RESET_TTL_MINUTES', 30),

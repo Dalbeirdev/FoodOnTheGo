@@ -27,7 +27,7 @@ export type AdminPermission =
 export type AdminRoleId = 'super_admin' | 'operations_admin' | 'restaurant_onboarding' | 'support_admin' | 'finance_admin' | 'moderation_admin' | 'analyst'
 export type AdminRole = { id: AdminRoleId; permissions: AdminPermission[] }
 export type AdminStatus = 'INVITED' | 'ACTIVE' | 'SUSPENDED' | 'DISABLED'
-export type AdminUser = { id: string; name: string; email: string; role: AdminRoleId; status: AdminStatus; lastLoginAt: string | null; createdAt: string; mfaEnrolled: boolean }
+export type AdminUser = { id: string; name: string; email: string; role: AdminRoleId; status: AdminStatus; lastLoginAt: string | null; createdAt: string; mfaEnrolled: boolean; /** Backend only: false when the account holds no role at all. */ hasRole?: boolean; /** Backend only: country code when the role is held for one market; null = platform-wide. */ roleMarket?: string | null }
 export type Environment = 'LOCAL' | 'STAGING' | 'PRODUCTION'
 
 /* ---------------- restaurants ---------------- */
@@ -183,7 +183,7 @@ export interface AdminSupportRepository { list(f: SupportFilter): Promise<Page<S
 export interface AdminNotificationRepository { alerts(): Promise<AdminNotification[]>; markRead(id: string): Promise<void>; markAllRead(): Promise<void>; templates(): Promise<NotificationTemplate[]>; announcements(): Promise<Announcement[]>; saveAnnouncement(a: Omit<Announcement, 'id' | 'createdAt'> & { id?: string }, actor: string): Promise<Announcement> }
 export interface AdminMarketRepository { list(): Promise<Market[]>; save(m: Market, actor: string): Promise<Market>; taxes(): Promise<TaxConfig[]>; fees(): Promise<FeeConfig[]>; saveFee(f: FeeConfig, actor: string): Promise<FeeConfig>; saveTax(t: TaxConfig, actor: string): Promise<TaxConfig> }
 export interface AdminConfigurationRepository { items(): Promise<ConfigItem[]>; setValue(key: string, value: ConfigItem['value'], actor: string, reason: string): Promise<ConfigItem>; flags(): Promise<FeatureFlag[]>; setFlag(key: string, enabled: boolean, actor: string, reason: string): Promise<FeatureFlag> }
-export interface AdminUserRepository { list(): Promise<AdminUser[]>; roles(): AdminRole[]; invite(u: { name: string; email: string; role: AdminRoleId }, actor: string): Promise<AdminUser>; update(id: string, patch: Partial<Pick<AdminUser, 'role' | 'status'>>, actor: string, reason: string): Promise<AdminUser> }
+export interface AdminUserRepository { list(): Promise<AdminUser[]>; roles(): AdminRole[]; invite(u: { name: string; email: string; role: AdminRoleId }, actor: string): Promise<AdminUser>; update(id: string, patch: Partial<Pick<AdminUser, 'role' | 'status'>>, actor: string, reason: string): Promise<AdminUser>; /** Backend only: sends a new single-use invitation link to an INVITED account. */ resendInvitation?(id: string): Promise<void> }
 export interface AdminAuditRepository { list(f: AuditFilter): Promise<Page<AuditEvent>>; get(id: string): Promise<AuditEvent | null>; actions(): string[]; targetTypes(): string[] }
 export interface AdminSecurityRepository { summary(): Promise<SecuritySummary> }
 export interface AdminAnalyticsRepository { platform(q: AnalyticsQuery): Promise<PlatformAnalytics> }

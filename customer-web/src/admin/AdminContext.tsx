@@ -11,6 +11,7 @@ import { marketRepository } from '../market/mock/mockMarket'
 import { ApiAdminAuditRepository } from './api/ApiAdminAuditRepository'
 import { ApiAdminMarketControlRepository } from './api/ApiAdminMarketControlRepository'
 import { ApiAdminSecurityRepository } from './api/ApiAdminSecurityRepository'
+import { ApiAdminUserRepository } from './api/ApiAdminUserRepository'
 import type { Market } from '../market/types'
 import type { AdminNotification, AdminPermission, AdminRepositories, AdminUser, Environment } from './types'
 
@@ -50,8 +51,8 @@ const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } cat
 /** The environment comes from build configuration, never from a hardcoded string; local development shows LOCAL / MOCK DATA. */
 export const detectEnvironment = (): Environment => { const e = (import.meta.env.VITE_ENVIRONMENT as string | undefined)?.toUpperCase(); return e === 'PRODUCTION' || e === 'STAGING' ? e : 'LOCAL' }
 
-/** Module 22: with the backend, the market control center talks to the admin API; everything else is still the mock. */
-const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, marketControl: new ApiAdminMarketControlRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
+/** With the backend: market control, administrator accounts, the audit trail and security events talk to the admin API; the other areas are still the mock. */
+const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {
   const repos = useMemo(() => given ?? defaultRepositories(), [given])

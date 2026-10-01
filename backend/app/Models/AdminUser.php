@@ -17,7 +17,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * FoodOnTheGo internal administrator. There is no public way to create one: accounts come from the
- * `admin:create` command or, later, an administrator's invitation. Holds nothing without role assignments.
+ * `admin:create` command or from an authorised administrator's invitation (AdminUserService). Holds nothing without role assignments.
  */
 #[Fillable(['name'])]
 #[Hidden(['password', 'mfa_secret', 'mfa_recovery_codes'])]

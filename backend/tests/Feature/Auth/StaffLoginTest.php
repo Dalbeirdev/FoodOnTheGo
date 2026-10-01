@@ -156,9 +156,15 @@ class StaffLoginTest extends TestCase
 
     public function test_there_is_no_public_way_to_create_a_restaurant_or_admin_account(): void
     {
-        foreach (['/api/v1/auth/admin/register', '/api/v1/auth/restaurant/register', '/api/v1/auth/register', '/api/v1/admin/users', '/api/v1/auth/admin/signup'] as $path) {
-            $this->postJson($path, ['email' => 'eve@foodonthego.example', 'password' => 'a-long-enough-password', 'name' => 'Eve'])->assertStatus(404);
+        $body = ['email' => 'eve@foodonthego.example', 'password' => 'a-long-enough-password', 'name' => 'Eve', 'role' => 'SUPER_ADMIN'];
+
+        foreach (['/api/v1/auth/admin/register', '/api/v1/auth/restaurant/register', '/api/v1/auth/register', '/api/v1/auth/admin/signup'] as $path) {
+            $this->postJson($path, $body)->assertStatus(404);
         }
+        // Inviting an administrator exists since the admin-users API, but only for a signed-in administrator
+        // with the permission — and an invitation never takes a password.
+        $this->postJson('/api/v1/admin/users', $body)->assertUnauthorized();
+        $this->postJson('/api/v1/auth/admin/invitation/accept', ['token' => str_repeat('a', 64), 'password' => 'a-long-enough-password', 'password_confirmation' => 'a-long-enough-password'])->assertUnprocessable();
 
         $this->assertSame(0, AdminUser::query()->count() + RestaurantUser::query()->count());
     }
