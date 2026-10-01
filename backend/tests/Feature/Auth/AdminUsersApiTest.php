@@ -261,6 +261,11 @@ class AdminUsersApiTest extends TestCase
         $this->actingAsPrincipal($this->super);
         $this->putJson($url, ['role' => 'OPERATIONS_ADMIN', 'market_id' => $india->public_id, 'reason' => 'Again'])->assertOk();
         $this->assertSame(1, AuditEvent::query()->where('action', 'admin_user.role_changed')->count());
+
+        // Back to platform-wide: the audit names the market the role was limited to.
+        $this->putJson($url, ['role' => 'OPERATIONS_ADMIN', 'reason' => 'All markets now'])->assertOk()->assertJson(['roles' => [['code' => 'OPERATIONS_ADMIN', 'market' => null]]]);
+        $event = AuditEvent::query()->where('action', 'admin_user.role_changed')->orderByDesc('id')->first();
+        $this->assertSame([['OPERATIONS_ADMIN (IN)'], ['OPERATIONS_ADMIN']], [$event->changes['role']['from'], $event->changes['role']['to']]);
     }
 
     public function test_nobody_changes_their_own_account_or_removes_the_last_full_administrator(): void

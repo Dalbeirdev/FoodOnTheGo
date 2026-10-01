@@ -504,6 +504,8 @@ that were made are audited — a refused attempt is not an audit event.
   (`ApiAdminSecurityRepository`, `SecurityBackendPage.tsx`). The Admin Users screen (`ApiAdminUserRepository`) lists, invites,
   re-roles and suspends administrators on the backend; `/admin/accept-invitation` is the public page where an
   invited administrator sets a password.
+  The list is searched (name / e-mail), filtered by status and paged by the backend (10 per page); a role can be
+  given for all markets or one market (`market_id`), and an account can be disabled (final).
 - Staff account security (both dashboards, `customer-web/src/auth/staff/`): `/…/forgot-password` and
   `/…/reset-password` (public; the token travels in the URL fragment and is removed from the address bar),
   `/…/account-security` (profile menu: MFA on / off, change password, signed-in devices). `MfaSetup.tsx` draws

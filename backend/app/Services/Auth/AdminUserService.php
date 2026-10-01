@@ -141,7 +141,8 @@ final class AdminUserService
 
         return DB::transaction(function () use ($admin, $role, $market, $reason, $actor): AdminUser {
             $current = $admin->roleAssignments()->with('role')->get();
-            $before = $current->map(fn ($a): string => $a->role->code.($a->scope_type === null ? '' : " ({$a->scope_type})"))->sort()->values()->all();
+            $codes = Market::query()->whereIn('public_id', $current->where('scope_type', 'market')->pluck('scope_id'))->pluck('country_code', 'public_id');
+            $before = $current->map(fn ($a): string => $a->role->code.($a->scope_type === null ? '' : ' ('.($codes[$a->scope_id] ?? $a->scope_type).')'))->sort()->values()->all();
             $target = $market === null ? null : Scope::market($market->public_id);
 
             if ($current->count() === 1 && $current[0]->role_id === $role->getKey() && $current[0]->scope_type === $target?->type && $current[0]->scope_id === $target?->id) {

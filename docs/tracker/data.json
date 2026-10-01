@@ -21770,6 +21770,54 @@
       "issue": "-",
       "carry": "CF-314",
       "notes": "Owner request 2026-10-01. Only in API mode (real backend); the mock repository has no reset."
+    },
+    {
+      "id": "M21-133",
+      "module": "M21",
+      "req": "Admin Users: a role can be given for all markets or for one market — in the invitation form and in the change-role dialog (markets from the backend; the dialog opens with the current role and market). The form explains that a market role does not open the platform-wide screens (accounts, roles, security)",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24); docs/local-review/test-results/web-vitest-m22.txt (469/469); docs/local-review/screenshots/web-m22/admin-users-rest/",
+      "issue": "-",
+      "carry": "CF-314",
+      "notes": "Owner request 2026-10-01. Only India exists as a market today, so the choice is \"All markets\" or \"India\". An administrator who may not read markets can only give platform-wide roles."
+    },
+    {
+      "id": "M21-134",
+      "module": "M21",
+      "req": "Admin Users: \"Disable\" action with a warning that it is permanent (signed out everywhere, can never be reactivated; Suspend is the temporary option), reason required; a disabled row offers no further action",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24); docs/local-review/test-results/web-vitest-m22.txt (469/469); docs/local-review/screenshots/web-m22/admin-users-rest/",
+      "issue": "-",
+      "carry": "CF-314",
+      "notes": "Owner request 2026-10-01. Enforced by the backend: DISABLED is final (409 on reactivation), not your own account, never the last full administrator."
+    },
+    {
+      "id": "M21-135",
+      "module": "M21",
+      "req": "Admin Users: search by name or e-mail, status filter and paging (10 per page) are done by the backend; page, search and filter are kept in the address bar; an explanation is shown when nothing matches",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24); docs/local-review/test-results/web-vitest-m22.txt (469/469); docs/local-review/screenshots/web-m22/admin-users-rest/",
+      "issue": "-",
+      "carry": "CF-314",
+      "notes": "Owner request 2026-10-01. In mock mode (unit tests, share builds) the short list is shown whole, without search or pager."
     }
   ],
   "pages": [
@@ -28026,15 +28074,15 @@
     ],
     [
       "CF-314",
-      "Admin Users screen: assign a role for one market only, disable an account, and search / paging for large lists — the API supports market scope and DISABLED. Restaurant-user management (invite, role, suspend, MFA reset) is not built at all (Module 23)",
+      "Admin Users screen extras: role for one market, disable, MFA reset, search / paging. Restaurant-user management (invite, role, suspend, MFA reset) is a separate item for Module 23",
       "M21",
       "Module 21 follow-up",
       "P2",
       "Claude",
       "Web (admin) + backend",
-      "PARTIAL",
+      "DONE",
       "2026-10-01",
-      "MFA reset for administrators built 2026-10-01 (M21-131, M21-132). Still open: market-scoped role in the UI, disable, search / paging"
+      "All built 2026-10-01 (M21-131..135). Restaurant-user management remains for Module 23"
     ],
     [
       "CF-315",
@@ -29530,6 +29578,20 @@
       "The setup request ran in an unguarded effect",
       "The request is made exactly once per screen",
       "docs/local-review/test-results/m22-web-staff-security-e2e.json (28/28) M1–M3",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-106",
+      "M21",
+      "BACKEND",
+      "Audit of a role change",
+      "Low",
+      "When a role limited to one market was replaced, the audit event recorded the previous role as \"ROLE (market)\" instead of naming the market, while the new role was recorded as \"ROLE (IN)\"",
+      "Both values name the market",
+      "e2e against the real backend (C4)",
+      "The previous value was built from the scope type, not the market",
+      "The previous value uses the market country code",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2520 assertions, 0 failed) AdminUsersApi (role change); docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24) C4",
       "FIXED / VERIFIED"
     ]
   ],
@@ -31608,7 +31670,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague; Admin Users: search, role for one market, Disable)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31752,6 +31814,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2517 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (467/467); docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27)",
+      "2026-10-01"
+    ],
+    [
+      "TE-223",
+      "M21",
+      "WEB + BACKEND",
+      "Admin Users extras against the real local backend: invitation for one market (request, stored role, \"· IN\" on the row), effect of a market role (market readable, accounts and security events 403), paging over 11 accounts, search by e-mail and by name, nothing found, status filter, change role between one market and all markets (same session updated, audited), Disable (warning, reason, session ended, no sign-in, row without actions, cannot be undone, not your own account), 390 px, axe; test accounts removed",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24)",
+      "2026-10-01"
+    ],
+    [
+      "TE-224",
+      "M21",
+      "WEB + BACKEND",
+      "Backend suite 262; web vitest 469 (2 new); Admin Users e2e 27/27 and MFA reset e2e 17/17 re-run",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2520 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (469/469); docs/local-review/test-results/m22-web-admin-users-e2e.json (27/27); docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (17/17)",
       "2026-10-01"
     ]
   ],
@@ -32513,6 +32595,14 @@
       "M21",
       "WEB",
       "docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (17/17); docs/local-review/screenshots/web-m22/admin-mfa-reset/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Admin Users extras (market role, disable, search / paging): e2e result and screenshots",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24); docs/local-review/screenshots/web-m22/admin-users-rest/",
       "Evidence",
       "YES"
     ]

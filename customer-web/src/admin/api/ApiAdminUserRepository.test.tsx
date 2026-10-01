@@ -25,7 +25,7 @@ describe('ApiAdminUserRepository', () => {
   it('lists accounts and roles with the admin token and maps them', async () => {
     const repo = new ApiAdminUserRepository(); const users = await repo.list()
     expect(calls.map((c) => c.path).sort()).toEqual(['/admin/roles', '/admin/users']); expect(calls.every((c) => c.auth === 'Bearer admin-token')).toBe(true)
-    expect(users[0]).toEqual({ id: 'u-1', name: 'Nina Patel', email: 'nina.patel@foodonthego.example', role: 'operations_admin', status: 'ACTIVE', lastLoginAt: '2026-09-30T10:00:00+00:00', createdAt: '2026-09-01T00:00:00+00:00', mfaEnrolled: true, hasRole: true, roleMarket: 'IN' })
+    expect(users[0]).toEqual({ id: 'u-1', name: 'Nina Patel', email: 'nina.patel@foodonthego.example', role: 'operations_admin', status: 'ACTIVE', lastLoginAt: '2026-09-30T10:00:00+00:00', createdAt: '2026-09-01T00:00:00+00:00', mfaEnrolled: true, hasRole: true, roleMarket: 'IN', roleMarketId: 'm-in' })
     expect(users[1]).toMatchObject({ hasRole: false, roleMarket: null, status: 'INVITED', mfaEnrolled: false, lastLoginAt: null })
     expect(repo.roles()).toEqual([{ id: 'super_admin', permissions: ['admin_users.view', 'admin_users.manage', 'markets.view'] }])
   })
@@ -57,6 +57,35 @@ describe('ApiAdminUserRepository', () => {
     expect(user).toMatchObject({ id: 'u-1', mfaEnrolled: false })
     respond = () => ({ status: 409, body: { error: { code: 'mfa_not_enabled', message: 'Multi-factor authentication is not enabled for this account.' } } })
     await expect(new ApiAdminUserRepository().resetMfa('u-1', 'Again')).rejects.toMatchObject({ code: 'mfa_not_enabled', kind: 'conflict' })
+  })
+
+  it('asks the backend for one searched, filtered page and reads the roles only once', async () => {
+    respond = (c) => (c.path === '/admin/roles' ? { body: { data: [] } } : { body: { data: [USER], meta: { total: 23, current_page: 2, per_page: 10 } } })
+    const urls: string[] = []; const inner = fetch as unknown as (u: string, i?: RequestInit) => Promise<Response>
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => { urls.push(decodeURIComponent(new URL(url).search)); return inner(url, init) }))
+    const repo = new ApiAdminUserRepository()
+    const page = await repo.page({ q: ' nina ', status: 'ACTIVE', page: 2, pageSize: 10 })
+    expect(page).toMatchObject({ total: 23, page: 2, pageSize: 10 }); expect(page.items[0]).toMatchObject({ name: 'Nina Patel', roleMarket: 'IN', roleMarketId: 'm-in' })
+    const search = urls.find((u) => u.includes('page[number]'))!
+    expect(search).toContain('q=nina'); expect(search).toContain('filter[status]=ACTIVE'); expect(search).toContain('page[number]=2'); expect(search).toContain('page[size]=10')
+    await repo.page({ q: '', status: 'all', page: 1, pageSize: 10 })
+    expect(urls[urls.length - 1]).not.toMatch(/q=|filter/); expect(calls.filter((c) => c.path === '/admin/roles').length).toBe(1)
+  })
+
+  it('gives a role for one market when a market is chosen, platform-wide otherwise; lists the markets or nothing', async () => {
+    respond = (c) => (c.path === '/admin/markets' ? { body: { data: [{ id: 'm-in', country_code: 'IN', name: 'India' }] } } : { body: USER })
+    const repo = new ApiAdminUserRepository()
+    expect(await repo.markets()).toEqual([{ id: 'm-in', code: 'IN', name: 'India' }])
+    await repo.invite({ name: 'Priya', email: 'priya@foodonthego.example', role: 'operations_admin', marketId: 'm-in' })
+    await repo.update('u-1', { role: 'operations_admin', roleMarketId: 'm-in' }, 'x', 'India only')
+    await repo.update('u-1', { role: 'operations_admin', roleMarketId: null }, 'x', 'All markets')
+    await repo.update('u-1', { status: 'DISABLED' }, 'x', 'Left the company')
+    expect(calls.slice(1).map((c) => c.body)).toEqual([
+      { name: 'Priya', email: 'priya@foodonthego.example', role: 'OPERATIONS_ADMIN', market_id: 'm-in' },
+      { role: 'OPERATIONS_ADMIN', market_id: 'm-in', reason: 'India only' }, { role: 'OPERATIONS_ADMIN', reason: 'All markets' }, { status: 'DISABLED', reason: 'Left the company' },
+    ])
+    respond = () => ({ status: 403, body: { error: { code: 'forbidden', message: 'No.' } } })
+    expect(await new ApiAdminUserRepository().markets()).toEqual([])
   })
 
   it('passes a backend refusal on as an error with its message', async () => {

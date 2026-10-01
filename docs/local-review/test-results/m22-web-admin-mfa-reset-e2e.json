@@ -1,7 +1,7 @@
 {
   "module": "M21 follow-up (CF-314: administrator resets a colleague's MFA)",
   "mode": "real local backend",
-  "date": "2026-10-01T11:16:12.209Z",
+  "date": "2026-10-01T11:58:21.941Z",
   "total": 17,
   "passed": 17,
   "results": [
@@ -63,7 +63,7 @@
     {
       "name": "E4 security event MFA_DISABLED for Kenji, marked as an administrator reset",
       "pass": true,
-      "detail": "{\"id\":\"392c0725b03a1f423926\",\"event\":\"MFA_DISABLED\",\"severity\":\"high\",\"principal_type\":\"admin_user\",\"principal_name\":\"Kenji Watanabe\",\"known_account\":true,\"ip\":\"127.0.0.1\",\"user_agent\":\"Mozilla/5.0 (W"
+      "detail": "{\"id\":\"f36a28db1926b5e3beaa\",\"event\":\"MFA_DISABLED\",\"severity\":\"high\",\"principal_type\":\"admin_user\",\"principal_name\":\"Kenji Watanabe\",\"known_account\":true,\"ip\":\"127.0.0.1\",\"user_agent\":\"Mozilla/5.0 (W"
     },
     {
       "name": "E5 the Audit screen lists the reset",

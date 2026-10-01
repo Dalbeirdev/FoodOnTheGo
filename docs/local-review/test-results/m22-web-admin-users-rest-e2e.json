@@ -1,0 +1,129 @@
+{
+  "module": "M21 follow-up (CF-314: market role, disable, search / paging)",
+  "mode": "real local backend",
+  "date": "2026-10-01T11:56:37.648Z",
+  "total": 24,
+  "passed": 24,
+  "results": [
+    {
+      "name": "M1 the invitation form offers \"All markets\" or one market from the backend, and explains what a market role does not open",
+      "pass": true,
+      "detail": "All markets (platform-wide) | India (IN) | United Arab Emirates (AE) | United Kingdom (GB) | United States (US)"
+    },
+    {
+      "name": "A11Y axe (invite form with market) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M2 invited for India only (201): the request carries the market, the backend stores the role with that market, the row shows \"· IN\"",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "name": "M3 effect of the market role: she reads the India market (200) but not the platform-wide screens — administrator accounts 403, security events 403",
+      "pass": true,
+      "detail": "200/200/403/403"
+    },
+    {
+      "name": "L1 11 accounts: the first page shows 10, the pager says page 1 of 2, and the backend was asked for a page of 10",
+      "pass": true,
+      "detail": "11 accounts"
+    },
+    {
+      "name": "L2 \"Next\" loads page 2 from the backend (1 row) and the page is in the address bar",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 search by e-mail is done by the backend: 2 matching rows, back on page 1",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F2 search by name, any letter case: 1 row",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 nothing found: an explanation instead of an empty table",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F4 status filter \"Suspended\" is applied by the backend",
+      "pass": true,
+      "detail": "1 suspended"
+    },
+    {
+      "name": "C1 the change-role dialog opens with the current role and market selected",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C2 changed to all markets (200): the role is platform-wide, \"· IN\" is gone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 changed to Support Admin for India (200): one role, with the market; her open session has it at once",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C4 both role changes are audited with the market in the before / after values",
+      "pass": true,
+      "detail": "[{\"role\":{\"to\":[\"SUPPORT_ADMIN (IN)\"],\"from\":[\"OPERATIONS_ADMIN\"]}},{\"role\":{\"to\":[\"OPERATIONS_ADMIN\"],\"from\":[\"OPERATIONS_ADMIN (IN)\"]}}]"
+    },
+    {
+      "name": "D1 the Disable dialog says it is permanent and points to Suspend for a temporary stop",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (disable dialog) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 disabling needs a reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D3 disabled (200): her session stops at once (401) and she cannot sign in again",
+      "pass": true,
+      "detail": "200/401/403"
+    },
+    {
+      "name": "D4 the row shows Disabled and offers no action any more",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D5 the backend refuses to reactivate a disabled account (409) and to disable your own account (409)",
+      "pass": true,
+      "detail": "409/409"
+    },
+    {
+      "name": "D6 the status filter \"Disabled\" finds the account",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "V1 Admin Users with search, filter and pager at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z test accounts removed from the local database; the 8 fixture administrators are in their start state",
+      "pass": true,
+      "detail": "8 accounts"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+PASS M1 the invitation form offers "All markets" or one market from the backend, and explains what a market role does not open — All markets (platform-wide) | India (IN) | United Arab Emirates (AE) | United Kingdom (GB) | United States (US)
+PASS A11Y axe (invite form with market) no serious / critical violations
+PASS M2 invited for India only (201): the request carries the market, the backend stores the role with that market, the row shows "· IN" — 201
+PASS M3 effect of the market role: she reads the India market (200) but not the platform-wide screens — administrator accounts 403, security events 403 — 200/200/403/403
+PASS L1 11 accounts: the first page shows 10, the pager says page 1 of 2, and the backend was asked for a page of 10 — 11 accounts
+PASS L2 "Next" loads page 2 from the backend (1 row) and the page is in the address bar
+PASS F1 search by e-mail is done by the backend: 2 matching rows, back on page 1
+PASS F2 search by name, any letter case: 1 row
+PASS F3 nothing found: an explanation instead of an empty table
+PASS F4 status filter "Suspended" is applied by the backend — 1 suspended
+PASS C1 the change-role dialog opens with the current role and market selected
+PASS C2 changed to all markets (200): the role is platform-wide, "· IN" is gone
+PASS C3 changed to Support Admin for India (200): one role, with the market; her open session has it at once
+PASS C4 both role changes are audited with the market in the before / after values — [{"role":{"to":["SUPPORT_ADMIN (IN)"],"from":["OPERATIONS_ADMIN"]}},{"role":{"to":["OPERATIONS_ADMIN"],"from":["OPERATIONS_ADMIN (IN)"]}}]
+PASS D1 the Disable dialog says it is permanent and points to Suspend for a temporary stop
+PASS A11Y axe (disable dialog) no serious / critical violations
+PASS D2 disabling needs a reason
+PASS D3 disabled (200): her session stops at once (401) and she cannot sign in again — 200/401/403
+PASS D4 the row shows Disabled and offers no action any more
+PASS D5 the backend refuses to reactivate a disabled account (409) and to disable your own account (409) — 409/409
+PASS D6 the status filter "Disabled" finds the account
+PASS V1 Admin Users with search, filter and pager at 390 px: no horizontal page overflow — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+PASS Z test accounts removed from the local database; the 8 fixture administrators are in their start state — 8 accounts
+
+24/24 passed
