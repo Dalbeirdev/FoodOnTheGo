@@ -1,14 +1,14 @@
 {
   "module": "M21 follow-up (Admin Users compact rows on a phone)",
   "mode": "real local backend",
-  "date": "2026-10-01T12:10:01.119Z",
-  "total": 11,
-  "passed": 11,
+  "date": "2026-10-01T12:16:14.267Z",
+  "total": 12,
+  "passed": 12,
   "results": [
     {
-      "name": "P1 at 390 px every account row is compact (at most 90 px high; it was about 135–200 px)",
+      "name": "P1 at 390 px every account row is compact (at most 110 px high including the MFA / last sign-in line; it was about 135–200 px)",
       "pass": true,
-      "detail": "8 rows, heights 73,87,87,87,87,87,87,87"
+      "detail": "8 rows, heights 105,103,103,103,103,103,103,103"
     },
     {
       "name": "P2 no horizontal scrolling: neither the page nor the list",
@@ -19,6 +19,11 @@
       "name": "P3 a row shows name, e-mail, status and role",
       "pass": true,
       "detail": ""
+    },
+    {
+      "name": "P3b on a phone each row also shows the MFA state and the last sign-in (or that the person never signed in)",
+      "pass": true,
+      "detail": "KW | Kenji Watanabe | kenji.watanabe@foodonthego.example | Finance Admin | MFA: Not enrolled | Last login: 1 Oct, 05:28 pm | Active | Actions"
     },
     {
       "name": "P4 the action buttons are folded away; your own row and nothing else lacks the \"Actions\" button",
@@ -51,7 +56,7 @@
       "detail": ""
     },
     {
-      "name": "P9 on a desktop nothing changed: buttons visible in the row, no \"Actions\" button, table header shown",
+      "name": "P9 on a desktop nothing changed: buttons visible in the row, no \"Actions\" button, no extra line, table header shown",
       "pass": true,
       "detail": ""
     },

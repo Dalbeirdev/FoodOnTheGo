@@ -7,9 +7,9 @@ Not implemented: HTMLCanvasElement's getContext() method: without installing the
 
  Test Files  39 passed (39)
       Tests  469 passed (469)
-   Start at  17:40:02
-   Duration  26.39s (tests 64%, environment 21%, transform 8%, setup 4%, import 4%)
+   Start at  17:45:26
+   Duration  27.14s (tests 64%, environment 20%, transform 9%, setup 4%, import 4%)
 
-    Isolate  39 workers spawned · ~1.61s startup each (spawn + environment, per file)
-             at least ~2.58s faster with isolate: false — reuses workers across files instead of one per file
+    Isolate  39 workers spawned · ~1.56s startup each (spawn + environment, per file)
+             at least ~2.50s faster with isolate: false — reuses workers across files instead of one per file
 
