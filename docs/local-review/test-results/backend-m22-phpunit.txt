@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:45.405, Memory: 82.00 MB
+Time: 00:31.548, Memory: 84.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -174,6 +174,8 @@ Mfa Change Notification (Tests\Feature\Auth\MfaChangeNotification)
  ✔ Restaurant users are told as well
  ✔ A reset by an administrator tells the owner and only the owner
  ✔ The message goes to the account address and contains no link secret or reason
+ ✔ The notice is written in every configured language that has a translation
+ ✔ The hindi translation covers every notice text with the same placeholders
  ✔ A mail failure is reported and does not undo the reset
 
 Money (Tests\Unit\Support\Money)
@@ -342,5 +344,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (267 tests, 2563 assertions)
-{"tool":"phpunit","result":"passed","tests":267,"passed":267,"assertions":2563,"duration_ms":45406}
+OK (269 tests, 2614 assertions)
+{"tool":"phpunit","result":"passed","tests":269,"passed":269,"assertions":2614,"duration_ms":31549}

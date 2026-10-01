@@ -21850,6 +21850,22 @@
       "issue": "-",
       "carry": "CF-316",
       "notes": "Owner request 2026-10-01. LOCAL ONLY: the mailer is \"log\", so the message is written to the server log and nobody receives it. Real delivery needs a mail provider (CF-315). English text only."
+    },
+    {
+      "id": "M21-138",
+      "module": "M21",
+      "req": "The MFA change e-mail in Hindi: all three notices (turned on, turned off, reset by an administrator) translated; with AUTH_NOTICE_LOCALES=en,hi one message carries English and then Hindi (date in the language of each part, time in UTC). Languages are configuration, not code; a language without a translation is skipped and the fallback language is always present",
+      "platform": "BACKEND",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; HINDI WORDING NOT REVIEWED BY A NATIVE SPEAKER (CF-317)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (269 tests, 2614 assertions, 0 failed) MfaChangeNotification; message read back from the local server log",
+      "issue": "-",
+      "carry": "CF-317",
+      "notes": "Owner request 2026-10-01. The subject line is English (first language). Both languages are sent to everyone because staff accounts have no language preference. Production must set AUTH_NOTICE_LOCALES (the code default is en only). LOCAL ONLY: written to the server log, not delivered (CF-315)."
     }
   ],
   "pages": [
@@ -28139,6 +28155,18 @@
       "DONE (local)",
       "2026-10-01",
       "Built 2026-10-01 (M21-137). The message is only written to the local server log until a mail provider exists (CF-315)"
+    ],
+    [
+      "CF-317",
+      "Hindi security notices: (1) owner or a native speaker reviews the Hindi wording in backend/lang/hi/auth.php; (2) a language preference per restaurant / admin user so each person gets one language (and a Hindi subject line) instead of a two-language message; (3) translate the invitation and password-reset e-mails too",
+      "M21",
+      "Module 21 follow-up",
+      "P2",
+      "Owner + Claude",
+      "Backend / Localisation",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
     ]
   ],
   "bugs": [
@@ -31900,6 +31928,16 @@
       "feature + e2e",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (267 tests, 2563 assertions, 0 failed); docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (19/19)",
+      "2026-10-01"
+    ],
+    [
+      "TE-227",
+      "M21",
+      "BACKEND",
+      "Hindi MFA notice: English then Hindi in the text and HTML parts, Hindi part marked lang=\"hi\", unknown language skipped, fallback when nothing is configured, no link, no untranslated key; Hindi file has the same 10 texts and placeholders as English (2 new tests, suite 269). Real local backend: the two-language message read back from the server log (MFA reset e2e 19/19)",
+      "feature + e2e",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (269 tests, 2614 assertions, 0 failed); docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (19/19)",
       "2026-10-01"
     ]
   ],

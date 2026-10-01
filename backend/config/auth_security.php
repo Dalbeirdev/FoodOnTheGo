@@ -33,6 +33,11 @@ return [
 
     'invitation_ttl_hours' => (int) env('AUTH_INVITATION_TTL_HOURS', 72),
 
+    // Languages of the security notices sent to restaurant and admin users (MFA changed). Staff accounts have no
+    // language preference yet, so a notice carries every language listed here, in this order; the subject uses
+    // the first. A language without a translation is skipped.
+    'notice_locales' => array_values(array_filter(array_map('trim', explode(',', (string) env('AUTH_NOTICE_LOCALES', 'en'))))),
+
     'password' => [
         'min_length' => (int) env('AUTH_PASSWORD_MIN_LENGTH', 12),
         'reset_ttl_minutes' => (int) env('AUTH_PASSWORD_RESET_TTL_MINUTES', 30),

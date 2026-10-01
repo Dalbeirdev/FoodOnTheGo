@@ -121,6 +121,49 @@ class MfaChangeNotificationTest extends TestCase
         }
     }
 
+    public function test_the_notice_is_written_in_every_configured_language_that_has_a_translation(): void
+    {
+        config(['auth_security.notice_locales' => ['en', 'hi', 'xx']]);   // "xx" has no translation and is skipped
+        $super = $this->superAdmin();
+        $target = $this->withMfa(AdminUser::factory()->create());
+        $this->actingAsPrincipal($super);
+        $this->travelTo('2026-10-01 18:45:00');
+
+        $this->postJson("/api/v1/admin/users/{$target->public_id}/mfa/reset", ['reason' => 'Phone lost'])->assertOk();
+
+        $mail = app('mailer')->getSymfonyTransport()->messages()[0]->getOriginalMessage();
+        $this->assertSame('An administrator reset multi-factor authentication on your FoodOnTheGo account', $mail->getSubject());
+        foreach ([$mail->getTextBody(), $mail->getHtmlBody()] as $body) {
+            $this->assertStringContainsString('1 Oct 2026, 18:45 UTC', $body);
+            $this->assertStringContainsString('एक एडमिनिस्ट्रेटर ने आपके FoodOnTheGo खाते का मल्टी-फ़ैक्टर ऑथेंटिकेशन रीसेट किया', $body);
+            $this->assertStringContainsString('2026, 18:45 UTC को इस खाते का', $body);
+            $this->assertStringContainsString('तुरंत अपना पासवर्ड बदलें', $body);
+            $this->assertLessThan(strpos($body, 'तुरंत अपना पासवर्ड बदलें'), strpos($body, 'change your password now'), 'English first, then Hindi');
+            $this->assertStringNotContainsString('http', $body);
+            $this->assertStringNotContainsString('auth.mfa_', $body);
+        }
+        $this->assertSame(1, substr_count($mail->getHtmlBody(), '<div lang="hi"'));
+        $this->assertSame(0, substr_count($mail->getHtmlBody(), 'lang="xx"'));
+
+        // No usable language configured: the fallback language is used, never an empty message.
+        config(['auth_security.notice_locales' => ['xx']]);
+        $this->assertStringContainsString('turned on for this account', (new MfaChangedNotification(MfaChangedNotification::ENABLED, now()))->toMail($target)->viewData['sections'][0]['lines'][0]);
+    }
+
+    public function test_the_hindi_translation_covers_every_notice_text_with_the_same_placeholders(): void
+    {
+        $en = array_filter(require lang_path('en/auth.php'), fn (string $k): bool => str_starts_with($k, 'mfa_'), ARRAY_FILTER_USE_KEY);
+        $hi = require lang_path('hi/auth.php');
+
+        $this->assertCount(10, $en);
+        $this->assertSame(array_keys($en), array_keys($hi));
+        foreach ($en as $key => $text) {
+            $this->assertSame(substr_count($text, ':when'), substr_count($hi[$key], ':when'), $key);
+            $this->assertMatchesRegularExpression('/\\p{Devanagari}/u', $hi[$key], $key);
+            $this->assertStringNotContainsString('http', $hi[$key]);
+        }
+    }
+
     public function test_a_mail_failure_is_reported_and_does_not_undo_the_reset(): void
     {
         Exceptions::fake();

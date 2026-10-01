@@ -271,6 +271,9 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   change. The message has its own plain layout (`resources/views/mail/security-notice*`) with no link, button,
   code, reason or administrator name. Locally `MAIL_MAILER=log`: it is written to `storage/logs/laravel.log`,
   nothing is delivered until a mail provider is configured.
+  The notice is written in every language of `AUTH_NOTICE_LOCALES` (default `en`; `en,hi` for India) that has a
+  translation in `lang/<code>/auth.php` — one message, the languages one after the other, subject in the first —
+  because staff accounts have no language preference yet.
 - Every change writes an audit event (`admin_user.invited`, `.activated`, `.status_changed`, `.role_changed`) in
   addition to the security events. The response never contains the password, MFA secret or recovery codes.
 
