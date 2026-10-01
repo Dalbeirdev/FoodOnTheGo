@@ -27,6 +27,6 @@ class CredentialResetNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return $this->staffNotice('password_reset', ['line'], ['ignore'], fn (): array => ['minutes' => $this->minutes], $this->url);
+        return $this->staffNotice($notifiable, 'password_reset', ['line'], ['ignore'], fn (): array => ['minutes' => $this->minutes], $this->url);
     }
 }

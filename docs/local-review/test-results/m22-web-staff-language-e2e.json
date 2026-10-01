@@ -1,0 +1,79 @@
+{
+  "module": "M21 follow-up (CF-317: e-mail language per staff account)",
+  "mode": "real local backend",
+  "date": "2026-10-01T13:27:27.101Z",
+  "total": 14,
+  "passed": 14,
+  "results": [
+    {
+      "name": "L1 Account security has an \"E-mail language\" card: no preference by default, with the languages the backend offers (English, Hindi)",
+      "pass": true,
+      "detail": "No preference — every language in one message (English + हिन्दी (Hindi)) | English | हिन्दी (Hindi)"
+    },
+    {
+      "name": "A11Y axe (account security with e-mail language) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L2 without a choice the password-reset e-mail carries both languages (locally written to the server log, not sent)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L3 choosing Hindi is stored by the backend (200) and shown as saved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L4 the next e-mail is in Hindi only, with its single-use link",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L5 the choice survives a reload",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L6 choosing English: the e-mail is in English only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L7 a language that is not offered is refused (422); without a session 401",
+      "pass": true,
+      "detail": "422/401"
+    },
+    {
+      "name": "L8 back to \"No preference\" (stored as none)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I1 the invitation form has an \"E-mail language\" choice (every language, English, Hindi)",
+      "pass": true,
+      "detail": "Every language in one message (English + हिन्दी (Hindi)) | English | हिन्दी (Hindi)"
+    },
+    {
+      "name": "I2 invited in Hindi (201): the invitation is in Hindi only and Hindi becomes that person's e-mail language",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "name": "R1 the Restaurant Dashboard has the same card; at 390 px it does not overflow the page",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z test account removed; the 8 fixture administrators have no language preference",
+      "pass": true,
+      "detail": "8 accounts"
+    }
+  ]
+}

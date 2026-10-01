@@ -12,13 +12,15 @@ use App\Models\RestaurantUser;
 use App\Services\Auth\MfaService;
 use App\Services\Auth\PasswordResetService;
 use App\Services\Auth\TokenIssuer;
+use App\Support\NoticeLocales;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use SensitiveParameter;
 
 /**
- * Credential management of the signed-in restaurant or admin user: password change and MFA.
+ * Credential management of the signed-in restaurant or admin user: password change, MFA and e-mail language.
  * Sensitive changes re-check the current password (re-authentication).
  */
 class StaffSecurityController extends Controller
@@ -31,6 +33,18 @@ class StaffSecurityController extends Controller
         $passwords->change($user, (string) $request->validated('password'), $user->currentAccessToken()->getKey());
 
         return response()->json(['message' => 'Password changed. Other devices have been signed out.']);
+    }
+
+    /**
+     * The language of the e-mails this person receives; null = no preference (every available language).
+     */
+    public function updateLanguage(Request $request): PrincipalResource
+    {
+        $input = $request->validate(['locale' => ['present', 'nullable', 'string', Rule::in(NoticeLocales::available())]]);
+        $user = $this->staff($request);
+        $user->forceFill(['preferred_locale' => $input['locale']])->save();
+
+        return new PrincipalResource($user);
     }
 
     public function setupMfa(Request $request, MfaService $mfa): JsonResponse

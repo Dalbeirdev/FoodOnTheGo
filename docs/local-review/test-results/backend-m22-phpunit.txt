@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:33.550, Memory: 84.00 MB
+Time: 00:32.412, Memory: 82.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -324,6 +324,13 @@ Sms Provider (Tests\Feature\Auth\SmsProvider)
  ✔ Sms test command sends one message and never prints the full code
  ✔ No driver writes the code or a credential to the log
 
+Staff Language (Tests\Feature\Auth\StaffLanguage)
+ ✔ The session shows the choice and the available languages
+ ✔ A staff member chooses changes and clears their language
+ ✔ Restaurant users have it too and nobody else reaches it
+ ✔ E mails follow the choice and carry every language without one
+ ✔ An invitation can be sent in one language which becomes the persons choice
+
 Staff Login (Tests\Feature\Auth\StaffLogin)
  ✔ Valid credentials return a token and a safe identity with data set "restaurant"
  ✔ Valid credentials return a token and a safe identity with data set "admin"
@@ -345,5 +352,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (270 tests, 2686 assertions)
-{"tool":"phpunit","result":"passed","tests":270,"passed":270,"assertions":2686,"duration_ms":33551}
+OK (275 tests, 2733 assertions)
+{"tool":"phpunit","result":"passed","tests":275,"passed":275,"assertions":2733,"duration_ms":32412}

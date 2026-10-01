@@ -1,5 +1,5 @@
 /** Staff MFA enrolment, password reset and account-security screens. The network is stubbed with the backend's answers. */
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -125,6 +125,25 @@ describe('Account security page', () => {
     await user.clear(screen.getByTestId('mfa-off-password')); await user.type(screen.getByTestId('mfa-off-password'), 'the-current-passphrase'); await user.click(screen.getByTestId('mfa-off-submit'))
     await waitFor(() => expect(screen.getByTestId('mfa-state')).toHaveTextContent('Off'))
     expect(calls.filter((c) => c.method === 'DELETE').at(-1)).toMatchObject({ path: '/auth/mfa/totp', body: { password: 'the-current-passphrase', code: '123456' }, auth: 'Bearer session-token' })
+  })
+
+  it('offers the e-mail language only when there is a choice, saves it on the backend and shows what the backend stored', async () => {
+    const user = userEvent.setup(); await mount(false)
+    expect(screen.queryByTestId('sec-language')).toBeNull() // the backend offers a single language: nothing to choose
+    cleanup()
+    let me: typeof PRINCIPAL & { preferred_locale: string | null; notice_locales: string[] } = { ...PRINCIPAL, preferred_locale: null, notice_locales: ['en', 'hi'] }
+    routes['GET /auth/me'] = () => ({ body: me })
+    routes['PUT /auth/language'] = (c) => { if (c.body?.locale === 'en') return { status: 422, body: { error: { code: 'validation_failed', message: 'The submitted data is invalid.' } } }; me = { ...me, preferred_locale: (c.body?.locale ?? null) as string | null }; return { body: me } }
+    render(<MemoryRouter><StaffAuthGate context="admin"><AccountSecurityPage context="admin" /></StaffAuthGate></MemoryRouter>)
+    const select = await screen.findByTestId('language-select') as HTMLSelectElement
+    expect(select).toHaveValue(''); expect(Array.from(select.options).map((o) => o.textContent)).toEqual(['No preference — every language in one message (English + हिन्दी (Hindi))', 'English', 'हिन्दी (Hindi)'])
+    await user.selectOptions(select, 'hi')
+    expect(await screen.findByTestId('language-done')).toBeInTheDocument(); expect(screen.getByTestId('language-select')).toHaveValue('hi')
+    expect(calls.filter((c) => c.method === 'PUT').at(-1)).toMatchObject({ path: '/auth/language', body: { locale: 'hi' }, auth: 'Bearer session-token' })
+    await user.selectOptions(screen.getByTestId('language-select'), 'en') // refused: the stored choice stays on screen
+    expect(await screen.findByTestId('language-error')).toBeInTheDocument(); expect(screen.getByTestId('language-select')).toHaveValue('hi')
+    await user.selectOptions(screen.getByTestId('language-select'), '')
+    await waitFor(() => expect(screen.getByTestId('language-select')).toHaveValue('')); expect(calls.filter((c) => c.method === 'PUT').at(-1)?.body).toEqual({ locale: null })
   })
 
   it('changes the password after local checks and shows a wrong current password from the backend', async () => {

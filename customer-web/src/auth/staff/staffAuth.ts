@@ -11,9 +11,13 @@ import type { Permission as RestaurantPermission, RoleId as RestaurantRoleId } f
 
 export type StaffContext = 'restaurant' | 'admin'
 export type StaffRole = { code: string; name: string; scope: { type: 'organization' | 'location' | 'market'; id: string } | null }
-export type StaffPrincipal = { id: string; name: string; email: string; status: string; mfaEnabled: boolean; lastLoginAt: string | null; roles: StaffRole[]; permissions: string[] }
+/** preferredLocale: the language of the e-mails this person receives (null = every available language); noticeLocales: the languages on offer. */
+export type StaffPrincipal = { id: string; name: string; email: string; status: string; mfaEnabled: boolean; lastLoginAt: string | null; roles: StaffRole[]; permissions: string[]; preferredLocale: string | null; noticeLocales: string[] }
+/** How a language is named in the language pickers: in its own script, so the person it is meant for can find it. */
+export const LOCALE_NAMES: Record<string, string> = { en: 'English', hi: 'हिन्दी (Hindi)' }
+export const localeName = (code: string) => LOCALE_NAMES[code] ?? code
 
-type PrincipalDto = { principal_type: string; id: string; name: string; email: string; status: string; mfa_enabled: boolean; last_login_at: string | null; roles: StaffRole[]; permissions: string[] }
+type PrincipalDto = { principal_type: string; id: string; name: string; email: string; status: string; mfa_enabled: boolean; last_login_at: string | null; roles: StaffRole[]; permissions: string[]; preferred_locale?: string | null; notice_locales?: string[] }
 type LoginDto = { mfa_required: boolean; mfa_challenge?: string; mfa_enrollment_required?: boolean; token?: string; principal?: PrincipalDto }
 
 /** enrolToken: a token that can do nothing but enrol in MFA. It is kept in memory only — it is not a session. */
@@ -22,7 +26,7 @@ export type StaffDeviceSession = { id: string; device: string | null; current: b
 export type MfaSetup = { secret: string; otpauthUri: string }
 type SessionDto = { id: string; device: string | null; current: boolean; created_at: string | null; last_used_at: string | null; expires_at: string | null }
 
-const toPrincipal = (p: PrincipalDto): StaffPrincipal => ({ id: p.id, name: p.name, email: p.email, status: p.status, mfaEnabled: p.mfa_enabled, lastLoginAt: p.last_login_at, roles: p.roles, permissions: p.permissions })
+const toPrincipal = (p: PrincipalDto): StaffPrincipal => ({ id: p.id, name: p.name, email: p.email, status: p.status, mfaEnabled: p.mfa_enabled, lastLoginAt: p.last_login_at, roles: p.roles, permissions: p.permissions, preferredLocale: p.preferred_locale ?? null, noticeLocales: p.notice_locales ?? [] })
 const expected = { restaurant: 'RESTAURANT_USER', admin: 'ADMIN_USER' } as const
 
 /** Customer-safe text for a failed staff sign-in; never reveals whether the e-mail exists. */
@@ -89,6 +93,8 @@ export function staffAuth(context: StaffContext) {
       if (d.token) tokens.set(context, d.token)
       return { recoveryCodes: d.recovery_codes, principal: toPrincipal(d.principal) }
     },
+    /** The language of the e-mails to this person; null = no preference. */
+    async setLanguage(locale: string | null): Promise<StaffPrincipal> { return toPrincipal(await api<PrincipalDto>('/auth/language', { method: 'PUT', context, body: { locale } })) },
     async mfaDisable(password: string, code: string): Promise<void> { await api('/auth/mfa/totp', { method: 'DELETE', context, body: { password, code: code.trim() } }) },
     async changePassword(current: string, password: string): Promise<void> { await api('/auth/password', { method: 'POST', context, body: { current_password: current, password, password_confirmation: password } }) },
     async sessions(): Promise<StaffDeviceSession[]> {

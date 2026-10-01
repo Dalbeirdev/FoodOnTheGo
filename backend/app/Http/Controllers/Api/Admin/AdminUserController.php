@@ -12,6 +12,7 @@ use App\Models\AdminUser;
 use App\Models\Market;
 use App\Models\Role;
 use App\Services\Auth\AdminUserService;
+use App\Support\NoticeLocales;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -60,9 +61,10 @@ class AdminUserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255'],
             'role' => ['required', 'string', 'max:60'],
             'market_id' => ['sometimes', 'nullable', 'uuid'],
+            'locale' => ['sometimes', 'nullable', 'string', Rule::in(NoticeLocales::available())],
         ]);
 
-        $admin = $this->admins->invite($input['name'], $input['email'], $this->role($input['role']), $this->market($input['market_id'] ?? null), $request->user());
+        $admin = $this->admins->invite($input['name'], $input['email'], $this->role($input['role']), $this->market($input['market_id'] ?? null), $request->user(), $input['locale'] ?? null);
 
         return (new AdminUserResource($admin->load('roleAssignments.role')))->response()->setStatusCode(201);
     }

@@ -846,6 +846,50 @@
         }
       }
     },
+    "/auth/language": {
+      "put": {
+        "summary": "Set the language of the e-mails the signed-in restaurant or admin user receives (null = every available language)",
+        "security": [
+          {
+            "restaurant": []
+          },
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffLanguageUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "StaffPrincipal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffPrincipal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
     "/auth/mfa/totp/setup": {
       "post": {
         "summary": "Start MFA enrolment: returns the TOTP secret once",
@@ -3838,6 +3882,8 @@
           "email",
           "mfa_enabled",
           "last_login_at",
+          "preferred_locale",
+          "notice_locales",
           "roles",
           "permissions"
         ],
@@ -3876,6 +3922,20 @@
               "string",
               "null"
             ]
+          },
+          "preferred_locale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Language of the e-mails to this person; null = no preference (every available language)"
+          },
+          "notice_locales": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Languages the e-mails can be written in"
           },
           "roles": {
             "type": "array",
@@ -6290,6 +6350,7 @@
           "email",
           "status",
           "mfa_enabled",
+          "preferred_locale",
           "is_self",
           "roles",
           "last_login_at",
@@ -6312,6 +6373,13 @@
           },
           "mfa_enabled": {
             "type": "boolean"
+          },
+          "preferred_locale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Language of the e-mails to this person; null = no preference (every available language)"
           },
           "is_self": {
             "type": "boolean"
@@ -6463,6 +6531,13 @@
               "null"
             ],
             "description": "Hold the role for this market only"
+          },
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Language of the invitation and of later e-mails (one of notice_locales); omit for every available language"
           }
         }
       },
@@ -6524,6 +6599,22 @@
             "type": "string",
             "minLength": 3,
             "maxLength": 500
+          }
+        }
+      },
+      "StaffLanguageUpdate": {
+        "type": "object",
+        "required": [
+          "locale"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "locale": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One of notice_locales, or null for no preference"
           }
         }
       }

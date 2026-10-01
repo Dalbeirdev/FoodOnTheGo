@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { MfaSetup } from './MfaSetup'
 import { PASSWORD_MIN_LENGTH } from './StaffPasswordPages'
 import { useStaffSession } from './StaffSession'
-import { staffAuth, staffErrorMessage, type StaffContext, type StaffDeviceSession } from './staffAuth'
+import { localeName, staffAuth, staffErrorMessage, type StaffContext, type StaffDeviceSession } from './staffAuth'
 import './staff-login.css'
 
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—')
@@ -22,6 +22,7 @@ export default function AccountSecurityPage({ context }: { context: StaffContext
       <MfaCard context={context} enabled={session.principal.mfaEnabled} refresh={session.refresh} auth={auth} />
       <PasswordCard auth={auth} />
       <SessionsCard auth={auth} onSignedOut={session.refresh} />
+      {session.principal.noticeLocales.length > 1 && <LanguageCard auth={auth} value={session.principal.preferredLocale} options={session.principal.noticeLocales} refresh={session.refresh} />}
     </div>
   )
 }
@@ -53,6 +54,31 @@ function MfaCard({ context, enabled, refresh, auth }: { context: StaffContext; e
           <div className="staff-mfa__row"><button type="submit" className="db-btn db-btn--danger" disabled={busy || !password || code.length !== 6} data-testid="mfa-off-submit">{busy ? 'Checking…' : 'Turn off'}</button><button type="button" className="db-btn db-btn--ghost" onClick={() => { setMode('idle'); setError(null) }} disabled={busy}>Cancel</button></div>
         </form>
       )}
+    </section>
+  )
+}
+
+/** Only the e-mails follow this choice (invitation, password reset, security notices) — the screens themselves do not change language. */
+function LanguageCard({ auth, value, options, refresh }: { auth: Auth; value: string | null; options: string[]; refresh: () => Promise<void> }) {
+  const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null); const [done, setDone] = useState(false)
+  const change = async (next: string) => {
+    setBusy(true); setError(null); setDone(false)
+    try { await auth.setLanguage(next === '' ? null : next); await refresh(); setDone(true) } catch (e) { setError(staffErrorMessage(e)) } finally { setBusy(false) }
+  }
+  return (
+    <section className="db-card staff-sec" aria-labelledby="sec-language" data-testid="sec-language">
+      <div className="staff-sec__head"><h2 id="sec-language">E-mail language</h2></div>
+      <div className="staff-mfa">
+        <p>The language of the e-mails FoodOnTheGo sends you: password reset links and security notices. The screens stay as they are.</p>
+        {done && <p className="staff-login__notice" role="status" data-testid="language-done">Saved.</p>}
+        {error && <p className="staff-login__error" role="alert" data-testid="language-error">{error}</p>}
+        <div className="db-field"><label htmlFor="sec-language-select">Language</label>
+          <select id="sec-language-select" className="db-select" value={value ?? ''} disabled={busy} onChange={(e) => { void change(e.target.value) }} data-testid="language-select">
+            <option value="">No preference — every language in one message ({options.map(localeName).join(' + ')})</option>
+            {options.map((code) => <option key={code} value={code} lang={code}>{localeName(code)}</option>)}
+          </select>
+        </div>
+      </div>
     </section>
   )
 }

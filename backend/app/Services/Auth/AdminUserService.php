@@ -56,7 +56,10 @@ final class AdminUserService
         private readonly MfaService $mfa,
     ) {}
 
-    public function invite(string $name, string $email, Role $role, ?Market $market, AdminUser $actor): AdminUser
+    /**
+     * @param  string|null  $locale  language of the invitation and of later e-mails; the person can change it
+     */
+    public function invite(string $name, string $email, Role $role, ?Market $market, AdminUser $actor, ?string $locale = null): AdminUser
     {
         $email = StaffLoginService::normaliseEmail($email);
         if (AdminUser::query()->where('email', $email)->exists()) {
@@ -64,8 +67,8 @@ final class AdminUserService
         }
         $this->assertMayGrant($actor, $role);
 
-        return DB::transaction(function () use ($name, $email, $role, $market, $actor): AdminUser {
-            $admin = (new AdminUser)->forceFill(['name' => $name, 'email' => $email, 'password' => null, 'status' => StaffStatus::Invited]);
+        return DB::transaction(function () use ($name, $email, $role, $market, $actor, $locale): AdminUser {
+            $admin = (new AdminUser)->forceFill(['name' => $name, 'email' => $email, 'password' => null, 'status' => StaffStatus::Invited, 'preferred_locale' => $locale]);
             $admin->save();
             $this->roles->assign($admin, $role, $market === null ? null : Scope::market($market->public_id), $actor, $actor);
             $this->audit->record('admin_user.invited', $admin, $actor, ['status' => ['from' => null, 'to' => 'INVITED'], 'role' => ['from' => null, 'to' => $this->describe($role, $market)]], null, $market?->getKey());

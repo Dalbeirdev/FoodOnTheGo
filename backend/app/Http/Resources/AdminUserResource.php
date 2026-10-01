@@ -30,6 +30,7 @@ class AdminUserResource extends JsonResource
             'email' => $this->email,
             'status' => $this->status->value,
             'mfa_enabled' => $this->hasMfaEnabled(),
+            'preferred_locale' => $this->preferred_locale,
             'is_self' => $request->user()?->is($this->resource) ?? false,
             'roles' => $this->roleAssignments->map(fn (RoleAssignment $a): array => [
                 'code' => $a->role->code,

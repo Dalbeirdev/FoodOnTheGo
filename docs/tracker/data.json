@@ -21882,6 +21882,38 @@
       "issue": "-",
       "carry": "CF-317",
       "notes": "Owner request 2026-10-01. The subject line is English (first language). LOCAL ONLY: written to the server log, not delivered (CF-315). The customer side has no e-mails (sign-in by phone code)."
+    },
+    {
+      "id": "M21-140",
+      "module": "M21",
+      "req": "E-mail language per restaurant / admin user: preferred_locale on both account tables; PUT /auth/language (own account only; one of the offered languages or none); /auth/me returns the choice and the offered languages; every e-mail to a person with a choice is written in that one language including the subject; an invitation can be sent in one language (locale on POST /admin/users), which becomes that person's choice; a choice that is no longer offered falls back safely",
+      "platform": "BACKEND",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (275 tests, 2733 assertions, 0 failed) StaffLanguage",
+      "issue": "-",
+      "carry": "CF-317",
+      "notes": "Owner request 2026-10-01. Offered languages = AUTH_NOTICE_LOCALES that have a translation (locally en, hi). Database change: one nullable column on admin_users and restaurant_users (migration 2026_10_01_100000). LOCAL ONLY: e-mails are written to the server log, not delivered (CF-315)."
+    },
+    {
+      "id": "M21-141",
+      "module": "M21",
+      "req": "\"E-mail language\" card on Account security in both dashboards (no preference / English / Hindi, saved at once, backend refusal shown) and an \"E-mail language\" choice in the administrator invitation form. Language names are shown in their own script",
+      "platform": "WEB",
+      "cat": "Localisation",
+      "pri": "P2",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-staff-language-e2e.json (14/14); docs/local-review/test-results/web-vitest-m22.txt (470/470); docs/local-review/screenshots/web-m22/staff-language/",
+      "issue": "-",
+      "carry": "CF-317",
+      "notes": "Owner request 2026-10-01. Only e-mails follow the choice: the dashboard screens are English and are not translated. The card is hidden when the backend offers a single language. LOCAL ONLY: e-mails are written to the server log, not delivered (CF-315)."
     }
   ],
   "pages": [
@@ -28174,15 +28206,27 @@
     ],
     [
       "CF-317",
-      "Hindi staff e-mails: (1) owner or a native speaker reviews the Hindi wording in backend/lang/hi/auth.php (invitation, password reset, MFA notices); (2) a language preference per restaurant / admin user so each person gets one language (and a Hindi subject line) instead of a two-language message",
+      "Hindi staff e-mails: the owner or a native speaker reviews the Hindi wording in backend/lang/hi/auth.php (invitation, password reset, MFA notices) before go-live",
       "M21",
       "Module 21 follow-up",
       "P2",
-      "Owner + Claude",
+      "Owner",
       "Backend / Localisation",
       "PARTIAL",
       "2026-10-01",
-      "Invitation and password-reset e-mails translated 2026-10-01 (M21-139). Open: native review, per-person language"
+      "E-mails translated and a per-person e-mail language built 2026-10-01 (M21-138..141). Open: native review of the wording"
+    ],
+    [
+      "CF-318",
+      "Dashboards in Hindi: the Restaurant Dashboard and Platform Admin screens are English only; the e-mail language choice does not change them. Also: restaurant users cannot yet be invited (Module 23), so their language can only be set by themselves",
+      "M21",
+      "Module 21 follow-up",
+      "P3",
+      "Claude",
+      "Web (dashboards) / Localisation",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
     ]
   ],
   "bugs": [
@@ -31760,7 +31804,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague; Admin Users: search, role for one market, Disable)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password; invite an administrator on the Admin Users screen; Account security: set up MFA with your authenticator app, then turn it off; Admin Users: Reset MFA on a colleague; Admin Users: search, role for one market, Disable; Account security: E-mail language)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31964,6 +32008,26 @@
       "feature + e2e",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (270 tests, 2686 assertions, 0 failed)",
+      "2026-10-01"
+    ],
+    [
+      "TE-229",
+      "M21",
+      "WEB + BACKEND",
+      "E-mail language against the real local backend: card with the offered languages, both languages without a choice, Hindi chosen → next password-reset e-mail in Hindi only with its link, survives reload, English only, unknown language 422 / no session 401, back to no preference, invitation form choice → invitation in Hindi only and stored for the person, Restaurant Dashboard card at 390 px, axe; test account removed and choices cleared",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-staff-language-e2e.json (14/14)",
+      "2026-10-01"
+    ],
+    [
+      "TE-230",
+      "M21",
+      "WEB + BACKEND",
+      "Backend suite 275 (5 new: StaffLanguage); web vitest 470 (1 new); re-run: Admin Users 27/27, extras 24/24, MFA reset 19/19, staff security 28/28, phone rows 12/12",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (275 tests, 2733 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (470/470)",
       "2026-10-01"
     ]
   ],
@@ -32733,6 +32797,14 @@
       "M21",
       "WEB",
       "docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24); docs/local-review/screenshots/web-m22/admin-users-rest/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "E-mail language per staff account: e2e result and screenshots",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-staff-language-e2e.json (14/14); docs/local-review/screenshots/web-m22/staff-language/",
       "Evidence",
       "YES"
     ]

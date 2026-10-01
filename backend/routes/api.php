@@ -85,6 +85,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::middleware('active')->group(function (): void {
                 Route::delete('/mfa/totp', [StaffSecurityController::class, 'disableMfa'])->middleware('throttle:mfa-verify')->name('mfa.totp.disable');
                 Route::post('/password', [StaffSecurityController::class, 'changePassword'])->middleware('throttle:password-reset')->name('password.change');
+                Route::put('/language', [StaffSecurityController::class, 'updateLanguage'])->name('language.update');
             });
         });
     });

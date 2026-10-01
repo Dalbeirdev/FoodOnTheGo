@@ -39,7 +39,7 @@ class MfaChangedNotification extends Notification
     {
         $change = $this->change;
 
-        return $this->staffNotice('mfa', ["{$change}_line", "{$change}_next", 'not_you'], [], fn (string $locale): array => [
+        return $this->staffNotice($notifiable, 'mfa', ["{$change}_line", "{$change}_next", 'not_you'], [], fn (string $locale): array => [
             'when' => $this->at->copy()->utc()->locale($locale)->translatedFormat('j M Y, H:i').' UTC',
         ], subjectKey: "{$change}_subject");
     }

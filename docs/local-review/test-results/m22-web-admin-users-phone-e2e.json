@@ -1,7 +1,7 @@
 {
   "module": "M21 follow-up (Admin Users compact rows on a phone)",
   "mode": "real local backend",
-  "date": "2026-10-01T12:16:14.267Z",
+  "date": "2026-10-01T13:34:41.927Z",
   "total": 12,
   "passed": 12,
   "results": [
@@ -23,7 +23,7 @@
     {
       "name": "P3b on a phone each row also shows the MFA state and the last sign-in (or that the person never signed in)",
       "pass": true,
-      "detail": "KW | Kenji Watanabe | kenji.watanabe@foodonthego.example | Finance Admin | MFA: Not enrolled | Last login: 1 Oct, 05:28 pm | Active | Actions"
+      "detail": "KW | Kenji Watanabe | kenji.watanabe@foodonthego.example | Finance Admin | MFA: Not enrolled | Last login: 1 Oct, 07:04 pm | Active | Actions"
     },
     {
       "name": "P4 the action buttons are folded away; your own row and nothing else lacks the \"Actions\" button",

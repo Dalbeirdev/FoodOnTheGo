@@ -1,0 +1,16 @@
+PASS L1 Account security has an "E-mail language" card: no preference by default, with the languages the backend offers (English, Hindi) — No preference — every language in one message (English + हिन्दी (Hindi)) | English | हिन्दी (Hindi)
+PASS A11Y axe (account security with e-mail language) no serious / critical violations
+PASS L2 without a choice the password-reset e-mail carries both languages (locally written to the server log, not sent)
+PASS L3 choosing Hindi is stored by the backend (200) and shown as saved
+PASS L4 the next e-mail is in Hindi only, with its single-use link
+PASS L5 the choice survives a reload
+PASS L6 choosing English: the e-mail is in English only
+PASS L7 a language that is not offered is refused (422); without a session 401 — 422/401
+PASS L8 back to "No preference" (stored as none)
+PASS I1 the invitation form has an "E-mail language" choice (every language, English, Hindi) — Every language in one message (English + हिन्दी (Hindi)) | English | हिन्दी (Hindi)
+PASS I2 invited in Hindi (201): the invitation is in Hindi only and Hindi becomes that person's e-mail language — 201
+PASS R1 the Restaurant Dashboard has the same card; at 390 px it does not overflow the page — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+PASS Z test account removed; the 8 fixture administrators have no language preference — 8 accounts
+
+14/14 passed

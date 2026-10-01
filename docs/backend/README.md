@@ -273,7 +273,14 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   nothing is delivered until a mail provider is configured.
   The notice is written in every language of `AUTH_NOTICE_LOCALES` (default `en`; `en,hi` for India) that has a
   translation in `lang/<code>/auth.php` — one message, the languages one after the other, subject in the first —
-  because staff accounts have no language preference yet.
+  for a person who has not chosen a language.
+- **E-mail language per person**: `admin_users.preferred_locale` / `restaurant_users.preferred_locale` (NULL = no
+  preference). `PUT /auth/language {locale}` (signed-in restaurant or admin user; one of the offered languages or
+  null); `/auth/me` returns `preferred_locale` and `notice_locales` (configured AND translated, never empty —
+  `App\Support\NoticeLocales`). With a choice, every e-mail to that person is in that one language, subject
+  included; a stored choice that is no longer offered falls back to all offered languages. `POST /admin/users`
+  accepts `locale` so an invitation can be written in one language. Only e-mails follow this — the dashboards
+  are not translated.
 - The invitation and the password-reset e-mail use the same layout and language rule (`WritesStaffNotice`):
   English and Hindi in one message, each part with the button to the single-use link, and the address once in
   plain text. The framework's default mail layout (header link to `APP_URL`, English greeting) is no longer used

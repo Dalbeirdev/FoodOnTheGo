@@ -2,13 +2,13 @@
 
 namespace App\Notifications\Concerns;
 
+use App\Support\NoticeLocales;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Support\Facades\Lang;
 
 /**
  * E-mails to restaurant and admin users (invitation, password reset, MFA changed) share one plain layout and
- * one language rule: staff accounts have no language preference yet, so a message carries every language of
- * `auth_security.notice_locales` that has a translation, in that order, with the subject in the first.
+ * one language rule (NoticeLocales): a person who chose a language gets the message in that language; without
+ * a choice it carries every available language, in the configured order, with the subject in the first.
  *
  * The layout is our own (`mail.security-notice`): the framework's default mail layout adds a header link to
  * the application address and English-only greeting lines. A message contains a link only when it is the
@@ -23,10 +23,9 @@ trait WritesStaffNotice
      * @param  callable(string): array<string, string|int>  $replace  placeholders for one language
      * @param  string  $subjectKey  key suffix of the subject
      */
-    protected function staffNotice(string $prefix, array $before, array $after, callable $replace, ?string $url = null, string $subjectKey = 'subject'): MailMessage
+    protected function staffNotice(object $notifiable, string $prefix, array $before, array $after, callable $replace, ?string $url = null, string $subjectKey = 'subject'): MailMessage
     {
-        $locales = array_values(array_filter((array) config('auth_security.notice_locales'), fn (string $l): bool => Lang::has("auth.{$prefix}_{$subjectKey}", $l, false)));
-        $locales = $locales === [] ? [(string) config('app.fallback_locale')] : $locales;
+        $locales = NoticeLocales::for($notifiable);
 
         $sections = array_map(function (string $locale) use ($prefix, $before, $after, $replace, $url, $subjectKey): array {
             $text = fn (string $suffix): string => __("auth.{$prefix}_{$suffix}", $replace($locale), $locale);

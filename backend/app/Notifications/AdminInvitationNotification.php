@@ -27,7 +27,7 @@ class AdminInvitationNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return $this->staffNotice('invitation', ['line'], ['ignore'], fn (): array => ['hours' => $this->hours], $this->url);
+        return $this->staffNotice($notifiable, 'invitation', ['line'], ['ignore'], fn (): array => ['hours' => $this->hours], $this->url);
     }
 
     public function url(): string

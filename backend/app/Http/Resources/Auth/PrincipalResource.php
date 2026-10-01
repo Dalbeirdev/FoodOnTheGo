@@ -5,6 +5,7 @@ namespace App\Http\Resources\Auth;
 use App\Auth\AccessControl;
 use App\Auth\Principal;
 use App\Models\Customer;
+use App\Support\NoticeLocales;
 use App\Support\PhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -63,6 +64,8 @@ class PrincipalResource extends JsonResource
             'email' => $this->email,
             'mfa_enabled' => $this->hasMfaEnabled(),
             'last_login_at' => $this->last_login_at?->toIso8601String(),
+            'preferred_locale' => $this->preferred_locale,
+            'notice_locales' => NoticeLocales::available(),
             'roles' => $this->roleAssignments->map(fn ($assignment): array => [
                 'code' => $assignment->role->code,
                 'name' => $assignment->role->name,
