@@ -2545,6 +2545,137 @@
           }
         }
       }
+    },
+    "/admin/security-events": {
+      "get": {
+        "summary": "Authentication / security events, newest first (admin.security.view, platform-wide only). Read-only.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[event]",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SecurityEventType"
+            }
+          },
+          {
+            "name": "filter[principal_type]",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "customer",
+                "restaurant_user",
+                "admin_user"
+              ]
+            }
+          },
+          {
+            "name": "outcome",
+            "in": "query",
+            "description": "failed = failed sign-ins and wrong codes only",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "failed"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (UTC), YYYY-MM-DD",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day (UTC), inclusive",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Comma list of name, country_code, status, created_at; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page of security events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecurityEventPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/security/summary": {
+      "get": {
+        "summary": "Security overview counters and repeated-failure alerts (admin.security.view, platform-wide only)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecuritySummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -5471,6 +5602,259 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "SecurityEventType": {
+        "type": "string",
+        "enum": [
+          "OTP_REQUESTED",
+          "OTP_FAILED",
+          "OTP_VERIFIED",
+          "LOGIN_SUCCESS",
+          "LOGIN_FAILED",
+          "LOGOUT",
+          "SESSION_REVOKED",
+          "PASSWORD_RESET_REQUESTED",
+          "PASSWORD_CHANGED",
+          "ACCOUNT_STATUS_CHANGED",
+          "PERMISSION_CHANGED",
+          "MFA_CHALLENGE_FAILED",
+          "MFA_ENABLED",
+          "MFA_DISABLED"
+        ]
+      },
+      "SecurityEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "event",
+          "severity",
+          "principal_type",
+          "principal_name",
+          "known_account",
+          "ip",
+          "user_agent",
+          "request_id",
+          "details",
+          "occurred_at"
+        ],
+        "description": "An authentication / security occurrence. Never contains a code, password, token, phone number or e-mail.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Opaque reference"
+          },
+          "event": {
+            "$ref": "#/components/schemas/SecurityEventType"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "principal_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "customer | restaurant_user | admin_user"
+          },
+          "principal_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Display name of the account, when it is known and still exists"
+          },
+          "known_account": {
+            "type": "boolean"
+          },
+          "ip": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_agent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "details": {
+            "type": "object"
+          },
+          "occurred_at": {
+            "type": "string"
+          }
+        }
+      },
+      "SecurityEventPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "facets"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SecurityEvent"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          },
+          "facets": {
+            "type": "object",
+            "required": [
+              "events"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "events": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SecurityEventType"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SecuritySummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "failed_admin_sign_ins_24h",
+          "failed_sign_ins_24h",
+          "failed_codes_24h",
+          "permission_changes_7d",
+          "account_status_changes_7d",
+          "blocked_accounts",
+          "admin_mfa",
+          "alerts",
+          "generated_at"
+        ],
+        "properties": {
+          "failed_admin_sign_ins_24h": {
+            "type": "integer"
+          },
+          "failed_sign_ins_24h": {
+            "type": "integer"
+          },
+          "failed_codes_24h": {
+            "type": "integer",
+            "description": "Wrong one-time codes and MFA codes"
+          },
+          "permission_changes_7d": {
+            "type": "integer"
+          },
+          "account_status_changes_7d": {
+            "type": "integer"
+          },
+          "blocked_accounts": {
+            "type": "object",
+            "required": [
+              "admin",
+              "restaurant",
+              "customer"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "admin": {
+                "type": "integer"
+              },
+              "restaurant": {
+                "type": "integer"
+              },
+              "customer": {
+                "type": "integer"
+              }
+            }
+          },
+          "admin_mfa": {
+            "type": "object",
+            "required": [
+              "enrolled",
+              "total"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enrolled": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "description": "Active administrators with MFA enabled / all active administrators"
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind",
+                "ip",
+                "failures",
+                "window_minutes",
+                "last_at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "repeated_failures"
+                  ]
+                },
+                "ip": {
+                  "type": "string"
+                },
+                "failures": {
+                  "type": "integer"
+                },
+                "window_minutes": {
+                  "type": "integer"
+                },
+                "last_at": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Addresses with 5 or more failed sign-ins / codes in the last 60 minutes"
+          },
+          "generated_at": {
+            "type": "string"
           }
         }
       }

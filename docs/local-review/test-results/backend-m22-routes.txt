@@ -21,6 +21,8 @@
  PATCH api/v1/admin/regions/{region} .. api.v1.admin.regions.update › Api\Admin\GeographyController@updateRegion
  GET|HEAD api/v1/admin/route-corridors/{routeCorridor} api.v1.admin.route-corridors.show › Api\Admin\GeographyCont…
  PATCH api/v1/admin/route-corridors/{routeCorridor} api.v1.admin.route-corridors.update › Api\Admin\GeographyCo…
+ GET|HEAD api/v1/admin/security-events api.v1.admin.security-events.index › Api\Admin\SecurityEventController@index
+ GET|HEAD api/v1/admin/security/summary . api.v1.admin.security.summary › Api\Admin\SecurityEventController@summary
  GET|HEAD api/v1/admin/service-areas/{serviceArea} api.v1.admin.service-areas.show › Api\Admin\GeographyController…
  PATCH api/v1/admin/service-areas/{serviceArea} api.v1.admin.service-areas.update › Api\Admin\GeographyControll…
  POST api/v1/auth/admin/login .. api.v1.auth.admin.login › Api\Auth\StaffAuthController@login
@@ -52,5 +54,5 @@
  GET|HEAD api/v1/markets/current/coverage .. api.v1.markets.coverage › Api\MarketController@coverage
  GET|HEAD api/v1/ready .. api.v1.ready › Api\HealthController@ready
 
- Showing [52] routes
+ Showing [54] routes
 

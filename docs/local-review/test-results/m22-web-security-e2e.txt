@@ -1,0 +1,19 @@
+PASS S1 the Security page reads the backend: GET /admin/security/summary and GET /admin/security-events with the admin token
+PASS S2 the counters are the backend's numbers (failed admin sign-ins 24h, failed sign-ins, wrong codes, blocked accounts, permission changes, admin MFA) — {"admin":10,"all":22,"codes":17,"blocked":{"admin":1,"restaurant":1,"customer":1},"mfa":{"enrolled":0,"total":6}}
+PASS S3 the event list is the backend's, newest first, 15 per page, with its total; the top row is this sign-in — 302 events
+PASS S4 the sample events of the mock screen are gone (no seeded "Lockout" / "Rate limit" rows) and the page says what an event never contains
+PASS A11Y axe (security page (backend)) no serious / critical violations
+PASS S5 "Failures only" is applied by the backend (outcome=failed): only failed sign-ins and wrong codes remain — 15 rows
+PASS S6 the wrong admin password of this run is listed: Sign-in failed, the account by name, the reason — and not the password
+PASS S7 the wrong customer code is listed without the phone number or the code
+PASS S8 the detail shows severity, account, IP address, device, request id and the recorded details
+PASS S9 the account-type filter is applied by the backend (filter[principal_type]=customer)
+PASS S10 the event filter offers the event types present in the backend and filters there (filter[event]=LOGIN_FAILED)
+PASS S11 a date range is applied by the backend; nothing before 2020 → the empty state
+PASS S12 the API response contains no password, code, token, phone number, e-mail, identifier hash or internal id
+PASS P1 an administrator without the security permission: access denied on screen, 403 from both endpoints — 403 / 403
+PASS P2 without a token the API answers 401
+PASS R1 security page at 390 px: no horizontal page overflow — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+
+17/17 passed

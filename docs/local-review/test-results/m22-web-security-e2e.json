@@ -1,0 +1,94 @@
+{
+  "module": "M22 follow-up (CF-302, security screen)",
+  "mode": "real local backend",
+  "date": "2026-10-01T09:32:49.319Z",
+  "total": 17,
+  "passed": 17,
+  "results": [
+    {
+      "name": "S1 the Security page reads the backend: GET /admin/security/summary and GET /admin/security-events with the admin token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S2 the counters are the backend's numbers (failed admin sign-ins 24h, failed sign-ins, wrong codes, blocked accounts, permission changes, admin MFA)",
+      "pass": true,
+      "detail": "{\"admin\":10,\"all\":22,\"codes\":17,\"blocked\":{\"admin\":1,\"restaurant\":1,\"customer\":1},\"mfa\":{\"enrolled\":0,\"total\":6}}"
+    },
+    {
+      "name": "S3 the event list is the backend's, newest first, 15 per page, with its total; the top row is this sign-in",
+      "pass": true,
+      "detail": "302 events"
+    },
+    {
+      "name": "S4 the sample events of the mock screen are gone (no seeded \"Lockout\" / \"Rate limit\" rows) and the page says what an event never contains",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (security page (backend)) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S5 \"Failures only\" is applied by the backend (outcome=failed): only failed sign-ins and wrong codes remain",
+      "pass": true,
+      "detail": "15 rows"
+    },
+    {
+      "name": "S6 the wrong admin password of this run is listed: Sign-in failed, the account by name, the reason — and not the password",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S7 the wrong customer code is listed without the phone number or the code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S8 the detail shows severity, account, IP address, device, request id and the recorded details",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S9 the account-type filter is applied by the backend (filter[principal_type]=customer)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S10 the event filter offers the event types present in the backend and filters there (filter[event]=LOGIN_FAILED)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S11 a date range is applied by the backend; nothing before 2020 → the empty state",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S12 the API response contains no password, code, token, phone number, e-mail, identifier hash or internal id",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P1 an administrator without the security permission: access denied on screen, 403 from both endpoints",
+      "pass": true,
+      "detail": "403 / 403"
+    },
+    {
+      "name": "P2 without a token the API answers 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R1 security page at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

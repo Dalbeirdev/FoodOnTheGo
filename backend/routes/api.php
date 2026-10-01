@@ -1,9 +1,11 @@
 <?php
 
+use App\Enums\Permission;
 use App\Enums\PrincipalType;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\SecurityEventController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
 use App\Http\Controllers\Api\Auth\CustomerProfileController;
 use App\Http\Controllers\Api\Auth\SessionController;
@@ -97,6 +99,11 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/service-areas/{serviceArea}', [GeographyController::class, 'showServiceArea'])->name('service-areas.show');
         Route::get('/route-corridors/{routeCorridor}', [GeographyController::class, 'showRouteCorridor'])->name('route-corridors.show');
         Route::get('/audit-events', [AuditEventController::class, 'index'])->name('audit-events.index');
+        // Security events are platform-wide: the permission must be held without a market scope.
+        Route::middleware('can:'.Permission::AdminSecurityView->value)->group(function (): void {
+            Route::get('/security-events', [SecurityEventController::class, 'index'])->name('security-events.index');
+            Route::get('/security/summary', [SecurityEventController::class, 'summary'])->name('security.summary');
+        });
 
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
             Route::patch('/markets/{market}', [AdminMarketController::class, 'update'])->name('markets.update');

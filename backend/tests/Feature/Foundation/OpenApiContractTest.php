@@ -136,6 +136,8 @@ class OpenApiContractTest extends TestCase
         $this->assertMatchesSchema('MarketConfiguration', $this->patchJson($m.'/configuration', ['version' => 1, 'reason' => 'Contract test', 'tax' => ['regime' => 'GST']])->assertOk()->json());
         $this->assertMatchesSchema('AdminMarket', $this->patchJson($m.'/features', ['version' => 1, 'features' => ['reviews' => false], 'reason' => 'Contract test'])->assertOk()->json());
         $this->assertMatchesSchema('AdminMarket', $this->patchJson($m, ['version' => 2, 'status' => 'PAUSED', 'reason' => 'Contract test'])->assertOk()->json());
+        $this->assertMatchesSchema('SecurityEventPage', $this->getJson('/api/v1/admin/security-events')->assertOk()->json());
+        $this->assertMatchesSchema('SecuritySummary', $this->getJson('/api/v1/admin/security/summary')->assertOk()->json());
         $this->assertMatchesSchema('AuditEventPage', $this->getJson('/api/v1/admin/audit-events')->assertOk()->assertJsonCount(11, 'data')->json());
 
         $this->assertMatchesSchema('Error', $this->patchJson($m, ['version' => 1, 'status' => 'ACTIVE', 'reason' => 'Stale'])->assertConflict()->json());

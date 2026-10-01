@@ -33,7 +33,7 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 247 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 252 tests, real PostgreSQL + PostGIS + Redis
 php artisan otp:check          # how one-time codes are delivered here (channels, providers) and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
@@ -241,6 +241,20 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
 - CORS: origins from `FRONTEND_URLS`, explicit methods and headers, no wildcard.
 - Logs: text locally, JSON lines with `LOG_STACK=structured`; sensitive keys and bearer tokens are redacted.
 - Provider secrets live only in the backend `.env` / `config/services.php`.
+
+### Security events for administrators
+
+`GET /admin/security-events` and `GET /admin/security/summary` (`admin.security.view`, held platform-wide — a
+market-scoped grant does not open them; read-only). The list is newest first with `filter[event]`,
+`filter[principal_type]`, `?outcome=failed`, `?from=` / `?to=`; an event carries a severity (permission, account
+status and MFA-off changes are high; failures and credential changes medium), the account's display name when it is
+known, the address, device, request id and the recorded details. The summary counts stored events: failed sign-ins
+and wrong codes in 24 hours, permission and account-status changes in 7 days, blocked accounts, MFA coverage of
+active administrators, and addresses with 5 or more failures in the last 60 minutes.
+
+Never returned: the identifier hash, internal ids, a phone number, an e-mail, a code, a password, a token (asserted
+by a test). Locally every address is 127.0.0.1 because requests pass the local API proxy; a live server behind a
+load balancer needs its trusted-proxy configuration first.
 
 ### Local fixture accounts
 
@@ -460,7 +474,8 @@ that were made are audited — a refused attempt is not an audit event.
   is no map provider to draw on yet: a boundary is a circle (turned into a 32-point polygon) or pasted GeoJSON, a
   corridor centreline is straight lines through the chosen cities or a pasted LineString. New records start PLANNED. Restaurant pins, order counts and revenue in those screens are
   still development fixtures. The Audit screen (`ApiAdminAuditRepository`) shows the backend audit trail; the
-  development log of the areas that are still mock is a separate, labelled tab. The Security screen is still mock.
+  development log of the areas that are still mock is a separate, labelled tab. The Security screen shows the backend's security events
+  (`ApiAdminSecurityRepository`, `SecurityBackendPage.tsx`).
 
 ## 10. Not built yet
 

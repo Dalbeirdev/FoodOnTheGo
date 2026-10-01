@@ -4,6 +4,7 @@ import { Avatar, Card, Drawer, ErrorState, Field, Skeleton, Tabs, ToastLine, use
 import { useAdmin } from '../AdminContext'
 import { Badge, DataTable, Details, DevNote, ReasonDialog, Select, Stat, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminRoleId, AdminStatus, AdminUser, AuditEvent, AuditFilter } from '../types'
+import { SecurityBackendPage } from './SecurityBackendPage'
 import { Cell, StatusPill, fmtDateTime, useLoad, usePageTitle } from './shared'
 
 /* ------------------------------------------------------------------ Admin users & roles */
@@ -69,8 +70,10 @@ export function AuditLogsPage() {
 }
 
 /* ------------------------------------------------------------------ Security dashboard */
-export function SecurityPage() {
-  const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.security')
+/** With the backend the screen shows the real security events; the seeded sample below is only for mock builds and tests. */
+export function SecurityPage() { const a = useAdmin(); usePageTitle('adm.nav.security'); return a.repos.backendSecurity ? <SecurityBackendPage repo={a.repos.backendSecurity} /> : <SecurityMockPage /> }
+function SecurityMockPage() {
+  const a = useAdmin(); const locale = a.locale
   const { data: sec, state, reload } = useLoad(() => a.repos.security.summary(), [a.repos])
   return (
     <div className="db-page" data-testid="adm-security">

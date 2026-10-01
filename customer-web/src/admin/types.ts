@@ -1,3 +1,4 @@
+import type { BackendSecurityRepository } from './api/ApiAdminSecurityRepository'
 import type { Order } from '../order/repositories'
 import type { Restaurant } from '../repositories/types'
 import type { Review } from '../review/repositories'
@@ -194,4 +195,6 @@ export type AdminRepositories = {
   adminUsers: AdminUserRepository; audit: AdminAuditRepository; security: AdminSecurityRepository; analytics: AdminAnalyticsRepository; system: AdminSystemRepository; search: AdminSearchService; marketControl: AdminMarketControlRepository
   /** Present when the admin runs against the backend: the audit trail the backend writes (markets and geography so far). `audit` stays the development log of the areas that are still mock. */
   backendAudit?: AdminAuditRepository
+  /** Present when the admin runs against the backend: the real security events (sign-ins, codes, MFA, sessions, permission changes). */
+  backendSecurity?: BackendSecurityRepository
 }

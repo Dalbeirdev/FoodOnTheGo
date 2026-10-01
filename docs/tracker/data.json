@@ -21578,6 +21578,38 @@
       "issue": "-",
       "carry": "CF-302",
       "notes": "Owner request 2026-10-01. Backend trail covers markets and geography only until other modules are built. Refused attempts are not audit events (no Result filter on this tab)."
+    },
+    {
+      "id": "M21-121",
+      "module": "M21",
+      "req": "Security events API for administrators: GET /admin/security-events (newest first; filters event, account type, failures only, date range; account shown by display name) and GET /admin/security/summary (failed sign-ins and codes 24h, blocked accounts, permission / status changes 7d, admin MFA coverage, repeated-failure alerts per address). Read-only, platform-wide permission only",
+      "platform": "BACKEND",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (252 tests, 2351 assertions, 0 failed) SecurityEventsApi (5), OpenApiContract",
+      "issue": "-",
+      "carry": "CF-302",
+      "notes": "Never returned: identifier hash, internal ids, phone, e-mail, code, password, token (asserted by test). A market-scoped grant does not open it."
+    },
+    {
+      "id": "M21-122",
+      "module": "M21",
+      "req": "Admin Security screen reads the backend security events: counters, repeated-failure alerts, blocked accounts, event list with backend filters, detail (severity, account, IP, device, request id, recorded details). The seeded sample events are no longer shown when the admin runs against the backend",
+      "platform": "WEB",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-security-e2e.json (17/17); docs/local-review/test-results/web-vitest-m22.txt (450/450); docs/local-review/screenshots/web-m22/security/",
+      "issue": "-",
+      "carry": "CF-302",
+      "notes": "Owner request 2026-10-01. Locally every address shows as 127.0.0.1 because requests pass the local API proxy (CF-312)."
     }
   ],
   "pages": [
@@ -27690,15 +27722,15 @@
     ],
     [
       "CF-302",
-      "Admin Security screen still shows mock security events; read the backend security_events (sign-ins, lockouts, MFA, role changes). The Audit screen on backend audit events is DONE (M22-101)",
+      "Admin Audit screen and Security screen on backend events — DONE (M22-101, M21-122). The Admin Users screen (accounts, roles, MFA state) is still mock",
       "M22",
       "Module 22",
       "P1",
       "Claude",
       "Web (admin)",
-      "PARTIAL",
+      "DONE",
       "2026-10-01",
-      "Audit screen built 2026-10-01; security events screen open"
+      "Audit screen and Security screen built 2026-10-01; admin user management screen is CF-285 / CF-282"
     ],
     [
       "CF-303",
@@ -27805,6 +27837,30 @@
       "Claude",
       "Owner",
       "DECISION PENDING",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-312",
+      "Client IP behind a proxy: locally every security / audit event records 127.0.0.1 because requests pass the local API proxy; a live server behind a load balancer needs the trusted-proxy configuration so the real client address is recorded",
+      "M22",
+      "Module 22 follow-up",
+      "P1 (before live)",
+      "Claude",
+      "Backend / infrastructure",
+      "NOT STARTED",
+      "2026-10-01",
+      "-"
+    ],
+    [
+      "CF-313",
+      "Security alerts are computed on request from stored events (5+ failures per address in 60 minutes) and only shown on the Security screen; no notification is sent and nothing is blocked beyond the existing rate limits",
+      "M22",
+      "Module 22 follow-up",
+      "P2",
+      "Claude",
+      "Backend",
+      "NOT STARTED",
       "2026-10-01",
       "-"
     ]
@@ -31342,7 +31398,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes; open the Security screen after a wrong password)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31406,6 +31462,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (247 tests, 2279 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (448/448)",
+      "2026-10-01"
+    ],
+    [
+      "TE-215",
+      "M21",
+      "WEB",
+      "Security screen against the real local backend: counters equal the backend summary, event list, failures-only / account-type / event / date filters applied by the backend, a wrong admin password and a wrong customer code of the run are listed without the secret, detail, API response free of secrets, admin without the permission (403), no token (401), 390 px, axe",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-security-e2e.json (17/17)",
+      "2026-10-01"
+    ],
+    [
+      "TE-216",
+      "M21",
+      "WEB + BACKEND",
+      "Backend suite 252 (5 new); web vitest 450 (2 new); sign-in regression 48/48 re-run",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (252 tests, 2351 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (450/450); docs/local-review/test-results/m22-web-auth-regression.txt",
       "2026-10-01"
     ]
   ],
@@ -32135,6 +32211,14 @@
       "M22",
       "WEB",
       "docs/local-review/test-results/m22-web-audit-e2e.json (17/17); docs/local-review/screenshots/web-m22/audit/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Security screen on backend security events: e2e result and screenshots",
+      "M21",
+      "WEB",
+      "docs/local-review/test-results/m22-web-security-e2e.json (17/17); docs/local-review/screenshots/web-m22/security/",
       "Evidence",
       "YES"
     ]
@@ -32974,7 +33058,7 @@
     ],
     [
       "Admin Dashboard: role / permission gating in the UI, forbidden state on direct URLs, reason-required destructive actions, append-only audit in the mock — server RBAC, MFA and immutable audit pending (CF-240, CF-241, CF-242)",
-      "IMPLEMENTED (client) / BACKEND PENDING"
+      "IMPLEMENTED (client); backend enforces sign-in, market / geography, audit and security endpoints — other admin areas BACKEND PENDING"
     ],
     [
       "Admin Dashboard: customer PII masked, no impersonation, no payment instrument data, no provider secrets (CF-229)",
@@ -33026,6 +33110,10 @@
     ],
     [
       "Geography (M22): market configuration refuses credentials; audit values pass the redactor",
+      "COMPLETE"
+    ],
+    [
+      "Security events (M21): readable by administrators with the platform-wide security permission only; the API returns no secret, hash or internal id (test); shown on the admin Security screen",
       "COMPLETE"
     ]
   ],

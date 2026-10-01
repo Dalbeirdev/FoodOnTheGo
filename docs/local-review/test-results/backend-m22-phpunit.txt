@@ -3,7 +3,7 @@ PHPUnit 12.5.35 by Sebastian Bergmann and contributors.
 Runtime:       PHP 8.3.33
 Configuration: E:\TechPio-Data\FoodOnTheGo\backend\phpunit.xml
 
-Time: 00:31.778, Memory: 80.00 MB
+Time: 00:27.849, Memory: 80.00 MB
 
 Admin Geography Api (Tests\Feature\Geo\AdminGeographyApi)
  ✔ A full launch flow region city area activation makes a location serviceable
@@ -263,6 +263,13 @@ Security Baseline (Tests\Feature\Foundation\SecurityBaseline)
  ✔ Application code reads configuration not env
  ✔ Production defaults are safe
 
+Security Events Api (Tests\Feature\Auth\SecurityEventsApi)
+ ✔ Real sign in activity appears newest first with names and without anything secret
+ ✔ Filters by event account type outcome and date
+ ✔ The summary counts stored data
+ ✔ Only a platform wide security permission opens it
+ ✔ The api is read only
+
 Sensitive Data Redactor (Tests\Unit\Support\SensitiveDataRedactor)
  ✔ Sensitive keys are masked at any depth and safe fields survive
  ✔ Bearer tokens inside free text are masked
@@ -316,5 +323,5 @@ Totp (Tests\Unit\Support\Totp)
  ✔ Generated secrets are random base32 and round trip
  ✔ Provisioning uri names issuer and account
 
-OK (247 tests, 2279 assertions)
-{"tool":"phpunit","result":"passed","tests":247,"passed":247,"assertions":2279,"duration_ms":31780}
+OK (252 tests, 2351 assertions)
+{"tool":"phpunit","result":"passed","tests":252,"passed":252,"assertions":2351,"duration_ms":27849}
