@@ -1,9 +1,9 @@
 {
   "module": "M21 follow-up (CF-314: administrator resets a colleague's MFA)",
   "mode": "real local backend",
-  "date": "2026-10-01T11:58:21.941Z",
-  "total": 17,
-  "passed": 17,
+  "date": "2026-10-01T12:28:46.245Z",
+  "total": 19,
+  "passed": 19,
   "results": [
     {
       "name": "P1 preparation: Kenji has MFA on (sign-in now asks for a code) and one signed-in device",
@@ -63,10 +63,20 @@
     {
       "name": "E4 security event MFA_DISABLED for Kenji, marked as an administrator reset",
       "pass": true,
-      "detail": "{\"id\":\"f36a28db1926b5e3beaa\",\"event\":\"MFA_DISABLED\",\"severity\":\"high\",\"principal_type\":\"admin_user\",\"principal_name\":\"Kenji Watanabe\",\"known_account\":true,\"ip\":\"127.0.0.1\",\"user_agent\":\"Mozilla/5.0 (W"
+      "detail": "{\"id\":\"41ebc413122c3b00b2c8\",\"event\":\"MFA_DISABLED\",\"severity\":\"high\",\"principal_type\":\"admin_user\",\"principal_name\":\"Kenji Watanabe\",\"known_account\":true,\"ip\":\"127.0.0.1\",\"user_agent\":\"Mozilla/5.0 (W"
     },
     {
       "name": "E5 the Audit screen lists the reset",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N1 Kenji is told by e-mail: \"turned on\" when he enrolled and \"an administrator reset\" now (locally written to the server log, not sent)",
+      "pass": true,
+      "detail": "2 message(s) to Kenji"
+    },
+    {
+      "name": "N2 the reset e-mail contains no link, not the reason and not the name of the administrator",
       "pass": true,
       "detail": ""
     },

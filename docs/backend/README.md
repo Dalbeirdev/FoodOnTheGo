@@ -264,7 +264,13 @@ the screens show it ("on WhatsApp", "Send the code by SMS instead").
   are written. Not on your own account (409), nothing to reset (409 `mfa_not_enabled`). Afterwards the password
   alone signs in — or, with `AUTH_MFA_REQUIRED_ADMIN=true`, the person must enrol again before getting a session.
   The backend cannot check that the request really came from that person: the administrator must confirm it
-  outside the system, and the screen says so. The account owner is not notified by e-mail yet.
+  outside the system, and the screen says so.
+- **MFA change e-mail** (`MfaChangedNotification`, sent by the `NotifyAccountOfMfaChange` listener on `MfaChanged`):
+  the owner of a restaurant or admin account is told when MFA is turned on, turned off, or reset by an
+  administrator. It is sent after the change is committed; a mail failure is reported and never undoes the
+  change. The message has its own plain layout (`resources/views/mail/security-notice*`) with no link, button,
+  code, reason or administrator name. Locally `MAIL_MAILER=log`: it is written to `storage/logs/laravel.log`,
+  nothing is delivered until a mail provider is configured.
 - Every change writes an audit event (`admin_user.invited`, `.activated`, `.status_changed`, `.role_changed`) in
   addition to the security events. The response never contains the password, MFA secret or recovery codes.
 

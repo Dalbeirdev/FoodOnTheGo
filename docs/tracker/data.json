@@ -21834,6 +21834,22 @@
       "issue": "-",
       "carry": "-",
       "notes": "Owner request 2026-10-01. Row height at 390 px: about 103 px including the MFA and last sign-in lines (was about 135–200 px without them)."
+    },
+    {
+      "id": "M21-137",
+      "module": "M21",
+      "req": "E-mail to the account owner (restaurant or admin user) when multi-factor authentication is turned on, turned off, or reset by an administrator: says what happened and when (UTC) and what to do if it was not them. No link, button, code, secret, reason or administrator name in the message. Sent after the change is committed; a mail failure is reported and does not undo the change",
+      "platform": "BACKEND",
+      "cat": "Identity & security",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (267 tests, 2563 assertions, 0 failed) MfaChangeNotification; docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (19/19) N1, N2",
+      "issue": "-",
+      "carry": "CF-316",
+      "notes": "Owner request 2026-10-01. LOCAL ONLY: the mailer is \"log\", so the message is written to the server log and nobody receives it. Real delivery needs a mail provider (CF-315). English text only."
     }
   ],
   "pages": [
@@ -28102,7 +28118,7 @@
     ],
     [
       "CF-315",
-      "MAIL PROVIDER: invitation and password-reset e-mails are only written to the local server log (which therefore contains the single-use links — local machine only). A real mail provider and a log-free mailer are needed before any shared or live environment",
+      "MAIL PROVIDER: invitation and password-reset e-mails are only written to the local server log (which therefore contains the single-use links — local machine only). A real mail provider and a log-free mailer are needed before any shared or live environment. Also needed for the MFA change notices (M21-137)",
       "M21",
       "Module 21 follow-up",
       "P0 (before live)",
@@ -28120,9 +28136,9 @@
       "P1",
       "Claude",
       "Backend / Security",
-      "NOT STARTED",
+      "DONE (local)",
       "2026-10-01",
-      "-"
+      "Built 2026-10-01 (M21-137). The message is only written to the local server log until a mail provider exists (CF-315)"
     ]
   ],
   "bugs": [
@@ -29608,6 +29624,20 @@
       "The previous value was built from the scope type, not the market",
       "The previous value uses the market country code",
       "docs/local-review/test-results/backend-m22-phpunit.txt (262 tests, 2520 assertions, 0 failed) AdminUsersApi (role change); docs/local-review/test-results/m22-web-admin-users-rest-e2e.json (24/24) C4",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-107",
+      "M21",
+      "BACKEND",
+      "MFA change e-mail",
+      "Medium",
+      "The first version used the framework's default mail layout, whose header links to the application address — while the text said the message contains no link",
+      "A security notice without any link",
+      "Feature test asserting the message has no http(s) address",
+      "Default notification layout",
+      "The notice has its own plain layout without links, buttons or images",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (267 tests, 2563 assertions, 0 failed) MfaChangeNotification",
       "FIXED / VERIFIED"
     ]
   ],
@@ -31861,6 +31891,16 @@
       "PASS",
       "docs/local-review/test-results/m22-web-admin-users-phone-e2e.json (12/12); docs/local-review/test-results/web-vitest-m22.txt (469/469)",
       "2026-10-01"
+    ],
+    [
+      "TE-226",
+      "M21",
+      "BACKEND + WEB",
+      "MFA change e-mail: sent to the owner on enable, disable and administrator reset (admin and restaurant users), not on a refused attempt, never to the acting administrator; goes to the account address; content without link / secret / recovery code / reason / administrator name; mail failure reported without undoing the reset (5 new backend tests, suite 267). Real local backend: both messages for the fixture account found in the server log (MFA reset e2e 19/19)",
+      "feature + e2e",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (267 tests, 2563 assertions, 0 failed); docs/local-review/test-results/m22-web-admin-mfa-reset-e2e.json (19/19)",
+      "2026-10-01"
     ]
   ],
   "artifacts": [
@@ -33531,8 +33571,8 @@
       "COMPLETE"
     ],
     [
-      "Administrator MFA reset (M21): permission + reason, never your own account, secret deleted not shown, sessions ended, audited and logged as a security event (tests). Identity of the requester is confirmed by the administrator outside the system; owner notification e-mail pending (CF-316)",
-      "COMPLETE (local); notification PENDING"
+      "Administrator MFA reset (M21): permission + reason, never your own account, secret deleted not shown, sessions ended, audited and logged as a security event; the owner is told by e-mail (no link in the message). Identity of the requester is confirmed by the administrator outside the system",
+      "COMPLETE (local); e-mail delivery needs a mail provider (CF-315)"
     ]
   ],
   "globalReadiness": [
