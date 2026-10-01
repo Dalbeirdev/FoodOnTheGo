@@ -33,7 +33,7 @@ php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
 php artisan queue:work redis   # worker, only needed when jobs are dispatched
-php artisan test               # 246 tests, real PostgreSQL + PostGIS + Redis
+php artisan test               # 247 tests, real PostgreSQL + PostGIS + Redis
 php artisan otp:check          # how one-time codes are delivered here (channels, providers) and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)
 vendor/bin/pint                # formatter
@@ -418,6 +418,12 @@ public id, market, reason, `changes` (`field → {from, to}`; a geometry change 
 polygon), request id, address, time. Values pass through the log redactor. Append-only: the application never
 updates or deletes a row. Authentication events stay in `security_events`.
 
+`GET /admin/audit-events` serves the admin Audit screen: newest first, with the actor's name and the current
+name of the changed record (looked up per page; missing when the account or record is gone), `?q=` (text in the
+action or reason), `?from=` / `?to=` (UTC dates, inclusive), `filter[action]`, `filter[target_type]`, and `facets`
+(the actions and target types that exist in the caller's scope). The stored IP address is not returned. Only changes
+that were made are audited — a refused attempt is not an audit event.
+
 ### Seed data
 
 - Every environment: the India market and its bounds, 36 regions (all PLANNED), the India configuration.
@@ -453,8 +459,8 @@ updates or deletes a row. Authentication events stay in `security_events`.
   added and edited there, and the market configuration edited (`MarketGeoForms.tsx`, `MarketAdminForms.tsx`). There
   is no map provider to draw on yet: a boundary is a circle (turned into a 32-point polygon) or pasted GeoJSON, a
   corridor centreline is straight lines through the chosen cities or a pasted LineString. New records start PLANNED. Restaurant pins, order counts and revenue in those screens are
-  still development fixtures, and the Audit screen still lists the mock log — backend audit events are read
-  through `GET /admin/audit-events`.
+  still development fixtures. The Audit screen (`ApiAdminAuditRepository`) shows the backend audit trail; the
+  development log of the areas that are still mock is a separate, labelled tab. The Security screen is still mock.
 
 ## 10. Not built yet
 

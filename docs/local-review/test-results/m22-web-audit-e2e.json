@@ -1,0 +1,94 @@
+{
+  "module": "M22 (CF-302)",
+  "mode": "real local backend",
+  "date": "2026-10-01T09:17:20.938Z",
+  "total": 17,
+  "passed": 17,
+  "results": [
+    {
+      "name": "A1 the Audit page opens on the backend audit trail: GET /admin/audit-events with the admin token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2 it lists the backend's events, newest first, 15 per page, with the total from the backend",
+      "pass": true,
+      "detail": "53 events"
+    },
+    {
+      "name": "A3 a row shows who (name), what (action), which record (its name, not an id) and the change",
+      "pass": true,
+      "detail": "1 Oct, 02:46 pm Alex Morgan Administrator city.updated Jaipur cities Success status: PAUSED → ACTIVE View"
+    },
+    {
+      "name": "A4 the page says what this trail covers and that refused attempts are not recorded; there is no Result filter (every row is a made change)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (audit page (backend trail)) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 the detail shows the reason, the request id, and the values before and after",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6 the Action filter offers the actions that exist in the backend trail",
+      "pass": true,
+      "detail": "All actions, city.updated, market.configuration_updated, market.features_updated, market.updated, service_area.updated"
+    },
+    {
+      "name": "A7 filtering by action is done by the backend (filter[action]=city.updated) and every row matches",
+      "pass": true,
+      "detail": "16 city events"
+    },
+    {
+      "name": "A8 searching the reason is done by the backend (?q=) and finds exactly the two events of this run",
+      "pass": true,
+      "detail": "2 rows"
+    },
+    {
+      "name": "A9 a date range is applied by the backend (?to=) — nothing before 2020 → the empty state",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A10 the development log of the mock areas is a separate, clearly labelled tab — not mixed into the real trail",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P1 an administrator whose audit permission is scoped to India sees the India events (list limited by the backend)",
+      "pass": true,
+      "detail": "53 events in scope"
+    },
+    {
+      "name": "P2 an administrator without the audit permission gets no audit data: 403 from the backend and no rows on screen",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "name": "P3 without a token the API answers 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R1 audit page at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z start state kept: Jaipur is ACTIVE",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

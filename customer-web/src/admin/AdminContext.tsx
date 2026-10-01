@@ -8,6 +8,7 @@ import { fixtureScope } from '../market/fixtureScope'
 import { loadAdminMarketData } from '../market/api/marketData'
 import { marketMode } from '../market/marketMode'
 import { marketRepository } from '../market/mock/mockMarket'
+import { ApiAdminAuditRepository } from './api/ApiAdminAuditRepository'
 import { ApiAdminMarketControlRepository } from './api/ApiAdminMarketControlRepository'
 import type { Market } from '../market/types'
 import type { AdminNotification, AdminPermission, AdminRepositories, AdminUser, Environment } from './types'
@@ -49,7 +50,7 @@ const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } cat
 export const detectEnvironment = (): Environment => { const e = (import.meta.env.VITE_ENVIRONMENT as string | undefined)?.toUpperCase(); return e === 'PRODUCTION' || e === 'STAGING' ? e : 'LOCAL' }
 
 /** Module 22: with the backend, the market control center talks to the admin API; everything else is still the mock. */
-const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, marketControl: new ApiAdminMarketControlRepository() } : adminRepositories)
+const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, marketControl: new ApiAdminMarketControlRepository(), backendAudit: new ApiAdminAuditRepository() } : adminRepositories)
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {
   const repos = useMemo(() => given ?? defaultRepositories(), [given])

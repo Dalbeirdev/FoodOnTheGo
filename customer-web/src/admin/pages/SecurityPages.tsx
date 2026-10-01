@@ -31,13 +31,15 @@ export function AdminUsersPage() {
 }
 
 /* ------------------------------------------------------------------ Audit logs */
-const A_DEFAULTS = { q: '', action: 'all', target: 'all', result: 'all', from: '', to: '', page: '1' }
+const A_DEFAULTS = { q: '', action: 'all', target: 'all', result: 'all', from: '', to: '', page: '1', src: '' }
 export function AuditLogsPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.auditLogs')
   const [s, set] = useUrlState(A_DEFAULTS); const [open, setOpen] = useState<AuditEvent | null>(null)
   const filter = useMemo<AuditFilter>(() => ({ query: s.q, action: s.action, targetType: s.target, result: s.result as AuditFilter['result'], from: s.from || undefined, to: s.to || undefined, page: Number(s.page) || 1, pageSize: 15 }), [s])
-  const { data, state, reload } = useLoad(() => a.repos.audit.list(filter), [a.repos, filter])
-  const actions = useMemo(() => a.repos.audit.actions(), [a.repos, data]); const targets = useMemo(() => a.repos.audit.targetTypes(), [a.repos, data]) // eslint-disable-line react-hooks/exhaustive-deps
+  // With the backend there are two sources: the trail the backend writes (default) and the development log of the areas that are still mock.
+  const backend = a.repos.backendAudit; const live = !!backend && s.src !== 'dev'; const repo = live ? backend! : a.repos.audit
+  const { data, state, reload } = useLoad(() => repo.list(filter), [repo, filter])
+  const actions = useMemo(() => repo.actions(), [repo, data]); const targets = useMemo(() => repo.targetTypes(), [repo, data]) // eslint-disable-line react-hooks/exhaustive-deps
   const columns: Array<Column<AuditEvent>> = [
     { id: 'time', label: t('adm.audit.col.time', undefined, locale), render: (e) => fmtDateTime(e.at, locale) },
     { id: 'actor', label: t('adm.audit.col.actor', undefined, locale), primary: true, render: (e) => <Cell primary={e.actor} secondary={e.actorRole} /> },
@@ -49,18 +51,19 @@ export function AuditLogsPage() {
   return (
     <div className="db-page" data-testid="adm-audit">
       <div className="db-page__head"><div><h1 className="db-page__title">{t('adm.audit.title', undefined, locale)}</h1><p className="db-page__lead">{t('adm.audit.lead', undefined, locale)}</p></div></div>
+      {backend && <Tabs tabs={[{ id: 'backend', label: t('adm.audit.src.backend', undefined, locale) }, { id: 'dev', label: t('adm.audit.src.dev', undefined, locale) }]} value={live ? 'backend' : 'dev'} onChange={(v) => set({ ...A_DEFAULTS, src: v === 'dev' ? 'dev' : '' })} label={t('adm.audit.src.label', undefined, locale)} />}
       <Card>
-        <Toolbar search={s.q} onSearch={(q) => set({ q })} placeholder={t('adm.audit.search', undefined, locale)} locale={locale}>
+        <Toolbar search={s.q} onSearch={(q) => set({ q, page: '1' })} placeholder={t(live ? 'adm.audit.searchBackend' : 'adm.audit.search', undefined, locale)} locale={locale}>
           <Select label={t('adm.audit.col.action', undefined, locale)} value={s.action} onChange={(action) => set({ action })} options={[{ value: 'all', label: t('adm.audit.action.all', undefined, locale) }, ...actions.map((x) => ({ value: x, label: x }))]} testId="filter-action" />
           <Select label={t('adm.audit.col.target', undefined, locale)} value={s.target} onChange={(target) => set({ target })} options={[{ value: 'all', label: t('adm.audit.target.all', undefined, locale) }, ...targets.map((x) => ({ value: x, label: x }))]} testId="filter-target" />
-          <Select label={t('adm.audit.col.result', undefined, locale)} value={s.result} onChange={(result) => set({ result })} options={[{ value: 'all', label: t('adm.audit.result.all', undefined, locale) }, ...(['SUCCESS', 'DENIED', 'FAILED'] as const).map((x) => ({ value: x, label: t(`adm.auditResult.${x}`, undefined, locale) }))]} testId="filter-result" />
+          {!live && <Select label={t('adm.audit.col.result', undefined, locale)} value={s.result} onChange={(result) => set({ result })} options={[{ value: 'all', label: t('adm.audit.result.all', undefined, locale) }, ...(['SUCCESS', 'DENIED', 'FAILED'] as const).map((x) => ({ value: x, label: t(`adm.auditResult.${x}`, undefined, locale) }))]} testId="filter-result" />}
           <label className="adm-select"><span className="db-sr-only">{t('adm.audit.from', undefined, locale)}</span><input type="date" className="db-input db-input--sm" value={s.from} onChange={(e) => set({ from: e.target.value })} aria-label={t('adm.audit.from', undefined, locale)} data-testid="filter-from" /></label>
           <label className="adm-select"><span className="db-sr-only">{t('adm.audit.to', undefined, locale)}</span><input type="date" className="db-input db-input--sm" value={s.to} onChange={(e) => set({ to: e.target.value })} aria-label={t('adm.audit.to', undefined, locale)} data-testid="filter-to" /></label>
         </Toolbar>
         <DataTable columns={columns} rows={data?.items ?? []} keyOf={(e) => e.id} state={state} total={data?.total ?? 0} page={filter.page!} pageSize={15} onPage={(page) => set({ page: String(page) })} empty={{ icon: 'audit', title: t('adm.audit.empty', undefined, locale) }} onRetry={() => { void reload() }} locale={locale} testId="audit-table" caption={t('adm.audit.title', undefined, locale)} onRowClick={setOpen} actions={(e) => <button type="button" className="db-btn db-btn--ghost db-btn--sm" onClick={() => setOpen(e)}>{t('adm.table.view', undefined, locale)}</button>} />
       </Card>
-      <DevNote>{t('adm.audit.immutable', undefined, locale)}</DevNote>
-      <Drawer open={!!open} onClose={() => setOpen(null)} title={t('adm.audit.detail', undefined, locale)}>{open && <div className="db-grid" style={{ gap: 14 }} data-testid="audit-drawer"><Details rows={[[t('adm.audit.col.time', undefined, locale), fmtDateTime(open.at, locale)], [t('adm.audit.col.actor', undefined, locale), `${open.actor} (${open.actorRole})`], [t('adm.audit.col.action', undefined, locale), open.action], [t('adm.audit.col.target', undefined, locale), `${open.targetType} · ${open.targetRef}`], [t('adm.audit.col.result', undefined, locale), <StatusPill key="r" status={open.result} prefix="adm.auditResult" dot />], [t('adm.audit.ip', undefined, locale), open.ip ?? t('adm.audit.none', undefined, locale)], [t('adm.audit.reason', undefined, locale), open.reason ?? t('adm.audit.none', undefined, locale)]]} /><p dir="auto">{open.description}</p><div className="db-form-row"><div><b>{t('adm.audit.before', undefined, locale)}</b><pre className="adm-json">{JSON.stringify(open.before, null, 2) ?? '—'}</pre></div><div><b>{t('adm.audit.after', undefined, locale)}</b><pre className="adm-json">{JSON.stringify(open.after, null, 2) ?? '—'}</pre></div></div><DevNote>{t('adm.audit.immutable', undefined, locale)}</DevNote></div>}</Drawer>
+      <DevNote>{t(live ? 'adm.audit.backendNote' : backend ? 'adm.audit.devNote' : 'adm.audit.immutable', undefined, locale)}</DevNote>
+      <Drawer open={!!open} onClose={() => setOpen(null)} title={t('adm.audit.detail', undefined, locale)}>{open && <div className="db-grid" style={{ gap: 14 }} data-testid="audit-drawer"><Details rows={[[t('adm.audit.col.time', undefined, locale), fmtDateTime(open.at, locale)], [t('adm.audit.col.actor', undefined, locale), `${open.actor} (${open.actorRole})`], [t('adm.audit.col.action', undefined, locale), open.action], [t('adm.audit.col.target', undefined, locale), `${open.targetType} · ${open.targetRef}`], [t('adm.audit.col.result', undefined, locale), <StatusPill key="r" status={open.result} prefix="adm.auditResult" dot />], open.requestId !== undefined ? [t('adm.audit.requestId', undefined, locale), <span key="rid" className="adm-code">{open.requestId ?? t('adm.audit.none', undefined, locale)}</span>] : [t('adm.audit.ip', undefined, locale), open.ip ?? t('adm.audit.none', undefined, locale)], [t('adm.audit.reason', undefined, locale), open.reason ?? t('adm.audit.none', undefined, locale)]]} /><p dir="auto">{open.description}</p><div className="db-form-row"><div><b>{t('adm.audit.before', undefined, locale)}</b><pre className="adm-json">{JSON.stringify(open.before, null, 2) ?? '—'}</pre></div><div><b>{t('adm.audit.after', undefined, locale)}</b><pre className="adm-json">{JSON.stringify(open.after, null, 2) ?? '—'}</pre></div></div><DevNote>{t('adm.audit.immutable', undefined, locale)}</DevNote></div>}</Drawer>
     </div>
   )
 }

@@ -21546,6 +21546,38 @@
       "issue": "-",
       "carry": "CF-301",
       "notes": "Found while building the configuration screen: the API accepted any value before."
+    },
+    {
+      "id": "M22-100",
+      "module": "M22",
+      "req": "Audit list for a screen: actor name and current target name per event, text search (action / reason), date range, the actions and target types that exist in the caller's scope, newest first also within one second",
+      "platform": "BACKEND",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/backend-m22-phpunit.txt (247 tests, 2279 assertions, 0 failed) AdminGeographyApi (audit)",
+      "issue": "-",
+      "carry": "CF-302",
+      "notes": "Extends GET /admin/audit-events (M22-053). The administrator's IP address is stored but deliberately not returned."
+    },
+    {
+      "id": "M22-101",
+      "module": "M22",
+      "req": "Admin Audit screen reads the backend audit trail (who, what, which record, change, reason, request id, before / after; filters applied by the backend; scope limited by the backend). The development log of the still-mock areas is a separate, labelled tab",
+      "platform": "WEB",
+      "cat": "Market & geography",
+      "pri": "P1",
+      "status": "COMPLETE",
+      "impl": "PASS",
+      "test": "PASS",
+      "manual": "Automated + local run by Claude; owner browser review PENDING (TE-208)",
+      "evidence": "docs/local-review/test-results/m22-web-audit-e2e.json (17/17); docs/local-review/test-results/web-vitest-m22.txt (448/448); docs/local-review/screenshots/web-m22/audit/",
+      "issue": "-",
+      "carry": "CF-302",
+      "notes": "Owner request 2026-10-01. Backend trail covers markets and geography only until other modules are built. Refused attempts are not audit events (no Result filter on this tab)."
     }
   ],
   "pages": [
@@ -27090,7 +27122,7 @@
       "Backend / Security",
       "DONE",
       "2026-09-30",
-      "Module 22: audit_events written by the backend for market / region / city / service area / corridor / feature / configuration changes. The admin Audit screen reading them is CF-302"
+      "Module 22: audit_events written by the backend for market / region / city / service area / corridor / feature / configuration changes, and shown on the admin Audit screen (M22-101)"
     ],
     [
       "CF-255",
@@ -27658,15 +27690,15 @@
     ],
     [
       "CF-302",
-      "Admin Audit screen still lists the mock log; read backend audit events (GET /admin/audit-events) and security events",
+      "Admin Security screen still shows mock security events; read the backend security_events (sign-ins, lockouts, MFA, role changes). The Audit screen on backend audit events is DONE (M22-101)",
       "M22",
       "Module 22",
       "P1",
       "Claude",
       "Web (admin)",
-      "NOT STARTED",
+      "PARTIAL",
       "2026-10-01",
-      "-"
+      "Audit screen built 2026-10-01; security events screen open"
     ],
     [
       "CF-303",
@@ -29218,6 +29250,20 @@
       "Only feature flags were checked against the locked list",
       "Statuses validated; a locked method cannot be ENABLED (409 feature_locked)",
       "docs/local-review/test-results/backend-m22-phpunit.txt (246 tests, 2242 assertions, 0 failed) AdminGeographyApi; docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25) F5",
+      "FIXED / VERIFIED"
+    ],
+    [
+      "BUG-104",
+      "M22",
+      "BACKEND",
+      "Audit list order",
+      "Low",
+      "Two audit events written in the same second were listed oldest first (the tie was broken by ascending id)",
+      "Newest first",
+      "Audit screen e2e",
+      "Default sort had no descending tie-break",
+      "Default order is occurred_at, then id, both descending",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (247 tests, 2279 assertions, 0 failed) AdminGeographyApi (audit); docs/local-review/test-results/m22-web-audit-e2e.json (17/17) A3",
       "FIXED / VERIFIED"
     ]
   ],
@@ -31296,7 +31342,7 @@
       "TE-208",
       "M22",
       "WEB",
-      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration)",
+      "Owner browser review of Platform Admin → Markets on the backend (pause a city, see the customer effect, check the audit event; add a state, a city, a service area and a corridor; edit configuration; open the Audit screen and find those changes)",
       "manual (browser)",
       "PENDING",
       "-",
@@ -31340,6 +31386,26 @@
       "unit + feature + regression",
       "PASS",
       "docs/local-review/test-results/backend-m22-phpunit.txt (246 tests, 2242 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (445/445)",
+      "2026-10-01"
+    ],
+    [
+      "TE-213",
+      "M22",
+      "WEB",
+      "Audit screen against the real local backend: list with names and change, detail (reason, request id, before / after), action filter, reason search and date range applied by the backend, separate development-log tab, market-scoped admin, admin without the permission (403), no token (401), 390 px, axe",
+      "e2e",
+      "PASS",
+      "docs/local-review/test-results/m22-web-audit-e2e.json (17/17)",
+      "2026-10-01"
+    ],
+    [
+      "TE-214",
+      "M22",
+      "WEB + BACKEND",
+      "Backend suite 247; web vitest 448 (3 new for the audit adapter); market e2e 51/51 re-run",
+      "unit + feature + regression",
+      "PASS",
+      "docs/local-review/test-results/backend-m22-phpunit.txt (247 tests, 2279 assertions, 0 failed); docs/local-review/test-results/web-vitest-m22.txt (448/448)",
       "2026-10-01"
     ]
   ],
@@ -32061,6 +32127,14 @@
       "M22",
       "WEB",
       "docs/local-review/test-results/m22-web-admin-forms-e2e.json (25/25); docs/local-review/screenshots/web-m22/admin-forms/",
+      "Evidence",
+      "YES"
+    ],
+    [
+      "Audit screen on the backend trail: e2e result and screenshots",
+      "M22",
+      "WEB",
+      "docs/local-review/test-results/m22-web-audit-e2e.json (17/17); docs/local-review/screenshots/web-m22/audit/",
       "Evidence",
       "YES"
     ]
@@ -32907,7 +32981,7 @@
       "IMPLEMENTED (client) / BACKEND PENDING"
     ],
     [
-      "Market control: backend-enforced permission + market scope, reason-required high-impact changes, optimistic concurrency, backend audit events (Module 22); the UI gating is a convenience",
+      "Market control: backend-enforced permission + market scope, reason-required high-impact changes, optimistic concurrency, backend audit events shown on the admin Audit screen (Module 22); the UI gating is a convenience",
       "COMPLETE"
     ],
     [

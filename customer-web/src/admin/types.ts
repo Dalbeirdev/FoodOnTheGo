@@ -100,7 +100,7 @@ export type ConfigItem = { key: string; category: 'ordering' | 'pickup' | 'payme
 
 /* ---------------- audit / security / system / analytics ---------------- */
 export type AuditResult = 'SUCCESS' | 'DENIED' | 'FAILED'
-export type AuditEvent = { id: string; at: string; actor: string; actorRole: string; action: string; targetType: string; targetRef: string; description: string; result: AuditResult; ip: string | null; before: Record<string, unknown> | null; after: Record<string, unknown> | null; reason: string | null }
+export type AuditEvent = { id: string; at: string; actor: string; actorRole: string; action: string; targetType: string; targetRef: string; description: string; result: AuditResult; ip: string | null; before: Record<string, unknown> | null; after: Record<string, unknown> | null; reason: string | null; /** Backend events: the request that made the change, for log correlation. */ requestId?: string | null }
 export type AuditFilter = { query?: string; action?: string | 'all'; targetType?: string | 'all'; result?: AuditResult | 'all'; from?: string; to?: string; page?: number; pageSize?: number }
 export type SecurityEvent = { id: string; at: string; kind: 'auth_failure' | 'authz_denied' | 'rate_limit' | 'permission_change' | 'sensitive_action' | 'lockout'; severity: 'low' | 'medium' | 'high'; actor: string | null; detail: string; ip: string | null }
 export type SecuritySummary = { failedAdminLogins24h: number; suspiciousActivity: number; lockedAccounts: number; highRiskActions24h: number; recentPermissionChanges: number; alerts: SecurityEvent[]; events: SecurityEvent[]; mfaCoverage: { enrolled: number; total: number } }
@@ -192,4 +192,6 @@ export type AdminRepositories = {
   overview: AdminOverviewRepository; restaurants: AdminRestaurantRepository; customers: AdminCustomerRepository; orders: AdminOrderRepository; payments: AdminPaymentRepository; refunds: AdminRefundRepository; settlements: AdminSettlementRepository
   reviews: AdminReviewRepository; promotions: AdminPromotionRepository; support: AdminSupportRepository; notifications: AdminNotificationRepository; markets: AdminMarketRepository; configuration: AdminConfigurationRepository
   adminUsers: AdminUserRepository; audit: AdminAuditRepository; security: AdminSecurityRepository; analytics: AdminAnalyticsRepository; system: AdminSystemRepository; search: AdminSearchService; marketControl: AdminMarketControlRepository
+  /** Present when the admin runs against the backend: the audit trail the backend writes (markets and geography so far). `audit` stays the development log of the areas that are still mock. */
+  backendAudit?: AdminAuditRepository
 }

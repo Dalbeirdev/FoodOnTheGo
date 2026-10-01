@@ -2450,6 +2450,31 @@
         ],
         "parameters": [
           {
+            "name": "q",
+            "in": "query",
+            "description": "Text contained in the action or the reason",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (UTC), YYYY-MM-DD",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day (UTC), inclusive, YYYY-MM-DD",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "filter[action]",
             "in": "query",
             "schema": {
@@ -4608,7 +4633,9 @@
           "reason",
           "changes",
           "request_id",
-          "occurred_at"
+          "occurred_at",
+          "actor_name",
+          "target_label"
         ],
         "additionalProperties": false,
         "properties": {
@@ -4656,6 +4683,20 @@
           },
           "occurred_at": {
             "$ref": "#/components/schemas/Timestamp"
+          },
+          "actor_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Name of the account that made the change, when it still exists"
+          },
+          "target_label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Current name of the changed record, when it still exists"
           }
         }
       },
@@ -4800,7 +4841,8 @@
         "required": [
           "data",
           "links",
-          "meta"
+          "meta",
+          "facets"
         ],
         "properties": {
           "data": {
@@ -4826,6 +4868,29 @@
               "total",
               "last_page"
             ]
+          },
+          "facets": {
+            "type": "object",
+            "required": [
+              "actions",
+              "target_types"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "target_types": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Actions and target types that exist in the caller's scope"
           }
         }
       },

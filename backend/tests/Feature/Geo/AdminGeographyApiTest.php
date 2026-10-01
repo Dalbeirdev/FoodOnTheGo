@@ -301,6 +301,49 @@ class AdminGeographyApiTest extends TestCase
         $this->getJson('/api/v1/admin/cities/'.$region->id)->assertNotFound();
     }
 
+    public function test_the_audit_list_names_the_actor_and_the_target_and_filters_by_text_and_date(): void
+    {
+        $city = $this->city($this->region($this->india));
+        $area = $this->area($city, self::BOX, name: 'Noida Central');
+
+        $this->travelTo('2026-09-10 23:30:00');
+        $this->patchJson('/api/v1/admin/cities/'.$city->public_id, ['version' => 1, 'status' => 'PAUSED', 'reason' => 'Flooding on NH24'])->assertOk();
+        $this->travelTo('2026-09-12 10:00:00');
+        $this->patchJson('/api/v1/admin/service-areas/'.$area->public_id, ['version' => 1, 'status' => 'PAUSED', 'reason' => '100% capacity review'])->assertOk();
+        $this->patchJson($this->url('/features'), ['version' => 1, 'features' => ['reviews' => false], 'reason' => 'Backlog'])->assertOk();
+
+        $list = $this->getJson('/api/v1/admin/audit-events')->assertOk()->assertJsonCount(3, 'data')
+            ->assertJsonPath('facets.actions', ['city.updated', 'market.features_updated', 'service_area.updated'])
+            ->assertJsonPath('facets.target_types', ['cities', 'markets', 'service_areas']);
+        $byAction = collect($list->json('data'))->keyBy('action');
+        $this->assertSame([$this->admin->name, 'Noida'], [$byAction['city.updated']['actor_name'], $byAction['city.updated']['target_label']]);
+        $this->assertSame('Noida Central', $byAction['service_area.updated']['target_label']);
+        $this->assertSame('India', $byAction['market.features_updated']['target_label']);
+
+        $actions = fn (string $query) => array_column($this->getJson('/api/v1/admin/audit-events?'.$query)->assertOk()->json('data'), 'action');
+        $this->assertSame(['city.updated'], $actions('q=flooding'));
+        $this->assertSame(['city.updated'], $actions('q=CITY.'));
+        $this->assertSame(['service_area.updated'], $actions('q='.urlencode('100%')));
+        $this->assertSame(['service_area.updated'], $actions('q='.urlencode('%')), 'a wildcard is matched literally');
+        $this->assertSame(['market.features_updated'], $actions('q=features_'));
+        $this->assertSame([], $actions('q=city_updated'), 'an underscore is not a wildcard');
+        $this->assertSame(['city.updated'], $actions('to=2026-09-10'));
+        $this->assertSame(['city.updated'], $actions('from=2026-09-10&to=2026-09-11'));
+        $this->assertCount(2, $actions('from=2026-09-12'));
+        $this->assertSame([], $actions('from=2026-09-13'));
+        $this->assertSame(['service_area.updated'], $actions('from=2026-09-12&filter[target_type]=service_areas'));
+        $this->getJson('/api/v1/admin/audit-events?from=yesterday')->assertUnprocessable();
+
+        // Two changes in the same second: the later one is listed first.
+        $this->patchJson('/api/v1/admin/cities/'.$city->public_id, ['version' => 2, 'status' => 'ACTIVE'])->assertOk();
+        $this->patchJson('/api/v1/admin/cities/'.$city->public_id, ['version' => 3, 'name' => 'Noida City'])->assertOk();
+        $this->assertSame(['name', 'status'], array_map(fn (array $e) => array_key_first($e['changes']), array_slice($this->getJson('/api/v1/admin/audit-events?filter[action]=city.updated')->json('data'), 0, 2)));
+
+        // A deleted account or record leaves the event readable, just without a name.
+        DB::table('service_areas')->delete();
+        $this->assertNull(collect($this->getJson('/api/v1/admin/audit-events')->json('data'))->firstWhere('action', 'service_area.updated')['target_label']);
+    }
+
     public function test_lists_can_be_searched_by_name_and_narrowed_to_a_parent(): void
     {
         $up = $this->region($this->india);

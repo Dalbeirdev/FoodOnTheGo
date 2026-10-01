@@ -1,0 +1,19 @@
+PASS A1 the Audit page opens on the backend audit trail: GET /admin/audit-events with the admin token
+PASS A2 it lists the backend's events, newest first, 15 per page, with the total from the backend — 53 events
+PASS A3 a row shows who (name), what (action), which record (its name, not an id) and the change — 1 Oct, 02:46 pm Alex Morgan Administrator city.updated Jaipur cities Success status: PAUSED → ACTIVE View
+PASS A4 the page says what this trail covers and that refused attempts are not recorded; there is no Result filter (every row is a made change)
+PASS A11Y axe (audit page (backend trail)) no serious / critical violations
+PASS A5 the detail shows the reason, the request id, and the values before and after
+PASS A6 the Action filter offers the actions that exist in the backend trail — All actions, city.updated, market.configuration_updated, market.features_updated, market.updated, service_area.updated
+PASS A7 filtering by action is done by the backend (filter[action]=city.updated) and every row matches — 16 city events
+PASS A8 searching the reason is done by the backend (?q=) and finds exactly the two events of this run — 2 rows
+PASS A9 a date range is applied by the backend (?to=) — nothing before 2020 → the empty state
+PASS A10 the development log of the mock areas is a separate, clearly labelled tab — not mixed into the real trail
+PASS P1 an administrator whose audit permission is scoped to India sees the India events (list limited by the backend) — 53 events in scope
+PASS P2 an administrator without the audit permission gets no audit data: 403 from the backend and no rows on screen — 403
+PASS P3 without a token the API answers 401
+PASS R1 audit page at 390 px: no horizontal page overflow — {"sw":390,"cw":390}
+PASS Z no uncaught page errors or console errors
+PASS Z start state kept: Jaipur is ACTIVE
+
+17/17 passed
