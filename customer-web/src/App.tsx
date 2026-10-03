@@ -10,6 +10,7 @@ import { ProfileProvider } from './profile/ProfileContext'
 import { AuthProvider } from './auth/AuthContext'
 import RequireAuth from './auth/RequireAuth'
 import { AccountProvider } from './account/AccountContext'
+import { accountRepositories, profileRepository } from './account/accountRepositories'
 import { JourneyProvider } from './journey/JourneyContext'
 import { LocaleProvider } from './i18n/LocaleProvider'
 import { MarketGate } from './market/MarketGate'
@@ -67,8 +68,8 @@ export function AppShell() {
       <LocaleProvider>
       <AuthProvider>
       <ToastProvider>
-      <ProfileProvider>
-      <AccountProvider>
+      <ProfileProvider repository={profileRepository}>
+      <AccountProvider repositories={accountRepositories}>
       <JourneyProvider>
       <CartProvider>
       <PickupProvider>

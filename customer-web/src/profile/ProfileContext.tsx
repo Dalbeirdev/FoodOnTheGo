@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { MockProfileRepository } from '../account/mock/mockRepositories'
-import type { Profile, ProfilePatch, ProfileRepository } from '../account/repositories'
+import type { AccountSecurity, Profile, ProfilePatch, ProfileRepository } from '../account/repositories'
 import { useAuth } from '../auth/AuthContext'
 
-export type { Gender, Profile, ProfilePatch } from '../account/repositories'
+export type { AccountSecurity, AccountStatus, CodeChallenge, Gender, Option, Profile, ProfilePatch } from '../account/repositories'
+export { RepositoryError } from '../account/repositories'
 
 type ProfileApi = {
   profile: Profile | null
@@ -12,13 +13,19 @@ type ProfileApi = {
   reload: () => Promise<void>
   update: (patch: ProfilePatch) => Promise<Profile>
   setAvatar: (dataUrl: string | null) => Promise<Profile>
-  requestDeletion: () => Promise<Profile>
+  /** Throws RepositoryError 'reauthentication_required' when the backend wants a fresh code first (API mode). */
+  requestDeletion: (reason?: string) => Promise<Profile>
+  /** Phone change and re-authentication — only when the profile lives on the backend. */
+  security: AccountSecurity | null
+  /** true when this profile is the real account on the backend (API mode); false for the in-browser development data. */
+  live: boolean
 }
 
+/** The development data (Module 04). The app passes the implementation chosen by the sign-in mode (accountRepositories.ts). */
 export const defaultProfileRepository: ProfileRepository = new MockProfileRepository()
 const ProfileContext = createContext<ProfileApi | null>(null)
 
-/** Customer profile for the signed-in user, backed by ProfileRepository (mock in Module 04). */
+/** Customer profile for the signed-in user, backed by a ProfileRepository (development data or the backend). */
 export function ProfileProvider({ children, repository = defaultProfileRepository }: { children: ReactNode; repository?: ProfileRepository }) {
   const auth = useAuth()
   const user = auth.user
@@ -33,19 +40,36 @@ export function ProfileProvider({ children, repository = defaultProfileRepositor
   }, [user, repository])
   useEffect(() => { const t = setTimeout(() => { void reload() }, 0); return () => clearTimeout(t) }, [reload])
 
-  const api = useMemo<ProfileApi>(() => ({
-    profile, status, error, reload,
-    update: async (patch) => {
-      if (!user) throw new Error('Sign in to edit your profile.')
-      const next = await repository.update(user.id, patch)
-      // Keep the auth identity (header, sidebar) in sync for name/email.
-      if (patch.name !== undefined || patch.email !== undefined) await auth.updateProfile({ ...(patch.name !== undefined && { name: patch.name }), ...(patch.email !== undefined && { email: patch.email || null }) })
-      setProfile(next)
-      return next
-    },
-    setAvatar: async (dataUrl) => { if (!user) throw new Error('Sign in first.'); const next = await repository.setAvatar(user.id, dataUrl); setProfile(next); return next },
-    requestDeletion: async () => { if (!user) throw new Error('Sign in first.'); const next = await repository.requestDeletion(user.id); setProfile(next); return next },
-  }), [profile, status, error, reload, user, auth, repository])
+  const api = useMemo<ProfileApi>(() => {
+    const security = repository.security
+    return {
+      profile, status, error, reload,
+      live: repository.updatesIdentity === true,
+      update: async (patch) => {
+        if (!user) throw new Error('Sign in to edit your profile.')
+        const next = await repository.update(user.id, patch)
+        // Keep the auth identity (header, sidebar) in sync for name / e-mail: the backend profile is the identity, so it
+        // is re-read; the development data has to be told.
+        if (patch.name !== undefined || patch.email !== undefined) {
+          if (repository.updatesIdentity) await auth.refresh()
+          else await auth.updateProfile({ ...(patch.name !== undefined && { name: patch.name }), ...(patch.email !== undefined && { email: patch.email || null }) })
+        }
+        setProfile(next)
+        return next
+      },
+      setAvatar: async (dataUrl) => { if (!user) throw new Error('Sign in first.'); const next = await repository.setAvatar(user.id, dataUrl); setProfile(next); return next },
+      requestDeletion: async (reason) => { if (!user) throw new Error('Sign in first.'); const next = await repository.requestDeletion(user.id, reason); setProfile(next); return next },
+      security: security
+        ? {
+            requestReauth: () => security.requestReauth(),
+            verifyReauth: (id, code) => security.verifyReauth(id, code),
+            requestPhoneChange: (phone) => security.requestPhoneChange(phone),
+            // A new number is a new identity for the header too.
+            verifyPhoneChange: async (id, code) => { const next = await security.verifyPhoneChange(id, code); setProfile(next); await auth.refresh(); return next },
+          }
+        : null,
+    }
+  }, [profile, status, error, reload, user, auth, repository])
 
   return <ProfileContext.Provider value={api}>{children}</ProfileContext.Provider>
 }

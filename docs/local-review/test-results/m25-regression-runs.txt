@@ -1,0 +1,56 @@
+# Module 25 — regression runs of the earlier suites against the REAL local backend with the customer account on the API (customer-web on :5173, API on :8001, VITE_AUTH_MODE=api, VITE_MARKET_MODE=api, VITE_RESTAURANT_MODE=api)
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression.js (Module 19 full-site suite with real auth), m23_e2e.js (Module 23 restaurants suite), m24_e2e.js (Module 24 menus suite). Their JSON results are copied as m25-regression-*.json; the earlier evidence files and screenshots are restored afterwards.
+
+=== m22_auth_regression.js  10:19:14Z
+48/48 passed
+=== exit 0
+
+=== m22_e2e.js  10:21:35Z
+51/51 passed
+=== exit 0
+
+=== m22_regression.js  10:24:58Z
+(no summary line — see stderr below)
+[2m  - navigating to "http://localhost:5173/about-us", waiting until "networkidle"[22m
+
+    at C:\Users\DalbeirSingh\AppData\Local\Temp\claude\E--TechPio-Data-FoodOnTheGo\2d42022e-36d6-4b61-9c0a-7fd285469465\scratchpad\shots\m22_regression.js:219:16 {
+  log: [
+    '  - navigating to "http://localhost:5173/about-us", waiting until "networkidle"'
+  ],
+  name: 'TimeoutError'
+}
+=== exit 2
+
+=== m23_e2e.js  10:29:00Z
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":1,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+FAIL E2E run completed without an exception — page.goto: Timeout 30000ms exceeded.
+96/99 passed
+=== exit 1
+
+=== m24_e2e.js  10:36:35Z
+48/48 passed
+=== exit 0
+
+# Chain result: m22_auth_regression.js 48/48, m22_e2e.js 51/51, m22_regression.js CRASHED in the chain (page.goto /about-us networkidle timeout while four suites and the Flutter dev server shared the machine — the 68/68 figure the chain copied came from the Module 24 evidence file, not from this run), m23_e2e.js 96/99 (the same navigation timeout at the admin sign-in + the two Module 23 expectations superseded by Module 24), m24_e2e.js 48/48.
+# Both suites were then rerun alone (below); those reruns are the Module 25 regression result for the full-site and restaurants suites.
+#   miss in m23_e2e.js: C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+#   miss in m23_e2e.js: D3 sections that are still development data carry a "Demo data" label; the backend sections do not
+#   miss in m23_e2e.js: E2E run completed without an exception
+
+=== m22_regression.js (rerun alone)  10:40:49Z
+68/68 passed
+=== exit 0
+# m22_regression.js: 68/68
+
+=== m23_e2e.js (rerun alone)  10:56:41Z
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":1,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+99/101 passed
+=== exit 1
+# m23_e2e.js: 99/101 — misses: C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu; D3 sections that are still development data carry a "Demo data" label; the backend sections do not
+
+# FINAL Module 25 regression result: sign-in 48/48, market geography 51/51, full site (rerun alone) 68/68, restaurants (rerun alone) 99/101, menus 48/48 (314/316).
+#   miss — restaurants (rerun alone): C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+#   miss — restaurants (rerun alone): D3 sections that are still development data carry a "Demo data" label; the backend sections do not
+# The Module 23 misses C14 and D3 are expectations that Module 24 made obsolete (Night Owl Kitchen now has a backend menu; the dashboard menu section is live), as documented in m24-regression-runs.txt; they are not Module 25 defects.

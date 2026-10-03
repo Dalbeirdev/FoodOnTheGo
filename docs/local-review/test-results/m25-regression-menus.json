@@ -1,0 +1,250 @@
+{
+  "module": "M24",
+  "date": "2026-10-03T10:39:56.873Z",
+  "base": "http://localhost:5173",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "passed": 48,
+  "total": 48,
+  "results": [
+    {
+      "name": "C1 the public menu API answers for Burger Hub: ACTIVE menu, categories with items, dietary labels, one sold-out item",
+      "pass": true,
+      "detail": "3 categories, 10 items, v44"
+    },
+    {
+      "name": "C1b archived and disabled items are not in the public menu; every item carries the backend availability answer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C2 the restaurant page reads the menu from GET /restaurants/burger-hub/menu (200, no token) and renders one card per visible item",
+      "pass": true,
+      "detail": "10 cards vs 10 API items"
+    },
+    {
+      "name": "C3 the sold-out item (Smoky BBQ Burger) is shown with its sold-out state, not hidden",
+      "pass": true,
+      "detail": "SM\nSold out\nSmoky BBQ Burger\n\nChar-grilled patty, smoky barbecue sauce, carameli"
+    },
+    {
+      "name": "C4 the dietary filter chips are the labels the backend lists for this menu",
+      "pass": true,
+      "detail": "Available now\nNon-vegetarian\nVegetarian\nVegan\nContains dairy"
+    },
+    {
+      "name": "C5 category chips are the backend categories, in order",
+      "pass": true,
+      "detail": "All\nPopular Burgers 4\nSides 3\nShakes & Drinks 3"
+    },
+    {
+      "name": "C6 search filters the backend menu on the client (\"fries\")",
+      "pass": true,
+      "detail": "1 vs 1"
+    },
+    {
+      "name": "AXE restaurant page with backend menu: no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C7 no page or console errors on the restaurant page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C8 the item page shows the backend groups (Size, Add-ons) with their rules and option prices",
+      "pass": true,
+      "detail": "Skip to content\nLogin\nGet the App\nHome\nRestaurants\nBurger Hub\nClassic Burger\nCL\nPopular\nBurger Hub\nClassic Burger\n\nBase price ₹249.00\n\nJuicy grilled patty with "
+    },
+    {
+      "name": "C9 a temporarily unavailable option (Fried Egg) is shown but cannot be chosen",
+      "pass": true,
+      "detail": "API: available=false"
+    },
+    {
+      "name": "C10 the price preview follows the configuration: base ₹249.00 → Large adds ₹70.00",
+      "pass": true,
+      "detail": "Item total\n₹319.00\n₹319.00 each\nAdd to cart"
+    },
+    {
+      "name": "AXE item page with backend options: no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C11 the configured item is in the cart and the cart review (which re-reads the item from the backend) accepts it",
+      "pass": true,
+      "detail": "Skip to content\n1\nLogin\nGet the App\nYour cart\n\nReview your items, then continue to choose a pickup time.\n\ndevelopment cart — not synced to a server\n\nPICKUP AT\n\n"
+    },
+    {
+      "name": "C12 POST …/price-quote: ₹249.00 + Large ₹70.00 + Extra Cheese ₹30.00 = ₹349.00, ×2 = ₹698.00",
+      "pass": true,
+      "detail": "{\"base_price_minor\":24900,\"adjustments_minor\":10000,\"unit_price_minor\":34900,\"quantity\":2,\"line_total_minor\":69800,\"currency\":\"INR\",\"selections\":[{\"group_id\":\"7"
+    },
+    {
+      "name": "C13 a client that sends its own price is refused (422 validation_failed on unit_price_minor)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C14 leaving a required group out is refused with 422 invalid_selection and the issue named",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C15 choosing the temporarily unavailable option is refused (option_unavailable)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C16 an archived item has no page: the backend answers 404 and the page says the item is not available",
+      "pass": true,
+      "detail": "Skip to content\n1\nLogin\nGet the App\nWe couldn’t find that item.\n\nIt may have been removed from the menu or the link is o"
+    },
+    {
+      "name": "C17 a restaurant whose menu is not published (DRAFT) shows an empty menu, not an error",
+      "pass": true,
+      "detail": "Menu currently unavailable\n\nThis restaurant has not published its menu on FoodOnTheGo yet. You can s"
+    },
+    {
+      "name": "C18 mobile viewport: the backend menu renders without horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 the dashboard Menu page is the backend menu: one row per item that is not archived, no \"development data\" banner",
+      "pass": true,
+      "detail": "10 rows vs 10 items"
+    },
+    {
+      "name": "D1b the management document carries the location currency, versions and the limits the forms use",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AXE dashboard menu page: no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 adding a category goes to POST …/menu/categories (201) and the list shows it last",
+      "pass": true,
+      "detail": "I\nSides\n\t\t3\t\nEdit\n\n3\t\nSH\nShakes & Drinks\n\t\t3\t\nEdit\n\n4\t\nE2\nE2E Specials\n\t\t0\t\nEdit"
+    },
+    {
+      "name": "D2b the category icon uploader (development only — the backend has no category icons) is not offered",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D3 moving a category sends the whole order to POST …/categories/reorder (200)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D4 the dietary labels are the backend list offered as checkboxes (free text is gone in API mode)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D5 the item with its variant group is created in one request (201) and listed with price and category",
+      "pass": true,
+      "detail": "8\t\nE2\nE2E Paneer Wrap\nGrilled paneer, mint chutney, whole-wheat wrap.\n\tE2E Specials\t₹189.00\t\nAvailable\t"
+    },
+    {
+      "name": "D6 customers see the new item at once: GET …/items/e2e-paneer-wrap is 200 with the Size group (Regular ₹0, Large +₹40) and the Vegetarian label",
+      "pass": true,
+      "detail": "[{\"id\":\"d439cfc0-7433-476d-b042-342b5a36e87b\",\"kind\":\"VARIANT\",\"name\":\"Size\",\"description\":null,\"required\":true,\"min_selections\":1,\"max_selections\":1,\"display_o"
+    },
+    {
+      "name": "D7 \"Mark as Sold Out\" is PATCH …/status (200); the public item is visible, not orderable, reason ITEM_SOLD_OUT — at once, despite the cache",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D7b the row shows Sold Out",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D8 editing the price is PATCH …/menu/items/{item} with the version (200); a menu_item.price_changed audit event exists and customers see ₹199.00",
+      "pass": true,
+      "detail": "audit 1, public 19900"
+    },
+    {
+      "name": "D9 an edit with an old version is refused: 409 stale_update with the current version",
+      "pass": true,
+      "detail": "{\"code\":\"stale_update\",\"message\":\"This record was changed by someone else. Reload it and try again.\",\"details\":{\"current"
+    },
+    {
+      "name": "D10 a negative price and a currency are refused with 422 (fields named)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D11 an option group whose minimum exceeds its maximum is refused as a whole (422 groups.0.min_selections)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D12 Duplicate is POST …/duplicate (201): the copy is listed as unavailable (DISABLED) and customers do not see it",
+      "pass": true,
+      "detail": "9\t\nE2\nE2E Paneer Wrap (copy)\nGrilled paneer, mint chutney, whole-wheat wrap.\n\tE2E Specials\t₹199.00\t\n"
+    },
+    {
+      "name": "D13 Archive is DELETE …/menu/items/{item} (200): the row leaves the default list, the customer page is 404, the row stays in the database as ARCHIVED",
+      "pass": true,
+      "detail": "db status ARCHIVED"
+    },
+    {
+      "name": "D14 the \"Archived\" filter lists it (include=archived)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D15 no page or console errors across the dashboard menu flow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I1 Riverside's owner cannot read, switch or archive Pizza Point's menu — 404 everywhere with known ids, nothing changed",
+      "pass": true,
+      "detail": "404/404/404"
+    },
+    {
+      "name": "I2 order staff (restaurant.menu.view only) see the menu but cannot change it: no Add button, no row actions, PATCH …/status is 403",
+      "pass": true,
+      "detail": "rows 11, status 403"
+    },
+    {
+      "name": "I3 without a token the management API is 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 the admin restaurant page has a read-only Menu tab: the counts match GET /admin/restaurants/{location}/menu",
+      "pass": true,
+      "detail": "4 Categories 11 Items 9 Available 1 Sold out 0 Temporarily unavailable 1 Disabled 2 Archived 9 With options"
+    },
+    {
+      "name": "A1b archived items are counted for administrators, hidden categories are named, prices are shown",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AXE admin menu tab: no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2 administrators cannot edit menus: no write route (405)",
+      "pass": true,
+      "detail": "405"
+    },
+    {
+      "name": "A3 a restaurant token is refused on the admin route (401)",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

@@ -38,3 +38,23 @@
 
 @media (max-width: 1024px) { .ac__grid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) { .ac { padding-top: 16px; } .ac__grid { padding: 0 16px; } .ac-card { padding: 16px; } .ac-fields { grid-template-columns: 1fr; } .ac-head h1 { font-size: 26px; } }
+
+/* Module 25 — states that come from the backend account */
+.cov { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-left: 8px; vertical-align: middle; }
+.cov--ok { background: #e6f6ec; color: #1b6e3a; }
+.cov--no { background: #fdecec; color: #9a1d17; }
+.cov--unknown { background: #f1f1f1; color: #555; }
+.fav-card--off h2 { color: #5f5f5f; }
+.fav-card--off .fav-card__media { display: grid; place-items: center; font-size: 40px; background: #f3f3f3; min-height: 140px; position: relative; }
+.fav-card__off { font-size: 13px; color: #6b6b6b; margin: 6px 0 10px; }
+.pm.is-off h2, .pm.is-off p { color: #5f5f5f; }
+.pm__status { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #fdecec; color: #9a1d17; margin-left: 6px; vertical-align: middle; }
+.nt-matrix-wrap { overflow-x: auto; }
+.nt-matrix { width: 100%; border-collapse: collapse; font-size: 14px; }
+.nt-matrix th, .nt-matrix td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+.nt-matrix thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #666; }
+.nt-matrix thead th:first-child, .nt-matrix th[scope=row] { text-align: left; }
+.nt-matrix th[scope=row] small { display: block; font-weight: 400; color: #666; }
+.nt-matrix td small { display: block; font-size: 11px; color: #666; margin-top: 2px; }
+.ac-code input { letter-spacing: .3em; font-size: 20px; text-align: center; }
+.ac-dev-note { font-size: 13px; }

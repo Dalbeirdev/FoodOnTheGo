@@ -1,0 +1,325 @@
+{
+  "module": "M25",
+  "date": "2026-10-03T10:05:00.986Z",
+  "base": "http://localhost:5173",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "passed": 63,
+  "total": 63,
+  "results": [
+    {
+      "name": "P1 GET /customer/profile is the customer's own safe data: name, verified phone (read-only), e-mail never \"verified\", locale options from the market, cuisine codes with names, status, version — no token, OTP or internal id",
+      "pass": true,
+      "detail": "{\"id\":\"d79adb86-3bad-401d-8fc9-171506ee0342\",\"name\":\"Rahul Sharma\",\"display_name\":\"Rahul Sharma\",\"phone\":\"+919876543210\",\"phone_masked\":\"+91 ******3210\",\"phone_verified\":true,\"phone_editable\":false,\"e"
+    },
+    {
+      "name": "P2 /my-profile is the backend profile: Rahul Sharma, +919876543210 read-only (\"Verified\"), the market's one language (English (India)), cuisine chips named from the taxonomy, status Active, no \"BACKEND PENDING\" labels on the live parts",
+      "pass": true,
+      "detail": "English (India) · Skip to content\nMy Account\nGet the App\nMy Profile\n\nManage your personal information and preferences.\n\nRS\nRahul Sharma\nra"
+    },
+    {
+      "name": "AXE my profile (backend): no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P3 editing the name is PATCH /customer/profile (200, with the token) and the heading shows the saved name",
+      "pass": true,
+      "detail": "status 200"
+    },
+    {
+      "name": "P3b the backend has the new name and the sign-in identity (GET /auth/me) follows it",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P4 an invalid e-mail is refused on the page before any request",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P5 phone, status, market and roles cannot be changed through the profile (422 — every field named)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P6 the vegetarian preference switch is PATCH /customer/profile (200) and the backend keeps it",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P7 a profile photo is uploaded as multipart to POST /customer/profile/avatar (200); the page shows it from /api/v1/media/avatars/… (no storage path)",
+      "pass": true,
+      "detail": "http://127.0.0.1:8001/api/v1/media/avatars/d79adb86-3bad-401d-8fc9-171506ee0342/b12909c8-9842-4de4-a228-f5d6aa5a63e7.png"
+    },
+    {
+      "name": "P7b the photo URL serves image/png to anyone with the link (immutable, cached a day)",
+      "pass": true,
+      "detail": "image/png immutable, max-age=86400, public"
+    },
+    {
+      "name": "P7c a file that is not an image (SVG renamed .jpg) is refused with 422",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P7d \"Remove photo\" is DELETE /customer/profile/avatar (200) and the initials are back",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P8 no page or console errors on the profile page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 GET /customer/favorites lists Rahul's favorites newest first with each visible restaurant as GET /restaurants shows it; the favorite of the hidden Expressway Grill is kept with name only (available: false)",
+      "pass": true,
+      "detail": "vadodara-expressway-grill(off),night-owl-kitchen,spice-nest,burger-hub"
+    },
+    {
+      "name": "F2 /favorites renders the backend favorites: cards for the visible ones, an \"Unavailable\" card for Expressway Grill (kept, Remove offered), no development fixtures",
+      "pass": true,
+      "detail": "Skip to content\nMy Account\nGet the App\nRS\nRahul Sharma E2E\nrahul.sharma@example.com\nMy Profile\nFavorite Restaurants\nSaved Addresses\nPayment Methods\nNotification"
+    },
+    {
+      "name": "AXE favorites (backend): no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 the heart on a restaurant page is POST /customer/favorites/pizza-point (201) — optimistic, then confirmed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3b adding the same favorite again is idempotent (200, added: false; still one row)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F4 the heart again is DELETE /customer/favorites/pizza-point (204) and the favorite is gone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F5 a restaurant customers may not see cannot be favorited (404 restaurant_not_found); Asha sees only her own favorite",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S1 GET /customer/saved-locations: 5 places with their coverage decided by the backend — Home served (Noida), Work outside the service areas, Mumbai hotel region unavailable, Dubai airport outside our markets, Grandma's place no coordinates",
+      "pass": true,
+      "detail": "Home:supported,Work:unsupported,Mumbai hotel:unsupported,Dubai airport:unsupported,Grandma's place:unknown"
+    },
+    {
+      "name": "S2 /addresses lists the 5 places with coverage badges: \"Served · Noida\", \"Not served here yet\", \"Outside our markets\", \"No map pin yet\"; journey wording, no delivery wording",
+      "pass": true,
+      "detail": "Home\nDefault start\nServed · Noida\n\nA-203, Green Valley Apartments, Sector 62, Noida, Uttar Pradesh 201309, India\n\nEdit\nDelete\nWork\nNot served here yet\n\nTower B,"
+    },
+    {
+      "name": "AXE saved addresses (backend): no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S3 \"Add New Address\" with a pin is POST /customer/saved-locations (201): the list shows it with \"Served · Noida\" (the backend resolved the market, city and service area)",
+      "pass": true,
+      "detail": "E2E Office\nServed · Noida\n\nPlot 7, Sector 62, Sector 62, Noida, Uttar Pradesh 201309\n\nEdit\nDelete"
+    },
+    {
+      "name": "S3b the backend row: HOME kind, PostGIS point (28.56, 77.36), market IN, city Noida, version 1, formatted address composed",
+      "pass": true,
+      "detail": "{\"line1\":\"Plot 7, Sector 62\",\"line2\":null,\"locality\":\"Sector 62\",\"city\":\"Noida\",\"region\":\"Uttar Pradesh\",\"postal_code\":\"201309\",\"country_code\":\"IN\",\"formatted\":"
+    },
+    {
+      "name": "S4 editing is PATCH /customer/saved-locations/{id} with the version (200) and the label changes",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S4b an edit with an old version is refused: 409 stale_update with the current version",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S5 IDOR: another customer with the id gets 404 on edit and delete; the place is untouched",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S6 a place abroad is saved (201) and reported unsupported / MARKET_UNSUPPORTED — saving it never activates a market",
+      "pass": true,
+      "detail": "{\"status\":\"unsupported\",\"reason\":\"MARKET_UNSUPPORTED\",\"market\":null,\"city\":null,\"service_area\":null}"
+    },
+    {
+      "name": "S6b a client sending market_id / customer_id is refused (422)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S7 Delete (with confirmation) is DELETE /customer/saved-locations/{id} (204); the default (Home) is unchanged",
+      "pass": true,
+      "detail": "status 204, rows 0, default Home"
+    },
+    {
+      "name": "S8 recent places API (clients wire it in Module 26): POST records (201), the same place again bumps times_used (2), DELETE clears (204)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S9 no page or console errors on favorites / addresses",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M1 GET /customer/payment-methods: Visa •••• 4242 (default, 12/2028), UPI ra***@okaxis, Mastercard •••• 4444 EXPIRED — safe metadata only, no provider reference, PAN or CVV anywhere",
+      "pass": true,
+      "detail": "Visa •••• 4242:ACTIVE,UPI ra***@okaxis:ACTIVE,Mastercard •••• 4444:EXPIRED"
+    },
+    {
+      "name": "M2 /payment-methods shows the three references with brand / last four / expiry, \"Default\" on the Visa, \"Expired\" on the Mastercard, the provider-reference note, no cash promise",
+      "pass": true,
+      "detail": "Skip to content\nMy Account\nGet the App\nRS\nRahul Sharma E2E\nrahul.sharma@example.com\nMy Profile\nFavorite Restaurants\nSaved Addresses\nPayment Methods\nNotification"
+    },
+    {
+      "name": "AXE payment methods (backend): no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M3 \"Add New Payment Method\" opens an explanation only — no text box for a card number, provider connection NOT STARTED named",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M4 \"Set as default\" on the UPI is PATCH /customer/payment-methods/{id}/default (200): exactly one default, now the UPI; the expired card offers no \"Set as default\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M5 no route accepts payment details: POST /customer/payment-methods is 405; a card number in any body is 422 (\"FoodOnTheGo never receives payment credentials\"); an expired method cannot become default (422 payment_method_not_usable)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M5b the database holds no card number from those attempts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "M6 Asha cannot read, default or remove Rahul's methods (empty list / 404)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N1 GET /customer/notification-preferences: 6 categories × 4 channels; ACCOUNT_SECURITY locked on SMS + IN_APP; PROMOTIONS off everywhere (consent never assumed); ORDER_UPDATES e-mail off = Rahul's one explicit choice",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N2 the Preferences panel is the backend matrix: a switch per category × channel, security SMS / in-app switches disabled with \"Always on\", marketing in its own consent section, the inbox labelled development data",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AXE notification preferences (backend matrix): no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N3 switching Offers by Email on is PATCH /customer/notification-preferences (200): the cell is on, marketing consent is timestamped, other PROMOTIONS channels stay off",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N3b switching it off again records the withdrawal",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N4 switching security notices off by SMS is refused (422 \"cannot be switched off\"); an unknown category is refused (422)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N5 no page or console errors on payment methods / notifications",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 \"Change number\": the new number is sent to POST /customer/phone-change/request (200 — the session is fresh, no re-authentication needed); the code dialog names the masked NEW number and, locally, the test code",
+      "pass": true,
+      "detail": "Verify your new number\n\nWe sent a code to +91 ******8888.\n\nLocal development: no message is sent. Test code 123456.\n\n6-digit code\nCancel\nVerify"
+    },
+    {
+      "name": "A1b a wrong code is refused and shown inline; the number is unchanged",
+      "pass": true,
+      "detail": "Verify your new number We sent a code to +91 ******8888. Local development: no message is sent. Test code 123456. 6-digit code That code is not correct. Cancel Verify"
+    },
+    {
+      "name": "A2 the right code changes the identity: POST /customer/phone-change/verify 200, the profile and GET /auth/me show +919876508888, the page shows the new number",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2b every other session of the account is signed out (the tablet token is 401); this session stays",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2c security events PHONE_CHANGE_REQUESTED and PHONE_CHANGED exist with masked numbers only (no full phone in the metadata)",
+      "pass": true,
+      "detail": "PHONE_CHANGE_REQUESTED,PHONE_CHANGED"
+    },
+    {
+      "name": "A3 a number another account uses cannot be requested (409 phone_in_use)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 \"Request Account Deletion\" (confirmation + optional reason) is POST /customer/account/deletion-request (200): the account is RESTRICTED, the request is recorded, nothing is deleted, the session still works, the page says \"Request recorded\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4b a second request changes nothing (idempotent) and the reason never enters the audit trail",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 on a session older than 30 minutes the deletion request and the phone change answer 403 reauthentication_required — nothing changed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6 POST /customer/account/reauth sends a code to the account's own phone (masked, purpose reauth, code never returned); a wrong code is 422 otp_invalid; the right one answers reauthenticated with a validity",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6b after the code the sensitive action is allowed (phone-change request 200 for Rahul — not completed, the challenge expires unused)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 without a token every /customer route is 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "X1 PII storage audit: the browser keeps the session token (sessionStorage) and no account data — no phone number, name, e-mail, address or payment metadata in localStorage; no mock account keys in API mode",
+      "pass": true,
+      "detail": "fotg.mock.account.notifications.d79adb86-3bad-401d-8fc9-171506ee0342"
+    },
+    {
+      "name": "X2 mobile viewport: the account pages render without horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "X3 no page or console errors across the account flows",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

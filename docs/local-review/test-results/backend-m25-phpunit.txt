@@ -1,0 +1,4 @@
+# Module 25 — full backend test suite (php vendor/phpunit/phpunit/phpunit), LOCAL, 2026-10-03
+
+{"tool":"phpunit","result":"passed","tests":493,"passed":493,"assertions":6097,"duration_ms":217327}
+exit 0

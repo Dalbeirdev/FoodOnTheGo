@@ -19,6 +19,7 @@
  * The backend id of a location is looked up through the management repository (the dashboard addresses locations
  * by the id its development data used).
  */
+import { dataUrlToBlob } from '../../api/dataUrl'
 import { ApiError, api } from '../../api/client'
 import type { ItemAvailability, MenuCategory, MenuItem, ModifierGroup, OptionGroup, VariantGroup } from '../../menu/repositories'
 import type { ManagedMenu, MenuItemInput, MenuManagementRepository } from '../types'
@@ -73,17 +74,7 @@ const toGroup = (g: ManagedGroupDto): OptionGroup => ({
   options: g.options.filter((o) => o.status !== 'ARCHIVED').map((o) => ({ id: o.id, name: o.name, priceAdjustmentMinor: o.price_adjustment_minor, available: o.status === 'ACTIVE', defaultSelected: o.default_selected, displayOrder: o.display_order })),
 })
 
-/** A data URL from the uploader becomes a file for multipart upload (no network, no canvas). */
-export function dataUrlToBlob(dataUrl: string): { blob: Blob; name: string } {
-  const comma = dataUrl.indexOf(',')
-  const meta = dataUrl.slice(5, comma); const payload = dataUrl.slice(comma + 1)
-  const mime = meta.split(';')[0] || 'image/jpeg'
-  const binary = meta.includes('base64') ? atob(payload) : decodeURIComponent(payload)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-  const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'
-  return { blob: new Blob([bytes], { type: mime }), name: `photo.${ext}` }
-}
+export { dataUrlToBlob }
 
 /* ------------------------------------------------------------------ repository */
 export class ApiMenuManagementRepository implements MenuManagementRepository {

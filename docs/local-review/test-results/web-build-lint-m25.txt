@@ -1,0 +1,14 @@
+# Module 25 — Customer Web checks (LOCAL, 2026-10-03): tsc, oxlint, vitest, vite build
+
+== npx tsc -b --noEmit
+exit 0
+
+== npm run lint (oxlint)
+exit 0; 0 errors; 112 warnings (all pre-existing react(only-export-components) / react(set-state-in-effect) warnings in dashboard pages — none in the Module 25 files)
+
+== npx vitest run
+ Test Files  48 passed (48)
+      Tests  560 passed (560)
+
+== npx vite build
+[32m✓ built in 531ms[39m

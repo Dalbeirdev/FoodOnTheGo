@@ -5454,7 +5454,7 @@
     },
     "/media/{path}": {
       "get": {
-        "summary": "A stored menu image. Only the paths this API writes are served (menu/{menu id}/{file id}.jpg|png|webp); nothing else on the disk is reachable. Immutable: Cache-Control public, max-age 86400.",
+        "summary": "A stored image. Only the paths this API writes are served (menu/{menu id}/{file id}.jpg|png|webp for menu photos, avatars/{customer id}/{file id}.jpg|png|webp for profile photos); nothing else on the disk is reachable. Immutable: Cache-Control public, max-age 86400.",
         "parameters": [
           {
             "name": "path",
@@ -5462,7 +5462,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^menu/[0-9a-f-]{36}/[0-9a-f-]{36}[.](jpg|png|webp)$"
+              "pattern": "^(menu|avatars)/[0-9a-f-]{36}/[0-9a-f-]{36}[.](jpg|png|webp)$"
             }
           }
         ],
@@ -6523,6 +6523,1717 @@
           }
         }
       }
+    },
+    "/customer/profile": {
+      "get": {
+        "summary": "The signed-in customer's own profile",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Change name, e-mail, language, birthday, gender, cuisine preferences, vegetarian filter or search radius. The phone never changes here.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CustomerProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/profile/avatar": {
+      "post": {
+        "summary": "Upload or replace the profile photo (multipart/form-data, checked by content). The previous file is deleted.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AvatarUpload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CustomerProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove the profile photo (idempotent)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/favorites": {
+      "get": {
+        "summary": "The customer's favorite restaurants, newest first, with each visible restaurant as GET /restaurants shows it",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page[number]",
+            "in": "query",
+            "description": "1-based page",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "description": "Items per page, at most 50",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "created_at or -created_at (default)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FavoriteRestaurantPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteRestaurantPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/favorites/{restaurant}": {
+      "post": {
+        "summary": "Add a visible restaurant to the favorites — idempotent: 201 when added, 200 when it already was one. Restaurants customers cannot see answer 404.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "restaurant",
+            "in": "path",
+            "required": true,
+            "description": "Slug or id of the restaurant location",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "FavoriteAdded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteAdded"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a favorite — idempotent, also for a restaurant that is no longer visible. 404 only when no such restaurant exists.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "restaurant",
+            "in": "path",
+            "required": true,
+            "description": "Slug or id of the restaurant location",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/saved-locations": {
+      "get": {
+        "summary": "The customer's saved journey locations with their current coverage",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SavedLocationList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocationList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Save a journey location. Coordinates become a PostGIS point and are resolved to market / city / service area on the server.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedLocationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "SavedLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/saved-locations/{savedLocation}": {
+      "patch": {
+        "summary": "Edit a saved location (version required); lat + lng move the point, location: null removes it",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "savedLocation",
+            "in": "path",
+            "required": true,
+            "description": "Id of one of the customer's saved locations",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedLocationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SavedLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a saved location; when it was the default the oldest remaining one becomes the default",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "savedLocation",
+            "in": "path",
+            "required": true,
+            "description": "Id of one of the customer's saved locations",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/saved-locations/{savedLocation}/default": {
+      "post": {
+        "summary": "Make this the default saved location (exactly one per customer)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "savedLocation",
+            "in": "path",
+            "required": true,
+            "description": "Id of one of the customer's saved locations",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SavedLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/recent-locations": {
+      "get": {
+        "summary": "The customer's recently chosen places, newest first (at most 10)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RecentLocationList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecentLocationList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Record a place the customer just chose for a journey; the same place again bumps times_used",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecentLocationRecord"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "RecentLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecentLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Clear all recent places",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/payment-methods": {
+      "get": {
+        "summary": "The customer's payment-method references — safe metadata only, default first. There is deliberately no POST: methods are added through the payment provider (Module 30).",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PaymentMethodList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/payment-methods/{paymentMethod}/default": {
+      "patch": {
+        "summary": "Make this the default payment method (exactly one per customer). 422 payment_method_not_usable for an expired or unavailable method; any payment credential in the body is refused with 422.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "paymentMethod",
+            "in": "path",
+            "required": true,
+            "description": "Id of one of the customer's payment-method references",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PaymentMethodList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/payment-methods/{paymentMethod}": {
+      "delete": {
+        "summary": "Remove a payment method: the reference is marked REVOKED (kept for payment history, revoked at the provider in Module 30) and the next active one becomes the default. Answers the remaining list.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "paymentMethod",
+            "in": "path",
+            "required": true,
+            "description": "Id of one of the customer's payment-method references",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PaymentMethodList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/notification-preferences": {
+      "get": {
+        "summary": "The notification matrix with the customer's choices and the platform defaults",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NotificationPreferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferences"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Set one or more cells. Security notices cannot be switched off on their locked channels; switching any PROMOTIONS channel on records marketing consent.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferencesUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "NotificationPreferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferences"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/account/reauth": {
+      "post": {
+        "summary": "Send a code to the account's own phone to confirm it is the owner (before a phone change or a deletion request on a session older than 30 minutes). Throttled like sign-in codes.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReauthRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ReauthChallenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReauthChallenge"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/account/reauth/verify": {
+      "post": {
+        "summary": "Verify the re-authentication code; sensitive actions on this session are then allowed for 10 minutes",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpCodeVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ReauthResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReauthResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/account/deletion-request": {
+      "post": {
+        "summary": "Request deletion of the account (requires recent authentication). Idempotent: recorded once, the account becomes RESTRICTED, sessions stay, nothing is erased yet.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DeletionRequested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionRequested"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/phone-change/request": {
+      "post": {
+        "summary": "Start changing the account phone (requires recent authentication): a code is sent to the NEW number",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PhoneChangeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PhoneChangeChallenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhoneChangeChallenge"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/phone-change/verify": {
+      "post": {
+        "summary": "Verify the code sent to the new number: the identity changes, every other session of the account is signed out, a security event is recorded",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpCodeVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CustomerProfile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7177,28 +8888,81 @@
       },
       "CustomerProfileUpdate": {
         "type": "object",
+        "additionalProperties": false,
         "properties": {
+          "version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "Optional optimistic concurrency: when sent, a stale value is refused with 409 stale_update"
+          },
           "name": {
             "type": "string",
-            "minLength": 2,
-            "maxLength": 120
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text, any script"
           },
           "email": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 255
           },
           "preferred_locale": {
             "type": [
               "string",
               "null"
+            ],
+            "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
+            "description": "One of locale_options"
+          },
+          "date_of_birth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "YYYY-MM-DD, in the past"
+          },
+          "gender": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              "male",
+              "female",
+              "other",
+              "",
+              null
             ]
           },
-          "accept_terms": {
+          "favorite_cuisines": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "description": "Cuisine codes of the taxonomy, at most 10"
+          },
+          "vegetarian_only": {
             "type": "boolean"
+          },
+          "search_radius_km": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 5,
+            "maximum": 100
           }
-        }
+        },
+        "description": "Only these fields. phone, phone_e164, phone_verified_at, status, market, market_id, roles, permissions, terms_accepted_at, email_verified_at, deletion_requested_at, id and customer_id are refused with 422."
       },
       "StaffLogin": {
         "type": "object",
@@ -15941,6 +17705,1819 @@
           }
         },
         "description": "Read-only oversight (admin.restaurants.view in the market of the location). Administrators do not edit menus."
+      },
+      "CuisineRef": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "description": "A cuisine of the platform taxonomy (GET /cuisines)"
+      },
+      "CustomerProfile": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "display_name",
+          "phone",
+          "phone_masked",
+          "phone_verified",
+          "phone_editable",
+          "email",
+          "email_verified",
+          "preferred_locale",
+          "locale_options",
+          "market",
+          "date_of_birth",
+          "gender",
+          "favorite_cuisines",
+          "vegetarian_only",
+          "search_radius_km",
+          "avatar",
+          "status",
+          "deletion_requested_at",
+          "member_since",
+          "version",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_name": {
+            "type": "string",
+            "description": "The name, or the masked phone when no name was given"
+          },
+          "phone": {
+            "type": "string",
+            "description": "E.164 — the customer's own verified number. Read-only here: it changes only through /customer/phone-change."
+          },
+          "phone_masked": {
+            "type": "string"
+          },
+          "phone_verified": {
+            "type": "boolean"
+          },
+          "phone_editable": {
+            "type": "boolean",
+            "description": "Always false: the phone is the identity (Module 21) and changes only through the verified phone-change flow"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email_verified": {
+            "type": "boolean",
+            "description": "Always false in this module: e-mail is optional and never verified yet"
+          },
+          "preferred_locale": {
+            "type": "string"
+          },
+          "locale_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The locales the customer may choose from: those supported by the customer's market"
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 3166-1 alpha-2 of the market the account belongs to"
+          },
+          "date_of_birth": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "YYYY-MM-DD"
+          },
+          "gender": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER",
+              null
+            ]
+          },
+          "favorite_cuisines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CuisineRef"
+            }
+          },
+          "vegetarian_only": {
+            "type": "boolean"
+          },
+          "search_radius_km": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "avatar": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "url",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "Absolute URL served by GET /media/{path}; no storage path appears anywhere"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "RESTRICTED",
+              "SUSPENDED",
+              "DEACTIVATED"
+            ]
+          },
+          "deletion_requested_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "member_since": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "YYYY-MM-DD"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "The customer's own profile — only safe owner data. Never contains tokens, OTP data, internal ids or administrative notes."
+      },
+      "AvatarUpload": {
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "JPEG, PNG or WebP, checked by content; at most 2 MiB, 120–2000 px on each side"
+          }
+        }
+      },
+      "PublicRestaurantOrNull": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "branch_label",
+          "short_description",
+          "description",
+          "cuisines",
+          "features",
+          "price_level",
+          "phone",
+          "email",
+          "website",
+          "address",
+          "location",
+          "timezone",
+          "currency",
+          "images",
+          "hours",
+          "pickup",
+          "availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantCuisineRef"
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantFeatureRef"
+            }
+          },
+          "price_level": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 4
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "E.164"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/RestaurantAddress"
+          },
+          "location": {
+            "$ref": "#/components/schemas/RestaurantCoordinates"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA id"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217"
+          },
+          "images": {
+            "type": "object",
+            "required": [
+              "logo",
+              "cover",
+              "gallery"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "logo": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "url",
+                  "alt_text"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "cover": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "url",
+                  "alt_text"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "gallery": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "alt_text"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "alt_text": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "description": "url is a site-relative path or storage key; no file is stored by this API yet"
+          },
+          "hours": {
+            "type": "object",
+            "required": [
+              "timezone",
+              "weekly",
+              "special"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "timezone": {
+                "type": "string"
+              },
+              "weekly": {
+                "$ref": "#/components/schemas/WeeklyHours"
+              },
+              "special": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "date",
+                    "is_closed",
+                    "periods",
+                    "note"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                      "description": "Local calendar date of the location"
+                    },
+                    "is_closed": {
+                      "type": "boolean"
+                    },
+                    "periods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OpeningPeriod"
+                      }
+                    },
+                    "note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "description": "special: exceptions of the coming days; they replace the periods that would open on that date"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/RestaurantPickupOffer"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailability"
+          },
+          "distance_meters": {
+            "type": "integer",
+            "description": "Straight line from ?lat=&lng= — present only when coordinates were sent. Not a route distance or a detour."
+          }
+        },
+        "description": "A restaurant location as customers see it. Only approved restaurants inside public coverage are ever returned. All text is plain text."
+      },
+      "FavoriteRestaurant": {
+        "type": "object",
+        "required": [
+          "restaurant_id",
+          "slug",
+          "name",
+          "added_at",
+          "available",
+          "restaurant"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "added_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "available": {
+            "type": "boolean",
+            "description": "false when the restaurant is no longer visible to customers (suspended, under review, market paused): the favorite is kept, only the name is shown"
+          },
+          "restaurant": {
+            "$ref": "#/components/schemas/PublicRestaurantOrNull"
+          }
+        },
+        "description": "A favorite restaurant location of the customer, with the restaurant exactly as GET /restaurants shows it (availability included) when it is visible"
+      },
+      "FavoriteRestaurantPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteRestaurant"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        },
+        "description": "Newest first"
+      },
+      "FavoriteAdded": {
+        "type": "object",
+        "required": [
+          "data",
+          "added"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FavoriteRestaurant"
+          },
+          "added": {
+            "type": "boolean",
+            "description": "true when this call created the favorite (201), false when it already existed (200)"
+          }
+        }
+      },
+      "SavedLocationCoverage": {
+        "type": "object",
+        "required": [
+          "status",
+          "reason",
+          "market",
+          "city",
+          "service_area"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "supported",
+              "unsupported",
+              "unknown"
+            ],
+            "description": "supported: FoodOnTheGo serves this place right now; unsupported: a known place we do not serve (yet); unknown: no coordinates were saved"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "NO_COORDINATES",
+              "MARKET_UNSUPPORTED",
+              "MARKET_PAUSED",
+              "REGION_UNAVAILABLE",
+              "CITY_UNAVAILABLE",
+              "SERVICE_AREA_PAUSED",
+              "OUTSIDE_SERVICE_AREA",
+              null
+            ]
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 3166-1 alpha-2 when the place lies in a market we know"
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "service_area": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Decided per request from the geometry and the current market, region, city and service-area statuses — never from what was stored. A place abroad is saved and reported unsupported; saving it never activates a market."
+      },
+      "SavedLocation": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "address",
+          "location",
+          "place",
+          "timezone",
+          "is_default",
+          "coverage",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "HOME",
+              "WORK",
+              "OTHER"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "address": {
+            "type": "object",
+            "required": [
+              "line1",
+              "line2",
+              "locality",
+              "city",
+              "region",
+              "postal_code",
+              "country_code",
+              "formatted"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "line1": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "line2": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "locality": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "city": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "region": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "postal_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "country_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "formatted": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "Flexible, international; any field may be empty"
+          },
+          "location": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "latitude",
+              "longitude"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              }
+            }
+          },
+          "place": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "provider",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_default": {
+            "type": "boolean"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/SavedLocationCoverage"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A journey origin / destination shortcut of the customer (Home, Work, …). Not a delivery address: FoodOnTheGo is pickup along a journey."
+      },
+      "SavedLocationList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SavedLocation"
+        },
+        "description": "Default first, then oldest first"
+      },
+      "SavedLocationCreate": {
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "HOME",
+              "WORK",
+              "OTHER"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Plain text, any script"
+          },
+          "line1": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "line2": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "locality": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 20
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "formatted_address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "place_provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 32
+          },
+          "place_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "lat": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90,
+            "description": "With lng. The backend resolves market, city and service area itself; a client never sends them."
+          },
+          "lng": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IANA name; derived from the market when omitted and resolvable"
+          },
+          "is_default": {
+            "type": "boolean"
+          }
+        },
+        "description": "label plus a formatted address or coordinates. The first saved location becomes the default. customer_id, market_id, city_id, service_area_id and id are refused with 422. At most the configured limit (20) per customer."
+      },
+      "SavedLocationUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "HOME",
+              "WORK",
+              "OTHER"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Plain text, any script"
+          },
+          "line1": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "line2": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "locality": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 20
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "formatted_address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "place_provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 32
+          },
+          "place_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "lat": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90,
+            "description": "With lng. The backend resolves market, city and service area itself; a client never sends them."
+          },
+          "lng": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IANA name; derived from the market when omitted and resolvable"
+          },
+          "is_default": {
+            "type": "boolean"
+          },
+          "location": {
+            "type": "null",
+            "description": "Send null to remove the coordinates (coverage becomes unknown); send lat + lng to move the point"
+          }
+        }
+      },
+      "RecentLocation": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "formatted_address",
+          "location",
+          "place",
+          "country_code",
+          "timezone",
+          "times_used",
+          "last_used_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "formatted_address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "latitude",
+              "longitude"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              }
+            }
+          },
+          "place": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "provider",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "times_used": {
+            "type": "integer"
+          },
+          "last_used_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A place the customer explicitly chose recently. Bounded to the newest 10, deduplicated by place id or rounded coordinates, clearable at any time, pruned after 90 days. Never a movement history."
+      },
+      "RecentLocationList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/RecentLocation"
+        },
+        "description": "Most recently used first"
+      },
+      "RecentLocationRecord": {
+        "type": "object",
+        "required": [
+          "label",
+          "lat",
+          "lng"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "formatted_address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "place_provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 32
+          },
+          "place_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "locality": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 20
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Recorded when the customer picks a place for a journey (clients wire this in Module 26). The same place again only bumps times_used."
+      },
+      "PaymentMethodSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "provider",
+          "brand",
+          "display_label",
+          "last4",
+          "expiry",
+          "upi_handle_masked",
+          "is_default",
+          "status",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CARD",
+              "UPI",
+              "WALLET",
+              "NET_BANKING",
+              "OTHER"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "description": "The payment provider that holds the real instrument (\"development\" for local fixtures)"
+          },
+          "brand": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_label": {
+            "type": "string"
+          },
+          "last4": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expiry": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "month",
+              "year"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "month": {
+                "type": "integer"
+              },
+              "year": {
+                "type": "integer"
+              }
+            }
+          },
+          "upi_handle_masked": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_default": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "REVOKED",
+              "UNAVAILABLE"
+            ],
+            "description": "EXPIRED is computed from the expiry at read time; REVOKED methods are not listed"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "Safe metadata only. FoodOnTheGo never stores or returns a card number, CVV, UPI PIN, bank credential or the provider token; the provider reference stays encrypted on the server. Methods are added through the payment provider (Module 30) — there is no endpoint that accepts payment details."
+      },
+      "PaymentMethodList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PaymentMethodSummary"
+        },
+        "description": "Default first"
+      },
+      "NotificationChannelChoice": {
+        "type": "object",
+        "required": [
+          "channel",
+          "enabled",
+          "locked",
+          "chosen"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PUSH",
+              "SMS",
+              "EMAIL",
+              "IN_APP"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "locked": {
+            "type": "boolean",
+            "description": "true: this channel cannot be switched off (account-security notices)"
+          },
+          "chosen": {
+            "type": "boolean",
+            "description": "true when the customer set this cell explicitly; false when it follows the platform default"
+          }
+        }
+      },
+      "NotificationCategoryPreferences": {
+        "type": "object",
+        "required": [
+          "category",
+          "name",
+          "description",
+          "transactional",
+          "channels"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "ORDER_UPDATES",
+              "PICKUP_UPDATES",
+              "PAYMENT_UPDATES",
+              "ACCOUNT_SECURITY",
+              "PROMOTIONS",
+              "PRODUCT_UPDATES"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "transactional": {
+            "type": "boolean",
+            "description": "true: notices about the customer's own orders, pickups, payments and account; false: marketing, off until the customer opts in"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationChannelChoice"
+            }
+          }
+        }
+      },
+      "NotificationPreferences": {
+        "type": "object",
+        "required": [
+          "categories",
+          "channels",
+          "marketing_consent"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationCategoryPreferences"
+            }
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PUSH",
+                "SMS",
+                "EMAIL",
+                "IN_APP"
+              ]
+            }
+          },
+          "marketing_consent": {
+            "type": "object",
+            "required": [
+              "granted_at",
+              "withdrawn_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "granted_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "withdrawn_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "When any PROMOTIONS channel was first switched on / last switched off"
+          }
+        },
+        "description": "The category × channel matrix. Delivery itself is a later module; this is what the customer chose."
+      },
+      "NotificationPreferencesUpdate": {
+        "type": "object",
+        "required": [
+          "preferences"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "preferences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "category",
+                "channel",
+                "enabled"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "ORDER_UPDATES",
+                    "PICKUP_UPDATES",
+                    "PAYMENT_UPDATES",
+                    "ACCOUNT_SECURITY",
+                    "PROMOTIONS",
+                    "PRODUCT_UPDATES"
+                  ]
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "PUSH",
+                    "SMS",
+                    "EMAIL",
+                    "IN_APP"
+                  ]
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "1–48 cells; cells not sent keep their value"
+          }
+        },
+        "description": "Switching a locked security channel off is refused with 422."
+      },
+      "ReauthRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "channel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "sms",
+              "whatsapp",
+              null
+            ]
+          }
+        },
+        "description": "Sends a code to the account's own verified phone. Needed before a sensitive action when the session is older than 30 minutes."
+      },
+      "ReauthChallenge": {
+        "type": "object",
+        "required": [
+          "challenge_id",
+          "phone_masked",
+          "expires_at",
+          "resend_available_at",
+          "attempts_allowed",
+          "server_time",
+          "delivery",
+          "channel",
+          "resend_channel",
+          "channels",
+          "purpose"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "challenge_id": {
+            "type": "string"
+          },
+          "phone_masked": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "resend_available_at": {
+            "type": "string",
+            "description": "Server decides; the client countdown is decoration"
+          },
+          "attempts_allowed": {
+            "type": "integer"
+          },
+          "server_time": {
+            "type": "string"
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "live",
+              "development"
+            ],
+            "description": "live = a real message was sent on `channel`; development = local / testing, nothing was sent. The code itself is never returned"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Channel that carried this code"
+          },
+          "resend_channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Channel a resend would start with"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sms",
+                "whatsapp"
+              ]
+            }
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "reauth"
+            ]
+          }
+        },
+        "description": "Same shape as the sign-in challenge; the code is never returned"
+      },
+      "OtpCodeVerify": {
+        "type": "object",
+        "required": [
+          "challenge_id",
+          "code"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "challenge_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 10
+          }
+        }
+      },
+      "ReauthResult": {
+        "type": "object",
+        "required": [
+          "reauthenticated",
+          "valid_until"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reauthenticated": {
+            "type": "boolean"
+          },
+          "valid_until": {
+            "type": "string",
+            "description": "Until when sensitive actions on this session need no new code"
+          }
+        }
+      },
+      "DeletionRequest": {
+        "type": "object",
+        "required": [
+          "confirm"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be true"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          }
+        },
+        "description": "Requires recent authentication (403 reauthentication_required otherwise). Records the request and restricts the account; nothing is deleted. Erasure follows the retention and legal rules, which are PENDING FINAL BUSINESS & LEGAL APPROVAL."
+      },
+      "DeletionRequested": {
+        "type": "object",
+        "required": [
+          "data",
+          "deletion"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CustomerProfile"
+          },
+          "deletion": {
+            "type": "object",
+            "required": [
+              "status",
+              "account_status",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "requested"
+                ]
+              },
+              "account_status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "RESTRICTED",
+                  "SUSPENDED",
+                  "DEACTIVATED"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "PhoneChangeRequest": {
+        "type": "object",
+        "required": [
+          "phone"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "phone": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "The new number, national or E.164; parsed for the customer's market unless country is given"
+          },
+          "country": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "channel": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "sms",
+              "whatsapp",
+              null
+            ]
+          }
+        },
+        "description": "Requires recent authentication. The code goes to the NEW number. 409 phone_in_use when another account has it; 422 when it is the current number or invalid."
+      },
+      "PhoneChangeChallenge": {
+        "type": "object",
+        "required": [
+          "challenge_id",
+          "phone_masked",
+          "expires_at",
+          "resend_available_at",
+          "attempts_allowed",
+          "server_time",
+          "delivery",
+          "channel",
+          "resend_channel",
+          "channels",
+          "purpose",
+          "change_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "challenge_id": {
+            "type": "string"
+          },
+          "phone_masked": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "resend_available_at": {
+            "type": "string",
+            "description": "Server decides; the client countdown is decoration"
+          },
+          "attempts_allowed": {
+            "type": "integer"
+          },
+          "server_time": {
+            "type": "string"
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "live",
+              "development"
+            ],
+            "description": "live = a real message was sent on `channel`; development = local / testing, nothing was sent. The code itself is never returned"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Channel that carried this code"
+          },
+          "resend_channel": {
+            "type": "string",
+            "enum": [
+              "sms",
+              "whatsapp"
+            ],
+            "description": "Channel a resend would start with"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sms",
+                "whatsapp"
+              ]
+            }
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "phone_change"
+            ]
+          },
+          "change_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          }
+        },
+        "description": "Same shape as the sign-in challenge, for the new number"
       }
     }
   }

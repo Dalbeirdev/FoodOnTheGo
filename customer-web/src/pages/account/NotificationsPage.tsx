@@ -4,7 +4,7 @@ import Header from '../../components/Header'
 import AccountSidebar from '../../components/AccountSidebar'
 import { EmptyState, ErrorState, LoadingState } from '../../components/AccountStates'
 import { useToast } from '../../components/Toast'
-import { useAccount, type Notification, type NotificationKind, type NotificationPreferences } from '../../account/AccountContext'
+import { useAccount, type Notification, type NotificationChannel, type NotificationKind, type NotificationMatrix, type NotificationPreferences } from '../../account/AccountContext'
 import './AccountPage.css'
 import './NotificationsPage.css'
 
@@ -20,7 +20,8 @@ const ICON: Record<Notification['icon'], (p: P) => ReactElement> = {
 }
 const TONE: Record<Notification['icon'], string> = { bag: 'green', tag: 'red', bell: 'orange', store: 'blue', percent: 'orange', user: 'green' }
 const TABS: Array<{ id: 'all' | NotificationKind; label: string }> = [{ id: 'all', label: 'All' }, { id: 'orders', label: 'Orders' }, { id: 'offers', label: 'Offers' }, { id: 'updates', label: 'Updates' }]
-const PREFS: Array<{ key: keyof NotificationPreferences; label: string; sub: string; provider: string }> = [
+/** The Module 04 switches (development data). In API mode the backend's category × channel matrix replaces them. */
+const PREFS: Array<{ key: keyof Omit<NotificationPreferences, 'matrix'>; label: string; sub: string; provider: string }> = [
   { key: 'push', label: 'Push notifications', sub: 'Alerts on this device', provider: 'Firebase FCM = NOT STARTED' },
   { key: 'orderUpdates', label: 'Order updates', sub: 'Confirmed, being prepared, ready for pickup', provider: '' },
   { key: 'paymentUpdates', label: 'Payment & refund updates', sub: 'Payment confirmations and refunds', provider: '' },
@@ -28,6 +29,7 @@ const PREFS: Array<{ key: keyof NotificationPreferences; label: string; sub: str
   { key: 'email', label: 'Email notifications', sub: 'Receipts and important account emails', provider: 'Email provider = NOT STARTED' },
   { key: 'sms', label: 'SMS notifications', sub: 'Pickup codes and urgent updates', provider: 'SMS provider = NOT STARTED' },
 ]
+const CHANNEL_LABEL: Record<NotificationChannel, string> = { PUSH: 'Push', SMS: 'SMS', EMAIL: 'Email', IN_APP: 'In app' }
 
 const ago = (iso: string) => {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000)
@@ -37,21 +39,66 @@ const ago = (iso: string) => {
   const dd = Math.round(h / 24)
   return `${dd} day${dd === 1 ? '' : 's'} ago`
 }
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+
+/** The backend's matrix: one switch per category and channel; locked cells (security notices) cannot be switched off. */
+function PreferenceMatrix({ matrix, saving, onToggle }: { matrix: NotificationMatrix; saving: string | null; onToggle: (category: string, channel: NotificationChannel, enabled: boolean) => void }) {
+  const marketing = matrix.categories.filter((c) => !c.transactional)
+  const transactional = matrix.categories.filter((c) => c.transactional)
+  const rows = (list: NotificationMatrix['categories']) => list.map((c) => (
+    <tr key={c.category}>
+      <th scope="row"><b>{c.name}</b><small>{c.description}</small></th>
+      {matrix.channels.map((channel) => {
+        const cell = c.channels.find((x) => x.channel === channel)
+        if (!cell) return <td key={channel} />
+        const key = `${c.category}.${channel}`
+        return (
+          <td key={channel}>
+            <label className="pf-toggle nt-toggle"><input type="checkbox" checked={cell.enabled} disabled={cell.locked || saving === key} onChange={(e) => onToggle(c.category, channel, e.target.checked)} aria-label={`${c.name} by ${CHANNEL_LABEL[channel]}`} /><i aria-hidden="true" /></label>
+            {cell.locked && <small>Always on</small>}
+          </td>
+        )
+      })}
+    </tr>
+  ))
+  return (
+    <div className="nt-matrix-wrap">
+      <table className="nt-matrix">
+        <thead><tr><th scope="col">Notices about your account</th>{matrix.channels.map((ch) => <th key={ch} scope="col">{CHANNEL_LABEL[ch]}</th>)}</tr></thead>
+        <tbody>{rows(transactional)}</tbody>
+        <thead><tr><th scope="col">Offers and news — only with your consent</th>{matrix.channels.map((ch) => <th key={`m-${ch}`} scope="col">{CHANNEL_LABEL[ch]}</th>)}</tr></thead>
+        <tbody>{rows(marketing)}</tbody>
+      </table>
+      <p className="ac-note">
+        Security notices stay on by SMS and in the app — they protect your account and cannot be switched off.
+        {matrix.marketingConsent.grantedAt && !matrix.marketingConsent.withdrawnAt && <> Marketing consent given on {fmtDate(matrix.marketingConsent.grantedAt)}.</>}
+        {matrix.marketingConsent.withdrawnAt && <> Marketing consent withdrawn on {fmtDate(matrix.marketingConsent.withdrawnAt)}.</>}
+        {!matrix.marketingConsent.grantedAt && <> Offers are off until you switch one on.</>}
+      </p>
+    </div>
+  )
+}
 
 export default function NotificationsPage() {
-  const { notifications, unreadCount, markRead, markAllRead, notificationPrefs, updateNotificationPrefs } = useAccount()
+  const { notifications, notificationsAreDevelopmentData, unreadCount, markRead, markAllRead, notificationPrefs, updateNotificationPrefs } = useAccount()
   const toast = useToast()
   const [tab, setTab] = useState<'all' | NotificationKind>('all')
   const [showPrefs, setShowPrefs] = useState(false)
   const [busyAll, setBusyAll] = useState(false)
   const [savingPref, setSavingPref] = useState<string | null>(null)
   const visible = notifications.data.filter((n) => tab === 'all' || n.kind === tab)
+  const matrix = notificationPrefs.data?.matrix
 
   const read = (id: string) => markRead(id).catch(() => toast.error('Could not update the notification'))
   const allRead = async () => { setBusyAll(true); try { await markAllRead(); toast.success('All notifications marked as read') } catch { toast.error('Could not mark all as read') } finally { setBusyAll(false) } }
-  const togglePref = async (key: keyof NotificationPreferences, value: boolean) => {
+  const togglePref = async (key: keyof Omit<NotificationPreferences, 'matrix'>, value: boolean) => {
     setSavingPref(key)
     try { await updateNotificationPrefs({ [key]: value }); toast.success('Preference saved') } catch { toast.error('Could not save the preference') } finally { setSavingPref(null) }
+  }
+  const toggleCell = async (category: string, channel: NotificationChannel, enabled: boolean) => {
+    const key = `${category}.${channel}`
+    setSavingPref(key)
+    try { await updateNotificationPrefs({ cells: [{ category, channel, enabled }] }); toast.success('Preference saved') } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not save the preference') } finally { setSavingPref(null) }
   }
 
   return (
@@ -74,7 +121,8 @@ export default function NotificationsPage() {
                 <h2>Notification preferences</h2>
                 {notificationPrefs.status === 'error' && <ErrorState message={notificationPrefs.error ?? 'Failed to load preferences.'} onRetry={notificationPrefs.reload} />}
                 {notificationPrefs.status !== 'error' && !notificationPrefs.data && <LoadingState label="Loading preferences" rows={2} />}
-                {notificationPrefs.data && (
+                {notificationPrefs.data && matrix && <PreferenceMatrix matrix={matrix} saving={savingPref} onToggle={toggleCell} />}
+                {notificationPrefs.data && !matrix && (
                   <ul className="nt-prefs__list">
                     {PREFS.map((p) => (
                       <li key={p.key}>
@@ -84,9 +132,11 @@ export default function NotificationsPage() {
                     ))}
                   </ul>
                 )}
-                <p className="ac-note">Delivery of push, SMS and email is connected in later modules; your choices are saved now.</p>
+                <p className="ac-note">{matrix ? 'Your choices are saved on your account now. Sending push, SMS and e-mail is connected in later modules (push tokens, SMS and e-mail providers = NOT STARTED).' : 'Delivery of push, SMS and email is connected in later modules; your choices are saved now.'}</p>
               </section>
             )}
+
+            {notificationsAreDevelopmentData && <p className="ac-note ac-note--info">The notification list below is development data: notifications are delivered by a later module. Your preferences above are real.</p>}
 
             <div className="nt-tabs" role="tablist">
               {TABS.map((t) => {

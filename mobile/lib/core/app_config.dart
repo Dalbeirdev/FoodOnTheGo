@@ -23,7 +23,7 @@ class AppConfig {
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 28;
+  static const int buildNumber = 29;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -35,6 +35,7 @@ class AppConfig {
         'Authentication': authMode == 'api' ? 'Backend (phone + OTP)' : 'Development mock',
         'Market data': marketMode == 'api' ? 'Backend (PostGIS coverage)' : 'Development fixtures',
         'Restaurants': restaurantMode == 'api' ? 'Backend, menus included (orders and reviews still development data)' : 'Development fixtures',
+        'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',
         'App version': '$appVersion (build $buildNumber)',
         'Build label': buildLabel,
         'Git commit': gitCommit,

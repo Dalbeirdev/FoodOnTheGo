@@ -1,0 +1,55 @@
+{
+  "module": "M25",
+  "date": "2026-10-03T10:09:09.175Z",
+  "base": "http://localhost:5174/#/",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "passed": 9,
+  "total": 9,
+  "results": [
+    {
+      "name": "F0 the app signs Rahul in through the real OTP API (request → verify with the development code)",
+      "pass": true,
+      "detail": "[{\"method\":\"POST\",\"url\":\"/auth/customer/otp/request\",\"status\":200,\"auth\":false},{\"method\":\"POST\",\"url\":\"/auth/customer/otp/verify\",\"status\":200,\"auth\":false}]"
+    },
+    {
+      "name": "F1 My Profile loads the backend profile (GET /customer/profile 200 with the token): Rahul Sharma, +919876543210 verified, e-mail, status Active",
+      "pass": true,
+      "detail": "{\"had\":true,\"name\":true,\"phone\":true,\"active\":true,\"len\":1750,\"calls\":[\"GET /customer/profile 200\",\"GET /customer/favorites?page[size]=50&page[number]=1 200\",\"GET /customer/saved-locations 200\",\"GET /customer/payment-methods 200\",\"GET /customer/notification-preferences 200\",\"GET /customer/profile 20"
+    },
+    {
+      "name": "F2 the language choice is the market's (English (India)) and the cuisine chips are the platform taxonomy names (North Indian, Burgers, Healthy …)",
+      "pass": true,
+      "detail": "My Profile | Cart | My Profile\nManage your personal information and preferences. | RS\nRahul Sharma\nrahul.sharma@example.com | Favorite Restaurants | Saved Addresses | Payment Methods | Notifications\n1"
+    },
+    {
+      "name": "F3 Favorites come from GET /customer/favorites (200): the backend restaurants, and the hidden Expressway Grill shown as \"Unavailable\" with its favorite kept",
+      "pass": true,
+      "detail": "Favorite Restaurants | Cart | MY ACCOUNT\nFavorite Restaurants\nYour saved restaurants for quick access | Expressway Grill\nUnavailable\nThis restaurant is currently not available on FoodOnTheGo. Your fav"
+    },
+    {
+      "name": "F4 Saved Addresses come from GET /customer/saved-locations (200) with the coverage pills the backend decided: \"Served · Noida\", \"Not served here yet\", \"Outside our markets\", \"No map pin yet\"",
+      "pass": true,
+      "detail": "Saved Addresses | Add address | Cart | MY ACCOUNT\nSaved Addresses\nYour journey start and destination shortcuts | Saved places make planning a journey faster. FoodOnTheGo is pickup-only — these are not delivery addresses. Each place shows whether FoodOnTheGo se"
+    },
+    {
+      "name": "F4b journey wording, no delivery wording",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F5 Payment Methods come from GET /customer/payment-methods (200): Visa 4242 default (expires 12/28), UPI ra***@okaxis, Mastercard 4444 \"Expired\"; no card number, no cash promise",
+      "pass": true,
+      "detail": "Payment Methods | Add payment method | Cart | MY ACCOUNT\nPayment Methods\nManage your saved payment methods | Cards and UPI are tokenised by the payment provider. This app keeps only the brand, last four digits and a mask"
+    },
+    {
+      "name": "F6 Notification preferences are the backend matrix (GET /customer/notification-preferences 200): categories × channels, \"Always on\" on the locked security channels (disabled switch), the consent section, the inbox labelled development data",
+      "pass": true,
+      "detail": "{\"label\":\"Account & security by SMS\",\"disabled\":\"true\",\"checked\":\"true\",\"role\":\"switch\"} Notifications | Notification preferences | Cart | MY ACCOUNT\nNotifications\nStay updated with your orders, offers and more | The notification list is development"
+    },
+    {
+      "name": "F7 Build Info names the account source: \"Backend (profile, favorites, saved places, payment references, notification preferences)\"",
+      "pass": true,
+      "detail": "Account\nBackend (profile, favorites, saved places, payment references, notification preferences)\nApp version\n0.1.0 (build 29)\nBuild label\nweb-preview\nGit commit\nno-git | API health\nUNKNOWN\nNot checked yet "
+    }
+  ]
+}

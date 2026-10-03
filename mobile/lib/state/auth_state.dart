@@ -128,6 +128,18 @@ class AuthState extends ChangeNotifier {
     return user!;
   }
 
+  /// Re-reads the signed-in customer (name, e-mail, phone) after the profile changed on the backend — silently,
+  /// without touching the loading state the router watches.
+  Future<void> refreshUser() async {
+    try {
+      final u = await _repo.refreshSession();
+      if (u != null) {
+        user = u;
+        notifyListeners();
+      }
+    } catch (_) {/* the next restore() decides */}
+  }
+
   Future<void> logout() async {
     await _repo.logout();
     user = null;

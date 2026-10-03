@@ -3,7 +3,8 @@ import Header from '../../components/Header'
 import AccountSidebar from '../../components/AccountSidebar'
 import { ConfirmDialog, EmptyState, ErrorState, LoadingState } from '../../components/AccountStates'
 import { useToast } from '../../components/Toast'
-import { useAccount, type Address, type AddressInput, type AddressKind } from '../../account/AccountContext'
+import { useAccount, type Address, type AddressInput, type AddressKind, type Coverage } from '../../account/AccountContext'
+import { useProfile } from '../../profile/ProfileContext'
 import './AccountPage.css'
 import './AddressesPage.css'
 
@@ -24,13 +25,25 @@ export function validateAddress(a: AddressInput): Record<string, string> {
   if (!a.line1.trim()) err.line1 = 'Enter the address'
   if (!a.locality.trim()) err.locality = 'Enter the area or locality'
   if (!a.city.trim()) err.city = 'Enter the city'
-  if (!/^\d{6}$/.test(a.pincode)) err.pincode = 'Enter a 6-digit PIN code'
+  if ((a.countryCode ?? 'IN') === 'IN' && !/^\d{6}$/.test(a.pincode)) err.pincode = 'Enter a 6-digit PIN code'
+  if ((a.lat === null) !== (a.lng === null)) err.coords = 'Enter both latitude and longitude, or neither'
+  if (a.lat !== null && (a.lat < -90 || a.lat > 90)) err.coords = 'Latitude must be between -90 and 90'
+  if (a.lng !== null && (a.lng < -180 || a.lng > 180)) err.coords = 'Longitude must be between -180 and 180'
   return err
+}
+
+/** What the backend says about serving this place right now (API mode); the development data has no coverage. */
+export function CoverageBadge({ coverage }: { coverage: Coverage | null | undefined }) {
+  if (!coverage) return null
+  if (coverage.status === 'supported') return <span className="cov cov--ok" title={coverage.serviceArea ?? undefined}>Served{coverage.city ? ` · ${coverage.city}` : ''}</span>
+  if (coverage.status === 'unsupported') return <span className="cov cov--no">{coverage.reason === 'MARKET_UNSUPPORTED' ? 'Outside our markets' : 'Not served here yet'}</span>
+  return <span className="cov cov--unknown">No map pin yet</span>
 }
 
 /** Saved journey locations (start / destination shortcuts). FoodOnTheGo is pickup-only: these are not delivery addresses. */
 export default function AddressesPage() {
   const { addresses, setDefaultAddress, saveAddress, removeAddress } = useAccount()
+  const { live } = useProfile()
   const toast = useToast()
   const [editing, setEditing] = useState<AddressInput | null>(null)
   const [pristine, setPristine] = useState<string>('')
@@ -49,13 +62,14 @@ export default function AddressesPage() {
   }, [dirty])
 
   const openForm = (a?: Address) => {
-    const value: AddressInput = a ? { id: a.id, label: a.label, kind: a.kind, line1: a.line1, line2: a.line2, locality: a.locality, city: a.city, state: a.state, pincode: a.pincode, lat: a.lat, lng: a.lng } : { ...EMPTY }
+    const value: AddressInput = a ? { id: a.id, label: a.label, kind: a.kind, line1: a.line1, line2: a.line2, locality: a.locality, city: a.city, state: a.state, pincode: a.pincode, lat: a.lat, lng: a.lng, countryCode: a.countryCode, version: a.version } : { ...EMPTY }
     setEditing(value); setPristine(JSON.stringify(value)); setErrors({})
   }
   const cancel = () => {
     if (dirty && !window.confirm('Discard your unsaved changes?')) return
     setEditing(null)
   }
+  const number = (v: string) => (v.trim() === '' ? null : Number(v))
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     if (!editing) return
@@ -69,6 +83,7 @@ export default function AddressesPage() {
       setEditing(null)
     } catch (e2) {
       setErrors({ form: e2 instanceof Error ? e2.message : 'Could not save the address. Please try again.' })
+      if (e2 instanceof Error && 'code' in e2 && (e2 as { code?: string | null }).code === 'stale_update') void addresses.reload()
     } finally {
       setSaving(false)
     }
@@ -79,7 +94,7 @@ export default function AddressesPage() {
     try { await removeAddress(deleting.id); toast.success(`${deleting.label} deleted`); setDeleting(null) } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not delete the address') } finally { setBusyDelete(false) }
   }
 
-  const fmt = (a: Address) => [a.line1, a.line2, a.locality, `${a.city}, ${a.state} ${a.pincode}`].filter(Boolean).join(', ')
+  const fmt = (a: Address) => a.formatted || [a.line1, a.line2, a.locality, `${a.city}${a.city && a.state ? ', ' : ''}${a.state} ${a.pincode}`.trim()].filter(Boolean).join(', ')
 
   return (
     <>
@@ -92,7 +107,7 @@ export default function AddressesPage() {
               <div><h1>Saved Addresses</h1><p>Your journey start and destination shortcuts</p></div>
               <button type="button" className="btn btn--primary" onClick={() => openForm()}><PlusIcon /> Add New Address</button>
             </div>
-            <p className="ac-note ac-note--info">Saved places make planning a journey faster. FoodOnTheGo is pickup-only — these are not delivery addresses.</p>
+            <p className="ac-note ac-note--info">Saved places make planning a journey faster. FoodOnTheGo is pickup-only — these are not delivery addresses.{live && ' Each place shows whether FoodOnTheGo serves it right now; a place outside our markets can still be saved for a journey.'}</p>
 
             {addresses.status === 'loading' || addresses.status === 'idle' ? <LoadingState label="Loading your addresses" /> : null}
             {addresses.status === 'error' && <ErrorState message={addresses.error ?? 'Failed to load addresses.'} onRetry={addresses.reload} />}
@@ -108,7 +123,7 @@ export default function AddressesPage() {
                       <label className="addr__radio"><input type="radio" name="default-address" checked={a.isDefault} onChange={() => setDefaultAddress(a.id).catch(() => toast.error('Could not update the default'))} aria-label={`Use ${a.label} as the default start location`} /><i aria-hidden="true" /></label>
                       <span className="addr__icon"><Icon /></span>
                       <div className="addr__body">
-                        <h2>{a.label} {a.isDefault && <span className="addr__tag">Default start</span>}</h2>
+                        <h2>{a.label} {a.isDefault && <span className="addr__tag">Default start</span>}<CoverageBadge coverage={a.coverage} /></h2>
                         <p>{fmt(a)}</p>
                         <div className="addr__actions">
                           <button type="button" className="ac-link-btn" onClick={() => openForm(a)}>Edit</button>
@@ -128,7 +143,7 @@ export default function AddressesPage() {
             <form className="ac-modal__box" onSubmit={submit} noValidate aria-busy={saving}>
               <h2 id="addr-form-title">{editing.id ? 'Edit Address' : 'Add New Address'}</h2>
               <div className="ac-fields">
-                <label>Label<input value={editing.label} placeholder="Home, Work, Parents…" onChange={(e) => setEditing({ ...editing, label: e.target.value })} aria-invalid={!!errors.label} />{errors.label && <em role="alert">{errors.label}</em>}</label>
+                <label>Label<input value={editing.label} placeholder="Home, Work, Parents…" maxLength={40} onChange={(e) => setEditing({ ...editing, label: e.target.value })} aria-invalid={!!errors.label} />{errors.label && <em role="alert">{errors.label}</em>}</label>
                 <label>Type<select value={editing.kind} onChange={(e) => setEditing({ ...editing, kind: e.target.value as AddressKind })}><option value="home">Home</option><option value="work">Work</option><option value="other">Other</option></select></label>
                 <label className="span2">Address line 1<input value={editing.line1} placeholder="Flat / house, building, street" onChange={(e) => setEditing({ ...editing, line1: e.target.value })} aria-invalid={!!errors.line1} />{errors.line1 && <em role="alert">{errors.line1}</em>}</label>
                 <label className="span2">Address line 2 (optional)<input value={editing.line2} placeholder="Landmark" onChange={(e) => setEditing({ ...editing, line2: e.target.value })} /></label>
@@ -136,8 +151,10 @@ export default function AddressesPage() {
                 <label>City<input value={editing.city} onChange={(e) => setEditing({ ...editing, city: e.target.value })} aria-invalid={!!errors.city} />{errors.city && <em role="alert">{errors.city}</em>}</label>
                 <label>State<select value={editing.state} onChange={(e) => setEditing({ ...editing, state: e.target.value })}>{STATES.map((s) => <option key={s}>{s}</option>)}</select></label>
                 <label>PIN code<input value={editing.pincode} inputMode="numeric" maxLength={6} onChange={(e) => setEditing({ ...editing, pincode: e.target.value.replace(/\D/g, '') })} aria-invalid={!!errors.pincode} />{errors.pincode && <em role="alert">{errors.pincode}</em>}</label>
+                <label>Latitude (optional)<input type="number" step="any" inputMode="decimal" value={editing.lat ?? ''} placeholder="28.6271" onChange={(e) => setEditing({ ...editing, lat: number(e.target.value) })} aria-invalid={!!errors.coords} /></label>
+                <label>Longitude (optional)<input type="number" step="any" inputMode="decimal" value={editing.lng ?? ''} placeholder="77.3717" onChange={(e) => setEditing({ ...editing, lng: number(e.target.value) })} aria-invalid={!!errors.coords} />{errors.coords && <em role="alert">{errors.coords}</em>}</label>
               </div>
-              <p className="ac-note" style={{ marginTop: 12 }}>Map search and pin-drop arrive with the Maps &amp; Places module. Coordinates are stored internally once geocoding exists.</p>
+              <p className="ac-note" style={{ marginTop: 12 }}>Map search and pin-drop arrive with the Maps &amp; Places module. Until then you can paste coordinates from your maps app; with a pin, {live ? 'the backend tells you whether the place is served.' : 'coverage is shown once the backend is connected.'}</p>
               {errors.form && <p className="ac-note" role="alert" style={{ marginTop: 10, color: '#9a1d17', background: '#fdecec', borderColor: '#f5c2c0' }}>{errors.form}</p>}
               <div className="ac-modal__actions">
                 <button type="button" className="btn btn--outline" onClick={cancel} disabled={saving}>Cancel</button>

@@ -1,65 +1,151 @@
 import 'dart:convert';
 
 import '../auth/auth_repository.dart' show KeyValueStore;
+import '../discovery/restaurant_models.dart' show GlobalRestaurant;
 
-/// Customer account repositories (Module 04, frontend-first). Screens only see the
-/// interfaces; Mock* implementations persist per customer in the injected store.
+/// Customer account repositories (Module 04 UI, Module 25 backend). Screens only see the interfaces;
+/// Mock* implementations persist development data per customer in the injected store, Api* implementations
+/// (api_account.dart) talk to the backend. Which one runs follows the sign-in mode (AUTH_MODE).
 class RepositoryException implements Exception {
-  RepositoryException(this.resource, this.message);
+  RepositoryException(this.resource, this.message, {this.code, this.fields = const {}});
   final String resource, message;
+
+  /// Stable backend code when there is one (reauthentication_required, phone_in_use, stale_update, …).
+  final String? code;
+
+  /// First message per field of a refused request.
+  final Map<String, String> fields;
   @override
   String toString() => message;
 }
 
+class Option {
+  const Option(this.code, this.name);
+  final String code, name;
+}
+
 class CustomerProfile {
-  const CustomerProfile({required this.id, required this.name, required this.phone, required this.email, this.avatarPath, required this.dob, required this.gender, required this.language, required this.cuisines, required this.vegetarian, required this.searchRadiusKm, required this.memberSince, this.emailVerified = false, this.deletionRequestedAt});
+  const CustomerProfile({
+    required this.id, required this.name, required this.phone, required this.email, this.avatarPath, required this.dob, required this.gender, required this.language,
+    required this.cuisines, required this.vegetarian, required this.searchRadiusKm, required this.memberSince, this.emailVerified = false, this.deletionRequestedAt,
+    this.displayName, this.phoneMasked, this.localeOptions = const [], this.cuisineOptions = const [], this.status = 'active', this.version,
+  });
   final String id, name, phone, email, dob, gender, language, memberSince;
-  final String? avatarPath, deletionRequestedAt;
+
+  /// Mock: a local file path. API: the photo URL served by the backend.
+  final String? avatarPath, deletionRequestedAt, displayName, phoneMasked;
+
+  /// Mock: cuisine names. API: cuisine codes of the taxonomy; [cuisineOptions] carries code → name.
   final List<String> cuisines;
+  final List<Option> localeOptions, cuisineOptions;
   final bool vegetarian, emailVerified;
   final int searchRadiusKm;
+
+  /// active | restricted | suspended | deactivated
+  final String status;
+
+  /// API: optimistic-concurrency version sent back with edits.
+  final int? version;
   bool get phoneVerified => true;
-  String get initials => name.trim().split(RegExp(r'\s+')).map((p) => p.isEmpty ? '' : p[0]).take(2).join().toUpperCase();
+  String get shownName => name.trim().isNotEmpty ? name : (displayName ?? phone);
+  String get initials => shownName.trim().split(RegExp(r'\s+')).map((p) => p.isEmpty ? '' : p[0]).take(2).join().toUpperCase();
+  String cuisineName(String code) => cuisineOptions.where((o) => o.code == code).firstOrNull?.name ?? code;
 
-  CustomerProfile copyWith({String? name, String? email, String? avatarPath, bool clearAvatar = false, String? dob, String? gender, String? language, List<String>? cuisines, bool? vegetarian, int? searchRadiusKm, bool? emailVerified, String? deletionRequestedAt}) => CustomerProfile(
+  CustomerProfile copyWith({String? name, String? email, String? avatarPath, bool clearAvatar = false, String? dob, String? gender, String? language, List<String>? cuisines, bool? vegetarian, int? searchRadiusKm, bool? emailVerified, String? deletionRequestedAt, String? status, int? version}) => CustomerProfile(
         id: id, name: name ?? this.name, phone: phone, email: email ?? this.email, avatarPath: clearAvatar ? null : (avatarPath ?? this.avatarPath), dob: dob ?? this.dob, gender: gender ?? this.gender, language: language ?? this.language,
-        cuisines: cuisines ?? this.cuisines, vegetarian: vegetarian ?? this.vegetarian, searchRadiusKm: searchRadiusKm ?? this.searchRadiusKm, memberSince: memberSince, emailVerified: emailVerified ?? this.emailVerified, deletionRequestedAt: deletionRequestedAt ?? this.deletionRequestedAt);
+        cuisines: cuisines ?? this.cuisines, vegetarian: vegetarian ?? this.vegetarian, searchRadiusKm: searchRadiusKm ?? this.searchRadiusKm, memberSince: memberSince, emailVerified: emailVerified ?? this.emailVerified, deletionRequestedAt: deletionRequestedAt ?? this.deletionRequestedAt,
+        displayName: displayName, phoneMasked: phoneMasked, localeOptions: localeOptions, cuisineOptions: cuisineOptions, status: status ?? this.status, version: version ?? this.version);
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'phone': phone, 'email': email, 'avatarPath': avatarPath, 'dob': dob, 'gender': gender, 'language': language, 'cuisines': cuisines, 'vegetarian': vegetarian, 'searchRadiusKm': searchRadiusKm, 'memberSince': memberSince, 'emailVerified': emailVerified, 'deletionRequestedAt': deletionRequestedAt};
-  factory CustomerProfile.fromJson(Map<String, dynamic> j) => CustomerProfile(id: j['id'] as String, name: j['name'] as String, phone: j['phone'] as String, email: (j['email'] as String?) ?? '', avatarPath: j['avatarPath'] as String?, dob: (j['dob'] as String?) ?? '', gender: (j['gender'] as String?) ?? '', language: (j['language'] as String?) ?? 'English', cuisines: ((j['cuisines'] as List?) ?? []).cast<String>(), vegetarian: j['vegetarian'] == true, searchRadiusKm: (j['searchRadiusKm'] as int?) ?? 20, memberSince: j['memberSince'] as String, emailVerified: j['emailVerified'] == true, deletionRequestedAt: j['deletionRequestedAt'] as String?);
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'phone': phone, 'email': email, 'avatarPath': avatarPath, 'dob': dob, 'gender': gender, 'language': language, 'cuisines': cuisines, 'vegetarian': vegetarian, 'searchRadiusKm': searchRadiusKm, 'memberSince': memberSince, 'emailVerified': emailVerified, 'deletionRequestedAt': deletionRequestedAt, 'status': status};
+  factory CustomerProfile.fromJson(Map<String, dynamic> j) => CustomerProfile(id: j['id'] as String, name: j['name'] as String, phone: j['phone'] as String, email: (j['email'] as String?) ?? '', avatarPath: j['avatarPath'] as String?, dob: (j['dob'] as String?) ?? '', gender: (j['gender'] as String?) ?? '', language: (j['language'] as String?) ?? 'English', cuisines: ((j['cuisines'] as List?) ?? []).cast<String>(), vegetarian: j['vegetarian'] == true, searchRadiusKm: (j['searchRadiusKm'] as int?) ?? 20, memberSince: j['memberSince'] as String, emailVerified: j['emailVerified'] == true, deletionRequestedAt: j['deletionRequestedAt'] as String?, status: (j['status'] as String?) ?? 'active');
+}
+
+/// A new profile photo: the bytes to upload plus, for the development data, where the picked file lives.
+class AvatarUpload {
+  const AvatarUpload({required this.bytes, required this.filename, this.localPath});
+  final List<int> bytes;
+  final String filename;
+  final String? localPath;
+}
+
+/// A one-time code the backend sent (re-authentication or phone change). Times are on this device's clock.
+class CodeChallenge {
+  const CodeChallenge({required this.challengeId, required this.phoneMasked, required this.expiresAt, required this.resendAfter, required this.attemptsAllowed, this.devOtp, this.changeId});
+  final String challengeId, phoneMasked;
+  final DateTime expiresAt, resendAfter;
+  final int attemptsAllowed;
+  final String? devOtp, changeId;
+}
+
+/// Sensitive account actions (API mode only): each is confirmed with a code sent to a phone.
+abstract class AccountSecurity {
+  /// Code to the account's own phone; verifying it unlocks sensitive actions on this session for a few minutes.
+  Future<CodeChallenge> requestReauth();
+  Future<void> verifyReauth(String challengeId, String code);
+
+  /// Code to the NEW number. Throws RepositoryException 'reauthentication_required' when the session is not recent.
+  Future<CodeChallenge> requestPhoneChange(String phone);
+  Future<CustomerProfile> verifyPhoneChange(String challengeId, String code);
 }
 
 class Favorite {
-  const Favorite({required this.restaurantId, required this.addedAt});
+  const Favorite({required this.restaurantId, required this.addedAt, this.slug, this.name, this.available = true, this.restaurant});
   final String restaurantId, addedAt;
+
+  /// API: the restaurant as the backend shows it. Null in mock mode (screens look it up by id) and when the
+  /// restaurant is no longer visible to customers ([available] false): the favorite is kept, only the name is shown.
+  final String? slug, name;
+  final bool available;
+  final GlobalRestaurant? restaurant;
   Map<String, dynamic> toJson() => {'restaurantId': restaurantId, 'addedAt': addedAt};
   factory Favorite.fromJson(Map<String, dynamic> j) => Favorite(restaurantId: j['restaurantId'] as String, addedAt: j['addedAt'] as String);
 }
 
 enum AddressKind { home, work, other }
 
+/// API: whether FoodOnTheGo serves a saved place right now — decided by the backend for every request, never stored.
+class Coverage {
+  const Coverage({required this.status, this.reason, this.market, this.city, this.serviceArea});
+
+  /// supported | unsupported | unknown (no coordinates)
+  final String status;
+  final String? reason, market, city, serviceArea;
+  bool get supported => status == 'supported';
+}
+
 /// Saved journey location (start / destination shortcut). NOT a delivery address.
 class SavedAddress {
-  const SavedAddress({required this.id, required this.label, required this.kind, required this.line1, this.line2 = '', required this.locality, required this.city, required this.state, required this.pincode, this.lat, this.lng, this.isDefault = false});
+  const SavedAddress({required this.id, required this.label, required this.kind, required this.line1, this.line2 = '', required this.locality, required this.city, required this.state, required this.pincode, this.lat, this.lng, this.isDefault = false, this.coverage, this.formattedAddress, this.countryCode, this.version});
   final String id, label, line1, line2, locality, city, state, pincode;
   final AddressKind kind;
   final double? lat, lng;
   final bool isDefault;
-  String get formatted => [line1, line2, locality, '$city, $state $pincode'].where((s) => s.isNotEmpty).join(', ');
-  SavedAddress copyWith({String? id, String? label, AddressKind? kind, String? line1, String? line2, String? locality, String? city, String? state, String? pincode, bool? isDefault}) => SavedAddress(id: id ?? this.id, label: label ?? this.label, kind: kind ?? this.kind, line1: line1 ?? this.line1, line2: line2 ?? this.line2, locality: locality ?? this.locality, city: city ?? this.city, state: state ?? this.state, pincode: pincode ?? this.pincode, lat: lat, lng: lng, isDefault: isDefault ?? this.isDefault);
+  final Coverage? coverage;
+  final String? formattedAddress, countryCode;
+  final int? version;
+  String get formatted => formattedAddress ?? [line1, line2, locality, '$city, $state $pincode'].where((s) => s.trim().isNotEmpty && s.trim() != ',').join(', ');
+  SavedAddress copyWith({String? id, String? label, AddressKind? kind, String? line1, String? line2, String? locality, String? city, String? state, String? pincode, double? lat, double? lng, bool clearPin = false, bool? isDefault}) =>
+      SavedAddress(id: id ?? this.id, label: label ?? this.label, kind: kind ?? this.kind, line1: line1 ?? this.line1, line2: line2 ?? this.line2, locality: locality ?? this.locality, city: city ?? this.city, state: state ?? this.state, pincode: pincode ?? this.pincode, lat: clearPin ? null : lat ?? this.lat, lng: clearPin ? null : lng ?? this.lng, isDefault: isDefault ?? this.isDefault, coverage: coverage, formattedAddress: formattedAddress, countryCode: countryCode, version: version);
   Map<String, dynamic> toJson() => {'id': id, 'label': label, 'kind': kind.name, 'line1': line1, 'line2': line2, 'locality': locality, 'city': city, 'state': state, 'pincode': pincode, 'lat': lat, 'lng': lng, 'isDefault': isDefault};
   factory SavedAddress.fromJson(Map<String, dynamic> j) => SavedAddress(id: j['id'] as String, label: j['label'] as String, kind: AddressKind.values.byName(j['kind'] as String), line1: j['line1'] as String, line2: (j['line2'] as String?) ?? '', locality: (j['locality'] as String?) ?? '', city: j['city'] as String, state: j['state'] as String, pincode: j['pincode'] as String, lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), isDefault: j['isDefault'] == true);
 }
 
 /// SECURITY BOUNDARY: provider references + display hints only. Never card numbers, CVV or UPI PINs.
+/// In API mode the reference itself never leaves the server ([providerRef] is null).
 class PaymentMethod {
-  const PaymentMethod({required this.id, required this.type, this.providerRef, this.brand, this.last4, this.expiry, this.holder, this.handleMasked, this.balance, this.isDefault = false});
+  const PaymentMethod({required this.id, required this.type, this.providerRef, this.provider, this.brand, this.last4, this.expiry, this.holder, this.handleMasked, this.label, this.balance, this.isDefault = false, this.status = 'ACTIVE'});
+
+  /// card | upi | other (a provider-held wallet or bank method) | wallet (development) | cash (development)
   final String id, type;
-  final String? providerRef, brand, last4, expiry, holder, handleMasked;
+  final String? providerRef, provider, brand, last4, expiry, holder, handleMasked, label;
   final int? balance;
   final bool isDefault;
-  bool get removable => type == 'card' || type == 'upi';
-  PaymentMethod copyWith({bool? isDefault}) => PaymentMethod(id: id, type: type, providerRef: providerRef, brand: brand, last4: last4, expiry: expiry, holder: holder, handleMasked: handleMasked, balance: balance, isDefault: isDefault ?? this.isDefault);
+
+  /// ACTIVE | EXPIRED | REVOKED | UNAVAILABLE
+  final String status;
+  bool get removable => type == 'card' || type == 'upi' || type == 'other';
+  bool get usable => status == 'ACTIVE';
+  PaymentMethod copyWith({bool? isDefault}) => PaymentMethod(id: id, type: type, providerRef: providerRef, provider: provider, brand: brand, last4: last4, expiry: expiry, holder: holder, handleMasked: handleMasked, label: label, balance: balance, isDefault: isDefault ?? this.isDefault, status: status);
   Map<String, dynamic> toJson() => {'id': id, 'type': type, 'providerRef': providerRef, 'brand': brand, 'last4': last4, 'expiry': expiry, 'holder': holder, 'handleMasked': handleMasked, 'balance': balance, 'isDefault': isDefault};
   factory PaymentMethod.fromJson(Map<String, dynamic> j) => PaymentMethod(id: j['id'] as String, type: j['type'] as String, providerRef: j['providerRef'] as String?, brand: j['brand'] as String?, last4: j['last4'] as String?, expiry: j['expiry'] as String?, holder: j['holder'] as String?, handleMasked: j['handleMasked'] as String?, balance: j['balance'] as int?, isDefault: j['isDefault'] == true);
 }
@@ -74,10 +160,44 @@ class AppNotification {
   factory AppNotification.fromJson(Map<String, dynamic> j) => AppNotification(id: j['id'] as String, kind: j['kind'] as String, title: j['title'] as String, text: j['text'] as String, at: j['at'] as String, read: j['read'] == true, route: j['route'] as String?);
 }
 
+/// One cell of the backend's category × channel matrix.
+class NotificationCell {
+  const NotificationCell({required this.channel, required this.enabled, required this.locked, required this.chosen});
+  final String channel;
+  final bool enabled, locked, chosen;
+}
+
+class NotificationCategoryPrefs {
+  const NotificationCategoryPrefs({required this.category, required this.name, required this.description, required this.transactional, required this.channels});
+  final String category, name, description;
+  final bool transactional;
+  final List<NotificationCell> channels;
+  NotificationCell? cell(String channel) => channels.where((c) => c.channel == channel).firstOrNull;
+}
+
+/// API: the matrix the backend keeps; security notices stay on where a cell is locked.
+class NotificationMatrix {
+  const NotificationMatrix({required this.categories, required this.channels, this.consentGrantedAt, this.consentWithdrawnAt});
+  final List<NotificationCategoryPrefs> categories;
+  final List<String> channels;
+  final String? consentGrantedAt, consentWithdrawnAt;
+  bool isOn({String? category, String? channel}) => categories.any((c) => (category == null || c.category == category) && c.channels.any((ch) => (channel == null || ch.channel == channel) && ch.enabled));
+}
+
+class NotificationCellChange {
+  const NotificationCellChange(this.category, this.channel, this.enabled);
+  final String category, channel;
+  final bool enabled;
+  Map<String, dynamic> toJson() => {'category': category, 'channel': channel, 'enabled': enabled};
+}
+
 class NotificationPreferences {
-  const NotificationPreferences({this.push = true, this.orderUpdates = true, this.paymentUpdates = true, this.promotions = false, this.email = true, this.sms = true});
+  const NotificationPreferences({this.push = true, this.orderUpdates = true, this.paymentUpdates = true, this.promotions = false, this.email = true, this.sms = true, this.matrix});
   final bool push, orderUpdates, paymentUpdates, promotions, email, sms;
-  NotificationPreferences copyWith({bool? push, bool? orderUpdates, bool? paymentUpdates, bool? promotions, bool? email, bool? sms}) => NotificationPreferences(push: push ?? this.push, orderUpdates: orderUpdates ?? this.orderUpdates, paymentUpdates: paymentUpdates ?? this.paymentUpdates, promotions: promotions ?? this.promotions, email: email ?? this.email, sms: sms ?? this.sms);
+
+  /// API only; null for the development data.
+  final NotificationMatrix? matrix;
+  NotificationPreferences copyWith({bool? push, bool? orderUpdates, bool? paymentUpdates, bool? promotions, bool? email, bool? sms}) => NotificationPreferences(push: push ?? this.push, orderUpdates: orderUpdates ?? this.orderUpdates, paymentUpdates: paymentUpdates ?? this.paymentUpdates, promotions: promotions ?? this.promotions, email: email ?? this.email, sms: sms ?? this.sms, matrix: matrix);
   Map<String, dynamic> toJson() => {'push': push, 'orderUpdates': orderUpdates, 'paymentUpdates': paymentUpdates, 'promotions': promotions, 'email': email, 'sms': sms};
   factory NotificationPreferences.fromJson(Map<String, dynamic> j) => NotificationPreferences(push: j['push'] != false, orderUpdates: j['orderUpdates'] != false, paymentUpdates: j['paymentUpdates'] != false, promotions: j['promotions'] == true, email: j['email'] != false, sms: j['sms'] != false);
 }
@@ -85,8 +205,14 @@ class NotificationPreferences {
 abstract class ProfileRepository {
   Future<CustomerProfile> get(String userId, {required String name, required String phone, String? email, required String memberSince});
   Future<CustomerProfile> update(String userId, CustomerProfile Function(CustomerProfile) change);
-  Future<CustomerProfile> setAvatar(String userId, String? path);
-  Future<CustomerProfile> requestDeletion(String userId);
+  Future<CustomerProfile> setAvatar(String userId, AvatarUpload? upload);
+
+  /// Throws RepositoryException 'reauthentication_required' when the backend wants a fresh code first.
+  Future<CustomerProfile> requestDeletion(String userId, {String? reason});
+
+  /// true when name / e-mail edits already reach the sign-in identity (the backend profile IS the identity).
+  bool get updatesIdentity => false;
+  AccountSecurity? get security => null;
 }
 
 abstract class FavoriteRepository {
@@ -114,6 +240,12 @@ abstract class NotificationRepository {
   Future<List<AppNotification>> markAllRead(String userId);
   Future<NotificationPreferences> getPreferences(String userId);
   Future<NotificationPreferences> updatePreferences(String userId, NotificationPreferences prefs);
+
+  /// API: set single cells of the matrix. The development data has no matrix.
+  Future<NotificationPreferences> updateCells(String userId, List<NotificationCellChange> cells) => throw UnsupportedError('The development data keeps no notification matrix.');
+
+  /// true when the inbox is development data (notification delivery is a later module).
+  bool get inboxIsDevelopmentData => false;
 }
 
 /// Shared persistence + simulation for the development mocks.
@@ -150,7 +282,7 @@ class MockAccountStore {
   String uid() => _now().microsecondsSinceEpoch.toRadixString(36);
 }
 
-class MockProfileRepository implements ProfileRepository {
+class MockProfileRepository extends ProfileRepository {
   MockProfileRepository(this.s);
   final MockAccountStore s;
   @override
@@ -177,9 +309,9 @@ class MockProfileRepository implements ProfileRepository {
   }
 
   @override
-  Future<CustomerProfile> setAvatar(String userId, String? path) => update(userId, (p) => p.copyWith(avatarPath: path, clearAvatar: path == null));
+  Future<CustomerProfile> setAvatar(String userId, AvatarUpload? upload) => update(userId, (p) => p.copyWith(avatarPath: upload?.localPath, clearAvatar: upload == null));
   @override
-  Future<CustomerProfile> requestDeletion(String userId) => update(userId, (p) => p.copyWith(deletionRequestedAt: s.now().toIso8601String()));
+  Future<CustomerProfile> requestDeletion(String userId, {String? reason}) => update(userId, (p) => p.copyWith(deletionRequestedAt: s.now().toIso8601String()));
 }
 
 class MockFavoriteRepository implements FavoriteRepository {
@@ -273,7 +405,7 @@ class MockPaymentMethodRepository implements PaymentMethodRepository {
   }
 }
 
-class MockNotificationRepository implements NotificationRepository {
+class MockNotificationRepository extends NotificationRepository {
   MockNotificationRepository(this.s);
   final MockAccountStore s;
   List<Map<String, dynamic>> _seed(String u) => u == MockAccountStore.seededCustomer
@@ -312,7 +444,7 @@ class MockNotificationRepository implements NotificationRepository {
   }
 }
 
-/// Bundle of the five repositories the app wires (mock now, Api* later).
+/// Bundle of the five repositories the app wires: the development data, or the backend (api_account.dart).
 class AccountRepositories {
   const AccountRepositories({required this.profile, required this.favorites, required this.addresses, required this.payments, required this.notifications});
   final ProfileRepository profile;

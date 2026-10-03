@@ -556,11 +556,20 @@ that were made are audited — a refused attempt is not an audit event.
   (`RestaurantMenuTab.tsx`, `GET /admin/restaurants/{location}/menu`): counts per state, the hidden categories and
   the menu as customers see it, with prices (Module 24).
 
+- The customer account is on the real backend (Module 25) and **follows the sign-in mode**: with `VITE_AUTH_MODE=api` /
+  `--dart-define=AUTH_MODE=api` the Api* account repositories (`customer-web/src/account/api/apiAccount.ts`,
+  `mobile/lib/account/api_account.dart`) replace the Module 04 development data for profile, favorites, saved journey
+  places, payment-method references and notification preferences; the notification inbox stays development data
+  and is labelled so. Favorites toggle optimistically and roll back on refusal; sensitive actions run the
+  re-authentication code flow when the backend asks for it (403 `reauthentication_required`).
+
 ## 10. Not built yet
 
 Journeys and route-aware discovery, cart, pickup slots, checkout, payments, orders, tracking, reviews, object
-storage for images (menu photos live on the local `public` disk), verification documents, restaurant self-service
-onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; live SMS and e-mail
+storage for images (menu photos and profile photos live on the local `public` disk), verification documents, restaurant self-service
+onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; customer e-mail verification, the
+account erasure process (a deletion request only restricts the account — legal rules pending), data export,
+push-token registration and notification delivery, a Places provider for saved-place pins; live SMS and e-mail
 providers, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a surveyed market
 border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are
 tracked in `docs/project-progress.html`.
@@ -657,3 +666,58 @@ The entity model, the services, the availability order and the decision list are
   (management API, authorization and isolation, customer API incl. cache freshness and a constant query count,
   images, admin oversight, fixtures, OpenAPI contract). Whole suite 455 tests / 5458 assertions
   (`docs/local-review/test-results/backend-m24-phpunit.txt`).
+
+## 13. Customer account: profile, favorites, saved journey locations, payment references, notification preferences (Module 25)
+
+The entity model, the services, the coverage answer, the API table, the privacy documentation and the decision list
+are in [`customer-account-domain.md`](customer-account-domain.md). Everything below is local-only; nothing has
+touched production.
+
+- The identity stays the Module 21 customer (phone + OTP). Module 25 extends `customers` (birthday, gender, cuisine
+  codes, vegetarian filter, search radius, photo path, deletion request, marketing consent timestamps, `version`) and
+  adds `customer_favorite_locations`, `customer_saved_locations` (PostGIS point, nullable), `customer_recent_locations`,
+  `customer_payment_methods` (encrypted provider references, never a PAN / CVV / UPI PIN), `customer_notification_preferences`
+  (only chosen cells) and `customer_phone_changes` (migration `2026_10_04_100000_create_customer_account_tables`).
+- Routes: 25 new `/api/v1/customer/...` operations (147 in total), all `auth:customer` + `active`, all in
+  `openapi/openapi.json` (114 paths, 203 schemas) and checked by `CustomerOpenApiContractTest` / `OpenApiContractTest`.
+  The phone is read-only on the profile (422 `prohibited`, like status, market, roles and verification fields) and
+  changes only through `POST /customer/phone-change/request` + `/verify` (code to the **new** number, other sessions
+  revoked). The Module 21 `PATCH /auth/customer/profile` stays for the sign-up step.
+- Sensitive actions (phone change, deletion request) need **recent authentication**: a session younger than 30 minutes,
+  or a code to the account's own phone verified on this session within 10 minutes (`POST /customer/account/reauth` +
+  `/verify`); otherwise 403 `reauthentication_required`. A deletion request records the request, restricts the account
+  (sessions stay) and erases nothing — the erasure process is PENDING FINAL BUSINESS & LEGAL APPROVAL.
+- Favorites target restaurant locations; add is idempotent on the unique pair (201 / 200), only visible restaurants
+  can be added (404 otherwise), a favorite whose restaurant became hidden is kept and answered with its name and
+  `available: false`. Saved locations are journey shortcuts (never delivery addresses): market, city and service area
+  are resolved on the server, `coverage` is decided per request from the current statuses, a place abroad is saved and
+  reported `unsupported` (saving it never activates a market), the first saved place is the default (one per customer),
+  edits carry a `version`, IDOR answers 404. Recent places: bounded (10), deduplicated, clearable, pruned after 90 days
+  (`customer:prune-recent-locations`, scheduled daily); clients wire them in Module 26.
+- Payment methods: references only — no endpoint accepts payment details (`POST /customer/payment-methods` is 405, a
+  card number in any body is 422), the list shows brand / last4 / expiry / masked UPI handle, `EXPIRED` is computed on
+  read, remove marks the reference `REVOKED` (row kept; provider-side revocation is Module 30), one default per customer.
+- Notification preferences: a category × channel matrix from `config/customer.php` (ORDER_UPDATES, PICKUP_UPDATES,
+  PAYMENT_UPDATES, ACCOUNT_SECURITY, PROMOTIONS, PRODUCT_UPDATES × PUSH, SMS, EMAIL, IN_APP); security notices are
+  locked on SMS and in-app (422 on an attempt to switch them off); marketing is off until the customer switches a channel
+  on, which stamps the consent (`promotions_consented_at` / `promotions_withdrawn_at`). Delivery is a later module
+  (push tokens: Module 33).
+- Profile photos are checked by content (JPEG / PNG / WebP, ≤ 2 MiB, 120–2000 px), stored under
+  `avatars/{customer}/{uuid}.{ext}` on the configured disk and served by `GET /api/v1/media/{path}` (now
+  `menu/...` or `avatars/...`); the previous file is deleted on replace / remove.
+- Audit: `customer.profile_updated` (personal fields recorded as "changed", never their values), `customer.avatar_changed`,
+  `customer.saved_location_*`, `customer.payment_method_*`, `customer.notification_preferences_changed`,
+  `customer.deletion_requested`, `customer.phone_changed` (masked); security events `REAUTHENTICATED`,
+  `PHONE_CHANGE_REQUESTED`, `PHONE_CHANGED`, `ACCOUNT_DELETION_REQUESTED`. Logs never carry full phones, codes,
+  tokens, provider references, addresses or coordinates.
+- Fixtures (`LocalCustomerFixtureSeeder`, local only, idempotent): Rahul Sharma — profile (1990-03-15, MALE, North
+  Indian / Burgers / Healthy, 20 km), favorites Burger Hub, Spice Nest, Night Owl Kitchen and the hidden Expressway
+  Grill, saved places Home (served), Work (outside the service areas), Mumbai hotel (region unavailable), Dubai airport
+  (outside our markets), Grandma's place (no coordinates), payment references Visa •••• 4242 (default, 12/2028),
+  UPI ra***@okaxis, Mastercard •••• 4444 (expired), ORDER_UPDATES e-mail off; Asha Verma — favorite Pizza Point.
+- Tests: `tests/Feature/Customer` (profile, favorites, saved + recent locations, payment references, notification
+  preferences, account security, fixture seeder, OpenAPI contract) — whole suite `docs/local-review/test-results/backend-m25-phpunit.txt`.
+- Apps: Customer Web (`src/account/api/apiAccount.ts`, selected by the sign-in mode in `src/account/accountRepositories.ts`)
+  and Android (`lib/account/api_account.dart`, selected in `AccountState.defaultRepositories`) replace the Module 04
+  mocks for profile, favorites, saved places, payment references and preferences; the notification inbox stays
+  development data and is labelled so. Phone change, re-authentication and the deletion request run in both apps.

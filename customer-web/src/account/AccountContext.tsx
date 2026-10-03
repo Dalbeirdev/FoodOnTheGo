@@ -1,14 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { MockAddressRepository, MockFavoriteRepository, MockNotificationRepository, MockPaymentMethodRepository } from './mock/mockRepositories'
-import type { Address, AddressInput, AddressRepository, Favorite, FavoriteRepository, Notification, NotificationPreferences, NotificationRepository, PaymentMethod, PaymentMethodRepository } from './repositories'
+import type { Address, AddressInput, AddressRepository, Favorite, FavoriteRepository, Notification, NotificationPreferences, NotificationPreferencesPatch, NotificationRepository, PaymentMethod, PaymentMethodRepository } from './repositories'
 
-export type { Address, AddressInput, AddressKind, Favorite, Notification, NotificationKind, NotificationPreferences, PaymentMethod } from './repositories'
+export type { Address, AddressInput, AddressKind, Coverage, CoverageStatus, Favorite, Notification, NotificationCategory, NotificationCell, NotificationChannel, NotificationKind, NotificationMatrix, NotificationPreferences, NotificationPreferencesPatch, PaymentMethod, PaymentMethodStatus } from './repositories'
 
 export type ResourceStatus = 'idle' | 'loading' | 'ready' | 'error'
 export type Resource<T> = { status: ResourceStatus; data: T; error: string | null; reload: () => Promise<void> }
 
 export type AccountRepositories = { favorites: FavoriteRepository; addresses: AddressRepository; payments: PaymentMethodRepository; notifications: NotificationRepository }
+/** The development data (Module 04). The app passes the implementation chosen by the sign-in mode (accountRepositories.ts). */
 export const defaultAccountRepositories: AccountRepositories = {
   favorites: new MockFavoriteRepository(),
   addresses: new MockAddressRepository(),
@@ -21,6 +22,7 @@ type AccountApi = {
   isFavorite: (restaurantId: string) => boolean
   addFavorite: (restaurantId: string) => Promise<void>
   removeFavorite: (restaurantId: string) => Promise<void>
+  /** Optimistic: the heart changes at once and is put back when the backend refuses. */
   toggleFavorite: (restaurantId: string) => Promise<void>
   addresses: Resource<Address[]>
   defaultAddressId: string
@@ -31,11 +33,13 @@ type AccountApi = {
   setDefaultPayment: (id: string) => Promise<void>
   removePaymentMethod: (id: string) => Promise<void>
   notifications: Resource<Notification[]>
+  /** true when the inbox is development data (delivery is a later module); preferences may still be real. */
+  notificationsAreDevelopmentData: boolean
   unreadCount: number
   markRead: (id: string) => Promise<void>
   markAllRead: () => Promise<void>
   notificationPrefs: Resource<NotificationPreferences | null>
-  updateNotificationPrefs: (patch: Partial<NotificationPreferences>) => Promise<void>
+  updateNotificationPrefs: (patch: NotificationPreferencesPatch) => Promise<void>
 }
 
 const AccountContext = createContext<AccountApi | null>(null)
@@ -80,7 +84,13 @@ export function AccountProvider({ children, repositories = defaultAccountReposit
     isFavorite: (id) => favorites.data.some((f) => f.restaurantId === id),
     addFavorite: async (id) => setFavorites(await repos.favorites.add(need(), id)),
     removeFavorite: async (id) => setFavorites(await repos.favorites.remove(need(), id)),
-    toggleFavorite: async (id) => setFavorites(favorites.data.some((f) => f.restaurantId === id) ? await repos.favorites.remove(need(), id) : await repos.favorites.add(need(), id)),
+    toggleFavorite: async (id) => {
+      const u = need()
+      const before = favorites.data
+      const had = before.some((f) => f.restaurantId === id)
+      setFavorites(had ? before.filter((f) => f.restaurantId !== id) : [{ restaurantId: id, addedAt: new Date().toISOString() }, ...before])
+      try { setFavorites(had ? await repos.favorites.remove(u, id) : await repos.favorites.add(u, id)) } catch (e) { setFavorites(before); throw e }
+    },
     addresses,
     defaultAddressId: addresses.data.find((a) => a.isDefault)?.id ?? '',
     setDefaultAddress: async (id) => setAddresses(await repos.addresses.setDefault(need(), id)),
@@ -90,6 +100,7 @@ export function AccountProvider({ children, repositories = defaultAccountReposit
     setDefaultPayment: async (id) => setPayments(await repos.payments.setDefault(need(), id)),
     removePaymentMethod: async (id) => setPayments(await repos.payments.remove(need(), id)),
     notifications,
+    notificationsAreDevelopmentData: repos.notifications.inboxIsDevelopmentData === true,
     unreadCount: notifications.data.filter((n) => !n.read).length,
     markRead: async (id) => setNotifications(await repos.notifications.markRead(need(), id)),
     markAllRead: async () => setNotifications(await repos.notifications.markAllRead(need())),

@@ -22,4 +22,8 @@ enum SecurityEventType: string
     case MfaChallengeFailed = 'MFA_CHALLENGE_FAILED';
     case MfaEnabled = 'MFA_ENABLED';
     case MfaDisabled = 'MFA_DISABLED';
+    case Reauthenticated = 'REAUTHENTICATED';
+    case PhoneChangeRequested = 'PHONE_CHANGE_REQUESTED';
+    case PhoneChanged = 'PHONE_CHANGED';
+    case AccountDeletionRequested = 'ACCOUNT_DELETION_REQUESTED';
 }

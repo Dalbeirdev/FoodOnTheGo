@@ -16,6 +16,14 @@ use App\Http\Controllers\Api\Auth\SessionController;
 use App\Http\Controllers\Api\Auth\StaffAuthController;
 use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\Api\Customer\AccountController;
+use App\Http\Controllers\Api\Customer\FavoriteController;
+use App\Http\Controllers\Api\Customer\NotificationPreferenceController;
+use App\Http\Controllers\Api\Customer\PaymentMethodController;
+use App\Http\Controllers\Api\Customer\PhoneChangeController;
+use App\Http\Controllers\Api\Customer\ProfileController;
+use App\Http\Controllers\Api\Customer\RecentLocationController;
+use App\Http\Controllers\Api\Customer\SavedLocationController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\MediaController;
@@ -73,6 +81,43 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     });
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
     Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
+
+    // Customer account (Module 25): the customer's own profile, favorites, saved journey locations, recent places,
+    // payment-method references and notification preferences. Identity = the token; no customer id is ever accepted.
+    Route::prefix('customer')->name('account.')->middleware(['auth:customer', 'active'])->group(function (): void {
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('/profile/avatar', [ProfileController::class, 'storeAvatar'])->name('profile.avatar.store');
+        Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+
+        Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+        Route::post('/favorites/{restaurant}', [FavoriteController::class, 'store'])->name('favorites.store');
+        Route::delete('/favorites/{restaurant}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
+
+        Route::get('/saved-locations', [SavedLocationController::class, 'index'])->name('saved-locations.index');
+        Route::post('/saved-locations', [SavedLocationController::class, 'store'])->name('saved-locations.store');
+        Route::patch('/saved-locations/{savedLocation}', [SavedLocationController::class, 'update'])->name('saved-locations.update');
+        Route::delete('/saved-locations/{savedLocation}', [SavedLocationController::class, 'destroy'])->name('saved-locations.destroy');
+        Route::post('/saved-locations/{savedLocation}/default', [SavedLocationController::class, 'makeDefault'])->name('saved-locations.default');
+
+        Route::get('/recent-locations', [RecentLocationController::class, 'index'])->name('recent-locations.index');
+        Route::post('/recent-locations', [RecentLocationController::class, 'store'])->name('recent-locations.store');
+        Route::delete('/recent-locations', [RecentLocationController::class, 'destroy'])->name('recent-locations.clear');
+
+        Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods.index');
+        Route::patch('/payment-methods/{paymentMethod}/default', [PaymentMethodController::class, 'makeDefault'])->name('payment-methods.default');
+        Route::delete('/payment-methods/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('payment-methods.destroy');
+
+        Route::get('/notification-preferences', [NotificationPreferenceController::class, 'show'])->name('notification-preferences.show');
+        Route::patch('/notification-preferences', [NotificationPreferenceController::class, 'update'])->name('notification-preferences.update');
+
+        // Sensitive actions: a code to the account's own phone first (recent sign-ins are accepted as is).
+        Route::post('/account/reauth', [AccountController::class, 'reauth'])->middleware('throttle:otp-request')->name('reauth.request');
+        Route::post('/account/reauth/verify', [AccountController::class, 'verifyReauth'])->middleware('throttle:otp-verify')->name('reauth.verify');
+        Route::post('/account/deletion-request', [AccountController::class, 'requestDeletion'])->name('deletion.request');
+        Route::post('/phone-change/request', [PhoneChangeController::class, 'request'])->middleware('throttle:otp-request')->name('phone-change.request');
+        Route::post('/phone-change/verify', [PhoneChangeController::class, 'verify'])->middleware('throttle:otp-verify')->name('phone-change.verify');
+    });
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
         // Customer: phone + one-time code. No password, no public way to become anything but a customer.

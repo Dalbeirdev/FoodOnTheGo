@@ -111,7 +111,7 @@ class FoodOnTheGoApp extends StatefulWidget {
 
 class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   final auth = AuthState();
-  final account = AccountState();
+  late final account = AccountState(onUnauthenticated: auth.expire);
   final journey = JourneyState();
   final discovery = DiscoveryState();
   late final GoRouter router = buildRouter(auth);

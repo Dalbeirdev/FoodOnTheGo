@@ -26,6 +26,12 @@ final class OtpService
 {
     public const PURPOSE_CUSTOMER_LOGIN = 'customer_login';
 
+    /** A signed-in customer proves it is them again before a sensitive change (Module 25). */
+    public const PURPOSE_CUSTOMER_REAUTH = 'customer_reauth';
+
+    /** A customer proves possession of the NEW number before the account moves to it (Module 25). */
+    public const PURPOSE_PHONE_CHANGE = 'customer_phone_change';
+
     /** How many codes this sign-in has been sent so far (1 = first), set by request(). */
     public int $lastSendNumber = 1;
 

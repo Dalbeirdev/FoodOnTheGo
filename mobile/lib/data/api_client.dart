@@ -58,6 +58,14 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+/// A file for a multipart upload (bytes only — the app never hands a file-system path to the client).
+class UploadFile {
+  const UploadFile({required this.field, required this.bytes, required this.filename});
+  final String field;
+  final List<int> bytes;
+  final String filename;
+}
+
 /// The one JSON client for the FoodOnTheGo API. The base URL comes from [AppConfig] (dart-define), the
 /// bearer token from the auth state; screens never use it directly — Api* repositories do.
 class ApiClient {
@@ -73,14 +81,22 @@ class ApiClient {
   static final _random = Random.secure();
   static String _requestId() => 'app-${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}-${List.generate(8, (_) => _random.nextInt(36).toRadixString(36)).join()}';
 
-  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, String?> query = const {}}) => _send('GET', path, auth: auth, query: query);
-  Future<Map<String, dynamic>> post(String path, {Object? body, bool auth = true, String? idempotencyKey}) => _send('POST', path, body: body, auth: auth, idempotencyKey: idempotencyKey);
-  Future<Map<String, dynamic>> patch(String path, {Object? body, bool auth = true}) => _send('PATCH', path, body: body, auth: auth);
+  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, String?> query = const {}}) async => _asMap(await send('GET', path, auth: auth, query: query));
+  Future<Map<String, dynamic>> post(String path, {Object? body, bool auth = true, String? idempotencyKey}) async => _asMap(await send('POST', path, body: body, auth: auth, idempotencyKey: idempotencyKey));
+  Future<Map<String, dynamic>> patch(String path, {Object? body, bool auth = true}) async => _asMap(await send('PATCH', path, body: body, auth: auth));
+  Future<Object?> delete(String path, {bool auth = true}) => send('DELETE', path, auth: auth);
 
-  Future<Map<String, dynamic>> _send(String method, String path, {Object? body, bool auth = true, Map<String, String?> query = const {}, String? idempotencyKey}) async {
+  /// A list-shaped answer (e.g. GET /customer/saved-locations).
+  Future<List<dynamic>> getList(String path, {bool auth = true, Map<String, String?> query = const {}}) async => _asList(await send('GET', path, auth: auth, query: query));
+
+  static Map<String, dynamic> _asMap(Object? data) => data is Map<String, dynamic> ? data : const {};
+  static List<dynamic> _asList(Object? data) => data is List<dynamic> ? data : const [];
+
+  /// One request; the decoded JSON body (a map, a list, or null for an empty body). Every failure is an [ApiException].
+  Future<Object?> send(String method, String path, {Object? body, bool auth = true, Map<String, String?> query = const {}, String? idempotencyKey, UploadFile? file}) async {
     final requestId = _requestId();
     final headers = <String, String>{'Accept': 'application/json', 'X-Request-Id': requestId};
-    if (body != null) headers['Content-Type'] = 'application/json';
+    if (body != null && file == null) headers['Content-Type'] = 'application/json';
     if (idempotencyKey != null) headers['Idempotency-Key'] = idempotencyKey;
     final token = auth ? await tokenProvider?.call() : null;
     if (token != null) headers['Authorization'] = 'Bearer $token';
@@ -88,24 +104,34 @@ class ApiClient {
     final params = {for (final e in query.entries) if (e.value != null) e.key: e.value!};
     final base = Uri.parse('$baseUrl$path');
     final uri = params.isEmpty ? base : base.replace(queryParameters: {...base.queryParameters, ...params});
-    final req = http.Request(method, uri)..headers.addAll(headers);
-    if (body != null) req.body = jsonEncode(body);
+    final http.BaseRequest req;
+    if (file != null) {
+      // multipart/form-data: the client sets the boundary; text fields travel alongside the file.
+      final multipart = http.MultipartRequest(method, uri)..headers.addAll(headers);
+      if (body is Map) body.forEach((k, v) => multipart.fields['$k'] = '$v');
+      multipart.files.add(http.MultipartFile.fromBytes(file.field, file.bytes, filename: file.filename));
+      req = multipart;
+    } else {
+      final plain = http.Request(method, uri)..headers.addAll(headers);
+      if (body != null) plain.body = jsonEncode(body);
+      req = plain;
+    }
 
     final http.Response res;
     try {
-      res = await http.Response.fromStream(await _client.send(req).timeout(const Duration(seconds: 12)));
+      res = await http.Response.fromStream(await _client.send(req).timeout(const Duration(seconds: 20)));
     } catch (_) {
       throw ApiException(0, _fallback[ApiErrorKind.network]!, requestId: requestId);
     }
 
-    Map<String, dynamic> data = const {};
+    Object? data;
     try {
-      if (res.body.isNotEmpty) data = jsonDecode(res.body) as Map<String, dynamic>;
+      if (res.body.isNotEmpty) data = jsonDecode(res.body);
     } catch (_) {/* non-JSON body (proxy / gateway error) */}
 
     if (res.statusCode < 200 || res.statusCode >= 300) {
       final kind = _kindOf(res.statusCode);
-      final error = (data['error'] as Map<String, dynamic>?) ?? const {};
+      final error = (data is Map<String, dynamic> ? data['error'] as Map<String, dynamic>? : null) ?? const {};
       final details = (error['details'] as Map<String, dynamic>?) ?? const <String, dynamic>{};
       final errors = <String, List<String>>{};
       (details['fields'] as Map<String, dynamic>?)?.forEach((k, v) => errors[k] = (v as List).map((e) => e.toString()).toList());

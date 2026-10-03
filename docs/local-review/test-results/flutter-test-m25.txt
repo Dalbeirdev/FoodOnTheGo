@@ -1,0 +1,10 @@
+# Module 25 — Flutter checks (LOCAL, 2026-10-03): flutter analyze + flutter test
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 5.8s)
+
+== flutter test
+00:22 +353: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:22 +354: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:22 +354: All tests passed!

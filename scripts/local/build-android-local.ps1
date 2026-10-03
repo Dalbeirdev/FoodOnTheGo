@@ -46,6 +46,7 @@ $manifest = @"
 | Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Market data | $MarketMode (api = market and coverage are read from the local backend at start-up) |
 | Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods, availability and menus from the local backend; carts, orders and reviews are still development data) |
+| Account data | $AuthMode (api = profile, favorites, saved journey places, payment-method references and notification preferences from the local backend — follows the sign-in mode; the notification inbox is still development data) |
 | Install (USB) | adb install -r $name |
 | Install tested | PENDING |
 | Manual user tested | PENDING USER DEVICE VERIFICATION |

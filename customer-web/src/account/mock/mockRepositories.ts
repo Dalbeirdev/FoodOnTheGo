@@ -1,4 +1,4 @@
-import { RepositoryError, type Address, type AddressInput, type AddressRepository, type Favorite, type FavoriteRepository, type Notification, type NotificationPreferences, type NotificationRepository, type PaymentMethod, type PaymentMethodRepository, type Profile, type ProfilePatch, type ProfileRepository } from '../repositories'
+import { RepositoryError, type Address, type AddressInput, type AddressRepository, type Favorite, type FavoriteRepository, type Notification, type NotificationPreferences, type NotificationPreferencesPatch, type NotificationRepository, type PaymentMethod, type PaymentMethodRepository, type Profile, type ProfilePatch, type ProfileRepository } from '../repositories'
 
 /**
  * DEVELOPMENT-ONLY mock repositories. Data lives in localStorage per customer id so the
@@ -212,9 +212,11 @@ export class MockNotificationRepository implements NotificationRepository {
     await simulate('notifications')
     return store.get<NotificationPreferences>(KEY('notification-prefs', userId)) ?? DEFAULT_PREFS
   }
-  async updatePreferences(userId: string, patch: Partial<NotificationPreferences>) {
+  async updatePreferences(userId: string, patch: NotificationPreferencesPatch) {
     await simulate('notifications')
-    const next = { ...(store.get<NotificationPreferences>(KEY('notification-prefs', userId)) ?? DEFAULT_PREFS), ...patch }
+    const flat = { ...patch }
+    delete flat.cells // matrix cells exist only on the backend
+    const next = { ...(store.get<NotificationPreferences>(KEY('notification-prefs', userId)) ?? DEFAULT_PREFS), ...flat }
     store.set(KEY('notification-prefs', userId), next)
     return next
   }
