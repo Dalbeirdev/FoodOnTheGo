@@ -13,9 +13,19 @@
 import { ApiError, api } from '../../api/client'
 import type { LocationProfile } from '../../dashboard/types'
 import type { Restaurant } from '../../repositories/types'
-import type { AdminRestaurant, AdminRestaurantLive, AdminRestaurantRepository, AdminRestaurantStatus, DocumentStatus, Page, RejectionCategory, RestaurantFilter } from '../types'
+import type { AdminMenuOverview, AdminRestaurant, AdminRestaurantLive, AdminRestaurantRepository, AdminRestaurantStatus, DocumentStatus, Page, RejectionCategory, RestaurantFilter } from '../types'
 
 const A = { context: 'admin' as const }
+
+/* ------------------------------------------------------------------ menu oversight (OpenAPI: AdminMenuOversight) */
+type AdminMenuDto = {
+  menu: { id: string; name: string; status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'; currency: string; catalog_version: number; updated_at: string | null } | null
+  summary: { categories: number; inactive_categories: number; items: number; active_items: number; sold_out_items: number; unavailable_items: number; disabled_items: number; archived_items: number; customizable_items: number; last_changed_at: string | null }
+  categories: Array<{ id: string; name: string; description: string | null; display_order: number; items: Array<{ id: string; slug: string; name: string; base_price_minor: number; currency: string; status: 'ACTIVE' | 'SOLD_OUT' | 'TEMPORARILY_UNAVAILABLE'; customizable: boolean; featured: boolean; dietary_tags: Array<{ code: string; name: string }>; availability: { visible: boolean; orderable: boolean; reason: string | null; restaurant_reason: string | null } }> }>
+  dietary_tags: Array<{ code: string; name: string }>
+  inactive_categories: Array<{ id: string; name: string }>
+  availability: { visible_to_customers: boolean; orderable: boolean; reason: string | null }
+}
 
 /* ------------------------------------------------------------------ wire formats */
 type PeriodDto = { opens_at: string; closes_at: string }
@@ -153,6 +163,21 @@ export class ApiAdminRestaurantRepository implements AdminRestaurantRepository {
   }
 
   /** An internal note about this location (never shown to the restaurant or to customers). */
+  /** The menu as customers see it, with counts per state (admin.restaurants.view). Read-only: there is no write route. */
+  async menu(id: string): Promise<AdminMenuOverview> {
+    const d = await api<AdminMenuDto>(`/admin/restaurants/${id}/menu`, A)
+    return {
+      menu: d.menu ? { id: d.menu.id, name: d.menu.name, status: d.menu.status, currency: d.menu.currency, catalogVersion: d.menu.catalog_version, updatedAt: d.menu.updated_at } : null,
+      summary: {
+        categories: d.summary.categories, inactiveCategories: d.summary.inactive_categories, items: d.summary.items, activeItems: d.summary.active_items, soldOutItems: d.summary.sold_out_items,
+        unavailableItems: d.summary.unavailable_items, disabledItems: d.summary.disabled_items, archivedItems: d.summary.archived_items, customizableItems: d.summary.customizable_items, lastChangedAt: d.summary.last_changed_at,
+      },
+      categories: d.categories.map((c) => ({ id: c.id, name: c.name, items: c.items.map((i) => ({ id: i.id, slug: i.slug, name: i.name, priceMinor: i.base_price_minor, currency: i.currency, status: i.status, orderable: i.availability.orderable, reason: i.availability.reason, customizable: i.customizable, featured: i.featured, dietaryTags: i.dietary_tags.map((t) => t.name) })) })),
+      inactiveCategories: d.inactive_categories,
+      visibleToCustomers: d.availability.visible_to_customers,
+    }
+  }
+
   async addNote(id: string, text: string): Promise<AdminRestaurant> {
     const current = await api<DetailDto>(`/admin/restaurants/${id}`, A)
     await api(`/admin/restaurant-organizations/${current.organization.id}/notes`, { ...A, method: 'POST', body: { note: text.trim(), location_id: id } })

@@ -216,3 +216,7 @@
 @media (max-width: 480px) { .db-header__mark { display: none !important; } .db-grid--kpi { grid-template-columns: 1fr 1fr; } .db-kpi { padding: 12px; gap: 10px; flex-wrap: wrap; } .db-kpi__value { font-size: 1.3rem; } .db-card { padding: 14px; } }
 
 .db-order-card .db-badge { align-self: flex-start; width: fit-content; }
+
+/* Module 24: dietary labels as checkboxes in the item editor */
+.db-checks { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 6px 0; }
+.db-check { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; }

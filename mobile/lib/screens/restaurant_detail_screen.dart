@@ -10,6 +10,7 @@ import '../i18n/format.dart';
 import '../i18n/markets.dart';
 import '../i18n/strings.dart';
 import '../journey/journey_repositories.dart' show Journey;
+import '../menu/api_menu.dart' show defaultMenuRepository;
 import '../menu/menu_repository.dart';
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
@@ -33,7 +34,7 @@ class RestaurantDetailScreen extends StatefulWidget {
 
 class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with SingleTickerProviderStateMixin {
   late final MockRestaurantRepository _rr = widget.restaurantRepository ?? MockRestaurantRepository();
-  late final MenuRepository _mr = widget.menuRepository ?? MockMenuRepository();
+  late final MenuRepository _mr = widget.menuRepository ?? defaultMenuRepository();
   late final TabController _tabs = TabController(length: 3, vsync: this);
   final _search = TextEditingController();
   final _keys = <String, GlobalKey>{};

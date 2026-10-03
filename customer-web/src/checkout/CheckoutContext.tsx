@@ -3,7 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
 import { readStaleSimulation, reviewCart, type CartReview } from '../cart/cartValidation'
-import { menuRepository } from '../menu/mock/mockMenu'
+import { menuRepository } from '../menu/menuRepository'
 import { usePickup } from '../pickup/PickupContext'
 import type { PickupValidation } from '../pickup/repositories'
 import { restaurantRepository } from '../repositories'

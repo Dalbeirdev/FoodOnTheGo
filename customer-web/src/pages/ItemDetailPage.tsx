@@ -4,7 +4,7 @@ import Header from '../components/Header'
 import CartBar from '../components/CartBar'
 import { ChevronRightIcon } from '../components/Icons'
 import { useCart, type AddItemInput } from '../cart/CartContext'
-import { menuRepository } from '../menu/mock/mockMenu'
+import { menuRepository } from '../menu/menuRepository'
 import type { MenuItem, MenuItemDetail, OptionGroup } from '../menu/repositories'
 import { restaurantRepository } from '../repositories'
 import type { Restaurant } from '../repositories/types'
@@ -32,7 +32,7 @@ const LeafIcon = ({ size = 14 }: P) => (<svg {...stroke(size)}><path d="M5 19c0-
 function Img({ src, fallback, alt = '', className = '' }: { src: string; fallback: string; alt?: string; className?: string }) {
   return (
     <span className={`it-img ${className}`}>
-      <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+      {src && <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />}
       <span className="it-img__fallback" aria-hidden="true">{fallback}</span>
     </span>
   )
@@ -202,7 +202,7 @@ export default function ItemDetailPage() {
               <p className="it-summary__price"><span className="it-muted">{t('item.base', undefined, locale)}</span> <strong>{formatMoney(item.basePriceMinor, item.currency, locale)}</strong></p>
               {item.description && <p className="it-summary__desc" dir="auto">{item.description}</p>}
               <ul className="it-meta" aria-label="Item details">
-                <li>{t('item.prep', { minutes: formatMinutes(item.prepTimeMin) }, locale)}</li>
+                {item.prepTimeMin > 0 && <li>{t('item.prep', { minutes: formatMinutes(item.prepTimeMin) }, locale)}</li>}
                 {item.dietaryTags.map((d) => <li key={d} className="it-diet"><LeafIcon /> {d}</li>)}
               </ul>
               {blocked && <p className="rd-note rd-note--warn it-blocked" role="status">{t(`item.unavailable.${why === 'item_unavailable' ? item.availability : why}`, undefined, locale)}</p>}

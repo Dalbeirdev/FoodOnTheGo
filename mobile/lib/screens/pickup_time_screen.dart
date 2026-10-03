@@ -9,6 +9,7 @@ import '../discovery/discovery_repository.dart';
 import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
+import '../menu/api_menu.dart' show defaultMenuRepository;
 import '../menu/menu_repository.dart';
 import '../pickup/pickup_repository.dart' show localDateOf;
 import '../state/auth_state.dart';
@@ -30,7 +31,7 @@ class PickupTimeScreen extends StatefulWidget {
 
 class _PickupTimeScreenState extends State<PickupTimeScreen> {
   late final MockRestaurantRepository _rr = widget.restaurantRepository ?? MockRestaurantRepository();
-  late final MenuRepository _mr = widget.menuRepository ?? MockMenuRepository();
+  late final MenuRepository _mr = widget.menuRepository ?? defaultMenuRepository();
   GlobalRestaurant? r;
   String? _loadedFor;
   bool continuing = false;

@@ -1,0 +1,27 @@
+# Module 24 — regression runs of the earlier suites against the REAL local backend with menus on the API (customer-web on :5173, API on :8001, VITE_RESTAURANT_MODE=api)
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression.js (Module 19 full-site suite with real auth), m23_e2e.js (Module 23 restaurants suite). Their JSON results are copied as m24-regression-*.json; the Module 22 / 23 evidence files and screenshots are restored afterwards.
+
+=== m22_auth_regression.js  06:52:50Z
+48/48 passed
+=== exit 0
+
+=== m22_e2e.js  06:54:57Z
+51/51 passed
+=== exit 0
+
+=== m22_regression.js  06:57:34Z
+68/68 passed
+=== exit 0
+
+=== m23_e2e.js  07:10:01Z
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":1,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+99/101 passed
+=== exit 1
+
+# Result: sign-in 48/48, market geography 51/51, full site 68/68, restaurants 99/101 (266/268).
+# The two misses of the Module 23 suite are Module 23 expectations that Module 24 made obsolete, not product defects:
+#  - C14 expected Night Owl Kitchen (a backend restaurant without development menu data) to show "menu unavailable";
+#    it now has a real backend menu (LocalMenuFixtureSeeder: Late Night 4 items, Drinks 2) and shows it.
+#  - D3 expected the dashboard "menu" section to carry the "Demo data" label; the menu is on the backend now (no label).
+# The Module 23 script was left as it was (it is Module 23 evidence); the Module 24 suite (m24-web-e2e.json) covers the new behaviour.

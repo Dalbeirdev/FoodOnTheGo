@@ -1,0 +1,514 @@
+{
+  "module": "M23 restaurants (customer pages, restaurant dashboard, platform admin)",
+  "mode": "real local backend",
+  "date": "2026-10-03T07:15:44.073Z",
+  "passed": 99,
+  "total": 101,
+  "results": [
+    {
+      "name": "C1 the customer list is read from the backend (GET /restaurants and /cuisines, no token) and shows its count",
+      "pass": true,
+      "detail": "14 from the API"
+    },
+    {
+      "name": "C2 restaurants a customer may not see are not in the page data at all (suspended organization, under review, outside coverage, draft, rejected)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 no international development fixture leaks in: every restaurant is one the backend returned, with its backend id",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (customer restaurant list) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C4 searching for a hidden restaurant finds nothing; searching a visible one finds it",
+      "pass": true,
+      "detail": "Skip to content\nLogin\nGet the App\n\nEXPLORE RESTAURANTS\n\nGreat Food\nAlong Your Route\n\nDiscover top-rated restaurants on or near your route, pre-order your favourite food and pick it up at the perfect t"
+    },
+    {
+      "name": "C5 search for \"Burger\" shows Burger Hub",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 the restaurant page shows the backend profile: name, cuisines, address, pickup method and pickup instructions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C7 its opening hours are the backend hours, shown in the restaurant time zone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (customer restaurant detail) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C8 the menu (still development data) opens for a backend restaurant through its existing id",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C9 vadodara-expressway-grill: 404 from the API and a \"not found\" page — no hint that it exists",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "C9 surat-dhokla-house: 404 from the API and a \"not found\" page — no hint that it exists",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "C9 udaipur-lakeside-cafe: 404 from the API and a \"not found\" page — no hint that it exists",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "C9 tandoori-trails-karnal: 404 from the API and a \"not found\" page — no hint that it exists",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "C9 curry-leaf-gurugram: 404 from the API and a \"not found\" page — no hint that it exists",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "C10 a paused restaurant stays visible and says it is not accepting orders (backend reason NOT_ACCEPTING_ORDERS)",
+      "pass": true,
+      "detail": "the internal pause reason is not shown"
+    },
+    {
+      "name": "C11 a restaurant in a paused service area stays visible with \"not taking orders in this area\" (AREA_UNAVAILABLE)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C12 a temporarily closed restaurant says so",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C13 special hours from the backend are listed with their public note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C14 a backend restaurant without development menu data shows \"menu unavailable\" instead of a made-up menu",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "name": "C16 the open / closed badge of every listed restaurant agrees with the open state the backend reports at this moment (24-hour, overnight, split and special hours included)",
+      "pass": true,
+      "detail": "14 cards, mismatches: []"
+    },
+    {
+      "name": "C15 restaurant page at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "D1 the dashboard loads the context from the backend: the owner sees the three Riverside locations, default = Burger Hub",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (dashboard profile) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 the profile page shows backend data: approval status, \"visible to customers\", address, time zone and currency (read-only)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D3 sections that are still development data carry a \"Demo data\" label; the backend sections do not",
+      "pass": false,
+      "detail": "{\"overview\":1,\"orders\":1,\"menu\":0,\"reviews\":1,\"analytics\":1,\"profile\":0,\"hours\":0,\"pickup-settings\":0,\"staff\":0}"
+    },
+    {
+      "name": "D4 the profile is saved through the backend (PATCH …/profile 200) and customers see the change at once",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D5 cuisines are chosen from the backend taxonomy (a list, not free text)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D6 a cuisine added from the list is stored and returned by the public API",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D7 the backend refuses protected fields (422), markup (422) and a stale version (409) — even when the API is called directly",
+      "pass": true,
+      "detail": "422,422,409"
+    },
+    {
+      "name": "D8 the weekly hours are replaced through the backend (PUT …/hours 200): Monday now has two periods",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A11Y axe (dashboard hours) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D9 overlapping periods across midnight are refused by the backend (422) and the saved week is untouched",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "D10 a special closure is added (POST …/special-hours 201), listed, and shown to customers with its public note",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "name": "D11 the special closure is removed again (DELETE 204): regular hours apply",
+      "pass": true,
+      "detail": "204"
+    },
+    {
+      "name": "D12 pickup methods the market has not enabled are shown as unavailable and cannot be switched on",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D13 pickup settings are saved through the backend (PATCH 200) and the public API returns the new lead time",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A11Y axe (dashboard pickup settings) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D14 enabling curbside by calling the API directly is refused (409 pickup_method_not_available)",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "D15 the accepting-orders switch pauses new orders on the backend: customers see NOT_ACCEPTING_ORDERS while the restaurant stays visible",
+      "pass": true,
+      "detail": "{\"open_now\":true,\"open_state\":\"OPEN\",\"accepting_orders\":false,\"orderable\":false,\"reason\":\"NOT_ACCEPTING_ORDERS\",\"closes_at\":\"2026-10-03T18:00:00+00:00\",\"opens_next_at\":null,\"checked_at\":\"2026-10-03T07:12:33+00:00\"}"
+    },
+    {
+      "name": "D16 the dashboard tells the staff on every page that customers cannot order: \"orders are paused\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D17 switching it back resumes orders",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D18 the staff list comes from the backend: six members with role, location access and status; the owner's own row is marked \"You\" and has no actions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D19 a member limited to locations shows exactly those locations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D19b the roles and what each role may do are read from the backend (GET /restaurant/roles), not from a copy in the page",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (dashboard staff) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D20 inviting a staff member (POST …/staff 201): listed as Invited for Burger Hub; the link goes to the local mail log, not to the screen or the API response",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D21 an invited account has no password and no access yet",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D22 the invitation page reads the token from the URL fragment and removes it from the address bar",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D23 a new account is asked to choose a password (nothing is accepted before that)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (accept staff invitation) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D24 accepted: \"You are now part of Riverside Hospitality Group\"; the link is single use",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D25 the new viewer signs in and sees ONLY Burger Hub, read-only (no save button, staff page not offered)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D26 for that viewer: another location of the same restaurant is 404, a write at their own location is 403",
+      "pass": true,
+      "detail": "404,403"
+    },
+    {
+      "name": "D27 role change through the screen (PATCH 200): the member is Order Staff now, in the same session",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D28 suspended (200): the restaurant no longer exists for that session (404), without signing them out of FoodOnTheGo",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D29 access revoked (200): the member leaves the list and their session ends (401)",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D30 the owner cannot change or revoke their own membership, even by calling the API directly (409)",
+      "pass": true,
+      "detail": "409,409"
+    },
+    {
+      "name": "D31 every restaurant-side change is in the backend audit trail",
+      "pass": true,
+      "detail": "restaurant_staff.revoked,restaurant_staff.suspended,restaurant_staff.role_changed,restaurant_staff.activated,restaurant_staff.invited,restaurant_location.accepting_orders_changed,restaurant_location.accepting_orders_changed,restaurant_location.pickup_settings_changed,restaurant_location.special_hour"
+    },
+    {
+      "name": "L1 a manager of two locations sees exactly those two; the third location of the same restaurant is 404 for her",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "L2 she may look at the staff of her locations but not change it: no invite button on screen, 403 from the API",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "name": "L3 order staff: hours are read-only (no save button), the accepting switch is disabled, staff is not in the menu",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L4 and the backend refuses the same things when called directly: 403 for hours and staff, 404 for another location",
+      "pass": true,
+      "detail": "403,403"
+    },
+    {
+      "name": "L5 opening a page without the permission shows \"Permission denied\" — the dashboard keeps working",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L6 the owner of another restaurant sees only Pizza Point; Riverside's location and staff are 404 for them (same as an id that never existed)",
+      "pass": true,
+      "detail": "404,404"
+    },
+    {
+      "name": "L7 a customer or no token cannot use the restaurant API (401)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 the admin restaurant list reads the backend (GET /admin/restaurants): all 19 fixture locations in every status",
+      "pass": true,
+      "detail": "19"
+    },
+    {
+      "name": "A2 columns the backend has no data for (order count, rating) are not shown as zeros",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (admin restaurants list) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2b the header says where the data of each section comes from: \"Backend data\" on Restaurants, \"Mock data\" on Orders (still development data)",
+      "pass": true,
+      "detail": "Local\n· Backend data / Local\n· Mock data"
+    },
+    {
+      "name": "A3 the Pending tab is the review queue: Surat Dhokla House (under review) and nothing approved",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 search finds a restaurant customers cannot see (Expressway Grill); the list flags that its ORGANIZATION is suspended although the location itself is approved (so it is not in the Suspended tab)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 the detail page offers exactly the moves this administrator may make from \"Under review\": approve, reject, return to draft — and no suspend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6 it shows where the location was placed (city, service area), a readiness checklist and what customers currently see",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11Y axe (admin restaurant detail) no serious / critical violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6b the ORGANIZATION is rejected on its own: category, internal reason and an explanation for the restaurant (mandatory)",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A6c and taken back into review (200); the explanation of the rejection is gone",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A7 location approved (POST …/status 200) — but customers still cannot see it while its organization is not approved",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A8 organization approved (200): now the restaurant is visible to customers",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A9 a draft is submitted for review (200); a move the lifecycle does not allow is refused by the backend",
+      "pass": true,
+      "detail": "200,403"
+    },
+    {
+      "name": "A10 rejecting without an explanation for the restaurant is blocked",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A11 rejected (200) with a category, an internal reason and the explanation shown to the restaurant",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A12 the History tab is the backend audit trail of this restaurant: submitted and rejected, with the administrator and the internal reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A13 the onboarding administrator has no Suspend button on an approved restaurant (it needs another permission)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A14 the staff of the organization is listed for the administrator",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A15 an internal note is saved (201) and shown to administrators only — never in the restaurant or customer API",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "name": "A16 the Locations tab lists the three outlets of the organization with their own status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A17 an operations administrator (India only) may suspend but not approve or edit",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A18 suspending needs a reason (blocked in the dialog)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A19 location suspended (200): it disappears for customers (404) while its sibling Burger Hub keeps trading",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A20 the restaurant's own dashboard explains it: \"Customers cannot see this location: this location is suspended\" with the explanation written for them — and not the internal reason",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A21 reactivated (200): customers see Brew & Bites again",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A22 the ORGANIZATION is suspended (200): its location vanishes for customers although the location itself is still APPROVED",
+      "pass": true,
+      "detail": "APPROVED"
+    },
+    {
+      "name": "A23 the organization is reactivated (200): Pizza Point is back",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A24 her list is limited to her market and still works with filters",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A25 a view-only administrator sees the restaurant but has no action buttons; every write is 403",
+      "pass": true,
+      "detail": "403,403"
+    },
+    {
+      "name": "A26 without a token, or with a restaurant owner's token, the admin API answers 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A27 admin restaurants at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "D32 dashboard hours at 390 px: no horizontal page overflow",
+      "pass": true,
+      "detail": "{\"sw\":390,\"cw\":390}"
+    },
+    {
+      "name": "Z no uncaught page errors or console errors",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z the local fixtures are back in their seeded state (Burger Hub profile / hours / pickup restored, statuses reset, e2e account and notes removed)",
+      "pass": true,
+      "detail": "true brew-bites=APPROVED,burger-hub=APPROVED,pizza-point=APPROVED,surat-dhokla-house=UNDER_REVIEW,tandoori-trails-karnal=DRAFT 0,0,7"
+    }
+  ]
+}

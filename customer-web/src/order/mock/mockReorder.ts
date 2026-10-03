@@ -4,7 +4,7 @@
  * built. Nothing from the old order (payment, pickup code, QR, reference, pickup time) is reused.
  */
 import type { AddItemInput } from '../../cart/CartContext'
-import { menuRepository } from '../../menu/mock/mockMenu'
+import { menuRepository } from '../../menu/menuRepository'
 import type { MenuItemDetail, MenuRepository } from '../../menu/repositories'
 import { unitPriceMinor, validateSelections, type Selections } from '../../pricing/pricing'
 import { restaurantRepository } from '../../repositories'

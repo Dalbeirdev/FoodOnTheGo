@@ -190,3 +190,9 @@
 .adm-geo-via { display: flex; flex-wrap: wrap; gap: 6px; max-height: 148px; overflow: auto; padding: 2px; }
 .adm-geo-methods { display: grid; gap: 10px; }
 .adm-geo-method { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 180px); gap: 12px; align-items: center; }
+
+/* Module 24: menu oversight */
+.adm-menu-counts { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.adm-menu-count { border: 1px solid var(--db-border, #e5e7eb); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.adm-menu-count b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.adm-menu-category h3 { margin: 16px 0 8px; font-size: 1rem; }

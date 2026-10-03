@@ -5303,6 +5303,1226 @@
           }
         }
       }
+    },
+    "/restaurants/{restaurantSlug}/menu": {
+      "get": {
+        "summary": "The published menu of a restaurant customers may see: ACTIVE categories, visible items with prices, images, dietary labels and the availability answer for each item. 404 restaurant_not_found for a restaurant customers may not see; menu null when nothing is published. Cached per catalog version; the restaurant state is fresh on every request.",
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PublicMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicMenu"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurants/{restaurantSlug}/items/{itemSlug}": {
+      "get": {
+        "summary": "One item with its variant and modifier groups and the options a customer may see. 404 item_not_found when the item is disabled, archived, in an inactive category or on an unpublished menu — also for the slug of another restaurant.",
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "name": "itemSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PublicMenuItemDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicMenuItemDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurants/{restaurantSlug}/items/{itemSlug}/price-quote": {
+      "post": {
+        "summary": "The configured price of an item for a selection — calculated and validated by the backend (base + adjustments, times quantity, in the menu currency). Stateless; the cart (Module 27) uses the same calculation. Answers 200 with availability even when the item cannot be ordered right now.",
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "name": "itemSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PriceQuoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PriceQuote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceQuote"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/media/{path}": {
+      "get": {
+        "summary": "A stored menu image. Only the paths this API writes are served (menu/{menu id}/{file id}.jpg|png|webp); nothing else on the disk is reachable. Immutable: Cache-Control public, max-age 86400.",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^menu/[0-9a-f-]{36}/[0-9a-f-]{36}[.](jpg|png|webp)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The image bytes",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/menu": {
+      "get": {
+        "summary": "The management document of the location (restaurant.menu.view). The menu is created on first use, ACTIVE, in the currency of the location.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "description": "archived: also return archived categories and items",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ManagedMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenu"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Name, description or status of the menu (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenu"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/menu/categories": {
+      "post": {
+        "summary": "Add a category at the end of the menu (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuCategoryCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ManagedMenuCategory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuCategory"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/menu/categories/reorder": {
+      "post": {
+        "summary": "Set the order of all categories at once (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuCategoryOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenu"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/categories/{category}": {
+      "patch": {
+        "summary": "Rename, describe or switch a category on and off (restaurant.menu.manage). 409 category_archived once archived.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuCategoryUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenuCategory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuCategory"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Archive a category — final, and refused with 409 category_not_empty while it still holds items that are not archived (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ManagedMenuCategory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuCategory"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/categories/{category}/items/reorder": {
+      "post": {
+        "summary": "Set the order of all items of a category at once (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuItemOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenu"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/menu/items": {
+      "post": {
+        "summary": "Create an item with its dietary tags, groups and options in one transaction (restaurant.menu.manage). The slug is derived from the name and unique within the menu.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuItemCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ManagedMenuItem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/menu/items/status": {
+      "post": {
+        "summary": "The same status for several items of the menu at once — all or none (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuBulkStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenuBulkResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuBulkResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/items/{item}": {
+      "get": {
+        "summary": "One item with its full configuration (restaurant.menu.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ManagedMenuItem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit an item; groups replaces its option configuration; slug only on purpose (restaurant.menu.manage). 409 stale_update on an old version, 409 item_archived once archived.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuItemUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenuItem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Archive an item — final; it disappears for customers and stays for order history (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ManagedMenuItem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/items/{item}/status": {
+      "patch": {
+        "summary": "Sold out, back, temporarily unavailable or disabled — a switch without a version (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuItemStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ManagedMenuItem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/items/{item}/duplicate": {
+      "post": {
+        "summary": "A deep, independent copy (tags, groups, options, images) named \"… (copy)\" that starts DISABLED (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "ManagedMenuItem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedMenuItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/items/{item}/images": {
+      "post": {
+        "summary": "Upload a photo of the item (restaurant.menu.manage). multipart/form-data; checked by content; at most images_per_item.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuImageUpload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "MenuImage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuImage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/menu/items/{item}/images/{image}": {
+      "patch": {
+        "summary": "Alt text or position of a photo (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "image",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MenuImageUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "MenuImage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MenuImage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a photo from the item: the row is archived, the file is kept for order history (restaurant.menu.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "image",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurants/{location}/menu": {
+      "get": {
+        "summary": "The menu of a location as customers see it, with counts per state and the categories they cannot see (admin.restaurants.view in the market of the location). Read-only.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminMenuOversight",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminMenuOversight"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9861,7 +11081,9 @@
         "required": [
           "cuisines",
           "features",
-          "limits"
+          "limits",
+          "dietary_tags",
+          "menu"
         ],
         "additionalProperties": false,
         "properties": {
@@ -9904,6 +11126,16 @@
                 "type": "integer"
               }
             }
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DietaryTag"
+            },
+            "description": "Active dietary labels an item may carry"
+          },
+          "menu": {
+            "$ref": "#/components/schemas/MenuLimits"
           }
         }
       },
@@ -12531,6 +13763,2184 @@
           }
         },
         "description": "What a customer can actually use: the settings of the location limited by what its market allows"
+      },
+      "MenuStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "ACTIVE",
+          "INACTIVE",
+          "ARCHIVED"
+        ],
+        "description": "Only an ACTIVE menu is shown to customers. A restaurant switches between ACTIVE and INACTIVE; DRAFT is the unpublished start."
+      },
+      "MenuCategoryStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE",
+          "ARCHIVED"
+        ],
+        "description": "INACTIVE hides the category and its items from customers; ARCHIVED is final."
+      },
+      "MenuItemStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "SOLD_OUT",
+          "TEMPORARILY_UNAVAILABLE",
+          "DISABLED",
+          "ARCHIVED"
+        ],
+        "description": "SOLD_OUT and TEMPORARILY_UNAVAILABLE stay visible to customers but cannot be ordered; DISABLED and ARCHIVED are hidden. ARCHIVED is final (orders keep their history)."
+      },
+      "MenuOptionGroupKind": {
+        "type": "string",
+        "enum": [
+          "VARIANT",
+          "MODIFIER"
+        ],
+        "description": "VARIANT: a size or portion that defines the item (usually required, single choice). MODIFIER: an addition, a level or an instruction. Both follow the same required / min / max rules."
+      },
+      "MenuOptionGroupStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE",
+          "ARCHIVED"
+        ]
+      },
+      "MenuOptionStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "TEMPORARILY_UNAVAILABLE",
+          "DISABLED",
+          "ARCHIVED"
+        ],
+        "description": "TEMPORARILY_UNAVAILABLE is shown to customers as not selectable; DISABLED and ARCHIVED are hidden."
+      },
+      "MenuAvailabilityReason": {
+        "type": "string",
+        "enum": [
+          "RESTAURANT_UNAVAILABLE",
+          "MENU_INACTIVE",
+          "CATEGORY_INACTIVE",
+          "ITEM_SOLD_OUT",
+          "ITEM_TEMPORARILY_UNAVAILABLE",
+          "ITEM_DISABLED",
+          "ITEM_ARCHIVED",
+          "REQUIRED_GROUP_UNAVAILABLE",
+          "OUTSIDE_ITEM_SCHEDULE"
+        ],
+        "description": "Why an item cannot be ordered right now, in the order the backend checks: restaurant → menu → category → item → required groups. OUTSIDE_ITEM_SCHEDULE is reserved."
+      },
+      "DietaryTagKind": {
+        "type": "string",
+        "enum": [
+          "DIET",
+          "CONTAINS",
+          "PREFERENCE"
+        ],
+        "description": "DIET: how it is prepared (vegetarian, vegan, Jain). CONTAINS: what it contains (egg, nuts, dairy). PREFERENCE: free of something (gluten-free, halal)."
+      },
+      "DietaryTagRef": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "description": "A label chosen by the restaurant from the platform list. Informational — never a safety guarantee; allergen_information is free text for that."
+      },
+      "DietaryTag": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "kind"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DietaryTagKind"
+          }
+        }
+      },
+      "MenuItemAvailability": {
+        "type": "object",
+        "required": [
+          "visible",
+          "orderable",
+          "reason",
+          "restaurant_reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "visible": {
+            "type": "boolean",
+            "description": "Customers may see the item"
+          },
+          "orderable": {
+            "type": "boolean",
+            "description": "A customer may add the item right now. reason is null exactly when this is true."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "RESTAURANT_UNAVAILABLE",
+              "MENU_INACTIVE",
+              "CATEGORY_INACTIVE",
+              "ITEM_SOLD_OUT",
+              "ITEM_TEMPORARILY_UNAVAILABLE",
+              "ITEM_DISABLED",
+              "ITEM_ARCHIVED",
+              "REQUIRED_GROUP_UNAVAILABLE",
+              "OUTSIDE_ITEM_SCHEDULE",
+              null
+            ]
+          },
+          "restaurant_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "AREA_UNAVAILABLE",
+              "CITY_UNAVAILABLE",
+              "CLOSED_NOW",
+              "LOCATION_NOT_APPROVED",
+              "LOCATION_SUSPENDED",
+              "MARKET_UNAVAILABLE",
+              "NOT_ACCEPTING_ORDERS",
+              "OUTSIDE_SERVICE_AREA",
+              "PICKUP_UNAVAILABLE",
+              "REGION_UNAVAILABLE",
+              "RESTAURANT_NOT_APPROVED",
+              "RESTAURANT_SUSPENDED",
+              "SERVICE_AREA_UNAVAILABLE",
+              "TEMPORARILY_CLOSED",
+              null
+            ],
+            "description": "When reason is RESTAURANT_UNAVAILABLE: why the restaurant itself cannot be ordered from (customer reasons on customer routes, exact reasons for staff)"
+          }
+        },
+        "description": "Calculated by the backend for this request. Clients display it and never decide it themselves."
+      },
+      "MenuImage": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "alt_text",
+          "width",
+          "height",
+          "display_order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "url": {
+            "type": "string",
+            "description": "Absolute URL served by GET /media/{path}; immutable, may be cached for a day. No storage path appears anywhere."
+          },
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "display_order": {
+            "type": "integer"
+          }
+        }
+      },
+      "MenuLimits": {
+        "type": "object",
+        "required": [
+          "name",
+          "description",
+          "categories_per_menu",
+          "items_per_category",
+          "groups_per_item",
+          "options_per_group",
+          "dietary_tags_per_item",
+          "images_per_item",
+          "image_max_bytes",
+          "price_minor",
+          "preparation_minutes",
+          "quantity_per_line",
+          "instructions",
+          "allow_negative_adjustments"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "integer"
+          },
+          "categories_per_menu": {
+            "type": "integer"
+          },
+          "items_per_category": {
+            "type": "integer"
+          },
+          "groups_per_item": {
+            "type": "integer"
+          },
+          "options_per_group": {
+            "type": "integer"
+          },
+          "dietary_tags_per_item": {
+            "type": "integer"
+          },
+          "images_per_item": {
+            "type": "integer"
+          },
+          "image_max_bytes": {
+            "type": "integer"
+          },
+          "price_minor": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "[min, max] in minor units"
+          },
+          "preparation_minutes": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "[min, max]"
+          },
+          "quantity_per_line": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "[min, max] a customer may order of one configuration"
+          },
+          "instructions": {
+            "type": "integer",
+            "description": "Maximum length of a customer note on an item (used by the cart later)"
+          },
+          "allow_negative_adjustments": {
+            "type": "boolean"
+          }
+        },
+        "description": "Platform limits the dashboard builds its forms from. Not market facts: the currency of a menu is the currency of its location."
+      },
+      "ManagedMenuOption": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_adjustment_minor",
+          "status",
+          "default_selected",
+          "display_order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price_adjustment_minor": {
+            "type": "integer",
+            "description": "Added to the base price. Negative = a reduction, never larger than the base price."
+          },
+          "status": {
+            "$ref": "#/components/schemas/MenuOptionStatus"
+          },
+          "default_selected": {
+            "type": "boolean"
+          },
+          "display_order": {
+            "type": "integer"
+          }
+        }
+      },
+      "ManagedMenuOptionGroup": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "description",
+          "required",
+          "min_selections",
+          "max_selections",
+          "status",
+          "display_order",
+          "options"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MenuOptionGroupKind"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "min_selections": {
+            "type": "integer"
+          },
+          "max_selections": {
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MenuOptionGroupStatus"
+          },
+          "display_order": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuOption"
+            },
+            "description": "Every option that is not archived, in display order"
+          }
+        }
+      },
+      "ManagedMenuItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "category_id",
+          "name",
+          "description",
+          "base_price_minor",
+          "currency",
+          "status",
+          "preparation_minutes",
+          "featured",
+          "min_quantity",
+          "max_quantity",
+          "dietary_tags",
+          "allergen_information",
+          "ingredients",
+          "images",
+          "variant_groups",
+          "modifier_groups",
+          "availability",
+          "display_order",
+          "version",
+          "archived_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "description": "The address of the item under its restaurant; created once from the name, kept when the item is renamed, changed only by an explicit slug field"
+          },
+          "category_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "base_price_minor": {
+            "type": "integer",
+            "description": "Integer minor units of the menu currency (paise for INR). Never a decimal."
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217, always the currency of the menu"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MenuItemStatus"
+          },
+          "preparation_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "min_quantity": {
+            "type": "integer"
+          },
+          "max_quantity": {
+            "type": "integer"
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DietaryTagRef"
+            }
+          },
+          "allergen_information": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ingredients": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuImage"
+            }
+          },
+          "variant_groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuOptionGroup"
+            }
+          },
+          "modifier_groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuOptionGroup"
+            }
+          },
+          "availability": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "visible",
+              "orderable",
+              "reason",
+              "restaurant_reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "visible": {
+                "type": "boolean",
+                "description": "Customers may see the item"
+              },
+              "orderable": {
+                "type": "boolean",
+                "description": "A customer may add the item right now. reason is null exactly when this is true."
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "RESTAURANT_UNAVAILABLE",
+                  "MENU_INACTIVE",
+                  "CATEGORY_INACTIVE",
+                  "ITEM_SOLD_OUT",
+                  "ITEM_TEMPORARILY_UNAVAILABLE",
+                  "ITEM_DISABLED",
+                  "ITEM_ARCHIVED",
+                  "REQUIRED_GROUP_UNAVAILABLE",
+                  "OUTSIDE_ITEM_SCHEDULE",
+                  null
+                ]
+              },
+              "restaurant_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "AREA_UNAVAILABLE",
+                  "CITY_UNAVAILABLE",
+                  "CLOSED_NOW",
+                  "LOCATION_NOT_APPROVED",
+                  "LOCATION_SUSPENDED",
+                  "MARKET_UNAVAILABLE",
+                  "NOT_ACCEPTING_ORDERS",
+                  "OUTSIDE_SERVICE_AREA",
+                  "PICKUP_UNAVAILABLE",
+                  "REGION_UNAVAILABLE",
+                  "RESTAURANT_NOT_APPROVED",
+                  "RESTAURANT_SUSPENDED",
+                  "SERVICE_AREA_UNAVAILABLE",
+                  "TEMPORARILY_CLOSED",
+                  null
+                ],
+                "description": "When reason is RESTAURANT_UNAVAILABLE: why the restaurant itself cannot be ordered from (customer reasons on customer routes, exact reasons for staff)"
+              }
+            }
+          },
+          "display_order": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "archived_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "ManagedMenuCategory": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "status",
+          "display_order",
+          "item_count",
+          "version",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MenuCategoryStatus"
+          },
+          "display_order": {
+            "type": "integer"
+          },
+          "item_count": {
+            "type": "integer",
+            "description": "Items that are not archived"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "ManagedMenu": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "status",
+          "currency",
+          "catalog_version",
+          "version",
+          "updated_at",
+          "location",
+          "categories",
+          "items",
+          "limits"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MenuStatus"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 — the currency of the location. Never sent by a client."
+          },
+          "catalog_version": {
+            "type": "integer",
+            "description": "Increases on every customer-visible change: the cache key of the customer menu and the token clients carry to notice a changed menu"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "timezone",
+              "currency"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              }
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuCategory"
+            },
+            "description": "In display order"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuItem"
+            },
+            "description": "Every item of the menu in display order within its category"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/MenuLimits"
+          }
+        },
+        "description": "The management document of one location: everything that is not archived (?include=archived adds archived categories and items), with the versions edits must send back"
+      },
+      "ManagedMenuBulkResult": {
+        "type": "object",
+        "required": [
+          "changed",
+          "id",
+          "name",
+          "description",
+          "status",
+          "currency",
+          "catalog_version",
+          "version",
+          "updated_at",
+          "location",
+          "categories",
+          "items",
+          "limits"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "changed": {
+            "type": "integer",
+            "description": "Items whose status actually changed"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MenuStatus"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 — the currency of the location. Never sent by a client."
+          },
+          "catalog_version": {
+            "type": "integer",
+            "description": "Increases on every customer-visible change: the cache key of the customer menu and the token clients carry to notice a changed menu"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "timezone",
+              "currency"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              }
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuCategory"
+            },
+            "description": "In display order"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedMenuItem"
+            },
+            "description": "Every item of the menu in display order within its category"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/MenuLimits"
+          }
+        }
+      },
+      "MenuUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "description": "The currency cannot be changed: it is the currency of the location."
+      },
+      "MenuCategoryCreate": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "description": "Appended at the end of the menu"
+      },
+      "MenuCategoryUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        }
+      },
+      "MenuCategoryOrder": {
+        "type": "object",
+        "required": [
+          "categories"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            },
+            "description": "Every category of the menu that is not archived, exactly once, in the new order"
+          }
+        },
+        "description": "All or nothing"
+      },
+      "MenuItemOrder": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            },
+            "description": "Every item of the category that is not archived, exactly once, in the new order"
+          }
+        },
+        "description": "All or nothing"
+      },
+      "MenuOptionInput": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Keep an existing option (its id stays stable for carts); omit for a new one"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "price_adjustment_minor": {
+            "type": "integer",
+            "description": "Minor units; negative only when the platform allows it and never below the base price of the item"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "TEMPORARILY_UNAVAILABLE",
+              "DISABLED"
+            ]
+          },
+          "default_selected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MenuOptionGroupInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "name",
+          "options"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Keep an existing group; omit for a new one"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MenuOptionGroupKind"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "min_selections": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_selections": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionInput"
+            }
+          }
+        },
+        "description": "Rules enforced together: max ≥ 1, min ≤ max, required ⇒ min ≥ 1 and at least one available option, max ≤ number of options. Groups and options that are missing from the document are archived, never deleted."
+      },
+      "MenuItemCreate": {
+        "type": "object",
+        "required": [
+          "name",
+          "category_id",
+          "base_price_minor"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000
+          },
+          "category_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "base_price_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Minor units of the menu currency"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SOLD_OUT",
+              "TEMPORARILY_UNAVAILABLE",
+              "DISABLED"
+            ]
+          },
+          "preparation_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 240
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "max_quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Most a customer may order of one configuration; min is always 1"
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag codes from GET /restaurant/taxonomy, at most dietary_tags_per_item"
+          },
+          "allergen_information": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "ingredients": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionGroupInput"
+            },
+            "description": "The whole option configuration of the item, in display order"
+          }
+        },
+        "description": "Item, dietary tags, groups and options in one transaction. currency, menu_id, location_id, slug and archived_at are refused: the menu decides them."
+      },
+      "MenuItemUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "maxLength": 140,
+            "description": "Only to change the address deliberately; must be free within the menu"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Plain text; any script"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000
+          },
+          "category_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "base_price_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Minor units of the menu currency"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SOLD_OUT",
+              "TEMPORARILY_UNAVAILABLE",
+              "DISABLED"
+            ]
+          },
+          "preparation_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 240
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "max_quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Most a customer may order of one configuration; min is always 1"
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tag codes from GET /restaurant/taxonomy, at most dietary_tags_per_item"
+          },
+          "allergen_information": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "ingredients": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuOptionGroupInput"
+            },
+            "description": "The whole option configuration of the item, in display order"
+          }
+        },
+        "description": "Any field; groups replaces the configuration (see MenuOptionGroupInput). A price change and a status change are audited separately."
+      },
+      "MenuItemStatusChange": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SOLD_OUT",
+              "TEMPORARILY_UNAVAILABLE",
+              "DISABLED"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200,
+            "description": "Kept in the audit trail"
+          }
+        },
+        "description": "A switch without a version: the last request wins. Archiving is DELETE /restaurant/menu/items/{item}."
+      },
+      "MenuBulkStatusChange": {
+        "type": "object",
+        "required": [
+          "items",
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SOLD_OUT",
+              "TEMPORARILY_UNAVAILABLE",
+              "DISABLED"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          }
+        },
+        "description": "Every listed item must belong to this menu and not be archived — all of them change or none."
+      },
+      "MenuImageUpload": {
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "description": "JPEG, PNG or WebP, 200 – 4000 px each side, at most image_max_bytes. Checked by content, never by file name."
+          },
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          }
+        },
+        "description": "multipart/form-data"
+      },
+      "MenuImageUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "display_order": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      },
+      "PublicMenuOption": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_adjustment_minor",
+          "available",
+          "default_selected",
+          "display_order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price_adjustment_minor": {
+            "type": "integer",
+            "description": "Integer minor units of the menu currency (paise for INR). Never a decimal."
+          },
+          "available": {
+            "type": "boolean",
+            "description": "False while temporarily unavailable: shown, not selectable. Disabled and archived options are not listed at all."
+          },
+          "default_selected": {
+            "type": "boolean"
+          },
+          "display_order": {
+            "type": "integer"
+          }
+        }
+      },
+      "PublicMenuOptionGroup": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "description",
+          "required",
+          "min_selections",
+          "max_selections",
+          "display_order",
+          "options"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MenuOptionGroupKind"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "min_selections": {
+            "type": "integer"
+          },
+          "max_selections": {
+            "type": "integer"
+          },
+          "display_order": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicMenuOption"
+            }
+          }
+        },
+        "description": "The rules a client validates against before asking for a price quote; the backend enforces the same rules again."
+      },
+      "PublicMenuItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "description",
+          "base_price_minor",
+          "currency",
+          "status",
+          "images",
+          "dietary_tags",
+          "customizable",
+          "preparation_minutes",
+          "featured",
+          "display_order",
+          "version",
+          "availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "base_price_minor": {
+            "type": "integer",
+            "description": "Integer minor units of the menu currency (paise for INR). Never a decimal."
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SOLD_OUT",
+              "TEMPORARILY_UNAVAILABLE"
+            ],
+            "description": "Only customer-visible states appear here"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuImage"
+            }
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DietaryTagRef"
+            }
+          },
+          "customizable": {
+            "type": "boolean",
+            "description": "The item has at least one group with a visible option"
+          },
+          "preparation_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "display_order": {
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/MenuItemAvailability"
+          }
+        },
+        "description": "An item in the menu list: price and state, no option details (see the item route)"
+      },
+      "PublicMenuCategory": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "display_order",
+          "items"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_order": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicMenuItem"
+            }
+          }
+        }
+      },
+      "PublicMenu": {
+        "type": "object",
+        "required": [
+          "restaurant",
+          "availability",
+          "menu",
+          "categories",
+          "dietary_tags"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "currency",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              }
+            }
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailability"
+          },
+          "menu": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name",
+              "currency",
+              "catalog_version",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "catalog_version": {
+                "type": "integer",
+                "description": "Changes whenever the menu changes; clients compare it later to notice a stale menu"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicMenuCategory"
+            },
+            "description": "ACTIVE categories in display order, each with its visible items"
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DietaryTagRef"
+            },
+            "description": "The labels used on this menu, for filters"
+          }
+        },
+        "description": "The published menu of a restaurant customers may see. menu is null (and categories empty) when nothing is published. Prices are the configured base prices; a selection is priced by the price-quote route."
+      },
+      "PublicMenuItemDetail": {
+        "type": "object",
+        "required": [
+          "data",
+          "restaurant_availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "description",
+              "base_price_minor",
+              "currency",
+              "status",
+              "images",
+              "dietary_tags",
+              "customizable",
+              "preparation_minutes",
+              "featured",
+              "display_order",
+              "version",
+              "availability",
+              "restaurant",
+              "category",
+              "menu",
+              "min_quantity",
+              "max_quantity",
+              "instructions_max_length",
+              "allergen_information",
+              "ingredients",
+              "variant_groups",
+              "modifier_groups"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "base_price_minor": {
+                "type": "integer",
+                "description": "Integer minor units of the menu currency (paise for INR). Never a decimal."
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "SOLD_OUT",
+                  "TEMPORARILY_UNAVAILABLE"
+                ],
+                "description": "Only customer-visible states appear here"
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MenuImage"
+                }
+              },
+              "dietary_tags": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DietaryTagRef"
+                }
+              },
+              "customizable": {
+                "type": "boolean",
+                "description": "The item has at least one group with a visible option"
+              },
+              "preparation_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "featured": {
+                "type": "boolean"
+              },
+              "display_order": {
+                "type": "integer"
+              },
+              "version": {
+                "type": "integer"
+              },
+              "availability": {
+                "$ref": "#/components/schemas/MenuItemAvailability"
+              },
+              "restaurant": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "slug",
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "slug": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              },
+              "category": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              },
+              "menu": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "currency",
+                  "catalog_version"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "currency": {
+                    "type": "string"
+                  },
+                  "catalog_version": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "min_quantity": {
+                "type": "integer"
+              },
+              "max_quantity": {
+                "type": "integer"
+              },
+              "instructions_max_length": {
+                "type": "integer"
+              },
+              "allergen_information": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ingredients": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "variant_groups": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicMenuOptionGroup"
+                }
+              },
+              "modifier_groups": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicMenuOptionGroup"
+                }
+              }
+            }
+          },
+          "restaurant_availability": {
+            "$ref": "#/components/schemas/RestaurantAvailability"
+          }
+        }
+      },
+      "PriceQuoteRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "selections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "option_ids"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "group_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "option_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  }
+                }
+              }
+            },
+            "description": "One entry per group the customer chose from; a required group must be present"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Default 1; at most the max_quantity of the item"
+          }
+        },
+        "description": "unit_price_minor and price are refused (422): the backend is the only price authority."
+      },
+      "PriceQuote": {
+        "type": "object",
+        "required": [
+          "data",
+          "availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "object",
+            "required": [
+              "base_price_minor",
+              "adjustments_minor",
+              "unit_price_minor",
+              "quantity",
+              "line_total_minor",
+              "currency",
+              "selections",
+              "item_id",
+              "item_version",
+              "catalog_version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "base_price_minor": {
+                "type": "integer",
+                "description": "Integer minor units of the menu currency (paise for INR). Never a decimal."
+              },
+              "adjustments_minor": {
+                "type": "integer",
+                "description": "Sum of the chosen options"
+              },
+              "unit_price_minor": {
+                "type": "integer",
+                "description": "base + adjustments, never below zero"
+              },
+              "quantity": {
+                "type": "integer"
+              },
+              "line_total_minor": {
+                "type": "integer",
+                "description": "unit × quantity"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "selections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "group_id",
+                    "group_name",
+                    "kind",
+                    "options"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "group_id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "group_name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/MenuOptionGroupKind"
+                    },
+                    "options": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "price_adjustment_minor"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-f-]{36}$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "price_adjustment_minor": {
+                            "type": "integer",
+                            "description": "Integer minor units of the menu currency (paise for INR). Never a decimal."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "item_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "item_version": {
+                "type": "integer"
+              },
+              "catalog_version": {
+                "type": "integer"
+              }
+            }
+          },
+          "availability": {
+            "$ref": "#/components/schemas/MenuItemAvailability"
+          }
+        },
+        "description": "Stateless: nothing is reserved or stored. 422 invalid_selection lists the issues in details.issues (codes: required, min_selections, max_selections, option_unavailable, unknown_group, unknown_option, duplicate_group, duplicate_option, quantity); 422 invalid_price when a configuration would fall below zero."
+      },
+      "AdminMenuOversight": {
+        "type": "object",
+        "required": [
+          "menu",
+          "summary",
+          "categories",
+          "dietary_tags",
+          "inactive_categories",
+          "availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "menu": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name",
+              "currency",
+              "catalog_version",
+              "updated_at",
+              "status",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "catalog_version": {
+                "type": "integer",
+                "description": "Changes whenever the menu changes; clients compare it later to notice a stale menu"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "status": {
+                "$ref": "#/components/schemas/MenuStatus"
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          },
+          "summary": {
+            "type": "object",
+            "required": [
+              "categories",
+              "inactive_categories",
+              "items",
+              "active_items",
+              "sold_out_items",
+              "unavailable_items",
+              "disabled_items",
+              "archived_items",
+              "customizable_items",
+              "last_changed_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "categories": {
+                "type": "integer"
+              },
+              "inactive_categories": {
+                "type": "integer"
+              },
+              "items": {
+                "type": "integer",
+                "description": "Not archived"
+              },
+              "active_items": {
+                "type": "integer"
+              },
+              "sold_out_items": {
+                "type": "integer"
+              },
+              "unavailable_items": {
+                "type": "integer"
+              },
+              "disabled_items": {
+                "type": "integer"
+              },
+              "archived_items": {
+                "type": "integer"
+              },
+              "customizable_items": {
+                "type": "integer"
+              },
+              "last_changed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicMenuCategory"
+            },
+            "description": "As customers see it (with prices), plus a MENU_INACTIVE reason on every item while the menu is unpublished"
+          },
+          "dietary_tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DietaryTagRef"
+            }
+          },
+          "inactive_categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Categories customers cannot see right now"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailabilityDetail"
+          }
+        },
+        "description": "Read-only oversight (admin.restaurants.view in the market of the location). Administrators do not edit menus."
       }
     }
   }

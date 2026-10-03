@@ -45,7 +45,7 @@ $manifest = @"
 | Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=DEV_OTP=<local test code> |
 | Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Market data | $MarketMode (api = market and coverage are read from the local backend at start-up) |
-| Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods and availability from the local backend; menus, carts, orders and reviews are still development data) |
+| Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods, availability and menus from the local backend; carts, orders and reviews are still development data) |
 | Install (USB) | adb install -r $name |
 | Install tested | PENDING |
 | Manual user tested | PENDING USER DEVICE VERIFICATION |

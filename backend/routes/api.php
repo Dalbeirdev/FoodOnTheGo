@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
+use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
 use App\Http\Controllers\Api\Admin\SecurityEventController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
@@ -17,9 +18,12 @@ use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MarketController;
+use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\Restaurant\ContextController;
 use App\Http\Controllers\Api\Restaurant\HoursController;
 use App\Http\Controllers\Api\Restaurant\LocationController;
+use App\Http\Controllers\Api\Restaurant\MenuController;
 use App\Http\Controllers\Api\Restaurant\StaffController;
 use App\Http\Controllers\Api\RestaurantController;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +47,9 @@ Route::pattern('membership', '[0-9a-fA-F-]{36}');
 Route::pattern('specialHour', '[0-9a-fA-F-]{36}');
 Route::pattern('image', '[0-9a-fA-F-]{36}');
 Route::pattern('restaurantSlug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+Route::pattern('itemSlug', '[a-z0-9]+(?:-[a-z0-9]+)*');
+Route::pattern('category', '[0-9a-fA-F-]{36}');
+Route::pattern('item', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -59,7 +66,13 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
         Route::get('/restaurants/{restaurantSlug}', [RestaurantController::class, 'show'])->name('restaurants.show');
         Route::get('/cuisines', [RestaurantController::class, 'cuisines'])->name('cuisines.index');
+        // The menu as customers see it (Module 24): the restaurant must be visible; prices are the backend's.
+        Route::get('/restaurants/{restaurantSlug}/menu', [PublicMenuController::class, 'menu'])->name('restaurants.menu');
+        Route::get('/restaurants/{restaurantSlug}/items/{itemSlug}', [PublicMenuController::class, 'item'])->name('restaurants.items.show');
+        Route::post('/restaurants/{restaurantSlug}/items/{itemSlug}/price-quote', [PublicMenuController::class, 'priceQuote'])->name('restaurants.items.price-quote');
     });
+    // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
+    Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
         // Customer: phone + one-time code. No password, no public way to become anything but a customer.
@@ -135,6 +148,26 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/locations/{location}/pickup-settings', [LocationController::class, 'pickupSettings'])->name('locations.pickup-settings.show');
         Route::patch('/locations/{location}/pickup-settings', [LocationController::class, 'updatePickupSettings'])->name('locations.pickup-settings.update');
 
+        // Menu management (Module 24). A category / item / image is reached through its own id; the location it
+        // belongs to is what RestaurantAccess checks.
+        Route::get('/locations/{location}/menu', [MenuController::class, 'show'])->name('menu.show');
+        Route::patch('/locations/{location}/menu', [MenuController::class, 'update'])->name('menu.update');
+        Route::post('/locations/{location}/menu/categories', [MenuController::class, 'storeCategory'])->name('menu.categories.store');
+        Route::post('/locations/{location}/menu/categories/reorder', [MenuController::class, 'reorderCategories'])->name('menu.categories.reorder');
+        Route::patch('/menu/categories/{category}', [MenuController::class, 'updateCategory'])->name('menu.categories.update');
+        Route::delete('/menu/categories/{category}', [MenuController::class, 'archiveCategory'])->name('menu.categories.archive');
+        Route::post('/menu/categories/{category}/items/reorder', [MenuController::class, 'reorderItems'])->name('menu.items.reorder');
+        Route::post('/locations/{location}/menu/items', [MenuController::class, 'storeItem'])->name('menu.items.store');
+        Route::post('/locations/{location}/menu/items/status', [MenuController::class, 'bulkStatus'])->name('menu.items.bulk-status');
+        Route::get('/menu/items/{item}', [MenuController::class, 'showItem'])->name('menu.items.show');
+        Route::patch('/menu/items/{item}', [MenuController::class, 'updateItem'])->name('menu.items.update');
+        Route::delete('/menu/items/{item}', [MenuController::class, 'archiveItem'])->name('menu.items.archive');
+        Route::patch('/menu/items/{item}/status', [MenuController::class, 'updateItemStatus'])->name('menu.items.status');
+        Route::post('/menu/items/{item}/duplicate', [MenuController::class, 'duplicateItem'])->name('menu.items.duplicate');
+        Route::post('/menu/items/{item}/images', [MenuController::class, 'storeImage'])->name('menu.items.images.store');
+        Route::patch('/menu/items/{item}/images/{image}', [MenuController::class, 'updateImage'])->name('menu.items.images.update');
+        Route::delete('/menu/items/{item}/images/{image}', [MenuController::class, 'destroyImage'])->name('menu.items.images.destroy');
+
         Route::get('/organizations/{organization}/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
             Route::post('/organizations/{organization}/staff', [StaffController::class, 'store'])->name('staff.store');
@@ -161,6 +194,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/audit-events', [AuditEventController::class, 'index'])->name('audit-events.index');
         Route::get('/restaurants', [AdminRestaurantController::class, 'index'])->name('restaurants.index');
         Route::get('/restaurants/{location}', [AdminRestaurantController::class, 'show'])->name('restaurants.show');
+        Route::get('/restaurants/{location}/menu', [AdminRestaurantMenuController::class, 'show'])->name('restaurants.menu');
         Route::get('/restaurant-organizations', [RestaurantOrganizationController::class, 'index'])->name('restaurant-organizations.index');
         Route::get('/restaurant-organizations/{organization}', [RestaurantOrganizationController::class, 'show'])->name('restaurant-organizations.show');
         // Administrator accounts and roles are platform data: the permission must be held without a market scope.

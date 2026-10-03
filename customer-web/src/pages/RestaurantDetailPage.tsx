@@ -10,7 +10,7 @@ import { useJourney } from '../journey/JourneyContext'
 import { restaurantRepository } from '../repositories'
 import type { Restaurant, RouteRestaurantResult } from '../repositories/types'
 import { computeAvailability, routeContextFor } from '../repositories/mock/restaurants'
-import { menuRepository } from '../menu/mock/mockMenu'
+import { menuRepository } from '../menu/menuRepository'
 import type { MenuCategory, MenuItem } from '../menu/repositories'
 import { formatDistance, formatLocalTime, formatMinutes, formatMoney, localClock, priceLevelLabel, zoneLabel } from '../i18n/format'
 import { resolveUnitSystem } from '../i18n/markets'
@@ -34,7 +34,7 @@ const ChevronL = ({ size = 22 }: P) => (<svg {...stroke(size)}><path d="m15 6-6 
 const ChevronR = ({ size = 22 }: P) => (<svg {...stroke(size)}><path d="m9 6 6 6-6 6" /></svg>)
 
 function Img({ src, fallback, alt = '' }: { src: string; fallback: string; alt?: string }) {
-  return (<span className="rd-img"><img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} /><span className="rd-img__fallback" aria-hidden="true">{fallback}</span></span>)
+  return (<span className="rd-img">{src && <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />}<span className="rd-img__fallback" aria-hidden="true">{fallback}</span></span>)
 }
 
 const initials = (name: string) => name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()

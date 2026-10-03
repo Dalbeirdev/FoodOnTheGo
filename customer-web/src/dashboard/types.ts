@@ -138,6 +138,8 @@ export interface MenuManagementRepository {
   duplicateItem(locationId: string, id: string): Promise<MenuItem>
   setAvailability(locationId: string, id: string, availability: MenuItem['availability']): Promise<MenuItem>
   archiveItem(locationId: string, id: string): Promise<void>
+  /** Backend only: the dietary labels an item may carry (code + name). Absent = free text (development mock). */
+  dietaryTags?(): Promise<Array<{ code: string; name: string }>>
 }
 export interface RestaurantOrderRepository {
   list(locationId: string, f: OrderListFilter): Promise<{ orders: Order[]; counts: Record<OrderTab, number> }>

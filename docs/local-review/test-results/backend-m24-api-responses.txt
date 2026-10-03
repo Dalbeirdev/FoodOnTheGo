@@ -1,0 +1,398 @@
+# Module 24 — live local API samples (2026-10-03T06:41Z) — proxy http://127.0.0.1:8001
+
+## GET /restaurants/burger-hub/menu (customer, no token)
+{
+ "restaurant": {
+  "id": "0a000000-0000-4000-8000-0000000000a1",
+  "slug": "burger-hub",
+  "name": "Burger Hub",
+  "currency": "INR",
+  "timezone": "Asia/Kolkata"
+ },
+ "availability": {
+  "open_now": true,
+  "open_state": "OPEN",
+  "accepting_orders": true,
+  "orderable": true,
+  "reason": null,
+  "closes_at": "2026-10-03T18:00:00+00:00",
+  "opens_next_at": null,
+  "checked_at": "2026-10-03T06:41:46+00:00"
+ },
+ "menu": {
+  "id": "3d1be7cc-2ca8-42d1-9dbb-d6d494ecd92e",
+  "name": "Menu",
+  "currency": "INR",
+  "catalog_version": 44,
+  "updated_at": "2026-10-03T06:38:46+00:00"
+ },
+ "categories": [
+  {
+   "name": "Popular Burgers",
+   "items": [
+    {
+     "slug": "classic-burger",
+     "name": "Classic Burger",
+     "base_price_minor": 24900,
+     "currency": "INR",
+     "status": "ACTIVE",
+     "customizable": true,
+     "dietary_tags": [
+      {
+       "code": "NON_VEGETARIAN",
+       "name": "Non-vegetarian"
+      }
+     ],
+     "availability": {
+      "visible": true,
+      "orderable": true,
+      "reason": null,
+      "restaurant_reason": null
+     }
+    },
+    {
+     "slug": "smoky-bbq-burger",
+     "name": "Smoky BBQ Burger",
+     "base_price_minor": 29900,
+     "currency": "INR",
+     "status": "SOLD_OUT",
+     "customizable": true,
+     "dietary_tags": [
+      {
+       "code": "NON_VEGETARIAN",
+       "name": "Non-vegetarian"
+      }
+     ],
+     "availability": {
+      "visible": true,
+      "orderable": false,
+      "reason": "ITEM_SOLD_OUT",
+      "restaurant_reason": null
+     }
+    }
+   ]
+  },
+  {
+   "name": "Sides",
+   "items": [
+    {
+     "slug": "masala-fries",
+     "name": "Masala Fries",
+     "base_price_minor": 12900,
+     "currency": "INR",
+     "status": "ACTIVE",
+     "customizable": true,
+     "dietary_tags": [
+      {
+       "code": "VEGETARIAN",
+       "name": "Vegetarian"
+      },
+      {
+       "code": "VEGAN",
+       "name": "Vegan"
+      }
+     ],
+     "availability": {
+      "visible": true,
+      "orderable": true,
+      "reason": null,
+      "restaurant_reason": null
+     }
+    },
+    {
+     "slug": "onion-rings",
+     "name": "Onion Rings",
+     "base_price_minor": 14900,
+     "currency": "INR",
+     "status": "ACTIVE",
+     "customizable": false,
+     "dietary_tags": [
+      {
+       "code": "VEGETARIAN",
+       "name": "Vegetarian"
+      }
+     ],
+     "availability": {
+      "visible": true,
+      "orderable": true,
+      "reason": null,
+      "restaurant_reason": null
+     }
+    }
+   ]
+  },
+  {
+   "name": "Shakes & Drinks",
+   "items": [
+    {
+     "slug": "chocolate-shake",
+     "name": "Chocolate Shake",
+     "base_price_minor": 17900,
+     "currency": "INR",
+     "status": "ACTIVE",
+     "customizable": true,
+     "dietary_tags": [
+      {
+       "code": "VEGETARIAN",
+       "name": "Vegetarian"
+      },
+      {
+       "code": "CONTAINS_DAIRY",
+       "name": "Contains dairy"
+      }
+     ],
+     "availability": {
+      "visible": true,
+      "orderable": true,
+      "reason": null,
+      "restaurant_reason": null
+     }
+    },
+    {
+     "slug": "masala-lemonade",
+     "name": "Masala Lemonade",
+     "base_price_minor": 9900,
+     "currency": "INR",
+     "status": "ACTIVE",
+     "customizable": true,
+     "dietary_tags": [
+      {
+       "code": "VEGETARIAN",
+       "name": "Vegetarian"
+      },
+      {
+       "code": "VEGAN",
+       "name": "Vegan"
+      }
+     ],
+     "availability": {
+      "visible": true,
+      "orderable": true,
+      "reason": null,
+      "restaurant_reason": null
+     }
+    }
+   ]
+  }
+ ],
+ "dietary_tags": [
+  {
+   "code": "NON_VEGETARIAN",
+   "name": "Non-vegetarian"
+  },
+  {
+   "code": "VEGETARIAN",
+   "name": "Vegetarian"
+  },
+  {
+   "code": "VEGAN",
+   "name": "Vegan"
+  },
+  {
+   "code": "CONTAINS_DAIRY",
+   "name": "Contains dairy"
+  }
+ ]
+}
+
+## GET /restaurants/burger-hub/items/classic-burger
+{
+ "slug": "classic-burger",
+ "name": "Classic Burger",
+ "base_price_minor": 24900,
+ "currency": "INR",
+ "min_quantity": 1,
+ "max_quantity": 20,
+ "instructions_max_length": 200,
+ "allergen_information": null,
+ "variant_groups": [
+  {
+   "id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536",
+   "kind": "VARIANT",
+   "name": "Size",
+   "description": null,
+   "required": true,
+   "min_selections": 1,
+   "max_selections": 1,
+   "display_order": 0,
+   "options": [
+    {
+     "id": "f6231b4e-c53f-4839-b113-f632ef4dc82b",
+     "name": "Regular",
+     "price_adjustment_minor": 0,
+     "available": true,
+     "default_selected": true,
+     "display_order": 0
+    },
+    {
+     "id": "3600c772-4829-44ef-9d00-b9d3d8fe3b39",
+     "name": "Large",
+     "price_adjustment_minor": 7000,
+     "available": true,
+     "default_selected": false,
+     "display_order": 1
+    },
+    {
+     "id": "24716814-eef2-48b2-9b6e-c04390ba0dc3",
+     "name": "Jumbo",
+     "price_adjustment_minor": 13000,
+     "available": true,
+     "default_selected": false,
+     "display_order": 2
+    }
+   ]
+  }
+ ],
+ "modifier_groups": [
+  {
+   "id": "1289ddd8-c517-4298-9ed3-8536ed26c283",
+   "kind": "MODIFIER",
+   "name": "Add-ons",
+   "description": "Choose up to 3",
+   "required": false,
+   "min_selections": 0,
+   "max_selections": 3,
+   "display_order": 1,
+   "options": [
+    {
+     "id": "68cb8317-4e0a-473e-a53d-905bfbf82b7e",
+     "name": "Extra Cheese",
+     "price_adjustment_minor": 3000,
+     "available": true,
+     "default_selected": false,
+     "display_order": 0
+    },
+    {
+     "id": "a3bd090f-eb8c-4bad-85ab-d850ee304a00",
+     "name": "Crispy Bacon",
+     "price_adjustment_minor": 5000,
+     "available": true,
+     "default_selected": false,
+     "display_order": 1
+    },
+    {
+     "id": "cc9fdffa-cc08-4a32-a4c1-5a57d43718f5",
+     "name": "Fried Egg",
+     "price_adjustment_minor": 4000,
+     "available": false,
+     "default_selected": false,
+     "display_order": 2
+    },
+    {
+     "id": "c000171d-181e-4e2f-9e57-b020403165aa",
+     "name": "Jalape�os",
+     "price_adjustment_minor": 2000,
+     "available": true,
+     "default_selected": false,
+     "display_order": 3
+    }
+   ]
+  },
+  {
+   "id": "8168ca55-348d-409e-a54e-950fd98a023d",
+   "kind": "MODIFIER",
+   "name": "Remove ingredients",
+   "description": null,
+   "required": false,
+   "min_selections": 0,
+   "max_selections": 2,
+   "display_order": 2,
+   "options": [
+    {
+     "id": "c0b56990-1f0d-4283-a7e6-aac683b4c5a0",
+     "name": "No onion",
+     "price_adjustment_minor": 0,
+     "available": true,
+     "default_selected": false,
+     "display_order": 0
+    },
+    {
+     "id": "3fe9a2af-ee8a-4c40-9093-0bf18b8563d9",
+     "name": "No sauce",
+     "price_adjustment_minor": 0,
+     "available": true,
+     "default_selected": false,
+     "display_order": 1
+    }
+   ]
+  }
+ ],
+ "availability": {
+  "visible": true,
+  "orderable": true,
+  "reason": null,
+  "restaurant_reason": null
+ }
+}
+
+## POST …/price-quote (Large + Extra Cheese, quantity 2)
+{
+ "data": {
+  "base_price_minor": 24900,
+  "adjustments_minor": 10000,
+  "unit_price_minor": 34900,
+  "quantity": 2,
+  "line_total_minor": 69800,
+  "currency": "INR",
+  "selections": [
+   {
+    "group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536",
+    "group_name": "Size",
+    "kind": "VARIANT",
+    "options": [
+     {
+      "id": "3600c772-4829-44ef-9d00-b9d3d8fe3b39",
+      "name": "Large",
+      "price_adjustment_minor": 7000
+     }
+    ]
+   },
+   {
+    "group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283",
+    "group_name": "Add-ons",
+    "kind": "MODIFIER",
+    "options": [
+     {
+      "id": "68cb8317-4e0a-473e-a53d-905bfbf82b7e",
+      "name": "Extra Cheese",
+      "price_adjustment_minor": 3000
+     }
+    ]
+   }
+  ],
+  "item_id": "3f6ef553-3814-40d2-a1d4-68fe25cede47",
+  "item_version": 1,
+  "catalog_version": 44
+ },
+ "availability": {
+  "visible": true,
+  "orderable": true,
+  "reason": null,
+  "restaurant_reason": null
+ }
+}
+
+## POST …/price-quote with a client price → 422
+{
+ "error": {
+  "code": "validation_failed",
+  "message": "The submitted data is invalid.",
+  "details": {
+   "fields": {
+    "unit_price_minor": [
+     "Prices are calculated by FoodOnTheGo."
+    ]
+   }
+  },
+  "request_id": "7ee86692-b03f-42d1-b5ef-1ca2ba0f6b07"
+ }
+}
+
+## GET /restaurants/burger-hub/items/old-veggie-wrap (archived) → 404
+404
+## GET /restaurants/ambala-chai-point/menu (DRAFT menu)
+{"menu": null, "categories": []}
+## GET /restaurant/locations/{id}/menu without token → 401
+401
+## GET /api/v1/media/menu/x/y.jpg → 404
+{"error":{"code":"media_not_found","message":"This file does not exist.","request_id":"d7cebe8e-9ff8-49be-b5bd-1336f64bedd3"}}

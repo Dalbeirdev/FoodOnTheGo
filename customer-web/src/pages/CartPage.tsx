@@ -7,7 +7,7 @@ import { useCart } from '../cart/CartContext'
 import type { CartItem } from '../cart/cartModel'
 import { estimatedTotalMinor, readStaleSimulation, reviewCart, type CartReview, type LineIssue } from '../cart/cartValidation'
 import { useJourney } from '../journey/JourneyContext'
-import { menuRepository } from '../menu/mock/mockMenu'
+import { menuRepository } from '../menu/menuRepository'
 import { restaurantRepository } from '../repositories'
 import type { Restaurant } from '../repositories/types'
 import { computeAvailability, routeContextFor } from '../repositories/mock/restaurants'
@@ -33,7 +33,7 @@ const CartIcon = ({ size = 40 }: P) => (<svg {...stroke(size)}><path d="M3 4h2l2
 const WarnIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 3 2 20h20L12 3Zm0 6v5m0 3v.5" /></svg>)
 
 function Img({ src, fallback, alt = '' }: { src: string; fallback: string; alt?: string }) {
-  return (<span className="cart-line__img"><img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} /><span aria-hidden="true">{fallback}</span></span>)
+  return (<span className="cart-line__img">{src && <img src={src} alt={alt} loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />}<span aria-hidden="true">{fallback}</span></span>)
 }
 
 /** Legacy Module 01 checkout mockup constant — replaced by market pricing policy (CF-107). */

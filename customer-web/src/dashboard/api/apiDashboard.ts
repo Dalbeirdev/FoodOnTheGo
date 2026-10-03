@@ -9,8 +9,8 @@
  *    (403 access denied, 404 not yours, 409 changed in the meantime, 422 invalid);
  *  - writes carry the version the page loaded (optimistic concurrency).
  *
- * Still development data in the dashboard, and labelled as such on screen: menu, orders, pickup verification,
- * reviews, analytics, notifications and the per-browser settings.
+ * The menu is on the backend as well (Module 24, apiMenuManagement.ts). Still development data in the dashboard, and
+ * labelled as such on screen: orders, pickup verification, reviews, analytics, notifications and the per-browser settings.
  *
  * Locations keep the id the development menus / orders already use for them (matched by slug); the backend id is
  * `live.locationId`.
@@ -21,6 +21,7 @@ import type { PickupMethod, PickupSettings } from '../../pickup/repositories'
 import type { OpeningHours, Restaurant } from '../../repositories/types'
 import { legacyRestaurant } from '../../restaurants/api/restaurantData'
 import { dashboardRepositories } from '../mock/mockDashboard'
+import { ApiMenuManagementRepository } from './apiMenuManagement'
 import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus } from '../types'
 
 const R = { context: 'restaurant' as const }
@@ -305,10 +306,10 @@ export class ApiRestaurantStaffRepository implements RestaurantStaffRepository {
   }
 }
 
-/** Real backend for the restaurant domain; the other areas are still the development repositories. */
+/** Real backend for the restaurant and menu domains; the other areas are still the development repositories. */
 export const apiDashboardRepositories: DashboardRepositories = (() => {
   const management = new ApiRestaurantManagementRepository()
-  return { ...dashboardRepositories, management, staff: new ApiRestaurantStaffRepository(management) }
+  return { ...dashboardRepositories, management, staff: new ApiRestaurantStaffRepository(management), menu: new ApiMenuManagementRepository(management) }
 })()
 
 /** The invited staff member accepts with the single-use link (public call, no token). A new account sends a password. */

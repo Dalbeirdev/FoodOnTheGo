@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { t } from '../../i18n/strings'
 import { Card, ErrorState, Icon, Skeleton, Tabs, Thumb, ToastLine, useToastMessage } from '../../dashboard/components/ui'
 import { useAdmin } from '../AdminContext'
+import RestaurantMenuTab from './RestaurantMenuTab'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, ReasonDialog, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminRestaurant, AdminRestaurantStatus, DocumentStatus, RejectionCategory, RestaurantFilter } from '../types'
@@ -54,7 +55,7 @@ const REJECTION_CATEGORIES: RejectionCategory[] = ['incomplete_documents', 'inva
 export function RestaurantDetailsPage() {
   const a = useAdmin(); const locale = a.locale; const { id = '' } = useParams(); usePageTitle('adm.nav.restaurants')
   const { data: r, state, reload, setData } = useLoad(() => a.repos.restaurants.get(id), [a.repos, id])
-  const [tab, setTab] = useState<'overview' | 'documents' | 'locations' | 'notes' | 'history'>('overview')
+  const [tab, setTab] = useState<'overview' | 'menu' | 'documents' | 'locations' | 'notes' | 'history'>('overview')
   const [dialog, setDialog] = useState<Dialog>(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null); const { msg, toast } = useToastMessage()
   const [publicReason, setPublicReason] = useState(''); const [docStatus, setDocStatus] = useState<DocumentStatus>('APPROVED'); const [override, setOverride] = useState(false)
   const [noteText, setNoteText] = useState('')
@@ -68,7 +69,7 @@ export function RestaurantDetailsPage() {
   const canApprove = a.can('restaurants.approve'), canSuspend = a.can('restaurants.suspend')
   // With the backend the buttons follow what THIS administrator may do from the current status (checked again on the server).
   const live = r.live ?? null; const moves = live?.allowedTransitions ?? []
-  const tabs = (live ? ['overview', 'locations', 'notes', 'history'] : ['overview', 'documents', 'locations', 'notes', 'history']) as Array<'overview' | 'documents' | 'locations' | 'notes' | 'history'>
+  const tabs = (live ? ['overview', 'menu', 'locations', 'notes', 'history'] : ['overview', 'documents', 'locations', 'notes', 'history']) as Array<'overview' | 'menu' | 'documents' | 'locations' | 'notes' | 'history'>
   const readyCount = live ? live.readiness.filter((c) => c.ok).length : 0
   const eventLabel = (action: string) => { const key = `adm.live.event.${action}`; const label = t(key, undefined, locale); return label === key ? action.replace(/[._]/g, ' ') : label }
   const move = dialog && typeof dialog === 'object' && 'move' in dialog ? dialog : null
@@ -137,6 +138,7 @@ export function RestaurantDetailsPage() {
         {r.internalNotes.length === 0 ? <p className="db-muted">{t('adm.restaurant.notesEmpty', undefined, locale)}</p> : [...r.internalNotes].reverse().map((n, i) => <div key={i} className="adm-note"><small>{fmtDateTime(n.at, locale)} · {n.by}</small>{n.text}</div>)}
         {(live ? live.canManage : canApprove) && <form className="adm-inline-form" data-testid="note-form" onSubmit={(e) => { e.preventDefault(); if (!noteText.trim()) return; void run(() => (a.repos.restaurants.addNote ? a.repos.restaurants.addNote(rest.id, noteText) : a.repos.restaurants.requestInformation(rest.id, a.admin.id, noteText)).then((x) => { setNoteText(''); return x })) }}><div className="db-field"><label className="db-field__label" htmlFor="rnote">{t('adm.action.addNote', undefined, locale)}</label><input id="rnote" className="db-input" value={noteText} onChange={(e) => setNoteText(e.target.value)} data-testid="note-input" /></div><button type="submit" className="db-btn db-btn--outline" disabled={busy}>{t('adm.action.addNote', undefined, locale)}</button></form>}
       </Card>}
+      {tab === 'menu' && live && <RestaurantMenuTab id={id} />}
       {tab === 'history' && live && <Card title={t('adm.restaurant.tab.history', undefined, locale)}>
         {live.history.length === 0 ? <p className="db-muted">{t('adm.audit.empty', undefined, locale)}</p> : <ol className="db-timeline" data-testid="restaurant-history">{live.history.map((e) => <li key={e.id} data-action={e.action}><span className="db-timeline__dot" /><span><b>{eventLabel(e.action)}</b><small className="db-muted"> · {e.actor ?? '—'} · {fmtDateTime(e.at, locale)}{e.reason ? ` · ${e.reason}` : ''}</small></span></li>)}</ol>}
       </Card>}

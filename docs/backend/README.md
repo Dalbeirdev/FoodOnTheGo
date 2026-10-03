@@ -1,4 +1,4 @@
-# FoodOnTheGo backend — foundation (Module 20), identity (Module 21), market geography (Module 22), restaurants (Module 23)
+# FoodOnTheGo backend — foundation (Module 20), identity (Module 21), market geography (Module 22), restaurants (Module 23), menus (Module 24)
 
 Laravel API in `/backend`. This document records what exists, how to run it locally, and the conventions
 every later backend module must follow. Commands below were run on the development PC on 2026-09-30;
@@ -527,26 +527,40 @@ that were made are audited — a refused attempt is not an audit event.
   page; a 404 removes the restaurant from the snapshot. The existing `RestaurantRepository` reads the snapshot, so
   the discovery pages did not change; "open now" is recomputed in the browser with the backend's schedule rules
   (`computeAvailability`, same tests on both sides). Android does the same at start-up (`api_restaurants.dart`).
-  Nothing falls back to fixtures: without the backend the list is empty and the gate offers a retry. Menus,
-  ratings / reviews, carts and orders are still development data and are labelled as such.
+  Nothing falls back to fixtures: without the backend the list is empty and the gate offers a retry. Ratings /
+  reviews, carts and orders are still development data and are labelled as such.
+- Menus are on the real backend (Module 24, same `RESTAURANT_MODE=api` switch). Customer Web: `menu/menuRepository.ts`
+  picks `ApiMenuRepository` (`menu/api/apiMenu.ts`), which reads `GET /restaurants/{slug}/menu` once per restaurant
+  (reused 30 s; search, filters and paging are applied in the browser as the fixtures did) and
+  `GET /restaurants/{slug}/items/{itemSlug}` for the item page; `getPriceQuote` asks `POST …/price-quote`. The pages
+  and the cart review did not change (an item the backend does not show is `null`, exactly as before). Android:
+  `menu/api_menu.dart` with `defaultMenuRepository()` in the four menu screens. An item without a photo shows its
+  fallback (no empty image).
 - Restaurant Dashboard → `apiDashboard.ts`: `GET /restaurant/context` decides which organizations and locations the
   signed-in user may open (default location = the backend's `default_location_id`); profile, hours, special hours,
   pickup settings, the accepting-orders switch and staff (`/restaurant/organizations/{org}/staff`, roles from
   `/restaurant/roles`) go through the API with the versions the page loaded. A refusal is shown in the page (403
   "access denied" without signing out, 404 "no longer available to you", 409 reload-and-retry, 422 the field
-  message). Menu, orders, pickup verification, reviews, analytics, notifications and settings carry a "Demo data"
-  label. `/restaurant-dashboard/accept-invitation#<token>` is the public page where invited staff join (a new
+  message). The Menu page is on the backend too (Module 24, `apiMenuManagement.ts`): the management document with
+  archived rows, categories (create, rename, reorder), items with their option groups as one document (ids kept,
+  the rest archived), the availability switch as the backend status (available → ACTIVE, sold out → SOLD_OUT,
+  temporarily unavailable → TEMPORARILY_UNAVAILABLE, unavailable → DISABLED), duplicate, archive, photos uploaded as
+  multipart after the save and removed when taken away, dietary labels as the backend list (checkboxes). Orders,
+  pickup verification, reviews, analytics, notifications and settings still carry a "Demo data" label. `/restaurant-dashboard/accept-invitation#<token>` is the public page where invited staff join (a new
   account chooses its password there).
 - Platform Admin → `ApiAdminRestaurantRepository`: list (`/admin/restaurants`, backend paging / stage filter /
   search), one restaurant with the moves this administrator may make (`allowed_transitions`), approval / rejection
   (category + explanation) / suspension / reactivation of the location and of its organization, locations of the
   organization, staff summary, internal notes and the history (audit trail). The header badge says per section
-  whether the data is backend or development data.
+  whether the data is backend or development data. The restaurant details page has a read-only **Menu** tab
+  (`RestaurantMenuTab.tsx`, `GET /admin/restaurants/{location}/menu`): counts per state, the hidden categories and
+  the menu as customers see it, with prices (Module 24).
 
 ## 10. Not built yet
 
-Menus, journeys and route-aware discovery, cart, pickup slots, checkout, payments, orders, tracking, reviews, image
-uploads / object storage, verification documents, restaurant self-service onboarding; live SMS and e-mail
+Journeys and route-aware discovery, cart, pickup slots, checkout, payments, orders, tracking, reviews, object
+storage for images (menu photos live on the local `public` disk), verification documents, restaurant self-service
+onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; live SMS and e-mail
 providers, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a surveyed market
 border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are
 tracked in `docs/project-progress.html`.
@@ -616,3 +630,30 @@ temporarily closed, outside coverage, 24 h, overnight, split and special hours; 
 owner / manager / order staff / menu manager / invited viewer / suspended viewer; Second Kitchen with its own owner).
 `LocalFixtureSeeder` creates the restaurant accounts; the memberships give them their roles.
 
+## 12. Menus, items, customization and pricing (Module 24)
+
+The entity model, the services, the availability order and the decision list are in
+[`menu-domain.md`](menu-domain.md).
+
+- One menu per location (created on first use, ACTIVE, in the **location's currency**); categories and items with
+  explicit `display_order`, stable per-menu slugs, statuses `ACTIVE / SOLD_OUT / TEMPORARILY_UNAVAILABLE / DISABLED /
+  ARCHIVED`; variant and modifier groups in one table (`kind`) with `required / min / max`; options with integer
+  price adjustments; photos checked by content and served by `GET /api/v1/media/{path}`; dietary tags as data.
+- `MenuService` is the only writer (menu row locked per write, versions on edits → 409 `stale_update`, status switches
+  without version, archive instead of delete, every change audited, `catalog_version` bumped). `MenuPricingService`
+  is the price authority (`POST …/price-quote`; a client price is refused). `MenuAvailabilityService` gives the one
+  visible / orderable / reason answer for every audience. `MenuCatalog` caches the customer documents per catalog
+  version (no explicit flush; the restaurant's open / accepting state is merged per request).
+- Routes: 21 new `/api/v1` operations (122 in total), all in `openapi/openapi.json` (97 paths, 174 schemas) and
+  checked by the contract tests (`MenuOpenApiContractTest`, `OpenApiContractTest`).
+- Permissions: `restaurant.menu.view` (read) and `restaurant.menu.manage` (write) at the location; another
+  restaurant's menu is a 404 even with known ids; administrators read with `admin.restaurants.view` in the market.
+- Fixtures: `DietaryTagSeeder` (every environment, 10 labels) and `LocalMenuFixtureSeeder` (local only, through
+  `MenuService`: menus for the 19 fixture locations with India prices in paise — sold-out, temporarily unavailable,
+  disabled and archived items, an inactive category, a DRAFT menu (Ambala Chai Point), a large customization (Pizza
+  Point "Build Your Own Pizza"), a half-portion reduction, a large menu (Rajwada Thali, 8 × 8)). A location that
+  already has a menu is left alone on re-seed.
+- Tests: `tests/Unit/Menu` (pricing arithmetic ₹200 + ₹50 + ₹20 = ₹270, rules), `tests/Feature/Menu`
+  (management API, authorization and isolation, customer API incl. cache freshness and a constant query count,
+  images, admin oversight, fixtures, OpenAPI contract). Whole suite 455 tests / 5458 assertions
+  (`docs/local-review/test-results/backend-m24-phpunit.txt`).

@@ -182,6 +182,15 @@ export interface AdminMarketControlRepository {
 
 /* ---------------- repositories ---------------- */
 export interface AdminOverviewRepository { snapshot(): Promise<OverviewSnapshot> }
+/** Read-only menu oversight (Module 24): the menu as customers see it, with counts per state. Administrators do not edit menus. */
+export type AdminMenuItem = { id: string; slug: string; name: string; priceMinor: number; currency: string; status: 'ACTIVE' | 'SOLD_OUT' | 'TEMPORARILY_UNAVAILABLE'; orderable: boolean; reason: string | null; customizable: boolean; featured: boolean; dietaryTags: string[] }
+export type AdminMenuOverview = {
+  menu: { id: string; name: string; status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'; currency: string; catalogVersion: number; updatedAt: string | null } | null
+  summary: { categories: number; inactiveCategories: number; items: number; activeItems: number; soldOutItems: number; unavailableItems: number; disabledItems: number; archivedItems: number; customizableItems: number; lastChangedAt: string | null }
+  categories: Array<{ id: string; name: string; items: AdminMenuItem[] }>
+  inactiveCategories: Array<{ id: string; name: string }>
+  visibleToCustomers: boolean
+}
 export interface AdminRestaurantRepository {
   list(f: RestaurantFilter): Promise<Page<AdminRestaurant>>
   get(id: string): Promise<AdminRestaurant | null>
@@ -198,6 +207,8 @@ export interface AdminRestaurantRepository {
   changeStatus?(id: string, status: AdminRestaurantStatus, input?: { reason?: string; publicReason?: string; category?: RejectionCategory }): Promise<AdminRestaurant>
   changeOrganizationStatus?(id: string, status: AdminRestaurantStatus, input?: { reason?: string; publicReason?: string; category?: RejectionCategory }): Promise<AdminRestaurant>
   addNote?(id: string, text: string): Promise<AdminRestaurant>
+  /** Backend only: the menu of a location as customers see it, with counts (Module 24). */
+  menu?(id: string): Promise<AdminMenuOverview>
 }
 export interface AdminCustomerRepository { list(f: CustomerFilter): Promise<Page<AdminCustomer>>; get(id: string): Promise<(AdminCustomer & { recentOrders: Order[]; supportCases: SupportCase[]; reviews: Review[]; securityEvents: SecurityEvent[] }) | null>; setStatus(id: string, status: CustomerStatus, actor: string, reason: string): Promise<AdminCustomer>; requireReverification(id: string, actor: string): Promise<AdminCustomer> }
 export interface AdminOrderRepository { list(f: AdminOrderFilter): Promise<Page<AdminOrder> & { counts: Record<AdminOrderFilter['tab'], number> }>; get(orderNumber: string): Promise<(AdminOrder & { payment: AdminPayment | null; refunds: AdminRefund[]; supportCases: SupportCase[] }) | null>; addNote(orderNumber: string, actor: string, text: string): Promise<AdminOrder>; exceptions(): Promise<OrderException[]> }

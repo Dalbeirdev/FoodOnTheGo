@@ -6,7 +6,8 @@
 /// hours it was given, with the backend's own rules, so a page left open does not show a stale state. Whether orders
 /// are possible (paused, pickup switched off, area not served) is taken as the backend said.
 ///
-/// Still development data, and labelled as such in the product: menus, carts, orders, ratings and reviews.
+/// Menus come from the backend as well (menu/api_menu.dart, Module 24). Still development data, and labelled as such in
+/// the product: carts, orders, ratings and reviews.
 /// Route distance and detour are not part of this API (route discovery is a later module).
 library;
 

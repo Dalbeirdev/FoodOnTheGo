@@ -1,0 +1,60 @@
+{
+  "module": "M24",
+  "date": "2026-10-03T07:18:10.612Z",
+  "base": "http://localhost:5174/#/",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "passed": 10,
+  "total": 10,
+  "results": [
+    {
+      "name": "F1 the restaurant screen loads the menu from GET /restaurants/burger-hub/menu (200, no token)",
+      "pass": true,
+      "detail": "{\"method\":\"GET\",\"url\":\"/restaurants/burger-hub/menu\",\"status\":200,\"auth\":false}"
+    },
+    {
+      "name": "F2 the backend categories are the chips and the backend items are the tiles (names and ₹ prices)",
+      "pass": true,
+      "detail": "Back to results | Save Burger Hub | Share | Photos (1) | Burger Hub\n 4.5\n (320)\nBurgers · Fast Food · American  ·  ₹₹\nOpen\nCloses 11:30 PM GMT+5:30\nPrep 12m\nSector 62, Noida, Uttar Pradesh 201309, Ind"
+    },
+    {
+      "name": "F3 the sold-out item (Smoky BBQ Burger) is shown with \"Sold out\", not hidden",
+      "pass": true,
+      "detail": "Smoky BBQ Burger, ₹299.00, Sold out "
+    },
+    {
+      "name": "F4 the item screen asks the backend for the item (GET …/items/classic-burger 200, no token)",
+      "pass": true,
+      "detail": "{\"method\":\"GET\",\"url\":\"/restaurants/burger-hub/items/classic-burger\",\"status\":200,\"auth\":false}"
+    },
+    {
+      "name": "F5 the option groups are the backend ones: Size (Required, single choice) and Add-ons (Optional, up to 3) with the option prices",
+      "pass": true,
+      "detail": "Burger Hub | Cart | Classic Burger\nBase price\n₹249.00\nJuicy grilled patty with fresh lettuce, tomato and cheese.\nNon-vegetarian | Customize\n4\nSpecial instructions\nOptional\nRequests are subject to restaurant availability. Use the options above for priced change"
+    },
+    {
+      "name": "F6 the temporarily unavailable option (Fried Egg) is shown but disabled",
+      "pass": true,
+      "detail": "{\"label\":\"Fried Egg, Sold out, +₹40.00\",\"disabled\":\"true\",\"role\":\"button\"}"
+    },
+    {
+      "name": "F7 choosing \"Large\" changes the price preview by the backend adjustment (₹249.00 + ₹70.00 = ₹319.00)",
+      "pass": true,
+      "detail": "tapped=true selected=null total319=true"
+    },
+    {
+      "name": "F8 a restaurant whose menu is not published (DRAFT) shows \"Menu currently unavailable\" — nothing is made up",
+      "pass": true,
+      "detail": "Back to results | Save Ambala Chai Point | Share | Photos (1) | Ambala Chai Point\n 4.1\n (88)\nCafe · Beverages  ·  ₹\nClosed\nOpens 5:30 AM GMT+5:30\nPrep 5m\nGT Roa"
+    },
+    {
+      "name": "F9 an archived item is \"not found\" (the backend answers 404) — also by direct link",
+      "pass": true,
+      "detail": "Item | Cart | We couldn’t find that item.\nIt may have been removed from the menu or the link is out of date. | Back to the menu"
+    },
+    {
+      "name": "F10 Build Info states where the data comes from: \"Backend, menus included (orders and reviews still development data)\"",
+      "pass": true,
+      "detail": "Restaurants\nBackend, menus included (orders and reviews still development data)\nApp version\n0.1.0 (build 28)\nBuild label\nweb-preview\nGit commit\nno-git | API health\nUNKNOWN\nNot checked yet "
+    }
+  ]
+}

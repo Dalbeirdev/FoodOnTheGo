@@ -35,7 +35,7 @@ const WarnIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M12 3 2 
 const PenIcon = ({ size = 14 }: P) => (<svg {...stroke(size)}><path d="M4 20h4l10-10-4-4L4 16v4ZM13 7l4 4" /></svg>)
 
 function Img({ src, fallback }: { src: string; fallback: string }) {
-  return (<span className="cart-line__img co-line__img"><img src={src} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} /><span aria-hidden="true">{fallback}</span></span>)
+  return (<span className="cart-line__img co-line__img">{src && <img src={src} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />}<span aria-hidden="true">{fallback}</span></span>)
 }
 
 export default function CheckoutPage() {

@@ -8,6 +8,7 @@ import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
 import '../menu/menu_options.dart';
+import '../menu/api_menu.dart' show defaultMenuRepository;
 import '../menu/menu_repository.dart';
 import '../pricing/pricing_service.dart';
 import '../state/cart_state.dart';
@@ -29,7 +30,7 @@ class ItemDetailScreen extends StatefulWidget {
 
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   late final MockRestaurantRepository _rr = widget.restaurantRepository ?? MockRestaurantRepository();
-  late final MenuRepository _mr = widget.menuRepository ?? MockMenuRepository();
+  late final MenuRepository _mr = widget.menuRepository ?? defaultMenuRepository();
   String status = 'loading';
   String? error;
   GlobalRestaurant? r;
@@ -167,7 +168,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         Row(children: [Text(S.t('item.base'), style: const TextStyle(color: Brand.grey, fontSize: 13)), const SizedBox(width: 8), Text(formatMoney(it.basePriceMinor, it.currency), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))]),
         if (it.description.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(it.description, style: const TextStyle(fontSize: 14.5, height: 1.45))),
         const SizedBox(height: 10),
-        Wrap(spacing: 6, runSpacing: 6, children: [Tag(S.t('item.prep', {'minutes': formatMinutes(it.prepTimeMin)})), for (final t in it.dietaryTags) Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4), decoration: BoxDecoration(color: Brand.greenBg, borderRadius: BorderRadius.circular(999)), child: Text(t, style: const TextStyle(color: Brand.green, fontSize: 12, fontWeight: FontWeight.w700)))]),
+        Wrap(spacing: 6, runSpacing: 6, children: [if (it.prepTimeMin > 0) Tag(S.t('item.prep', {'minutes': formatMinutes(it.prepTimeMin)})), for (final t in it.dietaryTags) Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4), decoration: BoxDecoration(color: Brand.greenBg, borderRadius: BorderRadius.circular(999)), child: Text(t, style: const TextStyle(color: Brand.green, fontSize: 12, fontWeight: FontWeight.w700)))]),
         if (blocked) Padding(padding: const EdgeInsets.only(top: 12), child: InfoBox(icon: Icons.info_outline, color: Brand.amber, bg: Brand.amberBg, child: Text(blockedText, style: const TextStyle(fontSize: 13, color: Color(0xFF7C3D00)))))
         else if (av.status == AvailabilityStatus.closed || av.status == AvailabilityStatus.openingSoon || av.status == AvailabilityStatus.temporarilyClosed) Padding(padding: const EdgeInsets.only(top: 12), child: InfoBox(icon: Icons.schedule, child: Text(S.t('item.closedNote'), style: const TextStyle(fontSize: 13)))),
         const SizedBox(height: 16),

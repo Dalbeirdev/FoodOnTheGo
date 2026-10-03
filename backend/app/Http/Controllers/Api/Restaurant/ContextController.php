@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Restaurant;
 use App\Auth\AccessControl;
 use App\Http\Controllers\Api\Restaurant\Concerns\LoadsRestaurantLocations;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Menu\MenuPresenter;
 use App\Http\Resources\Restaurant\RestaurantLocationResource;
 use App\Models\Cuisine;
+use App\Models\DietaryTag;
 use App\Models\RestaurantFeature;
 use App\Models\RestaurantMembership;
 use App\Models\RestaurantUser;
@@ -69,6 +71,10 @@ class ContextController extends Controller
                 ->map(fn (Cuisine $c): array => ['code' => $c->code, 'name' => $c->name])->all(),
             'features' => RestaurantFeature::query()->active()->orderBy('display_order')->orderBy('name')->get()
                 ->map(fn (RestaurantFeature $f): array => ['code' => $f->code, 'name' => $f->name, 'category' => $f->category])->all(),
+            // Module 24: the labels a restaurant may attach to menu items, and the menu limits.
+            'dietary_tags' => DietaryTag::query()->active()->orderBy('display_order')->orderBy('name')->get()
+                ->map(fn (DietaryTag $t): array => ['code' => $t->code, 'name' => $t->name, 'kind' => $t->kind])->all(),
+            'menu' => MenuPresenter::limits(),
             'limits' => [
                 'cuisines' => (int) config('restaurant.limits.cuisines'),
                 'features' => (int) config('restaurant.limits.features'),

@@ -74,7 +74,9 @@ const FALLBACK: Record<ApiErrorKind, string> = {
 }
 
 export type ApiRequest = {
-  method?: string; body?: unknown
+  method?: string
+  /** JSON by default; a FormData body is sent as multipart/form-data (file uploads). */
+  body?: unknown
   /** false = public call (no token). */
   auth?: boolean
   /** Which sign-in context the call belongs to (default: customer). */
@@ -88,7 +90,8 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const requestId = newRequestId()
   const context = init.context ?? 'customer'
   const headers: Record<string, string> = { Accept: 'application/json', 'X-Request-Id': requestId }
-  if (init.body !== undefined) headers['Content-Type'] = 'application/json'
+  const form = typeof FormData !== 'undefined' && init.body instanceof FormData // multipart upload: the browser sets the boundary
+  if (init.body !== undefined && !form) headers['Content-Type'] = 'application/json'
   if (init.idempotencyKey) headers['Idempotency-Key'] = init.idempotencyKey
   const token = init.auth === false ? null : init.token ?? tokens.get(context)
   if (token) headers.Authorization = `Bearer ${token}`
@@ -98,7 +101,7 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
 
   let res: Response
   try {
-    res = await fetch(url, { method: init.method ?? 'GET', headers, body: init.body === undefined ? undefined : JSON.stringify(init.body), signal: init.signal })
+    res = await fetch(url, { method: init.method ?? 'GET', headers, body: init.body === undefined ? undefined : form ? (init.body as FormData) : JSON.stringify(init.body), signal: init.signal })
   } catch {
     throw new ApiError(0, FALLBACK.network, { requestId })
   }
