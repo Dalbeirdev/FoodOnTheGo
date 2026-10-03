@@ -29,6 +29,7 @@ enum Permission: string
     case AdminRestaurantsView = 'admin.restaurants.view';
     case AdminRestaurantsApprove = 'admin.restaurants.approve';
     case AdminRestaurantsSuspend = 'admin.restaurants.suspend';
+    case AdminRestaurantsManage = 'admin.restaurants.manage';
     case AdminCustomersView = 'admin.customers.view';
     case AdminCustomersManage = 'admin.customers.manage';
     case AdminOrdersView = 'admin.orders.view';

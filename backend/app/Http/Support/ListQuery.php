@@ -2,8 +2,10 @@
 
 namespace App\Http\Support;
 
+use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -17,18 +19,24 @@ use Illuminate\Validation\ValidationException;
  *
  * Unknown filters or sort fields are rejected with 422 instead of being silently ignored.
  * Cursor pagination (`page[cursor]`) is reserved for feeds that must not skip rows (orders, events).
+ *
+ * A filter is an exact match on the column of the same name unless the endpoint gives it a handler
+ * (`$handlers`: name => fn (Builder $query, string $value)), for filters that are not a plain column —
+ * a parent named by its public id, a slug of a related record, "open now".
  */
 final class ListQuery
 {
     /**
      * @param  list<string>  $filterable
      * @param  list<string>  $sortable
+     * @param  array<string, Closure(Builder<covariant Model>, string): void>  $handlers
      */
     public function __construct(
         private readonly Request $request,
         private readonly array $filterable = [],
         private readonly array $sortable = [],
         private readonly string $defaultSort = '-created_at',
+        private readonly array $handlers = [],
     ) {}
 
     /**
@@ -40,6 +48,11 @@ final class ListQuery
     public function paginate(Builder $query): LengthAwarePaginator
     {
         foreach ($this->filters() as $column => $value) {
+            if (isset($this->handlers[$column])) {
+                ($this->handlers[$column])($query, $value);
+
+                continue;
+            }
             $query->where($column, $value);
         }
 
@@ -47,9 +60,19 @@ final class ListQuery
             $query->orderBy($column, $direction);
         }
 
-        return $query->orderBy($query->getModel()->getKeyName())
-            ->paginate(perPage: $this->pageSize(), page: $this->pageNumber())
-            ->withQueryString();
+        $paginator = $query->orderBy($query->getModel()->getKeyName())
+            ->paginate(perPage: $this->pageSize(), pageName: 'page[number]', page: $this->pageNumber());
+
+        // The links a client follows must speak the same convention as the request: page[number] / page[size],
+        // with the filters, search and sort it sent. (The framework default would write ?page=2 and lose them.)
+        $carried = $this->request->query();
+        unset($carried['page']);
+        $paginator->appends($carried);
+        if (isset($this->page()['size'])) {
+            $paginator->appends('page[size]', (string) $this->pageSize());
+        }
+
+        return $paginator;
     }
 
     /**
@@ -64,7 +87,7 @@ final class ListQuery
         }
 
         foreach ($filters as $field => $value) {
-            if (! in_array($field, $this->filterable, true) || ! is_string($value)) {
+            if ((! in_array($field, $this->filterable, true) && ! isset($this->handlers[$field])) || ! is_string($value)) {
                 throw ValidationException::withMessages(["filter.{$field}" => ['This filter is not supported.']]);
             }
         }

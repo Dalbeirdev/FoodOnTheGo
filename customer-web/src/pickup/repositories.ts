@@ -23,7 +23,7 @@ export type PickupSlot = {
   reasonUnavailable?: 'full' | 'closed' | 'past' | 'lead_time' | 'not_accepting' | 'horizon'
 }
 
-export type PickupMethod = { id: string; type: 'counter' | 'curbside' | 'drive_through'; label: string; instructions?: string; enabled: boolean; requiresVehicleInfo: boolean }
+export type PickupMethod = { id: string; type: 'counter' | 'curbside' | 'drive_through'; label: string; instructions?: string; enabled: boolean; requiresVehicleInfo: boolean; /** Backend only: false = the market has not enabled this method, so a restaurant cannot switch it on. */ availableInMarket?: boolean }
 
 /** Restaurant pickup configuration (restaurant_pickup_settings later). */
 export type PickupSettings = {
@@ -42,6 +42,8 @@ export type PickupSettings = {
   methods: PickupMethod[]
   /** Restaurant-provided pickup instructions (data, never invented). */
   instructions?: string
+  /** Backend only: which ordering modes the market allows. */
+  marketModes?: { asap: boolean; scheduled: boolean }
 }
 
 export type PickupEstimate = { prepMinutes: number; bufferMinutes: number; earliestPickupAt: string; restaurantTimezone: string; source: 'mock' }

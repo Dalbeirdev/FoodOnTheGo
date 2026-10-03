@@ -196,7 +196,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
   }
 }
 
-String _countryName(String cc) => cc; // Display names arrive with translations (CF-072); ISO code shown until then.
+String _countryName(String cc) => cc.toUpperCase() == marketAvailability.activeMarket.countryCode ? marketAvailability.activeMarket.displayName : cc; // the market's own name (India), not the ISO code
 String? _ringLabel(DiscoveryState ds, int? ring) => ring == null ? null : S.t('ring.$ring', {'region': ds.scope?.adminArea ?? ds.scope?.label ?? '', 'country': _countryName(ds.scope?.countryCode ?? '')});
 String _moreAreasLabel(DiscoveryState ds) => S.t('scope.moreAreas.${ds.nextRing}', {'region': ds.scope?.adminArea ?? ds.scope?.label ?? '', 'country': _countryName(ds.scope?.countryCode ?? '')});
 

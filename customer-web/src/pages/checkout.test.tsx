@@ -59,7 +59,7 @@ const seededRepo = async (items: AddItemInput[]) => {
   return repo
 }
 const signIn = () => { localStorage.setItem('fotg.mock.customers', JSON.stringify([USER])); sessionStorage.setItem('fotg.mock.session', JSON.stringify({ token: 'dev', userId: 'u1', expiresAt: Date.now() + 3600000 })) }
-const withinIst = () => { const h = new Date().getUTCHours(); return h >= 3 && h < 17 }
+const withinIst = () => { const d = new Date(); const m = d.getUTCHours() * 60 + d.getUTCMinutes(); return m >= 150 && m < 1080 } // Burger Hub is open 08:00–23:30 IST = 02:30–18:00 UTC
 const ready = async () => { await waitFor(() => expect(screen.getByText(/order summary/i)).toBeInTheDocument()); await waitFor(() => expect(screen.queryByText(/validating cart and pickup/i)).toBeNull(), { timeout: 4000 }); await waitFor(() => expect(screen.getByText(/items subtotal/i)).toBeInTheDocument(), { timeout: 4000 }) }
 
 describe('Checkout review (web)', () => {

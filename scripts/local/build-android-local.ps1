@@ -9,6 +9,8 @@ param(
   [ValidateSet('api', 'mock')][string]$AuthMode = 'api',
   # api = market, currency, units and coverage come from the local backend (Module 22); mock = bundled fixtures
   [ValidateSet('api', 'mock')][string]$MarketMode = 'api',
+  # api = restaurants, hours, cuisines, pickup methods and availability come from the local backend (Module 23); mock = bundled fixtures
+  [ValidateSet('api', 'mock')][string]$RestaurantMode = 'api',
   # Local test code shown on the OTP screen of LOCAL builds. Default: OTP_DEV_CODE from the git-ignored backend/.env.
   [string]$DevOtp = ''
 )
@@ -21,7 +23,7 @@ $commit = try { (git -C $root rev-parse --short HEAD 2>$null) } catch { $null };
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 
 Write-Host "Syncing mobile/ into WSL and building $name (API $ApiBaseUrl)…"
-$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
+$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
 wsl.exe -d Ubuntu -u root -e bash -lc $cmd
 $apk = Join-Path $out $name
 if (-not (Test-Path $apk)) { Write-Host 'APK not produced' -ForegroundColor Red; exit 1 }
@@ -40,14 +42,15 @@ $manifest = @"
 | Build timestamp | $stamp |
 | Size | $size MB |
 | SHA-256 | $sha |
-| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=DEV_OTP=<local test code> |
+| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=DEV_OTP=<local test code> |
 | Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Market data | $MarketMode (api = market and coverage are read from the local backend at start-up) |
+| Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods and availability from the local backend; menus, carts, orders and reviews are still development data) |
 | Install (USB) | adb install -r $name |
 | Install tested | PENDING |
 | Manual user tested | PENDING USER DEVICE VERIFICATION |
 
-Phone must be on the same Wi-Fi as the PC (or use adb reverse). Check http://$($ApiBaseUrl -replace '/api/v1','')/api/v1/health in the phone browser first.
+Phone must be on the same Wi-Fi as the PC (or use adb reverse). Check $($ApiBaseUrl -replace '/api/v1','')/api/v1/health in the phone browser first.
 "@
 Set-Content -Path (Join-Path $out "$name.manifest.md") -Value $manifest
 Set-Content -Path (Join-Path $out "$name.sha256") -Value "$sha  $name"

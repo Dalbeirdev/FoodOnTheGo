@@ -10,16 +10,22 @@ use App\Enums\Permission;
 use App\Enums\PrincipalType;
 use App\Models\AccessToken;
 use App\Models\City;
+use App\Models\Cuisine;
 use App\Models\Customer;
 use App\Models\Market;
 use App\Models\MarketConfiguration;
 use App\Models\MarketRegion;
+use App\Models\RestaurantFeature;
+use App\Models\RestaurantImage;
+use App\Models\RestaurantLocation;
+use App\Models\RestaurantOrganization;
 use App\Models\Role;
 use App\Models\RoleAssignment;
 use App\Models\RolePermission;
 use App\Models\RouteCorridor;
 use App\Models\ServiceArea;
 use App\Services\Market\MarketContext;
+use App\Services\Restaurant\RestaurantCatalog;
 use App\Services\Sms\SmsManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -105,6 +111,14 @@ class AppServiceProvider extends ServiceProvider
         foreach ([Market::class, MarketConfiguration::class, MarketRegion::class, City::class, ServiceArea::class, RouteCorridor::class] as $model) {
             $model::saved($flushMarkets);
             $model::deleted($flushMarkets);
+        }
+
+        // Safety net behind the explicit flush in every restaurant service: a write to restaurant data from
+        // anywhere makes the cached customer-facing restaurant data unreachable.
+        $flushRestaurants = fn () => app(RestaurantCatalog::class)->flush();
+        foreach ([RestaurantOrganization::class, RestaurantLocation::class, RestaurantImage::class, Cuisine::class, RestaurantFeature::class] as $model) {
+            $model::saved($flushRestaurants);
+            $model::deleted($flushRestaurants);
         }
     }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:provider/provider.dart';
 
 import '../core/theme.dart';
@@ -177,26 +178,52 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
         DiscoveryMapShell(journey: journey, items: [RouteRestaurantResult(restaurant: rest, availability: computeAvailability(rest, DateTime.now().toUtc()))], selectedId: rest.id, onSelect: (_) {}),
         const SizedBox(height: 8), Text(rest.address.formatted, style: const TextStyle(fontSize: 13.5)),
         const SizedBox(height: 6), Text(S.t('rd.info.pickupText'), style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
+        if (rest.pickupMethods.isNotEmpty) ...[
+          const SizedBox(height: 10), Text(S.t('rd.info.pickupMethods'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+          const SizedBox(height: 4),
+          Semantics(label: S.t('rd.info.pickupMethods'), child: Wrap(spacing: 6, runSpacing: 6, children: [for (final m in rest.pickupMethods) Tag('${S.t(switch (m.type) { PickupMethodCode.counter => 'rd.pickup.counter', PickupMethodCode.curbside => 'rd.pickup.curbside', PickupMethodCode.driveThrough => 'rd.pickup.drive_through' })}${m.requiresVehicleInfo ? ' (${S.t('rd.pickup.vehicle')})' : ''}${m.instructions != null ? ' — ${m.instructions}' : ''}')])),
+        ],
+        if (rest.pickupInstructions != null && rest.pickupInstructions!.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(rest.pickupInstructions!, style: const TextStyle(fontSize: 13, height: 1.4))),
       ])),
       const SizedBox(height: 12),
       SectionCard(title: S.t('rd.info.hours'), icon: Icons.schedule, trailing: Text(zoneLabel(rest.timezone), style: const TextStyle(color: Brand.grey, fontSize: 12)), child: Column(children: [
         for (final d in const [1, 2, 3, 4, 5, 6, 0]) _hoursRow(rest, d, d == today),
         for (final c in rest.openingHours.closures) Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('rd.info.closure', {'from': c.from, 'to': c.to}), style: const TextStyle(color: Color(0xFF8A4B00), fontSize: 12.5))),
+        if (rest.openingHours.special.isNotEmpty) ...[
+          Padding(padding: const EdgeInsets.only(top: 10, bottom: 4), child: Align(alignment: Alignment.centerLeft, child: Text(S.t('rd.info.special'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)))),
+          for (final s in rest.openingHours.special) _specialRow(s),
+        ],
         if (rest.openingHours.note != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(rest.openingHours.note!, style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
         Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('rd.info.hoursZone', {'zone': rest.timezone}), style: const TextStyle(color: Brand.grey, fontSize: 11.5))),
       ])),
       const SizedBox(height: 12),
       _ReviewSummaryCard(restaurant: rest),
       const SizedBox(height: 12),
-      SectionCard(title: S.t('rd.info.contact'), icon: Icons.call_outlined, child: Text(S.t('rd.info.contactNone'), style: const TextStyle(color: Brand.grey, fontSize: 13))),
+      SectionCard(title: S.t('rd.info.contact'), icon: Icons.call_outlined, child: rest.phone == null && rest.website == null && rest.email == null
+          ? Text(S.t('rd.info.contactNone'), style: const TextStyle(color: Brand.grey, fontSize: 13))
+          : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (rest.phone != null) Text('${S.t('rd.info.phone')}: ${rest.phone}', style: const TextStyle(fontSize: 13.5)),
+              if (rest.website != null) Text('${S.t('rd.info.website')}: ${rest.website}', style: const TextStyle(fontSize: 13.5)),
+              if (rest.email != null) Text('${S.t('rd.info.email')}: ${rest.email}', style: const TextStyle(fontSize: 13.5)),
+            ])),
       if (rest.features.isNotEmpty) ...[const SizedBox(height: 12), SectionCard(title: S.t('rd.info.features'), icon: Icons.local_parking_outlined, child: Wrap(spacing: 6, runSpacing: 6, children: [for (final f in rest.features) Tag(f)]))],
     ]);
+  }
+
+  String _periodsText(List<OpeningPeriod> periods) => periods.isEmpty ? S.t('rd.info.closedDay') : periods.map((p) => (p.open == '00:00' && p.close == '23:59') || p.open == p.close ? '24 h' : '${_fmt(p.open)} – ${_fmt(p.close)}').join(', ');
+
+  Widget _specialRow(SpecialDay s) {
+    final date = DateFormat('d MMM yyyy').format(DateTime.parse(s.date));
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 3), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: Text(s.note == null || s.note!.isEmpty ? date : '$date · ${s.note}', style: const TextStyle(fontSize: 13.5, color: Color(0xFF8A4B00)))),
+      Text(s.closed ? S.t('rd.info.closedDay') : _periodsText(s.periods), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: Color(0xFF8A4B00))),
+    ]));
   }
 
   Widget _hoursRow(GlobalRestaurant rest, int day, bool today) {
     const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     final periods = rest.openingHours.periods.where((p) => p.day == day).toList();
-    final text = periods.isEmpty ? S.t('rd.info.closedDay') : periods.map((p) => (p.open == '00:00' && p.close == '23:59') ? '24 h' : '${_fmt(p.open)} – ${_fmt(p.close)}').join(', ');
+    final text = _periodsText(periods);
     final style = TextStyle(fontSize: 13.5, fontWeight: today ? FontWeight.w800 : FontWeight.w500, color: today ? Brand.orangeDeep : Brand.navy);
     return Semantics(selected: today, child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [SizedBox(width: 48, child: Text(names[day], style: style)), Expanded(child: Text(text, textAlign: TextAlign.end, style: style))])));
   }
@@ -247,7 +274,8 @@ class _InfoCard extends StatelessWidget {
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(child: Semantics(header: true, child: Text(rest.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.15)))),
               const SizedBox(width: 8),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 16), Text(' ${rest.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)), Text(' (${rest.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
+              if (rest.reviewCount > 0) Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 16), Text(' ${rest.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)), Text(' (${rest.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))]))
+              else Text(S.t('rd.noReviews'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
             ]),
             const SizedBox(height: 4),
             Text('${rest.cuisines.join(' · ')}  ·  ${priceLevelLabel(rest.priceLevel, rest.currency)}', style: const TextStyle(color: Brand.grey, fontSize: 13.5)),
@@ -259,8 +287,9 @@ class _InfoCard extends StatelessWidget {
             ]),
             const SizedBox(height: 8),
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const Icon(Icons.place_outlined, size: 15, color: Brand.grey), const SizedBox(width: 4), Expanded(child: Text(rest.address.formatted, style: const TextStyle(color: Brand.grey, fontSize: 13)))]),
-            if (rest.status != RestaurantStatus.active) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.info_outline, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('rd.unavailable.title'), style: const TextStyle(fontSize: 13, color: Color(0xFF7C3D00)))))
-            else if (!rest.acceptingOrders) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.info_outline, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('rd.notAccepting'), style: const TextStyle(fontSize: 13, color: Color(0xFF7C3D00))))),
+            if (rest.status != RestaurantStatus.active) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.info_outline, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t(rest.unavailableReason == 'TEMPORARILY_CLOSED' ? 'rd.temporarilyClosed' : 'rd.unavailable.title'), style: const TextStyle(fontSize: 13, color: Color(0xFF7C3D00)))))
+            // Backend reasons (Module 23): the area is not being served, pickup is switched off, or orders are paused.
+            else if (!rest.acceptingOrders) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.info_outline, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t(rest.unavailableReason == 'AREA_UNAVAILABLE' ? 'rd.areaUnavailable' : rest.unavailableReason == 'PICKUP_UNAVAILABLE' ? 'rd.pickupUnavailable' : 'rd.notAccepting'), style: const TextStyle(fontSize: 13, color: Color(0xFF7C3D00))))),
             const SizedBox(height: 12),
             if (route != null)
               Semantics(label: S.t('rd.route.title'), child: Wrap(spacing: 8, runSpacing: 8, children: [

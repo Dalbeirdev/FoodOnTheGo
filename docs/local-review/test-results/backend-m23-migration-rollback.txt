@@ -1,0 +1,14 @@
+# Module 23 migration rollback / re-run on the TEST database (foodonthego_test) — 2026-10-03T03:44:54Z
+ 2026_09_30_300000_add_channel_to_otp_challenges .. [1] Ran 
+ 2026_09_30_400000_create_geography_tables .. [1] Ran 
+ 2026_10_01_200000_create_restaurant_tables .. [1] Ran 
+## rollback --step=1
+ INFO Rolling back migrations. 
+
+ 2026_10_01_200000_create_restaurant_tables .. 180.70ms DONE
+
+## migrate
+ INFO Running migrations. 
+
+ 2026_10_01_200000_create_restaurant_tables .. 227.64ms DONE
+

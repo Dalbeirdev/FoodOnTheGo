@@ -26,15 +26,35 @@ class Closure {
   final String? reason;
 }
 
+/// Special hours for one restaurant-local date (backend): they replace the weekly periods opening on that date.
+class SpecialDay {
+  const SpecialDay({required this.date, required this.closed, this.periods = const [], this.note});
+  final String date; // YYYY-MM-DD, restaurant-local
+  final bool closed;
+  final List<OpeningPeriod> periods; // `day` is unused here
+  final String? note; // what customers may read
+}
+
 class OpeningHours {
-  const OpeningHours({required this.periods, this.closures = const [], this.note});
+  const OpeningHours({required this.periods, this.closures = const [], this.special = const [], this.note});
   final List<OpeningPeriod> periods;
   final List<Closure> closures;
+  final List<SpecialDay> special;
   final String? note;
   static OpeningHours daily(String open, String close, [List<int> days = const [0, 1, 2, 3, 4, 5, 6]]) => OpeningHours(periods: [for (final d in days) OpeningPeriod(d, open, close)]);
 }
 
 enum RestaurantStatus { active, inactive, temporarilyClosed }
+
+enum PickupMethodCode { counter, curbside, driveThrough }
+
+/// A way to collect an order, as the backend publishes it for customers (Module 23).
+class PickupMethodInfo {
+  const PickupMethodInfo({required this.type, this.instructions, this.requiresVehicleInfo = false});
+  final PickupMethodCode type;
+  final String? instructions;
+  final bool requiresVehicleInfo;
+}
 
 class GlobalRestaurant {
   const GlobalRestaurant({
@@ -43,6 +63,7 @@ class GlobalRestaurant {
     required this.cuisines, this.categories = const [], required this.images, required this.rating, required this.reviewCount,
     required this.openingHours, required this.currency, required this.priceLevel, required this.prepTimeMin,
     this.features = const [], this.status = RestaurantStatus.active, this.acceptingOrders = true,
+    this.backendId, this.unavailableReason, this.pickupMethods = const [], this.pickupInstructions, this.phone, this.website, this.email, this.ratingIsSample = false,
   });
   final String id, slug, name, description, countryCode, timezone, currency;
   final List<String> alternateNames, cuisines, categories, images, features;
@@ -52,9 +73,15 @@ class GlobalRestaurant {
   final OpeningHours openingHours;
   final RestaurantStatus status;
   final bool acceptingOrders;
-  String get publicId => 'rst_$id';
+  /// Backend only (Module 23): the backend's id; the backend's reason a customer cannot order right now
+  /// (NOT_ACCEPTING_ORDERS, AREA_UNAVAILABLE, PICKUP_UNAVAILABLE, TEMPORARILY_CLOSED, CLOSED_NOW); pickup methods and
+  /// instructions; published contact details. `ratingIsSample`: the rating is a development figure, not real reviews.
+  final String? backendId, unavailableReason, pickupInstructions, phone, website, email;
+  final List<PickupMethodInfo> pickupMethods;
+  final bool ratingIsSample;
+  String get publicId => backendId ?? 'rst_$id';
   String get market => '$countryCode-${(address.adminArea ?? address.locality ?? 'default').replaceAll(RegExp(r'\s+'), '-').toLowerCase()}';
-  String get image => images.first;
+  String get image => images.isEmpty ? '' : images.first;
 }
 
 enum AvailabilityStatus { open, closingSoon, openingSoon, closed, temporarilyClosed }

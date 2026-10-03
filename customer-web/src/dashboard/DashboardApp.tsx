@@ -17,6 +17,7 @@ import AnalyticsPage from './pages/AnalyticsPage'
 import NotificationsDashboardPage from './pages/NotificationsPage'
 import SettingsPage from './pages/SettingsPage'
 import HelpDashboardPage from './pages/HelpPage'
+import AcceptStaffInvitationPage from './pages/AcceptInvitationPage'
 
 /**
  * Restaurant Dashboard route tree (Module 17). Loaded as its own chunk (Module 19): customers never download
@@ -28,6 +29,7 @@ export default function DashboardApp() {
     {/* Public: no session yet. */}
     <Route path="forgot-password" element={<ForgotPasswordPage context="restaurant" />} />
     <Route path="reset-password" element={<ResetPasswordPage context="restaurant" />} />
+    <Route path="accept-invitation" element={<AcceptStaffInvitationPage />} />
     <Route path="/" element={<StaffAuthGate context="restaurant"><DashboardProvider><DashboardLayout /></DashboardProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<OverviewPage />} />

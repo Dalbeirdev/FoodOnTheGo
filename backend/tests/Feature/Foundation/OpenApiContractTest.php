@@ -9,9 +9,9 @@ use App\Models\Market;
 use App\Services\Rbac\RoleService;
 use Database\Factories\AdminUserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Tests\Support\BuildsGeography;
+use Tests\Support\ValidatesOpenApi;
 use Tests\TestCase;
 
 /**
@@ -20,17 +20,7 @@ use Tests\TestCase;
  */
 class OpenApiContractTest extends TestCase
 {
-    use BuildsGeography, RefreshDatabase;
-
-    /** @var array<string, mixed> */
-    private array $spec;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->spec = json_decode((string) File::get(base_path('openapi/openapi.json')), true, flags: JSON_THROW_ON_ERROR);
-    }
+    use BuildsGeography, RefreshDatabase, ValidatesOpenApi;
 
     public function test_documented_operations_are_exactly_the_registered_v1_routes(): void
     {
@@ -44,7 +34,7 @@ class OpenApiContractTest extends TestCase
         }
 
         $documented = [];
-        foreach ($this->spec['paths'] as $path => $operations) {
+        foreach ($this->openApi()['paths'] as $path => $operations) {
             foreach (array_keys($operations) as $method) {
                 $documented[] = strtoupper($method).' '.$path;
             }
@@ -142,71 +132,5 @@ class OpenApiContractTest extends TestCase
 
         $this->assertMatchesSchema('Error', $this->patchJson($m, ['version' => 1, 'status' => 'ACTIVE', 'reason' => 'Stale'])->assertConflict()->json());
         $this->assertMatchesSchema('Error', $this->postJson($m.'/service-areas', ['city_id' => $city->public_id, 'name' => 'Bad', 'geometry' => ['type' => 'Point', 'coordinates' => [77, 28]]])->assertUnprocessable()->json());
-    }
-
-    private function assertMatchesSchema(string $name, mixed $value): void
-    {
-        $errors = $this->validate($this->spec['components']['schemas'][$name], $value, $name);
-
-        $this->assertSame([], $errors, "Response does not match schema {$name}");
-    }
-
-    /**
-     * Minimal JSON Schema check: $ref, type, enum, pattern, required, properties, additionalProperties, items.
-     *
-     * @param  array<string, mixed>  $schema
-     * @return list<string>
-     */
-    private function validate(array $schema, mixed $value, string $path): array
-    {
-        if (isset($schema['$ref'])) {
-            return $this->validate($this->spec['components']['schemas'][basename($schema['$ref'])], $value, $path);
-        }
-
-        $errors = [];
-        $types = (array) ($schema['type'] ?? []);
-        $actual = match (true) {
-            is_null($value) => 'null',
-            is_bool($value) => 'boolean',
-            is_int($value) => 'integer',
-            is_float($value) => 'number',
-            is_string($value) => 'string',
-            is_array($value) && ($value === [] || array_is_list($value)) => in_array('object', $types, true) && $value === [] ? 'object' : 'array',
-            default => 'object',
-        };
-
-        // JSON Schema: every integer is also a number.
-        if ($types !== [] && ! in_array($actual, $types, true) && ! ($actual === 'integer' && in_array('number', $types, true))) {
-            return ["{$path}: expected ".implode('|', $types).", got {$actual}"];
-        }
-        if (isset($schema['enum']) && ! in_array($value, $schema['enum'], true)) {
-            $errors[] = "{$path}: value not in enum";
-        }
-        if (isset($schema['pattern']) && is_string($value) && preg_match('/'.$schema['pattern'].'/', $value) !== 1) {
-            $errors[] = "{$path}: does not match pattern";
-        }
-
-        if ($actual === 'object') {
-            foreach ($schema['required'] ?? [] as $key) {
-                if (! array_key_exists($key, $value)) {
-                    $errors[] = "{$path}.{$key}: missing";
-                }
-            }
-            foreach ($value as $key => $item) {
-                if (isset($schema['properties'][$key])) {
-                    array_push($errors, ...$this->validate($schema['properties'][$key], $item, "{$path}.{$key}"));
-                } elseif (($schema['additionalProperties'] ?? true) === false) {
-                    $errors[] = "{$path}.{$key}: undocumented property";
-                }
-            }
-        }
-
-        if ($actual === 'array' && isset($schema['items'])) {
-            foreach ($value as $index => $item) {
-                array_push($errors, ...$this->validate($schema['items'], $item, "{$path}[{$index}]"));
-            }
-        }
-
-        return $errors;
     }
 }

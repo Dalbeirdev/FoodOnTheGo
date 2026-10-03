@@ -21,10 +21,14 @@ use Illuminate\Database\Seeder;
  * Accounts use reserved example domains and test phone numbers. Restaurant and admin fixtures get the
  * password from LOCAL_FIXTURE_PASSWORD in the local .env (nothing is hardcoded here); when it is not set,
  * no password account is created. Customers sign in with a one-time code like any other customer.
+ *
+ * Restaurant users are only ACCOUNTS here. Which restaurant each one belongs to, with which role and at
+ * which locations, is a membership — created by LocalRestaurantFixtureSeeder, which also derives the role
+ * assignments from it.
  */
 class LocalFixtureSeeder extends Seeder
 {
-    /** Stand-in scopes until the restaurant module creates real organizations and locations. */
+    /** Public ids of the fixture organizations and of the first Riverside location (LocalRestaurantFixtureSeeder). */
     public const ORGANIZATION_A = '0a000000-0000-4000-8000-00000000000a';
 
     public const ORGANIZATION_B = '0b000000-0000-4000-8000-00000000000b';
@@ -46,16 +50,15 @@ class LocalFixtureSeeder extends Seeder
         $india = Market::query()->where('country_code', 'IN')->first();
 
         foreach ([
-            ['john@riverside.example', 'John Doe', 'OWNER', Scope::organization(self::ORGANIZATION_A), StaffStatus::Active],
-            ['sarah@riverside.example', 'Sarah Wilson', 'MANAGER', Scope::organization(self::ORGANIZATION_A), StaffStatus::Active],
-            ['mike@riverside.example', 'Mike Chen', 'ORDER_STAFF', Scope::location(self::LOCATION_A1), StaffStatus::Active],
-            ['emily@riverside.example', 'Emily Davis', 'MENU_MANAGER', Scope::organization(self::ORGANIZATION_A), StaffStatus::Active],
-            ['yuki@riverside.example', '佐藤 由紀', 'VIEWER', Scope::organization(self::ORGANIZATION_A), StaffStatus::Invited],
-            ['owner@second-kitchen.example', 'Second Kitchen Owner', 'OWNER', Scope::organization(self::ORGANIZATION_B), StaffStatus::Active],
-            ['suspended@riverside.example', 'Suspended Staff', 'VIEWER', Scope::organization(self::ORGANIZATION_A), StaffStatus::Suspended],
-        ] as [$email, $name, $role, $scope, $status]) {
-            $user = $this->staff(RestaurantUser::class, $email, $name, $password, $status);
-            $roles->assign($user, $this->role(PrincipalType::RestaurantUser, $role), $scope);
+            ['john@riverside.example', 'John Doe', StaffStatus::Active],
+            ['sarah@riverside.example', 'Sarah Wilson', StaffStatus::Active],
+            ['mike@riverside.example', 'Mike Chen', StaffStatus::Active],
+            ['emily@riverside.example', 'Emily Davis', StaffStatus::Active],
+            ['yuki@riverside.example', '佐藤 由紀', StaffStatus::Invited],
+            ['owner@second-kitchen.example', 'Second Kitchen Owner', StaffStatus::Active],
+            ['suspended@riverside.example', 'Suspended Staff', StaffStatus::Suspended],
+        ] as [$email, $name, $status]) {
+            $this->staff(RestaurantUser::class, $email, $name, $password, $status);
         }
 
         foreach ([

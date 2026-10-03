@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import { ArrowRightIcon, ClockIcon, ChevronRightIcon, PinIcon, SearchIcon, StarIcon } from '../components/Icons'
 import PublicIcon from '../components/PublicIcons'
-import { contentRepository, restaurantRepository } from '../repositories'
+import { contentRepository } from '../repositories'
+import { illustrationRestaurants } from '../repositories/mock/restaurants'
 import { formatMoney } from '../i18n/format'
 import { marketRepository } from '../market/mock/mockMarket'
 import './HowItWorksPage.css'
@@ -13,7 +14,8 @@ const demoPrice = (minor: number) => { const m = marketRepository.getActiveMarke
 const hiw = contentRepository.getHowItWorksContent()
 const STEPS = hiw.steps
 const BENEFITS = hiw.benefits
-const ALL = restaurantRepository.list()
+// Sample cards for the illustration on this page — not live restaurant data.
+const ALL = illustrationRestaurants()
 const STOPS = ALL.slice(0, 2).map((r) => ({ name: r.name, dist: r.distance.replace('from route', 'off route'), rating: String(r.rating), detour: r.detour, image: r.image, fallback: r.fallback }))
 const RESTAURANTS = ALL.slice(0, 3).map((r) => ({ name: r.name, cat: r.cuisines.slice(0, 2).join(' • '), rating: String(r.rating), count: r.reviewCount, detour: `${r.detour} detour • ${r.distance.replace(' from route', '')}`, image: r.image, fallback: r.fallback }))
 

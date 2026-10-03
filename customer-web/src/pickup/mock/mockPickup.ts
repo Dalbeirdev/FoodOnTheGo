@@ -1,6 +1,6 @@
 import type { Restaurant } from '../../repositories/types'
 import type { JourneyLike } from '../../repositories/types'
-import { RESTAURANTS, computeAvailability, routeContextFor } from '../../repositories/mock/restaurants'
+import { computeAvailability, periodsOpeningOn, restaurantForId, routeContextFor } from '../../repositories/mock/restaurants'
 import { PickupError, type EtaService, type PickupEstimate, type PickupRepository, type PickupSelection, type PickupSettings, type PickupSlot, type PickupValidation, type SlotQuery } from '../repositories'
 import { addLocalDays, hhmmToMinutes, localDateOf, localWeekdayOf, zonedTimeToUtc } from '../time'
 
@@ -37,9 +37,9 @@ const inClosure = (r: Restaurant, date: string) => (r.openingHours.closures ?? [
 
 /** Minute ranges (relative to local midnight of `date`, may exceed 1440 for overnight service) covering that service day. */
 export function serviceRangesFor(r: Restaurant, date: string): Array<{ start: number; end: number }> {
-  if (inClosure(r, date)) return []
+  if (inClosure(r, date) && !r.openingHours.special?.some((s) => s.date === date)) return []
   const weekday = localWeekdayOf(date)
-  return r.openingHours.periods.filter((p) => p.day === weekday).map((p) => {
+  return periodsOpeningOn(r, date, weekday).map((p) => {
     const start = hhmmToMinutes(p.open); let end = hhmmToMinutes(p.close)
     if (p.close === '23:59') end = 24 * 60
     if (end <= start) end += 24 * 60 // overnight service belongs to the day it starts
@@ -88,20 +88,20 @@ export function generateSlots(r: Restaurant, q: SlotQuery, stale = false): Picku
 export class MockPickupRepository implements PickupRepository {
   async getSettings(restaurantId: string): Promise<PickupSettings> {
     await wait(latency / 2)
-    const r = RESTAURANTS.find((x) => x.id === restaurantId)
+    const r = restaurantForId(restaurantId)
     if (!r) throw new PickupError('unavailable', 'Restaurant not found')
     return settingsFor(r)
   }
   async getAvailablePickupSlots(q: SlotQuery): Promise<PickupSlot[]> {
     await wait()
     if (failing()) throw new PickupError('unavailable', 'Pickup times could not be loaded. Please try again.')
-    const r = RESTAURANTS.find((x) => x.id === q.restaurantId)
+    const r = restaurantForId(q.restaurantId)
     if (!r) throw new PickupError('unavailable', 'Restaurant not found')
     return generateSlots(r, q)
   }
   async getEarliestPickup(restaurantId: string, prepMinutes: number, nowIso: string): Promise<PickupEstimate> {
     await wait(latency / 2)
-    const r = RESTAURANTS.find((x) => x.id === restaurantId)
+    const r = restaurantForId(restaurantId)
     if (!r) throw new PickupError('unavailable', 'Restaurant not found')
     const s = settingsFor(r)
     const minutes = Math.max(prepMinutes + s.bufferMinutes, s.minimumLeadMinutes)

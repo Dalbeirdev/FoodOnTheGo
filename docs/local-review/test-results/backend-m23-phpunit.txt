@@ -1,0 +1,2 @@
+# backend phpunit — Module 23 final run — 2026-10-03T04:16:11Z — DB_DATABASE=foodonthego_test (phpunit.xml)
+{"tool":"phpunit","result":"passed","tests":396,"passed":396,"assertions":4835,"duration_ms":96770}

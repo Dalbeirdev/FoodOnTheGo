@@ -3,7 +3,7 @@ import { useStaffSession } from '../auth/staff/StaffSession'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { t } from '../i18n/strings'
 import { useDashboard } from './DashboardContext'
-import { Avatar, ErrorState, Icon, Skeleton, Toggle } from './components/ui'
+import { Avatar, ErrorState, Icon, Skeleton, ToastLine, Toggle } from './components/ui'
 import type { Permission } from './types'
 import './dashboard.css'
 
@@ -28,6 +28,28 @@ export const NAV: Array<{ id: string; path: string; icon: string; perm: Permissi
   { id: 'settings', path: 'settings', icon: 'settings', perm: null },
   { id: 'help', path: 'help', icon: 'help', perm: null },
 ]
+
+/** Sections that are still development data when the restaurant domain runs on the backend (Module 23). */
+export const DEMO_SECTIONS = ['overview', 'orders', 'pickup-verification', 'menu', 'reviews', 'analytics', 'notifications', 'settings']
+/** Reasons that keep a restaurant away from customers altogether. */
+const HIDDEN_REASONS = ['MARKET_UNAVAILABLE', 'RESTAURANT_NOT_APPROVED', 'RESTAURANT_SUSPENDED', 'LOCATION_NOT_APPROVED', 'LOCATION_SUSPENDED', 'OUTSIDE_SERVICE_AREA']
+
+/**
+ * Live mode: tells the staff — on every page — when customers cannot see or order from the location, with the
+ * backend's reason and the explanation FoodOnTheGo wrote for them. "Closed right now" is ordinary and not shown here.
+ */
+function LiveStatusStrip() {
+  const d = useDashboard(); const live = d.location?.live
+  if (!live || !live.availability.reason || live.availability.reason === 'CLOSED_NOW') return null
+  const reason = t(`dash.live.reason.${live.availability.reason}`, undefined, d.locale)
+  const hidden = HIDDEN_REASONS.includes(live.availability.reason)
+  const note = live.statusNote ?? live.organizationStatusNote
+  return (
+    <p className={`db-live-strip ${hidden ? 'db-live-strip--hidden' : ''}`} role="status" data-testid="db-live-strip" data-reason={live.availability.reason}>
+      <Icon name="info" size={16} /><span>{t(hidden ? 'dash.live.notVisible' : 'dash.live.notOrderable', { reason }, d.locale)}{note ? ` ${t('dash.live.note', { note }, d.locale)}` : ''}</span>
+    </p>
+  )
+}
 
 function useOutsideClose<T extends HTMLElement>(open: boolean, onClose: () => void) {
   const ref = useRef<T>(null)
@@ -132,7 +154,14 @@ export default function DashboardLayout() {
   if (d.status === 'loading') content = <div className="db-page"><Skeleton rows={6} /></div>
   else if (d.status === 'error') content = <div className="db-page"><ErrorState title={t('dash.error.loadTitle', undefined, d.locale)} text={t('dash.error.loadText', undefined, d.locale)} onRetry={() => { void d.reload() }} locale={d.locale} /></div>
   else if (!d.location) content = <div className="db-page"><ErrorState title={t('dash.error.noLocationTitle', undefined, d.locale)} text={t('dash.error.noLocationText', undefined, d.locale)} locale={d.locale} /></div>
-  else content = <Outlet />
+  else {
+    const section = loc.pathname.slice(BASE.length + 1).split('/')[0]
+    content = <>
+      {d.live && <LiveStatusStrip />}
+      {d.live && DEMO_SECTIONS.includes(section) && <p className="db-demo-banner" role="note" data-testid="db-demo-banner"><Icon name="info" size={16} /><span>{t('dash.live.mockBanner', undefined, d.locale)}</span></p>}
+      <Outlet />
+    </>
+  }
   return (
     <div className={`db-shell ${collapsed ? 'db-shell--collapsed' : ''}`} data-testid="db-shell">
       <a href="#db-main" className="db-skip">{t('dash.skip', undefined, d.locale)}</a>
@@ -153,6 +182,7 @@ export default function DashboardLayout() {
           <ProfileMenu />
         </header>
         <main id="db-main" className="db-main" tabIndex={-1}>{content}</main>
+        <ToastLine msg={d.notice} />
         <nav className="db-tabbar" aria-label={t('dash.nav.label', undefined, d.locale)}>
           {[NAV[0], NAV[1], NAV[3]].filter((n) => !n.perm || d.can(n.perm)).map((n) => <NavLink key={n.id} to={`${BASE}/${n.path}`} className={({ isActive }) => `db-tabbar__link ${isActive ? 'is-active' : ''}`}><Icon name={n.icon} />{t(`dash.nav.${n.id}`, undefined, d.locale)}{badge(n) > 0 && <span className="db-nav__badge">{badge(n)}</span>}</NavLink>)}
           <button type="button" className="db-tabbar__link" onClick={() => setDrawer(true)}><Icon name="more" />{t('dash.nav.more', undefined, d.locale)}</button>

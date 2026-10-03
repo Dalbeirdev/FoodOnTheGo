@@ -1,4 +1,4 @@
-# FoodOnTheGo backend — foundation (Module 20), identity (Module 21), market geography (Module 22)
+# FoodOnTheGo backend — foundation (Module 20), identity (Module 21), market geography (Module 22), restaurants (Module 23)
 
 Laravel API in `/backend`. This document records what exists, how to run it locally, and the conventions
 every later backend module must follow. Commands below were run on the development PC on 2026-09-30;
@@ -520,8 +520,99 @@ that were made are audited — a refused attempt is not an audit event.
   memory). Locally no e-mail is sent — the reset link is written to `storage/logs/laravel.log` — and mandatory
   MFA is off (`AUTH_MFA_REQUIRED_ADMIN=false`), so enrol-at-sign-in is covered by a unit test only.
 
+- Restaurants are on the real backend (Module 23): `VITE_RESTAURANT_MODE=api` / `--dart-define=RESTAURANT_MODE=api`
+  (meant to be used with the auth and market modes on `api`). Customer Web loads `GET /restaurants` (all pages) and
+  `GET /cuisines` once before the first customer page (`RestaurantGate`; snapshot in sessionStorage, refreshed when
+  older than a minute and when the tab regains focus) and asks `GET /restaurants/{slug}` again on every restaurant
+  page; a 404 removes the restaurant from the snapshot. The existing `RestaurantRepository` reads the snapshot, so
+  the discovery pages did not change; "open now" is recomputed in the browser with the backend's schedule rules
+  (`computeAvailability`, same tests on both sides). Android does the same at start-up (`api_restaurants.dart`).
+  Nothing falls back to fixtures: without the backend the list is empty and the gate offers a retry. Menus,
+  ratings / reviews, carts and orders are still development data and are labelled as such.
+- Restaurant Dashboard → `apiDashboard.ts`: `GET /restaurant/context` decides which organizations and locations the
+  signed-in user may open (default location = the backend's `default_location_id`); profile, hours, special hours,
+  pickup settings, the accepting-orders switch and staff (`/restaurant/organizations/{org}/staff`, roles from
+  `/restaurant/roles`) go through the API with the versions the page loaded. A refusal is shown in the page (403
+  "access denied" without signing out, 404 "no longer available to you", 409 reload-and-retry, 422 the field
+  message). Menu, orders, pickup verification, reviews, analytics, notifications and settings carry a "Demo data"
+  label. `/restaurant-dashboard/accept-invitation#<token>` is the public page where invited staff join (a new
+  account chooses its password there).
+- Platform Admin → `ApiAdminRestaurantRepository`: list (`/admin/restaurants`, backend paging / stage filter /
+  search), one restaurant with the moves this administrator may make (`allowed_transitions`), approval / rejection
+  (category + explanation) / suspension / reactivation of the location and of its organization, locations of the
+  organization, staff summary, internal notes and the history (audit trail). The header badge says per section
+  whether the data is backend or development data.
+
 ## 10. Not built yet
 
-Restaurants, menus, journeys, discovery, cart, pickup, checkout, payments, orders, tracking, reviews and the
-dashboard APIs; live SMS, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a
-surveyed market border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are tracked in `docs/project-progress.html`.
+Menus, journeys and route-aware discovery, cart, pickup slots, checkout, payments, orders, tracking, reviews, image
+uploads / object storage, verification documents, restaurant self-service onboarding; live SMS and e-mail
+providers, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a surveyed market
+border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are
+tracked in `docs/project-progress.html`.
+
+## 11. Restaurants: organizations, locations, hours, pickup settings, staff (Module 23)
+
+The domain diagram and the lifecycles are in [`restaurant-domain.md`](restaurant-domain.md).
+
+### Data model
+
+- `restaurant_organizations` — the business (legal name, display name, primary market, contact), with its own
+  administrative `status`. `restaurant_locations` — the outlets customers see as "a restaurant": one row per
+  location with `geography(Point, 4326)` + GiST index, the market / region / city it lies in and the covering
+  `service_area_id` (resolved by PostGIS when created or moved and re-resolved by `ReassignRestaurantServiceAreas`
+  when the geography changes; never trusted from a client), IANA time zone and ISO currency, slug unique per market,
+  its own administrative `status`, an `operational_status` (OPERATING / TEMPORARILY_CLOSED), `accepting_orders` with
+  pause reason / until, `hours_version` and `version`.
+- Profile content: `cuisines` and `restaurant_features` are taxonomies (seeded; 29 cuisines incl. the 19 India
+  ones, 16 features) joined through pivot tables; `restaurant_images` holds metadata only (type, URL, alt text,
+  order, status) — uploads and object storage are a later module.
+- Hours: `restaurant_location_hours` (day of week, opens / closes `HH:MM`, up to four periods a day, overnight by
+  `closes <= opens`, equal = 24 h) and `restaurant_special_hours` (+ `_periods`) for dates that replace the week.
+  Not JSON: queryable, validated rows.
+- Pickup: `restaurant_pickup_settings` (one row per location: enabled, ASAP / scheduled, preparation, lead,
+  interval, horizon, buffer, cut-off, capacity) and `restaurant_location_pickup_methods` (COUNTER / CURBSIDE /
+  DRIVE_THROUGH, each with instructions and vehicle-info flag). Slot booking is Module 28.
+- Staff: `restaurant_memberships` (user × organization, role, INVITED / ACTIVE / SUSPENDED / REVOKED,
+  `all_locations`), `restaurant_membership_locations` (the locations a limited membership may work on),
+  `restaurant_staff_invitations` (hashed single-use tokens, expiring). `restaurant_admin_notes` are internal.
+- Every table has `public_id` (UUID, exposed as `id`), integer `version` where clients write, created / updated
+  timestamps; foreign keys restrict deletes (rows are kept for history and set INACTIVE / REVOKED instead).
+
+### Services (`app/Services/Restaurant`)
+
+- `RestaurantAvailabilityService` — visible / orderable and the first failing reason (see the diagram); customers
+  get `AREA_UNAVAILABLE` for every geography pause and a 404 for anything hidden. `preloadCoverage()` resolves the
+  covering areas of many locations in one query (the N+1 found by the query-count test).
+- `RestaurantHoursService` + `Schedule` — validation (overlaps across midnight and the week), open now, closes at,
+  opens next, in the location's zone; `RestaurantVisibility` — the list query (visible only, optional "open now").
+- `RestaurantLifecycleService` — status moves of organizations and locations (transitions, permissions, reason /
+  category / explanation, version, lock, audit, cache flush). `RestaurantAdminService` — admin create / update.
+- `RestaurantProfileService`, `PickupSettingsService`, `PickupRules` (methods the market allows: only COUNTER in
+  India today), `RestaurantStaffService` (invite / accept / update / suspend / revoke / resend, owner rules),
+  `RestaurantAccess` (404 not yours / 403 no permission, per organization and per location), `RestaurantCatalog`
+  (cache of the cuisine taxonomy only; lists and details are not cached server-side).
+
+### API
+
+Public (no token, `throttle:search`): `GET /restaurants` (filters `city`, `region`, `service_area`, `cuisine`,
+`feature`, `open_now`, `price_level`, `q`, `lat`/`lng`/`radius_meters` for a straight-line distance — no route
+detour, that is Module 26; sort `name` / `distance`), `GET /restaurants/{slug}`, `GET /cuisines`.
+Restaurant (`auth:restaurant` + ACTIVE membership): `GET /restaurant/context`, `/taxonomy`, `/roles`,
+`/locations/{location}` (+ `PATCH /profile`, `/availability`, `/images/{image}`, `GET|PUT /hours`,
+`/special-hours[/{id}]`, `GET|PATCH /pickup-settings`), `/organizations/{org}/staff[/{membership}[/invitation]]`.
+`POST /auth/restaurant/invitation/accept` is public (`throttle:password-reset`).
+Admin (`auth:admin`, permission + market scope in the controller): `GET /admin/restaurants` (stage filter,
+counts), `GET|PATCH /admin/restaurants/{location}`, `POST …/status`, `GET|POST /admin/restaurant-organizations`,
+`GET|PATCH …/{org}`, `POST …/status`, `POST …/locations`, `POST …/notes`, `POST|DELETE …/staff[/{membership}]`.
+Separate resources for customers, staff and administrators; protected fields (status, coordinates, organization,
+market) are refused with 422 when a restaurant sends them; free text is plain text (no markup).
+
+### Fixtures and seeds
+
+`RestaurantTaxonomySeeder` (every environment) and `LocalRestaurantFixtureSeeder` (local only: 17 organizations,
+19 locations across the India fixtures — approved, under review, draft, rejected, suspended organization, paused,
+temporarily closed, outside coverage, 24 h, overnight, split and special hours; Riverside Hospitality Group with
+owner / manager / order staff / menu manager / invited viewer / suspended viewer; Second Kitchen with its own owner).
+`LocalFixtureSeeder` creates the restaurant accounts; the memberships give them their roles.
+

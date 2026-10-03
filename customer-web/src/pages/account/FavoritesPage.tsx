@@ -56,9 +56,9 @@ export default function FavoritesPage() {
                       <button type="button" className="fav-card__heart" aria-label={`Remove ${r.name} from favorites`} disabled={removing === r.id} onClick={() => remove(r.id, r.name)}><HeartIcon filled /></button>
                       <div className="fav-card__body">
                         <div className="fav-card__row"><Link to={`/restaurants/${r.id}`}><h2>{r.name}</h2></Link><HeartIcon size={16} filled /></div>
-                        <p className="fav-card__rating"><StarIcon size={14} /> <b>{r.rating.toFixed(1)}</b> <span>({r.reviewCount})</span></p>
+                        {r.reviewCount > 0 && <p className="fav-card__rating"><StarIcon size={14} /> <b>{r.rating.toFixed(1)}</b> <span>({r.reviewCount})</span></p>}
                         <p>{r.cuisines.slice(0, 2).join(' • ')}</p>
-                        <p className="fav-card__meta"><span><PinIcon size={13} /> {r.distance}</span><span><ClockIcon size={13} /> {r.detour} detour</span></p>
+                        {(r.distance || r.detour) && <p className="fav-card__meta">{r.distance && <span><PinIcon size={13} /> {r.distance}</span>}{r.detour && <span><ClockIcon size={13} /> {r.detour} detour</span>}</p>}
                         <div className="fav-card__actions">
                           <Link to={`/restaurants/${r.id}`} className="btn btn--primary">View Menu</Link>
                           <button type="button" className="ac-danger-btn" disabled={removing === r.id} onClick={() => remove(r.id, r.name)}>{removing === r.id ? 'Removing…' : 'Remove'}</button>

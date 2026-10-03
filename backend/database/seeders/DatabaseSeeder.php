@@ -11,10 +11,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([MarketSeeder::class, IndiaGeographySeeder::class, RoleSeeder::class]);
+        $this->call([MarketSeeder::class, IndiaGeographySeeder::class, RoleSeeder::class, RestaurantTaxonomySeeder::class]);
 
         if (app()->environment(['local', 'testing'])) {
-            $this->call([LocalFixtureSeeder::class, LocalGeographyFixtureSeeder::class]);
+            $this->call([LocalFixtureSeeder::class, LocalGeographyFixtureSeeder::class, LocalRestaurantFixtureSeeder::class]);
         }
     }
 }

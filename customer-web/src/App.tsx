@@ -13,6 +13,7 @@ import { AccountProvider } from './account/AccountContext'
 import { JourneyProvider } from './journey/JourneyContext'
 import { LocaleProvider } from './i18n/LocaleProvider'
 import { MarketGate } from './market/MarketGate'
+import { RestaurantGate } from './restaurants/RestaurantGate'
 import Footer from './components/Footer'
 import { ToastProvider } from './components/Toast'
 import HomePage from './pages/HomePage'
@@ -62,6 +63,7 @@ function LegacyRestaurantRedirect() { const { rid } = useParams(); return <Navig
 export function AppShell() {
   return (
       <MarketGate>
+      <RestaurantGate>
       <LocaleProvider>
       <AuthProvider>
       <ToastProvider>
@@ -129,6 +131,7 @@ export function AppShell() {
       </ToastProvider>
       </AuthProvider>
       </LocaleProvider>
+      </RestaurantGate>
       </MarketGate>
   )
 }

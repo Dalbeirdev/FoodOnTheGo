@@ -205,7 +205,9 @@ export default function RestaurantDetailPage() {
                     <h1 id="rd-name" lang={lang} dir="auto">{r.name}</h1>
                     <p className="rd-info__cuisine" dir="auto">{r.cuisines.join(' · ')} <span className="rd-price" aria-label={`price level ${r.priceLevel} of 4, ${r.currency}`}>{priceLevelLabel(r.priceLevel, r.currency, locale)}</span></p>
                   </div>
-                  <span className="rd-rating"><StarIcon size={15} /> <b>{r.rating.toLocaleString(locale, { minimumFractionDigits: 1 })}</b> <small>{t('rd.reviews', { count: r.reviewCount.toLocaleString(locale) }, locale)}</small></span>
+                  {r.reviewCount > 0
+                    ? <span className="rd-rating" title={r.ratingIsSample ? t('rd.sampleRating', undefined, locale) : undefined}><StarIcon size={15} /> <b>{r.rating.toLocaleString(locale, { minimumFractionDigits: 1 })}</b> <small>{t('rd.reviews', { count: r.reviewCount.toLocaleString(locale) }, locale)}</small></span>
+                    : <span className="rd-rating"><small>{t('rd.noReviews', undefined, locale)}</small></span>}
                 </div>
                 <p className="rd-info__status">
                   <span className={`rd-badge rd-badge--${a.status}`}>{t(statusKey, undefined, locale)}</span>
@@ -213,8 +215,8 @@ export default function RestaurantDetailPage() {
                   <span className="rd-info__prep"><ClockIcon size={14} /> {t('rd.prep', { minutes: formatMinutes(r.prepTimeMin, locale) }, locale)}</span>
                 </p>
                 <p className="rd-info__addr" dir="auto"><PinIcon size={14} /> {r.address.formatted}</p>
-                {unavailable && <p className="rd-note rd-note--warn" role="status">{t('rd.unavailable.title', undefined, locale)}</p>}
-                {!unavailable && !r.acceptingOrders && <p className="rd-note rd-note--warn" role="status">{t('rd.notAccepting', undefined, locale)}</p>}
+                {unavailable && <p className="rd-note rd-note--warn" role="status" data-testid="rd-unavailable">{t(r.unavailableReason === 'TEMPORARILY_CLOSED' ? 'rd.temporarilyClosed' : 'rd.unavailable.title', undefined, locale)}</p>}
+                {!unavailable && !r.acceptingOrders && <p className="rd-note rd-note--warn" role="status" data-testid="rd-not-accepting" data-reason={r.unavailableReason ?? ''}>{t(r.unavailableReason === 'AREA_UNAVAILABLE' ? 'rd.areaUnavailable' : r.unavailableReason === 'PICKUP_UNAVAILABLE' ? 'rd.pickupUnavailable' : 'rd.notAccepting', undefined, locale)}</p>}
                 {route ? (
                   <ul className="rd-facts rd-facts--route" aria-label={t('rd.route.title', undefined, locale)}>
                     <li><PinIcon size={20} /><span><b>{formatDistance(route.distanceFromRouteM!, units, locale)}</b>{t('rd.route.distance', undefined, locale)}</span></li>
@@ -286,9 +288,20 @@ export default function RestaurantDetailPage() {
             {/* ---------- Info ---------- */}
             {tab === 'info' && (
               <section id="panel-info" role="tabpanel" aria-labelledby="tab-info" className="rd-infopanel">
-                <div className="rd-side-card"><h2>{t('rd.info.about', undefined, locale)}</h2><p>{r.description}</p><h3>{t('rd.info.cuisine', undefined, locale)}</h3><p dir="auto">{r.cuisines.join(' · ')}{r.categories.length ? ` · ${r.categories.join(' · ')}` : ''}</p></div>
-                <div className="rd-side-card"><h2>{t('rd.info.address', undefined, locale)}</h2><p dir="auto"><PinIcon size={16} /> {r.address.formatted}</p><h3>{t('rd.info.pickup', undefined, locale)}</h3><p>{t('rd.info.pickupText', undefined, locale)}</p></div>
-                <div className="rd-side-card"><h2>{t('rd.info.contact', undefined, locale)}</h2><p className="rd-muted">{t('rd.info.contactNone', undefined, locale)}</p></div>
+                <div className="rd-side-card"><h2>{t('rd.info.about', undefined, locale)}</h2><p>{r.description}</p><h3>{t('rd.info.cuisine', undefined, locale)}</h3><p dir="auto">{[...new Set([...r.cuisines, ...r.categories])].join(' · ')}</p></div>
+                <div className="rd-side-card"><h2>{t('rd.info.address', undefined, locale)}</h2><p dir="auto"><PinIcon size={16} /> {r.address.formatted}</p><h3>{t('rd.info.pickup', undefined, locale)}</h3><p>{t('rd.info.pickupText', undefined, locale)}</p>
+                  {r.pickupMethods && r.pickupMethods.length > 0 && <><h3>{t('rd.info.pickupMethods', undefined, locale)}</h3><ul className="rd-features" data-testid="rd-pickup-methods">{r.pickupMethods.map((m) => <li key={m.type}>{t(`rd.pickup.${m.type}`, undefined, locale)}{m.requiresVehicleInfo ? ` (${t('rd.pickup.vehicle', undefined, locale)})` : ''}{m.instructions ? ` — ${m.instructions}` : ''}</li>)}</ul></>}
+                  {r.pickupInstructions && <p dir="auto" data-testid="rd-pickup-instructions">{r.pickupInstructions}</p>}
+                </div>
+                <div className="rd-side-card" data-testid="rd-contact"><h2>{t('rd.info.contact', undefined, locale)}</h2>
+                  {r.phone || r.website || r.publicEmail
+                    ? <ul className="rd-contact" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 6 }}>
+                      {r.phone && <li><b>{t('rd.info.phone', undefined, locale)}:</b> <a href={`tel:${r.phone}`} dir="ltr">{r.phone}</a></li>}
+                      {r.website && /^https?:\/\//i.test(r.website) && <li><b>{t('rd.info.website', undefined, locale)}:</b> <a href={r.website} target="_blank" rel="noopener noreferrer nofollow">{r.website.replace(/^https?:\/\//i, '')}</a></li>}
+                      {r.publicEmail && <li><b>{t('rd.info.email', undefined, locale)}:</b> <span dir="ltr">{r.publicEmail}</span></li>}
+                    </ul>
+                    : <p className="rd-muted">{t('rd.info.contactNone', undefined, locale)}</p>}
+                </div>
                 <HoursCard r={r} locale={locale} today={today} />
                 <ReviewSummaryCard restaurantId={r.id} rating={r.rating} reviewCount={r.reviewCount} locale={locale} />
               </section>
@@ -343,11 +356,14 @@ function HoursCard({ r, locale, today, compact = false }: { r: Restaurant; local
         {rows.map(({ d, periods }) => (
           <li key={d} className={d === today ? 'is-today' : ''} aria-current={d === today ? 'date' : undefined}>
             <span>{weekdayName(d, locale, compact ? 'short' : 'long')}</span>
-            <b>{periods.length ? periods.map((p) => (p.open === '00:00' && p.close === '23:59' ? '24 h' : `${timeOf(p.open, locale)} – ${timeOf(p.close, locale)}`)).join(', ') : t('rd.info.closedDay', undefined, locale)}</b>
+            <b>{periods.length ? periods.map((p) => ((p.open === '00:00' && p.close === '23:59') || p.open === p.close ? '24 h' : `${timeOf(p.open, locale)} – ${timeOf(p.close, locale)}`)).join(', ') : t('rd.info.closedDay', undefined, locale)}</b>
           </li>
         ))}
       </ul>
       {r.openingHours.closures?.map((c) => <p key={c.from} className="rd-note rd-note--warn">{t('rd.info.closure', { from: c.from, to: c.to }, locale)}{c.reason ? ` — ${c.reason}` : ''}</p>)}
+      {r.openingHours.special && r.openingHours.special.length > 0 && <div data-testid="rd-special-hours"><h3>{t('rd.info.special', undefined, locale)}</h3><ul className="rd-hours">{r.openingHours.special.map((s) => (
+        <li key={s.date}><span>{new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${s.date}T12:00:00Z`))}{s.note ? <small dir="auto"> · {s.note}</small> : null}</span><b>{s.closed ? t('rd.info.closedDay', undefined, locale) : s.periods.map((p) => `${timeOf(p.open, locale)} – ${timeOf(p.close, locale)}`).join(', ')}</b></li>
+      ))}</ul></div>}
       {r.openingHours.note && <p className="rd-muted">{r.openingHours.note}</p>}
       <p className="rd-muted">{t('rd.info.hoursZone', { zone: r.timezone }, locale)}</p>
     </div>

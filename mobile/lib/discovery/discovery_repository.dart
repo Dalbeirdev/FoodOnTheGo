@@ -1,8 +1,9 @@
-/// DEVELOPMENT fixtures + MockRestaurantRepository (Module 06, global-ready) — Android.
+/// DEVELOPMENT fixtures + the restaurant repository (Module 06, global-ready) — Android.
 ///
 /// Fixtures span several markets, currencies, time zones, unit systems and scripts; none is a product
-/// default. ApiRestaurantRepository replaces this class. Corridor search is a straight-line
-/// approximation for development; production uses PostGIS + the routing provider.
+/// default. With RESTAURANT_MODE=api (Module 23) the repository works on the backend's snapshot instead
+/// (api_restaurants.dart) and asks the backend for one restaurant when its page opens; search, filters,
+/// sorting and the corridor approximation stay in the app until route-aware discovery has its own module.
 library;
 
 import 'dart:math';
@@ -14,6 +15,7 @@ import '../data/api_client.dart';
 import '../market/api_market.dart';
 import '../market/market.dart';
 import '../journey/journey_repositories.dart' show Journey;
+import 'api_restaurants.dart';
 import 'restaurant_models.dart';
 
 /* ------------------------------------------------------------------ geometry (WGS84) */
@@ -104,36 +106,56 @@ final List<GlobalRestaurant> globalRestaurants = [
 
 int _hm(String s) { final p = s.split(':'); return int.parse(p[0]) * 60 + int.parse(p[1]); }
 
+String _localDate(DateTime local) => '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+
+/// The periods that OPEN on a restaurant-local date: a special date replaces the weekly ones; a closure has none.
+List<OpeningPeriod> periodsOpeningOn(GlobalRestaurant r, String date, int weekday) {
+  for (final s in r.openingHours.special) {
+    if (s.date == date) return s.closed ? const [] : s.periods;
+  }
+  if (r.openingHours.closures.any((c) => date.compareTo(c.from) >= 0 && date.compareTo(c.to) <= 0)) return const [];
+  return [for (final p in r.openingHours.periods) if (p.day == weekday) p];
+}
+
+/// Open / closed right now, recomputed from the hours with the backend's rules (app/Services/Restaurant/Schedule.php):
+/// a period belongs to the local date on which it opens; closing at or before the opening time runs past midnight
+/// (equal = 24 hours); a special date replaces the periods opening on that date; back-to-back periods are one opening.
 Availability computeAvailability(GlobalRestaurant r, DateTime nowUtc) {
   final local = toZone(nowUtc, r.timezone);
   final weekday = local.weekday % 7; // DateTime: Mon=1..Sun=7 → Sun=0
   final minutes = local.hour * 60 + local.minute;
-  final date = '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+  final midnight = DateTime(local.year, local.month, local.day);
+  final date = _localDate(local);
   if (r.status != RestaurantStatus.active) return const Availability(status: AvailabilityStatus.temporarilyClosed, acceptingOrders: false);
-  if (r.openingHours.closures.any((c) => date.compareTo(c.from) >= 0 && date.compareTo(c.to) <= 0)) return const Availability(status: AvailabilityStatus.temporarilyClosed, acceptingOrders: false);
-  int? openUntil;
-  for (final p in r.openingHours.periods) {
-    final o = _hm(p.open), c = _hm(p.close);
-    final overnight = c <= o;
-    if (p.day == weekday) {
-      if (!overnight && minutes >= o && minutes < c) openUntil = c;
-      if (overnight && minutes >= o) openUntil = c + 1440;
-      if (c == 1439 && o == 0) openUntil = 1440 * 8;
-    }
-    if (overnight && p.day == (weekday + 6) % 7 && minutes < c) openUntil = c;
+  // A date-range closure in the fixtures means "temporarily closed"; a special closed DATE (backend) is simply a closed day.
+  if (!r.openingHours.special.any((s) => s.date == date) && r.openingHours.closures.any((c) => date.compareTo(c.from) >= 0 && date.compareTo(c.to) <= 0)) {
+    return const Availability(status: AvailabilityStatus.temporarilyClosed, acceptingOrders: false);
   }
-  if (openUntil != null) {
-    if (openUntil >= 1440 * 8) return Availability(status: AvailabilityStatus.open, acceptingOrders: r.acceptingOrders);
-    final left = openUntil - minutes;
+  // Every period from yesterday to a week ahead as [start, end) in minutes after today's local midnight.
+  final windows = <(int, int)>[];
+  for (var d = -1; d <= 8; d++) {
+    final day = midnight.add(Duration(days: d));
+    for (final p in periodsOpeningOn(r, _localDate(day), (weekday + d) % 7 < 0 ? (weekday + d) % 7 + 7 : (weekday + d) % 7)) {
+      final o = _hm(p.open), c = _hm(p.close);
+      final end = o == 0 && c == 1439 ? 1440 : (c > o ? c : c + 1440); // 00:00–23:59 is the fixtures' "all day"
+      windows.add((d * 1440 + o, d * 1440 + end));
+    }
+  }
+  (int, int)? containing(int m) { for (final w in windows) { if (m >= w.$1 && m < w.$2) return w; } return null; }
+  final current = containing(minutes);
+  if (current != null) {
+    // Back-to-back periods are one opening (a 24-hour day followed by the next, a shift that starts when another ends).
+    var end = current.$2;
+    for (var i = 0; i < 40; i++) { final next = containing(end); if (next == null) break; end = next.$2; }
+    if (end >= 1440 * 8) return Availability(status: AvailabilityStatus.open, acceptingOrders: r.acceptingOrders); // around the clock
+    final left = end - minutes;
     return Availability(status: left <= 45 ? AvailabilityStatus.closingSoon : AvailabilityStatus.open, acceptingOrders: r.acceptingOrders, nextChangeAt: nowUtc.add(Duration(minutes: left)));
   }
+  // Next opening within the coming 7 days.
   int? best;
-  for (var d = 0; d < 8; d++) {
-    for (final p in r.openingHours.periods) {
-      if (p.day != (weekday + d) % 7) continue;
-      final start = d * 1440 + _hm(p.open) - minutes;
-      if (start > 0 && (best == null || start < best)) best = start;
-    }
+  for (final w in windows) {
+    final start = w.$1 - minutes;
+    if (start > 0 && w.$1 < 1440 * 8 && (best == null || start < best)) best = start;
   }
   return Availability(status: best != null && best <= 60 ? AvailabilityStatus.openingSoon : AvailabilityStatus.closed, acceptingOrders: false, nextChangeAt: best == null ? null : nowUtc.add(Duration(minutes: best)));
 }
@@ -167,16 +189,28 @@ class MockRestaurantRepository implements RestaurantRepository {
   bool fail = false;
   Future<void> _wait([Duration? d]) { final dur = d ?? latency; return dur == Duration.zero ? Future.value() : Future.delayed(dur); }
 
-  /// Customer-visible restaurants: active market + serviceable area only (Module 18A).
-  List<GlobalRestaurant> get customerRestaurants => [for (final r in globalRestaurants) if (marketAvailability.isRestaurantAvailable(countryCode: r.countryCode, lat: r.lat, lng: r.lng)) r];
+  /// Customer-visible restaurants. With the backend: exactly what GET /restaurants returned (the backend decided
+  /// who may be seen — never the fixtures, not even while it loads). Fixtures: active market + serviceable area (Module 18A).
+  List<GlobalRestaurant> get customerRestaurants => restaurantsFromApi ? knownRestaurants : [for (final r in globalRestaurants) if (marketAvailability.isRestaurantAvailable(countryCode: r.countryCode, lat: r.lat, lng: r.lng)) r];
   static ResultPage _unavailable(UnavailableReason reason, int? corridorM) => ResultPage(items: const [], nextCursor: null, total: 0, corridorM: corridorM, unavailable: MarketAvailabilityResult.unavailable(reason));
 
   GlobalRestaurant? byId(String id) { for (final r in customerRestaurants) { if (r.id == id || r.slug == id) return r; } return null; }
   @override
-  Future<GlobalRestaurant?> getRestaurantBySlug(String slug) async { await _wait(latency ~/ 3); return byId(slug); }
+  Future<GlobalRestaurant?> getRestaurantBySlug(String slug) async {
+    if (restaurantsFromApi) {
+      // The backend's current state (a pause, an approval, a suspension since the list was loaded). A restaurant the
+      // development menus know by id is asked for by its slug.
+      final known = byId(slug);
+      try { return await restaurantApi.fetchBySlug(known?.slug ?? slug); } on ApiException catch (e) { throw Exception(e.kind == ApiErrorKind.rateLimited ? 'Too many requests. Please wait a moment and try again.' : 'Cannot reach FoodOnTheGo right now. Check your connection and try again.'); }
+    }
+    await _wait(latency ~/ 3); return byId(slug);
+  }
 
   @override
   List<String> getCuisineTaxonomy() {
+    // With the backend the taxonomy is the backend's, in its order (cuisines no listed restaurant uses are left out).
+    final api = apiRestaurantData;
+    if (restaurantsFromApi && api != null) return [for (final c in api.cuisines) if (customerRestaurants.any((r) => r.cuisines.contains(c))) c];
     final counts = <String, int>{};
     for (final r in customerRestaurants) { for (final c in r.cuisines) { counts[c] = (counts[c] ?? 0) + 1; } }
     final keys = counts.keys.toList()..sort((a, b) { final d = counts[b]! - counts[a]!; return d != 0 ? d : a.compareTo(b); });
@@ -266,6 +300,7 @@ class MockRestaurantRepository implements RestaurantRepository {
   Future<ResultPage> getRestaurants(DiscoveryQuery q) async {
     await _wait();
     if (fail) throw Exception('Restaurant data is unavailable right now. Please try again.');
+    if (restaurantsFromApi) await restaurantApi.ensureFresh();
     final now = q.now ?? DateTime.now().toUtc();
     final scope = q.scope;
     if (scope != null) {
@@ -300,6 +335,7 @@ class MockRestaurantRepository implements RestaurantRepository {
   Future<ResultPage> getRestaurantsForJourney(Journey journey, DiscoveryQuery q) async {
     await _wait();
     if (fail) throw Exception('Restaurant data is unavailable right now. Please try again.');
+    if (restaurantsFromApi) await restaurantApi.ensureFresh();
     final now = q.now ?? DateTime.now().toUtc();
     final line = journey.route?.geometry ?? (journey.origin.lat != null && journey.destination.lat != null ? [[journey.origin.lat!, journey.origin.lng!], [journey.destination.lat!, journey.destination.lng!]] : <List<double>>[]);
     final corridorM = q.corridorM ?? marketFor(journey.origin.countryCode).corridorM;

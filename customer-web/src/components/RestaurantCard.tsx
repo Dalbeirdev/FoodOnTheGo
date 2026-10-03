@@ -38,13 +38,15 @@ export default function RestaurantCard({ result, units, selected, favorite, onFa
       <div className="rcard__body">
         <div className="rcard__row">
           <h3 lang={lang} dir="auto">{r.name}</h3>
-          <span className="rcard__rating"><StarIcon size={13} /> {r.rating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <small>{t('card.reviews', { count: r.reviewCount.toLocaleString(locale) }, locale)}</small></span>
+          {r.reviewCount > 0
+            ? <span className="rcard__rating"><StarIcon size={13} /> {r.rating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <small>{t('card.reviews', { count: r.reviewCount.toLocaleString(locale) }, locale)}</small></span>
+            : <span className="rcard__rating"><small>{t('card.noReviews', undefined, locale)}</small></span>}
         </div>
         <p className="rcard__cuisine" dir="auto"><span>{r.cuisines.slice(0, 2).join(' · ')}</span><span className="rcard__price" aria-label={`price level ${r.priceLevel} of 4, ${r.currency}`}>{priceLevelLabel(r.priceLevel, r.currency, locale)}</span></p>
         {(nextChange || (!a.acceptingOrders && !closed)) && (
           <p className="rcard__status">
             {nextChange && <span>{nextChange} <abbr title={r.timezone}>{zoneLabel(a.nextChangeAt!, r.timezone, locale)}</abbr></span>}
-            {!a.acceptingOrders && !closed && <span>{t('card.notAcceptingOrders', undefined, locale)}</span>}
+            {!a.acceptingOrders && !closed && <span>{t(r.unavailableReason === 'AREA_UNAVAILABLE' ? 'card.areaUnavailable' : r.unavailableReason === 'PICKUP_UNAVAILABLE' ? 'card.pickupUnavailable' : 'card.notAcceptingOrders', undefined, locale)}</span>}
           </p>
         )}
         <p className="rcard__meta">

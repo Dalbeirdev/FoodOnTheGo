@@ -3,7 +3,8 @@
 /// capacity fixtures. Zone conversion uses the development offset table (CF-078: DST-aware tz library).
 library;
 
-import '../discovery/discovery_repository.dart' show computeAvailability, globalRestaurants;
+import '../discovery/api_restaurants.dart' show knownRestaurants;
+import '../discovery/discovery_repository.dart' show computeAvailability, periodsOpeningOn;
 import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart' show toZone, zoneOffsetMinutes;
 import '../journey/journey_repositories.dart' show Journey;
@@ -38,14 +39,11 @@ PickupSettings settingsFor(GlobalRestaurant r) {
   };
 }
 
-bool _inClosure(GlobalRestaurant r, String date) => r.openingHours.closures.any((c) => date.compareTo(c.from) >= 0 && date.compareTo(c.to) <= 0);
-
-/// Minute ranges relative to local midnight of [date] (may exceed 1440 for overnight service).
+/// Minute ranges relative to local midnight of [date] (may exceed 1440 for overnight service). Special hours of the
+/// date replace the weekly periods; a closure has none (backend rules, see computeAvailability).
 List<(int, int)> serviceRangesFor(GlobalRestaurant r, String date) {
-  if (_inClosure(r, date)) return const [];
-  final weekday = localWeekdayOf(date);
   return [
-    for (final p in r.openingHours.periods.where((p) => p.day == weekday))
+    for (final p in periodsOpeningOn(r, date, localWeekdayOf(date)))
       (hhmmToMinutes(p.open), p.close == '23:59' ? 24 * 60 : (hhmmToMinutes(p.close) <= hhmmToMinutes(p.open) ? hhmmToMinutes(p.close) + 24 * 60 : hhmmToMinutes(p.close))),
   ];
 }
@@ -107,7 +105,7 @@ class MockPickupRepository implements PickupRepository {
   /// Development stale-slot simulation.
   bool staleSlot = false;
   Future<void> _wait([Duration? d]) { final dur = d ?? latency; return dur == Duration.zero ? Future.value() : Future.delayed(dur); }
-  GlobalRestaurant _r(String id) { final r = globalRestaurants.where((x) => x.id == id).firstOrNull; if (r == null) throw const PickupException('Restaurant not found'); return r; }
+  GlobalRestaurant _r(String id) { final r = knownRestaurants.where((x) => x.id == id || x.slug == id).firstOrNull; if (r == null) throw const PickupException('Restaurant not found'); return r; }
 
   @override
   Future<PickupSettings> getSettings(String restaurantId) async { await _wait(latency ~/ 2); return settingsFor(_r(restaurantId)); }

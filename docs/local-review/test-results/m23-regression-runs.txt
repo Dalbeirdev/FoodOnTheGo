@@ -1,0 +1,23 @@
+# Module 23 — regression runs of the earlier suites against the REAL local backend with VITE_RESTAURANT_MODE=api (customer-web on :5173, API on :8001)
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression.js (Module 19 full-site suite with real auth).
+# First pass: the full-site crawl used a MOCK admin restaurant id → 66/68 (BUG-117); the route is now resolved from the backend and the suite was re-run.
+
+=== m22_auth_regression.js  03:28:45Z
+PASS D3 no uncaught page errors and no console errors apart from the expected failed requests
+48/48 passed
+=== exit 0
+=== m22_e2e.js  03:31:02Z
+PASS E3 no uncaught page errors and no console errors apart from the expected refused requests
+51/51 passed
+=== exit 0
+=== m22_regression.js  03:33:24Z
+FAIL F1 route audit: 72 routes render (none blank, none 404, each with an h1) — [["/admin/restaurants/highway-tandoor-karnal",0,true,false]]
+FAIL F6 console audit: no runtime errors or uncaught exceptions on any route — [["/admin/restaurants/highway-tandoor-karnal","/admin/restaurants/highway-tandoor-karnal :: Failed to load resource: the server responded with a status of 404 (Not Found)"]]
+PASS No uncaught page errors during the whole run
+66/68 passed
+=== exit 1
+=== done 03:44:52Z
+
+=== m22_regression.js (re-run after the route fix) 03:52:24Z
+68/68 passed
+=== exit 0 04:03:33Z

@@ -106,7 +106,12 @@ class Photo extends StatelessWidget {
   final Widget? child;
   @override
   Widget build(BuildContext context) {
-    Widget img = Image.asset(asset, fit: BoxFit.cover, width: width ?? double.infinity, height: height);
+    Widget placeholder([BuildContext? _, Object? _, StackTrace? _]) => Container(width: width ?? double.infinity, height: height, color: const Color(0xFFF1E9E1), alignment: Alignment.center, child: const Icon(Icons.restaurant_outlined, color: Color(0xFFB9A89A), size: 34));
+    Widget img = asset.isEmpty
+        ? placeholder()
+        : asset.startsWith('http://') || asset.startsWith('https://')
+            ? Image.network(asset, fit: BoxFit.cover, width: width ?? double.infinity, height: height, errorBuilder: placeholder)
+            : Image.asset(asset, fit: BoxFit.cover, width: width ?? double.infinity, height: height, errorBuilder: placeholder);
     if (height == null) img = AspectRatio(aspectRatio: aspect ?? 16 / 9, child: img);
     if (width != null && height != null) img = SizedBox(width: width, height: height, child: img);
     return ClipRRect(

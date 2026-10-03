@@ -1,0 +1,74 @@
+{
+  "module": "M23",
+  "target": "Flutter web preview of the Android code (RESTAURANT_MODE=api, MARKET_MODE=api, AUTH_MODE=api) against the real local backend — NOT a device run",
+  "date": "2026-10-03T04:21:59.001Z",
+  "passed": 13,
+  "total": 13,
+  "results": [
+    {
+      "name": "F1 on start the app loads the restaurants from the backend: GET /restaurants and GET /cuisines (200, no token) next to the market",
+      "pass": true,
+      "detail": "[{\"method\":\"GET\",\"url\":\"/markets\",\"status\":200,\"auth\":false},{\"method\":\"GET\",\"url\":\"/markets/current/coverage\",\"status\":200,\"auth\":false},{\"method\":\"GET\",\"url\":\"/restaurants?page[size]=100&page[number]=1\",\"status\":200,\"auth\":false},{\"method\":\"GET\",\"url\":\"/cuisines\",\"status\":200,\"auth\":false},{\"metho"
+    },
+    {
+      "name": "F2 home renders backend restaurants (Burger Hub) and none of the international development fixtures",
+      "pass": true,
+      "detail": "GOOD FOOD MAKES EVERY JOURNEY BETTER\nDelicious Food\nOn Your Route\nPlan your journey, discover great restaurants along yo"
+    },
+    {
+      "name": "F3 Build Info states where restaurant data comes from: \"Backend (menus and orders still development data)\"",
+      "pass": true,
+      "detail": "Restaurants\nBackend (menus and orders still development data)\nApp version\n0.1.0 (build 27)\nBuild label\nweb-preview\nGit commit\nno-gitRe-check | Build InformationThis build\nEnvironment\nLOCAL\nAPI base URL\nhttp://127.0.0.1:8001/api/v1\nAuthentication\nBackend (phone + OTP)\nMarket data\nBackend (PostGIS cov"
+    },
+    {
+      "name": "F4 the restaurants list is the backend's list (14 restaurants): hidden ones (suspended organization, under review, outside coverage, draft, rejected) never appear",
+      "pass": true,
+      "detail": "14 restaurants\nSorted by: open now, shortest detour, then rating.\nELSEWHERE IN INDIA\n6\nNothing closer yet — showing elsewhere in india\n6 / 14 | Showing restaurants in India  current market\nPlan a jour"
+    },
+    {
+      "name": "F5 opening a restaurant asks the backend for its current state (GET /restaurants/burger-hub 200, no token)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F6 the restaurant page shows the backend profile: name, cuisines, address and preparation time",
+      "pass": true,
+      "detail": "Photos (1) | Search this menu | Available now | Vegetarian | Classic Burger, ₹250.00 | Popular\nClassic Burger\nJuicy grilled patty with fresh lettuce, tomato and cheese.\nCustomizable\n₹250.00 | BBQ Baco"
+    },
+    {
+      "name": "F7 Info tab: opening hours from the backend (8:00 AM – 11:30 PM), the pickup method (Counter pickup) and the pickup instructions",
+      "pass": true,
+      "detail": "tapped=true Photos (1) | Opening hours\nGMT+5:30\nTimes shown in the restaurant’s local time (Asia/Kolkata) | Menu | Info | Photos 1 | Back to resultsSave Burger HubShareBurger Hub\n 4.5\n (320)\nBurgers · Fast Food · American  ·  ₹₹\nOpen\nCloses 11:30 PM GMT+5:30\nPrep 12m\nSector 62, Noida, Uttar Pradesh "
+    },
+    {
+      "name": "F8 a restaurant customers may not see (suspended organization) is \"not found\" — also by direct link",
+      "pass": true,
+      "detail": "We couldn’t find that restaurant.\nThe link may be out of date or the restaurant is no longer listed on FoodOnTheGo. | Re"
+    },
+    {
+      "name": "F9 a paused restaurant says it is not accepting FoodOnTheGo orders (backend NOT_ACCEPTING_ORDERS)",
+      "pass": true,
+      "detail": "Photos (1) | Search this menu | Available now | Vegetarian | Pinni (250 g), ₹180.00 | Pinni (250 g)\nWheat, ghee, jaggery.\nVegetarian\nCustomizable\n₹180.00 | Besa"
+    },
+    {
+      "name": "F10 a restaurant in a paused service area: \"not taking orders in this area\" (AREA_UNAVAILABLE)",
+      "pass": true,
+      "detail": "Photos (1) | Search this menu | Available now | Vegan | Vegetarian | Cappuccino, ₹180.00 | Popular\nCappuccino\nDouble shot, steamed milk.\nVegetarian\nCustomizable"
+    },
+    {
+      "name": "F11 a temporarily closed restaurant says so",
+      "pass": true,
+      "detail": "Photos (1) | Search this menu | Available now | Vegetarian | Classic Burger, ₹250.00 | Popular\nClassic Burger\nJuicy grilled patty with fresh lettuce, tomato and"
+    },
+    {
+      "name": "F12 special hours from the backend are listed with the note written for customers",
+      "pass": true,
+      "detail": "tapped=true Photos (1) | Opening hours\nGMT+5:30\nSpecial hours\n3 Oct 2026 · Closed for staff training\nClosed\nTimes shown in the restaurant’s local time (Asia/Kolkata) | Menu | Info | Photos 1 | Back to resultsSave Ambala Chai PointShareAmbala Chai Point\n 4.1\n (88)\nCafe · Beverages  ·  ₹\nClosed\nOpens "
+    },
+    {
+      "name": "F13 a backend restaurant without development menu data shows \"Menu currently unavailable\" instead of a made-up menu, and \"No reviews yet\"",
+      "pass": true,
+      "detail": "Menu currently unavailable\nThis restaurant has not published its menu on FoodOnTheGo yet. You can still save it and check back before your journey. | Menu | Info | Photos 0 | Back to resultsSave Night"
+    }
+  ]
+}

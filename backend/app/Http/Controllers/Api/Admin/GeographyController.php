@@ -145,8 +145,8 @@ class GeographyController extends Controller
             'name' => ['sometimes', 'string', 'max:120'],
             'aliases' => ['sometimes', 'array', 'max:20'],
             'aliases.*' => ['string', 'max:120'],
-            'latitude' => ['sometimes', 'required_with:longitude', 'numeric', 'between:-90,90'],
-            'longitude' => ['sometimes', 'required_with:latitude', 'numeric', 'between:-180,180'],
+            'latitude' => ['required_with:longitude', 'numeric', 'between:-90,90'],
+            'longitude' => ['required_with:latitude', 'numeric', 'between:-180,180'],
             'timezone' => ['sometimes', 'timezone:all'],
             'launch_stage' => ['sometimes', 'nullable', 'string', 'max:120'],
         ]);

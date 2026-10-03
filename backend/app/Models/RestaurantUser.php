@@ -11,6 +11,7 @@ use Database\Factories\RestaurantUserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -29,5 +30,16 @@ class RestaurantUser extends Authenticatable implements Principal
     public function principalType(): PrincipalType
     {
         return PrincipalType::RestaurantUser;
+    }
+
+    /**
+     * Memberships of restaurant organizations (Module 23). What the person may do comes from the role
+     * assignments derived from the ACTIVE ones.
+     *
+     * @return HasMany<RestaurantMembership, $this>
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(RestaurantMembership::class);
     }
 }

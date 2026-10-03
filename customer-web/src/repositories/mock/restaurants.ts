@@ -9,8 +9,10 @@
 import { boundsOf, distanceToPolyline, haversineM, inBounds, type LatLng } from '../../geo/geo'
 import { formatDistance, formatMinutes, localClock } from '../../i18n/format'
 import { marketFor, regionsAdjacent } from '../../i18n/markets'
-import { locationAvailability } from '../../market/api/marketData'
+import { apiMarketData, locationAvailability } from '../../market/api/marketData'
 import { marketAvailability } from '../../market/mock/mockMarket'
+import { addLocalDays } from '../../pickup/time'
+import { apiRestaurants, ensureRestaurantsFresh, fetchRestaurantBySlug, registerLegacyRestaurants, restaurantCuisines } from '../../restaurants/api/restaurantData'
 import type { Availability, DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, OpeningHours, Restaurant, ResultPage, RestaurantRepository, RouteRestaurantResult, ScopeRing, SortKey } from '../types'
 
 type Fixture = Omit<Restaurant, 'publicId' | 'image' | 'distance' | 'time' | 'detour' | 'tags' | 'reviewCount' | 'categories' | 'images' | 'acceptingOrders' | 'status' | 'market' | 'description' | 'openingHours' | 'features'> & {
@@ -92,42 +94,50 @@ export const RESTAURANTS: Restaurant[] = FIXTURES.map((f) => ({
   ...legacyStrings(f),
 }))
 
+// Backend restaurants keep the ids the development menus, carts and orders already use (matched by slug).
+registerLegacyRestaurants((slug) => { const f = FIXTURES.find((x) => x.slug === slug); return f ? { id: f.id, rating: f.rating, reviewCount: f.reviewCount, fallback: f.fallback } : null })
+
 /* ------------------------------------------------------------------ availability (restaurant-local time zone) */
 
 const hm = (s: string) => { const [h, m] = s.split(':').map(Number); return h * 60 + m }
+
+/** The periods that OPEN on a restaurant-local date: a special date replaces the weekly ones; a closure has none. */
+export function periodsOpeningOn(r: Restaurant, date: string, weekday: number): Array<{ open: string; close: string }> {
+  const special = r.openingHours.special?.find((s) => s.date === date)
+  if (special) return special.closed ? [] : special.periods
+  if (r.openingHours.closures?.some((c) => date >= c.from && date <= c.to)) return []
+  return r.openingHours.periods.filter((p) => p.day === weekday)
+}
 
 export function computeAvailability(r: Restaurant, nowIso: string): Availability {
   const { weekday, minutes, date } = localClock(nowIso, r.timezone)
   const localTime = nowIso
   if (r.status !== 'active') return { status: 'temporarily_closed', acceptingOrders: false, nextChangeAt: null, localTime }
-  if (r.openingHours.closures?.some((c) => date >= c.from && date <= c.to)) return { status: 'temporarily_closed', acceptingOrders: false, nextChangeAt: null, localTime }
-  // Windows covering "now": today's periods, plus yesterday's overnight tail.
-  let openUntil: number | null = null
-  for (const p of r.openingHours.periods) {
-    const o = hm(p.open), c = hm(p.close)
-    const overnight = c <= o
-    if (p.day === weekday) {
-      if (!overnight && minutes >= o && minutes < c) openUntil = c
-      if (overnight && minutes >= o) openUntil = c + 1440
-      if (c === 1439 && o === 0) openUntil = 1440 * 8 // 24h
+  // A date-range closure in the fixtures means "temporarily closed"; a special closed DATE (backend) is simply a closed day.
+  if (!r.openingHours.special?.some((s) => s.date === date) && r.openingHours.closures?.some((c) => date >= c.from && date <= c.to)) return { status: 'temporarily_closed', acceptingOrders: false, nextChangeAt: null, localTime }
+  // Every period from yesterday to a week ahead as [start, end) in minutes after today's local midnight. The rules are
+  // the backend's (Schedule): a period belongs to the date on which it opens; closing at or before the opening time
+  // runs past midnight, and the same opening and closing time is 24 hours. (00:00–23:59 is the fixtures' "all day".)
+  const windows: Array<[number, number]> = []
+  for (let d = -1; d <= 8; d++) {
+    for (const p of periodsOpeningOn(r, addLocalDays(date, d), (((weekday + d) % 7) + 7) % 7)) {
+      const o = hm(p.open), c = hm(p.close)
+      windows.push([d * 1440 + o, d * 1440 + (o === 0 && c === 1439 ? 1440 : c > o ? c : c + 1440)])
     }
-    if (overnight && p.day === (weekday + 6) % 7 && minutes < c) openUntil = c
   }
+  const containing = (m: number) => windows.find(([start, end]) => m >= start && m < end)
   const at = (deltaMin: number) => new Date(new Date(nowIso).getTime() + deltaMin * 60_000).toISOString()
-  if (openUntil !== null) {
-    const left = openUntil - minutes
-    if (openUntil >= 1440 * 8) return { status: 'open', acceptingOrders: r.acceptingOrders, nextChangeAt: null, localTime }
+  const current = containing(minutes)
+  if (current) {
+    // Back-to-back periods are one opening (a 24-hour day followed by the next, a shift that starts when another ends).
+    let end = current[1]
+    for (let i = 0; i < 40; i++) { const next = containing(end); if (!next) break; end = next[1] }
+    if (end >= 1440 * 8) return { status: 'open', acceptingOrders: r.acceptingOrders, nextChangeAt: null, localTime } // around the clock
+    const left = end - minutes
     return { status: left <= 45 ? 'closing_soon' : 'open', acceptingOrders: r.acceptingOrders, nextChangeAt: at(left), localTime }
   }
   // Next opening within the coming 7 days.
-  let best: number | null = null
-  for (let d = 0; d < 8; d++) {
-    for (const p of r.openingHours.periods) {
-      if (p.day !== (weekday + d) % 7) continue
-      const start = d * 1440 + hm(p.open) - minutes
-      if (start > 0 && (best === null || start < best)) best = start
-    }
-  }
+  const best = windows.reduce<number | null>((min, [start]) => (start > minutes && start < 1440 * 8 && (min === null || start - minutes < min) ? start - minutes : min), null)
   return { status: best !== null && best <= 60 ? 'opening_soon' : 'closed', acceptingOrders: false, nextChangeAt: best === null ? null : at(best), localTime }
 }
 
@@ -149,7 +159,7 @@ export type RestaurantOverride = Partial<Pick<Restaurant, 'name' | 'description'
 const OVERRIDE_KEY = 'fotg.restaurant.overrides.v1'
 export const loadRestaurantOverrides = (): Record<string, RestaurantOverride> => { try { const raw = localStorage.getItem(OVERRIDE_KEY); return raw ? (JSON.parse(raw) as Record<string, RestaurantOverride>) : {} } catch { return {} } }
 export function saveRestaurantOverride(id: string, patch: RestaurantOverride) { try { const all = loadRestaurantOverrides(); all[id] = { ...(all[id] ?? {}), ...patch }; localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all)) } catch { /* ignore */ } }
-export const withOverrides = (r: Restaurant): Restaurant => { const o = loadRestaurantOverrides()[r.id]; return o ? { ...r, ...o } : r }
+export const withOverrides = (r: Restaurant): Restaurant => { if (apiRestaurants()) return r; const o = loadRestaurantOverrides()[r.id]; return o ? { ...r, ...o } : r }
 
 let latency = 300
 export function setMockRestaurantLatency(ms: number) { latency = ms }
@@ -174,16 +184,34 @@ const rank = (a: RouteRestaurantResult, b: RouteRestaurantResult, sort: SortKey)
   }
 }
 
-/** Customer-visible restaurants: only locations in an ACTIVE market and a serviceable city / service area (Module 18A). */
-export const customerRestaurants = (): Restaurant[] => RESTAURANTS.filter((r) => marketAvailability.isRestaurantAvailable(r))
+/**
+ * Customer-visible restaurants.
+ *  - With the backend (Module 23): exactly what GET /restaurants returned — the backend decides visibility
+ *    (approved, inside public coverage); nothing is filtered or added here.
+ *  - Development fixtures: only locations in an ACTIVE market and a serviceable city / service area (Module 18A).
+ */
+export const customerRestaurants = (): Restaurant[] => apiRestaurants() ?? RESTAURANTS.filter((r) => marketAvailability.isRestaurantAvailable(r))
+/**
+ * Sample restaurants for marketing illustrations (hero, "how it works"): product pictures, never live data — so they
+ * stay the development fixtures of the market being served, whatever the data mode.
+ */
+export const illustrationRestaurants = (): Restaurant[] => { if (!apiRestaurants()) return customerRestaurants().map(withOverrides); const cc = apiMarketData()?.activeCode; return RESTAURANTS.filter((r) => !cc || r.countryCode === cc) }
+/** The restaurant the development pickup / cart code should reason about: the backend's version when there is one. */
+export const restaurantForId = (id: string): Restaurant | undefined => (apiRestaurants() ?? RESTAURANTS).find((x) => x.id === id || x.slug === id)
 const unavailablePage = (a: { supported: boolean; reason: 'ok' | 'market' | 'area' | 'paused'; messageKey: string }, corridorM: number | null): ResultPage => ({ items: [], nextCursor: null, total: 0, corridorM, availability: a })
 
 export class MockRestaurantRepository implements RestaurantRepository {
   list() { return customerRestaurants().map(withOverrides) }
   byId(id: string) { const r = customerRestaurants().find((x) => x.id === id || x.slug === id); return r ? withOverrides(r) : undefined }
-  async getRestaurantBySlug(slug: string) { await wait(latency / 3); const r = customerRestaurants().find((x) => x.slug === slug || x.id === slug); return r ? withOverrides(r) : null }
+  async getRestaurantBySlug(slug: string) {
+    // With the backend the page always asks for the current state (a 404 there is the answer, not an error).
+    if (apiRestaurants()) { const known = customerRestaurants().find((x) => x.slug === slug || x.id === slug); return fetchRestaurantBySlug(known?.slug ?? slug) }
+    await wait(latency / 3); const r = customerRestaurants().find((x) => x.slug === slug || x.id === slug); return r ? withOverrides(r) : null
+  }
 
   getCuisineTaxonomy() {
+    // Backend taxonomy, in its display order, limited to cuisines that currently have a visible restaurant.
+    const live = restaurantCuisines(); if (live) return live.filter((c) => c.restaurants > 0).map((c) => c.name)
     // Derived from data (admin-managed taxonomy later). Latin-script duplicates of local names are kept — the market decides display.
     const counts = new Map<string, number>()
     for (const r of customerRestaurants()) for (const c of r.cuisines) counts.set(c, (counts.get(c) ?? 0) + 1)
@@ -247,7 +275,7 @@ export class MockRestaurantRepository implements RestaurantRepository {
   }
 
   async getRestaurants(query: DiscoveryQuery): Promise<ResultPage> {
-    await wait()
+    if (apiRestaurants()) await ensureRestaurantsFresh(); else await wait()
     if (failing()) throw new Error('Restaurant data is unavailable right now. Please try again.')
     const now = query.now ?? new Date().toISOString()
     const scope = query.scope ?? null
@@ -276,7 +304,7 @@ export class MockRestaurantRepository implements RestaurantRepository {
   }
 
   async getRestaurantsForJourney(journey: JourneyLike, query: DiscoveryQuery): Promise<ResultPage> {
-    await wait()
+    if (apiRestaurants()) await ensureRestaurantsFresh(); else await wait()
     if (failing()) throw new Error('Restaurant data is unavailable right now. Please try again.')
     const now = query.now ?? new Date().toISOString()
     const line: LatLng[] = journey.route?.geometry ?? (journey.origin.lat !== null && journey.destination.lat !== null ? [[journey.origin.lat, journey.origin.lng!], [journey.destination.lat, journey.destination.lng!]] : [])

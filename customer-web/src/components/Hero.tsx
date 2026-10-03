@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom'
-import { restaurantRepository, useHomeContent } from '../repositories'
+import { useHomeContent } from '../repositories'
+import { illustrationRestaurants } from '../repositories/mock/restaurants'
 import { ArrowRightIcon, ChevronRightIcon, ClockIcon, PinIcon, StarIcon, StoreIcon } from './Icons'
 import StoreBadges from './StoreBadges'
 import './Hero.css'
 
 export default function Hero() {
   const home = useHomeContent()
-  const stops = home.featuredRestaurantIds.map((id) => restaurantRepository.byId(id)).filter((r) => !!r)
+  // An illustration of the product (sample stops with a sample detour), not live restaurant data.
+  const samples = illustrationRestaurants()
+  const stops = home.featuredRestaurantIds.map((id) => samples.find((r) => r.id === id)).filter((r) => !!r)
 
   return (
     <section className="hero">

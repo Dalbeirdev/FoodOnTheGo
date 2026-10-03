@@ -13,13 +13,17 @@ class AppConfig {
   /// 'api' = market, currency, units and coverage come from the backend (Module 22); 'mock' = bundled fixtures (default, used by tests).
   static const String marketMode = String.fromEnvironment('MARKET_MODE', defaultValue: 'mock');
 
+  /// 'api' = restaurants, opening hours, cuisines, pickup methods and availability come from the backend (Module 23);
+  /// 'mock' = bundled fixtures (default, used by tests). Menus, carts, orders and reviews are development data in both.
+  static const String restaurantMode = String.fromEnvironment('RESTAURANT_MODE', defaultValue: 'mock');
+
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 26;
+  static const int buildNumber = 27;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -30,6 +34,7 @@ class AppConfig {
         'API base URL': apiBaseUrl,
         'Authentication': authMode == 'api' ? 'Backend (phone + OTP)' : 'Development mock',
         'Market data': marketMode == 'api' ? 'Backend (PostGIS coverage)' : 'Development fixtures',
+        'Restaurants': restaurantMode == 'api' ? 'Backend (menus and orders still development data)' : 'Development fixtures',
         'App version': '$appVersion (build $buildNumber)',
         'Build label': buildLabel,
         'Git commit': gitCommit,

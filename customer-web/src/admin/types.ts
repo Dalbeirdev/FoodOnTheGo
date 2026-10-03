@@ -34,7 +34,23 @@ export type AdminUserQuery = { q: string; status: AdminStatus | 'all'; page: num
 export type Environment = 'LOCAL' | 'STAGING' | 'PRODUCTION'
 
 /* ---------------- restaurants ---------------- */
-export type AdminRestaurantStatus = OnboardingStatus // DRAFT | SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED | SUSPENDED
+export type AdminRestaurantStatus = OnboardingStatus // DRAFT | SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED | SUSPENDED | INACTIVE
+/**
+ * What the backend adds to a restaurant for administrators (Module 23). Present when the admin runs against the API:
+ * the status changes THIS administrator may make, the organization, where the location was placed, what customers
+ * currently see, a readiness check, the organization's staff and the recent history.
+ */
+export type AdminRestaurantLive = {
+  version: number; statusNote: string | null; rejectionCategory: string | null
+  allowedTransitions: AdminRestaurantStatus[]; canManage: boolean
+  organization: { id: string; name: string; legalName: string; status: AdminRestaurantStatus; statusNote: string | null; allowedTransitions: AdminRestaurantStatus[]; version: number }
+  availability: { visibleToCustomers: boolean; orderable: boolean; reason: string | null; openState: string; acceptingOrders: boolean }
+  city: string; region: string; serviceArea: { name: string; status: string } | null
+  readiness: Array<{ check: string; ok: boolean }>
+  staff: Array<{ id: string; name: string; email: string; role: string; status: string; locations: string }>
+  history: Array<{ id: string; action: string; actor: string | null; reason: string | null; at: string }>
+  pauseReason: string | null
+}
 export type DocumentStatus = 'NOT_SUBMITTED' | 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED' | 'EXPIRED'
 /** Verification documents are market-configured (country, entity type, provider, legal); this is one requirement row. */
 export type VerificationDocument = { id: string; kind: string; label: string; required: boolean; status: DocumentStatus; submittedAt: string | null; expiresAt: string | null; note: string | null }
@@ -42,13 +58,16 @@ export type AdminRestaurant = {
   restaurant: Restaurant
   profile: LocationProfile
   organizationId: string; organizationName: string
+  /** Backend only: the organization's own lifecycle status (an organization that is not approved hides all of its locations). */
+  organizationStatus?: AdminRestaurantStatus
   locationCount: number
   status: AdminRestaurantStatus
   ordersTotal: number
   createdAt: string
   documents: VerificationDocument[]
   internalNotes: Array<{ at: string; by: string; text: string }>
-  locations: Array<{ restaurantId: string; name: string; locationName: string; status: 'ACTIVE' | 'SUSPENDED'; timezone: string; currency: string; acceptingOrders: boolean }>
+  locations: Array<{ restaurantId: string; name: string; locationName: string; status: 'ACTIVE' | 'SUSPENDED'; timezone: string; currency: string; acceptingOrders: boolean; /** Backend only: the location's own lifecycle status. */ lifecycle?: AdminRestaurantStatus; version?: number }>
+  live?: AdminRestaurantLive
 }
 export type RestaurantFilter = { tab: 'all' | 'pending' | 'approved' | 'rejected' | 'suspended' | 'inactive'; query?: string; market?: string; cuisine?: string; sort?: 'name' | 'created' | 'orders' | 'rating'; page?: number; pageSize?: number }
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number }
@@ -169,11 +188,16 @@ export interface AdminRestaurantRepository {
   approve(id: string, actor: string): Promise<AdminRestaurant>
   reject(id: string, actor: string, category: RejectionCategory, publicReason: string, internalNote: string): Promise<AdminRestaurant>
   requestInformation(id: string, actor: string, message: string): Promise<AdminRestaurant>
-  suspend(id: string, actor: string, reason: string): Promise<AdminRestaurant>
+  suspend(id: string, actor: string, reason: string, publicReason?: string): Promise<AdminRestaurant>
   reactivate(id: string, actor: string): Promise<AdminRestaurant>
   setLocationStatus(id: string, locationId: string, status: 'ACTIVE' | 'SUSPENDED', actor: string, reason: string): Promise<AdminRestaurant>
   setDocumentStatus(id: string, docId: string, status: DocumentStatus, actor: string, note: string): Promise<AdminRestaurant>
   cuisines(): string[]
+  /** Backend only. */
+  live?: boolean
+  changeStatus?(id: string, status: AdminRestaurantStatus, input?: { reason?: string; publicReason?: string; category?: RejectionCategory }): Promise<AdminRestaurant>
+  changeOrganizationStatus?(id: string, status: AdminRestaurantStatus, input?: { reason?: string; publicReason?: string; category?: RejectionCategory }): Promise<AdminRestaurant>
+  addNote?(id: string, text: string): Promise<AdminRestaurant>
 }
 export interface AdminCustomerRepository { list(f: CustomerFilter): Promise<Page<AdminCustomer>>; get(id: string): Promise<(AdminCustomer & { recentOrders: Order[]; supportCases: SupportCase[]; reviews: Review[]; securityEvents: SecurityEvent[] }) | null>; setStatus(id: string, status: CustomerStatus, actor: string, reason: string): Promise<AdminCustomer>; requireReverification(id: string, actor: string): Promise<AdminCustomer> }
 export interface AdminOrderRepository { list(f: AdminOrderFilter): Promise<Page<AdminOrder> & { counts: Record<AdminOrderFilter['tab'], number> }>; get(orderNumber: string): Promise<(AdminOrder & { payment: AdminPayment | null; refunds: AdminRefund[]; supportCases: SupportCase[] }) | null>; addNote(orderNumber: string, actor: string, text: string): Promise<AdminOrder>; exceptions(): Promise<OrderException[]> }

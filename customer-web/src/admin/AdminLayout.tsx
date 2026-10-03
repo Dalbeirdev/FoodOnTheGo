@@ -69,9 +69,11 @@ function MarketSelector() {
     </div>
   )
 }
+/** Says where the data of THE CURRENT SECTION comes from: the backend, or development data kept in this browser. */
 function EnvironmentBadge() {
-  const a = useAdmin()
-  return <span className={`adm-env adm-env--${a.environment.toLowerCase()}`} data-testid="env-badge" title={t('adm.env.title', undefined, a.locale)}><span className="adm-env__dot" aria-hidden="true" />{t(`adm.env.${a.environment}`, undefined, a.locale)}{a.mockData && <span className="adm-env__mock"> · {t('adm.env.mock', undefined, a.locale)}</span>}</span>
+  const a = useAdmin(); const loc = useLocation()
+  const backend = a.backendSections.includes(loc.pathname.slice(BASE.length + 1).split('/')[0])
+  return <span className={`adm-env adm-env--${a.environment.toLowerCase()}`} data-testid="env-badge" data-source={backend ? 'backend' : 'mock'} title={t('adm.env.title', undefined, a.locale)}><span className="adm-env__dot" aria-hidden="true" />{t(`adm.env.${a.environment}`, undefined, a.locale)}{backend ? <span className="adm-env__mock"> · {t('adm.env.backend', undefined, a.locale)}</span> : a.mockData && <span className="adm-env__mock"> · {t('adm.env.mock', undefined, a.locale)}</span>}</span>
 }
 function AlertsMenu() {
   const a = useAdmin(); const [open, setOpen] = useState(false); const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false)); const nav = useNavigate()

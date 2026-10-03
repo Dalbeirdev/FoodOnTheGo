@@ -7,6 +7,7 @@ use App\Enums\CityStatus;
 use App\Enums\CoverageStatus;
 use App\Enums\MarketStatus;
 use App\Enums\RegionStatus;
+use App\Events\MarketGeographyChanged;
 use App\Exceptions\ApiException;
 use App\Models\City;
 use App\Models\Market;
@@ -36,7 +37,8 @@ use Illuminate\Validation\ValidationException;
  *  - new records always start PLANNED — nothing is created live;
  *  - geometry is validated before it is stored and must lie inside the market's bounds;
  *  - one audit event per change, with the actor, the reason and the before / after values;
- *  - the public market cache is invalidated.
+ *  - the public market cache is invalidated;
+ *  - MarketGeographyChanged is raised, so restaurant locations are re-attached to their service areas.
  *
  * Authorization (permission + market scope) is the controller's job and happens before any of this.
  */
@@ -266,6 +268,7 @@ final class GeographyAdminService
             $fresh = $record->newQuery()->where('public_id', $record->getAttribute('public_id'))->firstOrFail();
             $this->audit->record($action, $fresh, $actor, ['name' => ['from' => null, 'to' => $fresh->getAttribute('name')], 'status' => ['from' => null, 'to' => 'PLANNED']], null, (int) $market->getKey());
             $this->markets->flush();
+            MarketGeographyChanged::dispatch($market, $fresh);
 
             return $fresh;
         });
@@ -339,6 +342,7 @@ final class GeographyAdminService
             $fresh = $locked->newQuery()->whereKey($locked->getKey())->firstOrFail();
             $this->audit->record($action, $fresh instanceof MarketConfiguration ? $market : $fresh, $actor, $changes, $reason, (int) $market->getKey());
             $this->markets->flush();
+            MarketGeographyChanged::dispatch($market, $fresh);
 
             return $fresh;
         });

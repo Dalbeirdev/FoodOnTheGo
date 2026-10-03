@@ -3091,6 +3091,2218 @@
           }
         }
       }
+    },
+    "/restaurants": {
+      "get": {
+        "summary": "Restaurants a customer may see in the market (approved, inside public coverage). Closed or paused restaurants are included and say so in availability.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Country"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text contained in the name, the branch label or a cuisine",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "With lng: adds distance_meters (straight line) and sorts by it",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "description": "See lat",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "radius_meters",
+            "in": "query",
+            "description": "Only restaurants within this straight-line distance of lat,lng",
+            "schema": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 200000
+            }
+          },
+          {
+            "name": "filter[city]",
+            "in": "query",
+            "description": "City slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[region]",
+            "in": "query",
+            "description": "Region code",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[service_area]",
+            "in": "query",
+            "description": "Service area slug (decided by geometry)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[cuisine]",
+            "in": "query",
+            "description": "Cuisine codes, comma separated: any of them",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[feature]",
+            "in": "query",
+            "description": "Feature codes, comma separated: all of them",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[open_now]",
+            "in": "query",
+            "description": "true = only restaurants that are open now",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[price_level]",
+            "in": "query",
+            "description": "1 to 4",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "name or distance (needs lat,lng); prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PublicRestaurantPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicRestaurantPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurants/{restaurantSlug}": {
+      "get": {
+        "summary": "One restaurant by slug. 404 restaurant_not_found for a slug that does not exist AND for a restaurant customers may not see (unapproved, suspended, out of coverage).",
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "With lng: adds distance_meters",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "description": "See lat",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PublicRestaurant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicRestaurant"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/cuisines": {
+      "get": {
+        "summary": "Active cuisines with the number of restaurants a customer can currently see",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CuisineList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CuisineList"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/auth/restaurant/invitation/accept": {
+      "post": {
+        "summary": "An invited staff member accepts with the single-use link. A new account chooses its password; an existing account needs none. A wrong, used, expired or withdrawn link gives 422 invitation_invalid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantInvitationAccept"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantInvitationAccepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantInvitationAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/context": {
+      "get": {
+        "summary": "Organizations and locations of the signed-in restaurant user, with a deterministic default location",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantContext",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantContext"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/taxonomy": {
+      "get": {
+        "summary": "Active cuisines and features to build a profile from, and how many may be chosen",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantTaxonomy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantTaxonomy"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/roles": {
+      "get": {
+        "summary": "Restaurant roles and the permissions of each",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantRoleList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantRoleList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}": {
+      "get": {
+        "summary": "One location. 404 when it is not one of the caller's locations — the same answer as for an id that does not exist (restaurant.profile.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/profile": {
+      "patch": {
+        "summary": "Update the profile the restaurant manages (restaurant.profile.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantProfileUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/availability": {
+      "patch": {
+        "summary": "Accept or pause FoodOnTheGo orders (reason, end time), or mark the outlet temporarily closed (restaurant.settings.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantAvailabilityUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/images/{image}": {
+      "patch": {
+        "summary": "Alternative text and order of an image of this location (restaurant.profile.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "image",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantImageUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Archive an image of this location — kept for history, no longer shown (restaurant.profile.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "image",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantLocation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantLocation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/hours": {
+      "get": {
+        "summary": "Weekly hours, upcoming special dates and what they mean right now (restaurant.profile.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantHours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantHours"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Replace the whole weekly schedule atomically (restaurant.hours.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantHoursReplace"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantHours",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantHours"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/special-hours": {
+      "get": {
+        "summary": "Special dates from a week ago onwards (restaurant.profile.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SpecialHourList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpecialHourList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a special date: a closure, or other opening periods (restaurant.hours.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpecialHourCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "SpecialHour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpecialHour"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/special-hours/{specialHour}": {
+      "patch": {
+        "summary": "Change a special date of this location (restaurant.hours.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "specialHour",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpecialHourUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SpecialHour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpecialHour"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a special date: the regular hours apply again (restaurant.hours.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "specialHour",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/pickup-settings": {
+      "get": {
+        "summary": "Pickup configuration, what the market allows and the platform limits (restaurant.profile.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupSettings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupSettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update the pickup configuration (restaurant.pickup_settings.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PickupSettingsUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PickupSettings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupSettings"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/organizations/{organization}/staff": {
+      "get": {
+        "summary": "Staff of the organization. Someone who may view staff at some locations only sees the people who work there (restaurant.staff.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "description": "INVITED, ACTIVE, SUSPENDED or REVOKED; revoked members are hidden by default",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "created_at or status; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantMemberPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantMemberPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Invite a staff member: a single-use, expiring link is sent; no access exists until it is accepted (restaurant.staff.manage for the whole organization)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantStaffInvite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "RestaurantMember",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantMember"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/organizations/{organization}/staff/{membership}": {
+      "patch": {
+        "summary": "Role, location access and status of a member. Not your own membership; not a role above your own permissions; the last owner stays (restaurant.staff.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "membership",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantStaffUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantMember",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantMember"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke the member's access to this organization; takes effect on their next request (restaurant.staff.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "membership",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantMember",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantMember"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/restaurant/organizations/{organization}/staff/{membership}/invitation": {
+      "post": {
+        "summary": "Send the invitation again; earlier links stop working (restaurant.staff.manage)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "membership",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurants": {
+      "get": {
+        "summary": "Restaurant locations of the markets the administrator may view, with the number per status (admin.restaurants.view)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text contained in the name, branch label, slug or organization name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "description": "A RestaurantStatus",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[stage]",
+            "in": "query",
+            "description": "PENDING (submitted + under review), APPROVED, REJECTED, SUSPENDED, INACTIVE (drafts and deactivated) or DRAFT",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[market]",
+            "in": "query",
+            "description": "Market id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[city]",
+            "in": "query",
+            "description": "City id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[organization]",
+            "in": "query",
+            "description": "Organization id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Comma list of name, status, created_at, updated_at, submitted_at; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminRestaurantPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurants/{location}": {
+      "get": {
+        "summary": "One location in full: profile, placement, availability, staff, internal notes, readiness and history (admin.restaurants.view)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminRestaurant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurant"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Placement and identity of a location; new coordinates are validated and the geography resolved again (admin.restaurants.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRestaurantUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRestaurant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurant"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurants/{location}/status": {
+      "post": {
+        "summary": "Move a location along its lifecycle: review, approve, reject, suspend, reactivate, deactivate. The permission depends on the move (admin.restaurants.approve / .suspend / .manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRestaurant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurant"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations": {
+      "get": {
+        "summary": "Restaurant organizations (admin.restaurants.view)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text contained in the display name, legal name or slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "description": "A RestaurantStatus",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[market]",
+            "in": "query",
+            "description": "Primary market id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Comma list of display_name, status, created_at, updated_at; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminRestaurantOrganizationPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantOrganizationPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an organization as DRAFT (admin.restaurants.manage for its market)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRestaurantOrganizationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminRestaurantOrganizationDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantOrganizationDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations/{organization}": {
+      "get": {
+        "summary": "One organization with its locations, staff and internal notes (admin.restaurants.view)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminRestaurantOrganizationDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantOrganizationDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Names and market scope of an organization (admin.restaurants.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRestaurantOrganizationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRestaurantOrganizationDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantOrganizationDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations/{organization}/status": {
+      "post": {
+        "summary": "Lifecycle of the organization. Suspending it takes every location away from customers without rewriting their own statuses (admin.restaurants.approve / .suspend / .manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestaurantStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRestaurantOrganizationDetail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantOrganizationDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations/{organization}/locations": {
+      "post": {
+        "summary": "Create a location as DRAFT; geography is resolved from the coordinates (admin.restaurants.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRestaurantLocationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminRestaurantLocationCreated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantLocationCreated"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations/{organization}/notes": {
+      "post": {
+        "summary": "Add an internal note about the organization or one of its locations (admin.restaurants.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRestaurantNoteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminRestaurantNote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRestaurantNote"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations/{organization}/staff": {
+      "post": {
+        "summary": "Invite a member for the whole organization — how the first owner gets in (admin.restaurants.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRestaurantStaffInvite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "RestaurantMember",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantMember"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/admin/restaurant-organizations/{organization}/staff/{membership}": {
+      "delete": {
+        "summary": "Revoke a membership; reason required; the last owner cannot be removed (admin.restaurants.manage)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organization",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "membership",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonOnly"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantMember",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantMember"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6526,6 +8738,3799 @@
             "maxLength": 500
           }
         }
+      },
+      "RestaurantStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "SUBMITTED",
+          "UNDER_REVIEW",
+          "APPROVED",
+          "REJECTED",
+          "SUSPENDED",
+          "INACTIVE"
+        ],
+        "description": "Administrative approval of an organization or a location. Never says whether the restaurant is open or accepting orders."
+      },
+      "OperationalStatus": {
+        "type": "string",
+        "enum": [
+          "OPERATING",
+          "TEMPORARILY_CLOSED"
+        ],
+        "description": "The outlet's own closed-until-further-notice switch"
+      },
+      "OpenState": {
+        "type": "string",
+        "enum": [
+          "OPEN",
+          "CLOSED",
+          "TEMPORARILY_CLOSED"
+        ]
+      },
+      "MembershipStatus": {
+        "type": "string",
+        "enum": [
+          "INVITED",
+          "ACTIVE",
+          "SUSPENDED",
+          "REVOKED"
+        ],
+        "description": "Only an ACTIVE membership authorises anything"
+      },
+      "PickupMethod": {
+        "type": "string",
+        "enum": [
+          "COUNTER",
+          "CURBSIDE",
+          "DRIVE_THROUGH"
+        ]
+      },
+      "RejectionCategory": {
+        "type": "string",
+        "enum": [
+          "INCOMPLETE_DOCUMENTS",
+          "INVALID_BUSINESS",
+          "DUPLICATE",
+          "POLICY",
+          "OTHER"
+        ]
+      },
+      "OpeningPeriod": {
+        "type": "object",
+        "required": [
+          "opens_at",
+          "closes_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "opens_at": {
+            "type": "string",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Wall-clock HH:MM in the time zone of the location"
+          },
+          "closes_at": {
+            "type": "string",
+            "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Wall-clock HH:MM in the time zone of the location"
+          }
+        },
+        "description": "closes_at at or before opens_at runs past midnight (equal = 24 hours). The period belongs to the day it opens on."
+      },
+      "WeeklyHours": {
+        "type": "array",
+        "description": "Always seven entries, 0 = Sunday. A closed day has no periods.",
+        "items": {
+          "type": "object",
+          "required": [
+            "day_of_week",
+            "periods"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "day_of_week": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "periods": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/OpeningPeriod"
+              }
+            }
+          }
+        }
+      },
+      "RestaurantCuisineRef": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "RestaurantFeatureRef": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "category"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "FACILITY",
+              "DIETARY",
+              "SERVICE"
+            ]
+          }
+        }
+      },
+      "RestaurantAddress": {
+        "type": "object",
+        "required": [
+          "formatted",
+          "line1",
+          "postal_code",
+          "city",
+          "city_slug",
+          "region",
+          "region_code",
+          "country_code"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "formatted": {
+            "type": "string"
+          },
+          "line1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city": {
+            "type": "string"
+          },
+          "city_slug": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "region_code": {
+            "type": "string"
+          },
+          "country_code": {
+            "type": "string"
+          }
+        }
+      },
+      "RestaurantCoordinates": {
+        "type": "object",
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        },
+        "description": "WGS84"
+      },
+      "RestaurantAvailability": {
+        "type": "object",
+        "required": [
+          "open_now",
+          "open_state",
+          "accepting_orders",
+          "orderable",
+          "reason",
+          "closes_at",
+          "opens_next_at",
+          "checked_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "open_now": {
+            "type": "boolean"
+          },
+          "open_state": {
+            "$ref": "#/components/schemas/OpenState"
+          },
+          "accepting_orders": {
+            "type": "boolean",
+            "description": "False while paused; a timed pause ends by itself"
+          },
+          "orderable": {
+            "type": "boolean",
+            "description": "A customer may place an order right now. reason is null exactly when this is true."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "AREA_UNAVAILABLE",
+              "TEMPORARILY_CLOSED",
+              "PICKUP_UNAVAILABLE",
+              "NOT_ACCEPTING_ORDERS",
+              "CLOSED_NOW",
+              null
+            ],
+            "description": "Why it cannot be ordered from. AREA_UNAVAILABLE: the region, city or service area is not being served right now."
+          },
+          "closes_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601 UTC; null when closed or open around the clock"
+          },
+          "opens_next_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601 UTC; next opening within two weeks, when closed"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "The instant this was calculated for (server clock)"
+          }
+        },
+        "description": "Calculated by the backend for this request in the time zone of the restaurant. Clients never work it out themselves."
+      },
+      "RestaurantAvailabilityDetail": {
+        "type": "object",
+        "required": [
+          "visible_to_customers",
+          "open_now",
+          "open_state",
+          "accepting_orders",
+          "orderable",
+          "reason",
+          "closes_at",
+          "opens_next_at",
+          "checked_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "visible_to_customers": {
+            "type": "boolean"
+          },
+          "open_now": {
+            "type": "boolean"
+          },
+          "open_state": {
+            "$ref": "#/components/schemas/OpenState"
+          },
+          "accepting_orders": {
+            "type": "boolean",
+            "description": "False while paused; a timed pause ends by itself"
+          },
+          "orderable": {
+            "type": "boolean",
+            "description": "A customer may place an order right now. reason is null exactly when this is true."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MARKET_UNAVAILABLE",
+              "RESTAURANT_NOT_APPROVED",
+              "RESTAURANT_SUSPENDED",
+              "LOCATION_NOT_APPROVED",
+              "LOCATION_SUSPENDED",
+              "OUTSIDE_SERVICE_AREA",
+              "REGION_UNAVAILABLE",
+              "CITY_UNAVAILABLE",
+              "SERVICE_AREA_UNAVAILABLE",
+              "TEMPORARILY_CLOSED",
+              "PICKUP_UNAVAILABLE",
+              "NOT_ACCEPTING_ORDERS",
+              "CLOSED_NOW",
+              null
+            ],
+            "description": "The exact first failing condition"
+          },
+          "closes_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601 UTC; null when closed or open around the clock"
+          },
+          "opens_next_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601 UTC; next opening within two weeks, when closed"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "The instant this was calculated for (server clock)"
+          }
+        },
+        "description": "As restaurant staff and administrators see it: also whether customers can see the restaurant, and the exact reason."
+      },
+      "PublicRestaurant": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "branch_label",
+          "short_description",
+          "description",
+          "cuisines",
+          "features",
+          "price_level",
+          "phone",
+          "email",
+          "website",
+          "address",
+          "location",
+          "timezone",
+          "currency",
+          "images",
+          "hours",
+          "pickup",
+          "availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantCuisineRef"
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantFeatureRef"
+            }
+          },
+          "price_level": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 4
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "E.164"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/RestaurantAddress"
+          },
+          "location": {
+            "$ref": "#/components/schemas/RestaurantCoordinates"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA id"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217"
+          },
+          "images": {
+            "type": "object",
+            "required": [
+              "logo",
+              "cover",
+              "gallery"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "logo": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "url",
+                  "alt_text"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "cover": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "url",
+                  "alt_text"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "gallery": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "alt_text"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "alt_text": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "description": "url is a site-relative path or storage key; no file is stored by this API yet"
+          },
+          "hours": {
+            "type": "object",
+            "required": [
+              "timezone",
+              "weekly",
+              "special"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "timezone": {
+                "type": "string"
+              },
+              "weekly": {
+                "$ref": "#/components/schemas/WeeklyHours"
+              },
+              "special": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "date",
+                    "is_closed",
+                    "periods",
+                    "note"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                      "description": "Local calendar date of the location"
+                    },
+                    "is_closed": {
+                      "type": "boolean"
+                    },
+                    "periods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OpeningPeriod"
+                      }
+                    },
+                    "note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "description": "special: exceptions of the coming days; they replace the periods that would open on that date"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/RestaurantPickupOffer"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailability"
+          },
+          "distance_meters": {
+            "type": "integer",
+            "description": "Straight line from ?lat=&lng= — present only when coordinates were sent. Not a route distance or a detour."
+          }
+        },
+        "description": "A restaurant location as customers see it. Only approved restaurants inside public coverage are ever returned. All text is plain text."
+      },
+      "PublicRestaurantPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicRestaurant"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "CuisineList": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "name",
+                "slug",
+                "restaurants"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "restaurants": {
+                  "type": "integer",
+                  "description": "Restaurants a customer can currently see with this cuisine"
+                }
+              }
+            }
+          }
+        }
+      },
+      "RestaurantLocation": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "branch_label",
+          "short_description",
+          "description",
+          "pickup_instructions",
+          "cuisines",
+          "features",
+          "price_level",
+          "phone",
+          "email",
+          "website",
+          "address",
+          "location",
+          "timezone",
+          "currency",
+          "images",
+          "status",
+          "status_note",
+          "rejection_category",
+          "operational_status",
+          "accepting_orders",
+          "pause_reason",
+          "paused_at",
+          "paused_until",
+          "hours",
+          "version",
+          "updated_at",
+          "organization",
+          "market",
+          "pickup",
+          "availability",
+          "permissions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pickup_instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantCuisineRef"
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantFeatureRef"
+            }
+          },
+          "price_level": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/RestaurantAddress"
+          },
+          "location": {
+            "$ref": "#/components/schemas/RestaurantCoordinates"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "url",
+                "alt_text",
+                "display_order",
+                "width",
+                "height"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "LOGO",
+                    "COVER",
+                    "GALLERY"
+                  ]
+                },
+                "url": {
+                  "type": "string"
+                },
+                "alt_text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display_order": {
+                  "type": "integer"
+                },
+                "width": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "height": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "status_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Explanation of a rejection or suspension that the restaurant may read"
+          },
+          "rejection_category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operational_status": {
+            "$ref": "#/components/schemas/OperationalStatus"
+          },
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "pause_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "paused_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "paused_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "hours": {
+            "type": "object",
+            "required": [
+              "version",
+              "timezone",
+              "weekly",
+              "special"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "version": {
+                "type": "integer",
+                "description": "Version of the weekly schedule (separate from the profile version)"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "weekly": {
+                "$ref": "#/components/schemas/WeeklyHours"
+              },
+              "special": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "date",
+                    "is_closed",
+                    "periods",
+                    "public_note",
+                    "internal_note"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "date": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                      "description": "Local calendar date of the location"
+                    },
+                    "is_closed": {
+                      "type": "boolean"
+                    },
+                    "periods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OpeningPeriod"
+                      }
+                    },
+                    "public_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "internal_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "organization": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "status",
+              "status_note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/RestaurantStatus"
+              },
+              "status_note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "market": {
+            "type": "string",
+            "description": "Country code of the market"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/RestaurantPickupOffer"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailabilityDetail"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What the signed-in user may do at this location — for navigation only; the backend decides every action"
+          }
+        },
+        "description": "A location as its own staff see it. Never contains administrator notes or internal reasons."
+      },
+      "RestaurantContext": {
+        "type": "object",
+        "required": [
+          "organizations",
+          "locations",
+          "default_location_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "organizations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "legal_name",
+                "status",
+                "status_note",
+                "membership",
+                "permissions"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "legal_name": {
+                  "type": "string"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/RestaurantStatus"
+                },
+                "status_note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "membership": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "role",
+                    "all_locations"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "role": {
+                      "type": "object",
+                      "required": [
+                        "code",
+                        "name"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "all_locations": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Held for the whole organization (empty for a membership limited to some locations)"
+                }
+              }
+            }
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantLocation"
+            }
+          },
+          "default_location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The first authorized location: approved ones first, then the oldest"
+          }
+        },
+        "description": "Organizations and locations of the signed-in restaurant user, from their ACTIVE memberships"
+      },
+      "RestaurantTaxonomy": {
+        "type": "object",
+        "required": [
+          "cuisines",
+          "features",
+          "limits"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantCuisineRef"
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantFeatureRef"
+            }
+          },
+          "limits": {
+            "type": "object",
+            "required": [
+              "cuisines",
+              "features",
+              "description",
+              "periods_per_day",
+              "pause_max_hours"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "cuisines": {
+                "type": "integer"
+              },
+              "features": {
+                "type": "integer"
+              },
+              "description": {
+                "type": "integer"
+              },
+              "periods_per_day": {
+                "type": "integer"
+              },
+              "pause_max_hours": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "RestaurantProfileUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          },
+          "pickup_instructions": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Any common notation; stored as E.164 for the market of the location"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "http or https"
+          },
+          "price_level": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 4
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Codes of active cuisines, in display order"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Codes of active features"
+          }
+        },
+        "description": "Plain text only: markup is refused with 422. Status, slug, organization, market, coordinates, address, time zone and currency cannot be sent here (422)."
+      },
+      "RestaurantAvailabilityUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "pause_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "paused_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601; must be in the future; orders resume by themselves when it passes"
+          },
+          "operational_status": {
+            "$ref": "#/components/schemas/OperationalStatus"
+          }
+        },
+        "description": "At least one of accepting_orders, operational_status. A switch: the last request wins. Pausing never changes orders that were already accepted."
+      },
+      "RestaurantHours": {
+        "type": "object",
+        "required": [
+          "location_id",
+          "version",
+          "timezone",
+          "weekly",
+          "special",
+          "availability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "location_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "weekly": {
+            "$ref": "#/components/schemas/WeeklyHours"
+          },
+          "special": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "date",
+                "is_closed",
+                "periods",
+                "public_note",
+                "internal_note"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "date": {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                  "description": "Local calendar date of the location"
+                },
+                "is_closed": {
+                  "type": "boolean"
+                },
+                "periods": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OpeningPeriod"
+                  }
+                },
+                "public_note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "internal_note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailabilityDetail"
+          }
+        }
+      },
+      "RestaurantHoursReplace": {
+        "type": "object",
+        "required": [
+          "version",
+          "periods"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The hours version the caller edited"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "day_of_week",
+                "opens_at",
+                "closes_at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "day_of_week": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 6
+                },
+                "opens_at": {
+                  "type": "string",
+                  "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                  "description": "Wall-clock HH:MM in the time zone of the location"
+                },
+                "closes_at": {
+                  "type": "string",
+                  "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                  "description": "Wall-clock HH:MM in the time zone of the location"
+                }
+              }
+            }
+          }
+        },
+        "description": "The whole week; replaces every stored period in one transaction. An empty list = closed all week. Periods must not overlap, also across midnight."
+      },
+      "SpecialHour": {
+        "type": "object",
+        "required": [
+          "id",
+          "date",
+          "is_closed",
+          "periods",
+          "public_note",
+          "internal_note",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "Local calendar date of the location"
+          },
+          "is_closed": {
+            "type": "boolean"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPeriod"
+            }
+          },
+          "public_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "internal_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "SpecialHourList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SpecialHour"
+        }
+      },
+      "SpecialHourCreate": {
+        "type": "object",
+        "required": [
+          "date",
+          "is_closed"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "Local calendar date of the location"
+          },
+          "is_closed": {
+            "type": "boolean"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPeriod"
+            }
+          },
+          "public_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "internal_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          }
+        },
+        "description": "One exception per date. A closed date has no periods; an open one needs at least one."
+      },
+      "SpecialHourUpdate": {
+        "type": "object",
+        "required": [
+          "is_closed"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "Local calendar date of the location"
+          },
+          "is_closed": {
+            "type": "boolean"
+          },
+          "periods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpeningPeriod"
+            }
+          },
+          "public_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "internal_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          }
+        }
+      },
+      "PickupSettings": {
+        "type": "object",
+        "required": [
+          "location_id",
+          "pickup_enabled",
+          "asap_enabled",
+          "scheduled_enabled",
+          "default_prep_minutes",
+          "minimum_lead_minutes",
+          "buffer_minutes",
+          "schedule_horizon_minutes",
+          "slot_interval_minutes",
+          "order_cutoff_minutes",
+          "capacity_per_slot",
+          "methods",
+          "market",
+          "limits",
+          "version",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "location_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "pickup_enabled": {
+            "type": "boolean"
+          },
+          "asap_enabled": {
+            "type": "boolean"
+          },
+          "scheduled_enabled": {
+            "type": "boolean"
+          },
+          "default_prep_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "minimum_lead_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "buffer_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "schedule_horizon_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "slot_interval_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "order_cutoff_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "capacity_per_slot": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Reserved for pickup-slot capacity; null = not limited"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "method",
+                "enabled",
+                "instructions",
+                "requires_vehicle_info",
+                "available_in_market"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "method": {
+                  "$ref": "#/components/schemas/PickupMethod"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "instructions": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "requires_vehicle_info": {
+                  "type": "boolean"
+                },
+                "available_in_market": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "market": {
+            "type": "object",
+            "required": [
+              "asap_allowed",
+              "scheduled_allowed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "asap_allowed": {
+                "type": "boolean"
+              },
+              "scheduled_allowed": {
+                "type": "boolean"
+              }
+            }
+          },
+          "limits": {
+            "type": "object",
+            "description": "Platform bounds per setting: [min, max], or the list of allowed slot intervals"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "Settings only. Pickup slots, slot capacity checks and the dynamic preparation estimate are a later module."
+      },
+      "PickupSettingsUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "pickup_enabled": {
+            "type": "boolean"
+          },
+          "asap_enabled": {
+            "type": "boolean"
+          },
+          "scheduled_enabled": {
+            "type": "boolean"
+          },
+          "default_prep_minutes": {
+            "type": "integer"
+          },
+          "minimum_lead_minutes": {
+            "type": "integer"
+          },
+          "buffer_minutes": {
+            "type": "integer"
+          },
+          "schedule_horizon_minutes": {
+            "type": "integer"
+          },
+          "slot_interval_minutes": {
+            "type": "integer"
+          },
+          "order_cutoff_minutes": {
+            "type": "integer"
+          },
+          "capacity_per_slot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "method",
+                "enabled"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "method": {
+                  "$ref": "#/components/schemas/PickupMethod"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "instructions": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 300
+                },
+                "requires_vehicle_info": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "description": "A mode or method the market has not enabled is refused with 409 (pickup_mode_not_available / pickup_method_not_available)."
+      },
+      "RestaurantImageUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "alt_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "display_order": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        }
+      },
+      "RestaurantMember": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "status",
+          "all_locations",
+          "locations",
+          "is_self",
+          "invited_at",
+          "accepted_at",
+          "revoked_at",
+          "last_login_at",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "object",
+            "required": [
+              "code",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/MembershipStatus"
+          },
+          "all_locations": {
+            "type": "boolean"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "branch_label"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "branch_label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "is_self": {
+            "type": "boolean"
+          },
+          "invited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "accepted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "revoked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "last_login_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "description": "A staff membership. Never a password, MFA detail or invitation token."
+      },
+      "RestaurantMemberPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantMember"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "RestaurantRoleList": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "name",
+                "permissions"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RestaurantStaffInvite": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "role",
+          "all_locations"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "description": "A restaurant role code"
+          },
+          "all_locations": {
+            "type": "boolean"
+          },
+          "location_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            },
+            "description": "Locations of this organization; required when all_locations is false"
+          }
+        }
+      },
+      "RestaurantStaffUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "role": {
+            "type": "string"
+          },
+          "all_locations": {
+            "type": "boolean"
+          },
+          "location_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED"
+            ]
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          }
+        }
+      },
+      "OptionalReason": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          }
+        }
+      },
+      "RestaurantInvitationAccept": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64
+          },
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required when the invited person has no account yet"
+          },
+          "password_confirmation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "RestaurantInvitationAccepted": {
+        "type": "object",
+        "required": [
+          "message",
+          "restaurant"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "restaurant": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminRestaurantSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "branch_label",
+          "status",
+          "operational_status",
+          "accepting_orders",
+          "organization",
+          "market",
+          "city",
+          "region_code",
+          "in_service_area",
+          "cuisines",
+          "allowed_transitions",
+          "submitted_at",
+          "approved_at",
+          "created_at",
+          "updated_at",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "operational_status": {
+            "$ref": "#/components/schemas/OperationalStatus"
+          },
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "organization": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "status",
+              "locations"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/RestaurantStatus"
+              },
+              "locations": {
+                "type": "integer",
+                "description": "Locations of the organization"
+              }
+            }
+          },
+          "market": {
+            "type": "object",
+            "required": [
+              "id",
+              "country_code"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "country_code": {
+                "type": "string"
+              }
+            }
+          },
+          "city": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "region_code": {
+            "type": "string"
+          },
+          "in_service_area": {
+            "type": "boolean"
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_transitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantStatus"
+            },
+            "description": "Status changes THIS administrator may make from here"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "AdminRestaurantPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "counts"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRestaurantSummary"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          },
+          "counts": {
+            "type": "object",
+            "description": "Locations per status in the scope of the caller",
+            "required": [
+              "DRAFT",
+              "SUBMITTED",
+              "UNDER_REVIEW",
+              "APPROVED",
+              "REJECTED",
+              "SUSPENDED",
+              "INACTIVE"
+            ]
+          }
+        }
+      },
+      "AdminRestaurantNote": {
+        "type": "object",
+        "required": [
+          "id",
+          "note",
+          "author",
+          "about",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "note": {
+            "type": "string"
+          },
+          "author": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "about": {
+            "type": "string",
+            "enum": [
+              "organization",
+              "location"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminRestaurant": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "branch_label",
+          "short_description",
+          "description",
+          "pickup_instructions",
+          "cuisines",
+          "features",
+          "price_level",
+          "phone",
+          "email",
+          "website",
+          "address",
+          "location",
+          "timezone",
+          "currency",
+          "images",
+          "status",
+          "status_note",
+          "rejection_category",
+          "operational_status",
+          "accepting_orders",
+          "pause_reason",
+          "paused_at",
+          "paused_until",
+          "hours",
+          "version",
+          "updated_at",
+          "organization",
+          "market",
+          "city",
+          "region",
+          "service_area",
+          "service_area_resolved_at",
+          "pickup",
+          "availability",
+          "allowed_transitions",
+          "can_manage",
+          "submitted_at",
+          "approved_at",
+          "suspended_at",
+          "created_at",
+          "organization_locations",
+          "staff",
+          "notes",
+          "readiness",
+          "history"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pickup_instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cuisines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantCuisineRef"
+            }
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantFeatureRef"
+            }
+          },
+          "price_level": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/RestaurantAddress"
+          },
+          "location": {
+            "$ref": "#/components/schemas/RestaurantCoordinates"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "url",
+                "alt_text",
+                "display_order",
+                "width",
+                "height"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "LOGO",
+                    "COVER",
+                    "GALLERY"
+                  ]
+                },
+                "url": {
+                  "type": "string"
+                },
+                "alt_text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "display_order": {
+                  "type": "integer"
+                },
+                "width": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "height": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "status_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Explanation of a rejection or suspension that the restaurant may read"
+          },
+          "rejection_category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operational_status": {
+            "$ref": "#/components/schemas/OperationalStatus"
+          },
+          "accepting_orders": {
+            "type": "boolean"
+          },
+          "pause_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "paused_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "paused_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "hours": {
+            "type": "object",
+            "required": [
+              "version",
+              "timezone",
+              "weekly",
+              "special"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "version": {
+                "type": "integer",
+                "description": "Version of the weekly schedule (separate from the profile version)"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "weekly": {
+                "$ref": "#/components/schemas/WeeklyHours"
+              },
+              "special": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "date",
+                    "is_closed",
+                    "periods",
+                    "public_note",
+                    "internal_note"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "date": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                      "description": "Local calendar date of the location"
+                    },
+                    "is_closed": {
+                      "type": "boolean"
+                    },
+                    "periods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OpeningPeriod"
+                      }
+                    },
+                    "public_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "internal_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "organization": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "legal_name",
+              "slug",
+              "status",
+              "status_note",
+              "market_scope",
+              "allowed_transitions",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "legal_name": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/RestaurantStatus"
+              },
+              "status_note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "market_scope": {
+                "type": "string",
+                "enum": [
+                  "SINGLE_MARKET",
+                  "MULTI_MARKET"
+                ]
+              },
+              "allowed_transitions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RestaurantStatus"
+                },
+                "description": "Status changes THIS administrator may make from here"
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          },
+          "market": {
+            "type": "object",
+            "required": [
+              "id",
+              "country_code",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "country_code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "city": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/CityStatus"
+              }
+            }
+          },
+          "region": {
+            "type": "object",
+            "required": [
+              "code",
+              "name",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/RegionStatus"
+              }
+            }
+          },
+          "service_area": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "$ref": "#/components/schemas/CoverageStatus"
+              }
+            },
+            "description": "The stored association (covering area with the highest priority). Availability is decided from the geometry."
+          },
+          "service_area_resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/PickupSettings"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailabilityDetail"
+          },
+          "allowed_transitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantStatus"
+            },
+            "description": "Status changes THIS administrator may make from here"
+          },
+          "can_manage": {
+            "type": "boolean"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "suspended_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "organization_locations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "branch_label",
+                "city",
+                "status",
+                "operational_status",
+                "accepting_orders",
+                "timezone",
+                "currency",
+                "version"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "branch_label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "city": {
+                  "type": "string"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/RestaurantStatus"
+                },
+                "operational_status": {
+                  "$ref": "#/components/schemas/OperationalStatus"
+                },
+                "accepting_orders": {
+                  "type": "boolean"
+                },
+                "timezone": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "staff": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantMember"
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRestaurantNote"
+            },
+            "description": "Internal — never part of a restaurant or customer response"
+          },
+          "readiness": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "check",
+                "ok"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "check": {
+                  "type": "string"
+                },
+                "ok": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "action",
+                "actor_type",
+                "actor_name",
+                "reason",
+                "changes",
+                "occurred_at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "actor_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "actor_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "changes": {
+                  "type": "object"
+                },
+                "occurred_at": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "description": "A location as administrators see it, with what only the platform decides or knows"
+      },
+      "AdminRestaurantOrganization": {
+        "type": "object",
+        "required": [
+          "id",
+          "legal_name",
+          "display_name",
+          "slug",
+          "status",
+          "status_note",
+          "rejection_category",
+          "market_scope",
+          "primary_market",
+          "locations_count",
+          "allowed_transitions",
+          "can_manage",
+          "submitted_at",
+          "approved_at",
+          "suspended_at",
+          "created_at",
+          "updated_at",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "status_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rejection_category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "market_scope": {
+            "type": "string",
+            "enum": [
+              "SINGLE_MARKET",
+              "MULTI_MARKET"
+            ]
+          },
+          "primary_market": {
+            "type": "object",
+            "required": [
+              "id",
+              "country_code",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "country_code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "locations_count": {
+            "type": "integer"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "branch_label",
+                "slug",
+                "status",
+                "operational_status",
+                "accepting_orders",
+                "city",
+                "version"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "branch_label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/RestaurantStatus"
+                },
+                "operational_status": {
+                  "$ref": "#/components/schemas/OperationalStatus"
+                },
+                "accepting_orders": {
+                  "type": "boolean"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "allowed_transitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantStatus"
+            },
+            "description": "Status changes THIS administrator may make from here"
+          },
+          "can_manage": {
+            "type": "boolean"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "suspended_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "AdminRestaurantOrganizationPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRestaurantOrganization"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "AdminRestaurantOrganizationDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "legal_name",
+          "display_name",
+          "slug",
+          "status",
+          "status_note",
+          "rejection_category",
+          "market_scope",
+          "primary_market",
+          "locations_count",
+          "locations",
+          "allowed_transitions",
+          "can_manage",
+          "submitted_at",
+          "approved_at",
+          "suspended_at",
+          "created_at",
+          "updated_at",
+          "version",
+          "staff",
+          "has_owner",
+          "notes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "status_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rejection_category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "market_scope": {
+            "type": "string",
+            "enum": [
+              "SINGLE_MARKET",
+              "MULTI_MARKET"
+            ]
+          },
+          "primary_market": {
+            "type": "object",
+            "required": [
+              "id",
+              "country_code",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "country_code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "locations_count": {
+            "type": "integer"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "branch_label",
+                "slug",
+                "status",
+                "operational_status",
+                "accepting_orders",
+                "city",
+                "version"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "branch_label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/RestaurantStatus"
+                },
+                "operational_status": {
+                  "$ref": "#/components/schemas/OperationalStatus"
+                },
+                "accepting_orders": {
+                  "type": "boolean"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "allowed_transitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantStatus"
+            },
+            "description": "Status changes THIS administrator may make from here"
+          },
+          "can_manage": {
+            "type": "boolean"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "suspended_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "staff": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantMember"
+            }
+          },
+          "has_owner": {
+            "type": "boolean",
+            "description": "An active member can manage the staff for all locations"
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRestaurantNote"
+            }
+          }
+        }
+      },
+      "RestaurantStatusChange": {
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "Internal reason (audit trail). Required for REJECTED, SUSPENDED and INACTIVE."
+          },
+          "public_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "Explanation the restaurant may read. Required for REJECTED."
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "RejectionCategory. Required for REJECTED."
+          }
+        },
+        "description": "Only the transitions of the lifecycle are accepted (409 invalid_status_transition otherwise)."
+      },
+      "AdminRestaurantOrganizationCreate": {
+        "type": "object",
+        "required": [
+          "market_id",
+          "legal_name",
+          "display_name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "market_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "legal_name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 200
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "market_scope": {
+            "type": "string",
+            "enum": [
+              "SINGLE_MARKET",
+              "MULTI_MARKET"
+            ]
+          }
+        }
+      },
+      "AdminRestaurantOrganizationUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "legal_name": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "market_scope": {
+            "type": "string",
+            "enum": [
+              "SINGLE_MARKET",
+              "MULTI_MARKET"
+            ]
+          }
+        }
+      },
+      "AdminRestaurantLocationCreate": {
+        "type": "object",
+        "required": [
+          "name",
+          "latitude",
+          "longitude",
+          "formatted_address"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "market_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Defaults to the organization's primary market"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "formatted_address": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          },
+          "address_line1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Optional; must agree with the coordinates"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA id; defaults to the city's"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217; must be one the market supports; defaults to the market's"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "public_email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "website": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Created as DRAFT. Region, city and service area are resolved from the coordinates by PostGIS; nothing geographic is taken from the request."
+      },
+      "AdminRestaurantLocationCreated": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "status",
+          "organization"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RestaurantStatus"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/AdminRestaurantOrganizationDetail"
+          }
+        }
+      },
+      "AdminRestaurantUpdate": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version the caller edited (optimistic concurrency); a stale value is refused with 409 stale_update"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "formatted_address": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          },
+          "address_line1": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "postal_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "city_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Optional; must agree with the coordinates"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA id; defaults to the city's"
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217; must be one the market supports; defaults to the market's"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "latitude and longitude are sent together; a move resolves the geography again."
+      },
+      "AdminRestaurantNoteCreate": {
+        "type": "object",
+        "required": [
+          "note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2000
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A location of this organization"
+          }
+        }
+      },
+      "AdminRestaurantStaffInvite": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "description": "A restaurant role code; default OWNER"
+          }
+        }
+      },
+      "RestaurantPickupOffer": {
+        "type": "object",
+        "required": [
+          "methods",
+          "asap",
+          "scheduled",
+          "default_prep_minutes",
+          "minimum_lead_minutes",
+          "instructions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "method",
+                "instructions",
+                "requires_vehicle_info"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "method": {
+                  "$ref": "#/components/schemas/PickupMethod"
+                },
+                "instructions": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "requires_vehicle_info": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "asap": {
+            "type": "boolean"
+          },
+          "scheduled": {
+            "type": "boolean"
+          },
+          "default_prep_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "minimum_lead_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "What a customer can actually use: the settings of the location limited by what its market allows"
       }
     }
   }

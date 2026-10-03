@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
+use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
 use App\Http\Controllers\Api\Admin\SecurityEventController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
 use App\Http\Controllers\Api\Auth\CustomerProfileController;
@@ -15,6 +17,11 @@ use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\MarketController;
+use App\Http\Controllers\Api\Restaurant\ContextController;
+use App\Http\Controllers\Api\Restaurant\HoursController;
+use App\Http\Controllers\Api\Restaurant\LocationController;
+use App\Http\Controllers\Api\Restaurant\StaffController;
+use App\Http\Controllers\Api\RestaurantController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +37,12 @@ Route::pattern('city', '[0-9a-fA-F-]{36}');
 Route::pattern('serviceArea', '[0-9a-fA-F-]{36}');
 Route::pattern('routeCorridor', '[0-9a-fA-F-]{36}');
 Route::pattern('adminUser', '[0-9a-fA-F-]{36}');
+Route::pattern('organization', '[0-9a-fA-F-]{36}');
+Route::pattern('location', '[0-9a-fA-F-]{36}');
+Route::pattern('membership', '[0-9a-fA-F-]{36}');
+Route::pattern('specialHour', '[0-9a-fA-F-]{36}');
+Route::pattern('image', '[0-9a-fA-F-]{36}');
+Route::pattern('restaurantSlug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -40,6 +53,13 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::get('/markets/current', [MarketController::class, 'current'])->name('markets.current');
     Route::get('/markets/current/coverage', [MarketController::class, 'coverage'])->name('markets.coverage');
     Route::post('/availability/location', [AvailabilityController::class, 'location'])->middleware('throttle:availability')->name('availability.location');
+
+    // Restaurants as customers see them: only approved, in-coverage locations; anything else is a 404.
+    Route::middleware('throttle:search')->group(function (): void {
+        Route::get('/restaurants', [RestaurantController::class, 'index'])->name('restaurants.index');
+        Route::get('/restaurants/{restaurantSlug}', [RestaurantController::class, 'show'])->name('restaurants.show');
+        Route::get('/cuisines', [RestaurantController::class, 'cuisines'])->name('cuisines.index');
+    });
 
     Route::prefix('auth')->name('auth.')->group(function (): void {
         // Customer: phone + one-time code. No password, no public way to become anything but a customer.
@@ -62,6 +82,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
 
         // An invited administrator chooses a password with the single-use link from the invitation.
         Route::post('/admin/invitation/accept', [AdminUserController::class, 'acceptInvitation'])->middleware('throttle:password-reset')->name('admin.invitation.accept');
+        // Invited restaurant staff accept with their single-use link (a new account also chooses its password).
+        Route::post('/restaurant/invitation/accept', [StaffController::class, 'acceptInvitation'])->middleware('throttle:password-reset')->name('restaurant.invitation.accept');
 
         // Whoever is signed in, of any principal type.
         Route::middleware('auth:customer,restaurant,admin')->group(function (): void {
@@ -89,6 +111,39 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         });
     });
 
+    /*
+    | Restaurant dashboard API. The organization or location in the URL is only a request: RestaurantAccess checks
+    | it against the caller's ACTIVE memberships (404 when it is not theirs) and the permission for that exact
+    | resource (403 when it is missing). Nothing here trusts an id a client sends in a body or a header.
+    */
+    Route::prefix('restaurant')->name('restaurant.')->middleware(['auth:restaurant', 'active'])->group(function (): void {
+        Route::get('/context', [ContextController::class, 'show'])->name('context');
+        Route::get('/taxonomy', [ContextController::class, 'taxonomy'])->name('taxonomy');
+        Route::get('/roles', [StaffController::class, 'roles'])->name('roles');
+
+        Route::get('/locations/{location}', [LocationController::class, 'show'])->name('locations.show');
+        Route::patch('/locations/{location}/profile', [LocationController::class, 'updateProfile'])->name('locations.profile.update');
+        Route::patch('/locations/{location}/availability', [LocationController::class, 'updateAvailability'])->name('locations.availability.update');
+        Route::patch('/locations/{location}/images/{image}', [LocationController::class, 'updateImage'])->name('locations.images.update');
+        Route::delete('/locations/{location}/images/{image}', [LocationController::class, 'archiveImage'])->name('locations.images.archive');
+        Route::get('/locations/{location}/hours', [HoursController::class, 'show'])->name('locations.hours.show');
+        Route::put('/locations/{location}/hours', [HoursController::class, 'replace'])->name('locations.hours.replace');
+        Route::get('/locations/{location}/special-hours', [HoursController::class, 'specialIndex'])->name('locations.special-hours.index');
+        Route::post('/locations/{location}/special-hours', [HoursController::class, 'specialStore'])->name('locations.special-hours.store');
+        Route::patch('/locations/{location}/special-hours/{specialHour}', [HoursController::class, 'specialUpdate'])->name('locations.special-hours.update');
+        Route::delete('/locations/{location}/special-hours/{specialHour}', [HoursController::class, 'specialDestroy'])->name('locations.special-hours.destroy');
+        Route::get('/locations/{location}/pickup-settings', [LocationController::class, 'pickupSettings'])->name('locations.pickup-settings.show');
+        Route::patch('/locations/{location}/pickup-settings', [LocationController::class, 'updatePickupSettings'])->name('locations.pickup-settings.update');
+
+        Route::get('/organizations/{organization}/staff', [StaffController::class, 'index'])->name('staff.index');
+        Route::middleware('throttle:admin-sensitive')->group(function (): void {
+            Route::post('/organizations/{organization}/staff', [StaffController::class, 'store'])->name('staff.store');
+            Route::patch('/organizations/{organization}/staff/{membership}', [StaffController::class, 'update'])->name('staff.update');
+            Route::delete('/organizations/{organization}/staff/{membership}', [StaffController::class, 'destroy'])->name('staff.destroy');
+            Route::post('/organizations/{organization}/staff/{membership}/invitation', [StaffController::class, 'resendInvitation'])->name('staff.invitation');
+        });
+    });
+
     // Permission and market scope are checked in the controllers: a grant for one market must not open another.
     Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'active'])->group(function (): void {
         Route::get('/markets', [AdminMarketController::class, 'index'])->name('markets.index');
@@ -104,6 +159,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/service-areas/{serviceArea}', [GeographyController::class, 'showServiceArea'])->name('service-areas.show');
         Route::get('/route-corridors/{routeCorridor}', [GeographyController::class, 'showRouteCorridor'])->name('route-corridors.show');
         Route::get('/audit-events', [AuditEventController::class, 'index'])->name('audit-events.index');
+        Route::get('/restaurants', [AdminRestaurantController::class, 'index'])->name('restaurants.index');
+        Route::get('/restaurants/{location}', [AdminRestaurantController::class, 'show'])->name('restaurants.show');
+        Route::get('/restaurant-organizations', [RestaurantOrganizationController::class, 'index'])->name('restaurant-organizations.index');
+        Route::get('/restaurant-organizations/{organization}', [RestaurantOrganizationController::class, 'show'])->name('restaurant-organizations.show');
         // Administrator accounts and roles are platform data: the permission must be held without a market scope.
         Route::get('/users', [AdminUserController::class, 'index'])->middleware('can:'.Permission::AdminUsersView->value)->name('users.index');
         Route::get('/roles', [AdminUserController::class, 'roles'])->middleware('can:'.Permission::AdminRolesView->value)->name('roles.index');
@@ -133,6 +192,16 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::patch('/service-areas/{serviceArea}', [GeographyController::class, 'updateServiceArea'])->name('service-areas.update');
             Route::post('/markets/{market}/route-corridors', [GeographyController::class, 'storeRouteCorridor'])->name('route-corridors.store');
             Route::patch('/route-corridors/{routeCorridor}', [GeographyController::class, 'updateRouteCorridor'])->name('route-corridors.update');
+
+            Route::patch('/restaurants/{location}', [AdminRestaurantController::class, 'update'])->name('restaurants.update');
+            Route::post('/restaurants/{location}/status', [AdminRestaurantController::class, 'status'])->name('restaurants.status');
+            Route::post('/restaurant-organizations', [RestaurantOrganizationController::class, 'store'])->name('restaurant-organizations.store');
+            Route::patch('/restaurant-organizations/{organization}', [RestaurantOrganizationController::class, 'update'])->name('restaurant-organizations.update');
+            Route::post('/restaurant-organizations/{organization}/status', [RestaurantOrganizationController::class, 'status'])->name('restaurant-organizations.status');
+            Route::post('/restaurant-organizations/{organization}/locations', [RestaurantOrganizationController::class, 'storeLocation'])->name('restaurant-organizations.locations.store');
+            Route::post('/restaurant-organizations/{organization}/notes', [RestaurantOrganizationController::class, 'storeNote'])->name('restaurant-organizations.notes.store');
+            Route::post('/restaurant-organizations/{organization}/staff', [RestaurantOrganizationController::class, 'inviteStaff'])->name('restaurant-organizations.staff.store');
+            Route::delete('/restaurant-organizations/{organization}/staff/{membership}', [RestaurantOrganizationController::class, 'revokeStaff'])->name('restaurant-organizations.staff.destroy');
         });
     });
 });

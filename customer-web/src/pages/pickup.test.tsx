@@ -50,7 +50,7 @@ const seededRepo = async (items: AddItemInput[]) => {
   hook.unmount()
   return repo
 }
-const withinIst = () => { const h = new Date().getUTCHours(); return h >= 3 && h < 17 } // Burger Hub open 08:00–23:30 IST ≈ 02:30–18:00 UTC
+const withinIst = () => { const d = new Date(); const m = d.getUTCHours() * 60 + d.getUTCMinutes(); return m >= 150 && m < 1080 } // Burger Hub is open 08:00–23:30 IST = 02:30–18:00 UTC
 
 describe('Pickup time page (web)', () => {
   beforeEach(() => { setMockPickupLatency(0); setMockMenuLatency(0); setMockRestaurantLatency(0); localStorage.clear(); sessionStorage.clear() })

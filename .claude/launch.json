@@ -2,6 +2,26 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "backend-api",
+      "runtimeExecutable": "C:\\Users\\DalbeirSingh\\AppData\\Local\\Microsoft\\WinGet\\Packages\\PHP.PHP.8.3_Microsoft.Winget.Source_8wekyb3d8bbwe\\php.exe",
+      "runtimeArgs": [
+        "artisan",
+        "serve",
+        "--host=127.0.0.1",
+        "--port=8002"
+      ],
+      "cwd": "backend",
+      "port": 8002
+    },
+    {
+      "name": "api-proxy",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/local/api-proxy.mjs"
+      ],
+      "port": 8001
+    },
+    {
       "name": "customer-web",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
@@ -26,6 +46,7 @@
         "--dart-define=API_BASE_URL=http://127.0.0.1:8001/api/v1",
         "--dart-define=AUTH_MODE=api",
         "--dart-define=MARKET_MODE=api",
+        "--dart-define=RESTAURANT_MODE=api",
         "--dart-define=DEV_OTP=123456",
         "--dart-define=BUILD_LABEL=web-preview"
       ],

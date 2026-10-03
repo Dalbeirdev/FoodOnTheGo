@@ -10,6 +10,8 @@ import { marketMode } from '../market/marketMode'
 import { marketRepository } from '../market/mock/mockMarket'
 import { ApiAdminAuditRepository } from './api/ApiAdminAuditRepository'
 import { ApiAdminMarketControlRepository } from './api/ApiAdminMarketControlRepository'
+import { ApiAdminRestaurantRepository } from './api/ApiAdminRestaurantRepository'
+import { restaurantMode } from '../restaurants/restaurantMode'
 import { ApiAdminSecurityRepository } from './api/ApiAdminSecurityRepository'
 import { ApiAdminUserRepository } from './api/ApiAdminUserRepository'
 import type { Market } from '../market/types'
@@ -31,6 +33,8 @@ export type AdminState = {
   reload: () => Promise<void>
   environment: Environment
   mockData: boolean
+  /** Sections (first path segment) whose data is read from and written to the backend in this configuration. */
+  backendSections: string[]
   alerts: AdminNotification[]
   unreadCount: number
   criticalCount: number
@@ -51,8 +55,14 @@ const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } cat
 /** The environment comes from build configuration, never from a hardcoded string; local development shows LOCAL / MOCK DATA. */
 export const detectEnvironment = (): Environment => { const e = (import.meta.env.VITE_ENVIRONMENT as string | undefined)?.toUpperCase(); return e === 'PRODUCTION' || e === 'STAGING' ? e : 'LOCAL' }
 
-/** With the backend: market control, administrator accounts, the audit trail and security events talk to the admin API; the other areas are still the mock. */
-const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
+/**
+ * With the backend: market control, administrator accounts, the audit trail and security events talk to the admin API —
+ * and, with the restaurant backend (Module 23), so do the restaurant list, details and approval lifecycle.
+ * The other areas (customers, orders, payments, reviews, promotions, support, analytics) are still the mock.
+ */
+/** The admin sections that run on the backend: market control, administrator accounts, audit trail, security — and restaurants (Module 23). */
+export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', ...(restaurantMode() === 'api' ? ['restaurants'] : [])] : [])
+const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, ...(restaurantMode() === 'api' ? { restaurants: new ApiAdminRestaurantRepository() } : {}), marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {
   const repos = useMemo(() => given ?? defaultRepositories(), [given])
@@ -81,7 +91,7 @@ export function AdminProvider({ children, repos: given }: { children: ReactNode;
   const switchAdmin = useCallback((id: string) => { if (session.mode === 'api') return; write(K.session, id); setAdminId(id) }, [session.mode])
   const markRead = useCallback(async (id: string) => { await repos.notifications.markRead(id); await refreshAlerts() }, [repos, refreshAlerts])
   const markAllRead = useCallback(async () => { await repos.notifications.markAllRead(); await refreshAlerts() }, [repos, refreshAlerts])
-  const value = useMemo<AdminState>(() => ({ repos, status, admin, admins, permissions, can: (p) => permissions.has(p), switchAdmin, reload, environment: detectEnvironment(), mockData: true, alerts, unreadCount: alerts.filter((a) => !a.read).length, criticalCount: alerts.filter((a) => !a.read && a.severity === 'critical').length, markRead, markAllRead, refreshAlerts, locale, market, marketModel: market === 'all' ? null : markets.find((m) => m.countryCode === market) ?? null, markets, setMarket }), [market, markets, setMarket, repos, status, admin, admins, permissions, switchAdmin, reload, alerts, markRead, markAllRead, refreshAlerts, locale])
+  const value = useMemo<AdminState>(() => ({ repos, status, admin, admins, permissions, can: (p) => permissions.has(p), switchAdmin, reload, environment: detectEnvironment(), mockData: true, backendSections: adminBackendSections(), alerts, unreadCount: alerts.filter((a) => !a.read).length, criticalCount: alerts.filter((a) => !a.read && a.severity === 'critical').length, markRead, markAllRead, refreshAlerts, locale, market, marketModel: market === 'all' ? null : markets.find((m) => m.countryCode === market) ?? null, markets, setMarket }), [market, markets, setMarket, repos, status, admin, admins, permissions, switchAdmin, reload, alerts, markRead, markAllRead, refreshAlerts, locale])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 export function useAdmin(): AdminState { const v = useContext(Ctx); if (!v) throw new Error('useAdmin outside AdminProvider'); return v }

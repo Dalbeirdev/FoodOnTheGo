@@ -97,7 +97,11 @@ export type AddressComponents = {
 /** One opening period. `close` earlier than `open` means the period runs overnight into the next day. */
 export type OpeningPeriod = { day: number; open: string; close: string }
 export type Closure = { from: string; to: string; reason?: string }
-export type OpeningHours = { periods: OpeningPeriod[]; closures?: Closure[]; note?: string }
+/** Exception for one restaurant-local date: closed all day, or other periods. It replaces the periods that would open on that date. */
+export type SpecialDay = { date: string; closed: boolean; periods: Array<{ open: string; close: string }>; note?: string | null }
+export type OpeningHours = { periods: OpeningPeriod[]; closures?: Closure[]; special?: SpecialDay[]; note?: string }
+/** Why a visible restaurant cannot take an order right now — the backend's reason code (Module 23). */
+export type UnavailableReason = 'AREA_UNAVAILABLE' | 'TEMPORARILY_CLOSED' | 'PICKUP_UNAVAILABLE' | 'NOT_ACCEPTING_ORDERS' | 'CLOSED_NOW'
 
 export type RestaurantStatus = 'active' | 'inactive' | 'temporarily_closed'
 
@@ -134,6 +138,18 @@ export type Restaurant = {
   tags: string[]
   status: RestaurantStatus
   acceptingOrders: boolean
+  /** Backend data only (Module 23). Absent in the development fixtures. */
+  shortDescription?: string | null
+  phone?: string | null
+  website?: string | null
+  publicEmail?: string | null
+  /** Pickup methods the restaurant offers and its market allows. */
+  pickupMethods?: Array<{ type: 'counter' | 'curbside' | 'drive_through'; instructions: string | null; requiresVehicleInfo: boolean }>
+  pickupInstructions?: string | null
+  /** The backend's reason at the time the data was loaded; the clock-dependent part is recomputed from the hours. */
+  unavailableReason?: UnavailableReason | null
+  /** True when rating / review count are development figures (no reviews backend yet). */
+  ratingIsSample?: boolean
   /** @deprecated Module 01 display strings kept for Cart / Checkout / Item pages until Module 07 makes them journey-aware. */
   distance: string
   time: string

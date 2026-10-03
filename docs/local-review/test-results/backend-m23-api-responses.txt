@@ -1,0 +1,336 @@
+# Module 23 — public restaurant API responses from the LOCAL backend (http://127.0.0.1:8001) — 2026-10-03T03:45:41Z
+
+## GET /api/v1/restaurants?page[size]=3&sort=name
+{
+  "data": [
+    {
+      "id": "b4c1b30f-d9d1-4018-aa50-06a22dc832d3",
+      "slug": "ambala-chai-point",
+      "name": "Ambala Chai Point",
+      "cuisines": [
+        {
+          "code": "cafe",
+          "name": "Cafe"
+        },
+        {
+          "code": "beverages",
+          "name": "Beverages"
+        }
+      ],
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      "availability": {
+        "open_now": false,
+        "open_state": "CLOSED",
+        "accepting_orders": true,
+        "orderable": false,
+        "reason": "CLOSED_NOW",
+        "closes_at": null,
+        "opens_next_at": "2026-10-04T00:00:00+00:00",
+        "checked_at": "2026-10-03T03:45:41+00:00"
+      }
+    },
+    {
+      "id": "0859d041-80dd-4086-9416-61cdb3e9b0f9",
+      "slug": "brew-bites",
+      "name": "Brew & Bites",
+      "cuisines": [
+        {
+          "code": "cafe",
+          "name": "Cafe"
+        },
+        {
+          "code": "beverages",
+          "name": "Beverages"
+        },
+        {
+          "code": "snacks",
+          "name": "Snacks"
+        }
+      ],
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      "availability": {
+        "open_now": true,
+        "open_state": "OPEN",
+        "accepting_orders": true,
+        "orderable": true,
+        "reason": null,
+        "closes_at": "2026-10-03T17:30:00+00:00",
+        "opens_next_at": null,
+        "checked_at": "2026-10-03T03:45:41+00:00"
+      }
+    },
+    {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "cuisines": [
+        {
+          "code": "burgers",
+          "name": "Burgers"
+        },
+        {
+          "code": "fast_food",
+          "name": "Fast Food"
+        },
+        {
+          "code": "american",
+          "name": "American"
+        }
+      ],
+      "timezone": "Asia/Kolkata",
+      "currency": "INR",
+      "availability": {
+        "open_now": true,
+        "open_state": "OPEN",
+        "accepting_orders": true,
+        "orderable": true,
+        "reason": null,
+        "closes_at": "2026-10-03T18:00:00+00:00",
+        "opens_next_at": null,
+        "checked_at": "2026-10-03T03:45:41+00:00"
+      }
+    }
+  ],
+  "links": {
+    "first": "http://127.0.0.1:8001/api/v1/restaurants?sort=name&page%5Bsize%5D=3&page%5Bnumber%5D=1",
+    "last": "http://127.0.0.1:8001/api/v1/restaurants?sort=name&page%5Bsize%5D=3&page%5Bnumber%5D=5",
+    "prev": null,
+    "next": "http://127.0.0.1:8001/api/v1/restaurants?sort=name&page%5Bsize%5D=3&page%5Bnumber%5D=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "last_page": 5,
+    "per_page": 3,
+    "total": 14
+  }
+}
+
+## GET /api/v1/restaurants/burger-hub
+{
+    "id": "0a000000-0000-4000-8000-0000000000a1",
+    "slug": "burger-hub",
+    "name": "Burger Hub",
+    "branch_label": "Sector 62 · Noida",
+    "short_description": "Juicy burgers and crispy fries for travellers on the go.",
+    "description": "Juicy burgers and crispy fries for travellers on the go. Order ahead on FoodOnTheGo and pick up without leaving your route. (Development fixture — not a real restaurant.)",
+    "cuisines": [
+        {
+            "code": "burgers",
+            "name": "Burgers"
+        },
+        {
+            "code": "fast_food",
+            "name": "Fast Food"
+        },
+        {
+            "code": "american",
+            "name": "American"
+        }
+    ],
+    "features": [
+        {
+            "code": "quick_pickup",
+            "name": "Quick Pickup",
+            "category": "SERVICE"
+        },
+        {
+            "code": "parking",
+            "name": "Parking",
+            "category": "FACILITY"
+        }
+    ],
+    "price_level": 2,
+    "phone": null,
+    "email": null,
+    "website": null,
+    "address": {
+        "formatted": "Sector 62, Noida, Uttar Pradesh 201309, India",
+        "line1": null,
+        "postal_code": "201309",
+        "city": "Noida",
+        "city_slug": "noida",
+        "region": "Uttar Pradesh",
+        "region_code": "IN-UP",
+        "country_code": "IN"
+    },
+    "location": {
+        "latitude": 28.6285,
+        "longitude": 77.3652
+    },
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "images": {
+        "logo": null,
+        "cover": {
+            "url": "/images/food-burger.jpg",
+            "alt_text": "Burger Hub"
+        },
+        "gallery": [
+            {
+                "url": "/images/food-burger.jpg",
+                "alt_text": "Burger Hub"
+            }
+        ]
+    },
+    "hours": {
+        "timezone": "Asia/Kolkata",
+        "weekly": [
+            {
+                "day_of_week": 0,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            },
+            {
+                "day_of_week": 1,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            },
+            {
+                "day_of_week": 2,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            },
+            {
+                "day_of_week": 3,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            },
+            {
+                "day_of_week": 4,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            },
+            {
+                "day_of_week": 5,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            },
+            {
+                "day_of_week": 6,
+                "periods": [
+                    {
+                        "opens_at": "08:00",
+                        "closes_at": "23:30"
+                    }
+                ]
+            }
+        ],
+        "special": []
+    },
+    "pickup": {
+        "methods": [
+            {
+                "method": "COUNTER",
+                "instructions": null,
+                "requires_vehicle_info": false
+            }
+        ],
+        "asap": true,
+        "scheduled": true,
+        "default_prep_minutes": 12,
+        "minimum_lead_minutes": 12,
+        "instructions": "Show your pickup code at the counter."
+    },
+    "availability": {
+        "open_now": true,
+        "open_state": "OPEN",
+        "accepting_orders": true,
+        "orderable": true,
+        "reason": null,
+        "closes_at": "2026-10-03T18:00:00+00:00",
+        "opens_next_at": null,
+        "checked_at": "2026-10-03T03:45:41+00:00"
+    }
+}
+
+## GET /api/v1/restaurants/vadodara-expressway-grill (organization suspended)
+{"error":{"code":"restaurant_not_found","message":"This restaurant is not available on FoodOnTheGo.","request_id":"c270ae54-123b-429f-8af2-ffe89fba7546"}}
+HTTP 404
+
+## GET /api/v1/cuisines (first 5)
+[
+  {
+    "code": "north_indian",
+    "name": "North Indian",
+    "slug": "north-indian",
+    "restaurants": 3
+  },
+  {
+    "code": "south_indian",
+    "name": "South Indian",
+    "slug": "south-indian",
+    "restaurants": 0
+  },
+  {
+    "code": "punjabi",
+    "name": "Punjabi",
+    "slug": "punjabi",
+    "restaurants": 2
+  },
+  {
+    "code": "biryani",
+    "name": "Biryani",
+    "slug": "biryani",
+    "restaurants": 1
+  },
+  {
+    "code": "chinese",
+    "name": "Chinese",
+    "slug": "chinese",
+    "restaurants": 1
+  }
+]
+total cuisines: 29
+
+## GET /api/v1/restaurants?filter[open_now]=true&lat=28.6&lng=77.37&radius_meters=20000&sort=distance
+[
+  {
+    "slug": "brew-bites",
+    "distance_meters": 2865,
+    "open_now": true
+  },
+  {
+    "slug": "burger-hub",
+    "distance_meters": 3193,
+    "open_now": true
+  },
+  {
+    "slug": "healthy-bites",
+    "distance_meters": 5876,
+    "open_now": true
+  }
+]
+
+## GET /api/v1/restaurants?filter[nonsense]=1 (unknown filter)
+{"error":{"code":"validation_failed","message":"The submitted data is invalid.","details":{"fields":{"filter.nonsense":["This filter is not supported."]}},"request_id":"9cb54437-add3-4c92-86c0-9fc567d6c8e2"}}
+HTTP 422
+
+## GET /api/v1/restaurant/context without a token
+{"error":{"code":"unauthenticated","message":"Authentication is required.","request_id":"e0c0ffc4-0a90-4de0-8cc5-75b63815e2ef"}}
+HTTP 401

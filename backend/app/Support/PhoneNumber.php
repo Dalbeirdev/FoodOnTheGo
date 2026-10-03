@@ -26,6 +26,23 @@ final readonly class PhoneNumber
      */
     public static function parse(string $input, Market $market): self
     {
+        return self::normalise($input, $market, mobileOnly: true);
+    }
+
+    /**
+     * A business contact number (a restaurant's public phone): normalised exactly like a customer number, but a
+     * landline is as valid as a mobile — only the market's dialling code and trunk prefix apply, not its
+     * mobile-number rule.
+     *
+     * @throws InvalidArgumentException when the input is not a plausible number for the market
+     */
+    public static function parseBusiness(string $input, Market $market): self
+    {
+        return self::normalise($input, $market, mobileOnly: false);
+    }
+
+    private static function normalise(string $input, Market $market, bool $mobileOnly): self
+    {
         $trimmed = trim($input);
         $digits = preg_replace('/\D/', '', $trimmed) ?? '';
         $dial = ltrim($market->phone_country_code, '+');
@@ -45,14 +62,17 @@ final readonly class PhoneNumber
             $trunk = (string) $market->phone_trunk_prefix;
             if ($trunk !== '' && str_starts_with($national, $trunk)) {
                 $national = substr($national, strlen($trunk));
-            } elseif (str_starts_with($national, $dial) && self::matches($market, substr($national, strlen($dial))) && ! self::matches($market, $national)) {
+            } elseif ($mobileOnly && str_starts_with($national, $dial) && self::matches($market, substr($national, strlen($dial))) && ! self::matches($market, $national)) {
                 // "91 98765 43210" typed without the plus sign.
                 $national = substr($national, strlen($dial));
             }
         }
 
-        if (! self::matches($market, $national)) {
+        if ($mobileOnly && ! self::matches($market, $national)) {
             throw new InvalidArgumentException('Enter a valid mobile number for '.$market->name.'.');
+        }
+        if (! $mobileOnly && preg_match('/^[1-9]\d{5,11}$/', $national) !== 1) {
+            throw new InvalidArgumentException('Enter a valid phone number for '.$market->name.'.');
         }
 
         $e164 = '+'.$dial.$national;

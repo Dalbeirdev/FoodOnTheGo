@@ -88,6 +88,30 @@ final class AccessControl
     }
 
     /**
+     * The permission codes the principal holds for exactly this resource — what a client may show for it.
+     * Same rules as allows(); the backend still decides every action.
+     *
+     * @return list<string>
+     */
+    public function permissionsIn(Principal $principal, Scope $scope): array
+    {
+        $type = $principal->principalType();
+
+        if (! $principal->canAuthenticate() || ($type === PrincipalType::RestaurantUser && $scope->type === 'market')) {
+            return [];
+        }
+
+        $codes = [];
+        foreach ($this->grants($principal) as $grant) {
+            if ($this->covers($grant, $type, $scope)) {
+                $codes[$grant['permission']] = true;
+            }
+        }
+
+        return array_keys($codes);
+    }
+
+    /**
      * Invalidates every cached grant. Called whenever roles, role permissions or assignments change.
      */
     public function flush(): void
