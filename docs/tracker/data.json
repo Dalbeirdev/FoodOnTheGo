@@ -183,7 +183,7 @@
    "name": "Module 23 — Restaurant Organizations, Locations, Profiles, Staff Memberships & Operational Settings Backend",
    "started": "2026-10-01",
    "completed": "2026-10-03",
-   "scope": "Owner spec 2026-10-01: real restaurant domain on PostgreSQL + PostGIS — organizations, locations (geography point, market / region / city / service-area assignment by PostGIS), lifecycle, operational status and pause, profile, cuisine and feature taxonomies, image metadata, weekly + special hours, pickup settings and methods, staff memberships with location access and invitations, RBAC + tenant / location isolation, availability and lifecycle services, customer / restaurant / admin APIs, fixtures, OpenAPI, audit, concurrency; Customer Web, Restaurant Dashboard, Platform Admin and Android connected locally. Out of scope: menus (M24), cart, checkout, payments, orders, tracking, reviews, analytics, route-aware discovery (M26), slot booking (M28), public partner onboarding."
+   "scope": "Owner spec 2026-10-01: real restaurant domain on PostgreSQL + PostGIS — organizations, locations (geography point, market / region / city / service-area assignment by PostGIS), lifecycle, operational status and pause, profile, cuisine and feature taxonomies, image metadata, weekly + special hours, pickup settings and methods, staff memberships with location access and invitations, RBAC + tenant / location isolation, availability and lifecycle services, customer / restaurant / admin APIs, fixtures, OpenAPI, audit, concurrency; Customer Web, Restaurant Dashboard, Platform Admin and Android connected locally. Out of scope: menus (M24), cart, checkout, payments, orders, tracking, reviews, analytics, route-aware discovery (M26), slot booking (M28), public partner onboarding. Owner approved 2026-10-03 (chat)."
   }
  ],
  "requirements": [
@@ -26315,6 +26315,12 @@
   [
    "2026-10-03",
    "Module 23 result: MODULE 24 MAY START = YES. Restaurant core backend = COMPLETE (local). Menu / order / payment backend = NOT COMPLETE. PRODUCTION = NO.",
+   "Module 23",
+   "M23-001"
+  ],
+  [
+   "2026-10-03",
+   "Owner approved Module 23 (chat, 2026-10-03): \"Module 23 approved\". Device verification of APK build027 and the browser reviews (TE-208) remain separate owner items until confirmed.",
    "Module 23",
    "M23-001"
   ]
