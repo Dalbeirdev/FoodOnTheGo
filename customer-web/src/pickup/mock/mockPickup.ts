@@ -127,12 +127,15 @@ export class MockPickupRepository implements PickupRepository {
   }
 }
 
-/** Mock ETA from the Module 05 journey (straight-line corridor estimate). RoutingEtaService replaces it. */
+/**
+ * Arrival at the restaurant on the current journey: the routing provider's estimate for a backend journey (Module 26,
+ * read from what its discovery returned), the straight-line development estimate for a browser journey.
+ */
 export class MockEtaService implements EtaService {
   estimateArrival(restaurant: Restaurant, journey: JourneyLike | null, nowIso: string) {
     if (!journey) return null
     const ctx = routeContextFor(restaurant, journey, nowIso)
-    return ctx?.estimatedArrival ? { arrivalAt: ctx.estimatedArrival, source: 'mock' as const } : null
+    return ctx?.estimatedArrival ? { arrivalAt: ctx.estimatedArrival, source: journey.backend ? 'routing' as const : 'mock' as const } : null
   }
 }
 

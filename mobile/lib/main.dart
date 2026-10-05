@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'core/theme.dart';
 import 'discovery/api_restaurants.dart';
+import 'journey/api_journey.dart';
 import 'market/api_market.dart';
 import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
@@ -120,6 +121,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   void initState() {
     super.initState();
     auth.addListener(_onAuth);
+    if (journeysFromApi) journeyApi.onUnauthenticated = auth.expire;
     // Restore the session at app start so deep links to protected screens are guarded even when Splash is skipped.
     auth.restore();
   }

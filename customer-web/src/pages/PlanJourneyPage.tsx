@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import LocationInput from '../components/LocationInput'
 import RoutePreview from '../components/RoutePreview'
-import { useJourney, type Journey } from '../journey/JourneyContext'
+import { useJourney, type Journey, type RouteSummary } from '../journey/JourneyContext'
 import { formatDuration } from '../journey/mock/mockRepositories'
 import './PlanJourneyPage.css'
 
@@ -30,8 +30,17 @@ const today = () => new Date().toISOString().slice(0, 10)
 let journeyLocale = 'en' // set from the LocaleProvider on render
 const fmtDeparture = (iso: string | null) => iso ? new Date(iso).toLocaleString(journeyLocale, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Leaving now'
 const fmtCreated = (iso: string) => new Date(iso).toLocaleDateString(journeyLocale, { day: 'numeric', month: 'short' })
+const fmtClock = (iso: string) => new Date(iso).toLocaleTimeString(journeyLocale, { hour: 'numeric', minute: '2-digit' })
+/** Where a route's figures come from — said next to every figure, so an estimate is never read as a promise. */
+const routeSource = (r: RouteSummary) => (r.mode === 'live' ? (r.trafficAware ? 'routing provider estimate, with traffic forecast' : 'routing provider estimate') : r.mode === 'development' ? 'development routing model' : 'mock development data')
+const routeTag = (r: RouteSummary) => (r.mode === 'live' ? 'estimate' : r.mode === 'development' ? 'development model' : 'mock')
+const FLAGS: Record<string, string> = { TOLLS: 'Tolls on this route', FERRY: 'This route includes a ferry' }
 
-/** Plan a Journey — approved design kept; inputs now run on LocationRepository / JourneyRepository / RouteRepository. */
+/**
+ * Plan a Journey — approved design kept; inputs run on LocationRepository / JourneyRepository / RouteRepository.
+ * With the backend (Module 26) the suggestions, the route and its figures are the backend's; a journey is kept there for
+ * a short time only and no journey history exists.
+ */
 export default function PlanJourneyPage() {
   journeyLocale = useLocale().locale
   const navigate = useNavigate()
@@ -78,12 +87,19 @@ export default function PlanJourneyPage() {
               </label>
             </div>
             {j.errors.form && <p className="pj-error" role="alert">{j.errors.form}</p>}
-            {j.status === 'error' && !j.journey && <p className="pj-error" role="alert">{j.error}</p>}
+            {j.status === 'error' && !j.journey && (
+              <p className="pj-error" role="alert" data-error-code={j.errorCode ?? ''}>
+                {j.error}
+                {(j.errorCode === 'provider-unavailable' || j.errorCode === 'network' || j.errorCode === 'rate-limited') && <span className="pj-error__hint"> Nothing was estimated in the meantime — press the button to try again.</span>}
+                {j.errorCode === 'no-route' && <span className="pj-error__hint"> FoodOnTheGo never draws a straight line in place of a road.</span>}
+              </p>
+            )}
 
             <button type="submit" className="btn btn--primary pj-submit" disabled={busy}>
               {j.status === 'validating' ? 'Checking locations…' : j.status === 'ready' ? 'Preparing journey…' : j.status === 'route-loading' ? 'Loading route…' : 'Find Restaurants on Route'}
             </button>
             <p className="pj-guest-note">No sign-in needed to plan a journey. Sign in later to save favorites or place an order.</p>
+            {j.mode === 'api' && <p className="pj-guest-note" data-testid="pj-privacy">A planned journey is kept for a short time only; FoodOnTheGo keeps no journey history.</p>}
           </form>
 
           {showPreview && j.journey && (
@@ -119,10 +135,13 @@ export default function PlanJourneyPage() {
               {j.status === 'route-available' && j.journey.route && (
                 <>
                   <dl className="pj-preview__stats">
-                    <div><dt><CarIcon /> Approximate distance</dt><dd>{j.journey.route.distanceKm} km <small>mock development data</small></dd></div>
-                    <div><dt><ClockSmall /> Approximate travel time</dt><dd>{formatDuration(j.journey.route.durationMin)} <small>mock development data</small></dd></div>
+                    <div><dt><CarIcon /> Approximate distance</dt><dd data-testid="pj-distance">{j.journey.route.distanceKm} km <small>{routeSource(j.journey.route)}</small></dd></div>
+                    <div><dt><ClockSmall /> Approximate travel time</dt><dd data-testid="pj-duration">{formatDuration(j.journey.route.durationMin)} <small>{routeSource(j.journey.route)}</small></dd></div>
                   </dl>
+                  {(j.journey.route.flags ?? []).filter((f) => FLAGS[f]).length > 0 && <ul className="pj-flags" aria-label="About this route">{(j.journey.route.flags ?? []).filter((f) => FLAGS[f]).map((f) => <li key={f}>{FLAGS[f]}</li>)}</ul>}
                   <RoutePreview journey={j.journey} />
+                  {j.journey.coverage?.alongRoute === 'NO_SERVICE_COVERAGE' && <p className="pj-preview__nocoverage" role="status" data-testid="pj-no-coverage">FoodOnTheGo does not serve any area along this route yet. The route is shown, but no restaurants will be listed for it.</p>}
+                  {j.journey.expiresAt && <p className="pj-preview__valid" data-testid="pj-valid">This search stays valid until {fmtClock(j.journey.expiresAt)}. After that, plan it again for current times.</p>}
                   <p className="pj-preview__pickup">Restaurants are picked up at their own location along this corridor — your destination stays {j.journey.destination.name}. FoodOnTheGo does not deliver.</p>
                   <button type="button" className="btn btn--primary pj-submit" onClick={() => continueTo(j.journey!)}>Find Restaurants Along Route <ArrowIcon /></button>
                 </>
@@ -136,7 +155,7 @@ export default function PlanJourneyPage() {
               <ul>
                 {j.recent.map((r) => (
                   <li key={r.id}>
-                    <span className="pj-recent__route"><b>{r.origin.name}</b> <ArrowIcon size={14} /> <b>{r.destination.name}</b><small>{r.route ? `${r.route.distanceKm} km · ${formatDuration(r.route.durationMin)} (mock)` : 'route not prepared'} · {fmtCreated(r.createdAt)}</small></span>
+                    <span className="pj-recent__route"><b>{r.origin.name}</b> <ArrowIcon size={14} /> <b>{r.destination.name}</b><small>{r.route ? `${r.route.distanceKm} km · ${formatDuration(r.route.durationMin)} (${routeTag(r.route)})` : 'route not prepared'} · {fmtCreated(r.createdAt)}</small></span>
                     <span className="pj-recent__actions">
                       <button type="button" className="pj-link" onClick={() => { j.useAgain(r); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Use again</button>
                       <button type="button" className="pj-link pj-link--danger" onClick={() => { void j.removeRecent(r.id) }} aria-label={`Remove ${r.origin.name} to ${r.destination.name} from recent journeys`}>Remove</button>
@@ -144,7 +163,7 @@ export default function PlanJourneyPage() {
                   </li>
                 ))}
               </ul>
-              <p className="pj-recent__note">Stored on this device only — journey history sync arrives with the backend.</p>
+              <p className="pj-recent__note">{j.mode === 'api' ? 'Kept for this browser tab only. FoodOnTheGo keeps no journey history: “Use again” plans the journey afresh.' : 'Stored on this device only — journey history sync arrives with the backend.'}</p>
             </section>
           )}
 

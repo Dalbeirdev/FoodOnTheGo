@@ -260,8 +260,10 @@ class FeatureCard extends StatelessWidget {
 }
 
 class DetourBadge extends StatelessWidget {
-  const DetourBadge(this.minutes, {super.key});
+  const DetourBadge(this.minutes, {super.key, this.actual = false});
   final int minutes;
+  /// The routing provider's actual detour (shown as "+N min"), not the in-app approximation.
+  final bool actual;
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -270,7 +272,7 @@ class DetourBadge extends StatelessWidget {
           const Icon(Icons.schedule, size: 15, color: Brand.green),
           const SizedBox(width: 5),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('$minutes min', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Brand.navy, height: 1.1)),
+            Text('${actual ? '+' : ''}$minutes min', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Brand.navy, height: 1.1)),
             const Text('detour', style: TextStyle(fontSize: 10, color: Brand.grey, height: 1.1)),
           ]),
         ]),
@@ -565,10 +567,12 @@ class EmptyState extends StatelessWidget {
 }
 
 class LabeledField extends StatelessWidget {
-  const LabeledField(this.label, {super.key, required this.child, this.required = false});
+  const LabeledField(this.label, {super.key, required this.child, this.required = false, this.note});
   final String label;
   final Widget child;
   final bool required;
+  /// A short line under the field (information, not an error).
+  final String? note;
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(bottom: 14),
@@ -576,6 +580,7 @@ class LabeledField extends StatelessWidget {
           Text.rich(TextSpan(text: label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5), children: [if (required) const TextSpan(text: ' *', style: TextStyle(color: Brand.red))])),
           const SizedBox(height: 6),
           child,
+          if (note != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(note!, style: const TextStyle(color: Brand.grey, fontSize: 12))),
         ]),
       );
 }

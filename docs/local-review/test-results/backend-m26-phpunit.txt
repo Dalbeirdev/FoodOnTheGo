@@ -1,0 +1,5 @@
+# Module 26 — full backend test suite (php vendor/phpunit/phpunit/phpunit), LOCAL, 2026-10-05
+# The test cache store serializes its values (CACHE_ARRAY_SERIALIZE=true, phpunit.xml) and refuses PHP classes like the Redis store does.
+
+{"tool":"phpunit","result":"passed","tests":550,"passed":550,"assertions":6913,"duration_ms":254188}
+exit 0

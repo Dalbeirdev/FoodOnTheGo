@@ -52,6 +52,10 @@ function SchematicMapView({ route, origin, destination, markers, selectedId, onS
         <rect width={W} height={H} fill="url(#smap-grid)" rx="16" />
         {path && <><path d={path} fill="none" stroke="#ffd7c2" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" /><path d={path} fill="none" stroke="#f24e1e" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="10 8" /></>}
         {pts.length === 0 && markers.length > 0 && <text x={W / 2} y={28} textAnchor="middle" fontSize="13" fill="#5f6675">General discovery — no route context</text>}
+        {/* The two ends are drawn UNDER the restaurant markers and never take a click: a restaurant at the start or the
+            destination of the journey must stay selectable on the map. */}
+        {origin && (() => { const [x, y] = project(origin.position); return <g pointerEvents="none"><circle cx={x} cy={y} r="9" fill="#ff8a00" stroke="#fff" strokeWidth="3" /><text x={x} y={y - 14} textAnchor="middle" fontSize="13" fontWeight="700" fill="#1b1f2a">{origin.label}</text></g> })()}
+        {destination && (() => { const [x, y] = project(destination.position); return <g pointerEvents="none"><circle cx={x} cy={y} r="9" fill="#e5261f" stroke="#fff" strokeWidth="3" /><text x={x} y={y - 14} textAnchor="middle" fontSize="13" fontWeight="700" fill="#1b1f2a">{destination.label}</text></g> })()}
         {markers.map((m) => {
           const [x, y] = project(m.position)
           const sel = m.id === selectedId
@@ -63,8 +67,6 @@ function SchematicMapView({ route, origin, destination, markers, selectedId, onS
             </g>
           )
         })}
-        {origin && (() => { const [x, y] = project(origin.position); return <g><circle cx={x} cy={y} r="9" fill="#ff8a00" stroke="#fff" strokeWidth="3" /><text x={x} y={y - 14} textAnchor="middle" fontSize="13" fontWeight="700" fill="#1b1f2a">{origin.label}</text></g> })()}
-        {destination && (() => { const [x, y] = project(destination.position); return <g><circle cx={x} cy={y} r="9" fill="#e5261f" stroke="#fff" strokeWidth="3" /><text x={x} y={y - 14} textAnchor="middle" fontSize="13" fontWeight="700" fill="#1b1f2a">{destination.label}</text></g> })()}
       </svg>
       <span className="smap__badge">{shellNote}</span>
     </div>

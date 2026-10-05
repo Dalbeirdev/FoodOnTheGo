@@ -1,0 +1,25 @@
+# Module 26 — Customer Web checks (LOCAL, 2026-10-05): tsc, oxlint, vitest, vite build
+
+== npx tsc -b --noEmit
+exit 0
+
+== npm run lint (oxlint)
+exit 0; 0 errors; 112 warnings (the same 112 as before Module 26: react(only-export-components), react(set-state-in-effect) and similar in existing files — none added by this module)
+
+== npx vitest run --maxWorkers=6   (six workers: the machine also runs other workloads; with full parallelism a few long UI tests hit the 5 s timeout under load — the same tests pass alone)
+ Test Files  50 passed (50)
+      Tests  592 passed (592)
+   Duration  60.23s (tests 64%, environment 23%, transform 5%, setup 4%, import 4%)
+   new in Module 26: src/journey/api/apiJourney.test.tsx (29 tests), src/admin/pages/ProviderHealthCard.test.tsx (3 tests)
+
+== npx vite build
+dist/assets/DashboardApp-Cid7Y6XZ.js    167.45 kB │ gzip:  37.50 kB
+dist/assets/AdminApp-DlS1y2mn.js        396.37 kB │ gzip:  82.77 kB
+dist/assets/index-C4e8nvWm.js         1,053.32 kB │ gzip: 294.77 kB
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 811ms[39m
+exit 0

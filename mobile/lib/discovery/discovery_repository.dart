@@ -262,6 +262,7 @@ class MockRestaurantRepository implements RestaurantRepository {
     switch (sort) {
       case SortKey.lowestDetour: final c = det(a).compareTo(det(b)); return c != 0 ? c : rating(a, b);
       case SortKey.nearestToRoute: final c = dist(a).compareTo(dist(b)); return c != 0 ? c : rating(a, b);
+      case SortKey.routeOrder: final c = (a.routePosition ?? 2).compareTo(b.routePosition ?? 2); return c != 0 ? c : det(a).compareTo(det(b));
       case SortKey.highestRated: final c = rating(a, b); return c != 0 ? c : b.restaurant.reviewCount.compareTo(a.restaurant.reviewCount);
       case SortKey.fastestPickup: final c = a.restaurant.prepTimeMin.compareTo(b.restaurant.prepTimeMin); return c != 0 ? c : det(a).compareTo(det(b));
       case SortKey.recommended: final o = open(a).compareTo(open(b)); if (o != 0) return o; final c = det(a).compareTo(det(b)); return c != 0 ? c : rating(a, b);

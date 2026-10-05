@@ -13,6 +13,7 @@ import { apiMarketData, locationAvailability } from '../../market/api/marketData
 import { marketAvailability } from '../../market/mock/mockMarket'
 import { addLocalDays } from '../../pickup/time'
 import { apiRestaurants, ensureRestaurantsFresh, fetchRestaurantBySlug, registerLegacyRestaurants, restaurantCuisines } from '../../restaurants/api/restaurantData'
+import { storedRouteContext } from '../../journey/api/apiJourney'
 import type { Availability, DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, OpeningHours, Restaurant, ResultPage, RestaurantRepository, RouteRestaurantResult, ScopeRing, SortKey } from '../types'
 
 type Fixture = Omit<Restaurant, 'publicId' | 'image' | 'distance' | 'time' | 'detour' | 'tags' | 'reviewCount' | 'categories' | 'images' | 'acceptingOrders' | 'status' | 'market' | 'description' | 'openingHours' | 'features'> & {
@@ -178,6 +179,7 @@ const rank = (a: RouteRestaurantResult, b: RouteRestaurantResult, sort: SortKey)
   switch (sort) {
     case 'lowestDetour': return det(a) - det(b) || b.restaurant.rating - a.restaurant.rating
     case 'nearestToRoute': return dist(a) - dist(b) || b.restaurant.rating - a.restaurant.rating
+    case 'routeOrder': return (a.routePosition ?? 0) - (b.routePosition ?? 0) || det(a) - det(b)
     case 'highestRated': return b.restaurant.rating - a.restaurant.rating || b.restaurant.reviewCount - a.restaurant.reviewCount
     case 'fastestPickup': return a.restaurant.prepTimeMin - b.restaurant.prepTimeMin || det(a) - det(b)
     default: return openScore(a) - openScore(b) || (det(a) === det(b) ? 0 : det(a) - det(b)) || b.restaurant.rating - a.restaurant.rating
@@ -338,6 +340,12 @@ function journeyOutsideCoverage(journey: JourneyLike) {
 
 /** Route context for one restaurant against a journey (no corridor cut-off) — used by the detail page. */
 export function routeContextFor(r: Restaurant, journey: JourneyLike, nowIso = new Date().toISOString()): RouteRestaurantResult | null {
+  // A backend journey (Module 26): only what the backend said about this restaurant on this journey — detour and arrival
+  // from the routing provider. A restaurant the journey did not find has no route context; nothing is estimated here.
+  if (journey.backend) {
+    const c = storedRouteContext(journey.id, r.slug)
+    return c ? { restaurant: r, distanceFromRouteM: c.distanceFromRouteM, detourDistanceM: c.detourDistanceM, detourDurationMin: c.detourDurationMin, estimatedArrival: c.estimatedArrival, estimatedPickupReady: null, routePosition: c.routePosition, availability: c.availability, atArrival: true, orderableAtArrival: c.orderableAtArrival } : null
+  }
   const line: LatLng[] = journey.route?.geometry ?? (journey.origin.lat !== null && journey.destination.lat !== null ? [[journey.origin.lat, journey.origin.lng!], [journey.destination.lat, journey.destination.lng!]] : [])
   if (line.length === 0) return null
   const { meters, position } = distanceToPolyline([r.lat, r.lng], line)

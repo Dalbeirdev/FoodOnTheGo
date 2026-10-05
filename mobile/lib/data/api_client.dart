@@ -81,8 +81,8 @@ class ApiClient {
   static final _random = Random.secure();
   static String _requestId() => 'app-${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}-${List.generate(8, (_) => _random.nextInt(36).toRadixString(36)).join()}';
 
-  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, String?> query = const {}}) async => _asMap(await send('GET', path, auth: auth, query: query));
-  Future<Map<String, dynamic>> post(String path, {Object? body, bool auth = true, String? idempotencyKey}) async => _asMap(await send('POST', path, body: body, auth: auth, idempotencyKey: idempotencyKey));
+  Future<Map<String, dynamic>> get(String path, {bool auth = true, Map<String, String?> query = const {}, Map<String, String> headers = const {}}) async => _asMap(await send('GET', path, auth: auth, query: query, extraHeaders: headers));
+  Future<Map<String, dynamic>> post(String path, {Object? body, bool auth = true, String? idempotencyKey, Map<String, String> headers = const {}}) async => _asMap(await send('POST', path, body: body, auth: auth, idempotencyKey: idempotencyKey, extraHeaders: headers));
   Future<Map<String, dynamic>> patch(String path, {Object? body, bool auth = true}) async => _asMap(await send('PATCH', path, body: body, auth: auth));
   Future<Object?> delete(String path, {bool auth = true}) => send('DELETE', path, auth: auth);
 
@@ -93,9 +93,10 @@ class ApiClient {
   static List<dynamic> _asList(Object? data) => data is List<dynamic> ? data : const [];
 
   /// One request; the decoded JSON body (a map, a list, or null for an empty body). Every failure is an [ApiException].
-  Future<Object?> send(String method, String path, {Object? body, bool auth = true, Map<String, String?> query = const {}, String? idempotencyKey, UploadFile? file}) async {
+  /// [extraHeaders] adds request headers a single endpoint needs (e.g. X-Journey-Token) — never the bearer token.
+  Future<Object?> send(String method, String path, {Object? body, bool auth = true, Map<String, String?> query = const {}, String? idempotencyKey, UploadFile? file, Map<String, String> extraHeaders = const {}}) async {
     final requestId = _requestId();
-    final headers = <String, String>{'Accept': 'application/json', 'X-Request-Id': requestId};
+    final headers = <String, String>{...extraHeaders, 'Accept': 'application/json', 'X-Request-Id': requestId};
     if (body != null && file == null) headers['Content-Type'] = 'application/json';
     if (idempotencyKey != null) headers['Idempotency-Key'] = idempotencyKey;
     final token = auth ? await tokenProvider?.call() : null;

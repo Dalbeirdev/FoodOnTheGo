@@ -84,12 +84,14 @@ export type ApiRequest = {
   /** Use this token instead of the stored one (e.g. a just-issued token that is not a session yet). */
   token?: string
   query?: Record<string, string | number | boolean | null | undefined>; idempotencyKey?: string; signal?: AbortSignal
+  /** Extra request headers (e.g. X-Journey-Token for a guest's own journey). Never a bearer token: use `token`. */
+  headers?: Record<string, string>
 }
 
 export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const requestId = newRequestId()
   const context = init.context ?? 'customer'
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-Request-Id': requestId }
+  const headers: Record<string, string> = { ...(init.headers ?? {}), Accept: 'application/json', 'X-Request-Id': requestId }
   const form = typeof FormData !== 'undefined' && init.body instanceof FormData // multipart upload: the browser sets the boundary
   if (init.body !== undefined && !form) headers['Content-Type'] = 'application/json'
   if (init.idempotencyKey) headers['Idempotency-Key'] = init.idempotencyKey

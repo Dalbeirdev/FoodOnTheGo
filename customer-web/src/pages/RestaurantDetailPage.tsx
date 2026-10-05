@@ -222,10 +222,12 @@ export default function RestaurantDetailPage() {
                     <li><PinIcon size={20} /><span><b>{formatDistance(route.distanceFromRouteM!, units, locale)}</b>{t('rd.route.distance', undefined, locale)}</span></li>
                     <li><ClockIcon size={20} /><span><b>{formatMinutes(route.detourDurationMin!, locale)}</b>{t('rd.route.detour', undefined, locale)}</span></li>
                     <li><CarIcon size={20} /><span><b>{formatLocalTime(route.estimatedArrival!, r.timezone, locale)}</b>{t('rd.route.arrive', { time: '' }, locale).replace('~ local', 'local').trim()}</span></li>
-                    <li><span className="rd-facts__mock">{t('mock.estimate', undefined, locale)}</span></li>
+                    <li><span className="rd-facts__mock" data-testid="rd-route-source">{t(journey?.route?.mode === 'live' ? 'route.live' : journey?.route?.mode === 'development' ? 'route.development' : 'mock.estimate', undefined, locale)}</span></li>
                   </ul>
                 ) : (
-                  <p className="rd-info__routeNone"><CarIcon size={16} /> {t('rd.route.none', undefined, locale)} <Link to="/plan-journey">{t('discovery.planJourney', undefined, locale)}</Link></p>
+                  journey?.backend
+                    ? <p className="rd-info__routeNone" data-testid="rd-not-on-journey"><CarIcon size={16} /> {t('rd.route.notOnJourney', undefined, locale)} <Link to={`/restaurants?journey=${encodeURIComponent(journey.id)}`}>{t('rd.route.backToResults', undefined, locale)}</Link></p>
+                    : <p className="rd-info__routeNone"><CarIcon size={16} /> {t('rd.route.none', undefined, locale)} <Link to="/plan-journey">{t('discovery.planJourney', undefined, locale)}</Link></p>
                 )}
                 <p className="rd-info__desc">{r.description}</p>
                 {r.features.length > 0 && <ul className="rd-features" aria-label={t('rd.info.features', undefined, locale)}>{r.features.map((f) => <li key={f}>{f}</li>)}</ul>}

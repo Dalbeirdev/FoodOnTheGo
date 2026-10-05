@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Module 25: recent locations are kept only for the configured retention.
 Schedule::command('customer:prune-recent-locations')->daily();
+
+// Module 26: journey contexts expire; expired rows are removed after a grace period.
+Schedule::command('journeys:prune')->hourly();

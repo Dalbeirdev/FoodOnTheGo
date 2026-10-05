@@ -173,9 +173,12 @@ export type RouteRestaurantResult = {
   /** Scope ring (general discovery only). */
   ring?: ScopeRing
   distanceFromScopeM?: number | null
+  /** Backend journeys: `availability` describes the restaurant at the EXPECTED ARRIVAL, not now; the figures come from the routing provider. */
+  atArrival?: boolean
+  orderableAtArrival?: boolean
 }
 
-export type SortKey = 'recommended' | 'lowestDetour' | 'nearestToRoute' | 'highestRated' | 'fastestPickup'
+export type SortKey = 'recommended' | 'lowestDetour' | 'routeOrder' | 'nearestToRoute' | 'highestRated' | 'fastestPickup'
 export type FilterValue = string[] | number | boolean
 export type FilterKind = 'multi' | 'toggle' | 'min' | 'max'
 export type FilterOption = { value: string; label: string; count?: number }
@@ -235,6 +238,22 @@ export type ResultPage = {
   ringCounts?: Record<ScopeRing, number>
   /** Module 18A: set when the journey / location lies outside active market coverage (no restaurants are fabricated). */
   availability?: { supported: boolean; reason: 'ok' | 'market' | 'area' | 'paused'; messageKey: string }
+  /** Backend journeys: why there are no results, and what the search was built on. */
+  emptyReason?: 'coverage' | 'corridor' | 'unreachable' | 'filters' | null
+  searchMeta?: SearchMeta
+}
+
+export type SearchMeta = {
+  calculatedAt: string
+  departureAt: string
+  cached: boolean
+  providerName: string
+  providerMode: 'development' | 'live'
+  maxDetourMin: number
+  corridorM: number
+  /** Restaurants PostGIS found in the corridor / sent to the routing provider (bounded). */
+  corridorRows: number
+  detourRequested: number
 }
 
 export interface ContentRepository {
@@ -270,4 +289,7 @@ export type JourneyLike = {
   destination: { name: string; lat: number | null; lng: number | null; countryCode?: string; timezone?: string }
   departureAt: string | null
   route: { geometry: [number, number][]; distanceKm: number; durationMin: number } | null
+  /** Backend journeys (Module 26): discovery is the backend's; these are its search defaults and bounds. */
+  backend?: boolean
+  search?: { corridorM: number; corridorMinM: number; corridorMaxM: number; maxDetourMin: number; maxDetourMaxMin: number; candidateCap: number; pageSize: number; sorts: string[] }
 }

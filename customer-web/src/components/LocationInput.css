@@ -28,3 +28,7 @@
 .loc__dev-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .loc__dev-actions .btn { height: 40px; padding: 0 14px; font-size: 14px; }
 .loc__retry { color: var(--orange-text); font-weight: 600; text-decoration: underline; }
+
+/* Module 26: what happened to the chosen place (being resolved, not served, location permission refused) */
+.loc__note { margin: 6px 0 0; font-size: 12.5px; line-height: 1.4; color: #4b5260; }
+.loc__note--warn { color: #9a1d17; }

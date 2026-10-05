@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Auth\AccessControl;
 use App\Auth\Principal;
 use App\Auth\Scope;
+use App\Contracts\Journey\PlacesProvider;
+use App\Contracts\Journey\RoutingProvider;
 use App\Contracts\Sms\SmsProvider;
 use App\Enums\Permission;
 use App\Enums\PrincipalType;
@@ -24,6 +26,7 @@ use App\Models\RoleAssignment;
 use App\Models\RolePermission;
 use App\Models\RouteCorridor;
 use App\Models\ServiceArea;
+use App\Services\Journey\Providers\ProviderManager;
 use App\Services\Market\MarketContext;
 use App\Services\Restaurant\RestaurantCatalog;
 use App\Services\Sms\SmsManager;
@@ -46,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(MarketContext::class);
 
         $this->app->bind(SmsProvider::class, fn () => $this->app->make(SmsManager::class)->provider());
+
+        // Journeys (Module 26): one manager builds the configured places / routing providers; the core sees interfaces only.
+        $this->app->singleton(ProviderManager::class);
+        $this->app->bind(PlacesProvider::class, fn () => $this->app->make(ProviderManager::class)->places());
+        $this->app->bind(RoutingProvider::class, fn () => $this->app->make(ProviderManager::class)->routing());
     }
 
     public function boot(): void
@@ -166,5 +174,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('payment', fn (Request $request) => Limit::perMinute($perMinute('payment'))->by('payment:'.$actor($request)));
 
         RateLimiter::for('admin-sensitive', fn (Request $request) => Limit::perMinute($perMinute('admin_sensitive'))->by('admin:'.$actor($request)));
+
+        // Journeys (Module 26): guests (by address) are limited tighter than signed-in customers (by identity); expensive
+        // operations (place search, planning) tighter than reads. Sending a shortlist to the routing provider is limited
+        // per journey inside RouteDiscoveryService (rate_limits.journey_detours); reading calculated results is not.
+        $journeyActor = fn (Request $request): string => ($user = $request->user('customer')) !== null ? 'c:'.$user->getAuthIdentifier() : 'ip:'.$request->ip();
+        $journeyLimit = fn (Request $request, string $name): Limit => Limit::perMinute($perMinute($request->user('customer') !== null ? $name : $name.'_guest'));
+        RateLimiter::for('places-search', fn (Request $request) => $journeyLimit($request, 'places_search')->by('places:'.$journeyActor($request)));
+        RateLimiter::for('journey-plan', fn (Request $request) => $journeyLimit($request, 'journey_plan')->by('journey-plan:'.$journeyActor($request)));
+        RateLimiter::for('journey-read', fn (Request $request) => Limit::perMinute($perMinute('journey_read'))->by('journey-read:'.$journeyActor($request)));
     }
 }

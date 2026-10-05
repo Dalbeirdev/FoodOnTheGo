@@ -110,7 +110,7 @@ final class GeographyAdminService
             }
         }
 
-        return $this->change($this->configuration($market), $market, $input, $actor, 'market.configuration_updated', null, reasonAlways: true, fields: ['payment', 'tax', 'legal', 'address', 'ordering', 'locked_features']);
+        return $this->change($this->configuration($market), $market, $input, $actor, 'market.configuration_updated', null, reasonAlways: true, fields: ['payment', 'tax', 'legal', 'address', 'ordering', 'locked_features', 'journey']);
     }
 
     /**

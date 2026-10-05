@@ -10,11 +10,11 @@ import '../i18n/format.dart';
 import '../i18n/markets.dart';
 import '../market/market.dart';
 import '../i18n/strings.dart';
-import '../journey/journey_repositories.dart' show Journey, formatDuration;
+import '../journey/journey_repositories.dart' show Journey, JourneyErrorCode, JourneyException, formatDuration;
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
-import 'plan_journey_screen.dart' show LocationPickerSheet;
+import 'plan_journey_screen.dart' show LocationPickerSheet, routeSourceTag;
 import '../state/journey_state.dart';
 import '../widgets/common.dart';
 
@@ -28,7 +28,8 @@ class RestaurantsScreen extends StatefulWidget {
 }
 
 class _RestaurantsScreenState extends State<RestaurantsScreen> {
-  String journeyState = 'none'; // none | loading | ready | missing
+  String journeyState = 'none'; // none | loading | ready | missing | expired | unreachable
+  String? journeyError;
   bool mapView = false;
   final searchCtrl = TextEditingController();
 
@@ -43,10 +44,21 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
     final ds = context.read<DiscoveryState>();
     Journey? j;
     if (widget.journeyId != null) {
-      setState(() => journeyState = 'loading');
-      j = await js.load(widget.journeyId!).catchError((_) => null);
+      setState(() { journeyState = 'loading'; journeyError = null; });
+      var outcome = 'ready';
+      try {
+        j = await js.load(widget.journeyId!);
+        if (j == null) outcome = 'missing';
+      } on JourneyException catch (e) {
+        // Over is not the same as unknown, and neither is "cannot be asked right now".
+        outcome = e.code == JourneyErrorCode.expired ? 'expired' : e.code == JourneyErrorCode.notFound ? 'missing' : 'unreachable';
+        journeyError = e.message;
+      } catch (_) {
+        outcome = 'missing';
+      }
       if (!mounted) return;
-      setState(() => journeyState = j == null ? 'missing' : 'ready');
+      setState(() => journeyState = outcome);
+      if (j == null) { ds.clearJourney(); return; }
     } else if (js.journey?.route != null) {
       j = js.journey;
       setState(() => journeyState = 'ready');
@@ -73,7 +85,8 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
   Widget build(BuildContext context) {
     final ds = context.watch<DiscoveryState>();
     final js = context.watch<JourneyState>();
-    final journey = ds.journey;
+    final gone = journeyState == 'expired' || journeyState == 'missing' ? journeyState : (ds.journey != null ? ds.journeyGone : null);
+    final journey = gone != null || journeyState == 'unreachable' ? null : ds.journey;
     final units = ds.units;
     final heading = switch (ds.status) {
       DiscoveryStatus.loading || DiscoveryStatus.idle => S.t(journey == null ? 'discovery.loading' : 'discovery.loadingRoute'),
@@ -85,9 +98,13 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
         header: PageHeader(eyebrow: S.t('discovery.eyebrow'), title: S.t('discovery.title.line1'), accent: S.t('discovery.title.line2'), subtitle: S.t('discovery.lead')),
         children: [
           if (journeyState == 'loading') const Card(child: Padding(padding: EdgeInsets.all(16), child: Row(children: [SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)), SizedBox(width: 12), Text('Loading journey…', style: TextStyle(color: Brand.grey))]))),
-          if (journeyState == 'missing') Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('Journey not found on this device.', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A1D17))), const SizedBox(height: 10), BrandButton(label: S.t('discovery.planJourney'), expand: false, height: 42, onPressed: () => context.go('/plan-journey'))]))),
+          if (gone == 'missing') Semantics(container: true, identifier: 'journey-missing', child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('discovery.missing.title'), style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A1D17))), if (js.backend) Padding(padding: const EdgeInsets.only(top: 4), child: Text(S.t('discovery.missing.text'), style: const TextStyle(color: Brand.grey, fontSize: 13))), const SizedBox(height: 10), BrandButton(label: S.t('discovery.planJourney'), expand: false, height: 42, onPressed: () => context.go('/plan-journey'))])))),
+          if (gone == 'expired') Semantics(container: true, identifier: 'journey-expired', child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('discovery.expired.title'), style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A1D17))), Padding(padding: const EdgeInsets.only(top: 4), child: Text(S.t('discovery.expired.text'), style: const TextStyle(color: Brand.grey, fontSize: 13))), const SizedBox(height: 10), BrandButton(label: S.t('discovery.expired.planAgain'), expand: false, height: 42, onPressed: () { js.planAgain(); context.go('/plan-journey'); })])))),
+          if (journeyState == 'unreachable') Semantics(container: true, identifier: 'journey-unreachable', child: Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('discovery.unreachable.title'), style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF9A1D17))), Padding(padding: const EdgeInsets.only(top: 4), child: Text(journeyError ?? '', style: const TextStyle(color: Brand.grey, fontSize: 13))), const SizedBox(height: 10), BrandButton(label: S.t('discovery.error.retry'), expand: false, height: 42, onPressed: _bind)])))),
           if (journey != null) _JourneyContextCard(journey: journey, ds: ds, js: js, units: units),
-          if (journey == null && journeyState == 'none') _ContextCard(ds: ds, onChange: _changeLocation),
+          if (journey == null && journeyState == 'none' && gone == null) _ContextCard(ds: ds, onChange: _changeLocation),
+          // A journey that is over, unknown or unreachable lists nothing: only its panel above is shown.
+          if (gone == null && journeyState != 'unreachable') ...[
           const SizedBox(height: 14),
           // search + filters + sort
           Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -109,7 +126,10 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
               ]),
             ]),
           ),
-          if (ds.sort == SortKey.recommended) Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('discovery.sort.recommendedShort'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
+          if (ds.sort == SortKey.recommended) Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t(ds.backend ? 'discovery.sort.recommendedShortArrival' : 'discovery.sort.recommendedShort'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
+          // Where the figures on the cards come from, and when they were calculated (backend journeys).
+          if (ds.backend && ds.searchMeta != null && ds.status != DiscoveryStatus.error)
+            Semantics(container: true, identifier: 'estimate-note-${ds.searchMeta!.providerMode}', child: Padding(padding: const EdgeInsets.only(top: 6), child: Text('${S.t(ds.searchMeta!.providerMode == 'development' ? 'discovery.estimate.development' : 'discovery.estimate.live')} ${S.t('discovery.estimate.calculated', {'time': formatLocalTime(ds.searchMeta!.calculatedAt, journey?.origin.timezone ?? 'Asia/Kolkata')})} ${S.t('discovery.maxDetour', {'minutes': ds.searchMeta!.maxDetourMin})}.', style: const TextStyle(color: Brand.grey, fontSize: 12)))),
           if (ds.status == DiscoveryStatus.updating) Padding(padding: const EdgeInsets.only(top: 4), child: Text(S.t('discovery.updating'), style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
           const SizedBox(height: 12),
           if (mapView) ...[
@@ -131,7 +151,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                 ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const Icon(Icons.place_outlined, color: Brand.orangeDeep), title: Text(x.restaurant.name, textDirection: null), subtitle: x.distanceFromRouteM == null ? null : Text(S.t('card.fromRoute', {'distance': formatDistance(x.distanceFromRouteM!, units)})), onTap: () => ds.select(x.restaurant.id)),
           ] else ...[
             if (ds.status == DiscoveryStatus.error)
-              InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('discovery.error.title'), style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A1D17))), Text(ds.error ?? '', style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13)), const SizedBox(height: 10), BrandButton(label: S.t('discovery.error.retry'), expand: false, height: 40, onPressed: ds.retry)])),
+              Semantics(container: true, identifier: 'discovery-error-${ds.errorCode?.name ?? 'unexpected'}', child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t(ds.errorCode == JourneyErrorCode.providerUnavailable ? 'discovery.provider.unavailable' : 'discovery.error.title'), style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF9A1D17))), Text(ds.error ?? '', style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13)), const SizedBox(height: 10), BrandButton(label: S.t('discovery.error.retry'), expand: false, height: 40, onPressed: ds.retry)]))),
             if (ds.status == DiscoveryStatus.loading || ds.status == DiscoveryStatus.idle)
               Semantics(label: heading, child: Column(children: [for (var i = 0; i < 3; i++) Padding(padding: const EdgeInsets.only(bottom: 12), child: Container(height: 220, decoration: BoxDecoration(color: const Color(0xFFEEF0F4), borderRadius: BorderRadius.circular(14))))])),
             if (journey == null && ds.scope == null && journeyState == 'none')
@@ -151,19 +171,21 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                 else BrandButton(label: S.t('market.unavailable.changeLocation'), expand: false, height: 42, onPressed: _changeLocation),
               ]))))
             else if ((ds.status == DiscoveryStatus.ready || ds.status == DiscoveryStatus.updating || ds.status == DiscoveryStatus.loadingMore) && ds.items.isEmpty)
-              Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
+              Semantics(container: true, identifier: 'discovery-empty-${ds.emptyReason?.name ?? 'none'}', child: Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: [
                 const Icon(Icons.search_off, size: 40, color: Brand.orangeDeep), const SizedBox(height: 8),
-                Text(S.t(journey != null ? 'discovery.empty.route.title' : (ds.scope != null && ds.activeFilterCount == 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title'), {'label': ds.scope?.label ?? ''}), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 4), Text(S.t(journey != null ? 'discovery.empty.route.text' : (ds.scope != null && ds.activeFilterCount == 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text')), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
+                Text(S.t(ds.emptyReason == EmptyReason.filters ? 'discovery.empty.filters.title' : ds.emptyReason == EmptyReason.unreachable ? 'discovery.empty.unreachable.title' : journey != null ? 'discovery.empty.route.title' : (ds.scope != null && ds.activeFilterCount == 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title'), {'label': ds.scope?.label ?? ''}), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4), Text(S.t(ds.emptyReason == EmptyReason.filters ? 'discovery.empty.filters.text' : ds.emptyReason == EmptyReason.unreachable ? 'discovery.empty.unreachable.text' : journey != null ? 'discovery.empty.route.text' : (ds.scope != null && ds.activeFilterCount == 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text')), textAlign: TextAlign.center, style: const TextStyle(color: Brand.grey)),
                 const SizedBox(height: 14),
                 Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+                  if (ds.emptyReason == EmptyReason.filters && ds.filters['detourTime'] == null && ds.searchMeta != null && journey?.search != null && ds.searchMeta!.maxDetourMin < journey!.search!.maxDetourMaxMin)
+                    BrandButton(label: S.t('discovery.empty.allowLongerDetour', {'minutes': math.min(journey.search!.maxDetourMaxMin, math.max(30, ds.searchMeta!.maxDetourMin * 2))}), expand: false, height: 42, onPressed: () => ds.setFilter('detourTime', math.min(journey.search!.maxDetourMaxMin, math.max(30, ds.searchMeta!.maxDetourMin * 2)))),
                   if (journey == null && ds.scope != null && ds.nextRing != null) BrandButton(label: _moreAreasLabel(ds), expand: false, height: 42, onPressed: ds.showMoreAreas),
                   if (journey == null && ds.scope != null) OutlineButton(label: S.t('scope.change'), expand: false, height: 42, onPressed: _changeLocation),
-                  if (journey != null && (ds.corridorM ?? 0) < 50000) BrandButton(label: S.t('discovery.empty.increaseDetour', {'distance': formatDistance(((ds.corridorM ?? 5000) * 2).clamp(1000, 50000), units)}), expand: false, height: 42, onPressed: ds.widenCorridor),
+                  if (journey != null && ds.emptyReason != EmptyReason.unreachable && (ds.corridorM ?? 0) < ds.corridorBounds.$2) BrandButton(label: S.t('discovery.empty.increaseDetour', {'distance': formatDistance(((ds.corridorM ?? 5000) * 2).clamp(ds.corridorBounds.$1, ds.corridorBounds.$2), units)}), expand: false, height: 42, onPressed: ds.widenCorridor),
                   if (ds.activeFilterCount > 0) OutlineButton(label: S.t('discovery.empty.clearFilters'), expand: false, height: 42, onPressed: () { searchCtrl.clear(); ds.clearFilters(); }),
                   if (journey != null) OutlineButton(label: S.t('discovery.empty.editRoute'), expand: false, height: 42, onPressed: () { js.edit(); context.go('/plan-journey'); }),
                 ]),
-              ]))),
+              ])))),
             if (ds.items.isNotEmpty)
               Opacity(opacity: ds.status == DiscoveryStatus.updating ? .6 : 1, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 for (final g in _groups(ds, journey)) ...[
@@ -183,6 +205,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
               Center(child: OutlineButton(label: ds.status == DiscoveryStatus.loadingMore ? S.t('discovery.loadingMore') : S.t('discovery.loadMore'), expand: false, onPressed: ds.status == DiscoveryStatus.loadingMore ? null : ds.loadMore)),
               Center(child: Padding(padding: const EdgeInsets.only(top: 4), child: Text('${ds.items.length} / ${ds.total}', style: const TextStyle(color: Brand.grey, fontSize: 12)))),
             ],
+          ],
           ],
         ],
       ),
@@ -285,6 +308,7 @@ class _JourneyContextCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = journey.route!;
     final corridor = ds.corridorM ?? 5000;
+    final (minM, maxM, stepM) = ds.corridorBounds;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -296,8 +320,9 @@ class _JourneyContextCard extends StatelessWidget {
           _Point(label: 'TO', l: journey.destination, color: Brand.red),
           const SizedBox(height: 10),
           Wrap(spacing: 12, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
-            Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.directions_car_outlined, size: 16, color: Brand.grey), const SizedBox(width: 6), Text('${formatDistance(r.distanceKm * 1000, units)} · ${formatDuration(r.durationMin)}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5))]),
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: Text(S.t('mock.estimate'), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300)))),
+            Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.directions_car_outlined, size: 16, color: Brand.grey), const SizedBox(width: 6), Text('${formatDistance(r.distanceM ?? r.distanceKm * 1000, units)} · ${formatDuration(r.durationMin)}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5))]),
+            Semantics(identifier: 'route-mode-${r.mode}', child: _RouteTag(r.mode == 'mock' ? S.t('mock.estimate') : routeSourceTag(r))),
+            for (final f in r.flags) if (f == 'TOLLS' || f == 'FERRY') _RouteTag(S.t('route.flag.$f')),
             Text(journey.departureAt == null ? 'Leaving now' : 'Departing ${formatLocalTime(journey.departureAt!.toUtc(), journey.origin.timezone ?? 'UTC')} ${zoneLabel(journey.origin.timezone ?? 'UTC')}', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
           ]),
           const SizedBox(height: 6),
@@ -306,7 +331,7 @@ class _JourneyContextCard extends StatelessWidget {
           ]),
           Semantics(
             label: S.t('discovery.corridor', {'distance': formatDistance(corridor, units)}),
-            child: Slider(min: 1000, max: 50000, divisions: 49, value: corridor.toDouble().clamp(1000, 50000), label: formatDistance(corridor, units), onChanged: (v) => ds.setCorridor((v / 1000).round() * 1000)),
+            child: Slider(min: minM.toDouble(), max: maxM.toDouble(), divisions: ((maxM - minM) / stepM).round(), value: corridor.toDouble().clamp(minM.toDouble(), maxM.toDouble()), label: formatDistance(corridor, units), onChanged: (v) => ds.setCorridor((v / stepM).round() * stepM)),
           ),
           Wrap(spacing: 8, runSpacing: 8, children: [
             OutlineButton(label: S.t('discovery.editJourney'), expand: false, height: 40, onPressed: () { js.edit(); context.go('/plan-journey'); }),
@@ -316,6 +341,13 @@ class _JourneyContextCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _RouteTag extends StatelessWidget {
+  const _RouteTag(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: Text(text, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))));
 }
 
 class _Point extends StatelessWidget {
@@ -336,7 +368,9 @@ class _Pill extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool active;
-  final VoidCallback onTap;
+  /// Null when the pill is the face of a menu button: the menu button takes the tap. (A pill with its own tap handler —
+  /// even an empty one — wins the gesture, and the menu never opens.)
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Material(
         color: Colors.transparent,
@@ -360,8 +394,8 @@ class _SortMenu extends StatelessWidget {
         tooltip: S.t('discovery.sort'),
         initialValue: ds.sort,
         onSelected: ds.setSort,
-        itemBuilder: (_) => [for (final k in SortKey.values) if (journey != null || (k != SortKey.lowestDetour && k != SortKey.nearestToRoute)) PopupMenuItem(value: k, child: Text(S.t('discovery.sort.${k.name}')))],
-        child: _Pill(icon: Icons.sort, label: '${S.t('discovery.sort')}: ${S.t('discovery.sort.${ds.sort.name}')}', active: false, onTap: () {}),
+        itemBuilder: (_) => [for (final k in ds.sorts) PopupMenuItem(value: k, child: Text(S.t('discovery.sort.${k.name}')))],
+        child: _Pill(icon: Icons.sort, label: '${S.t('discovery.sort')}: ${S.t('discovery.sort.${ds.sort.name}')}', active: false, onTap: null),
       );
 }
 
@@ -373,7 +407,7 @@ class _UnitsMenu extends StatelessWidget {
         tooltip: S.t('units.label'),
         onSelected: (v) => ds.setUnitPreference(v == 'auto' ? null : v == 'metric' ? UnitSystem.metric : UnitSystem.imperial),
         itemBuilder: (_) => [PopupMenuItem(value: 'auto', child: Text(S.t('units.auto'))), PopupMenuItem(value: 'metric', child: Text(S.t('units.metric'))), PopupMenuItem(value: 'imperial', child: Text(S.t('units.imperial')))],
-        child: _Pill(icon: Icons.straighten, label: ds.unitPreference == null ? S.t('units.auto') : ds.unitPreference == UnitSystem.metric ? 'km' : 'mi', active: false, onTap: () {}),
+        child: _Pill(icon: Icons.straighten, label: ds.unitPreference == null ? S.t('units.auto') : ds.unitPreference == UnitSystem.metric ? 'km' : 'mi', active: false, onTap: null),
       );
 }
 
@@ -390,10 +424,13 @@ class GlobalRestaurantCard extends StatelessWidget {
     final r = result.restaurant;
     final a = result.availability;
     void open() { onSelect(); context.push('/restaurants/${r.slug}'); }
-    final statusKey = switch (a.status) { AvailabilityStatus.open => 'card.open', AvailabilityStatus.closingSoon => 'card.closingSoon', AvailabilityStatus.openingSoon => 'card.openingSoon', AvailabilityStatus.temporarilyClosed => 'card.temporarilyClosed', AvailabilityStatus.closed => 'card.closed' };
+    final arriving = result.atArrival;
+    final statusKey = switch (a.status) { AvailabilityStatus.open => arriving ? 'card.openOnArrival' : 'card.open', AvailabilityStatus.closingSoon => arriving ? 'card.closingSoonOnArrival' : 'card.closingSoon', AvailabilityStatus.openingSoon => arriving ? 'card.openingSoonOnArrival' : 'card.openingSoon', AvailabilityStatus.temporarilyClosed => 'card.temporarilyClosed', AvailabilityStatus.closed => arriving ? 'card.closedOnArrival' : 'card.closed' };
     final (statusColor, statusBg) = switch (a.status) { AvailabilityStatus.open => (Brand.green, Brand.greenBg), AvailabilityStatus.closingSoon => (const Color(0xFF8A4B00), const Color(0xFFFFF4E0)), AvailabilityStatus.openingSoon => (const Color(0xFF1D4ED8), Brand.blueBg), _ => (const Color(0xFF4B5260), const Color(0xFFF2F3F6)) };
     final next = a.nextChangeAt == null ? null : '${S.t(a.isOpen ? 'card.closesAt' : 'card.opensAt', {'time': formatLocalTime(a.nextChangeAt!, r.timezone)})} ${zoneLabel(r.timezone)}';
-    return Card(
+    return Semantics(
+      container: true, identifier: 'rcard-${r.slug}',
+      child: Card(
       clipBehavior: Clip.antiAlias,
       shape: selected ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Brand.orangeDeep, width: 2.5)) : null,
       child: InkWell(
@@ -401,7 +438,7 @@ class GlobalRestaurantCard extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Photo(r.image, aspect: 16 / 10, radius: 0, overlay: true, child: Positioned.fill(child: Stack(children: [
             Positioned(top: 10, left: 10, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: statusBg.withValues(alpha: .96), borderRadius: BorderRadius.circular(999)), child: Text(S.t(statusKey), style: TextStyle(color: statusColor, fontWeight: FontWeight.w800, fontSize: 11.5)))),
-            if (result.detourDurationMin != null) Positioned(bottom: 10, left: 10, child: DetourBadge(result.detourDurationMin!)),
+            if (result.detourDurationMin != null) Positioned(bottom: 10, left: 10, child: DetourBadge(result.detourDurationMin!, actual: arriving)),
             Positioned(top: 6, right: 6, child: FavoriteButton(restaurantId: r.id, name: r.name)),
           ]))),
           Padding(
@@ -410,7 +447,8 @@ class GlobalRestaurantCard extends StatelessWidget {
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Expanded(child: Text(r.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, height: 1.2))),
                 const SizedBox(width: 8),
-                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 15), Text(' ${r.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)), Text(' (${r.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
+                // Along a backend journey there are no review figures at all (no reviews backend yet): nothing is shown in their place.
+                if (!arriving) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 15), Text(' ${r.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)), Text(' (${r.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
               ]),
               const SizedBox(height: 4),
               Text('${r.cuisines.take(2).join(' · ')}  ·  ${priceLevelLabel(r.priceLevel, r.currency)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 13.5)),
@@ -423,7 +461,7 @@ class GlobalRestaurantCard extends StatelessWidget {
                 if (result.distanceFromRouteM != null) _Meta(Icons.place_outlined, S.t('card.fromRoute', {'distance': formatDistance(result.distanceFromRouteM!, units)})),
                 if (result.distanceFromRouteM == null && result.distanceFromScopeM != null) _Meta(Icons.place_outlined, formatDistance(result.distanceFromScopeM!, units)),
                 _Meta(Icons.schedule, S.t('card.prep', {'minutes': formatMinutes(r.prepTimeMin)})),
-                if (result.estimatedArrival != null) _Meta(Icons.directions_car_outlined, S.t('card.arrival', {'time': formatLocalTime(result.estimatedArrival!, r.timezone)})),
+                if (result.estimatedArrival != null) _Meta(Icons.directions_car_outlined, S.t(arriving ? 'card.estimatedArrival' : 'card.arrival', {'time': formatLocalTime(result.estimatedArrival!, r.timezone)})),
               ]),
               const SizedBox(height: 6),
               Text(r.address.formatted, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 12)),
@@ -438,7 +476,7 @@ class GlobalRestaurantCard extends StatelessWidget {
           ),
         ]),
       ),
-    );
+    ));
   }
 }
 
@@ -516,7 +554,8 @@ class DiscoveryMapShell extends StatelessWidget {
       final ox = (w - spanLng * scale) / 2, oy = (h - spanLat * scale) / 2;
       Offset proj(double lat, double lng) => Offset(ox + (lng - minLng) * scale, h - oy - (lat - minLat) * scale);
       final selected = items.where((x) => x.restaurant.id == selectedId).firstOrNull;
-      return Semantics(
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [Semantics(
+        identifier: 'map-route-${route.length}',
         label: '${S.t('discovery.map.title')}: ${items.length} restaurants${journey == null ? '' : ' along ${journey!.origin.name} to ${journey!.destination.name}'}',
         child: Container(
           height: h, clipBehavior: Clip.antiAlias,
@@ -532,10 +571,12 @@ class DiscoveryMapShell extends StatelessWidget {
                 ),
               ),
             if (selected != null) Positioned(left: 8, top: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .12), blurRadius: 8)]), child: Text(S.t('discovery.map.selected', {'name': selected.restaurant.name}), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)))),
-            Positioned(left: 8, bottom: 8, right: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: Text(S.t('discovery.map.shell'), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))))),
           ]),
         ),
-      );
+      ),
+      // A caption under the drawing, never an overlay: laid over the map it covered markers near the bottom edge and took their taps.
+      Container(margin: const EdgeInsets.only(top: 6), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(10)), child: Text(S.t(journey?.backend == true ? 'discovery.map.shellRoute' : 'discovery.map.shell'), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300)))),
+      ]);
     });
   }
 }

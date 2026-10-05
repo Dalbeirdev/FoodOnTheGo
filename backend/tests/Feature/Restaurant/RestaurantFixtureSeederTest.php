@@ -142,4 +142,23 @@ class RestaurantFixtureSeederTest extends TestCase
         $this->assertSame($before, $snapshot());
         $this->assertSame('Burger Hub (renamed locally)', DB::table('restaurant_locations')->where('slug', 'burger-hub')->value('name'));
     }
+
+    public function test_a_relative_fixture_date_stays_relative_when_the_fixtures_are_seeded_again_later(): void
+    {
+        $closure = fn (): string => (string) DB::table('restaurant_special_hours')->where('public_note', 'Closed for staff training')->value('date');
+        $this->assertSame('2026-10-08', $closure()); // "tomorrow" on the day of seeding
+
+        // Three days later the fixture would lie in the past: customers only see upcoming special dates.
+        Carbon::setTestNow(CarbonImmutable::parse('2026-10-10 09:00', 'Asia/Kolkata'));
+        $notes = fn (): array => $this->getJson('/api/v1/restaurants/ambala-chai-point')->assertOk()->json('hours.special.*.note');
+        $this->assertNotContains('Closed for staff training', $notes());
+
+        $rows = DB::table('restaurant_special_hours')->count();
+        $this->seed(DatabaseSeeder::class);
+        $this->assertSame('2026-10-11', $closure());
+        $this->assertSame($rows, DB::table('restaurant_special_hours')->count());
+        $this->assertContains('Closed for staff training', $notes());
+        // The fixed-date fixtures (8 November) are untouched.
+        $this->assertSame(2, DB::table('restaurant_special_hours')->where('date', '2026-11-08')->count());
+    }
 }

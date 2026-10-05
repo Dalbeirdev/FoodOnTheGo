@@ -31,4 +31,13 @@ return [
     'search' => (int) env('RATE_LIMIT_SEARCH', 60),
     'payment' => (int) env('RATE_LIMIT_PAYMENT', 10),
     'admin_sensitive' => (int) env('RATE_LIMIT_ADMIN_SENSITIVE', 20),
+
+    // Journeys (Module 26): place search and planning call external providers. journey_detours = how often per minute ONE
+    // journey may send a shortlist to the routing provider (calculated results are reused and only count as reads).
+    'places_search' => (int) env('RATE_LIMIT_PLACES_SEARCH', 60),
+    'places_search_guest' => (int) env('RATE_LIMIT_PLACES_SEARCH_GUEST', 30),
+    'journey_plan' => (int) env('RATE_LIMIT_JOURNEY_PLAN', 12),
+    'journey_plan_guest' => (int) env('RATE_LIMIT_JOURNEY_PLAN_GUEST', 6),
+    'journey_detours' => (int) env('RATE_LIMIT_JOURNEY_DETOURS', 12),
+    'journey_read' => (int) env('RATE_LIMIT_JOURNEY_READ', 120),
 ];

@@ -1,8 +1,8 @@
 /// Journey planning abstractions (Module 05) — Android.
 ///
 /// Screens never touch storage or providers directly. Mock* implementations supply controlled
-/// development data; ApiLocationRepository / GooglePlacesLocationRepository, ApiJourneyRepository
-/// and ApiRouteRepository / GoogleRouteRepository replace them later without rebuilding screens.
+/// development data; with JOURNEY_MODE=api the Api* repositories (api_journey.dart, Module 26) take their
+/// place: places, the route, detours and arrival times then come from the backend and its providers.
 ///
 /// PRODUCT BOUNDARY: a journey is TRAVEL + restaurant discovery + pre-order + PICKUP at the
 /// restaurant. There is no delivery destination anywhere in this model.
@@ -18,38 +18,79 @@ enum LocationKind { city, station, airport, landmark, saved, recent, current }
 
 /// Generic global place (WGS84 / SRID 4326). Optional fields because providers differ — never
 /// assume one country's address format.
+/// What the backend said about serving a place (Module 26). Null on a location = not asked (development providers).
+class PlaceCoverage {
+  const PlaceCoverage({required this.supported, this.reason, this.city, this.serviceArea});
+  final bool supported;
+  final String? reason, city, serviceArea;
+}
+
 class JourneyLocation {
-  const JourneyLocation({required this.id, required this.name, required this.sub, required this.kind, this.lat, this.lng, this.source = 'mock', this.placeId, this.formattedAddress, this.countryCode, this.adminArea, this.locality, this.postalCode, this.timezone});
+  const JourneyLocation({required this.id, required this.name, required this.sub, required this.kind, this.lat, this.lng, this.source = 'mock', this.placeId, this.formattedAddress, this.countryCode, this.adminArea, this.locality, this.postalCode, this.timezone, this.savedLocationId, this.coverage});
+  /// source: mock | dev-location | saved-address | place (a provider place) | recent | device (this device's position).
   final String id, name, sub, source;
+  /// The customer's saved place on the backend (sent by id — the backend reads its coordinates itself).
+  final String? savedLocationId;
+  final PlaceCoverage? coverage;
   final LocationKind kind;
   final double? lat, lng;
   /// Provider place identifier, formatted address, ISO 3166-1 country code, IANA time zone.
   final String? placeId, formattedAddress, countryCode, adminArea, locality, postalCode, timezone;
-  JourneyLocation copyWith({LocationKind? kind}) => JourneyLocation(id: id, name: name, sub: sub, kind: kind ?? this.kind, lat: lat, lng: lng, source: source, placeId: placeId, formattedAddress: formattedAddress, countryCode: countryCode, adminArea: adminArea, locality: locality, postalCode: postalCode, timezone: timezone);
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'sub': sub, 'kind': kind.name, 'lat': lat, 'lng': lng, 'source': source, 'placeId': placeId, 'formattedAddress': formattedAddress, 'countryCode': countryCode, 'adminArea': adminArea, 'locality': locality, 'postalCode': postalCode, 'timezone': timezone};
+  JourneyLocation copyWith({LocationKind? kind, String? name, double? lat, double? lng, String? formattedAddress, String? countryCode, String? adminArea, String? locality, String? postalCode, String? timezone, PlaceCoverage? coverage}) => JourneyLocation(id: id, name: name ?? this.name, sub: sub, kind: kind ?? this.kind, lat: lat ?? this.lat, lng: lng ?? this.lng, source: source, placeId: placeId, formattedAddress: formattedAddress ?? this.formattedAddress, countryCode: countryCode ?? this.countryCode, adminArea: adminArea ?? this.adminArea, locality: locality ?? this.locality, postalCode: postalCode ?? this.postalCode, timezone: timezone ?? this.timezone, savedLocationId: savedLocationId, coverage: coverage ?? this.coverage);
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'sub': sub, 'kind': kind.name, 'lat': lat, 'lng': lng, 'source': source, 'placeId': placeId, 'formattedAddress': formattedAddress, 'countryCode': countryCode, 'adminArea': adminArea, 'locality': locality, 'postalCode': postalCode, 'timezone': timezone, 'savedLocationId': savedLocationId};
   factory JourneyLocation.fromJson(Map<String, dynamic> j) => JourneyLocation(id: j['id'] as String, name: j['name'] as String, sub: (j['sub'] as String?) ?? '', kind: LocationKind.values.byName(j['kind'] as String), lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), source: (j['source'] as String?) ?? 'mock',
-      placeId: j['placeId'] as String?, formattedAddress: j['formattedAddress'] as String?, countryCode: j['countryCode'] as String?, adminArea: j['adminArea'] as String?, locality: j['locality'] as String?, postalCode: j['postalCode'] as String?, timezone: j['timezone'] as String?);
+      placeId: j['placeId'] as String?, formattedAddress: j['formattedAddress'] as String?, countryCode: j['countryCode'] as String?, adminArea: j['adminArea'] as String?, locality: j['locality'] as String?, postalCode: j['postalCode'] as String?, timezone: j['timezone'] as String?, savedLocationId: j['savedLocationId'] as String?);
 }
 
 /// Alias matching the web `Place` type.
 typedef Place = JourneyLocation;
 
 class RouteSummary {
-  const RouteSummary({required this.distanceKm, required this.durationMin, required this.geometry, required this.waypoints, this.provider = 'mock', this.isEstimate = true});
+  const RouteSummary({required this.distanceKm, required this.durationMin, required this.geometry, required this.waypoints, this.provider = 'mock', this.isEstimate = true, this.mode = 'mock', this.distanceM, this.durationS, this.flags = const [], this.trafficAware = false});
   final int distanceKm, durationMin;
   final List<List<double>> geometry;
   final List<String> waypoints;
   final String provider;
   final bool isEstimate;
-  Map<String, dynamic> toJson() => {'distanceKm': distanceKm, 'durationMin': durationMin, 'geometry': geometry, 'waypoints': waypoints, 'provider': provider, 'isEstimate': isEstimate};
-  factory RouteSummary.fromJson(Map<String, dynamic> j) => RouteSummary(distanceKm: j['distanceKm'] as int, durationMin: j['durationMin'] as int, geometry: [for (final p in j['geometry'] as List) [(p[0] as num).toDouble(), (p[1] as num).toDouble()]], waypoints: List<String>.from(j['waypoints'] as List), provider: (j['provider'] as String?) ?? 'mock', isEstimate: j['isEstimate'] != false);
+  /// Where the figures come from: mock (the in-app sketch) | development (the backend's development routing model —
+  /// synthetic roads) | live (a routing provider). Exact metres / seconds, flags (TOLLS, FERRY) and whether the
+  /// duration considers traffic are the backend's (null / empty for the in-app sketch).
+  final String mode;
+  final int? distanceM, durationS;
+  final List<String> flags;
+  final bool trafficAware;
+  Map<String, dynamic> toJson() => {'distanceKm': distanceKm, 'durationMin': durationMin, 'geometry': geometry, 'waypoints': waypoints, 'provider': provider, 'isEstimate': isEstimate, 'mode': mode};
+  factory RouteSummary.fromJson(Map<String, dynamic> j) => RouteSummary(distanceKm: j['distanceKm'] as int, durationMin: j['durationMin'] as int, geometry: [for (final p in j['geometry'] as List) [(p[0] as num).toDouble(), (p[1] as num).toDouble()]], waypoints: List<String>.from(j['waypoints'] as List), provider: (j['provider'] as String?) ?? 'mock', isEstimate: j['isEstimate'] != false, mode: (j['mode'] as String?) ?? 'mock');
+}
+
+/// The backend's coverage answer for a journey: is any served area along the route?
+class JourneyCoverage {
+  const JourneyCoverage({required this.alongRoute, required this.serviceableAreas});
+  final String alongRoute; // COVERED | NO_SERVICE_COVERAGE
+  final int serviceableAreas;
+  bool get covered => alongRoute == 'COVERED';
+}
+
+/// What a client may vary when it searches along a backend journey (the market's policy, from the backend).
+class JourneySearch {
+  const JourneySearch({required this.corridorM, required this.corridorMinM, required this.corridorMaxM, required this.maxDetourMin, required this.maxDetourMaxMin, required this.candidateCap, required this.pageSize, required this.sorts});
+  final int corridorM, corridorMinM, corridorMaxM, maxDetourMin, maxDetourMaxMin, candidateCap, pageSize;
+  final List<String> sorts;
 }
 
 enum JourneyRecordStatus { draft, ready, routeAvailable, error }
 
 class Journey {
-  const Journey({required this.id, required this.origin, required this.destination, this.departureAt, required this.createdAt, this.status = JourneyRecordStatus.ready, this.route, this.routeGeometryRef});
+  const Journey({required this.id, required this.origin, required this.destination, this.departureAt, required this.createdAt, this.status = JourneyRecordStatus.ready, this.route, this.routeGeometryRef, this.backend = false, this.owner, this.expiresAt, this.coverage, this.search});
   final String id;
+  /// Planned by the backend (Module 26): an EXPIRING journey context — guest or customer owned, with its coverage
+  /// answer and search bounds. False = the in-app development journey.
+  final bool backend;
+  final String? owner; // guest | customer
+  final DateTime? expiresAt; // UTC
+  final JourneyCoverage? coverage;
+  final JourneySearch? search;
+  bool get expired => expiresAt != null && !expiresAt!.isAfter(DateTime.now().toUtc());
   final JourneyLocation origin, destination;
   final DateTime? departureAt;
   final DateTime createdAt;
@@ -61,12 +102,12 @@ class Journey {
   double? get originLng => origin.lng;
   double? get destinationLat => destination.lat;
   double? get destinationLng => destination.lng;
-  Journey copyWith({JourneyRecordStatus? status, RouteSummary? route}) => Journey(id: id, origin: origin, destination: destination, departureAt: departureAt, createdAt: createdAt, status: status ?? this.status, route: route ?? this.route, routeGeometryRef: routeGeometryRef);
+  Journey copyWith({JourneyRecordStatus? status, RouteSummary? route}) => Journey(id: id, origin: origin, destination: destination, departureAt: departureAt, createdAt: createdAt, status: status ?? this.status, route: route ?? this.route, routeGeometryRef: routeGeometryRef, backend: backend, owner: owner, expiresAt: expiresAt, coverage: coverage, search: search);
   Map<String, dynamic> toJson() => {'id': id, 'origin': origin.toJson(), 'destination': destination.toJson(), 'departureAt': departureAt?.toIso8601String(), 'createdAt': createdAt.toIso8601String(), 'status': status.name, 'route': route?.toJson(), 'routeGeometryRef': routeGeometryRef};
   factory Journey.fromJson(Map<String, dynamic> j) => Journey(id: j['id'] as String, origin: JourneyLocation.fromJson(j['origin'] as Map<String, dynamic>), destination: JourneyLocation.fromJson(j['destination'] as Map<String, dynamic>), departureAt: j['departureAt'] == null ? null : DateTime.parse(j['departureAt'] as String), createdAt: DateTime.parse(j['createdAt'] as String), status: JourneyRecordStatus.values.byName(j['status'] as String), route: j['route'] == null ? null : RouteSummary.fromJson(j['route'] as Map<String, dynamic>), routeGeometryRef: j['routeGeometryRef'] as String?);
 }
 
-enum JourneyErrorCode { lookupFailed, noRoute, network, notFound, unexpected }
+enum JourneyErrorCode { lookupFailed, noRoute, network, notFound, unexpected, marketUnsupported, crossBorder, providerUnavailable, rateLimited, expired, invalid, placeNotFound }
 
 class JourneyException implements Exception {
   const JourneyException(this.code, this.message);
@@ -78,6 +119,9 @@ class JourneyException implements Exception {
 
 abstract class LocationRepository {
   Future<List<JourneyLocation>> search(String query);
+  /// A suggestion of the backend's places provider is text only: this gives it coordinates, a time zone and the
+  /// coverage answer. Development places already have them and come back unchanged.
+  Future<JourneyLocation> resolve(JourneyLocation location);
   Future<List<JourneyLocation>> recent();
   Future<void> remember(JourneyLocation location);
 }
@@ -226,6 +270,8 @@ class MockLocationRepository implements LocationRepository {
     return scored.take(6).map((e) => e.$2.location).toList();
   }
   @override
+  Future<JourneyLocation> resolve(JourneyLocation location) async => location;
+  @override
   Future<List<JourneyLocation>> recent() async {
     final raw = await s.store.read(_kRecent);
     if (raw == null) return const [];
@@ -304,7 +350,9 @@ class MockJourneyRepository implements JourneyRepository {
 }
 
 class JourneyRepositories {
-  const JourneyRepositories({required this.locations, required this.journeys, required this.routes});
+  const JourneyRepositories({required this.locations, required this.journeys, required this.routes, this.mode = 'mock'});
+  /// 'api' = the backend plans the journey and its route in one step (Module 26); 'mock' = the in-app providers.
+  final String mode;
   final LocationRepository locations;
   final JourneyRepository journeys;
   final RouteRepository routes;

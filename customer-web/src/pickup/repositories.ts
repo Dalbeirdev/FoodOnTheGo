@@ -77,7 +77,7 @@ export interface PickupRepository {
 
 /** Customer arrival estimation — separate from pickup availability (RoutingEtaService / ApiEtaService later). */
 export interface EtaService {
-  estimateArrival(restaurant: Restaurant, journey: JourneyLike | null, nowIso: string): { arrivalAt: string; source: 'mock' } | null
+  estimateArrival(restaurant: Restaurant, journey: JourneyLike | null, nowIso: string): { arrivalAt: string; source: 'mock' | 'routing' } | null
 }
 
 export class PickupError extends Error {

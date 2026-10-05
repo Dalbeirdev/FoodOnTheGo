@@ -17,8 +17,10 @@ import 'discovery_repository.dart' show globalRestaurants;
 import 'restaurant_models.dart';
 
 class RestaurantSnapshot {
-  const RestaurantSnapshot({required this.restaurants, required this.cuisines, required this.loadedAt});
+  const RestaurantSnapshot({required this.restaurants, required this.cuisines, required this.loadedAt, this.cuisineCodes = const {}});
   final List<GlobalRestaurant> restaurants;
+  /// Cuisine name → taxonomy code (the journey search filters by code — Module 26).
+  final Map<String, String> cuisineCodes;
   /// Cuisine names in the backend's order (the taxonomy, not only what the listed restaurants use).
   final List<String> cuisines;
   final DateTime loadedAt;
@@ -48,7 +50,9 @@ class ApiRestaurantRepository {
   /// The public API's restaurant onto the app model. The id stays the one the development menus and carts use for
   /// the same slug (the backend id is [GlobalRestaurant.backendId]); a restaurant the fixtures do not know keeps its
   /// slug as id and has no development menu. Ratings are development figures where the fixtures have them.
-  static GlobalRestaurant toRestaurant(Map<String, dynamic> d) {
+  /// [sampleRatings] false: no development rating is attached (results along a backend journey show no rating at all —
+  /// there is no reviews backend yet).
+  static GlobalRestaurant toRestaurant(Map<String, dynamic> d, {bool sampleRatings = true}) {
     final legacy = globalRestaurants.where((r) => r.slug == d['slug']).firstOrNull;
     final address = d['address'] as Map<String, dynamic>;
     final location = d['location'] as Map<String, dynamic>;
@@ -78,9 +82,9 @@ class ApiRestaurantRepository {
       cuisines: [for (final c in d['cuisines'] as List<dynamic>) (c as Map<String, dynamic>)['name'] as String],
       categories: [for (final c in (d['cuisines'] as List<dynamic>).take(1)) (c as Map<String, dynamic>)['name'] as String],
       images: photos.isNotEmpty ? photos : legacy?.images ?? const [],
-      rating: legacy?.rating ?? 0,
-      reviewCount: legacy?.reviewCount ?? 0,
-      ratingIsSample: legacy != null,
+      rating: sampleRatings ? legacy?.rating ?? 0 : 0,
+      reviewCount: sampleRatings ? legacy?.reviewCount ?? 0 : 0,
+      ratingIsSample: sampleRatings && legacy != null,
       openingHours: OpeningHours(
         periods: [for (final day in hours['weekly'] as List<dynamic>) for (final p in (day as Map<String, dynamic>)['periods'] as List<dynamic>) period(day['day_of_week'] as int, p as Map<String, dynamic>)],
         special: [
@@ -121,12 +125,15 @@ class ApiRestaurantRepository {
         last = ((res['meta'] as Map<String, dynamic>)['last_page'] as num?)?.toInt() ?? 1;
       }
       List<String> cuisines;
+      var codes = apiRestaurantData?.cuisineCodes ?? const <String, String>{};
       try {
-        cuisines = [for (final c in (await _api.get('/cuisines', auth: false))['data'] as List<dynamic>) (c as Map<String, dynamic>)['name'] as String];
+        final taxonomy = [for (final c in (await _api.get('/cuisines', auth: false))['data'] as List<dynamic>) c as Map<String, dynamic>];
+        cuisines = [for (final c in taxonomy) c['name'] as String];
+        codes = {for (final c in taxonomy) c['name'] as String: c['code'] as String};
       } catch (_) {
         cuisines = apiRestaurantData?.cuisines ?? const [];
       }
-      apiRestaurantData = RestaurantSnapshot(restaurants: restaurants, cuisines: cuisines, loadedAt: DateTime.now());
+      apiRestaurantData = RestaurantSnapshot(restaurants: restaurants, cuisines: cuisines, loadedAt: DateTime.now(), cuisineCodes: codes);
       return true;
     } on ApiException catch (e) {
       if (e.code == 'market_unavailable') {
@@ -154,12 +161,12 @@ class ApiRestaurantRepository {
       final restaurant = toRestaurant(await _api.get('/restaurants/${Uri.encodeComponent(slug)}', auth: false));
       if (snapshot != null) {
         final others = snapshot.restaurants.where((r) => r.slug != slug);
-        apiRestaurantData = RestaurantSnapshot(restaurants: [...others, restaurant], cuisines: snapshot.cuisines, loadedAt: snapshot.loadedAt);
+        apiRestaurantData = RestaurantSnapshot(restaurants: [...others, restaurant], cuisines: snapshot.cuisines, loadedAt: snapshot.loadedAt, cuisineCodes: snapshot.cuisineCodes);
       }
       return restaurant;
     } on ApiException catch (e) {
       if (e.kind == ApiErrorKind.notFound) {
-        if (snapshot != null) apiRestaurantData = RestaurantSnapshot(restaurants: snapshot.restaurants.where((r) => r.slug != slug).toList(), cuisines: snapshot.cuisines, loadedAt: snapshot.loadedAt);
+        if (snapshot != null) apiRestaurantData = RestaurantSnapshot(restaurants: snapshot.restaurants.where((r) => r.slug != slug).toList(), cuisines: snapshot.cuisines, loadedAt: snapshot.loadedAt, cuisineCodes: snapshot.cuisineCodes);
         return null;
       }
       final known = snapshot?.restaurants.where((r) => r.slug == slug || r.id == slug).firstOrNull;

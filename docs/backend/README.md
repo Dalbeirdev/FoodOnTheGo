@@ -563,14 +563,35 @@ that were made are audited — a refused attempt is not an audit event.
   and is labelled so. Favorites toggle optimistically and roll back on refusal; sensitive actions run the
   re-authentication code flow when the backend asks for it (403 `reauthentication_required`).
 
+- Journeys are on the real backend (Module 26): `VITE_JOURNEY_MODE=api` / `--dart-define=JOURNEY_MODE=api` (meant to be
+  used with the other modes on `api`). Customer Web: `journey/journeyRepositories.ts` selects the Api* repositories of
+  `journey/api/apiJourney.ts` behind the existing interfaces — place search (`GET /places/search`), server-side
+  resolution of the chosen suggestion (`POST /places/resolve`), planning (`POST /journeys/plan`: the route arrives with
+  the journey, no separate route step) and discovery (`GET /journeys/{id}/restaurants`). Android: `journey/api_journey.dart`
+  (`JourneyState.defaultRepositories`, `DiscoveryState` → `JourneyApi.discover`). Nothing about a route is calculated in a
+  client any more: distance, duration, the line, detours, arrival times and "open when you arrive" are the backend's, and
+  every figure names its source (`development routing model` here, a provider estimate with a live provider). Only the
+  filters and orderings the API applies are offered (cuisine codes, open at arrival, maximum detour; no "Highest rated");
+  no rating is shown along a journey. A guest's token lives in the browser tab (sessionStorage) or the app's secure
+  storage and travels as `X-Journey-Token`; it is kept while the backend still answers "expired" to its owner. The states
+  are told apart on both platforms: no route, market unsupported, no served area (an answer, not an error), provider
+  unavailable, rate limited, offline, expired, not this device's journey, cannot be loaded right now. "Use my current
+  location" asks the browser / the device only when tapped (Android: `geolocator`, coarse + fine location, no background
+  location). The restaurant page, the cart and the pickup estimate read the journey's own figures for a restaurant, or
+  show none — a restaurant the journey did not find is never given an estimate. The maps stay schematic (the provider's
+  line, no tiles): map provider integration is pending. Platform Admin → System Status shows the provider report
+  (`ProviderHealthCard`, `GET /admin/system/providers`) in place of the fixture "Maps & routing" row.
+
 ## 10. Not built yet
 
-Journeys and route-aware discovery, cart, pickup slots, checkout, payments, orders, tracking, reviews, object
+Cart, pickup slots, checkout, payments, orders, tracking, reviews, object
 storage for images (menu photos and profile photos live on the local `public` disk), verification documents, restaurant self-service
 onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; customer e-mail verification, the
 account erasure process (a deletion request only restricts the account — legal rules pending), data export,
 push-token registration and notification delivery, a Places provider for saved-place pins; live SMS and e-mail
-providers, Maps / Places / Routes, Razorpay, FCM, WebSockets; region boundary polygons and a surveyed market
+providers, a LIVE places / routing provider (the Google drivers exist and are contract-tested, but no credentials are
+configured and no live call has been made — journeys run on the development providers), map tiles, journey history,
+turn-by-turn navigation, Razorpay, FCM, WebSockets; region boundary polygons and a surveyed market
 border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are
 tracked in `docs/project-progress.html`.
 
@@ -721,3 +742,52 @@ touched production.
   and Android (`lib/account/api_account.dart`, selected in `AccountState.defaultRepositories`) replace the Module 04
   mocks for profile, favorites, saved places, payment references and preferences; the notification inbox stays
   development data and is labelled so. Phone change, re-authentication and the deletion request run in both apps.
+
+## 14. Journeys, places, routing and route-based restaurant discovery (Module 26)
+
+The vocabulary, the architecture and data-flow diagrams, the pipeline, the API and error tables, ownership / expiry /
+privacy, provider configuration and the measured performance are in [`journey-domain.md`](journey-domain.md).
+Everything below is local-only; nothing has touched production, and **no live provider is configured**: every
+journey here was planned on the development providers (real-provider end-to-end = BLOCKED / PENDING PROVIDER
+CONFIGURATION).
+
+- Order of work, always: **PostGIS first, routing provider second.** The corridor around the traveller's own route is
+  searched in PostGIS (GiST, `ST_DWithin` on geography, route cut into compact pieces); eligibility is decided in the
+  database (market, approval, visibility, service area, active menu); the shortlist is bounded per route segment and by
+  the candidate cap (40, market-configurable, at most 100); **only that shortlist** goes to the routing provider for the
+  actual detour, in batches of 25. A guard refuses to send more waypoints than the cap, and one journey may start at
+  most 12 new detour calculations a minute.
+- Two contracts, `PlacesProvider` and `RoutingProvider` (`app/Contracts/Journey`), resolved by `ProviderManager` from
+  `services.places.driver` / `services.routing.driver` (`fake` | `google`). There is no combined maps service. The fake
+  drivers are refused unless `journey.providers.allow_fake` is on (default: off in production). Calls are timed, retried
+  for transient failures only (bounded, back-off + jitter) and counted per capability; health is derived from those
+  calls (`UNKNOWN` until one was made).
+- Table `journeys` (migration `2026_10_05_100000_create_journey_tables`): an **expiring** search context — both ends
+  (JSON + geography points), departure, the provider route (distance, duration, encoded polyline, `route_geometry` and
+  the simplified `search_geometry` as LineString 4326), flags, coverage answer, provider and mode, owner (customer or
+  hashed guest token), `expires_at`. `market_configurations.journey` holds the market's corridor width, detour limit and
+  candidate cap. No journey history is kept: `journeys:prune` (hourly) deletes expired rows after the grace period.
+- Routes: 6 new operations (153 in total) — `GET /places/search`, `POST /places/resolve`, `POST /journeys/plan`,
+  `GET /journeys/{journey}`, `GET /journeys/{journey}/restaurants`, `GET /admin/system/providers` — all in
+  `openapi/openapi.json` (120 paths, 227 schemas) and checked by `JourneyOpenApiContractTest` / `OpenApiContractTest`.
+  Middleware `customer.optional` (guest or customer), `journey` (owner check: session or `X-Journey-Token`; a stranger
+  gets 404, the owner of an expired journey 410) and the limiters `places-search`, `journey-plan`, `journey-read`.
+- Never fabricated: no route → `422 route_not_found` (no straight line), provider down → `503` (no estimated detour or
+  arrival), restaurant not reachable by road → left out and counted. A route through no served area is a valid journey
+  with an empty list (`empty_reason: NO_SERVICE_COVERAGE`).
+- Cache (Redis locally): route plans under a privacy-safe hash, the candidate set per journey + candidate filters, the
+  detours per journey, one computation at a time per key (`Cache::lock`). Only plain arrays are cached —
+  `cache.serializable_classes` stays false, and the test suite's array store serializes (`CACHE_ARRAY_SERIALIZE`) so a
+  cached object fails in tests. This was found by the browser run, not by the unit tests: with the old non-serializing
+  test store, a repeated place search answered 500 on Redis and the route / detour reuse never hit.
+- Privacy: logs carry ids, counts and timings — never places, addresses, coordinates or polylines; coordinates never
+  appear in a URL; a guest token is 256 random bits, stored hashed; only searched places enter a customer's recent
+  places (not the device position, not saved places; not a live provider's places until its storage terms are confirmed).
+- Tests: `tests/Feature/Journey` (56 tests, 765 assertions) — places, planning, access, discovery, edge cases,
+  provider contracts (recorded HTTP shapes for the Google drivers), provider health, a 20,000-restaurant scale test and
+  the OpenAPI contract; whole suite 550 tests / 6913 assertions (`docs/local-review/test-results/backend-m26-phpunit.txt`).
+  End-to-end on the real local stack: `m26-web-e2e.json` (Customer Web, including two API processes racing for the same
+  first search) and `m26-android-preview-e2e.json` (the Android app's code as a Flutter web preview — not a device test).
+- Configuration: `config/journey.php` (bounds and policy), `config/services.php` (`places`, `routing`: driver, key,
+  timeout, base URL — environment only), `config/rate_limits.php`. Local `.env`: `PLACES_DRIVER=fake`,
+  `ROUTING_DRIVER=fake`.

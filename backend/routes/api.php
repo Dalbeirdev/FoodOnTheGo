@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\ProviderHealthController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
@@ -25,8 +26,11 @@ use App\Http\Controllers\Api\Customer\ProfileController;
 use App\Http\Controllers\Api\Customer\RecentLocationController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\JourneyController;
+use App\Http\Controllers\Api\JourneyRestaurantController;
 use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\PlaceController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\Restaurant\ContextController;
 use App\Http\Controllers\Api\Restaurant\HoursController;
@@ -58,6 +62,7 @@ Route::pattern('restaurantSlug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::pattern('itemSlug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::pattern('category', '[0-9a-fA-F-]{36}');
 Route::pattern('item', '[0-9a-fA-F-]{36}');
+Route::pattern('journey', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -79,6 +84,18 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/restaurants/{restaurantSlug}/items/{itemSlug}', [PublicMenuController::class, 'item'])->name('restaurants.items.show');
         Route::post('/restaurants/{restaurantSlug}/items/{itemSlug}/price-quote', [PublicMenuController::class, 'priceQuote'])->name('restaurants.items.price-quote');
     });
+    // Journeys (Module 26): open to guests and customers. Places are searched within the market's country and resolved
+    // server side; a journey is readable by its owner only (customer token, or the guest token issued when it was planned).
+    Route::middleware('customer.optional')->group(function (): void {
+        Route::get('/places/search', [PlaceController::class, 'search'])->middleware('throttle:places-search')->name('places.search');
+        Route::post('/places/resolve', [PlaceController::class, 'resolve'])->middleware('throttle:places-search')->name('places.resolve');
+        Route::post('/journeys/plan', [JourneyController::class, 'plan'])->middleware('throttle:journey-plan')->name('journeys.plan');
+        Route::middleware('journey')->group(function (): void {
+            Route::get('/journeys/{journey}', [JourneyController::class, 'show'])->middleware('throttle:journey-read')->name('journeys.show');
+            Route::get('/journeys/{journey}/restaurants', [JourneyRestaurantController::class, 'index'])->middleware('throttle:journey-read')->name('journeys.restaurants');
+        });
+    });
+
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
     Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
 
@@ -252,6 +269,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/users/{adminUser}/mfa/reset', [AdminUserController::class, 'resetMfa'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.mfa.reset');
             Route::post('/users/{adminUser}/invitation', [AdminUserController::class, 'resendInvitation'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.invitation');
         });
+
+        // Provider health (Module 26) is platform-wide system information.
+        Route::get('/system/providers', [ProviderHealthController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.providers');
 
         // Security events are platform-wide: the permission must be held without a market scope.
         Route::middleware('can:'.Permission::AdminSecurityView->value)->group(function (): void {

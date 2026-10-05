@@ -8234,6 +8234,579 @@
           }
         }
       }
+    },
+    "/places/search": {
+      "get": {
+        "summary": "Place suggestions for the journey planner, restricted to the market's country. Guests and customers; rate limited (guests tighter); briefly cached per normalized query. 503 places_temporarily_unavailable / provider_rate_limited when the provider cannot answer — nothing is invented.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "What the traveller typed (2+ characters for results)",
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "required": true
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PlaceSearchResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaceSearchResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/places/resolve": {
+      "post": {
+        "summary": "Resolve a place_id to coordinates, address, time zone and the coverage answer for that point. Coordinates never travel in a URL.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceResolveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ResolvedPlace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolvedPlace"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/journeys/plan": {
+      "post": {
+        "summary": "Plan a journey: validate both ends (same market, different points), get the driving route from the routing provider, store an expiring journey context. Guests receive guest_token once. 422 market_unsupported / cross_border_unsupported / route_not_found / invalid_location / route_too_complex; 503 routing_temporarily_unavailable / provider_rate_limited — no route, duration or detour is ever fabricated.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JourneyPlanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "PlannedJourney",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedJourney"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/journeys/{journey}": {
+      "get": {
+        "summary": "The journey, for its owner only (the customer who planned it, or the holder of the guest token). 404 for everyone else; 410 journey_expired after its lifetime.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/JourneyId"
+          },
+          {
+            "$ref": "#/components/parameters/JourneyToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Journey",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Journey"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/journeys/{journey}/restaurants": {
+      "get": {
+        "summary": "Restaurants along the journey: PostGIS shortlists eligible restaurants in the corridor (bounded, segmented along the route), ONLY that shortlist goes to the routing provider for actual detours, arrival = departure + first leg, availability is evaluated at that arrival in the restaurant's time zone. Paging reuses the calculated candidate set, and a detour is calculated once per journey and restaurant (another filter or corridor width only asks the provider for restaurants it has not calculated yet); restaurant status is re-checked on every page. 429 rate_limited when one journey sends shortlists to the provider too often — reads of calculated results are not affected.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/JourneyId"
+          },
+          {
+            "$ref": "#/components/parameters/JourneyToken"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "recommended (default: orderable at arrival, then open, then smallest detour, then route order), lowest_detour, route_order, nearest_to_route, fastest_pickup",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recommended",
+                "lowest_detour",
+                "route_order",
+                "nearest_to_route",
+                "fastest_pickup"
+              ]
+            }
+          },
+          {
+            "name": "corridor_width_meters",
+            "in": "query",
+            "description": "Search corridor around the route, metres",
+            "schema": {
+              "type": "integer",
+              "minimum": 500,
+              "maximum": 10000
+            }
+          },
+          {
+            "name": "max_detour_minutes",
+            "in": "query",
+            "description": "Only restaurants whose actual detour is at most this",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 60
+            }
+          },
+          {
+            "name": "open_at_arrival",
+            "in": "query",
+            "description": "true = only restaurants open at the expected arrival",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "cuisine",
+            "in": "query",
+            "description": "Cuisine codes, comma separated (any of)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "feature",
+            "in": "query",
+            "description": "Feature codes, comma separated (all of)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pickup_method",
+            "in": "query",
+            "description": "Only restaurants offering this pickup method",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "COUNTER",
+                "CURBSIDE",
+                "DRIVE_THROUGH"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text contained in the name or the branch label",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "description": "1-based page",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "description": "Items per page, at most 25",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JourneyRestaurantPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JourneyRestaurantPage"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/providers": {
+      "get": {
+        "summary": "Places / routing provider configuration and health (admin.system.view, platform-wide): driver, development or live mode, missing settings by name, and the state derived from recent calls.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProviderHealthReport",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderHealthReport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8263,6 +8836,26 @@
         "schema": {
           "type": "string",
           "pattern": "^[A-Z]{2}$"
+        }
+      },
+      "JourneyId": {
+        "name": "journey",
+        "in": "path",
+        "required": true,
+        "description": "Journey id (opaque UUID). Knowing it is not enough: the journey is resolved for its owner only.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9a-f-]{36}$"
+        }
+      },
+      "JourneyToken": {
+        "name": "X-Journey-Token",
+        "in": "header",
+        "required": false,
+        "description": "Guest journeys: the guest_token returned once by POST /journeys/plan (64 hex characters). Not needed for a journey planned with a customer token.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       }
     },
@@ -10025,6 +10618,7 @@
           "legal",
           "address",
           "ordering",
+          "journey",
           "locked_features",
           "version",
           "updated_at"
@@ -10060,6 +10654,10 @@
               "string",
               "null"
             ]
+          },
+          "journey": {
+            "type": "object",
+            "description": "Journey policy overrides: corridor_width_meters, max_detour_minutes, candidate_cap (within the platform bounds)"
           }
         },
         "description": "Administrative configuration. Never contains credentials."
@@ -10865,6 +11463,28 @@
             "items": {
               "type": "string"
             }
+          },
+          "journey": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "corridor_width_meters": {
+                "type": "integer",
+                "minimum": 500,
+                "maximum": 10000
+              },
+              "max_detour_minutes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60
+              },
+              "candidate_cap": {
+                "type": "integer",
+                "minimum": 5,
+                "maximum": 100
+              }
+            },
+            "description": "Per-market journey policy (Module 26)"
           }
         }
       },
@@ -19518,6 +20138,1532 @@
           }
         },
         "description": "Same shape as the sign-in challenge, for the new number"
+      },
+      "ProviderRef": {
+        "type": "object",
+        "required": [
+          "name",
+          "mode"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Driver in use, e.g. fake or google"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "development",
+              "live"
+            ],
+            "description": "development = the deterministic development provider (synthetic data, never in production); live = a real provider"
+          }
+        },
+        "description": "Which places / routing provider produced an answer"
+      },
+      "PlaceSuggestion": {
+        "type": "object",
+        "required": [
+          "provider",
+          "place_id",
+          "name",
+          "formatted_address",
+          "country_code",
+          "kind",
+          "region",
+          "locality"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "place_id": {
+            "type": "string",
+            "description": "Opaque provider id — send it back as origin.place_id / destination.place_id or to POST /places/resolve"
+          },
+          "name": {
+            "type": "string"
+          },
+          "formatted_address": {
+            "type": "string"
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "city",
+              "station",
+              "airport",
+              "landmark",
+              "address"
+            ]
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locality": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "One place suggestion. Display text only: coordinates are resolved on the server."
+      },
+      "PlaceSearchResult": {
+        "type": "object",
+        "required": [
+          "data",
+          "country_code",
+          "provider"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaceSuggestion"
+            }
+          },
+          "country_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "description": "The market country the search was restricted to"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderRef"
+          }
+        }
+      },
+      "PlaceResolveRequest": {
+        "type": "object",
+        "required": [
+          "place_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "place_id": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        }
+      },
+      "CoverageAnswer": {
+        "type": "object",
+        "required": [
+          "supported",
+          "reason",
+          "market",
+          "city",
+          "service_area"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "supported": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MARKET_UNSUPPORTED",
+              "MARKET_PAUSED",
+              "REGION_UNAVAILABLE",
+              "CITY_UNAVAILABLE",
+              "SERVICE_AREA_PAUSED",
+              "OUTSIDE_SERVICE_AREA",
+              null
+            ]
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Country code of the market the point lies in"
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "service_area": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Whether FoodOnTheGo serves a point (decided from the geometry on the server)"
+      },
+      "ResolvedPlace": {
+        "type": "object",
+        "required": [
+          "place",
+          "location",
+          "coverage",
+          "provider"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "place": {
+            "type": "object",
+            "required": [
+              "provider",
+              "id",
+              "name",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "city",
+                  "station",
+                  "airport",
+                  "landmark",
+                  "address"
+                ]
+              }
+            }
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "latitude",
+              "longitude",
+              "formatted_address",
+              "country_code",
+              "region",
+              "locality",
+              "postal_code",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              },
+              "formatted_address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "country_code": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[A-Z]{2}$"
+              },
+              "region": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "locality": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "postal_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timezone": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "IANA time zone"
+              }
+            },
+            "description": "The one location shape of the API (WGS84)"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/CoverageAnswer"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderRef"
+          }
+        }
+      },
+      "JourneyEndInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "place_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200,
+            "description": "A place_id from GET /places/search — resolved on the server"
+          },
+          "saved_location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "One of the signed-in customer's saved locations (it must have coordinates)"
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120,
+            "description": "Display label, plain text"
+          },
+          "formatted_address": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IANA time zone (otherwise the market's)"
+          }
+        },
+        "description": "One end of a journey — origin and destination take the same form. Exactly ONE of: place_id, saved_location_id, or lat + lng."
+      },
+      "RoutePreferences": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "avoid_tolls": {
+            "type": "boolean"
+          },
+          "avoid_ferries": {
+            "type": "boolean"
+          },
+          "avoid_highways": {
+            "type": "boolean"
+          }
+        },
+        "description": "Optional route modifiers. Driving is the only travel mode."
+      },
+      "JourneyPlanRequest": {
+        "type": "object",
+        "required": [
+          "origin",
+          "destination"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/JourneyEndInput"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/JourneyEndInput"
+          },
+          "departure_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601 WITH a time zone offset or Z, e.g. 2026-10-05T09:00:00+05:30. Absent = leaving now. A naive time is refused; so is a time in the past or more than 14 days ahead."
+          },
+          "preferences": {
+            "$ref": "#/components/schemas/RoutePreferences"
+          },
+          "corridor_width_meters": {
+            "type": "integer",
+            "minimum": 500,
+            "maximum": 10000,
+            "description": "Search corridor around the route (default: the market's)"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
+        },
+        "description": "Customer id, market, provider, route, status, expiry and guest token are never accepted from a client (422)."
+      },
+      "JourneyEnd": {
+        "type": "object",
+        "required": [
+          "label",
+          "formatted_address",
+          "location",
+          "country_code",
+          "region",
+          "locality",
+          "timezone",
+          "place",
+          "source",
+          "kind"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "formatted_address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "latitude",
+              "longitude"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
+              }
+            }
+          },
+          "country_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{2}$"
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "locality": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "place": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "provider",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            }
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "place",
+              "coordinates",
+              "saved_location"
+            ]
+          },
+          "kind": {
+            "type": "string"
+          }
+        }
+      },
+      "RouteLeg": {
+        "type": "object",
+        "required": [
+          "distance_meters",
+          "duration_seconds"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "distance_meters": {
+            "type": "integer"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          }
+        }
+      },
+      "GeoJsonLineString": {
+        "type": "object",
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "LineString"
+            ]
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "description": "Positions as [longitude, latitude], WGS84"
+          }
+        },
+        "description": "RFC 7946 LineString"
+      },
+      "RoutePlan": {
+        "type": "object",
+        "required": [
+          "distance_meters",
+          "duration_seconds",
+          "encoded_polyline",
+          "geometry",
+          "bounds",
+          "legs",
+          "flags",
+          "warnings",
+          "provider",
+          "traffic_aware",
+          "preferences",
+          "calculated_at",
+          "points"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "distance_meters": {
+            "type": "integer"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "encoded_polyline": {
+            "type": "string",
+            "description": "Encoded polyline (precision 5) of the same line"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/GeoJsonLineString"
+          },
+          "bounds": {
+            "type": "object",
+            "required": [
+              "west",
+              "south",
+              "east",
+              "north"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "west": {
+                "type": "number"
+              },
+              "south": {
+                "type": "number"
+              },
+              "east": {
+                "type": "number"
+              },
+              "north": {
+                "type": "number"
+              }
+            }
+          },
+          "legs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RouteLeg"
+            }
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TOLLS",
+                "FERRY"
+              ]
+            },
+            "description": "What the traveller should know about the route"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "provider": {
+            "$ref": "#/components/schemas/ProviderRef"
+          },
+          "traffic_aware": {
+            "type": "boolean",
+            "description": "true only when the provider used the departure time for a traffic forecast"
+          },
+          "preferences": {
+            "type": "object",
+            "required": [
+              "avoid_tolls",
+              "avoid_ferries",
+              "avoid_highways"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "avoid_tolls": {
+                "type": "boolean"
+              },
+              "avoid_ferries": {
+                "type": "boolean"
+              },
+              "avoid_highways": {
+                "type": "boolean"
+              }
+            }
+          },
+          "calculated_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "points": {
+            "type": "integer"
+          }
+        },
+        "description": "The base route as the routing provider returned it, normalized. Never a straight-line guess."
+      },
+      "JourneyEndCoverage": {
+        "type": "object",
+        "required": [
+          "supported",
+          "reason",
+          "city",
+          "service_area"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "supported": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "MARKET_UNSUPPORTED",
+              "MARKET_PAUSED",
+              "REGION_UNAVAILABLE",
+              "CITY_UNAVAILABLE",
+              "SERVICE_AREA_PAUSED",
+              "OUTSIDE_SERVICE_AREA",
+              null
+            ]
+          },
+          "city": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "service_area": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "JourneyCoverage": {
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "along_route",
+          "serviceable_areas",
+          "corridor_width_meters",
+          "corridors"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "origin": {
+            "$ref": "#/components/schemas/JourneyEndCoverage"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/JourneyEndCoverage"
+          },
+          "along_route": {
+            "type": "string",
+            "enum": [
+              "COVERED",
+              "NO_SERVICE_COVERAGE"
+            ],
+            "description": "NO_SERVICE_COVERAGE = the route exists but no serviceable area lies within the corridor: zero restaurants, not an error"
+          },
+          "serviceable_areas": {
+            "type": "integer"
+          },
+          "corridor_width_meters": {
+            "type": "integer"
+          },
+          "corridors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "highway"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "highway": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "description": "Operational route corridors (Module 22) the route runs through — not the search corridor"
+          }
+        }
+      },
+      "JourneySearchDefaults": {
+        "type": "object",
+        "required": [
+          "corridor_width_meters",
+          "corridor_min_meters",
+          "corridor_max_meters",
+          "max_detour_minutes",
+          "max_detour_max_minutes",
+          "candidate_cap",
+          "page_size",
+          "sorts"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "corridor_width_meters": {
+            "type": "integer"
+          },
+          "corridor_min_meters": {
+            "type": "integer"
+          },
+          "corridor_max_meters": {
+            "type": "integer"
+          },
+          "max_detour_minutes": {
+            "type": "integer"
+          },
+          "max_detour_max_minutes": {
+            "type": "integer"
+          },
+          "candidate_cap": {
+            "type": "integer",
+            "description": "The most restaurants ever sent to the routing provider for this journey"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "sorts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "recommended",
+                "lowest_detour",
+                "route_order",
+                "nearest_to_route",
+                "fastest_pickup"
+              ]
+            }
+          }
+        }
+      },
+      "Journey": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "owner",
+          "market",
+          "origin",
+          "destination",
+          "departure",
+          "route",
+          "coverage",
+          "search",
+          "expires_at",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED"
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "guest",
+              "customer"
+            ]
+          },
+          "market": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/JourneyEnd"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/JourneyEnd"
+          },
+          "departure": {
+            "type": "object",
+            "required": [
+              "at",
+              "given",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "null = leaving now (decided when restaurants are searched)"
+              },
+              "given": {
+                "type": "boolean"
+              },
+              "timezone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "route": {
+            "$ref": "#/components/schemas/RoutePlan"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/JourneyCoverage"
+          },
+          "search": {
+            "$ref": "#/components/schemas/JourneySearchDefaults"
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A journey context: ephemeral (it expires and is removed), readable by its owner only."
+      },
+      "PlannedJourney": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "owner",
+          "market",
+          "origin",
+          "destination",
+          "departure",
+          "route",
+          "coverage",
+          "search",
+          "expires_at",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED"
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "guest",
+              "customer"
+            ]
+          },
+          "market": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/JourneyEnd"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/JourneyEnd"
+          },
+          "departure": {
+            "type": "object",
+            "required": [
+              "at",
+              "given",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "null = leaving now (decided when restaurants are searched)"
+              },
+              "given": {
+                "type": "boolean"
+              },
+              "timezone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "route": {
+            "$ref": "#/components/schemas/RoutePlan"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/JourneyCoverage"
+          },
+          "search": {
+            "$ref": "#/components/schemas/JourneySearchDefaults"
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "guest_token": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "Guests only, returned ONCE: send it as X-Journey-Token to read this journey. Not stored by the server (only its hash)."
+          }
+        },
+        "description": "The journey just planned"
+      },
+      "RouteContext": {
+        "type": "object",
+        "required": [
+          "distance_to_route_meters",
+          "route_progress",
+          "segment",
+          "detour",
+          "arrival",
+          "open_at_arrival",
+          "orderable_at_arrival",
+          "availability_at_arrival",
+          "accepting_orders_now",
+          "prep_minutes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "distance_to_route_meters": {
+            "type": "integer",
+            "description": "Shortest distance from the restaurant to the route line"
+          },
+          "route_progress": {
+            "type": "number",
+            "description": "0..1 along the route from origin to destination"
+          },
+          "segment": {
+            "type": "integer"
+          },
+          "detour": {
+            "type": "object",
+            "required": [
+              "seconds",
+              "minutes",
+              "distance_meters"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "seconds": {
+                "type": "integer"
+              },
+              "minutes": {
+                "type": "integer",
+                "description": "Rounded up"
+              },
+              "distance_meters": {
+                "type": "integer"
+              }
+            },
+            "description": "ACTUAL detour from the routing provider: origin → restaurant → destination minus the base route"
+          },
+          "arrival": {
+            "type": "object",
+            "required": [
+              "estimated_at",
+              "local_time",
+              "local_date",
+              "timezone",
+              "leg_seconds",
+              "leg_distance_meters",
+              "is_estimate"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "estimated_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "local_time": {
+                "type": "string",
+                "description": "HH:MM in the restaurant's time zone"
+              },
+              "local_date": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "leg_seconds": {
+                "type": "integer",
+                "description": "Driving time origin → restaurant"
+              },
+              "leg_distance_meters": {
+                "type": "integer"
+              },
+              "is_estimate": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "description": "Expected arrival = departure + the first leg. An estimate, never a guarantee."
+          },
+          "open_at_arrival": {
+            "type": "boolean"
+          },
+          "orderable_at_arrival": {
+            "type": "boolean"
+          },
+          "availability_at_arrival": {
+            "$ref": "#/components/schemas/RestaurantAvailability"
+          },
+          "accepting_orders_now": {
+            "type": "boolean"
+          },
+          "prep_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "JourneyRestaurant": {
+        "type": "object",
+        "required": [
+          "restaurant",
+          "route_context"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant": {
+            "$ref": "#/components/schemas/PublicRestaurant"
+          },
+          "route_context": {
+            "$ref": "#/components/schemas/RouteContext"
+          }
+        },
+        "description": "A restaurant along the journey. The restaurant is the public representation (never its menu)."
+      },
+      "JourneyRestaurantPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JourneyRestaurant"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page",
+              "journey_id",
+              "search",
+              "departure_at",
+              "calculated_at",
+              "cached",
+              "provider",
+              "coverage",
+              "counts",
+              "empty_reason"
+            ],
+            "properties": {
+              "current_page": {
+                "type": "integer"
+              },
+              "per_page": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer",
+                "description": "Bounded: never more than the candidate cap"
+              },
+              "last_page": {
+                "type": "integer"
+              },
+              "journey_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "search": {
+                "type": "object",
+                "required": [
+                  "sort",
+                  "corridor_width_meters",
+                  "max_detour_minutes",
+                  "open_at_arrival",
+                  "cuisine",
+                  "feature",
+                  "pickup_method",
+                  "q",
+                  "corridor_min_meters",
+                  "corridor_max_meters",
+                  "max_detour_max_minutes",
+                  "candidate_cap"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "sort": {
+                    "type": "string",
+                    "enum": [
+                      "recommended",
+                      "lowest_detour",
+                      "route_order",
+                      "nearest_to_route",
+                      "fastest_pickup"
+                    ]
+                  },
+                  "corridor_width_meters": {
+                    "type": "integer"
+                  },
+                  "max_detour_minutes": {
+                    "type": "integer"
+                  },
+                  "open_at_arrival": {
+                    "type": "boolean"
+                  },
+                  "cuisine": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "feature": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "pickup_method": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "COUNTER",
+                      "CURBSIDE",
+                      "DRIVE_THROUGH",
+                      null
+                    ]
+                  },
+                  "q": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "corridor_min_meters": {
+                    "type": "integer"
+                  },
+                  "corridor_max_meters": {
+                    "type": "integer"
+                  },
+                  "max_detour_max_minutes": {
+                    "type": "integer"
+                  },
+                  "candidate_cap": {
+                    "type": "integer"
+                  }
+                },
+                "description": "The search as applied"
+              },
+              "departure_at": {
+                "type": "string",
+                "description": "The departure the arrival estimates are built on"
+              },
+              "calculated_at": {
+                "type": "string",
+                "description": "When detours were calculated — results are a point-in-time search"
+              },
+              "cached": {
+                "type": "boolean",
+                "description": "true = this page reused the calculated candidate set (no provider call)"
+              },
+              "provider": {
+                "$ref": "#/components/schemas/ProviderRef"
+              },
+              "coverage": {
+                "type": "object",
+                "required": [
+                  "along_route",
+                  "serviceable_areas"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "along_route": {
+                    "type": "string",
+                    "enum": [
+                      "COVERED",
+                      "NO_SERVICE_COVERAGE"
+                    ]
+                  },
+                  "serviceable_areas": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "counts": {
+                "type": "object",
+                "required": [
+                  "corridor_rows",
+                  "shortlist",
+                  "detour_requested",
+                  "unreachable",
+                  "provider_calls",
+                  "matching",
+                  "dropped_since_calculation"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "corridor_rows": {
+                    "type": "integer",
+                    "description": "Eligible restaurants PostGIS found in the corridor"
+                  },
+                  "shortlist": {
+                    "type": "integer"
+                  },
+                  "detour_requested": {
+                    "type": "integer",
+                    "description": "Restaurants sent to the routing provider for THIS calculation (≤ candidate_cap; 0 when their detours were already known for the journey)"
+                  },
+                  "unreachable": {
+                    "type": "integer"
+                  },
+                  "provider_calls": {
+                    "type": "integer"
+                  },
+                  "matching": {
+                    "type": "integer"
+                  },
+                  "dropped_since_calculation": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "empty_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "NO_SERVICE_COVERAGE",
+                  "NO_RESTAURANTS_IN_CORRIDOR",
+                  "NO_REACHABLE_RESTAURANTS",
+                  "FILTERS",
+                  null
+                ],
+                "description": "Why there are no results (null when there are)"
+              }
+            }
+          }
+        }
+      },
+      "ProviderHealth": {
+        "type": "object",
+        "required": [
+          "state",
+          "window_minutes",
+          "calls",
+          "ok",
+          "failures",
+          "timeouts",
+          "rate_limited",
+          "not_found",
+          "avg_latency_ms",
+          "last_call_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "OPERATIONAL",
+              "DEGRADED",
+              "OUTAGE",
+              "UNKNOWN"
+            ],
+            "description": "Derived from the platform's own recent calls; UNKNOWN = no call in the window"
+          },
+          "window_minutes": {
+            "type": "integer"
+          },
+          "calls": {
+            "type": "integer"
+          },
+          "ok": {
+            "type": "integer"
+          },
+          "failures": {
+            "type": "integer"
+          },
+          "timeouts": {
+            "type": "integer"
+          },
+          "rate_limited": {
+            "type": "integer"
+          },
+          "not_found": {
+            "type": "integer"
+          },
+          "avg_latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "last_call_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "ProviderStatus": {
+        "type": "object",
+        "required": [
+          "capability",
+          "driver",
+          "mode",
+          "configured",
+          "missing",
+          "timeout_seconds",
+          "health"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "type": "string",
+            "enum": [
+              "places",
+              "routing"
+            ]
+          },
+          "driver": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "development",
+              "live"
+            ]
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of missing settings — never their values"
+          },
+          "timeout_seconds": {
+            "type": "integer"
+          },
+          "health": {
+            "$ref": "#/components/schemas/ProviderHealth"
+          }
+        }
+      },
+      "ProviderHealthReport": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "fake_allowed",
+          "providers",
+          "journeys"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "fake_allowed": {
+            "type": "boolean"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            }
+          },
+          "journeys": {
+            "type": "object",
+            "required": [
+              "active",
+              "awaiting_prune",
+              "ttl_minutes"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "active": {
+                "type": "integer"
+              },
+              "awaiting_prune": {
+                "type": "integer"
+              },
+              "ttl_minutes": {
+                "type": "integer"
+              }
+            }
+          }
+        }
       }
     }
   }

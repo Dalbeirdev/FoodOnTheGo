@@ -96,7 +96,11 @@ class Availability {
 
 /// Route-aware result: the restaurant plus everything computed relative to the journey.
 class RouteRestaurantResult {
-  const RouteRestaurantResult({required this.restaurant, required this.availability, this.distanceFromRouteM, this.detourDistanceM, this.detourDurationMin, this.estimatedArrival, this.estimatedPickupReady, this.routePosition, this.ring, this.distanceFromScopeM});
+  const RouteRestaurantResult({required this.restaurant, required this.availability, this.distanceFromRouteM, this.detourDistanceM, this.detourDurationMin, this.estimatedArrival, this.estimatedPickupReady, this.routePosition, this.ring, this.distanceFromScopeM, this.atArrival = false, this.orderableAtArrival});
+  /// Backend journey (Module 26): [availability] describes the restaurant at the EXPECTED ARRIVAL (not now), the
+  /// detour is the routing provider's actual detour and [orderableAtArrival] is the backend's answer.
+  final bool atArrival;
+  final bool? orderableAtArrival;
   /// Scope ring (general discovery): 0 near you · 1 same region · 2 neighbouring region · 3 elsewhere in the country.
   final int? ring;
   final int? distanceFromScopeM;
@@ -117,7 +121,20 @@ class DiscoveryScope {
   factory DiscoveryScope.fromJson(Map<String, dynamic> j) => DiscoveryScope(countryCode: j['countryCode'] as String, adminArea: j['adminArea'] as String?, locality: j['locality'] as String?, lat: (j['lat'] as num?)?.toDouble(), lng: (j['lng'] as num?)?.toDouble(), label: j['label'] as String, source: (j['source'] as String?) ?? 'manual');
 }
 
-enum SortKey { recommended, lowestDetour, nearestToRoute, highestRated, fastestPickup }
+enum SortKey { recommended, lowestDetour, routeOrder, nearestToRoute, highestRated, fastestPickup }
+
+/// Why a backend journey lists nothing: no served area along the route, nothing inside the corridor, nothing the
+/// routing provider can reach, or everything removed by the filters.
+enum EmptyReason { coverage, corridor, unreachable, filters }
+
+/// What the backend said about a search along a journey (Module 26).
+class SearchMeta {
+  const SearchMeta({required this.calculatedAt, required this.cached, required this.providerName, required this.providerMode, required this.maxDetourMin, required this.corridorM, required this.detourRequested});
+  final DateTime calculatedAt; // UTC
+  final bool cached;
+  final String providerName, providerMode; // development | live
+  final int maxDetourMin, corridorM, detourRequested;
+}
 enum FilterKind { multi, toggle, min, max }
 enum FilterUnit { distance, minutes, rating, price }
 
@@ -155,7 +172,10 @@ class DiscoveryQuery {
 }
 
 class ResultPage {
-  const ResultPage({required this.items, required this.nextCursor, required this.total, required this.corridorM, this.ringApplied, this.nextRing, this.ringCounts = const {}, this.unavailable});
+  const ResultPage({required this.items, required this.nextCursor, required this.total, required this.corridorM, this.ringApplied, this.nextRing, this.ringCounts = const {}, this.unavailable, this.emptyReason, this.searchMeta});
+  /// Backend journeys only.
+  final EmptyReason? emptyReason;
+  final SearchMeta? searchMeta;
   /// Module 18A: set when the journey / location lies outside active market coverage (nothing is fabricated).
   final MarketAvailabilityResult? unavailable;
   final List<RouteRestaurantResult> items;

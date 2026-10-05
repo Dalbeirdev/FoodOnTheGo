@@ -17,13 +17,17 @@ class AppConfig {
   /// 'mock' = bundled fixtures (default, used by tests). Menus follow this mode too (Module 24); carts, orders and reviews are development data in both.
   static const String restaurantMode = String.fromEnvironment('RESTAURANT_MODE', defaultValue: 'mock');
 
+  /// 'api' = places, journey planning, the route and the restaurants along it come from the backend (Module 26: the
+  /// routing provider's route, actual detours, arrival estimates); 'mock' = the in-app development providers (default, used by tests).
+  static const String journeyMode = String.fromEnvironment('JOURNEY_MODE', defaultValue: 'mock');
+
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 29;
+  static const int buildNumber = 30;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -35,6 +39,7 @@ class AppConfig {
         'Authentication': authMode == 'api' ? 'Backend (phone + OTP)' : 'Development mock',
         'Market data': marketMode == 'api' ? 'Backend (PostGIS coverage)' : 'Development fixtures',
         'Restaurants': restaurantMode == 'api' ? 'Backend, menus included (orders and reviews still development data)' : 'Development fixtures',
+        'Journeys': journeyMode == 'api' ? 'Backend (places, route, detours and arrival times from the routing provider)' : 'Development providers in the app',
         'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',
         'App version': '$appVersion (build $buildNumber)',
         'Build label': buildLabel,

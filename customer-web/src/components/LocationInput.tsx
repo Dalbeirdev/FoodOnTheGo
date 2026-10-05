@@ -17,9 +17,17 @@ const PlaneIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M10.5 1
 const CloseIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="M6 6l12 12M18 6 6 18" /></svg>)
 
 const kindIcon = (k: Location['kind']) => k === 'station' ? <TrainIcon /> : k === 'airport' ? <PlaneIcon /> : k === 'recent' ? <HistoryIcon /> : k === 'current' ? <LocateIcon /> : <PinIcon size={18} />
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-/** Saved journey addresses (Module 04) become selectable locations — no second address implementation. */
-export const addressToLocation = (a: Address): Location => ({ id: `addr-${a.id}`, name: a.label, sub: [a.line1, a.locality, a.city].filter(Boolean).join(', '), kind: 'saved', lat: a.lat, lng: a.lng, source: 'saved-address', formattedAddress: [a.line1, a.line2, a.locality, a.city, a.state, a.pincode].filter(Boolean).join(', '), locality: a.city, adminArea: a.state, postalCode: a.pincode || undefined })
+/**
+ * Saved journey addresses (Module 04 / 25) become selectable locations — no second address implementation. With the
+ * backend, a saved place is sent to the journey planner by its id (the backend reads its coordinates itself).
+ */
+export const addressToLocation = (a: Address, backend = false): Location => ({
+  id: `addr-${a.id}`, name: a.label, sub: [a.line1, a.locality, a.city].filter(Boolean).join(', '), kind: 'saved', lat: a.lat, lng: a.lng, source: 'saved-address',
+  formattedAddress: [a.line1, a.line2, a.locality, a.city, a.state, a.pincode].filter(Boolean).join(', '), locality: a.city, adminArea: a.state, postalCode: a.pincode || undefined,
+  ...(backend && UUID.test(a.id) ? { savedLocationId: a.id } : {}),
+})
 
 type Option = { key: string; label: string; sub?: string; icon: ReactNode; location: Location | null; action?: 'current' }
 
@@ -36,11 +44,18 @@ type Props = {
   allowCurrent?: boolean
 }
 
-/** Accessible combobox for origin / destination: typed search (mock provider), saved addresses, recent locations, current location. */
+/**
+ * Accessible combobox for origin / destination: typed search, saved addresses, recent locations, current location.
+ *
+ * With the backend (Module 26) the suggestions come from its places provider (inside the market's country); a chosen
+ * suggestion is resolved on the server (coordinates, time zone, coverage) — typed text is never used as a place. The
+ * device's own location is asked for only when the traveller presses the button.
+ */
 export default function LocationInput({ id, label, placeholder, value, onChange, onTextChange, error, pinClass = '', allowCurrent = false }: Props) {
-  const { searchLocations, recentLocations } = useJourney()
+  const { searchLocations, recentLocations, resolveLocation, mode } = useJourney()
   const { isAuthenticated } = useAuth()
   const { addresses } = useAccount()
+  const backend = mode === 'api'
   const [text, setText] = useState(value?.name ?? '')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -49,6 +64,8 @@ export default function LocationInput({ id, label, placeholder, value, onChange,
   const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'empty' | 'error'>('idle')
   const [lookupError, setLookupError] = useState('')
   const [devPrompt, setDevPrompt] = useState(false)
+  const [busy, setBusy] = useState<'resolving' | 'locating' | null>(null)
+  const [notice, setNotice] = useState('')
   const listId = useId()
   const wrap = useRef<HTMLDivElement>(null)
   const seq = useRef(0)
@@ -75,26 +92,55 @@ export default function LocationInput({ id, label, placeholder, value, onChange,
   }
   useEffect(() => {
     if (!open || !text.trim() || text === value?.name) return
-    const t = setTimeout(() => search(text), 180)
+    const t = setTimeout(() => search(text), backend ? 280 : 180)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, open])
 
   const quick: Option[] = []
   if (!text.trim() || text === value?.name) {
-    if (allowCurrent) quick.push({ key: 'current', label: 'Use my current location', sub: 'Development location until device permission is integrated', icon: <LocateIcon />, location: null, action: 'current' })
-    if (isAuthenticated) for (const a of addresses.data) quick.push({ key: `addr-${a.id}`, label: a.label, sub: [a.line1, a.locality, a.city].filter(Boolean).join(', '), icon: a.kind === 'home' ? <HomeIcon /> : a.kind === 'work' ? <WorkIcon /> : <PinIcon size={18} />, location: addressToLocation(a) })
+    if (allowCurrent) quick.push({ key: 'current', label: 'Use my current location', sub: backend ? 'Your browser asks for permission first' : 'Development location until device permission is integrated', icon: <LocateIcon />, location: null, action: 'current' })
+    if (isAuthenticated) for (const a of addresses.data) quick.push({ key: `addr-${a.id}`, label: a.label, sub: [a.line1, a.locality, a.city].filter(Boolean).join(', '), icon: a.kind === 'home' ? <HomeIcon /> : a.kind === 'work' ? <WorkIcon /> : <PinIcon size={18} />, location: addressToLocation(a, backend) })
     for (const r of recent) if (!quick.some((q) => q.location?.id === r.id)) quick.push({ key: `recent-${r.id}`, label: r.name, sub: r.sub, icon: <HistoryIcon />, location: { ...r, kind: 'recent' } })
   }
   const searchOpts: Option[] = text.trim() && text !== value?.name ? results.map((l) => ({ key: l.id, label: l.name, sub: l.sub, icon: kindIcon(l.kind), location: l })) : []
   const options = [...searchOpts, ...quick]
 
-  const choose = (o: Option) => {
-    if (o.action === 'current') { setDevPrompt(true); setOpen(false); return }
-    if (!o.location) return
-    onChange(o.location); setText(o.location.name); setOpen(false); setActive(-1); setResults([]); setState('idle')
+  const accept = (l: Location) => { onChange(l); setText(l.name); setActive(-1); setResults([]); setState('idle') }
+
+  /** The device's own position — requested only here, when the traveller asked for it. Nothing is stored or guessed. */
+  const locate = () => {
+    setOpen(false); setNotice('')
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) { setNotice('This browser cannot share its location. Search for a place instead.'); return }
+    setBusy('locating')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setBusy(null)
+        accept({ id: 'device-current', name: 'Current location', sub: 'From this device', kind: 'current', lat: Math.round(pos.coords.latitude * 1e5) / 1e5, lng: Math.round(pos.coords.longitude * 1e5) / 1e5, source: 'device' })
+      },
+      (err) => {
+        setBusy(null)
+        setNotice(err.code === err.PERMISSION_DENIED ? 'Location permission was not given. Search for a place instead, or allow location for this site in your browser.'
+          : err.code === err.TIMEOUT ? 'Finding your location took too long. Try again, or search for a place.' : 'Your location is not available right now. Search for a place instead.')
+      },
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 },
+    )
   }
-  const clear = () => { onChange(null); setText(''); onTextChange?.(''); setResults([]); setState('idle'); setOpen(true) }
+
+  const choose = (o: Option) => {
+    if (o.action === 'current') { if (backend) locate(); else { setDevPrompt(true); setOpen(false) } return }
+    if (!o.location) return
+    const picked = o.location
+    setOpen(false); setNotice('')
+    // A provider suggestion is text until the server resolves it: coordinates, time zone, and whether we serve it.
+    if (picked.source === 'place' && picked.lat === null) {
+      setBusy('resolving'); setText(picked.name)
+      resolveLocation(picked).then((l) => { setBusy(null); accept(l) }).catch((e) => { setBusy(null); setText(''); setNotice(e instanceof Error ? e.message : 'This place could not be loaded. Please try again.') })
+      return
+    }
+    accept(picked)
+  }
+  const clear = () => { onChange(null); setText(''); onTextChange?.(''); setResults([]); setState('idle'); setNotice(''); setOpen(true) }
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); if (!open) void openList(); setActive((a) => Math.min(a + 1, options.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)) }
@@ -103,19 +149,23 @@ export default function LocationInput({ id, label, placeholder, value, onChange,
   }
 
   const showList = open && (options.length > 0 || state !== 'idle')
+  const unserved = value?.coverage && !value.coverage.supported
   return (
-    <div className="loc" ref={wrap}>
+    <div className="loc" ref={wrap} data-source={value?.source ?? ''} data-busy={busy ?? ''}>
       <label className="loc__label" htmlFor={id}>{label}</label>
       <div className={`loc__box ${error ? 'is-invalid' : ''}`}>
         <PinIcon size={18} className={`loc__pin ${pinClass}`} />
-        <input id={id} type="text" role="combobox" autoComplete="off" aria-autocomplete="list" aria-expanded={showList} aria-controls={listId} aria-activedescendant={active >= 0 && options[active] ? `${listId}-${options[active].key}` : undefined} aria-invalid={!!error} aria-describedby={error ? `${id}-err` : undefined}
-          placeholder={placeholder} value={text}
-          onChange={(e) => { setText(e.target.value); onTextChange?.(e.target.value); if (value) onChange(null); setActive(-1); if (!open) void openList() }}
+        <input id={id} type="text" role="combobox" autoComplete="off" aria-autocomplete="list" aria-expanded={showList} aria-controls={listId} aria-activedescendant={active >= 0 && options[active] ? `${listId}-${options[active].key}` : undefined} aria-invalid={!!error} aria-describedby={error ? `${id}-err` : notice || unserved ? `${id}-note` : undefined}
+          placeholder={placeholder} value={text} aria-busy={busy !== null}
+          onChange={(e) => { setText(e.target.value); onTextChange?.(e.target.value); if (value) onChange(null); setActive(-1); setNotice(''); if (!open) void openList() }}
           onFocus={() => { void openList() }} onKeyDown={onKey} />
         {value && <button type="button" className="loc__clear" aria-label={`Clear ${label.toLowerCase()}`} onClick={clear}><CloseIcon /></button>}
-        {allowCurrent && !value && <button type="button" className="loc__btn" aria-label="Use my current location" onClick={() => { setDevPrompt(true); setOpen(false) }}><LocateIcon /></button>}
+        {allowCurrent && !value && <button type="button" className="loc__btn" aria-label="Use my current location" disabled={busy !== null} onClick={() => { if (backend) locate(); else { setDevPrompt(true); setOpen(false) } }}><LocateIcon /></button>}
       </div>
       {error && <em id={`${id}-err`} role="alert" className="loc__error">{error}</em>}
+      {busy && <p className="loc__note" role="status">{busy === 'locating' ? 'Asking your browser for your location…' : 'Loading this place…'}</p>}
+      {!busy && notice && <p id={`${id}-note`} className="loc__note loc__note--warn" role="alert">{notice}</p>}
+      {!busy && !notice && unserved && <p id={`${id}-note`} className="loc__note" role="status" data-coverage="unsupported">FoodOnTheGo does not serve this place yet. You can still plan the journey — restaurants are listed only in served areas along your route.</p>}
 
       {showList && (
         <ul id={listId} role="listbox" aria-label={`${label} suggestions`} className="loc__list">

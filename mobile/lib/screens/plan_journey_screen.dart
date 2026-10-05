@@ -1,9 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/theme.dart';
 import '../data/mock_data.dart';
+import '../i18n/format.dart' show formatLocalTime, zoneLabel;
+import '../i18n/strings.dart';
+import '../journey/device_location.dart';
 import '../journey/journey_repositories.dart';
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
@@ -11,7 +16,22 @@ import '../state/journey_state.dart';
 import '../widgets/common.dart';
 
 /// Saved journey addresses (Module 04) become selectable locations — no second address implementation.
-JourneyLocation addressToLocation(SavedAddress a) => JourneyLocation(id: 'addr-${a.id}', name: a.label, sub: [a.line1, a.locality, a.city].where((s) => s.isNotEmpty).join(', '), kind: LocationKind.saved, lat: a.lat, lng: a.lng, source: 'saved-address', formattedAddress: a.formatted, locality: a.city, adminArea: a.state, postalCode: a.pincode.isEmpty ? null : a.pincode);
+/// [backend]: the place lives on the backend and travels by its id (the backend reads its coordinates itself).
+JourneyLocation addressToLocation(SavedAddress a, {bool backend = false}) => JourneyLocation(id: 'addr-${a.id}', name: a.label, sub: [a.line1, a.locality, a.city].where((s) => s.isNotEmpty).join(', '), kind: LocationKind.saved, lat: a.lat, lng: a.lng, source: 'saved-address', formattedAddress: a.formatted, locality: a.city, adminArea: a.state, postalCode: a.pincode.isEmpty ? null : a.pincode, countryCode: a.countryCode,
+    savedLocationId: backend ? a.id : null, coverage: backend && a.coverage != null && a.coverage!.status != 'unknown' ? PlaceCoverage(supported: a.coverage!.supported, reason: a.coverage!.reason, city: a.coverage!.city, serviceArea: a.coverage!.serviceArea) : null);
+
+/// Where a route's figures come from, in the words shown beside them.
+String routeSourceLabel(RouteSummary r) => switch (r.mode) { 'live' => r.trafficAware ? 'routing provider, with traffic' : 'routing provider estimate', 'development' => 'development routing model', _ => 'mock development data' };
+String routeSourceTag(RouteSummary r) => switch (r.mode) { 'live' => S.t('route.live'), 'development' => S.t('route.development'), _ => 'mock' };
+
+/// Kilometres for the summary: the backend's metres (one decimal on short trips), or the sketch's whole kilometres.
+String routeDistanceLabel(RouteSummary r) {
+  final m = r.distanceM;
+  if (m == null) return '${r.distanceKm} km';
+  if (m >= 100000) return '${(m / 1000).round()} km';
+  final tenths = (m / 100).round();
+  return tenths % 10 == 0 ? '${tenths ~/ 10} km' : '${tenths ~/ 10}.${tenths % 10} km';
+}
 
 /// Plan a Journey — mobile-native flow: tap a field → full-height picker sheet (search, current location,
 /// saved places, recent) → summary + schematic route preview → continue to restaurants.
@@ -92,13 +112,18 @@ class _PlanJourneyScreenState extends State<PlanJourneyScreen> {
                       ),
                     ),
                     if (js.errors['form'] != null) _ErrorLine(js.errors['form']!),
-                    if (js.status == JourneyStatus.error && j == null && js.error != null) _ErrorLine(js.error!),
+                    if (js.status == JourneyStatus.error && j == null && js.error != null)
+                      Semantics(
+                        container: true, liveRegion: true, identifier: 'pj-error-${js.errorCode?.name ?? 'unexpected'}',
+                        child: _ErrorLine('${js.error!}${switch (js.errorCode) { JourneyErrorCode.providerUnavailable || JourneyErrorCode.network || JourneyErrorCode.rateLimited => ' Nothing was estimated in the meantime — press the button to try again.', JourneyErrorCode.noRoute => js.backend ? ' FoodOnTheGo never draws a straight line in place of a road.' : '', _ => '' }}'),
+                      ),
                     BrandButton(
                       label: switch (js.status) { JourneyStatus.validating => 'Checking locations…', JourneyStatus.ready => 'Preparing journey…', JourneyStatus.routeLoading => 'Loading route…', _ => 'Find Restaurants on Route' },
                       onPressed: js.busy ? null : () => js.plan(),
                     ),
                     const SizedBox(height: 10),
                     const Text('No sign-in needed to plan a journey. Sign in later to save favorites or place an order.', textAlign: TextAlign.center, style: TextStyle(color: Brand.grey, fontSize: 12.5)),
+                    if (js.backend) const Padding(padding: EdgeInsets.only(top: 6), child: Text('A planned journey is kept for a short time only; FoodOnTheGo keeps no journey history.', textAlign: TextAlign.center, style: TextStyle(color: Brand.grey, fontSize: 12.5))),
                   ]),
                 ),
               ),
@@ -156,6 +181,8 @@ class _LocationField extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LabeledField(
         label,
+        // The backend's coverage answer for this place. It is information, not a refusal: the route is still planned.
+        note: value?.coverage?.supported == false ? 'FoodOnTheGo does not serve this place yet. You can still plan the journey — restaurants are listed only in served areas along your route.' : null,
         child: Semantics(
           button: true, label: '$label: ${value?.name ?? 'not set'}',
           child: InkWell(
@@ -171,7 +198,9 @@ class _LocationField extends StatelessWidget {
       );
 }
 
-/// Full-height picker: search (mock provider), current location (dev), saved addresses (signed in), recent.
+/// Full-height picker: search, current location, saved places (signed in), recent places.
+/// On the backend (JOURNEY_MODE=api) a suggestion is resolved by the backend when it is chosen, and "current
+/// location" is this device's real position — asked for only when that row is tapped.
 class LocationPickerSheet extends StatefulWidget {
   const LocationPickerSheet({super.key, required this.title, this.allowCurrent = false});
   final String title;
@@ -187,6 +216,10 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
   String state = 'idle'; // idle | loading | ready | empty | error
   String errorText = '';
   int _seq = 0;
+  /// 'resolving' (the backend is loading the chosen place) | 'locating' (the device is asked for its position).
+  String? busy;
+  String? notice;
+  JourneyLocation? _failed;
 
   @override
   void initState() {
@@ -210,7 +243,31 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     }
   }
 
+  /// Development places already carry coordinates; a suggestion of the backend's provider gets them (with the time
+  /// zone and the coverage answer) from the backend now.
+  Future<void> _choose(JourneyLocation l) async {
+    final js = context.read<JourneyState>();
+    if (!js.backend || l.lat != null) { Navigator.pop(context, l); return; }
+    setState(() { busy = 'resolving'; notice = null; _failed = null; });
+    try {
+      final resolved = await js.resolveLocation(l);
+      if (mounted) Navigator.pop(context, resolved);
+    } catch (e) {
+      if (mounted) setState(() { busy = null; _failed = l; notice = e is JourneyException ? e.message : 'This place could not be loaded. Please try again.'; });
+    }
+  }
+
   Future<void> _useCurrent() async {
+    if (context.read<JourneyState>().backend) {
+      setState(() { busy = 'locating'; notice = null; _failed = null; });
+      try {
+        final p = await deviceLocator.current();
+        if (mounted) Navigator.pop(context, JourneyLocation(id: 'device-current', name: 'Current location', sub: 'From this device', kind: LocationKind.current, lat: p.lat, lng: p.lng, source: 'device'));
+      } on DeviceLocationException catch (e) {
+        if (mounted) setState(() { busy = null; notice = e.message; });
+      }
+      return;
+    }
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -227,6 +284,8 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
     final authed = context.watch<AuthState>().isAuthenticated;
     final addresses = context.watch<AccountState>().addresses.data;
     final typing = ctrl.text.trim().isNotEmpty;
+    final backend = context.watch<JourneyState>().backend;
+    final live = context.watch<AccountState>().live;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SizedBox(
@@ -242,19 +301,21 @@ class _LocationPickerSheetState extends State<LocationPickerSheet> {
           ),
           Expanded(
             child: ListView(padding: const EdgeInsets.fromLTRB(8, 0, 8, 16), children: [
+              if (busy != null) ListTile(leading: const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)), title: Text(busy == 'locating' ? 'Asking this device for your location…' : 'Loading this place…', style: const TextStyle(color: Brand.grey))),
+              if (notice != null) Semantics(liveRegion: true, child: ListTile(leading: const Icon(Icons.info_outline, color: Brand.red), title: Text(notice!, style: const TextStyle(color: Brand.red, fontSize: 13.5)), trailing: _failed == null ? null : TextButton(onPressed: () => _choose(_failed!), child: const Text('Retry')))),
               if (state == 'loading') const ListTile(leading: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)), title: Text('Finding location…', style: TextStyle(color: Brand.grey))),
               if (state == 'empty') ListTile(leading: const Icon(Icons.search_off, color: Brand.grey), title: const Text('No location found'), subtitle: Text('Nothing matches “${ctrl.text.trim()}”. Try a city, station or airport.')),
               if (state == 'error') ListTile(leading: const Icon(Icons.error_outline, color: Brand.red), title: Text(errorText, style: const TextStyle(color: Brand.red)), trailing: TextButton(onPressed: () => _search(ctrl.text), child: const Text('Retry'))),
-              for (final l in results) _LocTile(l, onTap: () => Navigator.pop(context, l)),
+              for (final l in results) _LocTile(l, onTap: busy != null ? null : () => _choose(l)),
               if (!typing) ...[
-                if (widget.allowCurrent) ListTile(leading: const _TileIcon(Icons.my_location), title: const Text('Use my current location', style: TextStyle(fontWeight: FontWeight.w600)), subtitle: const Text('Development location until device permission is integrated', maxLines: 2), onTap: _useCurrent),
+                if (widget.allowCurrent) ListTile(leading: const _TileIcon(Icons.my_location), title: const Text('Use my current location', style: TextStyle(fontWeight: FontWeight.w600)), subtitle: Text(backend ? 'Your device asks for permission first' : 'Development location until device permission is integrated', maxLines: 2), onTap: busy != null ? null : _useCurrent),
                 if (authed && addresses.isNotEmpty) ...[
                   const _GroupLabel('Saved places'),
-                  for (final a in addresses) ListTile(leading: _TileIcon(a.kind == AddressKind.home ? Icons.home_outlined : a.kind == AddressKind.work ? Icons.work_outline : Icons.place_outlined), title: Text(a.label, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: Text(a.formatted, maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(context, addressToLocation(a))),
+                  for (final a in addresses) ListTile(leading: _TileIcon(a.kind == AddressKind.home ? Icons.home_outlined : a.kind == AddressKind.work ? Icons.work_outline : Icons.place_outlined), title: Text(a.label, style: const TextStyle(fontWeight: FontWeight.w600)), subtitle: Text(a.formatted, maxLines: 1, overflow: TextOverflow.ellipsis), onTap: () => Navigator.pop(context, addressToLocation(a, backend: backend && live))),
                 ],
                 if (!authed) const Padding(padding: EdgeInsets.fromLTRB(16, 10, 16, 6), child: Text('Sign in to pick Home, Work and other saved places.', style: TextStyle(color: Brand.grey, fontSize: 12.5))),
                 if (recent.isNotEmpty) ...[const _GroupLabel('Recent'), for (final l in recent) _LocTile(l.copyWith(kind: LocationKind.recent), onTap: () => Navigator.pop(context, l.copyWith(kind: LocationKind.recent)))],
-                if (recent.isEmpty && !authed) const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 0), child: Text('Try: Chandigarh, Jammu, Delhi, Jaipur, Mumbai, Pune, Bengaluru, Mysuru (mock places).', style: TextStyle(color: Brand.grey, fontSize: 12.5))),
+                if (recent.isEmpty && !authed && !backend) const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 0), child: Text('Try: Chandigarh, Jammu, Delhi, Jaipur, Mumbai, Pune, Bengaluru, Mysuru (mock places).', style: TextStyle(color: Brand.grey, fontSize: 12.5))),
               ],
             ]),
           ),
@@ -281,7 +342,7 @@ class _TileIcon extends StatelessWidget {
 class _LocTile extends StatelessWidget {
   const _LocTile(this.l, {required this.onTap});
   final JourneyLocation l;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => ListTile(
         leading: _TileIcon(switch (l.kind) { LocationKind.station => Icons.train_outlined, LocationKind.airport => Icons.flight_takeoff, LocationKind.recent => Icons.history, LocationKind.current => Icons.my_location, LocationKind.saved => Icons.bookmark_outline, _ => Icons.place_outlined }),
@@ -320,16 +381,32 @@ class _JourneyPreview extends StatelessWidget {
             ])),
           if (state.status == JourneyStatus.routeAvailable && r != null) ...[
             Row(children: [
-              Expanded(child: _Stat(icon: Icons.directions_car_outlined, label: 'Approx. distance', value: '${r.distanceKm} km')),
+              Expanded(child: _Stat(icon: Icons.directions_car_outlined, label: 'Approx. distance', value: routeDistanceLabel(r), source: routeSourceLabel(r), id: 'pj-distance')),
               const SizedBox(width: 10),
-              Expanded(child: _Stat(icon: Icons.schedule, label: 'Approx. travel time', value: formatDuration(r.durationMin))),
+              Expanded(child: _Stat(icon: Icons.schedule, label: 'Approx. travel time', value: formatDuration(r.durationMin), source: routeSourceLabel(r), id: 'pj-duration')),
             ]),
+            if (r.flags.any((f) => f == 'TOLLS' || f == 'FERRY')) ...[
+              const SizedBox(height: 8),
+              Wrap(spacing: 6, runSpacing: 6, children: [for (final f in r.flags) if (f == 'TOLLS' || f == 'FERRY') Chip(avatar: Icon(f == 'TOLLS' ? Icons.toll_outlined : Icons.directions_boat_outlined, size: 16, color: const Color(0xFF6B4300)), label: Text(S.t('route.flag.$f'), style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B4300))), visualDensity: VisualDensity.compact, backgroundColor: const Color(0xFFFFF8E6), side: const BorderSide(color: Color(0xFFF3D38A)))]),
+            ],
             const SizedBox(height: 12),
             RoutePreviewCanvas(journey: journey),
             const SizedBox(height: 10),
             Wrap(spacing: 6, runSpacing: 6, children: [for (final s in [journey.origin.name, ...r.waypoints, journey.destination.name]) Chip(label: Text(s, style: const TextStyle(fontSize: 12.5)), visualDensity: VisualDensity.compact, backgroundColor: const Color(0xFFF4F5F8), side: BorderSide.none)]),
             const SizedBox(height: 8),
-            const Text('Development route preview — not a map. Real map rendering and geometry arrive with Google Maps / Routes integration (PENDING). Distances and times are mock development values.', style: TextStyle(color: Brand.grey, fontSize: 12.5)),
+            Text(switch (r.mode) {
+              'development' => 'The route line comes from the development routing model (synthetic roads, not real road data). This is a schematic view, not a map — map tiles: map provider integration is PENDING.',
+              'live' => 'The route line comes from the routing provider. This is a schematic view, not a map — map tiles: map provider integration is PENDING.',
+              _ => 'Development route preview — not a map. Real map rendering and geometry arrive with Google Maps / Routes integration (PENDING). Distances and times are mock development values.',
+            }, style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
+            if (journey.coverage != null && !journey.coverage!.covered) ...[
+              const SizedBox(height: 10),
+              Semantics(container: true, identifier: 'pj-no-coverage', child: const InfoBox(icon: Icons.location_off_outlined, color: Color(0xFF8A4B00), bg: Color(0xFFFFF4E0), child: Text('FoodOnTheGo does not serve any area along this route yet. The route is shown, but no restaurants will be listed for it.', style: TextStyle(fontSize: 13, color: Color(0xFF6B4300))))),
+            ],
+            if (journey.expiresAt != null) ...[
+              const SizedBox(height: 8),
+              Text('This search stays valid until ${formatLocalTime(journey.expiresAt!, journey.origin.timezone ?? 'Asia/Kolkata')} ${zoneLabel(journey.origin.timezone ?? 'Asia/Kolkata')}. After that, plan it again for current times.', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
+            ],
             const SizedBox(height: 12),
             InfoBox(icon: Icons.storefront_outlined, color: Brand.blue, bg: Brand.blueBg, child: Text('Restaurants are picked up at their own location along this corridor — your destination stays ${journey.destination.name}. FoodOnTheGo does not deliver.', style: const TextStyle(fontSize: 13, color: Color(0xFF1E3A8A)))),
             const SizedBox(height: 14),
@@ -355,23 +432,26 @@ class _PreviewPoint extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.icon, required this.label, required this.value});
+  const _Stat({required this.icon, required this.label, required this.value, required this.source, required this.id});
   final IconData icon;
-  final String label, value;
+  final String label, value, source, id;
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => Semantics(
+      container: true, identifier: id, label: '$label: $value ($source)', excludeSemantics: true,
+      child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: Brand.bg, borderRadius: BorderRadius.circular(14)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [Icon(icon, size: 16, color: Brand.grey), const SizedBox(width: 6), Expanded(child: Text(label, style: const TextStyle(fontSize: 12, color: Brand.grey), overflow: TextOverflow.ellipsis))]),
           const SizedBox(height: 2),
           Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-          const Text('mock development data', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))),
+          Text(source, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))),
         ]),
-      );
+      ));
 }
 
-/// Schematic corridor drawn from the mock geometry. NOT a map — the chip list beside it carries the same stops.
+/// Schematic view of the route. NOT a map — the chip list beside it carries the same stops. The in-app sketch joins a
+/// few named stops; a backend route is the routing provider's own line, drawn to one scale so its shape is true.
 class RoutePreviewCanvas extends StatelessWidget {
   const RoutePreviewCanvas({super.key, required this.journey});
   final Journey journey;
@@ -379,13 +459,14 @@ class RoutePreviewCanvas extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = journey.route!;
     return Semantics(
-      label: 'Route from ${journey.origin.name} to ${journey.destination.name}${r.waypoints.isEmpty ? '' : ' via ${r.waypoints.join(', ')}'}: about ${r.distanceKm} km, ${formatDuration(r.durationMin)} (development estimate).',
+      identifier: 'route-preview-${r.mode}-${r.geometry.length}',
+      label: 'Route from ${journey.origin.name} to ${journey.destination.name}${r.waypoints.isEmpty ? '' : ' via ${r.waypoints.join(', ')}'}: about ${routeDistanceLabel(r)}, ${formatDuration(r.durationMin)} (${r.mode == 'mock' ? 'development estimate' : routeSourceLabel(r)}).',
       child: Container(
         height: 190, clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(color: const Color(0xFFFBFBFD), borderRadius: BorderRadius.circular(14), border: Border.all(color: Brand.line)),
         child: Stack(children: [
-          Positioned.fill(child: CustomPaint(painter: _RoutePainter(r.geometry, [journey.origin.name, ...r.waypoints, journey.destination.name]))),
-          Positioned(left: 8, bottom: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: const Text('Development route preview — not a map', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))))),
+          Positioned.fill(child: CustomPaint(painter: _RoutePainter(r.geometry, [journey.origin.name, ...r.waypoints, journey.destination.name], providerLine: r.mode != 'mock'))),
+          Positioned(left: 8, bottom: 8, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: Text(switch (r.mode) { 'development' => 'Development routing model — schematic view, not a map', 'live' => 'Route from the routing provider — schematic view, not a map', _ => 'Development route preview — not a map' }, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300))))),
         ]),
       ),
     );
@@ -393,9 +474,11 @@ class RoutePreviewCanvas extends StatelessWidget {
 }
 
 class _RoutePainter extends CustomPainter {
-  _RoutePainter(this.geometry, this.labels);
+  _RoutePainter(this.geometry, this.labels, {this.providerLine = false});
   final List<List<double>> geometry;
   final List<String> labels;
+  /// The routing provider's line (many points): drawn to ONE scale, and only its two ends are marked.
+  final bool providerLine;
   @override
   void paint(Canvas canvas, Size size) {
     final grid = Paint()..color = const Color(0xFFE6E9EF)..strokeWidth = 1;
@@ -405,8 +488,13 @@ class _RoutePainter extends CustomPainter {
     final minLat = lats.reduce((a, b) => a < b ? a : b), maxLat = lats.reduce((a, b) => a > b ? a : b);
     final minLng = lngs.reduce((a, b) => a < b ? a : b), maxLng = lngs.reduce((a, b) => a > b ? a : b);
     const pad = 34.0;
-    double sx(double lng) => pad + (lng - minLng) / ((maxLng - minLng).abs() < 1e-4 ? 1e-4 : maxLng - minLng) * (size.width - pad * 2);
-    double sy(double lat) => size.height - pad - (lat - minLat) / ((maxLat - minLat).abs() < 1e-4 ? 1e-4 : maxLat - minLat) * (size.height - pad * 2);
+    final spanLng = (maxLng - minLng).abs() < 1e-4 ? 1e-4 : maxLng - minLng, spanLat = (maxLat - minLat).abs() < 1e-4 ? 1e-4 : maxLat - minLat;
+    // One scale for both axes (longitude shortened by the latitude) keeps the provider line's shape true.
+    final k = math.cos((minLat + maxLat) / 2 * math.pi / 180).abs().clamp(0.05, 1.0);
+    final scale = math.min((size.width - pad * 2) / (spanLng * k), (size.height - pad * 2) / spanLat);
+    final ox = (size.width - spanLng * k * scale) / 2, oy = (size.height - spanLat * scale) / 2;
+    double sx(double lng) => providerLine ? ox + (lng - minLng) * k * scale : pad + (lng - minLng) / spanLng * (size.width - pad * 2);
+    double sy(double lat) => providerLine ? size.height - oy - (lat - minLat) * scale : size.height - pad - (lat - minLat) / spanLat * (size.height - pad * 2);
     final pts = [for (final p in geometry) Offset(sx(p[1]), sy(p[0]))];
     final path = Path()..moveTo(pts.first.dx, pts.first.dy);
     for (final p in pts.skip(1)) { path.lineTo(p.dx, p.dy); }
@@ -414,9 +502,10 @@ class _RoutePainter extends CustomPainter {
     canvas.drawPath(path, Paint()..color = Brand.orangeDeep..style = PaintingStyle.stroke..strokeWidth = 3.5..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
     for (var i = 0; i < pts.length; i++) {
       final end = i == 0 || i == pts.length - 1;
+      if (providerLine && !end) continue;
       canvas.drawCircle(pts[i], end ? 8 : 5.5, Paint()..color = i == 0 ? Brand.orange : i == pts.length - 1 ? Brand.red : Colors.white);
       canvas.drawCircle(pts[i], end ? 8 : 5.5, Paint()..color = end ? Colors.white : Brand.orangeDeep..style = PaintingStyle.stroke..strokeWidth = end ? 2.5 : 2);
-      final tp = TextPainter(text: TextSpan(text: labels[i], style: TextStyle(fontSize: end ? 12.5 : 11, fontWeight: end ? FontWeight.w700 : FontWeight.w500, color: Brand.navy, fontFamily: Brand.font)), textDirection: TextDirection.ltr)..layout();
+      final tp = TextPainter(text: TextSpan(text: providerLine ? (i == 0 ? labels.first : labels.last) : labels[i], style: TextStyle(fontSize: end ? 12.5 : 11, fontWeight: end ? FontWeight.w700 : FontWeight.w500, color: Brand.navy, fontFamily: Brand.font)), textDirection: TextDirection.ltr)..layout();
       // Keep endpoint labels inside the canvas: flip to the inner side of the dot near the edges.
       var dx = pts[i].dx - tp.width / 2;
       if (dx + tp.width > size.width - 6) dx = pts[i].dx - tp.width - 12;
@@ -427,7 +516,7 @@ class _RoutePainter extends CustomPainter {
     }
   }
   @override
-  bool shouldRepaint(_RoutePainter old) => old.geometry != geometry;
+  bool shouldRepaint(_RoutePainter old) => old.geometry != geometry || old.providerLine != providerLine;
 }
 
 class _RecentJourneys extends StatelessWidget {
@@ -443,10 +532,10 @@ class _RecentJourneys extends StatelessWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero, dense: true,
                 title: Text('${j.origin.name} → ${j.destination.name}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text(j.route == null ? 'route not prepared' : '${j.route!.distanceKm} km · ${formatDuration(j.route!.durationMin)} (mock)'),
+                subtitle: Text(j.route == null ? 'route not prepared' : '${routeDistanceLabel(j.route!)} · ${formatDuration(j.route!.durationMin)} (${routeSourceTag(j.route!)})'),
                 trailing: Wrap(spacing: 0, children: [TextButton(onPressed: () => state.useAgain(j), child: const Text('Use again')), IconButton(tooltip: 'Remove ${j.origin.name} to ${j.destination.name}', icon: const Icon(Icons.delete_outline, color: Brand.red, size: 20), onPressed: () => state.removeRecent(j.id))]),
               ),
-            const Text('Stored on this device only — journey history sync arrives with the backend.', style: TextStyle(color: Brand.grey, fontSize: 11.5)),
+            Text(state.backend ? 'Kept until you close the app. FoodOnTheGo keeps no journey history: “Use again” plans the journey afresh.' : 'Stored on this device only — journey history sync arrives with the backend.', style: const TextStyle(color: Brand.grey, fontSize: 11.5)),
           ]),
         ),
       );

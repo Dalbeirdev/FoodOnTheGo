@@ -77,3 +77,10 @@
   .pj-recent li { flex-direction: column; align-items: flex-start; }
   .pj-benefits { grid-template-columns: 1fr; gap: 12px; } .pj-benefits li { flex-direction: row; text-align: left; } .pj-benefits li span { margin: 0 10px 0 0; flex-shrink: 0; }
 }
+
+/* Module 26: what the routing provider said about the route, coverage along it, and how long the search stays valid */
+.pj-error__hint { font-weight: 400; }
+.pj-flags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.pj-flags li { padding: 4px 10px; border-radius: 999px; background: #fff8e6; border: 1px solid #f3d38a; color: #6b4300; font-size: 12.5px; font-weight: 600; }
+.pj-preview__nocoverage { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff8e6; border: 1px solid #f3d38a; color: #6b4300; font-size: 13px; line-height: 1.45; }
+.pj-preview__valid { margin: 10px 0 0; font-size: 12.5px; color: var(--muted); }

@@ -9,15 +9,22 @@ import '../i18n/markets.dart';
 import '../market/market.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../account/account_repositories.dart' show SavedAddress;
-import '../journey/journey_repositories.dart' show Journey, JourneyLocation;
+import '../journey/api_journey.dart';
+import '../journey/journey_repositories.dart' show Journey, JourneyErrorCode, JourneyException, JourneyLocation;
 
 enum DiscoveryStatus { idle, loading, updating, loadingMore, ready, error }
 
 /// Discovery state for the Restaurants screen: debounced search, data-driven filters, sort, corridor,
 /// cursor pagination, request cancellation and retry. Works with or without a journey.
+///
+/// Along a BACKEND journey (Module 26) the backend searches: the corridor, the filters and the orderings are its own,
+/// detours and arrival times come from its routing provider, and nothing is estimated or filtered in the app.
 class DiscoveryState extends ChangeNotifier {
-  DiscoveryState({RestaurantRepository? repository, KeyValueStore? store}) : repo = repository ?? MockRestaurantRepository(), _store = store ?? SecureKeyValueStore();
+  DiscoveryState({RestaurantRepository? repository, KeyValueStore? store, this.journeys}) : repo = repository ?? MockRestaurantRepository(), _store = store ?? SecureKeyValueStore();
   final RestaurantRepository repo;
+  /// The journey API (tests pass their own; the app uses the shared one).
+  final JourneyApi? journeys;
+  JourneyApi get _api => journeys ?? journeyApi;
   final KeyValueStore _store;
   static const _kScope = 'fotg.discovery.scope';
   @visibleForTesting
@@ -45,14 +52,28 @@ class DiscoveryState extends ChangeNotifier {
   int total = 0;
   String? nextCursor;
   String? error;
+  /// Why the last search failed (provider unavailable, offline, too many requests, …).
+  JourneyErrorCode? errorCode;
+  /// The backend says the journey is over ('expired') or is not this visitor's ('missing'): nothing is listed.
+  String? journeyGone;
+  /// Backend journeys: why the list is empty, and what the backend said about the search.
+  EmptyReason? emptyReason;
+  SearchMeta? searchMeta;
   Timer? _debounce;
+  Timer? _settle;
   int _seq = 0;
   bool _first = true;
 
-  List<FilterDefinition> get definitions => repo.getFilterDefinitions(journey);
+  /// true when the journey was planned by the backend and the backend searches along it.
+  bool get backend => journey?.backend == true;
+  List<FilterDefinition> get definitions => backend ? journeyFilterDefinitions(journey!) : repo.getFilterDefinitions(journey);
+  /// The orderings on offer: the backend's for a backend journey; without a journey nothing route based.
+  List<SortKey> get sorts => backend ? journeySorts(journey!) : [for (final k in SortKey.values) if (k != SortKey.routeOrder && (journey != null || (k != SortKey.lowestDetour && k != SortKey.nearestToRoute))) k];
+  /// Corridor slider bounds in metres: the market's policy for a backend journey.
+  (int min, int max, int step) get corridorBounds => backend && journey!.search != null ? (journey!.search!.corridorMinM, journey!.search!.corridorMaxM, 500) : (1000, 50000, 1000);
   int get maxRing => _ringKey == _scopeKey ? _maxRing : 1;
   String get _scopeKey => scope == null ? '' : '${scope!.countryCode}|${scope!.adminArea ?? ''}|${scope!.lat ?? ''}|${scope!.lng ?? ''}';
-  int? get corridorM => _corridorOverride != null && _corridorJourneyId == journey?.id ? _corridorOverride : (journey != null ? marketFor(journey!.origin.countryCode).corridorM : null);
+  int? get corridorM => _corridorOverride != null && _corridorJourneyId == journey?.id ? _corridorOverride : (journey != null ? (journey!.search?.corridorM ?? marketFor(journey!.origin.countryCode).corridorM) : null);
   /// Set when the current journey / location is outside active market coverage.
   MarketAvailabilityResult? unavailable;
   int get activeFilterCount => filters.length + (_debounced.isNotEmpty ? 1 : 0);
@@ -62,8 +83,13 @@ class DiscoveryState extends ChangeNotifier {
   /// Bind (or clear) the active journey, resolve the location scope and reload.
   /// Scope priority: manual → (device location PENDING) → default saved address → last journey origin → device region → none.
   Future<void> bind(Journey? j, {List<SavedAddress> addresses = const [], List<Journey> recentJourneys = const [], String? deviceLocale}) async {
+    final before = journey;
     journey = j?.route == null ? null : j;
     selectedId = null;
+    journeyGone = null; emptyReason = null; searchMeta = null;
+    // Filters and orderings of the backend's search mean nothing to the in-app one and the other way round (cuisine
+    // codes vs names, "Highest rated"); another backend journey starts with its own defaults.
+    if ((before?.backend ?? false) != backend || (backend && before?.id != journey?.id)) { filters = {}; if (!sorts.contains(sort)) sort = SortKey.recommended; }
     _manual ??= await _loadManual();
     scope = journey != null ? null : resolveScope(manual: _manual, addresses: addresses, recentJourneys: recentJourneys, locale: deviceLocale ?? PlatformDispatcher.instance.locale.toLanguageTag());
     if (journey == null && scope == null) { items = const []; total = 0; status = DiscoveryStatus.ready; notifyListeners(); return; }
@@ -99,21 +125,32 @@ class DiscoveryState extends ChangeNotifier {
     await load();
   }
 
+  /// The journey of the link could not be opened (unknown, over, or unreachable): nothing of an earlier one stays listed.
+  void clearJourney() { _seq++; journey = null; items = const []; total = 0; nextCursor = null; searchMeta = null; emptyReason = null; unavailable = null; journeyGone = null; error = null; errorCode = null; status = DiscoveryStatus.ready; notifyListeners(); }
+
   void showMoreAreas() { if (nextRing != null) { _maxRing = nextRing!; _ringKey = _scopeKey; load(); } }
 
   Future<void> load({bool more = false}) async {
     final my = ++_seq;
     status = more ? DiscoveryStatus.loadingMore : (_first ? DiscoveryStatus.loading : DiscoveryStatus.updating);
-    error = null; notifyListeners();
-    final q = DiscoveryQuery(search: _debounced, filters: filters, sort: sort, cursor: more ? nextCursor : null, corridorM: corridorM, scope: journey == null ? scope : null, maxRing: maxRing);
+    error = null; errorCode = null; notifyListeners();
+    final j = journey;
+    // The corridor is sent only when the customer moved it: otherwise the journey's own width applies.
+    final q = DiscoveryQuery(search: _debounced, filters: filters, sort: sort, cursor: more ? nextCursor : null, corridorM: backend ? (_corridorJourneyId == j?.id ? _corridorOverride : null) : corridorM, scope: j == null ? scope : null, maxRing: maxRing);
     try {
-      final page = journey != null ? await repo.getRestaurantsForJourney(journey!, q) : await repo.getRestaurants(q);
+      final page = j == null ? await repo.getRestaurants(q) : (j.backend ? await _api.discover(j, q) : await repo.getRestaurantsForJourney(j, q));
       if (my != _seq) return;
       items = more ? [...items, ...page.items] : page.items;
-      total = page.total; unavailable = page.unavailable; nextCursor = page.nextCursor; ringApplied = page.ringApplied; nextRing = page.nextRing; ringCounts = page.ringCounts; status = DiscoveryStatus.ready; _first = false;
+      total = page.total; unavailable = page.unavailable; nextCursor = page.nextCursor; ringApplied = page.ringApplied; nextRing = page.nextRing; ringCounts = page.ringCounts; emptyReason = page.emptyReason; searchMeta = page.searchMeta; status = DiscoveryStatus.ready; _first = false;
     } catch (e) {
       if (my != _seq) return;
-      error = e.toString().replaceFirst('Exception: ', ''); status = DiscoveryStatus.error;
+      errorCode = e is JourneyException ? e.code : null;
+      if (errorCode == JourneyErrorCode.expired || errorCode == JourneyErrorCode.notFound) {
+        // The journey is over or is not this visitor's: no stale list stays on screen.
+        journeyGone = errorCode == JourneyErrorCode.expired ? 'expired' : 'missing';
+        items = const []; total = 0; nextCursor = null; searchMeta = null; emptyReason = null;
+      }
+      error = e is JourneyException ? e.message : e.toString().replaceFirst('Exception: ', ''); status = DiscoveryStatus.error;
     }
     notifyListeners();
   }
@@ -123,21 +160,29 @@ class DiscoveryState extends ChangeNotifier {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () { if (_debounced != search.trim()) { _debounced = search.trim(); load(); } });
   }
+  /// A slider reports every step while it is dragged. Along a backend journey one request is sent once it settles
+  /// (each new corridor is a new search on the backend); the value on screen follows the finger at once.
+  void _reload() {
+    if (!backend) { load(); return; }
+    notifyListeners();
+    _settle?.cancel();
+    _settle = Timer(const Duration(milliseconds: 350), load);
+  }
   void setSort(SortKey s) { if (sort == s) return; sort = s; load(); }
-  void setFilter(String id, Object? value) { if (value == null || value == false || (value is List && value.isEmpty)) { filters.remove(id); } else { filters[id] = value; } load(); }
+  void setFilter(String id, Object? value) { if (value == null || value == false || (value is List && value.isEmpty)) { filters.remove(id); } else { filters[id] = value; } _reload(); }
   void toggleOption(String id, String option) {
     final cur = List<String>.from((filters[id] as List?)?.cast<String>() ?? const []);
     cur.contains(option) ? cur.remove(option) : cur.add(option);
     setFilter(id, cur);
   }
   void clearFilters() { filters = {}; search = ''; _debounced = ''; load(); }
-  void setCorridor(int? m) { _corridorOverride = m; _corridorJourneyId = journey?.id; load(); }
-  void widenCorridor() => setCorridor(((corridorM ?? 5000) * 2).clamp(1000, 50000));
+  void setCorridor(int? m) { _corridorOverride = m; _corridorJourneyId = journey?.id; _reload(); }
+  void widenCorridor() => setCorridor(((corridorM ?? 5000) * 2).clamp(corridorBounds.$1, corridorBounds.$2));
   void setUnitPreference(UnitSystem? u) { unitPreference = u; notifyListeners(); }
   void select(String? id) { selectedId = id; notifyListeners(); }
   Future<void> loadMore() => load(more: true);
   Future<void> retry() => load();
 
   @override
-  void dispose() { _debounce?.cancel(); super.dispose(); }
+  void dispose() { _debounce?.cancel(); _settle?.cancel(); super.dispose(); }
 }

@@ -36,7 +36,9 @@ return [
 
         'array' => [
             'driver' => 'array',
-            'serialize' => false,
+            // The test suite turns this on (phpunit.xml): values then go through serialize() / unserialize() with
+            // `serializable_classes` applied, exactly as on Redis — a cached PHP object fails in tests, not in production.
+            'serialize' => (bool) env('CACHE_ARRAY_SERIALIZE', false),
         ],
 
         'database' => [

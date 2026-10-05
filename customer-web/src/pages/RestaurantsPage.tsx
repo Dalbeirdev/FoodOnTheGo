@@ -7,13 +7,14 @@ import { PinIcon } from '../components/Icons'
 import { useAccount } from '../account/AccountContext'
 import { useAuth } from '../auth/AuthContext'
 import { useJourney } from '../journey/JourneyContext'
+import { JourneyError } from '../journey/repositories'
 import { unitChoiceAvailable } from '../market/mock/mockMarket'
 import { useDiscovery } from '../discovery/useDiscovery'
 import { loadManualScope, resolveScope, saveManualScope, scopeFromLocale, scopeFromLocation } from '../discovery/scope'
 import LocationInput from '../components/LocationInput'
 import type { Location } from '../journey/JourneyContext'
 import type { DiscoveryScope, ScopeRing } from '../repositories/types'
-import { formatDistance, formatMinutes } from '../i18n/format'
+import { formatDistance, formatLocalTime, formatMinutes } from '../i18n/format'
 import { marketFor, resolveUnitSystem, type UnitSystem } from '../i18n/markets'
 import { t, useLocale } from '../i18n/strings'
 import { mapProvider } from '../map/MapProvider'
@@ -39,7 +40,6 @@ const SearchIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><circle cx="11"
 const FilterIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><path d="M3 5h18M6 12h12M10 19h4" /></svg>)
 const ArrowIcon = ({ size = 16 }: P) => (<svg {...stroke(size)}><path d="M5 12h14M13 6l6 6-6 6" /></svg>)
 
-const SORTS: SortKey[] = ['recommended', 'lowestDetour', 'nearestToRoute', 'highestRated', 'fastestPickup']
 const fmtDeparture = (iso: string, locale: string, timeZone?: string) => { try { return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone }).format(new Date(iso)) } catch { return iso } }
 
 export default function RestaurantsPage() {
@@ -53,15 +53,24 @@ export default function RestaurantsPage() {
 
   // ---- journey context: ?journey=<id> (application state id, never a place name) or the current journey in state
   const journeyId = params.get('journey')
-  const [journeyState, setJourneyState] = useState<'none' | 'loading' | 'ready' | 'missing'>(journeyId ? 'loading' : 'none')
+  // Over ('expired') is not the same as unknown ('missing'), and neither is "cannot be asked right now" ('unreachable').
+  const [journeyState, setJourneyState] = useState<'none' | 'loading' | 'ready' | 'missing' | 'expired' | 'unreachable'>(journeyId ? 'loading' : 'none')
+  const [journeyError, setJourneyError] = useState('')
+  const [journeyAttempt, setJourneyAttempt] = useState(0)
   useEffect(() => {
     if (!journeyId) { setJourneyState('none'); return }
     let alive = true
     setJourneyState('loading')
-    journeyApi.load(journeyId).then((j) => { if (alive) setJourneyState(j ? 'ready' : 'missing') }).catch(() => { if (alive) setJourneyState('missing') })
+    journeyApi.load(journeyId).then((j) => { if (alive) setJourneyState(j ? 'ready' : 'missing') }).catch((e) => {
+      if (!alive) return
+      const code = e instanceof JourneyError ? e.code : null
+      if (code === 'expired') setJourneyState('expired')
+      else if (code === 'not-found') setJourneyState('missing')
+      else { setJourneyError(e instanceof JourneyError ? e.message : 'The journey could not be loaded. Please try again.'); setJourneyState('unreachable') }
+    })
     return () => { alive = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [journeyId])
+  }, [journeyId, journeyAttempt])
   const journey = journeyState === 'ready' && journeyApi.journey?.route ? journeyApi.journey : journeyState === 'none' && journeyApi.journey?.route ? journeyApi.journey : null
   const journeyReady = journeyState !== 'loading'
 
@@ -77,7 +86,14 @@ export default function RestaurantsPage() {
   const moreAreasLabel = (ring: ScopeRing | null) => ring === null ? '' : t(`scope.moreAreas.${ring}`, { region: regionName, country: countryName }, locale)
 
   // ---- discovery
-  const d = useDiscovery(journey, journeyReady && (!!journey || !!scope), scope)
+  // A link to a journey that cannot be used lists nothing of its own accord (no general results under its panel).
+  const journeyUnusable = journeyState === 'missing' || journeyState === 'expired' || journeyState === 'unreachable'
+  const d = useDiscovery(journey, journeyReady && !journeyUnusable && (!!journey || !!scope), scope)
+  // A backend journey can end while the page is open (it expires on the server, or was opened in another tab).
+  const journeyGone: 'expired' | 'missing' | null = journeyState === 'expired' || d.errorCode === 'expired' ? 'expired' : journeyState === 'missing' || d.errorCode === 'not-found' ? 'missing' : null
+  const resultsHidden = journeyGone !== null || journeyState === 'unreachable'
+  const routeMode = journey?.route?.mode ?? 'mock'
+  const planAgain = () => { journeyApi.edit(); navigate('/plan-journey') }
   const units: UnitSystem = resolveUnitSystem(unitPreference, journey?.origin.countryCode ?? d.items[0]?.restaurant.countryCode)
   const currency = journey ? marketFor(journey.origin.countryCode).currency : null
   const [view, setView] = useState<'list' | 'map' | 'both'>(() => (typeof window !== 'undefined' && window.innerWidth >= 1100 ? 'both' : 'list'))
@@ -113,13 +129,28 @@ export default function RestaurantsPage() {
             </div>
 
             {journeyState === 'loading' && <div className="ctx ctx--loading" role="status">{t('discovery.loadingRoute', undefined, locale)}</div>}
-            {journeyState === 'missing' && (
-              <div className="ctx ctx--missing" role="alert">
-                <p>Journey not found on this device.</p>
+            {journeyGone === 'missing' && (
+              <div className="ctx ctx--missing" role="alert" data-testid="journey-missing">
+                <p>{t('discovery.missing.title', undefined, locale)}</p>
+                {d.backend || journeyApi.mode === 'api' ? <p className="ctx__sub">{t('discovery.missing.text', undefined, locale)}</p> : null}
                 <Link to="/plan-journey" className="btn btn--primary">{t('discovery.planJourney', undefined, locale)}</Link>
               </div>
             )}
-            {journey && journeyState !== 'loading' && (
+            {journeyGone === 'expired' && (
+              <div className="ctx ctx--missing" role="alert" data-testid="journey-expired">
+                <p>{t('discovery.expired.title', undefined, locale)}</p>
+                <p className="ctx__sub">{t('discovery.expired.text', undefined, locale)}</p>
+                <button type="button" className="btn btn--primary" onClick={planAgain}>{t('discovery.expired.planAgain', undefined, locale)}</button>
+              </div>
+            )}
+            {journeyState === 'unreachable' && (
+              <div className="ctx ctx--missing" role="alert" data-testid="journey-unreachable">
+                <p>{t('discovery.unreachable.title', undefined, locale)}</p>
+                <p className="ctx__sub">{journeyError}</p>
+                <button type="button" className="btn btn--primary" onClick={() => setJourneyAttempt((n) => n + 1)}>{t('discovery.error.retry', undefined, locale)}</button>
+              </div>
+            )}
+            {journey && journeyState !== 'loading' && !journeyGone && (
               <section className="ctx jctx" aria-labelledby="jctx-title">
                 <div className="jctx__head"><h2 id="jctx-title">{t('discovery.journeyLabel', undefined, locale)}</h2><span className="jctx__id">#{journey.id.slice(-6)}</span></div>
                 <div className="jctx__route">
@@ -128,8 +159,8 @@ export default function RestaurantsPage() {
                   <span className="jctx__pt jctx__pt--to"><small>{t('discovery.to', undefined, locale)}</small><b dir="auto">{journey.destination.name}</b><span dir="auto">{journey.destination.formattedAddress ?? journey.destination.sub}</span></span>
                 </div>
                 <dl className="jctx__facts">
-                  <div><dt><CarIcon size={16} /> {t('discovery.route', undefined, locale)}</dt><dd>{formatDistance(journey.route!.distanceKm * 1000, journeyUnits, locale)} · {formatMinutes(journey.route!.durationMin, locale)} <small className="route-summary__mock">{t('mock.estimate', undefined, locale)}</small></dd></div>
-                  <div><dt><PinIcon size={16} /> {t('discovery.corridor', { distance: formatDistance(d.corridorM ?? 0, journeyUnits, locale) }, locale)}</dt><dd><input type="range" min={1000} max={50000} step={1000} value={d.corridorM ?? 5000} onChange={(e) => d.setCorridorM(Number(e.target.value))} aria-label={t('discovery.corridor', { distance: formatDistance(d.corridorM ?? 0, journeyUnits, locale) }, locale)} className="range range--sm" /></dd></div>
+                  <div><dt><CarIcon size={16} /> {t('discovery.route', undefined, locale)}</dt><dd data-testid="jctx-route" data-route-mode={routeMode}>{formatDistance(journey.route!.distanceM ?? journey.route!.distanceKm * 1000, journeyUnits, locale)} · {formatMinutes(journey.route!.durationMin, locale)} <small className="route-summary__mock">{t(routeMode === 'live' ? 'route.live' : routeMode === 'development' ? 'route.development' : 'mock.estimate', undefined, locale)}</small>{(journey.route!.flags ?? []).map((f) => <small key={f} className="route-summary__mock">{t(`route.flag.${f}`, undefined, locale)}</small>)}</dd></div>
+                  <div><dt><PinIcon size={16} /> {t('discovery.corridor', { distance: formatDistance(d.corridorM ?? 0, journeyUnits, locale) }, locale)}</dt><dd><input type="range" min={d.corridorBounds.min} max={d.corridorBounds.max} step={d.corridorBounds.step} value={d.corridorM ?? d.corridorBounds.min} onChange={(e) => d.setCorridorM(Number(e.target.value))} aria-label={t('discovery.corridor', { distance: formatDistance(d.corridorM ?? 0, journeyUnits, locale) }, locale)} className="range range--sm" data-testid="corridor-range" /></dd></div>
                   <div><dt>{journey.departureAt ? t('discovery.departing', { when: fmtDeparture(journey.departureAt, locale, journey.origin.timezone) }, locale) : t('discovery.leavingNow', undefined, locale)}</dt><dd className="jctx__count" aria-live="polite">{d.status === 'loading' ? t('discovery.loading', undefined, locale) : heading}</dd></div>
                 </dl>
                 <div className="jctx__actions">
@@ -153,8 +184,8 @@ export default function RestaurantsPage() {
           </div>
         </section>
 
-        {/* ---------- Results ---------- */}
-        <section className={`rest-body ${filtersOpen ? 'filters-open' : ''}`}>
+        {/* ---------- Results (none for a journey that is over, unknown or unreachable: only its panel above) ---------- */}
+        {!resultsHidden && <section className={`rest-body ${filtersOpen ? 'filters-open' : ''}`}>
           <div className="filters-wrap">
             <FiltersPanel definitions={d.definitions} values={d.filters} onToggleOption={d.toggleOption} onSet={d.setFilter} onClear={() => { d.clearFilters(); setFiltersOpen(false) }} units={units} currency={currency} />
           </div>
@@ -169,7 +200,7 @@ export default function RestaurantsPage() {
                 <label className="sort">{t('discovery.sort', undefined, locale)}
                   <span className="select-wrap">
                     <select aria-label={t('discovery.sort', undefined, locale)} value={d.sort} onChange={(e) => d.setSort(e.target.value as SortKey)} title={t('discovery.sort.recommendedNote', undefined, locale)}>
-                      {SORTS.filter((s) => journey || (s !== 'lowestDetour' && s !== 'nearestToRoute')).map((s) => <option key={s} value={s}>{t(`discovery.sort.${s}`, undefined, locale)}</option>)}
+                      {d.sorts.map((s) => <option key={s} value={s}>{t(`discovery.sort.${s}`, undefined, locale)}</option>)}
                     </select>
                     <ChevronDown />
                   </span>
@@ -189,14 +220,21 @@ export default function RestaurantsPage() {
                 </div>
               </div>
             </div>
-            {d.sort === 'recommended' && <p className="results__note">{t('discovery.sort.recommendedShort', undefined, locale)}</p>}
+            {d.sort === 'recommended' && <p className="results__note">{t(d.backend ? 'discovery.sort.recommendedShortArrival' : 'discovery.sort.recommendedShort', undefined, locale)}</p>}
+            {d.backend && d.searchMeta && d.status !== 'error' && !journeyGone && (
+              <p className="results__note results__note--estimate" data-testid="estimate-note" data-provider-mode={d.searchMeta.providerMode} data-cached={String(d.searchMeta.cached)}>
+                {t(d.searchMeta.providerMode === 'development' ? 'discovery.estimate.development' : 'discovery.estimate.live', undefined, locale)}{' '}
+                {t('discovery.estimate.calculated', { time: formatLocalTime(d.searchMeta.calculatedAt, journey?.origin.timezone ?? 'UTC', locale) }, locale)}{' '}
+                {t('discovery.maxDetour', { minutes: d.searchMeta.maxDetourMin.toLocaleString(locale) }, locale)}.
+              </p>
+            )}
 
             <div className={`results__grid results__grid--${view}`}>
               {showList && (
                 <div className="results__list">
-                  {d.status === 'error' && (
-                    <div className="disc-state disc-state--error" role="alert">
-                      <b>{t('discovery.error.title', undefined, locale)}</b><p>{d.error}</p>
+                  {d.status === 'error' && !journeyGone && (
+                    <div className="disc-state disc-state--error" role="alert" data-error-code={d.errorCode ?? ''}>
+                      <b>{t(d.errorCode === 'provider-unavailable' ? 'discovery.provider.unavailable' : 'discovery.error.title', undefined, locale)}</b><p>{d.error}</p>
                       <button type="button" className="btn btn--primary" onClick={() => { void d.retry() }}>{t('discovery.error.retry', undefined, locale)}</button>
                     </div>
                   )}
@@ -220,13 +258,14 @@ export default function RestaurantsPage() {
                     </div>
                   )}
                   {(d.status === 'ready' || d.status === 'updating') && d.items.length === 0 && !(d.availability && !d.availability.supported) && (
-                    <div className="disc-state disc-state--empty">
-                      <b>{t(journey ? 'discovery.empty.route.title' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title', { label: scope?.label ?? '' }, locale)}</b>
-                      <p>{t(journey ? 'discovery.empty.route.text' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text', undefined, locale)}</p>
+                    <div className="disc-state disc-state--empty" data-testid="discovery-empty" data-empty-reason={d.emptyReason ?? ''}>
+                      <b>{t(d.emptyReason === 'filters' ? 'discovery.empty.filters.title' : d.emptyReason === 'unreachable' ? 'discovery.empty.unreachable.title' : journey ? 'discovery.empty.route.title' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.title' : 'discovery.empty.general.title', { label: scope?.label ?? '' }, locale)}</b>
+                      <p>{t(d.emptyReason === 'filters' ? 'discovery.empty.filters.text' : d.emptyReason === 'unreachable' ? 'discovery.empty.unreachable.text' : journey ? 'discovery.empty.route.text' : scope && d.activeFilterCount === 0 ? 'discovery.empty.scope.text' : 'discovery.empty.general.text', undefined, locale)}</p>
                       <div className="disc-state__actions">
+                        {d.emptyReason === 'filters' && journey?.search && typeof d.filters.detourTime !== 'number' && d.searchMeta && d.searchMeta.maxDetourMin < journey.search.maxDetourMaxMin && <button type="button" className="btn btn--primary" onClick={() => d.setFilter('detourTime', Math.min(journey.search!.maxDetourMaxMin, Math.max(30, d.searchMeta!.maxDetourMin * 2)))}>{t('discovery.empty.allowLongerDetour', { minutes: Math.min(journey.search.maxDetourMaxMin, Math.max(30, d.searchMeta.maxDetourMin * 2)).toLocaleString(locale) }, locale)}</button>}
                         {!journey && scope && d.nextRing !== null && <button type="button" className="btn btn--primary" onClick={d.showMoreAreas}>{moreAreasLabel(d.nextRing)}</button>}
                         {!journey && scope && <button type="button" className="btn btn--outline" onClick={() => setScopeDialog(true)}>{t('scope.change', undefined, locale)}</button>}
-                        {journey && (d.corridorM ?? 0) < 50_000 && <button type="button" className="btn btn--primary" onClick={d.widenCorridor}>{t('discovery.empty.increaseDetour', { distance: formatDistance(Math.min((d.corridorM ?? 5000) * 2, 50_000), journeyUnits, locale) }, locale)}</button>}
+                        {journey && d.emptyReason !== 'unreachable' && (d.corridorM ?? 0) < d.corridorBounds.max && <button type="button" className="btn btn--primary" onClick={d.widenCorridor}>{t('discovery.empty.increaseDetour', { distance: formatDistance(Math.min((d.corridorM ?? 5000) * 2, d.corridorBounds.max), journeyUnits, locale) }, locale)}</button>}
                         {d.activeFilterCount > 0 && <button type="button" className="btn btn--outline" onClick={d.clearFilters}>{t('discovery.empty.clearFilters', undefined, locale)}</button>}
                         {journey && <Link to="/plan-journey" className="btn btn--outline" onClick={() => journeyApi.edit()}>{t('discovery.empty.editRoute', undefined, locale)}</Link>}
                       </div>
@@ -262,7 +301,7 @@ export default function RestaurantsPage() {
                 <aside className="results__map" aria-label={t('discovery.map.title', undefined, locale)}>
                   <div className="results__map-sticky">
                     <div className="results__map-head"><b>{t('discovery.map.title', undefined, locale)}</b><span className="results__map-legend"><span><i style={{ background: '#ff8a00' }} />{t('card.open', undefined, locale)}</span><span><i style={{ background: '#b9bfcc' }} />{t('card.closed', undefined, locale)}</span>{journey && <span><i style={{ background: '#f24e1e' }} />{t('discovery.route', undefined, locale)}</span>}</span></div>
-                    <MapView route={routeLine} origin={journey && journey.origin.lat !== null ? { position: [journey.origin.lat, journey.origin.lng!], label: journey.origin.name } : null} destination={journey && journey.destination.lat !== null ? { position: [journey.destination.lat, journey.destination.lng!], label: journey.destination.name } : null} markers={markers} selectedId={selectedId} onSelect={selectFromMap} ariaLabel={t('discovery.map.title', undefined, locale)} updating={d.status === 'updating' || d.status === 'loading'} shellNote={t('discovery.map.shell', undefined, locale)} />
+                    <MapView route={routeLine} origin={journey && journey.origin.lat !== null ? { position: [journey.origin.lat, journey.origin.lng!], label: journey.origin.name } : null} destination={journey && journey.destination.lat !== null ? { position: [journey.destination.lat, journey.destination.lng!], label: journey.destination.name } : null} markers={markers} selectedId={selectedId} onSelect={selectFromMap} ariaLabel={t('discovery.map.title', undefined, locale)} updating={d.status === 'updating' || d.status === 'loading'} shellNote={t(journey?.backend ? 'discovery.map.shellRoute' : 'discovery.map.shell', undefined, locale)} />
                     {selectedId && <p className="results__map-sel" aria-live="polite">{t('discovery.map.selected', { name: d.items.find((x) => x.restaurant.id === selectedId)?.restaurant.name ?? '' }, locale)}</p>}
                     <details className="results__map-alt">
                       <summary>{t('discovery.map.textAlt', undefined, locale)}</summary>
@@ -273,13 +312,13 @@ export default function RestaurantsPage() {
               )}
             </div>
           </div>
-        </section>
+        </section>}
 
         {scopeDialog && (
           <div className="ac-modal" role="dialog" aria-modal="true" aria-labelledby="scope-title" onClick={(e) => { if (e.target === e.currentTarget) setScopeDialog(false) }}>
             <div className="ac-modal__box scope-dialog">
               <h2 id="scope-title">{t('scope.dialog.title', undefined, locale)}</h2>
-              <p className="ac-note" style={{ marginBottom: 12 }}>{t('scope.dialog.hint', undefined, locale)}</p>
+              <p className="ac-note" style={{ marginBottom: 12 }}>{t(journeyApi.mode === 'api' ? 'scope.dialog.hintApi' : 'scope.dialog.hint', undefined, locale)}</p>
               <LocationInput id="scope-loc" label={t('scope.dialog.title', undefined, locale)} placeholder={t('discovery.search.placeholder', undefined, locale)} value={pendingLoc} onChange={setPendingLoc} allowCurrent />
               <div className="ac-modal__actions">
                 <button type="button" className="btn btn--outline" onClick={() => { setScopeDialog(false); setPendingLoc(null) }}>Cancel</button>

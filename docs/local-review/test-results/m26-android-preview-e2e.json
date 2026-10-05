@@ -1,0 +1,121 @@
+{
+  "module": "M26",
+  "date": "2026-10-05T13:15:17.479Z",
+  "target": "Flutter web preview of the Android app (same Dart code as the APK), JOURNEY_MODE=api, real local backend",
+  "provider": "development (fake) places + routing — no live provider is configured on this machine",
+  "note": "Not a device test: USER DEVICE VERIFICATION = PENDING for the APK.",
+  "passed": 22,
+  "total": 22,
+  "results": [
+    {
+      "name": "G1 Plan a Journey runs on the backend: the \"no journey history\" note is shown and nothing is labelled mock",
+      "pass": true,
+      "detail": "Plan a Journey | Cart | Discover restaurants along your route\nCheck detour time and distance\nOrder and pickup easily | Plan Your Journey\nFind restaurants along your route\nStarting Point\nDestination\nTr"
+    },
+    {
+      "name": "G2 typing asks GET /places/search (200, no Authorization for a guest) and choosing a suggestion posts its place id to /places/resolve (200)",
+      "pass": true,
+      "detail": "[\"/places/search?q=Se\",\"/places/search?q=Sec\",\"/places/search?q=Sect\",\"/places/search?q=Secto\",\"/places/search?q=Sector\",\"/places/search?q=Sector\",\"/places/search?q=Sector+6\",\"/places/search?q=Sector+62\"]"
+    },
+    {
+      "name": "G3 POST /journeys/plan (201): the body is two place ids only; the summary shows the provider figures with their source and the provider line (5 points), not a mock sketch",
+      "pass": true,
+      "detail": "{\"body\":\"{\\\"origin\\\":{\\\"place_id\\\":\\\"fake:noida-62\\\"},\\\"destination\\\":{\\\"place_id\\\":\\\"fake:noida-18\\\"}}\",\"dist\":{\"id\":\"pj-distance\",\"label\":\"Approx. distance: 9.6 km (development routing model)\"},\"dur\":{\"id\":\"pj-duration\",\"label\":\"Approx. travel time: 17 min (development routing model)\"},\"preview\":\"route-preview-development-5\"}"
+    },
+    {
+      "name": "G3b the preview says what it is: \"development routing model (synthetic roads, not real road data)\", valid-until time, pickup wording — nothing says \"mock\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G4 the list is GET /journeys/{id}/restaurants (200) with the guest token as a HEADER; the cards are the backend's restaurants in its order",
+      "pass": true,
+      "detail": "{\"order\":[\"pizza-point\",\"burger-hub\",\"healthy-bites\",\"spice-nest\",\"brew-bites\",\"wok-express\"],\"api\":[\"pizza-point\",\"burger-hub\",\"healthy-bites\",\"spice-nest\",\"brew-bites\",\"wok-express\"],\"url\":\"/journeys/5040a618-4092-469b-9b67-e63ed44a461a/restaurants?sort=recommended&page[number]=1&page[size]=6\"}"
+    },
+    {
+      "name": "G5 cards speak about the ARRIVAL: \"Open when you arrive\", the actual detour \"+N min\", \"Estimated arrival\", a temporarily closed restaurant as such; no rating and no ready-by promise",
+      "pass": true,
+      "detail": "Restaurants | Cart | EXPLORE RESTAURANTS\nGreat Food\nAlong Your Route\nDiscover top-rated restaurants on or near your route. Pre-order your favourite food and pick it up at the perfect time. | 6 restaurants along your route\nSorted by: can take your order when you arrive, then shortest detour, then ord"
+    },
+    {
+      "name": "G6 the screen says where the figures come from: \"development route model\" beside the route and the estimate note (synthetic roads, calculated at, detours up to 15 min)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G7 the sort menu opens and offers the backend's orderings only (no \"Highest rated\"); \"Order along route\" is sort=route_order, answered from the calculated set",
+      "pass": true,
+      "detail": "{\"menu\":true,\"url\":\"/journeys/5040a618-4092-469b-9b67-e63ed44a461a/restaurants?sort=route_order&page[number]=1&page[size]=6\"}"
+    },
+    {
+      "name": "G8 the filter sheet holds only what the backend applies (cuisine by taxonomy code, \"Open when I arrive\", max detour); both are sent to the backend and need no new detour",
+      "pass": true,
+      "detail": "{\"sheet\":true,\"open\":\"/journeys/5040a618-4092-469b-9b67-e63ed44a461a/restaurants?sort=route_order&open_at_arrival=true&page[number]=1&page[size]=6\",\"pizza\":\"/journeys/5040a618-4092-469b-9b67-e63ed44a461a/restaurants?sort=route_order&open_at_arrival=true&cuisine=pizza&page[number]=1&page[size]=6\"}"
+    },
+    {
+      "name": "G9 the map draws the provider line (5 points) with one marker per restaurant; a tap on a marker selects it; the note sits under the map",
+      "pass": true,
+      "detail": "{\"id\":\"map-route-5\",\"label\":\"Route map: 6 restaurants along Sector 62, Noida to Sector 18, Noida\"}"
+    },
+    {
+      "name": "G10 the restaurant page shows this journey's figures for the restaurant and names their source (\"development route model\")",
+      "pass": true,
+      "detail": "Back to results | Save Burger Hub | Share | Photos (1) | Burger Hub\n 4.5\n (320)\nBurgers · Fast Food · American  ·  ₹₹\nOpen\nCloses 11:30 PM GMT+5:30\nPrep 12m\nSector 62, Noida, Uttar Pradesh 201309, Ind"
+    },
+    {
+      "name": "G10b a restaurant the journey did not find has NO route figures — nothing is estimated in the app",
+      "pass": true,
+      "detail": "{\"none\":{\"id\":\"rd-not-on-journey\",\"label\":\"This restaurant is not among the results of your current journey, so there is no detour or arrival estimate for it.\\nBack to the restaurants on your route\"},\"anyFacts\":[]}"
+    },
+    {
+      "name": "G11 an expired journey: the backend answers 410 (the token came from the app's storage) and the screen offers \"Plan it again\" — no list, no generic error",
+      "pass": true,
+      "detail": "{\"status\":410,\"header\":true,\"sameToken\":true,\"text\":\"Restaurants | Cart | EXPLORE RESTAURANTS\\nGreat Food\\nAlong Your Route\\nDiscover top-rated restaurants on or near your route. Pre-order your favourite food and pick it up at the perfect time. | This journey has expired.\\nJourneys are kept for a short time only. Pl\"}"
+    },
+    {
+      "name": "G12 a journey this device did not plan: 404 → \"Journey not found on this device\" with the reason; no restaurant is requested",
+      "pass": true,
+      "detail": "Restaurants | Cart | EXPLORE RESTAURANTS\nGreat Food\nAlong Your Route\nDiscover top-rated restaurants on or near your route. Pre-order your favourite food and pick it up at the perfect time. | Journey not found on this device.\nA journey can only be opened on the device that planned it, or by the accou"
+    },
+    {
+      "name": "G13 no road between the two places: 422 route_not_found; the screen says so, with no distance, no time and no line",
+      "pass": true,
+      "detail": "Plan a Journey | Cart | Discover restaurants along your route\nCheck detour time and distance\nOrder and pickup easily | Plan Your Journey\nFind restaurants along your route\nStarting Point\nDestination\nFo"
+    },
+    {
+      "name": "G14 a route FoodOnTheGo does not serve is still planned: both places say \"does not serve this place yet\", the preview says no restaurants will be listed, and the list is an answer (\"does not cover this route yet\"), not an error",
+      "pass": true,
+      "detail": "{\"unserved\":2,\"nocov\":true,\"empty\":\"NO_SERVICE_COVERAGE\"}"
+    },
+    {
+      "name": "L1 \"Use my current location\" asks the device when tapped and sends the position as coordinates in the request BODY (never in a URL); the backend plans from it",
+      "pass": true,
+      "detail": "{\"asksFirst\":true,\"body\":\"{\\\"origin\\\":{\\\"lat\\\":28.6139,\\\"lng\\\":77.209,\\\"label\\\":\\\"Current location\\\"},\\\"destination\\\":{\\\"place_id\\\":\\\"fake:noida-18\\\"}}\"}"
+    },
+    {
+      "name": "L2 when location permission is not given the picker says so and stays open for a search — nothing is guessed, nothing is sent",
+      "pass": true,
+      "detail": "Dialog | Starting point | Close | Search city, station, airport or landmark | Location permission is switched off for FoodOnTheGo. Search for a place instead, or allow location in the app settings. | Use my current location\nYour device asks"
+    },
+    {
+      "name": "C1 a signed-in customer picks the saved place \"Home\": it travels by its id (saved_location_id), with the account token; the journey belongs to the customer and no guest token is issued",
+      "pass": true,
+      "detail": "{\"signedIn\":true,\"savedShown\":true,\"body\":\"{\\\"origin\\\":{\\\"saved_location_id\\\":\\\"bd0f8347-59ea-48f8-af49-166078a621cd\\\",\\\"label\\\":\\\"Home\\\"},\\\"destination\\\":{\\\"place_id\\\":\\\"fake:noida-18\\\"}}\",\"owner\":\"customer\"}"
+    },
+    {
+      "name": "C2 the customer's list is read with the account token only (no journey token); of the two ends only the SEARCHED place went to the recent places — not the saved one",
+      "pass": true,
+      "detail": "Sector 18, Noida"
+    },
+    {
+      "name": "X1 URL audit: of every API request the app made, none carries a coordinate or a token in its URL",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "X2 no page errors in the app across these flows",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

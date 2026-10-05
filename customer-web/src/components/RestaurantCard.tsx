@@ -21,18 +21,21 @@ export default function RestaurantCard({ result, units, selected, favorite, onFa
   const { locale, unitPreference } = useLocale()
   const { restaurant: r, availability: a } = result
   const u = units ?? resolveUnitSystem(unitPreference, r.countryCode)
-  const statusKey = a.status === 'open' ? 'card.open' : a.status === 'closing_soon' ? 'card.closingSoon' : a.status === 'opening_soon' ? 'card.openingSoon' : a.status === 'temporarily_closed' ? 'card.temporarilyClosed' : 'card.closed'
+  // Along a backend journey the state shown is the state at the EXPECTED ARRIVAL (the question a traveller has).
+  const statusKey = a.status === 'temporarily_closed' ? 'card.temporarilyClosed'
+    : result.atArrival ? (a.status === 'open' ? 'card.openOnArrival' : a.status === 'closing_soon' ? 'card.closingSoonOnArrival' : a.status === 'opening_soon' ? 'card.openingSoonOnArrival' : 'card.closedOnArrival')
+      : a.status === 'open' ? 'card.open' : a.status === 'closing_soon' ? 'card.closingSoon' : a.status === 'opening_soon' ? 'card.openingSoon' : 'card.closed'
   const nextChange = a.nextChangeAt ? t(a.status === 'open' || a.status === 'closing_soon' ? 'card.closesAt' : 'card.opensAt', { time: formatLocalTime(a.nextChangeAt, r.timezone, locale) }, locale) : ''
   const closed = a.status === 'closed' || a.status === 'temporarily_closed'
   const to = `/restaurants/${r.slug}`
   const lang = r.countryCode === 'JP' ? 'ja' : /[؀-ۿ]/.test(r.name) ? 'ar' : undefined
   return (
-    <li className={`rcard ${selected ? 'is-selected' : ''} ${closed ? 'is-closed' : ''}`} data-id={r.id} data-ring={result.ring ?? ''} onMouseEnter={onSelect} onFocus={onSelect}>
+    <li className={`rcard ${selected ? 'is-selected' : ''} ${closed ? 'is-closed' : ''}`} data-id={r.id} data-slug={r.slug} data-ring={result.ring ?? ''} data-detour-min={result.detourDurationMin ?? ''} data-open-at-arrival={result.atArrival ? String(a.status === 'open' || a.status === 'closing_soon') : ''} onMouseEnter={onSelect} onFocus={onSelect}>
       <div className="rcard__media">
         <img src={r.image} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
         <span className="rcard__fallback" aria-hidden="true">{r.fallback}</span>
         <span className={`rcard__open rcard__open--${a.status}`}>{t(statusKey, undefined, locale)}</span>
-        {result.detourDurationMin !== null && <span className="rcard__detour"><ClockIcon size={16} /> {formatMinutes(result.detourDurationMin, locale)} <small>{t('card.detourShort', undefined, locale)}</small></span>}
+        {result.detourDurationMin !== null && <span className="rcard__detour"><ClockIcon size={16} /> {result.atArrival ? '+' : ''}{formatMinutes(result.detourDurationMin, locale)} <small>{t('card.detourShort', undefined, locale)}</small></span>}
         <button type="button" className={`rcard__like ${favorite ? 'is-on' : ''}`} aria-pressed={favorite} aria-label={t(favorite ? 'card.unsave' : 'card.save', { name: r.name }, locale)} onClick={onFavorite}><HeartIcon /></button>
       </div>
       <div className="rcard__body">
@@ -40,7 +43,8 @@ export default function RestaurantCard({ result, units, selected, favorite, onFa
           <h3 lang={lang} dir="auto">{r.name}</h3>
           {r.reviewCount > 0
             ? <span className="rcard__rating"><StarIcon size={13} /> {r.rating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <small>{t('card.reviews', { count: r.reviewCount.toLocaleString(locale) }, locale)}</small></span>
-            : <span className="rcard__rating"><small>{t('card.noReviews', undefined, locale)}</small></span>}
+            // Along a backend journey there are no review figures at all (no reviews backend yet): nothing is shown in their place.
+            : result.atArrival ? null : <span className="rcard__rating"><small>{t('card.noReviews', undefined, locale)}</small></span>}
         </div>
         <p className="rcard__cuisine" dir="auto"><span>{r.cuisines.slice(0, 2).join(' · ')}</span><span className="rcard__price" aria-label={`price level ${r.priceLevel} of 4, ${r.currency}`}>{priceLevelLabel(r.priceLevel, r.currency, locale)}</span></p>
         {(nextChange || (!a.acceptingOrders && !closed)) && (
@@ -53,7 +57,7 @@ export default function RestaurantCard({ result, units, selected, favorite, onFa
           {result.distanceFromRouteM !== null && <span><PinIcon size={15} /> {t('card.fromRoute', { distance: formatDistance(result.distanceFromRouteM, u, locale) }, locale)}</span>}
           {result.distanceFromRouteM === null && result.distanceFromScopeM !== null && result.distanceFromScopeM !== undefined && <span><PinIcon size={15} /> {formatDistance(result.distanceFromScopeM, u, locale)}</span>}
           <span><ClockIcon size={15} /> {t('card.prep', { minutes: formatMinutes(r.prepTimeMin, locale) }, locale)}</span>
-          {result.estimatedArrival && <span><CarIcon /> {t('card.arrival', { time: formatLocalTime(result.estimatedArrival, r.timezone, locale) }, locale)}</span>}
+          {result.estimatedArrival && <span><CarIcon /> {t(result.atArrival ? 'card.estimatedArrival' : 'card.arrival', { time: formatLocalTime(result.estimatedArrival, r.timezone, locale) }, locale)}</span>}
         </p>
         <p className="rcard__addr" dir="auto" title={r.address.formatted}>{r.address.formatted}</p>
         {ringLabel && <span className="visually-hidden">{ringLabel}</span>}

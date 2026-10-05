@@ -37,4 +37,18 @@ final class Geo
             throw new InvalidArgumentException('Coordinates are outside the WGS84 range.');
         }
     }
+
+    /**
+     * Great-circle distance in metres (haversine, mean earth radius). For bookkeeping only — same-point checks,
+     * cache keys, the development routing model. Never a substitute for the routing provider's road distance.
+     */
+    public static function distanceMeters(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $radius = 6371008.8;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $h = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return 2 * $radius * asin(min(1.0, sqrt($h)));
+    }
 }

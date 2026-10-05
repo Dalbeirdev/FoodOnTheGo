@@ -1,0 +1,9 @@
+# Module 26 — Android app checks (LOCAL, 2026-10-05): flutter analyze, flutter test
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 48.3s)
+
+== flutter test
++393: All tests passed!
+   new in Module 26: test/api_journey_test.dart (25 tests), test/journey_screens_api_test.dart (14 tests); shared fixtures in test/support/journey_api_fixtures.dart

@@ -1,0 +1,32 @@
+{
+  "module": "M26",
+  "date": "2026-10-05T12:27:54.655Z",
+  "note": "Local machine: php artisan serve (single process, no OPcache) behind the Node proxy, PostgreSQL 18 + PostGIS, Redis cache, DEVELOPMENT routing / places provider (no network call). End-to-end HTTP time as seen by a client; measurements, not targets.",
+  "fixture": "Sector 62 → Sector 18 Noida, 6 eligible restaurants in the corridor",
+  "timings_ms": {
+    "plan": {
+      "median_ms": 402,
+      "min_ms": 359,
+      "max_ms": 580,
+      "runs": 5
+    },
+    "first": {
+      "median_ms": 506,
+      "min_ms": 436,
+      "max_ms": 613,
+      "runs": 5
+    },
+    "cached": {
+      "median_ms": 470,
+      "min_ms": 416,
+      "max_ms": 552,
+      "runs": 5
+    },
+    "places": {
+      "median_ms": 347,
+      "min_ms": 303,
+      "max_ms": 547,
+      "runs": 5
+    }
+  }
+}

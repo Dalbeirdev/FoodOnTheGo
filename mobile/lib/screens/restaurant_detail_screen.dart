@@ -9,6 +9,7 @@ import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart';
 import '../i18n/markets.dart';
 import '../i18n/strings.dart';
+import '../journey/api_journey.dart' show journeyApi;
 import '../journey/journey_repositories.dart' show Journey;
 import '../menu/api_menu.dart' show defaultMenuRepository;
 import '../menu/menu_repository.dart';
@@ -112,7 +113,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
             actions: [_FavoriteAction(restaurant: rest), IconButton(tooltip: S.t('rd.share'), icon: const Icon(Icons.share_outlined), onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${S.t('rd.share')}: /restaurants/${rest.slug}'))))],
             flexibleSpace: FlexibleSpaceBar(background: Photo(rest.image, height: 230, radius: 0, overlay: true, child: Positioned(bottom: 12, right: 12, child: _PhotosButton(count: rest.images.length, onTap: () => _tabs.animateTo(2))))),
           ),
-          SliverToBoxAdapter(child: _InfoCard(rest: rest, a: a, route: route, units: units)),
+          SliverToBoxAdapter(child: _InfoCard(rest: rest, a: a, route: route, units: units, journey: journey)),
           SliverPersistentHeader(pinned: true, delegate: _TabsHeader(TabBar(controller: _tabs, labelColor: Brand.orangeDeep, unselectedLabelColor: Brand.grey, indicatorColor: Brand.orangeDeep, labelStyle: const TextStyle(fontWeight: FontWeight.w800), tabs: [Tab(text: S.t('rd.tab.menu')), Tab(text: S.t('rd.tab.info')), Tab(text: '${S.t('rd.tab.photos')} ${rest.images.length}')]))),
         ],
         body: TabBarView(controller: _tabs, children: [_menuTab(rest), _infoTab(rest), _photosTab(rest)]),
@@ -241,7 +242,10 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
       );
 }
 
+/// The route figures of a restaurant on the current journey. For a backend journey they are what the backend's last
+/// search said (actual detour, arrival) — a restaurant the journey did not find has none, nothing is estimated here.
 RouteRestaurantResult? routeContextFor(GlobalRestaurant r, Journey j) {
+  if (j.backend) return journeyApi.storedContext(j.id, r.slug);
   final line = j.route?.geometry ?? const <List<double>>[];
   if (line.isEmpty) return null;
   final (meters, position) = distanceToPolyline(r.lat, r.lng, line);
@@ -255,7 +259,8 @@ RouteRestaurantResult? routeContextFor(GlobalRestaurant r, Journey j) {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.rest, required this.a, required this.route, required this.units});
+  const _InfoCard({required this.rest, required this.a, required this.route, required this.units, this.journey});
+  final Journey? journey;
   final GlobalRestaurant rest;
   final Availability a;
   final RouteRestaurantResult? route;
@@ -293,12 +298,15 @@ class _InfoCard extends StatelessWidget {
             else if (!rest.acceptingOrders) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.info_outline, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t(rest.unavailableReason == 'AREA_UNAVAILABLE' ? 'rd.areaUnavailable' : rest.unavailableReason == 'PICKUP_UNAVAILABLE' ? 'rd.pickupUnavailable' : 'rd.notAccepting'), style: const TextStyle(fontSize: 13, color: Color(0xFF7C3D00))))),
             const SizedBox(height: 12),
             if (route != null)
-              Semantics(label: S.t('rd.route.title'), child: Wrap(spacing: 8, runSpacing: 8, children: [
+              Semantics(label: S.t('rd.route.title'), identifier: 'rd-route-${journey?.route?.mode ?? 'mock'}', child: Wrap(spacing: 8, runSpacing: 8, children: [
                 _Fact(Icons.place_outlined, formatDistance(route!.distanceFromRouteM!, units), S.t('rd.route.distance')),
                 _Fact(Icons.schedule, formatMinutes(route!.detourDurationMin!), S.t('rd.route.detour')),
                 _Fact(Icons.directions_car_outlined, formatLocalTime(route!.estimatedArrival!, rest.timezone), 'arrive (local)'),
-                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: Text(S.t('mock.estimate'), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300)))),
+                Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFFFF8E6), border: Border.all(color: const Color(0xFFF3D38A)), borderRadius: BorderRadius.circular(999)), child: Text(switch (journey?.route?.mode) { 'live' => S.t('route.live'), 'development' => S.t('route.development'), _ => S.t('mock.estimate') }, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF6B4300)))),
               ]))
+            // A backend journey that did not find this restaurant has no figures for it — nothing is estimated in the app.
+            else if (journey?.backend == true)
+              Semantics(container: true, identifier: 'rd-not-on-journey', child: InkWell(onTap: () => context.go('/restaurants?journey=${Uri.encodeComponent(journey!.id)}'), borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Brand.bg, borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.directions_car_outlined, size: 16, color: Brand.grey), const SizedBox(width: 8), Expanded(child: Text(S.t('rd.route.notOnJourney'), style: const TextStyle(color: Brand.grey, fontSize: 12.5))), const SizedBox(width: 8), Flexible(child: Text(S.t('rd.route.backToResults'), textAlign: TextAlign.end, style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700, fontSize: 12.5)))]))))
             else
               InkWell(onTap: () => context.go('/plan-journey'), borderRadius: BorderRadius.circular(12), child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Brand.bg, borderRadius: BorderRadius.circular(12)), child: Row(children: [const Icon(Icons.directions_car_outlined, size: 16, color: Brand.grey), const SizedBox(width: 8), Expanded(child: Text(S.t('rd.route.none'), style: const TextStyle(color: Brand.grey, fontSize: 12.5))), Text(S.t('discovery.planJourney'), style: const TextStyle(color: Brand.orangeDeep, fontWeight: FontWeight.w700, fontSize: 12.5))]))),
             const SizedBox(height: 12),

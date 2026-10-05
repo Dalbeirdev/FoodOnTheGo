@@ -21,8 +21,12 @@ export type Location = {
   kind: LocationKind
   lat: number | null
   lng: number | null
-  /** Where the data came from — mock during development, later "google-places" / "api". */
-  source: 'mock' | 'saved-address' | 'dev-location'
+  /**
+   * Where the data came from: 'mock' / 'dev-location' = the in-browser development providers; 'place' = a suggestion of
+   * the backend's places provider; 'saved-address' = one of the customer's saved places; 'recent' = a recent place kept
+   * by the backend; 'device' = the device's own position (asked for only when the traveller taps the button).
+   */
+  source: 'mock' | 'saved-address' | 'dev-location' | 'place' | 'recent' | 'device'
   /* Global place fields (WGS84 / SRID 4326). Optional because providers differ; never assume a country's format. */
   /** Provider place identifier. */
   placeId?: string
@@ -34,23 +38,39 @@ export type Location = {
   postalCode?: string
   /** IANA time zone where known. */
   timezone?: string
+  /** Backend: the id of the customer's saved place this location stands for (sent instead of coordinates). */
+  savedLocationId?: string
+  /** Backend: whether FoodOnTheGo serves this point (answered when the place was resolved). */
+  coverage?: PlaceCoverage
 }
+
+export type PlaceCoverage = { supported: boolean; reason: string | null; city: string | null; serviceArea: string | null }
 
 /** Generic global place — journeys, saved addresses and restaurants all resolve to this shape. */
 export type Place = Location
 
 export type JourneyStatus = 'draft' | 'ready' | 'route-available' | 'error'
 
+/** mock = the browser's straight-line development estimate; development = the backend's synthetic routing model; live = a real routing provider. */
+export type RouteMode = 'mock' | 'development' | 'live'
+
 export type RouteSummary = {
-  provider: 'mock'
+  /** 'mock' in the browser's development mode, otherwise the backend's routing driver. */
+  provider: string
+  mode?: RouteMode
   distanceKm: number
   durationMin: number
   /** Ordered [lat, lng] pairs for a schematic preview. Real geometry (encoded polyline) arrives with the Routes API. */
   geometry: [number, number][]
   /** Named places the corridor passes — text alternative to the map. */
   waypoints: string[]
-  /** Development-only marker so the UI can label estimates. */
-  isEstimate: true
+  /** True while the figures are development estimates (mock or the backend's development routing model). */
+  isEstimate: boolean
+  /** Backend: exact figures, flags the traveller should know about, and whether the provider used a traffic forecast. */
+  distanceM?: number
+  durationS?: number
+  flags?: string[]
+  trafficAware?: boolean
 }
 
 export type Journey = {
@@ -68,13 +88,31 @@ export type Journey = {
   route: RouteSummary | null
   /** Reference for future stored geometry (PostGIS) — null until the backend exists. */
   routeGeometryRef: string | null
+  /** Backend journeys (Module 26): the journey lives on the server, expires, and carries its coverage and search defaults. */
+  backend?: boolean
+  owner?: 'guest' | 'customer'
+  expiresAt?: string | null
+  coverage?: JourneyCoverage
+  search?: JourneySearchDefaults
 }
+
+export type JourneyCoverage = {
+  /** NO_SERVICE_COVERAGE = the route exists but no served area lies along it. */
+  alongRoute: 'COVERED' | 'NO_SERVICE_COVERAGE'
+  serviceableAreas: number
+  origin: PlaceCoverage
+  destination: PlaceCoverage
+  corridors: Array<{ name: string; highway: string | null }>
+}
+export type JourneySearchDefaults = { corridorM: number; corridorMinM: number; corridorMaxM: number; maxDetourMin: number; maxDetourMaxMin: number; candidateCap: number; pageSize: number; sorts: string[] }
 
 export type JourneyInput = { origin: Location; destination: Location; departureAt: string | null }
 
 export interface LocationRepository {
   /** Free-text search. Resolves to [] when nothing matches; rejects on lookup failure. */
   search(query: string): Promise<Location[]>
+  /** Backend: a chosen suggestion gets its coordinates, time zone and coverage answer from the server. */
+  resolve?(location: Location): Promise<Location>
   /** Recently used locations for this device / user. */
   recent(): Promise<Location[]>
   remember(location: Location): Promise<void>
@@ -93,8 +131,12 @@ export interface RouteRepository {
   getRoute(origin: Location, destination: Location): Promise<RouteSummary>
 }
 
+export type JourneyErrorCode =
+  | 'lookup-failed' | 'no-route' | 'network' | 'not-found' | 'unexpected'
+  /* backend */ | 'market-unsupported' | 'cross-border' | 'provider-unavailable' | 'rate-limited' | 'expired' | 'invalid' | 'place-not-found'
+
 export class JourneyError extends Error {
-  code: 'lookup-failed' | 'no-route' | 'network' | 'not-found' | 'unexpected'
+  code: JourneyErrorCode
   constructor(code: JourneyError['code'], message: string) {
     super(message)
     this.name = 'JourneyError'

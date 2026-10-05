@@ -61,6 +61,19 @@ final class RestaurantVisibility
     }
 
     /**
+     * Keeps only locations whose area is being served at $at (ACTIVE and in effect, in a city and region that serve
+     * customers) — the "serviceable" half of orderable, as a filter instead of a selected flag.
+     *
+     * @param  Builder<RestaurantLocation>  $query
+     */
+    public function whereServiceableAt(Builder $query, CarbonInterface $at): void
+    {
+        $instant = $at->copy()->utc()->format('Y-m-d H:i:sP');
+
+        $query->whereRaw($this->coveringArea([CoverageStatus::Active->value], ['PILOT', 'ACTIVE'], ['PILOT', 'ACTIVE'], true), [$instant, $instant]);
+    }
+
+    /**
      * Keeps only locations that are open at $at according to their operational status, special hours and
      * weekly hours, each in its own time zone. Mirrors Schedule::isOpenAt() (a test compares the two).
      *

@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Asked only when the customer taps "Use my current location" while planning a journey (Module 26). No background location. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <!-- Cleartext (plain HTTP) is disabled here. The `local` flavor overrides this in
          src/local/AndroidManifest.xml so the developer PC can be reached over the LAN. -->

@@ -97,16 +97,19 @@ return [
         'browser_key' => env('MAPS_BROWSER_KEY'),
     ],
 
+    // Module 26: PLACES_DRIVER / ROUTING_DRIVER = fake (development, refused in production) | google. Keys are server-side only.
     'places' => [
         'driver' => env('PLACES_DRIVER'),
         'key' => env('PLACES_API_KEY'),
         'timeout' => (int) env('PLACES_TIMEOUT', 5),
+        'base_url' => env('PLACES_BASE_URL', 'https://places.googleapis.com/v1'),
     ],
 
     'routing' => [
         'driver' => env('ROUTING_DRIVER'),
         'key' => env('ROUTING_API_KEY'),
         'timeout' => (int) env('ROUTING_TIMEOUT', 8),
+        'base_url' => env('ROUTING_BASE_URL', 'https://routes.googleapis.com'),
     ],
 
     'payment' => [

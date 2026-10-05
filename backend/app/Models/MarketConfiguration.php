@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * Structured, per-market configuration that does not belong on the market row itself: payment, tax, legal,
  * address and ordering settings, grouped by category. Administrative data — never sent to customers as is.
  */
-#[Fillable(['payment', 'tax', 'legal', 'address', 'ordering', 'locked_features'])]
+#[Fillable(['payment', 'tax', 'legal', 'address', 'ordering', 'locked_features', 'journey'])]
 class MarketConfiguration extends Model
 {
     use HasSpatialColumns, StoresUtcTimestamps;
@@ -21,6 +21,6 @@ class MarketConfiguration extends Model
      */
     protected function casts(): array
     {
-        return ['payment' => 'array', 'tax' => 'array', 'legal' => 'array', 'address' => 'array', 'ordering' => 'array', 'locked_features' => 'array'];
+        return ['payment' => 'array', 'tax' => 'array', 'legal' => 'array', 'address' => 'array', 'ordering' => 'array', 'locked_features' => 'array', 'journey' => 'array'];
     }
 }

@@ -1,19 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { MockJourneyRepository, MockLocationRepository, MockRouteRepository } from './mock/mockRepositories'
-import { JourneyError, validateJourney, type Journey, type JourneyRepository, type Location, type LocationRepository, type RouteRepository, type ValidationErrors } from './repositories'
+import { journeyRepositories, type JourneyRepositories } from './journeyRepositories'
+import { JourneyError, validateJourney, type Journey, type JourneyErrorCode, type Location, type ValidationErrors } from './repositories'
 
 export type { Journey, Location, RouteSummary, ValidationErrors } from './repositories'
+export type { JourneyRepositories } from './journeyRepositories'
 
 /**
- * Centralised journey state — reused later by restaurant discovery, cart, checkout, tracking and ETA.
+ * Centralised journey state — reused by restaurant discovery, cart, checkout, tracking and ETA.
  *
  * no-journey → editing → validating → ready → route-loading → route-available
  *                                   ↘ error (validation / lookup / route)  → editing
+ *
+ * With the backend (Module 26) a planned journey arrives WITH its route (the routing provider's), so the
+ * route-loading step is skipped; the journey lives on the server, expires there, and only its owner can read it.
  */
 export type JourneyStatus = 'no-journey' | 'editing' | 'validating' | 'ready' | 'route-loading' | 'route-available' | 'error'
 
-export type JourneyRepositories = { locations: LocationRepository; journeys: JourneyRepository; routes: RouteRepository }
-export const defaultJourneyRepositories: JourneyRepositories = { locations: new MockLocationRepository(), journeys: new MockJourneyRepository(), routes: new MockRouteRepository() }
+/** Kept for callers written before the mode switch existed. */
+export const defaultJourneyRepositories: JourneyRepositories = journeyRepositories
 
 type JourneyApi = {
   status: JourneyStatus
@@ -22,32 +26,38 @@ type JourneyApi = {
   departureAt: string | null
   errors: ValidationErrors
   error: string | null
+  /** Why the last plan / route lookup failed (machine readable), so a screen can offer the right next step. */
+  errorCode: JourneyErrorCode | null
   journey: Journey | null
   recent: Journey[]
   recentStatus: 'idle' | 'loading' | 'ready' | 'error'
+  /** 'api' = places, routes and discovery are the backend's; 'mock' = the browser's development providers. */
+  mode: JourneyRepositories['mode']
   setOrigin: (l: Location | null) => void
   setDestination: (l: Location | null) => void
   setDepartureAt: (iso: string | null) => void
   swap: () => void
   /** Validate + create the journey + load the route. Resolves to the journey or null when invalid. */
   plan: (originText?: string, destinationText?: string) => Promise<Journey | null>
-  /** Retry the route lookup for the current journey. */
+  /** Retry the route lookup for the current journey (with the backend: plan it again). */
   retryRoute: () => Promise<void>
   /** Go back to editing (keeps the selected locations). */
   edit: () => void
   reset: () => void
-  /** Load a journey by id (e.g. from ?journey=) into state; returns null when unknown. */
+  /** Load a journey by id (e.g. from ?journey=) into state; null when unknown. Rejects with a JourneyError when it expired or cannot be loaded. */
   load: (id: string) => Promise<Journey | null>
   useAgain: (j: Journey) => void
   removeRecent: (id: string) => Promise<void>
   searchLocations: (q: string) => Promise<Location[]>
+  /** A chosen suggestion with its coordinates (backend: resolved on the server; mock: unchanged). */
+  resolveLocation: (l: Location) => Promise<Location>
   recentLocations: () => Promise<Location[]>
 }
 
 const JourneyContext = createContext<JourneyApi | null>(null)
 const CURRENT_KEY = 'fotg.journey.current'
 
-export function JourneyProvider({ children, repositories = defaultJourneyRepositories }: { children: ReactNode; repositories?: JourneyRepositories }) {
+export function JourneyProvider({ children, repositories = journeyRepositories }: { children: ReactNode; repositories?: JourneyRepositories }) {
   const repos = repositories
   const [status, setStatus] = useState<JourneyStatus>('no-journey')
   const [origin, setOriginState] = useState<Location | null>(null)
@@ -55,6 +65,7 @@ export function JourneyProvider({ children, repositories = defaultJourneyReposit
   const [departureAt, setDepartureAtState] = useState<string | null>(null)
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<JourneyErrorCode | null>(null)
   const [journey, setJourney] = useState<Journey | null>(null)
   const [recent, setRecent] = useState<Journey[]>([])
   const [recentStatus, setRecentStatus] = useState<JourneyApi['recentStatus']>('idle')
@@ -72,19 +83,23 @@ export function JourneyProvider({ children, repositories = defaultJourneyReposit
       const raw = sessionStorage.getItem(CURRENT_KEY)
       if (!raw) return
       const j = JSON.parse(raw) as Journey
+      // A journey of the other mode (the mode was switched) cannot be continued: start clean.
+      if (!!j.backend !== (repos.mode === 'api')) { sessionStorage.removeItem(CURRENT_KEY); return }
       setJourney(j); setOriginState(j.origin); setDestinationState(j.destination); setDepartureAtState(j.departureAt)
       setStatus(j.route ? 'route-available' : 'ready')
     } catch { /* ignore corrupt storage */ }
-  }, [])
+  }, [repos])
   const persist = (j: Journey | null) => { try { j ? sessionStorage.setItem(CURRENT_KEY, JSON.stringify(j)) : sessionStorage.removeItem(CURRENT_KEY) } catch { /* ignore */ } }
+  const clearError = () => { setError(null); setErrorCode(null) }
+  const fail = (e: unknown, fallback: string) => { setError(e instanceof Error && e.message ? e.message : fallback); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error') }
 
-  const setOrigin = (l: Location | null) => { setOriginState(l); setErrors((e) => ({ ...e, origin: undefined, form: undefined })); setStatus('editing'); setError(null) }
-  const setDestination = (l: Location | null) => { setDestinationState(l); setErrors((e) => ({ ...e, destination: undefined, form: undefined })); setStatus('editing'); setError(null) }
+  const setOrigin = (l: Location | null) => { setOriginState(l); setErrors((e) => ({ ...e, origin: undefined, form: undefined })); setStatus('editing'); clearError() }
+  const setDestination = (l: Location | null) => { setDestinationState(l); setErrors((e) => ({ ...e, destination: undefined, form: undefined })); setStatus('editing'); clearError() }
   const setDepartureAt = (iso: string | null) => { setDepartureAtState(iso); if (status !== 'no-journey') setStatus('editing') }
-  const swap = () => { setOriginState(destination); setDestinationState(origin); setErrors({}); setStatus('editing'); setError(null) }
+  const swap = () => { setOriginState(destination); setDestinationState(origin); setErrors({}); setStatus('editing'); clearError() }
 
   const loadRoute = async (j: Journey, id: number) => {
-    setStatus('route-loading'); setError(null)
+    setStatus('route-loading'); clearError()
     try {
       const route = await repos.routes.getRoute(j.origin, j.destination)
       if (runId.current !== id) return
@@ -95,13 +110,13 @@ export function JourneyProvider({ children, repositories = defaultJourneyReposit
       if (runId.current !== id) return
       const failed: Journey = { ...j, status: 'error' }
       setJourney(failed); persist(failed)
-      setError(e instanceof JourneyError ? e.message : 'Route preparation failed. Please try again.'); setStatus('error')
+      fail(e instanceof JourneyError ? e : null, 'Route preparation failed. Please try again.')
     }
   }
 
   const plan: JourneyApi['plan'] = async (originText = '', destinationText = '') => {
     const id = ++runId.current
-    setStatus('validating'); setError(null)
+    setStatus('validating'); clearError()
     const err = validateJourney(origin, destination, originText, destinationText)
     setErrors(err)
     if (Object.keys(err).length || !origin || !destination) { setStatus('editing'); return null }
@@ -109,18 +124,21 @@ export function JourneyProvider({ children, repositories = defaultJourneyReposit
       const j = await repos.journeys.create({ origin, destination, departureAt })
       if (runId.current !== id) return null
       await Promise.all([repos.locations.remember(origin), repos.locations.remember(destination)])
+      // The backend plans the journey and its route in one step; the development providers look the route up afterwards.
+      if (j.route) { setJourney(j); persist(j); setStatus('route-available'); void loadRecent(); return j }
       setJourney(j); persist(j); setStatus('ready')
       await loadRoute(j, id)
       return j
     } catch (e) {
       if (runId.current !== id) return null
-      setError(e instanceof Error ? e.message : 'Could not prepare the journey. Please try again.'); setStatus('error')
+      setJourney(null); persist(null)
+      fail(e, 'Could not prepare the journey. Please try again.')
       return null
     }
   }
-  const retryRoute = async () => { if (journey) await loadRoute(journey, ++runId.current) }
-  const edit = () => { runId.current++; setStatus('editing'); setError(null) }
-  const reset = () => { runId.current++; setOriginState(null); setDestinationState(null); setDepartureAtState(null); setErrors({}); setError(null); setJourney(null); persist(null); setStatus('no-journey') }
+  const retryRoute = async () => { if (repos.mode === 'api') { await plan(); return } if (journey) await loadRoute(journey, ++runId.current) }
+  const edit = () => { runId.current++; setStatus('editing'); clearError() }
+  const reset = () => { runId.current++; setOriginState(null); setDestinationState(null); setDepartureAtState(null); setErrors({}); clearError(); setJourney(null); persist(null); setStatus('no-journey') }
   const load = useCallback(async (id: string) => {
     if (journey?.id === id) return journey
     const j = await repos.journeys.get(id)
@@ -129,14 +147,15 @@ export function JourneyProvider({ children, repositories = defaultJourneyReposit
     setStatus(j.route ? 'route-available' : 'ready')
     return j
   }, [journey, repos])
-  const useAgain = (j: Journey) => { runId.current++; setOriginState(j.origin); setDestinationState(j.destination); setDepartureAtState(null); setErrors({}); setError(null); setJourney(null); setStatus('editing') }
+  const useAgain = (j: Journey) => { runId.current++; setOriginState(j.origin); setDestinationState(j.destination); setDepartureAtState(null); setErrors({}); clearError(); setJourney(null); setStatus('editing') }
   const removeRecent = async (id: string) => { await repos.journeys.remove(id); setRecent((r) => r.filter((j) => j.id !== id)) }
   const searchLocations = useCallback((q: string) => repos.locations.search(q), [repos])
+  const resolveLocation = useCallback((l: Location) => (repos.locations.resolve ? repos.locations.resolve(l) : Promise.resolve(l)), [repos])
   const recentLocations = useCallback(() => repos.locations.recent(), [repos])
 
-  const value = useMemo<JourneyApi>(() => ({ status, origin, destination, departureAt, errors, error, journey, recent, recentStatus, setOrigin, setDestination, setDepartureAt, swap, plan, retryRoute, edit, reset, load, useAgain, removeRecent, searchLocations, recentLocations }),
+  const value = useMemo<JourneyApi>(() => ({ status, origin, destination, departureAt, errors, error, errorCode, journey, recent, recentStatus, mode: repos.mode, setOrigin, setDestination, setDepartureAt, swap, plan, retryRoute, edit, reset, load, useAgain, removeRecent, searchLocations, resolveLocation, recentLocations }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [status, origin, destination, departureAt, errors, error, journey, recent, recentStatus, load, searchLocations, recentLocations])
+    [status, origin, destination, departureAt, errors, error, errorCode, journey, recent, recentStatus, repos, load, searchLocations, resolveLocation, recentLocations])
   return <JourneyContext.Provider value={value}>{children}</JourneyContext.Provider>
 }
 

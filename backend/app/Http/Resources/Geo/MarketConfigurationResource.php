@@ -22,6 +22,8 @@ class MarketConfigurationResource extends JsonResource
             'legal' => (object) $this->legal,
             'address' => (object) $this->address,
             'ordering' => (object) $this->ordering,
+            // Module 26: corridor width / detour limit / candidate cap overrides, within the bounds of config/journey.php.
+            'journey' => (object) ($this->journey ?? []),
             'locked_features' => array_values($this->locked_features ?? []),
             'version' => (int) $this->version,
             'updated_at' => $this->updated_at?->toIso8601String(),

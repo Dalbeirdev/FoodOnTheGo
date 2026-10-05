@@ -194,6 +194,7 @@ class LocalRestaurantFixtureSeeder extends Seeder
         foreach (self::LOCATIONS as $slug => [$org, $publicId, $name, $branch, $lat, $lng, $address, $postal, $status, $cuisineCodes, $featureCodes, $price, $prep, $image, $hours, $short, $extra]) {
             $existing = RestaurantLocation::query()->where('restaurant_locations.market_id', $india->getKey())->where('restaurant_locations.slug', $slug)->first();
             if ($existing !== null) {
+                $this->refreshRelativeSpecialDates($existing, $extra['special'] ?? []);
                 $locations[$slug] = $existing;
 
                 continue;
@@ -255,6 +256,23 @@ class LocalRestaurantFixtureSeeder extends Seeder
         }
 
         return $locations;
+    }
+
+    /**
+     * A relative fixture date ("+1 day") stays relative: seeding again moves it, so the fixture never ages into the
+     * past (customers only see upcoming special dates). Seeding twice on the same day changes nothing.
+     *
+     * @param  list<array{0: string, 1: bool, 2: list<array{0: string, 1: string}>, 3: string}>  $special
+     */
+    private function refreshRelativeSpecialDates(RestaurantLocation $location, array $special): void
+    {
+        foreach ($special as [$date, , , $note]) {
+            if (! str_starts_with($date, '+')) {
+                continue;
+            }
+            $day = CarbonImmutable::now($location->timezone)->modify($date)->format('Y-m-d');
+            RestaurantSpecialHour::query()->where('location_id', $location->getKey())->where('public_note', $note)->where('date', '!=', $day)->update(['date' => $day]);
+        }
     }
 
     /**

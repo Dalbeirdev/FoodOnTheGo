@@ -177,7 +177,8 @@
 .smap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #e6e9ef; background: #fbfbfd; }
 .smap svg { display: block; width: 100%; height: auto; }
 .smap.is-updating svg { opacity: .55; }
-.smap__badge { position: absolute; left: 10px; bottom: 10px; padding: 4px 10px; border-radius: 999px; background: #fff8e6; border: 1px solid #f3d38a; color: #6b4300; font-size: 11px; font-weight: 600; max-width: calc(100% - 20px); }
+/* A caption strip under the drawing, never an overlay: laid over the map it covered markers near the bottom edge and took their clicks. */
+.smap__badge { display: block; padding: 6px 12px; background: #fff8e6; border-top: 1px solid #f3d38a; color: #6b4300; font-size: 11px; font-weight: 600; line-height: 1.35; }
 .smap__marker { cursor: pointer; outline: none; }
 .smap__marker:focus-visible path { stroke: #1b1f2a; stroke-width: 3; }
 .smap__marker.is-selected path { filter: drop-shadow(0 4px 6px rgba(229,38,31,.4)); }
@@ -229,3 +230,7 @@
   .view-toggle button { flex: 1; justify-content: center; padding: 0 8px; }
   .cards, .results__grid--both .cards { grid-template-columns: 1fr; }
 }
+
+/* Module 26: where the detours and arrival times come from, and the reason a journey can no longer be shown */
+.results__note--estimate { margin-top: 2px; font-size: 12.5px; }
+.ctx__sub { margin: 4px 0 12px; font-size: 13.5px; font-weight: 400; color: var(--muted); }

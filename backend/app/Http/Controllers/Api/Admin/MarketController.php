@@ -89,6 +89,11 @@ class MarketController extends Controller
             'ordering' => ['sometimes', 'array'],
             'locked_features' => ['sometimes', 'array'],
             'locked_features.*' => ['string', 'max:60'],
+            // Journey policy overrides (Module 26) stay inside the platform bounds.
+            'journey' => ['sometimes', 'array:corridor_width_meters,max_detour_minutes,candidate_cap'],
+            'journey.corridor_width_meters' => ['sometimes', 'integer', 'between:'.config('journey.corridor.min_width_meters').','.config('journey.corridor.max_width_meters')],
+            'journey.max_detour_minutes' => ['sometimes', 'integer', 'between:'.config('journey.detour.min_max_minutes').','.config('journey.detour.max_max_minutes')],
+            'journey.candidate_cap' => ['sometimes', 'integer', 'between:5,'.config('journey.candidates.shortlist_cap_max')],
         ]);
 
         return new MarketConfigurationResource($geography->updateConfiguration($market, $input, $request->user()));

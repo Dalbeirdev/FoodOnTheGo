@@ -1,0 +1,28 @@
+# Module 26 — migration 2026_10_05_100000_create_journey_tables: rollback and re-apply, on the TEST database only (DB_DATABASE=foodonthego_test), 2026-10-05
+
+## database in use
+foodonthego_test
+
+## before: last migrations
+ 2026_10_03_100000_create_menu_tables .. [1] Ran 
+ 2026_10_04_100000_create_customer_account_tables .. [1] Ran 
+ 2026_10_05_100000_create_journey_tables .. [1] Ran 
+
+journeys table: journeys  | market_configurations.journey column: 1
+
+## php artisan migrate:rollback --step=1
+ INFO Rolling back migrations. 
+
+ 2026_10_05_100000_create_journey_tables .. 34.12ms DONE
+
+journeys table: [absent]  | market_configurations.journey column: 0
+
+## php artisan migrate
+ INFO Running migrations. 
+
+ 2026_10_05_100000_create_journey_tables .. 58.70ms DONE
+
+journeys table: journeys  | market_configurations.journey column: 1
+indexes: journeys_customer_id_created_at_index, journeys_expires_at_index, journeys_guest_token_hash_unique, journeys_pkey, journeys_public_id_unique
+constraints: journeys_bounds_not_null, journeys_corridor_width_meters_not_null, journeys_coverage_not_null, journeys_customer_id_foreign, journeys_departure_given_not_null, journeys_destination_not_null, journeys_destination_point_not_null, journeys_distance_meters_not_null, journeys_duration_seconds_not_null, journeys_encoded_polyline_not_null, journeys_expires_at_not_null, journeys_flags_not_null, journeys_guest_token_hash_unique, journeys_id_not_null, journeys_legs_not_null, journeys_market_id_foreign, journeys_market_id_not_null, journeys_origin_not_null, journeys_origin_point_not_null, journeys_owner_check, journeys_pkey, journeys_preferences_not_null, journeys_provider_mode_check, journeys_provider_mode_not_null, journeys_provider_not_null, journeys_public_id_not_null, journeys_public_id_unique, journeys_route_calculated_at_not_null, journeys_route_geometry_not_null, journeys_route_hash_not_null, journeys_route_points_not_null, journeys_search_geometry_not_null, journeys_search_points_not_null, journeys_traffic_aware_not_null, journeys_warnings_not_null
+geometry columns: route_geometry LINESTRING 4326, search_geometry LINESTRING 4326 | geography columns: origin_point Point 4326, destination_point Point 4326

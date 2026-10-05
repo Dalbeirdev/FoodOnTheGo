@@ -1,0 +1,1101 @@
+# FoodOnTheGo — Module 26 — live API answers from the LOCAL backend
+# Taken 2026-10-05 13:20:49Z through http://127.0.0.1:8001 (proxy → php artisan serve). PLACES_DRIVER=fake, ROUTING_DRIVER=fake: the DEVELOPMENT providers — synthetic roads, no live provider is configured.
+# Tokens are redacted; long coordinate lists are shortened. Journeys, recent places and sessions created by this run were removed afterwards.
+
+### GET /places/search?q=sector   (guest)
+→ HTTP 200 (532 ms) — suggestions are text only: no coordinates
+{
+ "data": [
+  {
+   "provider": "fake",
+   "place_id": "fake:noida-18",
+   "name": "Sector 18, Noida",
+   "formatted_address": "Sector 18, Noida, Uttar Pradesh 201301, India",
+   "country_code": "IN",
+   "kind": "landmark",
+   "region": "Uttar Pradesh",
+   "locality": "Noida"
+  },
+  {
+   "provider": "fake",
+   "place_id": "fake:noida-62",
+   "name": "Sector 62, Noida",
+   "formatted_address": "Sector 62, Noida, Uttar Pradesh 201309, India",
+   "country_code": "IN",
+   "kind": "landmark",
+   "region": "Uttar Pradesh",
+   "locality": "Noida"
+  }
+ ],
+ "country_code": "IN",
+ "provider": {
+  "name": "fake",
+  "mode": "development"
+ }
+}
+
+### GET /places/search?q=dubai   (a place outside the market country)
+→ HTTP 200 (393 ms) — restricted to the market country from the market configuration
+{
+ "data": [],
+ "country_code": "IN",
+ "provider": {
+  "name": "fake",
+  "mode": "development"
+ }
+}
+
+### POST /places/resolve {"place_id": "fake:noida-18"}
+→ HTTP 200 (447 ms) — coordinates, time zone and the coverage answer
+{
+ "place": {
+  "provider": "fake",
+  "id": "fake:noida-18",
+  "name": "Sector 18, Noida",
+  "kind": "landmark"
+ },
+ "location": {
+  "latitude": 28.5708,
+  "longitude": 77.3261,
+  "formatted_address": "Sector 18, Noida, Uttar Pradesh 201301, India",
+  "country_code": "IN",
+  "region": "Uttar Pradesh",
+  "locality": "Noida",
+  "postal_code": null,
+  "timezone": "Asia/Kolkata"
+ },
+ "coverage": {
+  "supported": true,
+  "reason": null,
+  "market": "IN",
+  "city": "Noida",
+  "service_area": "Noida · Expressway / Sector 18"
+ },
+ "provider": {
+  "name": "fake",
+  "mode": "development"
+ }
+}
+
+### POST /places/resolve {"place_id": "fake:nowhere"}
+→ HTTP 404 (311 ms)
+{
+ "error": {
+  "code": "place_not_found",
+  "message": "This place could not be found.",
+  "request_id": "fe3aa64e-08d1-4e67-aa11-f253f089b562"
+ }
+}
+
+### POST /journeys/plan {"origin": {"place_id": "fake:noida-62"}, "destination": {"place_id": "fake:noida-18"}}   (guest)
+→ HTTP 201 (382 ms) — the route arrives with the journey; guest_token is issued once
+{
+ "id": "84601247-f881-4608-b1e6-ca2cd4426759",
+ "status": "ACTIVE",
+ "owner": "guest",
+ "market": "IN",
+ "origin": {
+  "label": "Sector 62, Noida",
+  "formatted_address": "Sector 62, Noida, Uttar Pradesh 201309, India",
+  "location": {
+   "latitude": 28.628,
+   "longitude": 77.3649
+  },
+  "country_code": "IN",
+  "region": "Uttar Pradesh",
+  "locality": "Noida",
+  "timezone": "Asia/Kolkata",
+  "place": {
+   "id": "fake:noida-62",
+   "provider": "fake"
+  },
+  "source": "place",
+  "kind": "landmark"
+ },
+ "destination": {
+  "label": "Sector 18, Noida",
+  "formatted_address": "Sector 18, Noida, Uttar Pradesh 201301, India",
+  "location": {
+   "latitude": 28.5708,
+   "longitude": 77.3261
+  },
+  "country_code": "IN",
+  "region": "Uttar Pradesh",
+  "locality": "Noida",
+  "timezone": "Asia/Kolkata",
+  "place": {
+   "id": "fake:noida-18",
+   "provider": "fake"
+  },
+  "source": "place",
+  "kind": "landmark"
+ },
+ "departure": {
+  "at": null,
+  "given": false,
+  "timezone": "Asia/Kolkata"
+ },
+ "route": {
+  "distance_meters": 9624,
+  "duration_seconds": 990,
+  "encoded_polyline": "_lvmDsiewMt|Ans@`tAvcA`tAvcAt|Ans@",
+  "geometry": {
+   "type": "LineString",
+   "coordinates": [
+    [
+     77.3649,
+     28.628
+    ],
+    [
+     77.356499,
+     28.613011
+    ],
+    "… 2 more positions …",
+    [
+     77.3261,
+     28.5708
+    ]
+   ]
+  },
+  "bounds": {
+   "west": 77.3261,
+   "south": 28.5708,
+   "east": 77.3649,
+   "north": 28.628
+  },
+  "legs": [
+   {
+    "distance_meters": 9624,
+    "duration_seconds": 990
+   }
+  ],
+  "flags": [],
+  "warnings": [
+   "Development route model — not road data"
+  ],
+  "provider": {
+   "name": "fake",
+   "mode": "development"
+  },
+  "traffic_aware": false,
+  "preferences": {
+   "avoid_tolls": false,
+   "avoid_ferries": false,
+   "avoid_highways": false
+  },
+  "calculated_at": "2026-10-05T13:20:51+00:00",
+  "points": 5
+ },
+ "coverage": {
+  "origin": {
+   "city": "Noida",
+   "reason": null,
+   "supported": true,
+   "service_area": "Noida · Sector 62 & NH24"
+  },
+  "corridors": [],
+  "along_route": "COVERED",
+  "destination": {
+   "city": "Noida",
+   "reason": null,
+   "supported": true,
+   "service_area": "Noida · Expressway / Sector 18"
+  },
+  "serviceable_areas": 3,
+  "corridor_width_meters": 3000
+ },
+ "search": {
+  "corridor_width_meters": 3000,
+  "corridor_min_meters": 500,
+  "corridor_max_meters": 10000,
+  "max_detour_minutes": 15,
+  "max_detour_max_minutes": 60,
+  "candidate_cap": 40,
+  "page_size": 10,
+  "sorts": [
+   "recommended",
+   "lowest_detour",
+   "route_order",
+   "nearest_to_route",
+   "fastest_pickup"
+  ]
+ },
+ "expires_at": "2026-10-05T13:50:51+00:00",
+ "created_at": "2026-10-05T13:20:51+00:00",
+ "guest_token": "<64 characters, redacted>"
+}
+
+# In the database the token is stored as a SHA-256 hash only: guest_token_hash = sha256(token) → t; no column holds the token itself.
+
+### GET /journeys/{id}   (no token)
+→ HTTP 404 (329 ms) — a stranger cannot tell this journey exists
+{
+ "error": {
+  "code": "journey_not_found",
+  "message": "This journey was not found or has ended.",
+  "request_id": "35cfb060-4f9c-4756-9be7-08234abd3eeb"
+ }
+}
+
+### GET /journeys/{id}   (wrong token)
+→ HTTP 404 (313 ms)
+{
+ "error": {
+  "code": "journey_not_found",
+  "message": "This journey was not found or has ended.",
+  "request_id": "d50992ad-d30d-4b7b-8ae8-eab713ab64b5"
+ }
+}
+
+### GET /journeys/{id}   (X-Journey-Token: the guest token)
+→ HTTP 200 (281 ms) — origin / destination / route omitted here — same as in the plan answer; guest_token is never returned again: True
+{
+ "id": "84601247-f881-4608-b1e6-ca2cd4426759",
+ "status": "ACTIVE",
+ "owner": "guest",
+ "market": "IN",
+ "departure": {
+  "at": null,
+  "given": false,
+  "timezone": "Asia/Kolkata"
+ },
+ "coverage": {
+  "origin": {
+   "city": "Noida",
+   "reason": null,
+   "supported": true,
+   "service_area": "Noida · Sector 62 & NH24"
+  },
+  "corridors": [],
+  "along_route": "COVERED",
+  "destination": {
+   "city": "Noida",
+   "reason": null,
+   "supported": true,
+   "service_area": "Noida · Expressway / Sector 18"
+  },
+  "serviceable_areas": 3,
+  "corridor_width_meters": 3000
+ },
+ "search": {
+  "corridor_width_meters": 3000,
+  "corridor_min_meters": 500,
+  "corridor_max_meters": 10000,
+  "max_detour_minutes": 15,
+  "max_detour_max_minutes": 60,
+  "candidate_cap": 40,
+  "page_size": 10,
+  "sorts": [
+   "recommended",
+   "lowest_detour",
+   "route_order",
+   "nearest_to_route",
+   "fastest_pickup"
+  ]
+ },
+ "expires_at": "2026-10-05T13:50:51+00:00"
+}
+
+### GET /journeys/{id}/restaurants?page[size]=2   (first search: corridor → eligibility → shortlist → ACTUAL detours)
+→ HTTP 200 (408 ms)
+{
+ "data": [
+  {
+   "restaurant": {
+    "id": "006f4b02-b4ff-442f-beec-38aabd54a4ad",
+    "slug": "pizza-point",
+    "name": "Pizza Point",
+    "branch_label": "Sector 18 · Noida",
+    "short_description": "Wood-fired pizzas, ready when you arrive.",
+    "description": "Wood-fired pizzas, ready when you arrive. Order ahead on FoodOnTheGo and pick up without leaving your route. (Development fixture — not a real restaurant.)",
+    "cuisines": [
+     {
+      "code": "pizza",
+      "name": "Pizza"
+     },
+     {
+      "code": "italian",
+      "name": "Italian"
+     }
+    ],
+    "features": [
+     {
+      "code": "parking",
+      "name": "Parking",
+      "category": "FACILITY"
+     },
+     {
+      "code": "outdoor_seating",
+      "name": "Outdoor Seating",
+      "category": "FACILITY"
+     },
+     {
+      "code": "veg_options",
+      "name": "Veg Options",
+      "category": "DIETARY"
+     }
+    ],
+    "price_level": 2,
+    "phone": null,
+    "email": null,
+    "website": null,
+    "address": {
+     "formatted": "Sector 18, Noida, Uttar Pradesh 201301, India",
+     "line1": null,
+     "postal_code": "201301",
+     "city": "Noida",
+     "city_slug": "noida",
+     "region": "Uttar Pradesh",
+     "region_code": "IN-UP",
+     "country_code": "IN"
+    },
+    "location": {
+     "latitude": 28.5708,
+     "longitude": 77.3261
+    },
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "images": "<logo, cover, gallery>",
+    "hours": "<weekly + special hours, as in GET /restaurants>",
+    "pickup": {
+     "methods": [
+      {
+       "method": "COUNTER",
+       "instructions": null,
+       "requires_vehicle_info": false
+      }
+     ],
+     "asap": true,
+     "scheduled": true,
+     "default_prep_minutes": 15,
+     "minimum_lead_minutes": 15,
+     "instructions": "Show your pickup code at the counter."
+    },
+    "availability": {
+     "open_now": true,
+     "open_state": "OPEN",
+     "accepting_orders": true,
+     "orderable": true,
+     "reason": null,
+     "closes_at": "2026-10-05T17:30:00+00:00",
+     "opens_next_at": null,
+     "checked_at": "2026-10-05T13:20:52+00:00"
+    }
+   },
+   "route_context": {
+    "distance_to_route_meters": 0,
+    "route_progress": 1,
+    "segment": 0,
+    "detour": {
+     "seconds": 60,
+     "minutes": 1,
+     "distance_meters": 0
+    },
+    "arrival": {
+     "estimated_at": "2026-10-05T13:37:52+00:00",
+     "local_time": "19:07",
+     "local_date": "2026-10-05",
+     "timezone": "Asia/Kolkata",
+     "leg_seconds": 1020,
+     "leg_distance_meters": 9624,
+     "is_estimate": true
+    },
+    "open_at_arrival": true,
+    "orderable_at_arrival": true,
+    "availability_at_arrival": {
+     "open_now": true,
+     "open_state": "OPEN",
+     "accepting_orders": true,
+     "orderable": true,
+     "reason": null,
+     "closes_at": "2026-10-05T17:30:00+00:00",
+     "opens_next_at": null,
+     "checked_at": "2026-10-05T13:37:52+00:00"
+    },
+    "accepting_orders_now": true,
+    "prep_minutes": 15
+   }
+  },
+  {
+   "restaurant": {
+    "id": "0a000000-0000-4000-8000-0000000000a1",
+    "slug": "burger-hub",
+    "name": "Burger Hub",
+    "branch_label": "Sector 62 · Noida",
+    "short_description": "Juicy burgers and crispy fries for travellers on the go.",
+    "description": "Juicy burgers and crispy fries for travellers on the go. Order ahead on FoodOnTheGo and pick up without leaving your route. (Development fixture — not a real restaurant.)",
+    "cuisines": [
+     {
+      "code": "burgers",
+      "name": "Burgers"
+     },
+     {
+      "code": "fast_food",
+      "name": "Fast Food"
+     },
+     {
+      "code": "american",
+      "name": "American"
+     }
+    ],
+    "features": [
+     {
+      "code": "quick_pickup",
+      "name": "Quick Pickup",
+      "category": "SERVICE"
+     },
+     {
+      "code": "parking",
+      "name": "Parking",
+      "category": "FACILITY"
+     }
+    ],
+    "price_level": 2,
+    "phone": null,
+    "email": null,
+    "website": null,
+    "address": {
+     "formatted": "Sector 62, Noida, Uttar Pradesh 201309, India",
+     "line1": null,
+     "postal_code": "201309",
+     "city": "Noida",
+     "city_slug": "noida",
+     "region": "Uttar Pradesh",
+     "region_code": "IN-UP",
+     "country_code": "IN"
+    },
+    "location": {
+     "latitude": 28.6285,
+     "longitude": 77.3652
+    },
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "images": "<logo, cover, gallery>",
+    "hours": "<weekly + special hours, as in GET /restaurants>",
+    "pickup": {
+     "methods": [
+      {
+       "method": "COUNTER",
+       "instructions": null,
+       "requires_vehicle_info": false
+      }
+     ],
+     "asap": true,
+     "scheduled": true,
+     "default_prep_minutes": 12,
+     "minimum_lead_minutes": 12,
+     "instructions": "Show your pickup code at the counter."
+    },
+    "availability": {
+     "open_now": true,
+     "open_state": "OPEN",
+     "accepting_orders": true,
+     "orderable": true,
+     "reason": null,
+     "closes_at": "2026-10-05T18:00:00+00:00",
+     "opens_next_at": null,
+     "checked_at": "2026-10-05T13:20:52+00:00"
+    }
+   },
+   "route_context": {
+    "distance_to_route_meters": 63,
+    "route_progress": 0,
+    "segment": 0,
+    "detour": {
+     "seconds": 79,
+     "minutes": 2,
+     "distance_meters": 162
+    },
+    "arrival": {
+     "estimated_at": "2026-10-05T13:21:32+00:00",
+     "local_time": "18:51",
+     "local_date": "2026-10-05",
+     "timezone": "Asia/Kolkata",
+     "leg_seconds": 40,
+     "leg_distance_meters": 81,
+     "is_estimate": true
+    },
+    "open_at_arrival": true,
+    "orderable_at_arrival": true,
+    "availability_at_arrival": {
+     "open_now": true,
+     "open_state": "OPEN",
+     "accepting_orders": true,
+     "orderable": true,
+     "reason": null,
+     "closes_at": "2026-10-05T18:00:00+00:00",
+     "opens_next_at": null,
+     "checked_at": "2026-10-05T13:21:32+00:00"
+    },
+    "accepting_orders_now": true,
+    "prep_minutes": 12
+   }
+  }
+ ],
+ "links": {
+  "first": "http://127.0.0.1:8001/api/v1/journeys/84601247-f881-4608-b1e6-ca2cd4426759/restaurants?page%5Bsize%5D=2&page%5Bnumber%5D=1",
+  "last": "http://127.0.0.1:8001/api/v1/journeys/84601247-f881-4608-b1e6-ca2cd4426759/restaurants?page%5Bsize%5D=2&page%5Bnumber%5D=3",
+  "prev": null,
+  "next": "http://127.0.0.1:8001/api/v1/journeys/84601247-f881-4608-b1e6-ca2cd4426759/restaurants?page%5Bsize%5D=2&page%5Bnumber%5D=2"
+ },
+ "meta": {
+  "current_page": 1,
+  "from": 1,
+  "last_page": 3,
+  "links": "<5 pagination links>",
+  "path": "http://127.0.0.1:8001/api/v1/journeys/84601247-f881-4608-b1e6-ca2cd4426759/restaurants",
+  "per_page": 2,
+  "to": 2,
+  "total": 6,
+  "journey_id": "84601247-f881-4608-b1e6-ca2cd4426759",
+  "search": {
+   "sort": "recommended",
+   "corridor_width_meters": 3000,
+   "max_detour_minutes": 15,
+   "open_at_arrival": false,
+   "cuisine": [],
+   "feature": [],
+   "pickup_method": null,
+   "q": null,
+   "corridor_min_meters": 500,
+   "corridor_max_meters": 10000,
+   "max_detour_max_minutes": 60,
+   "candidate_cap": 40
+  },
+  "departure_at": "2026-10-05T13:20:52+00:00",
+  "calculated_at": "2026-10-05T13:20:52+00:00",
+  "cached": false,
+  "provider": {
+   "name": "fake",
+   "mode": "development"
+  },
+  "coverage": {
+   "along_route": "COVERED",
+   "serviceable_areas": 3
+  },
+  "counts": {
+   "corridor_rows": 6,
+   "shortlist": 6,
+   "detour_requested": 6,
+   "unreachable": 0,
+   "provider_calls": 1,
+   "matching": 6,
+   "dropped_since_calculation": 0
+  },
+  "empty_reason": null
+ }
+}
+
+### GET /journeys/{id}/restaurants?page[size]=2&page[number]=2&sort=lowest_detour   (from the calculated set: cached true, no provider call)
+→ HTTP 200 (376 ms)
+{
+ "data": [
+  {
+   "restaurant": {
+    "slug": "wok-express",
+    "name": "Wok Express"
+   },
+   "route_context": {
+    "distance_to_route_meters": 339,
+    "route_progress": 0.2288,
+    "segment": 0,
+    "detour": {
+     "seconds": 166,
+     "minutes": 3,
+     "distance_meters": 880
+    },
+    "arrival": {
+     "estimated_at": "2026-10-05T13:25:59+00:00",
+     "local_time": "18:55",
+     "local_date": "2026-10-05",
+     "timezone": "Asia/Kolkata",
+     "leg_seconds": 307,
+     "leg_distance_meters": 2617,
+     "is_estimate": true
+    },
+    "open_at_arrival": false,
+    "orderable_at_arrival": false,
+    "availability_at_arrival": {
+     "open_now": false,
+     "open_state": "TEMPORARILY_CLOSED",
+     "accepting_orders": true,
+     "orderable": false,
+     "reason": "TEMPORARILY_CLOSED",
+     "closes_at": null,
+     "opens_next_at": null,
+     "checked_at": "2026-10-05T13:25:59+00:00"
+    },
+    "accepting_orders_now": true,
+    "prep_minutes": 14
+   }
+  },
+  {
+   "restaurant": {
+    "slug": "healthy-bites",
+    "name": "Healthy Bites"
+   },
+   "route_context": {
+    "distance_to_route_meters": 503,
+    "route_progress": 1,
+    "segment": 0,
+    "detour": {
+     "seconds": 217,
+     "minutes": 4,
+     "distance_meters": 1306
+    },
+    "arrival": {
+     "estimated_at": "2026-10-05T13:39:11+00:00",
+     "local_time": "19:09",
+     "local_date": "2026-10-05",
+     "timezone": "Asia/Kolkata",
+     "leg_seconds": 1099,
+     "leg_distance_meters": 10277,
+     "is_estimate": true
+    },
+    "open_at_arrival": true,
+    "orderable_at_arrival": true,
+    "availability_at_arrival": {
+     "open_now": true,
+     "open_state": "OPEN",
+     "accepting_orders": true,
+     "orderable": true,
+     "reason": null,
+     "closes_at": "2026-10-05T16:30:00+00:00",
+     "opens_next_at": null,
+     "checked_at": "2026-10-05T13:39:11+00:00"
+    },
+    "accepting_orders_now": true,
+    "prep_minutes": 10
+   }
+  }
+ ],
+ "meta": {
+  "current_page": 2,
+  "from": 3,
+  "last_page": 3,
+  "links": "<5 pagination links>",
+  "path": "http://127.0.0.1:8001/api/v1/journeys/84601247-f881-4608-b1e6-ca2cd4426759/restaurants",
+  "per_page": 2,
+  "to": 4,
+  "total": 6,
+  "journey_id": "84601247-f881-4608-b1e6-ca2cd4426759",
+  "search": {
+   "sort": "lowest_detour",
+   "corridor_width_meters": 3000,
+   "max_detour_minutes": 15,
+   "open_at_arrival": false,
+   "cuisine": [],
+   "feature": [],
+   "pickup_method": null,
+   "q": null,
+   "corridor_min_meters": 500,
+   "corridor_max_meters": 10000,
+   "max_detour_max_minutes": 60,
+   "candidate_cap": 40
+  },
+  "departure_at": "2026-10-05T13:20:52+00:00",
+  "calculated_at": "2026-10-05T13:20:52+00:00",
+  "cached": true,
+  "provider": {
+   "name": "fake",
+   "mode": "development"
+  },
+  "coverage": {
+   "along_route": "COVERED",
+   "serviceable_areas": 3
+  },
+  "counts": {
+   "corridor_rows": 6,
+   "shortlist": 6,
+   "detour_requested": 6,
+   "unreachable": 0,
+   "provider_calls": 1,
+   "matching": 6,
+   "dropped_since_calculation": 0
+  },
+  "empty_reason": null
+ }
+}
+
+### GET /journeys/{id}/restaurants?open_at_arrival=true&max_detour_minutes=5&cuisine=pizza,burgers&corridor_width_meters=1000
+→ HTTP 200 (420 ms) — detours already known for this journey are reused: detour_requested 0
+{
+ "data": [
+  {
+   "slug": "pizza-point",
+   "detour_minutes": 1,
+   "distance_to_route_meters": 0,
+   "open_at_arrival": true
+  },
+  {
+   "slug": "burger-hub",
+   "detour_minutes": 2,
+   "distance_to_route_meters": 63,
+   "open_at_arrival": true
+  }
+ ],
+ "meta": {
+  "total": 2,
+  "search": {
+   "sort": "recommended",
+   "corridor_width_meters": 1000,
+   "max_detour_minutes": 5,
+   "open_at_arrival": true,
+   "cuisine": [
+    "pizza",
+    "burgers"
+   ],
+   "feature": [],
+   "pickup_method": null,
+   "q": null,
+   "corridor_min_meters": 500,
+   "corridor_max_meters": 10000,
+   "max_detour_max_minutes": 60,
+   "candidate_cap": 40
+  },
+  "cached": false,
+  "counts": {
+   "corridor_rows": 2,
+   "shortlist": 2,
+   "detour_requested": 0,
+   "unreachable": 0,
+   "provider_calls": 0,
+   "matching": 2,
+   "dropped_since_calculation": 0
+  },
+  "empty_reason": null
+ }
+}
+
+### GET /journeys/{id}/restaurants?sort=highest_rated&page[size]=500   (not offered: no reviews backend; page size bounded)
+→ HTTP 422 (429 ms)
+{
+ "error": {
+  "code": "validation_failed",
+  "message": "The submitted data is invalid.",
+  "details": {
+   "fields": {
+    "sort": [
+     "The selected sort is invalid."
+    ],
+    "page.size": [
+     "The page.size field must be between 1 and 25."
+    ]
+   }
+  },
+  "request_id": "8153f5b9-2342-4f6f-a0dc-52a66c81e546"
+ }
+}
+
+### POST /journeys/plan  Delhi → Port Blair   (no road route)
+→ HTTP 422 (459 ms) — never a straight line
+{
+ "error": {
+  "code": "route_not_found",
+  "message": "No road route is available between these locations.",
+  "request_id": "cfee0f03-380a-4a55-b838-6132b1c3c979"
+ }
+}
+
+### POST /journeys/plan  Delhi → a point in Dubai   (outside every market that serves customers)
+→ HTTP 422 (366 ms)
+{
+ "error": {
+  "code": "market_unsupported",
+  "message": "FoodOnTheGo is not available where this journey ends yet.",
+  "details": {
+   "end": "destination",
+   "reason": "MARKET_UNSUPPORTED"
+  },
+  "request_id": "a37a21ff-e3ea-49e1-b5f9-f158b9914975"
+ }
+}
+
+### POST /journeys/plan  Lucknow → Agra   (a route through no served area: still a journey)
+→ HTTP 201 (467 ms)
+{
+ "id": "82af193c-6df5-4dfe-af11-d52c06ae407c",
+ "owner": "guest",
+ "coverage": {
+  "origin": {
+   "city": null,
+   "reason": "OUTSIDE_SERVICE_AREA",
+   "supported": false,
+   "service_area": null
+  },
+  "corridors": [],
+  "along_route": "NO_SERVICE_COVERAGE",
+  "destination": {
+   "city": null,
+   "reason": "OUTSIDE_SERVICE_AREA",
+   "supported": false,
+   "service_area": null
+  },
+  "serviceable_areas": 0,
+  "corridor_width_meters": 3000
+ },
+ "expires_at": "2026-10-05T13:50:54+00:00"
+}
+
+### GET /journeys/{id}/restaurants   (that journey: an empty ANSWER, not an error)
+→ HTTP 200 (410 ms)
+{
+ "data": [],
+ "links": {
+  "first": "http://127.0.0.1:8001/api/v1/journeys/82af193c-6df5-4dfe-af11-d52c06ae407c/restaurants?page%5Bsize%5D=10&page%5Bnumber%5D=1",
+  "last": "http://127.0.0.1:8001/api/v1/journeys/82af193c-6df5-4dfe-af11-d52c06ae407c/restaurants?page%5Bsize%5D=10&page%5Bnumber%5D=1",
+  "prev": null,
+  "next": null
+ },
+ "meta": {
+  "current_page": 1,
+  "from": null,
+  "last_page": 1,
+  "links": "<3 pagination links>",
+  "path": "http://127.0.0.1:8001/api/v1/journeys/82af193c-6df5-4dfe-af11-d52c06ae407c/restaurants",
+  "per_page": 10,
+  "to": null,
+  "total": 0,
+  "journey_id": "82af193c-6df5-4dfe-af11-d52c06ae407c",
+  "search": {
+   "sort": "recommended",
+   "corridor_width_meters": 3000,
+   "max_detour_minutes": 15,
+   "open_at_arrival": false,
+   "cuisine": [],
+   "feature": [],
+   "pickup_method": null,
+   "q": null,
+   "corridor_min_meters": 500,
+   "corridor_max_meters": 10000,
+   "max_detour_max_minutes": 60,
+   "candidate_cap": 40
+  },
+  "departure_at": "2026-10-05T13:20:55+00:00",
+  "calculated_at": "2026-10-05T13:20:55+00:00",
+  "cached": false,
+  "provider": {
+   "name": "fake",
+   "mode": "development"
+  },
+  "coverage": {
+   "along_route": "NO_SERVICE_COVERAGE",
+   "serviceable_areas": 0
+  },
+  "counts": {
+   "corridor_rows": 0,
+   "shortlist": 0,
+   "detour_requested": 0,
+   "unreachable": 0,
+   "provider_calls": 0,
+   "matching": 0,
+   "dropped_since_calculation": 0
+  },
+  "empty_reason": "NO_SERVICE_COVERAGE"
+ }
+}
+
+### POST /journeys/plan   (two forms for one end, the same place twice, fields a client may never set, a departure without an offset)
+→ HTTP 422 (240 ms)
+{
+ "error": {
+  "code": "validation_failed",
+  "message": "The submitted data is invalid.",
+  "details": {
+   "fields": {
+    "customer_id": [
+     "The customer id field is prohibited."
+    ],
+    "market_id": [
+     "The market id field is prohibited."
+    ],
+    "provider": [
+     "The provider field is prohibited."
+    ],
+    "expires_at": [
+     "The expires at field is prohibited."
+    ]
+   }
+  },
+  "request_id": "051dd69b-e64e-4fa7-b954-d574b6de7370"
+ }
+}
+
+### GET /journeys/{id}/restaurants   (after the journey expired — to its owner)
+→ HTTP 410 (333 ms)
+{
+ "error": {
+  "code": "journey_expired",
+  "message": "This journey has expired. Plan it again to continue.",
+  "details": {
+   "expired_at": "2026-10-05T13:19:56+00:00"
+  },
+  "request_id": "45ddf8a3-ec4a-465c-a5b4-b3ad5306743f"
+ }
+}
+
+### GET /journeys/{id}/restaurants   (after the journey expired — to anyone else)
+→ HTTP 404 (324 ms) — "expired" is said to the owner only
+{
+ "error": {
+  "code": "journey_not_found",
+  "message": "This journey was not found or has ended.",
+  "request_id": "065bebec-d5eb-4619-b29e-8091a6744413"
+ }
+}
+
+### POST /journeys/plan   (request 2 of this burst — guests may plan 6 journeys a minute)
+→ HTTP 429 (226 ms) — Retry-After: 54
+{
+ "error": {
+  "code": "rate_limited",
+  "message": "Too many requests. Please try again shortly.",
+  "details": {
+   "retry_after_seconds": 54
+  },
+  "request_id": "db7ac55a-9d88-4ca2-b94c-dfb4a5f7d28c"
+ }
+}
+
+### POST /journeys/plan {"origin": {"saved_location_id": "<Home>"}, "destination": {"place_id": "fake:noida-18"}}   (signed-in customer)
+→ HTTP 201 (392 ms) — the backend read the saved place's coordinates itself; no guest token for a customer
+{
+ "id": "5d58251b-5e0e-4cfc-8edf-cdad65450157",
+ "owner": "customer",
+ "origin": {
+  "label": "Home",
+  "formatted_address": "A-203, Green Valley Apartments, Sector 62, Noida, Uttar Pradesh 201309, India",
+  "location": {
+   "latitude": 28.6271,
+   "longitude": 77.3717
+  },
+  "country_code": "IN",
+  "region": "Uttar Pradesh",
+  "locality": "Noida",
+  "timezone": "Asia/Kolkata",
+  "place": {
+   "id": "dev:noida-sector-62-home",
+   "provider": "development"
+  },
+  "source": "saved_location",
+  "kind": "saved"
+ },
+ "coverage": {
+  "origin": {
+   "city": "Noida",
+   "reason": null,
+   "supported": true,
+   "service_area": "Noida · Sector 62 & NH24"
+  },
+  "corridors": [],
+  "along_route": "COVERED",
+  "destination": {
+   "city": "Noida",
+   "reason": null,
+   "supported": true,
+   "service_area": "Noida · Expressway / Sector 18"
+  },
+  "serviceable_areas": 3,
+  "corridor_width_meters": 3000
+ },
+ "expires_at": "2026-10-05T13:50:58+00:00",
+ "guest_token_present": false
+}
+
+### GET /journeys/{id}   (the customer's journey, without the session)
+→ HTTP 404 (348 ms)
+{
+ "error": {
+  "code": "journey_not_found",
+  "message": "This journey was not found or has ended.",
+  "request_id": "ab3e73be-f8ca-4ad8-be60-6867521434e4"
+ }
+}
+
+### GET /customer/recent-locations   (after that plan)
+→ HTTP 200 (328 ms) — only the SEARCHED place was recorded — not the saved one
+[
+ {
+  "label": "Sector 18, Noida",
+  "place": {
+   "provider": "fake",
+   "id": "fake:noida-18"
+  },
+  "times_used": 1
+ }
+]
+
+### POST /journeys/plan {"origin": {"lat": 28.6139, "lng": 77.209, "label": "Current location"}, …}   then GET /customer/recent-locations
+→ HTTP 201 (451 ms) — a device position is used for the journey and never kept as a recent place
+{
+ "plan_status": 201,
+ "origin_source": "coordinates",
+ "recent_labels": [
+  "Sector 18, Noida"
+ ]
+}
+
+### GET /admin/system/providers   (platform administrator)
+→ HTTP 200 (340 ms) — health is derived from the platform's own calls of the last 10 minutes
+{
+ "checked_at": "2026-10-05T13:21:00+00:00",
+ "fake_allowed": true,
+ "providers": [
+  {
+   "capability": "places",
+   "driver": "fake",
+   "mode": "development",
+   "configured": true,
+   "missing": [],
+   "timeout_seconds": 5,
+   "health": {
+    "state": "OPERATIONAL",
+    "window_minutes": 10,
+    "calls": 55,
+    "ok": 54,
+    "failures": 0,
+    "timeouts": 0,
+    "rate_limited": 0,
+    "not_found": 1,
+    "avg_latency_ms": 0,
+    "last_call_at": "2026-10-05T13:20:59+00:00"
+   }
+  },
+  {
+   "capability": "routing",
+   "driver": "fake",
+   "mode": "development",
+   "configured": true,
+   "missing": [],
+   "timeout_seconds": 8,
+   "health": {
+    "state": "OPERATIONAL",
+    "window_minutes": 10,
+    "calls": 11,
+    "ok": 9,
+    "failures": 0,
+    "timeouts": 0,
+    "rate_limited": 0,
+    "not_found": 2,
+    "avg_latency_ms": 2,
+    "last_call_at": "2026-10-05T13:20:59+00:00"
+   }
+  }
+ ],
+ "journeys": {
+  "active": 3,
+  "awaiting_prune": 2,
+  "ttl_minutes": 30
+ }
+}
+
+### GET /admin/system/providers   (market-scoped administrator)
+→ HTTP 403 (435 ms)
+{
+ "error": {
+  "code": "forbidden",
+  "message": "You are not allowed to do this.",
+  "request_id": "d7110dbb-3056-4eec-a5b4-deae01f5a984"
+ }
+}
+
