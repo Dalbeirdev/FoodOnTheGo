@@ -5,7 +5,7 @@ import Header from '../components/Header'
 import { ClockIcon, PinIcon } from '../components/Icons'
 import { useCart } from '../cart/CartContext'
 import type { CartItem } from '../cart/cartModel'
-import { estimatedTotalMinor, readStaleSimulation, reviewCart, type CartReview, type LineIssue } from '../cart/cartValidation'
+import { estimatedTotalMinor, readStaleSimulation, reviewCart, reviewFromServer, type CartReview, type LineIssue } from '../cart/cartValidation'
 import { useJourney } from '../journey/JourneyContext'
 import { menuRepository } from '../menu/menuRepository'
 import { restaurantRepository } from '../repositories'
@@ -21,6 +21,9 @@ import './CartPage.css'
  * lines with Edit / Remove / quantity, restaurant + pickup + journey context, validation against the
  * current menu (stale prices, unavailable items / options, restaurant state), pricing summary with
  * only configured amounts, order note, promo area (development), Continue to pickup time.
+ *
+ * In API mode (Module 27) the cart, its prices, its validation and its issues are the backend's: the page shows
+ * them and checks nothing itself; it reads the cart again when it opens and when the tab comes back into view.
  */
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -53,6 +56,17 @@ export default function CartPage() {
   const reviewSeq = useRef(0)
   const c = cart.cart
   const items = useMemo(() => c?.items ?? [], [c])
+  const backend = cart.mode === 'api'
+  const server = c?.server ?? null
+  // The backend revalidates on every read: ask again when the page opens and when the customer comes back to the tab.
+  const reload = cart.reload
+  useEffect(() => {
+    if (!backend) return
+    void reload()
+    const onVisible = () => { if (document.visibilityState === 'visible') void reload() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [backend, reload])
   const journey = journeyApi.journey
   const restaurantSlug = c?.restaurantSlug ?? null
 
@@ -67,6 +81,7 @@ export default function CartPage() {
 
   // Validation against the current menu data (debounced per cart change).
   const runReview = useCallback(async () => {
+    if (backend) return
     const seq = ++reviewSeq.current
     if (!c || items.length === 0) { setReview({ status: 'ready', result: null }); return }
     setReview((r) => ({ status: 'checking', result: r.result }))
@@ -76,7 +91,7 @@ export default function CartPage() {
     } catch {
       if (seq === reviewSeq.current) setReview({ status: 'error', result: null })
     }
-  }, [c, items.length, restaurant])
+  }, [backend, c, items.length, restaurant])
   useEffect(() => { const id = setTimeout(() => { void runReview() }, 50); return () => clearTimeout(id) }, [runReview])
   useEffect(() => { if (!flash) return; const id = setTimeout(() => setFlash(null), 4000); return () => clearTimeout(id) }, [flash])
   useEffect(() => { document.title = `${t('cartpage.title', undefined, locale)} · FoodOnTheGo` }, [locale])
@@ -89,13 +104,42 @@ export default function CartPage() {
   const subtotal = cart.subtotalMinor
   const discount = cart.discountMinor
   const total = estimatedTotalMinor(subtotal, discount)
-  const result = review.result
+  const serverReview = useMemo(() => (backend && c ? reviewFromServer(c) : null), [backend, c])
+  const result = backend ? serverReview : review.result
+  const reviewStatus = backend ? 'ready' : review.status
+  const linked = server?.journey ?? null
+  // Only a journey that is still alive on the backend can be offered for linking.
+  const [openedAt] = useState(() => Date.now())
+  const currentJourney = journey?.backend && (!journey.expiresAt || Date.parse(journey.expiresAt) > openedAt) ? journey : null
   const issueFor = (id: string): LineIssue | undefined => result?.lineIssues.find((i) => i.itemId === id)
-  const blocked = !c || items.length === 0 || review.status !== 'ready' || !result || result.blocking
+  const blocked = !c || items.length === 0 || reviewStatus !== 'ready' || !result || result.blocking
   const earliest = restaurant ? new Date(new Date().getTime() + restaurant.prepTimeMin * 60000).toISOString() : null
 
   const remove = (id: string) => { cart.removeItem(id); setConfirmRemove(null) }
+  // Backend carts: a line the backend will not change (unavailable item, invalid options, expired cart) can only be edited or removed.
+  const frozen = (line: CartItem) => backend && (server?.status === 'EXPIRED' || (line.server?.issues.some((i) => i.severity === 'BLOCKING' && i.code !== 'QUANTITY_LIMIT') ?? false))
   const proceed = () => { if (!blocked) navigate('/pickup-time') }
+
+  if (backend && !c && (!cart.hydrated || cart.loadFailed)) {
+    return (
+      <>
+        <Header />
+        <main id="main" className="cart">
+          <div className="cart__grid cart__grid--single">
+            {cart.loadFailed ? (
+              <section className="cart-card cart-empty" role="alert" data-testid="cart-load-failed">
+                <h1>{t('cartpage.loadFailed.title', undefined, locale)}</h1>
+                <p>{t('cartpage.loadFailed.text', undefined, locale)}</p>
+                <div className="cart-empty__actions"><button type="button" className="btn btn--primary" onClick={() => { void cart.reload() }}>{t('cartpage.retry', undefined, locale)}</button></div>
+              </section>
+            ) : (
+              <p className="cart-muted" role="status" aria-busy="true" style={{ padding: 24 }}>{t('cartpage.loading', undefined, locale)}</p>
+            )}
+          </div>
+        </main>
+      </>
+    )
+  }
 
   if (!c || items.length === 0) {
     return (
@@ -129,9 +173,15 @@ export default function CartPage() {
                 <h1>{t('cartpage.title', undefined, locale)}</h1>
                 <p>{t('cartpage.lead', undefined, locale)}</p>
               </div>
-              <span className="cart-mock" title="SERVER CART SYNC = NOT STARTED">{t('cartpage.mock', undefined, locale)}</span>
+              {!backend && <span className="cart-mock" title="SERVER CART SYNC = NOT STARTED">{t('cartpage.mock', undefined, locale)}</span>}
             </header>
             {flash && <p className="cart-flash" role="status">{flash}</p>}
+            {cart.flash && <p className="cart-flash" role="status" data-testid="cart-flash">{cart.flash} <button type="button" className="cart-link" onClick={cart.dismissFlash}>{t('cartpage.dismiss', undefined, locale)}</button></p>}
+            {cart.lastError && <p className="cart-notice cart-notice--error" role="alert" data-testid="cart-error">{cart.lastError.message} <button type="button" className="cart-link" onClick={cart.dismissError}>{t('cartpage.dismiss', undefined, locale)}</button></p>}
+            {result?.expired && (
+              <p className="cart-notice cart-notice--error" role="alert" data-testid="cart-expired"><WarnIcon /> <b>{t('cartpage.expired.title', undefined, locale)}</b> {t('cartpage.expired.text', undefined, locale)}{' '}
+                <button type="button" className="cart-link" onClick={() => cart.clearCart()}>{t('cartpage.expired.start', undefined, locale)}</button></p>
+            )}
 
             {/* Restaurant / pickup context */}
             <section className="cart-card cart-rest-card" aria-labelledby="cart-rest-title">
@@ -157,7 +207,24 @@ export default function CartPage() {
                   <Link to="/restaurants" className="cart-link">{t('cartpage.change', undefined, locale)}</Link>
                 </div>
               </div>
-              {journey ? (
+              {backend ? (
+                linked ? (
+                  <p className={`cart-journey ${linked.status === 'STALE' ? 'cart-journey--none' : ''}`} aria-label={t('cartpage.journey', undefined, locale)} data-testid="cart-journey" data-journey-status={linked.status}>
+                    <CarIcon /> <b dir="auto">{t('cartpage.journey.text', { origin: linked.originLabel ?? '—', destination: linked.destinationLabel ?? '—' }, locale)}</b>
+                    {linked.status === 'STALE' && <span> · {t('cartpage.journey.stale', undefined, locale)} <Link to="/plan-journey">{t('cartpage.empty.plan', undefined, locale)}</Link></span>}
+                    {linked.status === 'ACTIVE' && !linked.restaurantOnRoute && <span> · {t('cartpage.journey.offRoute', undefined, locale)}</span>}
+                    {linked.status === 'ACTIVE' && linked.restaurantOnRoute && linked.detourSeconds !== null && linked.distanceFromRouteM !== null && linked.estimatedArrivalAt && restaurant && (
+                      <span> · {t('cartpage.journey.route', { distance: formatDistance(linked.distanceFromRouteM, units, locale), detour: formatMinutes(Math.ceil(linked.detourSeconds / 60), locale), time: formatLocalTime(linked.estimatedArrivalAt, restaurant.timezone, locale) }, locale)}{' '}
+                        <em>{t(linked.estimateSource === 'development' ? 'cartpage.journey.development' : 'cartpage.journey.estimate', undefined, locale)}</em></span>
+                    )}
+                    {linked.status === 'ACTIVE' && linked.restaurantOnRoute && linked.detourSeconds === null && <span> · {t('cartpage.journey.noFigures', undefined, locale)}</span>}
+                    {currentJourney && currentJourney.id !== linked.id && <> <button type="button" className="cart-link" data-testid="cart-use-journey" onClick={cart.linkCurrentJourney}>{t('cartpage.journey.useCurrent', undefined, locale)}</button></>}
+                  </p>
+                ) : (
+                  <p className="cart-journey cart-journey--none" data-testid="cart-journey" data-journey-status="NONE"><CarIcon /> {t('cartpage.noJourney', undefined, locale)}{' '}
+                    {currentJourney ? <button type="button" className="cart-link" data-testid="cart-use-journey" onClick={cart.linkCurrentJourney}>{t('cartpage.journey.useCurrent', undefined, locale)}</button> : <Link to="/plan-journey">{t('cartpage.empty.plan', undefined, locale)}</Link>}</p>
+                )
+              ) : journey ? (
                 <p className="cart-journey" aria-label={t('cartpage.journey', undefined, locale)}>
                   <CarIcon /> <b dir="auto">{t('cartpage.journey.text', { origin: journey.origin.name, destination: journey.destination.name }, locale)}</b>
                   {route && route.distanceFromRouteM !== null && route.detourDurationMin !== null && route.estimatedArrival && restaurant && <span> · {t('cartpage.journey.route', { distance: formatDistance(route.distanceFromRouteM, units, locale), detour: formatMinutes(route.detourDurationMin, locale), time: formatLocalTime(route.estimatedArrival, restaurant.timezone, locale) }, locale)} <em>{t('mock.estimate', undefined, locale)}</em></span>}
@@ -168,9 +235,10 @@ export default function CartPage() {
             </section>
 
             {/* Review notices */}
-            {review.status === 'error' && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.error', undefined, locale)} <button type="button" className="cart-link" onClick={() => { void runReview() }}>{t('cartpage.retry', undefined, locale)}</button></p>}
+            {reviewStatus === 'error' && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.error', undefined, locale)} <button type="button" className="cart-link" onClick={() => { void runReview() }}>{t('cartpage.retry', undefined, locale)}</button></p>}
             {result && (result.lineIssues.length > 0 || result.currencyMismatch) && <p className="cart-notice cart-notice--warn" role="alert"><WarnIcon /> {t('cartpage.review.title', undefined, locale)}</p>}
             {result?.currencyMismatch && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.currency', undefined, locale)}</p>}
+            {result?.menuUnavailable && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.menuUnavailable', undefined, locale)}</p>}
             {result?.restaurantIssue === 'inactive' && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.restaurant.inactive', undefined, locale)} <Link to="/restaurants" className="cart-link">{t('cartpage.change', undefined, locale)}</Link></p>}
             {result?.restaurantIssue === 'not_accepting' && <p className="cart-notice cart-notice--error" role="alert">{t('cartpage.restaurant.notAccepting', undefined, locale)} <Link to={`/restaurants/${c.restaurantSlug}`} className="cart-link">{t('cartpage.view', undefined, locale)}</Link> · <Link to="/restaurants" className="cart-link">{t('cartpage.change', undefined, locale)}</Link></p>}
             {result?.restaurantIssue === 'closed' && restaurant && <p className="cart-notice cart-notice--info" role="status">{availability?.nextChangeAt ? t('cartpage.restaurant.closed', { time: `${formatLocalTime(availability.nextChangeAt, restaurant.timezone, locale)} ${zoneLabel(new Date().toISOString(), restaurant.timezone, locale)}` }, locale) : t('cartpage.restaurant.closedNoTime', undefined, locale)}</p>}
@@ -190,7 +258,7 @@ export default function CartPage() {
                   const issue = issueFor(line.id)
                   const options = [...line.selectedVariants, ...line.selectedModifiers]
                   return (
-                    <li key={line.id} className={`cart-line ${issue ? 'cart-line--issue' : ''}`} aria-label={line.itemName}>
+                    <li key={line.id} className={`cart-line ${issue ? 'cart-line--issue' : ''}`} aria-label={line.itemName} data-testid="cart-line" data-issue={issue?.kind ?? ''}>
                       <Img src={line.image} fallback={line.fallback} />
                       <div className="cart-line__info">
                         <h3 dir="auto">{line.itemName}</h3>
@@ -205,6 +273,7 @@ export default function CartPage() {
                         {issue?.kind === 'modifier_unavailable' && <p className="cart-line__issue" role="alert">{t('cartpage.issue.modifier', { options: (issue.optionNames ?? []).join(', ') }, locale)}</p>}
                         {issue?.kind === 'price_changed' && <p className="cart-line__issue" role="alert">{t('cartpage.issue.price', { old: money(issue.oldUnitMinor ?? 0), new: money(issue.newUnitMinor ?? 0) }, locale)} <button type="button" className="cart-link" onClick={() => cart.acceptPriceChange(line.id, issue.newUnitMinor ?? line.unitPriceMinor)}>{t('cartpage.issue.price.accept', undefined, locale)}</button></p>}
                         {issue?.kind === 'quantity' && <p className="cart-line__issue" role="alert">{t('cartpage.issue.quantity', { min: issue.min ?? 1, max: issue.max ?? 1 }, locale)}</p>}
+                        {issue?.kind === 'needs_choice' && <p className="cart-line__issue" role="alert">{issue.groupName ? t('cartpage.issue.needsChoice', { group: issue.groupName }, locale) : t('cartpage.issue.needsChoiceNoGroup', undefined, locale)}</p>}
                         <div className="cart-line__actions">
                           <Link to={`/restaurants/${c.restaurantSlug}/item/${line.itemSlug}?edit=${encodeURIComponent(line.id)}`} className="cart-link" aria-label={t('cartpage.editLabel', { name: line.itemName }, locale)}><PenIcon /> {t('cartpage.edit', undefined, locale)}</Link>
                           {confirmRemove === line.id ? (
@@ -215,9 +284,9 @@ export default function CartPage() {
                         </div>
                       </div>
                       <span className="cart-qty" role="group" aria-label={`${t('item.quantity', undefined, locale)} ${line.itemName}`}>
-                        <button type="button" aria-label={`${t('item.quantity.decrease', undefined, locale)} ${line.itemName}`} onClick={() => cart.updateQuantity(line.id, line.quantity - 1)}><MinusIcon /></button>
+                        <button type="button" aria-label={`${t('item.quantity.decrease', undefined, locale)} ${line.itemName}`} disabled={frozen(line)} onClick={() => cart.updateQuantity(line.id, line.quantity - 1)}><MinusIcon /></button>
                         <b aria-live="polite">{line.quantity}</b>
-                        <button type="button" className="is-plus" aria-label={`${t('item.quantity.increase', undefined, locale)} ${line.itemName}`} disabled={line.quantity >= line.maximumQuantity} onClick={() => cart.updateQuantity(line.id, line.quantity + 1)}><PlusIcon /></button>
+                        <button type="button" className="is-plus" aria-label={`${t('item.quantity.increase', undefined, locale)} ${line.itemName}`} disabled={line.quantity >= line.maximumQuantity || frozen(line)} onClick={() => cart.updateQuantity(line.id, line.quantity + 1)}><PlusIcon /></button>
                       </span>
                       <span className="cart-line__price"><small>{t('cartpage.lineTotal', undefined, locale)}</small><b>{money(line.lineTotalMinor)}</b></span>
                     </li>
@@ -259,8 +328,8 @@ export default function CartPage() {
                 <div className="cart-sum__total"><dt>{t('cartpage.estimated', undefined, locale)}</dt><dd>{money(total)}</dd></div>
               </dl>
               <p className="cart-muted">{t('cartpage.feesNote', undefined, locale)}</p>
-              {review.status === 'checking' && <p className="cart-muted" role="status">{t('cartpage.loading', undefined, locale)}</p>}
-              <button type="button" className="btn btn--primary cart-proceed" onClick={proceed} disabled={blocked} aria-disabled={blocked}>{blocked && result && result.blocking ? t('cartpage.proceed.blocked', undefined, locale) : t('cartpage.proceed', undefined, locale)}</button>
+              {reviewStatus === 'checking' && <p className="cart-muted" role="status">{t('cartpage.loading', undefined, locale)}</p>}
+              <button type="button" className="btn btn--primary cart-proceed" data-testid="cart-proceed" onClick={proceed} disabled={blocked} aria-disabled={blocked}>{blocked && result && result.blocking ? t('cartpage.proceed.blocked', undefined, locale) : t('cartpage.proceed', undefined, locale)}</button>
             </section>
           </aside>
         </div>

@@ -59,7 +59,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     if (other && !replace) { setState(() => confirmReplace = true); return; }
     setState(() { reorderState = 'adding'; confirmReplace = false; });
     if (replace) cart.clearCart();
-    for (final l in _addable) { cart.addItem(l.input!); }
+    // One after the other: with the backend cart every line is confirmed (or refused) by the server.
+    for (final l in _addable) { await cart.addToCart(l.input!); }
     if (mounted) context.push('/cart');
   }
 

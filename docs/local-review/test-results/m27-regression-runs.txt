@@ -1,0 +1,108 @@
+# Module 27 — regression runs of the earlier suites against the REAL local backend with the cart on the API (customer-web on :5173, API on :8001; VITE_AUTH_MODE=api, VITE_MARKET_MODE=api, VITE_RESTAURANT_MODE=api, VITE_JOURNEY_MODE=api, VITE_CART_MODE=api), LOCAL, 2026-10-06
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression.js (Module 19 full-site suite: journey → restaurants → item → cart → pickup time → checkout → payment → restaurant fulfils → review → admin), m23_e2e.js (Module 23 restaurants suite), m24_e2e.js (Module 24 menus suite), m25_e2e.js (Module 25 customer account suite), m26_e2e.js (Module 26 journeys suite).
+# Their JSON results are copied as m27-regression-*.json (the result of the last complete run of each suite); the earlier evidence files and screenshots were restored after every attempt.
+# Before each suite the carts left in the LOCAL database by the previous one are removed (the suites were written when the cart lived in the browser); the fixture cart is never touched.
+# One change to a suite: the full-site suite read the cart from localStorage ("fotg.cart.v1") in step C6; with the cart on the backend it reads the backend cart of the same session (same assertion).
+
+# THREE ATTEMPTS WERE NEEDED. The local PostgreSQL server (portable, not a Windows service) stopped twice while the chain was running — an environment problem of this PC session (BUG-166), not a failure of the application:
+#   attempt 1: the database went down at 12:44 IST during the full-site suite (it had passed the 38 steps it had reached); the five suites after it could not start.
+#   attempt 2: the whole chain again; the database was stopped again at 13:11 IST, near the end of the full-site suite (64 steps passed, none failed); the suites after it could not start.
+#   attempt 3: the five suites that had not completed, with the database started in the way that had held for hours the day before; all five ran to their end.
+
+## attempt 1 (cut off by the database stop at 12:44 IST)
+
+=== m22_auth_regression.js  07:01:42Z  (carts removed before the run: 0)
+FAIL B9 the owner sees the full navigation (Staff, Analytics, Menu, Settings) — Overview Settings Help
+47/48 passed
+=== exit 1
+
+=== m22_e2e.js  07:04:22Z  (carts removed before the run: 0)
+51/51 passed
+=== exit 0
+
+=== m22_regression.js  07:07:55Z  (carts removed before the run: 0)
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 2
+
+=== m23_e2e.js  07:19:33Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 2
+
+=== m24_e2e.js  07:19:37Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 1
+
+=== m25_e2e.js  07:19:37Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 1
+
+=== m26_e2e.js  07:19:38Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 1
+
+## attempt 2 (cut off by the database stop at 13:11 IST)
+
+=== m22_auth_regression.js  07:20:29Z  (carts removed before the run: 3)
+48/48 passed
+=== exit 0
+
+=== m22_e2e.js  07:22:57Z  (carts removed before the run: 0)
+51/51 passed
+=== exit 0
+
+=== m22_regression.js  07:25:37Z  (carts removed before the run: 0)
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 2
+
+=== m23_e2e.js  07:43:12Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 2
+
+=== m24_e2e.js  07:43:18Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 1
+
+=== m25_e2e.js  07:43:25Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 1
+
+=== m26_e2e.js  07:43:31Z  (carts removed before the run: )
+did not complete: the local database stopped accepting connections (see the note above)
+=== exit 1
+
+## attempt 3 (the five suites that had not completed)
+
+=== m22_regression.js  07:46:27Z  (carts removed before the run: 3)
+68/68 passed
+=== exit 0
+
+=== m23_e2e.js  08:05:00Z  (carts removed before the run: 3)
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":1,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+99/101 passed
+=== exit 1
+
+=== m24_e2e.js  08:12:03Z  (carts removed before the run: 0)
+48/48 passed
+=== exit 0
+
+=== m25_e2e.js  08:13:52Z  (carts removed before the run: 1)
+63/63 passed
+=== exit 0
+
+=== m26_e2e.js  08:16:26Z  (carts removed before the run: 0)
+63/63 passed
+=== exit 0
+
+# FINAL FIGURES (last complete run of each suite): auth 48/48, market 51/51, site 68/68, restaurants 99/101, menus 48/48, account 63/63, journeys 63/63 = 440/442.
+#   miss in restaurants: C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+#   miss in restaurants: D3 sections that are still development data carry a "Demo data" label; the backend sections do not
+
+# Notes:
+# - sign-in suite: in attempt 1 step B9 (the owner's navigation) was read 0.8 s after sign-in while the machine was also running the backend and Flutter test suites, and the
+#   permission-dependent entries had not arrived yet (47/48); in attempt 2, with nothing else running, it passed (48/48). No code was changed in between.
+# - restaurants suite: its two misses, C14 and D3, are Module 23 expectations that Module 24 made obsolete (Night Owl Kitchen now has a backend menu; the dashboard menu section is
+#   live), as documented in m24-, m25- and m26-regression-runs.txt; they are not Module 27 defects.
+# - full-site suite, cart steps on the backend cart: A6 (cart with options and ₹ subtotal), A8 / A9 (guest → sign-in at checkout → cart, restaurant and pickup preserved),
+#   C6 (reorder builds a new cart), E2 (one active cart = one restaurant) — all passed in every attempt that reached them.
+# - Fixture cart (Asha) before and after the last attempt: 2 × ₹459.00 + 1 × ₹149.00, version 2 — unchanged. Carts left in the local database after the last suite: 0.

@@ -1,0 +1,765 @@
+# Module 27 — live answers of the LOCAL backend for the cart APIs (through the proxy on http://127.0.0.1:8001)
+# Recorded 2026-10-05 21:01:05 +0530 on the development machine. PostgreSQL 18 + Redis, php artisan serve (no OPcache).
+# Guest tokens and session tokens are redacted. Everything created by this run was removed afterwards; the fixtures it changed were restored.
+
+==============================================================================================================
+1. A first visit: no cart, a guest token is issued (nothing is stored until the first item)
+GET /api/v1/cart   →   HTTP 200   (386 ms)
+{
+  "cart": null,
+  "guest_token": "<108 characters, redacted>"
+}
+
+==============================================================================================================
+2. Add an item with a variant and a modifier: the backend validates the selection and prices it (₹249 + ₹70 + ₹30 = ₹349; × 2 = ₹698)
+POST /api/v1/cart/items   →   HTTP 201   (721 ms)
+request body: {"restaurant_id": "0a000000-0000-4000-8000-0000000000a1", "item_id": "3f6ef553-3814-40d2-a1d4-68fe25cede47", "selections": [{"group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536", "option_ids": ["3600c772-4829-44ef-9d00-b9d3d8fe3b39"]}, {"group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283", "option_ids": ["68cb8317-4e0a-473e-a53d-905bfbf82b7e"]}], "quantity": 2, "special_instructions": "No onions"}
+{
+  "cart": {
+    "id": "61afd2d9-7b9b-403d-9a6e-e7ff89f1c9ef",
+    "version": 1,
+    "status": "ACTIVE",
+    "owner": "guest",
+    "currency": "INR",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "visible": true,
+      "currency": "INR",
+      "timezone": "Asia/Kolkata",
+      "address": "<as on the restaurant page>",
+      "images": "<logo, cover>",
+      "pickup": "<pickup offer>",
+      "availability": {
+        "open_now": true,
+        "open_state": "OPEN",
+        "accepting_orders": true,
+        "orderable": true,
+        "reason": null,
+        "closes_at": "2026-10-05T18:00:00+00:00",
+        "opens_next_at": null,
+        "checked_at": "2026-10-05T15:30:43+00:00"
+      }
+    },
+    "journey": null,
+    "items": [
+      {
+        "id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+        "item": {
+          "id": "3f6ef553-3814-40d2-a1d4-68fe25cede47",
+          "slug": "classic-burger",
+          "name": "Classic Burger",
+          "image": null,
+          "version": 13
+        },
+        "name": "Classic Burger",
+        "quantity": 2,
+        "min_quantity": 1,
+        "max_quantity": 20,
+        "special_instructions": "No onions",
+        "variants": [
+          {
+            "group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536",
+            "group_name": "Size",
+            "kind": "VARIANT",
+            "options": [
+              {
+                "id": "3600c772-4829-44ef-9d00-b9d3d8fe3b39",
+                "name": "Large",
+                "price_adjustment_minor": 7000,
+                "available": true
+              }
+            ]
+          }
+        ],
+        "modifiers": [
+          {
+            "group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283",
+            "group_name": "Add-ons",
+            "kind": "MODIFIER",
+            "options": [
+              {
+                "id": "68cb8317-4e0a-473e-a53d-905bfbf82b7e",
+                "name": "Extra Cheese",
+                "price_adjustment_minor": 3000,
+                "available": true
+              }
+            ]
+          }
+        ],
+        "base_price_minor": 24900,
+        "unit_price_minor": 34900,
+        "line_subtotal_minor": 69800,
+        "currency": "INR",
+        "snapshot": {
+          "unit_price_minor": 34900,
+          "base_price_minor": 24900,
+          "item_version": 13,
+          "taken_at": "2026-10-05T15:30:43+00:00"
+        },
+        "price_changed": false,
+        "priced_from": "menu",
+        "included_in_subtotal": true,
+        "availability": {
+          "orderable": true,
+          "reason": null
+        },
+        "issues": []
+      }
+    ],
+    "item_count": 2,
+    "line_count": 1,
+    "subtotal_minor": 69800,
+    "validation": {
+      "status": "VALID",
+      "can_proceed": true,
+      "issues": [],
+      "menu_changed": false,
+      "catalog_version": 78,
+      "checked_at": "2026-10-05T15:30:43+00:00"
+    },
+    "limits": {
+      "lines": 50,
+      "instructions_max_length": 200
+    },
+    "expires_at": "2026-10-12T15:30:43+00:00",
+    "created_at": "2026-10-05T15:30:43+00:00",
+    "updated_at": "2026-10-05T15:30:43+00:00"
+  },
+  "line": {
+    "id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+    "merged": false
+  }
+}
+
+==============================================================================================================
+3. The same request again with the same Idempotency-Key (double tap / retry): the first answer is replayed, the quantity is still 2
+POST /api/v1/cart/items   →   HTTP 201   (400 ms)
+response headers: idempotency-replayed: true
+{
+  "cart": {
+    "item_count": 2,
+    "version": 1
+  },
+  "line": {
+    "id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+    "merged": false
+  }
+}
+
+==============================================================================================================
+4. A client cannot set a price: the field is refused, not ignored
+POST /api/v1/cart/items   →   HTTP 422   (425 ms)
+request body: {"restaurant_id": "0a000000-0000-4000-8000-0000000000a1", "item_id": "3f6ef553-3814-40d2-a1d4-68fe25cede47", "selections": [{"group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536", "option_ids": ["3600c772-4829-44ef-9d00-b9d3d8fe3b39"]}, {"group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283", "option_ids": ["68cb8317-4e0a-473e-a53d-905bfbf82b7e"]}], "quantity": 2, "special_instructions": "No onions", "unit_price_minor": 1}
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The submitted data is invalid.",
+    "details": {
+      "fields": {
+        "unit_price_minor": [
+          "This value is decided by FoodOnTheGo and cannot be sent."
+        ]
+      }
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+5. Required group (Size) missing
+POST /api/v1/cart/items   →   HTTP 422   (626 ms)
+request body: {"restaurant_id": "0a000000-0000-4000-8000-0000000000a1", "item_id": "3f6ef553-3814-40d2-a1d4-68fe25cede47", "quantity": 1}
+{
+  "error": {
+    "code": "invalid_customization",
+    "message": "The chosen options are not valid for this item.",
+    "details": {
+      "issues": [
+        {
+          "group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536",
+          "code": "required",
+          "min": 1
+        }
+      ]
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+6. An option that is temporarily unavailable (Fried Egg) cannot be newly selected
+POST /api/v1/cart/items   →   HTTP 409   (630 ms)
+request body: {"restaurant_id": "0a000000-0000-4000-8000-0000000000a1", "item_id": "3f6ef553-3814-40d2-a1d4-68fe25cede47", "quantity": 1, "selections": [{"group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536", "option_ids": ["f6231b4e-c53f-4839-b113-f632ef4dc82b"]}, {"group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283", "option_ids": ["cc9fdffa-cc08-4a32-a4c1-5a57d43718f5"]}]}
+{
+  "error": {
+    "code": "option_unavailable",
+    "message": "One of the chosen options is not available right now.",
+    "details": {
+      "issues": [
+        {
+          "group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283",
+          "option_id": "cc9fdffa-cc08-4a32-a4c1-5a57d43718f5",
+          "code": "option_unavailable"
+        }
+      ]
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+7. An item of another restaurant under this restaurant's id: this restaurant has no such item
+POST /api/v1/cart/items   →   HTTP 404   (524 ms)
+request body: {"restaurant_id": "0a000000-0000-4000-8000-0000000000a1", "item_id": "cd3a9b7e-8a46-49dc-aae6-47c8ce6720be", "quantity": 1}
+{
+  "error": {
+    "code": "item_not_found",
+    "message": "This item is not on the menu.",
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+8. ONE CART = ONE RESTAURANT: an item of Pizza Point is refused with a summary of the current cart (no item names)
+POST /api/v1/cart/items   →   HTTP 409   (578 ms)
+request body: {"restaurant_id": "006f4b02-b4ff-442f-beec-38aabd54a4ad", "item_id": "cd3a9b7e-8a46-49dc-aae6-47c8ce6720be", "quantity": 1}
+{
+  "error": {
+    "code": "cart_restaurant_conflict",
+    "message": "Your cart has items from another restaurant. A cart can only hold items from one restaurant.",
+    "details": {
+      "current": {
+        "restaurant": {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "slug": "burger-hub",
+          "name": "Burger Hub"
+        },
+        "item_count": 2,
+        "line_count": 1,
+        "subtotal_minor": 69800,
+        "currency": "INR"
+      },
+      "requested": {
+        "restaurant": {
+          "id": "006f4b02-b4ff-442f-beec-38aabd54a4ad",
+          "slug": "pizza-point",
+          "name": "Pizza Point"
+        }
+      },
+      "cart_version": 1
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+9. Change the quantity with the version the client saw
+PATCH /api/v1/cart/items/{line}   →   HTTP 200   (876 ms)
+request body: {"quantity": 3, "cart_version": 1}
+{
+  "cart": {
+    "version": 2,
+    "item_count": 3,
+    "subtotal_minor": 104700
+  },
+  "line": {
+    "id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+    "merged": false
+  }
+}
+
+==============================================================================================================
+10. A second device still on version 1: refused
+PATCH /api/v1/cart/items/{line}   →   HTTP 409   (428 ms)
+request body: {"quantity": 5, "cart_version": 1}
+{
+  "error": {
+    "code": "cart_version_conflict",
+    "message": "Your cart changed somewhere else. Reload it and try again.",
+    "details": {
+      "current_version": 2
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+11. GUEST IDOR: another guest who knows the line id
+PATCH /api/v1/cart/items/{line}   →   HTTP 404   (487 ms)
+{
+  "error": {
+    "code": "cart_not_found",
+    "message": "There is no cart to change.",
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+12. The restaurant raised the price by ₹20 after the item was added: PRICE_CHANGED, the line and the subtotal are at the current price, the snapshot shows what the customer saw
+GET /api/v1/cart   →   HTTP 200   (505 ms)
+{
+  "cart": {
+    "id": "61afd2d9-7b9b-403d-9a6e-e7ff89f1c9ef",
+    "version": 2,
+    "status": "ACTIVE",
+    "owner": "guest",
+    "currency": "INR",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "visible": true,
+      "currency": "INR",
+      "timezone": "Asia/Kolkata",
+      "address": "<as on the restaurant page>",
+      "images": "<logo, cover>",
+      "pickup": "<pickup offer>",
+      "availability": {
+        "open_now": true,
+        "open_state": "OPEN",
+        "accepting_orders": true,
+        "orderable": true,
+        "reason": null,
+        "closes_at": "2026-10-05T18:00:00+00:00",
+        "opens_next_at": null,
+        "checked_at": "2026-10-05T15:30:49+00:00"
+      }
+    },
+    "journey": null,
+    "items": [
+      {
+        "id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+        "item": {
+          "id": "3f6ef553-3814-40d2-a1d4-68fe25cede47",
+          "slug": "classic-burger",
+          "name": "Classic Burger",
+          "image": null,
+          "version": 13
+        },
+        "name": "Classic Burger",
+        "quantity": 3,
+        "min_quantity": 1,
+        "max_quantity": 20,
+        "special_instructions": "No onions",
+        "variants": [
+          {
+            "group_id": "790a9e43-43b9-4d3c-a39e-b6ae3ea5e536",
+            "group_name": "Size",
+            "kind": "VARIANT",
+            "options": [
+              {
+                "id": "3600c772-4829-44ef-9d00-b9d3d8fe3b39",
+                "name": "Large",
+                "price_adjustment_minor": 7000,
+                "available": true
+              }
+            ]
+          }
+        ],
+        "modifiers": [
+          {
+            "group_id": "1289ddd8-c517-4298-9ed3-8536ed26c283",
+            "group_name": "Add-ons",
+            "kind": "MODIFIER",
+            "options": [
+              {
+                "id": "68cb8317-4e0a-473e-a53d-905bfbf82b7e",
+                "name": "Extra Cheese",
+                "price_adjustment_minor": 3000,
+                "available": true
+              }
+            ]
+          }
+        ],
+        "base_price_minor": 26900,
+        "unit_price_minor": 36900,
+        "line_subtotal_minor": 110700,
+        "currency": "INR",
+        "snapshot": {
+          "unit_price_minor": 34900,
+          "base_price_minor": 24900,
+          "item_version": 13,
+          "taken_at": "2026-10-05T15:30:47+00:00"
+        },
+        "price_changed": true,
+        "priced_from": "menu",
+        "included_in_subtotal": true,
+        "availability": {
+          "orderable": true,
+          "reason": null
+        },
+        "issues": [
+          {
+            "code": "PRICE_CHANGED",
+            "severity": "REVIEW",
+            "scope": "line",
+            "line_id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+            "message": "The price changed since you added this item.",
+            "details": {
+              "previous_unit_price_minor": 34900,
+              "current_unit_price_minor": 36900,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "item_count": 3,
+    "line_count": 1,
+    "subtotal_minor": 110700,
+    "validation": {
+      "status": "NEEDS_REVIEW",
+      "can_proceed": false,
+      "issues": [
+        {
+          "code": "PRICE_CHANGED",
+          "severity": "REVIEW",
+          "scope": "line",
+          "line_id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+          "message": "The price changed since you added this item.",
+          "details": {
+            "previous_unit_price_minor": 34900,
+            "current_unit_price_minor": 36900,
+            "currency": "INR"
+          }
+        }
+      ],
+      "menu_changed": false,
+      "catalog_version": 78,
+      "checked_at": "2026-10-05T15:30:49+00:00"
+    },
+    "limits": {
+      "lines": 50,
+      "instructions_max_length": 200
+    },
+    "expires_at": "2026-10-12T15:30:47+00:00",
+    "created_at": "2026-10-05T15:30:43+00:00",
+    "updated_at": "2026-10-05T15:30:47+00:00"
+  }
+}
+
+==============================================================================================================
+13. "Update my cart": the changed price is accepted as the new baseline
+POST /api/v1/cart/refresh   →   HTTP 200   (663 ms)
+{
+  "result": {
+    "price_changes_accepted": 1
+  },
+  "cart": {
+    "version": 3,
+    "subtotal_minor": 110700,
+    "validation": {
+      "status": "VALID",
+      "can_proceed": true,
+      "issues": [],
+      "menu_changed": false,
+      "catalog_version": 78,
+      "checked_at": "2026-10-05T15:30:50+00:00"
+    }
+  }
+}
+
+==============================================================================================================
+14. The item sold out after it was added: the line stays, with its issue; it is not counted in the subtotal
+GET /api/v1/cart   →   HTTP 200   (641 ms)
+{
+  "cart": {
+    "validation": {
+      "status": "INVALID",
+      "can_proceed": false,
+      "issues": [
+        {
+          "code": "ITEM_SOLD_OUT",
+          "severity": "BLOCKING",
+          "scope": "line",
+          "line_id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+          "message": "This item is sold out.",
+          "details": {
+            "reason": "ITEM_SOLD_OUT"
+          }
+        }
+      ],
+      "menu_changed": false,
+      "catalog_version": 78,
+      "checked_at": "2026-10-05T15:30:51+00:00"
+    },
+    "subtotal_minor": 0,
+    "line_count": 1,
+    "items": [
+      {
+        "name": "Classic Burger",
+        "quantity": 3,
+        "unit_price_minor": 34900,
+        "included_in_subtotal": false,
+        "availability": {
+          "orderable": false,
+          "reason": "ITEM_SOLD_OUT"
+        },
+        "issues": [
+          {
+            "code": "ITEM_SOLD_OUT",
+            "severity": "BLOCKING",
+            "scope": "line",
+            "line_id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+            "message": "This item is sold out.",
+            "details": {
+              "reason": "ITEM_SOLD_OUT"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+
+==============================================================================================================
+15. The restaurant paused orders: the cart cannot proceed and says why; nothing was removed
+GET /api/v1/cart   →   HTTP 200   (584 ms)
+{
+  "cart": {
+    "validation": {
+      "status": "INVALID",
+      "can_proceed": false,
+      "issues": [
+        {
+          "code": "RESTAURANT_NOT_ACCEPTING",
+          "severity": "BLOCKING",
+          "scope": "cart",
+          "line_id": null,
+          "message": "This restaurant is not taking orders right now.",
+          "details": {
+            "reason": "NOT_ACCEPTING_ORDERS"
+          }
+        },
+        {
+          "code": "PRICE_CHANGED",
+          "severity": "REVIEW",
+          "scope": "line",
+          "line_id": "37a479e7-ba4c-48c2-b1ac-2e937fc783f5",
+          "message": "The price changed since you added this item.",
+          "details": {
+            "previous_unit_price_minor": 36900,
+            "current_unit_price_minor": 34900,
+            "currency": "INR"
+          }
+        }
+      ],
+      "menu_changed": false,
+      "catalog_version": 78,
+      "checked_at": "2026-10-05T15:30:51+00:00"
+    },
+    "line_count": 1
+  }
+}
+
+==============================================================================================================
+16. The confirmed restaurant switch: the old cart is closed and the new one starts with the item, in one transaction
+POST /api/v1/cart/switch-restaurant   →   HTTP 201   (781 ms)
+request body: {"confirm": true, "restaurant_id": "006f4b02-b4ff-442f-beec-38aabd54a4ad", "item": {"item_id": "cd3a9b7e-8a46-49dc-aae6-47c8ce6720be", "quantity": 1}}
+{
+  "replaced": {
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub"
+    },
+    "item_count": 3,
+    "line_count": 1,
+    "subtotal_minor": 104700,
+    "currency": "INR"
+  },
+  "line": {
+    "id": "51a6bd1f-fdc7-40a3-87cd-91bc05424cf3",
+    "merged": false
+  },
+  "cart": {
+    "id": "e7fa8856-799f-4adf-96a3-171c1cf5c32f",
+    "version": 1,
+    "status": "ACTIVE",
+    "item_count": 1,
+    "subtotal_minor": 14900
+  }
+}
+
+==============================================================================================================
+17. Sign-in: the guest cart is claimed with its token in the customer's session
+POST /api/v1/cart/claim   →   HTTP 200   (630 ms)
+{
+  "claim": {
+    "outcome": "claimed"
+  },
+  "cart": {
+    "id": "e7fa8856-799f-4adf-96a3-171c1cf5c32f",
+    "owner": "customer",
+    "version": 2,
+    "item_count": 1
+  }
+}
+
+==============================================================================================================
+18. The guest token is spent: presented again (without a session) it addresses nothing and a new token is issued
+GET /api/v1/cart   →   HTTP 200   (449 ms)
+{
+  "cart": null,
+  "guest_token": "<108 characters, redacted>"
+}
+
+==============================================================================================================
+19. Sign-in with a guest cart of ANOTHER restaurant: never merged — the customer chooses
+POST /api/v1/cart/claim   →   HTTP 409   (761 ms)
+{
+  "error": {
+    "code": "cart_merge_conflict",
+    "message": "You have a cart from before you signed in and a cart in your account, from two different restaurants. Choose which one to keep.",
+    "details": {
+      "guest": {
+        "restaurant": {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "slug": "burger-hub",
+          "name": "Burger Hub"
+        },
+        "item_count": 1,
+        "line_count": 1,
+        "subtotal_minor": 14900,
+        "currency": "INR"
+      },
+      "account": {
+        "restaurant": {
+          "id": "006f4b02-b4ff-442f-beec-38aabd54a4ad",
+          "slug": "pizza-point",
+          "name": "Pizza Point"
+        },
+        "item_count": 1,
+        "line_count": 1,
+        "subtotal_minor": 14900,
+        "currency": "INR"
+      },
+      "resolutions": [
+        "keep_guest",
+        "keep_account"
+      ]
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+20. The customer keeps the account's cart
+POST /api/v1/cart/claim   →   HTTP 200   (643 ms)
+request body: {"resolution": "keep_account"}
+{
+  "claim": {
+    "outcome": "kept_account"
+  },
+  "cart": {
+    "restaurant": "Pizza Point",
+    "item_count": 1
+  }
+}
+
+==============================================================================================================
+21. Sign-in with a guest cart of the SAME restaurant: merged; 1 + 20 of the same item is limited to its maximum of 20 and reported
+POST /api/v1/cart/claim   →   HTTP 200   (744 ms)
+{
+  "claim": {
+    "outcome": "merged",
+    "lines_moved": 0,
+    "lines_combined": 1,
+    "adjusted": [
+      {
+        "line_id": "51a6bd1f-fdc7-40a3-87cd-91bc05424cf3",
+        "name": "Cheese Garlic Bread",
+        "requested_quantity": 21,
+        "quantity": 20,
+        "max_quantity": 20
+      }
+    ]
+  },
+  "cart": {
+    "item_count": 20,
+    "line_count": 1
+  }
+}
+
+==============================================================================================================
+22. CUSTOMER IDOR: another customer who knows the line id
+PATCH /api/v1/cart/items/{line}   →   HTTP 404   (495 ms)
+{
+  "error": {
+    "code": "cart_line_not_found",
+    "message": "This item is not in your cart.",
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+23. An expired cart refuses every change
+POST /api/v1/cart/items   →   HTTP 410   (549 ms)
+{
+  "error": {
+    "code": "cart_expired",
+    "message": "This cart has expired. Clear it to start a new one.",
+    "details": {
+      "expired_at": "2026-10-05T14:31:01+00:00"
+    },
+    "request_id": "<request id>"
+  }
+}
+
+==============================================================================================================
+24. Clearing it is the way out
+DELETE /api/v1/cart   →   HTTP 200   (574 ms)
+{
+  "cart": null
+}
+
+==============================================================================================================
+25. Administrators: numbers only (the counters include everything else that happened on this machine in the window)
+GET /api/v1/admin/system/carts   →   HTTP 200   (490 ms)
+{
+  "checked_at": "2026-10-05T15:31:03+00:00",
+  "carts": {
+    "active": 2,
+    "active_customer": 1,
+    "active_guest": 1,
+    "expired_awaiting_cleanup": 0,
+    "closed": {
+      "expired": 1,
+      "abandoned": 3,
+      "invalidated": 1,
+      "converted": 0
+    }
+  },
+  "window_hours": 24,
+  "events": {
+    "created": 41,
+    "item_added": 77,
+    "item_updated": 28,
+    "item_removed": 4,
+    "cleared": 4,
+    "restaurant_conflict": 9,
+    "restaurant_switched": 5,
+    "claimed": 7,
+    "merged": 4,
+    "merge_conflict": 4,
+    "revalidated": 15,
+    "price_changes_accepted": 5,
+    "expired": 2
+  },
+  "lifetimes": {
+    "guest_hours": 168,
+    "customer_hours": 720,
+    "expired_grace_hours": 24,
+    "closed_retention_days": 30
+  }
+}
+
+==============================================================================================================
+26. The restaurant owner's token is not a customer's: no cart (a guest token is offered, as to anybody)
+GET /api/v1/cart   →   HTTP 200   (398 ms)
+{
+  "cart": null,
+  "guest_token": "<108 characters, redacted>"
+}

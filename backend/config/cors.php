@@ -24,7 +24,7 @@ return [
     'allowed_origins_patterns' => [],
 
     // X-Journey-Token: a guest's own journey is read with the token issued when it was planned (Module 26) — a header, never a URL.
-    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'Idempotency-Key', 'X-Request-Id', 'X-Requested-With', 'X-Journey-Token'],
+    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'Idempotency-Key', 'X-Request-Id', 'X-Requested-With', 'X-Journey-Token', 'X-Cart-Token'],
 
     'exposed_headers' => ['X-Request-Id', 'Retry-After', 'Idempotency-Replayed'],
 

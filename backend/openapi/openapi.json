@@ -8807,6 +8807,1022 @@
           }
         }
       }
+    },
+    "/cart": {
+      "get": {
+        "summary": "The caller's cart — a guest's (X-Cart-Token) or the signed-in customer's — priced and validated against the current menu, or cart: null. A caller without session and token also receives guest_token. No route takes a cart id: a cart is only ever resolved for its owner.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CartEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "End the cart (the client asks for confirmation first). Safe to repeat. The only way out of an EXPIRED cart; the next item starts a new one.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CartEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/items": {
+      "post": {
+        "summary": "Add an item. The backend validates the item (on the active menu of that restaurant, orderable), the selection (group belongs to item, option to group, required / min / max, no duplicates, options selectable) and calculates the price. The same configuration (item + options + instructions) raises the quantity of the existing line. ONE ACTIVE CART = ONE RESTAURANT LOCATION. Errors: 404 restaurant_not_found / item_not_found; 409 cart_restaurant_conflict (details.current, details.requested), item_unavailable, option_unavailable, currency_mismatch, cart_version_conflict; 410 cart_expired; 422 invalid_customization (details.issues), quantity_limit, cart_line_limit, validation_failed.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/JourneyToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartAddItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/items/{line}": {
+      "patch": {
+        "summary": "Change the quantity, the selected options and / or the special instructions of a line; it is priced again by the backend. A configuration equal to another line merges the two. 404 cart_not_found / cart_line_not_found (also for a line of anybody else's cart); 409 item_unavailable / option_unavailable / restaurant_unavailable / cart_version_conflict; 410 cart_expired; 422 invalid_customization / quantity_limit.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartLineId"
+          },
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartUpdateItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a line. The cart stays (possibly empty). Optional query cart_version.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartLineId"
+          },
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          },
+          {
+            "name": "cart_version",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/refresh": {
+      "post": {
+        "summary": "\"Update my cart to the current menu\": every line that can be priced today gets today's names and prices as its new baseline (PRICE_CHANGED is thereby accepted). Lines that cannot be ordered keep their issue; nothing is removed.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/switch-restaurant": {
+      "post": {
+        "summary": "The confirmed restaurant switch: the current cart is closed and a cart of the other restaurant starts (with the given item, if any) in ONE transaction. If the item is not valid nothing changes. The answer carries a summary of the replaced cart. Nothing destructive ever happens without this call.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/JourneyToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartSwitchRestaurantRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/journey": {
+      "put": {
+        "summary": "Link the cart to one of the caller's own living journeys, on purpose (\"use my current journey\"). 404 journey_not_found for any other journey.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/JourneyToken"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartJourneyLinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove the journey link. The cart is otherwise unchanged.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CartChangeResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartChangeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/claim": {
+      "post": {
+        "summary": "After signing in: take over the cart built as a guest. The guest cart is named by its TOKEN (X-Cart-Token), never by an id. Policy: no account cart (or an empty / expired one) → the guest cart becomes the customer's; same restaurant → merged (same configuration adds quantities up to the item maximum, reported in claim.adjusted); different restaurants → 409 cart_merge_conflict (details.guest, details.account, details.resolutions) until `resolution` says which one to keep. The guest token is spent by the claim.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartClaimRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CartClaimResult",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartClaimResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/carts": {
+      "get": {
+        "summary": "Cart numbers for platform administrators (admin.system.view): active carts, guest carts, carts waiting for the cleanup, closed carts by outcome, and event counters of the last 24 hours. Counts only.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CartMetrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8856,6 +9872,37 @@
         "schema": {
           "type": "string",
           "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "CartToken": {
+        "name": "X-Cart-Token",
+        "in": "header",
+        "required": false,
+        "description": "Guests: the guest_token handed out by GET /cart (or by the first change made without any identity). A secret — header only, never in a URL. Ignored for a signed-in customer, except by POST /cart/claim, which names the guest cart to take over.",
+        "schema": {
+          "type": "string",
+          "pattern": "^gc1\\.[0-9a-z]{1,9}\\.[0-9a-f]{64}\\.[0-9a-f]{32}$"
+        }
+      },
+      "CartLineId": {
+        "name": "line",
+        "in": "path",
+        "required": true,
+        "description": "Cart line id (opaque UUID) — resolved inside the caller's own cart only.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9a-f-]{36}$"
+        }
+      },
+      "IdempotencyKeyOptional": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Optional (16–120 characters of A-Z a-z 0-9 . _ : -). The same key with the same request replays the first answer (response header Idempotency-Replayed: true) instead of applying the change twice; the same key with another request is 409 idempotency_key_reused. Scoped to the cart owner and the operation; kept for 24 hours.",
+        "schema": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 120
         }
       }
     },
@@ -21664,6 +22711,2235 @@
             }
           }
         }
+      },
+      "CartAddItemRequest": {
+        "type": "object",
+        "required": [
+          "restaurant_id",
+          "item_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Restaurant LOCATION id — the cart belongs to one location"
+          },
+          "item_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Menu item id (must be on the active menu of the restaurant)"
+          },
+          "selections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "option_ids"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "group_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "option_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  }
+                }
+              },
+              "description": "The options chosen in one group of the item. Ids only — never a price."
+            },
+            "description": "Chosen variant and modifier options, one entry per group"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Default 1; bounded by the item's own maximum"
+          },
+          "special_instructions": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Plain text, at most 200 characters after cleaning. Untrusted content: stored and returned as text only."
+          },
+          "journey_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "The caller's own living journey the restaurant was found on (guests also send X-Journey-Token). Linked when the cart has no living journey link."
+          },
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The cart version the client last saw. When sent and stale: 409 cart_version_conflict."
+          }
+        },
+        "description": "A price, a currency, an owner, a status or a version of the cart are refused (422), never read."
+      },
+      "CartUpdateItemRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "selections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "group_id",
+                "option_ids"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "group_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "option_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  }
+                }
+              },
+              "description": "The options chosen in one group of the item. Ids only — never a price."
+            },
+            "description": "Chosen variant and modifier options, one entry per group"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Default 1; bounded by the item's own maximum"
+          },
+          "special_instructions": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "Plain text, at most 200 characters after cleaning. Untrusted content: stored and returned as text only."
+          },
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The cart version the client last saw. When sent and stale: 409 cart_version_conflict."
+          }
+        },
+        "description": "At least one of quantity, selections, special_instructions. The item and the restaurant of a line cannot be changed."
+      },
+      "CartVersionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The cart version the client last saw. When sent and stale: 409 cart_version_conflict."
+          }
+        }
+      },
+      "CartSwitchRestaurantRequest": {
+        "type": "object",
+        "required": [
+          "confirm",
+          "restaurant_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "confirm": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Must be true: the customer confirmed that the current cart is replaced"
+          },
+          "restaurant_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "item": {
+            "type": "object",
+            "required": [
+              "item_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "item_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$",
+                "description": "Menu item id (must be on the active menu of the restaurant)"
+              },
+              "selections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "group_id",
+                    "option_ids"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "group_id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "option_ids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f-]{36}$"
+                      }
+                    }
+                  },
+                  "description": "The options chosen in one group of the item. Ids only — never a price."
+                },
+                "description": "Chosen variant and modifier options, one entry per group"
+              },
+              "quantity": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 50,
+                "description": "Default 1; bounded by the item's own maximum"
+              },
+              "special_instructions": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 1000,
+                "description": "Plain text, at most 200 characters after cleaning. Untrusted content: stored and returned as text only."
+              }
+            },
+            "description": "Optional first item of the new cart. If it is not valid the whole switch is undone."
+          },
+          "journey_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The cart version the client last saw. When sent and stale: 409 cart_version_conflict."
+          }
+        }
+      },
+      "CartJourneyLinkRequest": {
+        "type": "object",
+        "required": [
+          "journey_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "journey_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The cart version the client last saw. When sent and stale: 409 cart_version_conflict."
+          }
+        }
+      },
+      "CartClaimRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "resolution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "keep_guest",
+              "keep_account",
+              null
+            ],
+            "description": "Only when the guest cart and the account cart are of different restaurants (409 cart_merge_conflict asks for it)"
+          }
+        }
+      },
+      "CartIssue": {
+        "type": "object",
+        "required": [
+          "code",
+          "severity",
+          "scope",
+          "line_id",
+          "message",
+          "details"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "ITEM_SOLD_OUT",
+              "ITEM_TEMPORARILY_UNAVAILABLE",
+              "ITEM_DISABLED",
+              "ITEM_REMOVED",
+              "OPTION_UNAVAILABLE",
+              "REQUIRED_CUSTOMIZATION_MISSING",
+              "INVALID_CUSTOMIZATION",
+              "QUANTITY_LIMIT",
+              "PRICE_CHANGED",
+              "CART_EXPIRED",
+              "RESTAURANT_UNAVAILABLE",
+              "RESTAURANT_NOT_ACCEPTING",
+              "RESTAURANT_CLOSED_NOW",
+              "MENU_UNAVAILABLE",
+              "MENU_CHANGED",
+              "CURRENCY_MISMATCH",
+              "JOURNEY_STALE"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "REVIEW",
+              "INFO"
+            ],
+            "description": "BLOCKING: the cart cannot proceed · REVIEW: the customer has to agree (POST /cart/refresh) · INFO: context only"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "cart",
+              "line"
+            ]
+          },
+          "line_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "description": "Depends on the code, e.g. previous_unit_price_minor / current_unit_price_minor, options (names), min / max, reason, opens_next_at"
+          }
+        },
+        "description": "Something the backend found when it compared the cart with the current menu and restaurant. A line with an issue is never removed."
+      },
+      "CartSelection": {
+        "type": "object",
+        "required": [
+          "group_id",
+          "group_name",
+          "kind",
+          "options"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "group_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "group_name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VARIANT",
+              "MODIFIER"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "price_adjustment_minor",
+                "available"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "price_adjustment_minor": {
+                  "type": "integer",
+                  "description": "Integer minor units of the cart currency (paise for INR)"
+                },
+                "available": {
+                  "type": "boolean",
+                  "description": "false: the option can no longer be chosen — the line has to be edited"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CartLine": {
+        "type": "object",
+        "required": [
+          "id",
+          "item",
+          "name",
+          "quantity",
+          "min_quantity",
+          "max_quantity",
+          "special_instructions",
+          "variants",
+          "modifiers",
+          "base_price_minor",
+          "unit_price_minor",
+          "line_subtotal_minor",
+          "currency",
+          "snapshot",
+          "price_changed",
+          "priced_from",
+          "included_in_subtotal",
+          "availability",
+          "issues"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "item": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "image",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "url",
+                  "alt_text",
+                  "width",
+                  "height",
+                  "display_order"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "Absolute URL served by GET /media/{path}; immutable, may be cached for a day. No storage path appears anywhere."
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "display_order": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          },
+          "name": {
+            "type": "string",
+            "description": "The item name the customer saw when the line was written"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "min_quantity": {
+            "type": "integer"
+          },
+          "max_quantity": {
+            "type": "integer"
+          },
+          "special_instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartSelection"
+            }
+          },
+          "modifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartSelection"
+            }
+          },
+          "base_price_minor": {
+            "type": "integer",
+            "description": "Integer minor units of the cart currency (paise for INR)"
+          },
+          "unit_price_minor": {
+            "type": "integer",
+            "description": "Base + variant adjustments + modifier adjustments, calculated by the backend from the CURRENT menu (from the snapshot only when priced_from = snapshot)"
+          },
+          "line_subtotal_minor": {
+            "type": "integer",
+            "description": "unit_price_minor × quantity"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "snapshot": {
+            "type": "object",
+            "required": [
+              "unit_price_minor",
+              "base_price_minor",
+              "item_version",
+              "taken_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "unit_price_minor": {
+                "type": "integer",
+                "description": "Integer minor units of the cart currency (paise for INR)"
+              },
+              "base_price_minor": {
+                "type": "integer",
+                "description": "Integer minor units of the cart currency (paise for INR)"
+              },
+              "item_version": {
+                "type": "integer"
+              },
+              "taken_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "What the customer saw when the line was last written — the baseline of PRICE_CHANGED"
+          },
+          "price_changed": {
+            "type": "boolean"
+          },
+          "priced_from": {
+            "type": "string",
+            "enum": [
+              "menu",
+              "snapshot"
+            ]
+          },
+          "included_in_subtotal": {
+            "type": "boolean",
+            "description": "false for a line with a blocking issue: it is shown, not counted"
+          },
+          "availability": {
+            "type": "object",
+            "required": [
+              "orderable",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "orderable": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "RESTAURANT_UNAVAILABLE",
+                  "MENU_INACTIVE",
+                  "CATEGORY_INACTIVE",
+                  "ITEM_SOLD_OUT",
+                  "ITEM_TEMPORARILY_UNAVAILABLE",
+                  "ITEM_DISABLED",
+                  "ITEM_ARCHIVED",
+                  "REQUIRED_GROUP_UNAVAILABLE",
+                  "OUTSIDE_ITEM_SCHEDULE",
+                  null
+                ]
+              }
+            }
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartIssue"
+            }
+          }
+        }
+      },
+      "CartRestaurant": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "visible"
+        ],
+        "additionalProperties": false,
+        "description": "The restaurant LOCATION of the cart, from the same fields as the public restaurant page. Once it is no longer visible to customers only id, slug and name remain (visible = false).",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "visible": {
+            "type": "boolean"
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "$ref": "#/components/schemas/RestaurantAddress"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "images": {
+            "type": "object",
+            "required": [
+              "logo",
+              "cover"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "logo": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "url",
+                  "alt_text"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "cover": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "url",
+                  "alt_text"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/RestaurantPickupOffer"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RestaurantAvailability"
+          }
+        }
+      },
+      "CartJourney": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "requires_refresh",
+          "origin",
+          "destination",
+          "restaurant_on_route",
+          "distance_from_route_meters",
+          "detour",
+          "estimated_arrival_at",
+          "estimate_source",
+          "linked_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "STALE"
+            ],
+            "description": "STALE: the journey has ended — the figures below are what the customer was shown, not a current estimate"
+          },
+          "requires_refresh": {
+            "type": "boolean"
+          },
+          "origin": {
+            "type": "object",
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "destination": {
+            "type": "object",
+            "required": [
+              "label"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "restaurant_on_route": {
+            "type": "boolean",
+            "description": "Whether the restaurant lies inside the journey's search corridor"
+          },
+          "distance_from_route_meters": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "detour": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "duration_seconds",
+              "distance_meters"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "duration_seconds": {
+                "type": "integer"
+              },
+              "distance_meters": {
+                "type": "integer"
+              }
+            },
+            "description": "The routing provider's detour for this restaurant when route discovery had calculated it; null otherwise — never estimated"
+          },
+          "estimated_arrival_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "estimate_source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "development",
+              "live",
+              null
+            ],
+            "description": "development = the synthetic development routing model"
+          },
+          "linked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "The journey the cart was started from: a reference and a display summary — place labels only, no coordinates, no address, no route geometry."
+      },
+      "Cart": {
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "status",
+          "owner",
+          "currency",
+          "restaurant",
+          "journey",
+          "items",
+          "item_count",
+          "line_count",
+          "subtotal_minor",
+          "validation",
+          "limits",
+          "expires_at",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Raised by every change"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED"
+            ],
+            "description": "EXPIRED: past its lifetime — it can only be cleared (DELETE /cart)"
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "guest",
+              "customer"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217, the currency of the restaurant location"
+          },
+          "restaurant": {
+            "$ref": "#/components/schemas/CartRestaurant"
+          },
+          "journey": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "status",
+              "requires_refresh",
+              "origin",
+              "destination",
+              "restaurant_on_route",
+              "distance_from_route_meters",
+              "detour",
+              "estimated_arrival_at",
+              "estimate_source",
+              "linked_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "STALE"
+                ],
+                "description": "STALE: the journey has ended — the figures below are what the customer was shown, not a current estimate"
+              },
+              "requires_refresh": {
+                "type": "boolean"
+              },
+              "origin": {
+                "type": "object",
+                "required": [
+                  "label"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "destination": {
+                "type": "object",
+                "required": [
+                  "label"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "restaurant_on_route": {
+                "type": "boolean",
+                "description": "Whether the restaurant lies inside the journey's search corridor"
+              },
+              "distance_from_route_meters": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "detour": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "duration_seconds",
+                  "distance_meters"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "duration_seconds": {
+                    "type": "integer"
+                  },
+                  "distance_meters": {
+                    "type": "integer"
+                  }
+                },
+                "description": "The routing provider's detour for this restaurant when route discovery had calculated it; null otherwise — never estimated"
+              },
+              "estimated_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "estimate_source": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "development",
+                  "live",
+                  null
+                ],
+                "description": "development = the synthetic development routing model"
+              },
+              "linked_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "The journey the cart was started from: a reference and a display summary — place labels only, no coordinates, no address, no route geometry."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartLine"
+            }
+          },
+          "item_count": {
+            "type": "integer",
+            "description": "Total quantity — the number the cart badge shows"
+          },
+          "line_count": {
+            "type": "integer"
+          },
+          "subtotal_minor": {
+            "type": "integer",
+            "description": "Items and their options only, at current prices, of the lines that can be ordered. No tax, fee or discount: those belong to checkout."
+          },
+          "validation": {
+            "type": "object",
+            "required": [
+              "status",
+              "can_proceed",
+              "issues",
+              "menu_changed",
+              "catalog_version",
+              "checked_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "VALID",
+                  "NEEDS_REVIEW",
+                  "INVALID"
+                ]
+              },
+              "can_proceed": {
+                "type": "boolean"
+              },
+              "issues": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CartIssue"
+                }
+              },
+              "menu_changed": {
+                "type": "boolean"
+              },
+              "catalog_version": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "checked_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "limits": {
+            "type": "object",
+            "required": [
+              "lines",
+              "instructions_max_length"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "lines": {
+                "type": "integer"
+              },
+              "instructions_max_length": {
+                "type": "integer"
+              }
+            }
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A cart as its owner reads it: recalculated and validated against the current menu on every read."
+      },
+      "CartSummary": {
+        "type": "object",
+        "required": [
+          "restaurant",
+          "item_count",
+          "line_count",
+          "subtotal_minor",
+          "currency"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "line_count": {
+            "type": "integer"
+          },
+          "subtotal_minor": {
+            "type": "integer",
+            "description": "Integer minor units of the cart currency (paise for INR)"
+          },
+          "currency": {
+            "type": "string"
+          }
+        },
+        "description": "What a customer is shown about a cart they are asked to give up — never its items."
+      },
+      "CartEnvelope": {
+        "type": "object",
+        "required": [
+          "cart"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "cart": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "version",
+              "status",
+              "owner",
+              "currency",
+              "restaurant",
+              "journey",
+              "items",
+              "item_count",
+              "line_count",
+              "subtotal_minor",
+              "validation",
+              "limits",
+              "expires_at",
+              "created_at",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "version": {
+                "type": "integer",
+                "description": "Raised by every change"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "EXPIRED"
+                ],
+                "description": "EXPIRED: past its lifetime — it can only be cleared (DELETE /cart)"
+              },
+              "owner": {
+                "type": "string",
+                "enum": [
+                  "guest",
+                  "customer"
+                ]
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217, the currency of the restaurant location"
+              },
+              "restaurant": {
+                "$ref": "#/components/schemas/CartRestaurant"
+              },
+              "journey": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "status",
+                  "requires_refresh",
+                  "origin",
+                  "destination",
+                  "restaurant_on_route",
+                  "distance_from_route_meters",
+                  "detour",
+                  "estimated_arrival_at",
+                  "estimate_source",
+                  "linked_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ACTIVE",
+                      "STALE"
+                    ],
+                    "description": "STALE: the journey has ended — the figures below are what the customer was shown, not a current estimate"
+                  },
+                  "requires_refresh": {
+                    "type": "boolean"
+                  },
+                  "origin": {
+                    "type": "object",
+                    "required": [
+                      "label"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "destination": {
+                    "type": "object",
+                    "required": [
+                      "label"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "restaurant_on_route": {
+                    "type": "boolean",
+                    "description": "Whether the restaurant lies inside the journey's search corridor"
+                  },
+                  "distance_from_route_meters": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "detour": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "duration_seconds",
+                      "distance_meters"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "duration_seconds": {
+                        "type": "integer"
+                      },
+                      "distance_meters": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "The routing provider's detour for this restaurant when route discovery had calculated it; null otherwise — never estimated"
+                  },
+                  "estimated_arrival_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  },
+                  "estimate_source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "development",
+                      "live",
+                      null
+                    ],
+                    "description": "development = the synthetic development routing model"
+                  },
+                  "linked_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  }
+                },
+                "description": "The journey the cart was started from: a reference and a display summary — place labels only, no coordinates, no address, no route geometry."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CartLine"
+                }
+              },
+              "item_count": {
+                "type": "integer",
+                "description": "Total quantity — the number the cart badge shows"
+              },
+              "line_count": {
+                "type": "integer"
+              },
+              "subtotal_minor": {
+                "type": "integer",
+                "description": "Items and their options only, at current prices, of the lines that can be ordered. No tax, fee or discount: those belong to checkout."
+              },
+              "validation": {
+                "type": "object",
+                "required": [
+                  "status",
+                  "can_proceed",
+                  "issues",
+                  "menu_changed",
+                  "catalog_version",
+                  "checked_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "VALID",
+                      "NEEDS_REVIEW",
+                      "INVALID"
+                    ]
+                  },
+                  "can_proceed": {
+                    "type": "boolean"
+                  },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/CartIssue"
+                    }
+                  },
+                  "menu_changed": {
+                    "type": "boolean"
+                  },
+                  "catalog_version": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "checked_at": {
+                    "type": "string",
+                    "description": "ISO 8601, UTC"
+                  }
+                }
+              },
+              "limits": {
+                "type": "object",
+                "required": [
+                  "lines",
+                  "instructions_max_length"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "lines": {
+                    "type": "integer"
+                  },
+                  "instructions_max_length": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "A cart as its owner reads it: recalculated and validated against the current menu on every read."
+          },
+          "guest_token": {
+            "type": "string",
+            "pattern": "^gc1\\.[0-9a-z]{1,9}\\.[0-9a-f]{64}\\.[0-9a-f]{32}$",
+            "description": "Only when the caller had neither a session nor a usable cart token: keep it and send it as X-Cart-Token. Returned once; only its hash is stored."
+          }
+        }
+      },
+      "CartChangeResult": {
+        "type": "object",
+        "required": [
+          "cart"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "cart": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "version",
+              "status",
+              "owner",
+              "currency",
+              "restaurant",
+              "journey",
+              "items",
+              "item_count",
+              "line_count",
+              "subtotal_minor",
+              "validation",
+              "limits",
+              "expires_at",
+              "created_at",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "version": {
+                "type": "integer",
+                "description": "Raised by every change"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "EXPIRED"
+                ],
+                "description": "EXPIRED: past its lifetime — it can only be cleared (DELETE /cart)"
+              },
+              "owner": {
+                "type": "string",
+                "enum": [
+                  "guest",
+                  "customer"
+                ]
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217, the currency of the restaurant location"
+              },
+              "restaurant": {
+                "$ref": "#/components/schemas/CartRestaurant"
+              },
+              "journey": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "status",
+                  "requires_refresh",
+                  "origin",
+                  "destination",
+                  "restaurant_on_route",
+                  "distance_from_route_meters",
+                  "detour",
+                  "estimated_arrival_at",
+                  "estimate_source",
+                  "linked_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ACTIVE",
+                      "STALE"
+                    ],
+                    "description": "STALE: the journey has ended — the figures below are what the customer was shown, not a current estimate"
+                  },
+                  "requires_refresh": {
+                    "type": "boolean"
+                  },
+                  "origin": {
+                    "type": "object",
+                    "required": [
+                      "label"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "destination": {
+                    "type": "object",
+                    "required": [
+                      "label"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "restaurant_on_route": {
+                    "type": "boolean",
+                    "description": "Whether the restaurant lies inside the journey's search corridor"
+                  },
+                  "distance_from_route_meters": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "detour": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "duration_seconds",
+                      "distance_meters"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "duration_seconds": {
+                        "type": "integer"
+                      },
+                      "distance_meters": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "The routing provider's detour for this restaurant when route discovery had calculated it; null otherwise — never estimated"
+                  },
+                  "estimated_arrival_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  },
+                  "estimate_source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "development",
+                      "live",
+                      null
+                    ],
+                    "description": "development = the synthetic development routing model"
+                  },
+                  "linked_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  }
+                },
+                "description": "The journey the cart was started from: a reference and a display summary — place labels only, no coordinates, no address, no route geometry."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CartLine"
+                }
+              },
+              "item_count": {
+                "type": "integer",
+                "description": "Total quantity — the number the cart badge shows"
+              },
+              "line_count": {
+                "type": "integer"
+              },
+              "subtotal_minor": {
+                "type": "integer",
+                "description": "Items and their options only, at current prices, of the lines that can be ordered. No tax, fee or discount: those belong to checkout."
+              },
+              "validation": {
+                "type": "object",
+                "required": [
+                  "status",
+                  "can_proceed",
+                  "issues",
+                  "menu_changed",
+                  "catalog_version",
+                  "checked_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "VALID",
+                      "NEEDS_REVIEW",
+                      "INVALID"
+                    ]
+                  },
+                  "can_proceed": {
+                    "type": "boolean"
+                  },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/CartIssue"
+                    }
+                  },
+                  "menu_changed": {
+                    "type": "boolean"
+                  },
+                  "catalog_version": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "checked_at": {
+                    "type": "string",
+                    "description": "ISO 8601, UTC"
+                  }
+                }
+              },
+              "limits": {
+                "type": "object",
+                "required": [
+                  "lines",
+                  "instructions_max_length"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "lines": {
+                    "type": "integer"
+                  },
+                  "instructions_max_length": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "A cart as its owner reads it: recalculated and validated against the current menu on every read."
+          },
+          "line": {
+            "type": "object",
+            "required": [
+              "id",
+              "merged"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "merged": {
+                "type": "boolean",
+                "description": "true: the same configuration was already in the cart — its quantity was raised"
+              }
+            }
+          },
+          "replaced": {
+            "$ref": "#/components/schemas/CartSummary"
+          },
+          "result": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "price_changes_accepted": {
+                "type": "integer"
+              }
+            }
+          },
+          "guest_token": {
+            "type": "string",
+            "pattern": "^gc1\\.[0-9a-z]{1,9}\\.[0-9a-f]{64}\\.[0-9a-f]{32}$",
+            "description": "Only when the caller had neither a session nor a usable cart token: keep it and send it as X-Cart-Token. Returned once; only its hash is stored."
+          }
+        }
+      },
+      "CartClaimResult": {
+        "type": "object",
+        "required": [
+          "cart",
+          "claim"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "cart": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "version",
+              "status",
+              "owner",
+              "currency",
+              "restaurant",
+              "journey",
+              "items",
+              "item_count",
+              "line_count",
+              "subtotal_minor",
+              "validation",
+              "limits",
+              "expires_at",
+              "created_at",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "version": {
+                "type": "integer",
+                "description": "Raised by every change"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "EXPIRED"
+                ],
+                "description": "EXPIRED: past its lifetime — it can only be cleared (DELETE /cart)"
+              },
+              "owner": {
+                "type": "string",
+                "enum": [
+                  "guest",
+                  "customer"
+                ]
+              },
+              "currency": {
+                "type": "string",
+                "description": "ISO 4217, the currency of the restaurant location"
+              },
+              "restaurant": {
+                "$ref": "#/components/schemas/CartRestaurant"
+              },
+              "journey": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "status",
+                  "requires_refresh",
+                  "origin",
+                  "destination",
+                  "restaurant_on_route",
+                  "distance_from_route_meters",
+                  "detour",
+                  "estimated_arrival_at",
+                  "estimate_source",
+                  "linked_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "ACTIVE",
+                      "STALE"
+                    ],
+                    "description": "STALE: the journey has ended — the figures below are what the customer was shown, not a current estimate"
+                  },
+                  "requires_refresh": {
+                    "type": "boolean"
+                  },
+                  "origin": {
+                    "type": "object",
+                    "required": [
+                      "label"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "destination": {
+                    "type": "object",
+                    "required": [
+                      "label"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "label": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "restaurant_on_route": {
+                    "type": "boolean",
+                    "description": "Whether the restaurant lies inside the journey's search corridor"
+                  },
+                  "distance_from_route_meters": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "detour": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "duration_seconds",
+                      "distance_meters"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "duration_seconds": {
+                        "type": "integer"
+                      },
+                      "distance_meters": {
+                        "type": "integer"
+                      }
+                    },
+                    "description": "The routing provider's detour for this restaurant when route discovery had calculated it; null otherwise — never estimated"
+                  },
+                  "estimated_arrival_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  },
+                  "estimate_source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "development",
+                      "live",
+                      null
+                    ],
+                    "description": "development = the synthetic development routing model"
+                  },
+                  "linked_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  }
+                },
+                "description": "The journey the cart was started from: a reference and a display summary — place labels only, no coordinates, no address, no route geometry."
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CartLine"
+                }
+              },
+              "item_count": {
+                "type": "integer",
+                "description": "Total quantity — the number the cart badge shows"
+              },
+              "line_count": {
+                "type": "integer"
+              },
+              "subtotal_minor": {
+                "type": "integer",
+                "description": "Items and their options only, at current prices, of the lines that can be ordered. No tax, fee or discount: those belong to checkout."
+              },
+              "validation": {
+                "type": "object",
+                "required": [
+                  "status",
+                  "can_proceed",
+                  "issues",
+                  "menu_changed",
+                  "catalog_version",
+                  "checked_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "VALID",
+                      "NEEDS_REVIEW",
+                      "INVALID"
+                    ]
+                  },
+                  "can_proceed": {
+                    "type": "boolean"
+                  },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/CartIssue"
+                    }
+                  },
+                  "menu_changed": {
+                    "type": "boolean"
+                  },
+                  "catalog_version": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "checked_at": {
+                    "type": "string",
+                    "description": "ISO 8601, UTC"
+                  }
+                }
+              },
+              "limits": {
+                "type": "object",
+                "required": [
+                  "lines",
+                  "instructions_max_length"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "lines": {
+                    "type": "integer"
+                  },
+                  "instructions_max_length": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "A cart as its owner reads it: recalculated and validated against the current menu on every read."
+          },
+          "claim": {
+            "type": "object",
+            "required": [
+              "outcome"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "nothing_to_claim",
+                  "claimed",
+                  "merged",
+                  "kept_guest",
+                  "kept_account"
+                ]
+              },
+              "lines_moved": {
+                "type": "integer"
+              },
+              "lines_combined": {
+                "type": "integer"
+              },
+              "adjusted": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "line_id",
+                    "name",
+                    "requested_quantity",
+                    "quantity",
+                    "max_quantity"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "line_id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "requested_quantity": {
+                      "type": "integer"
+                    },
+                    "quantity": {
+                      "type": "integer"
+                    },
+                    "max_quantity": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "description": "Quantities that were capped at the item's maximum by the merge"
+              }
+            }
+          }
+        }
+      },
+      "CartMetrics": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "carts",
+          "window_hours",
+          "events",
+          "lifetimes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "carts": {
+            "type": "object",
+            "required": [
+              "active",
+              "active_customer",
+              "active_guest",
+              "expired_awaiting_cleanup",
+              "closed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "active": {
+                "type": "integer"
+              },
+              "active_customer": {
+                "type": "integer"
+              },
+              "active_guest": {
+                "type": "integer"
+              },
+              "expired_awaiting_cleanup": {
+                "type": "integer"
+              },
+              "closed": {
+                "type": "object",
+                "required": [
+                  "expired",
+                  "abandoned",
+                  "invalidated",
+                  "converted"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "expired": {
+                    "type": "integer"
+                  },
+                  "abandoned": {
+                    "type": "integer"
+                  },
+                  "invalidated": {
+                    "type": "integer"
+                  },
+                  "converted": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "events": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "How often each cart event happened in the window"
+          },
+          "lifetimes": {
+            "type": "object",
+            "required": [
+              "guest_hours",
+              "customer_hours",
+              "expired_grace_hours",
+              "closed_retention_days"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "guest_hours": {
+                "type": "integer"
+              },
+              "customer_hours": {
+                "type": "integer"
+              },
+              "expired_grace_hours": {
+                "type": "integer"
+              },
+              "closed_retention_days": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "description": "Counts only: there is no endpoint that returns a customer's cart to anybody but its owner."
       }
     }
   }

@@ -28,6 +28,8 @@ import 'auth/auth_repository.dart' show SecureKeyValueStore;
 import 'state/app_state.dart';
 import 'state/account_state.dart';
 import 'state/auth_state.dart';
+import 'state/cart_state.dart';
+import 'widgets/cart_merge_prompt.dart';
 import 'state/discovery_state.dart';
 import 'state/pickup_state.dart';
 import 'state/checkout_state.dart';
@@ -115,6 +117,16 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   late final account = AccountState(onUnauthenticated: auth.expire);
   final journey = JourneyState();
   final discovery = DiscoveryState();
+  // The cart: the backend's when the build says so (CART_MODE=api), otherwise the device cart. With the backend
+  // cart an item added from a journey carries that journey (its id, and the token that proves a guest's journey).
+  late final cart = CartState(
+    backend: cartsFromApi ? (CartBackend()..onUnauthenticated = auth.expire) : null,
+    journeyRef: () async {
+      final j = journey.journey;
+      if (j == null || !j.backend || j.expired) return null;
+      return (id: j.id, headers: await journeyApi.tokens.headers(j.id));
+    },
+  );
   late final GoRouter router = buildRouter(auth);
 
   @override
@@ -126,7 +138,8 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
     auth.restore();
   }
 
-  void _onAuth() => account.bind(auth.user);
+  // Signing in claims the cart built as a guest; signing out goes back to a guest cart.
+  void _onAuth() { account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated); }
 
   @override
   void dispose() {
@@ -141,7 +154,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: account),
           ChangeNotifierProvider.value(value: journey),
           ChangeNotifierProvider.value(value: discovery),
-          ChangeNotifierProvider(create: (_) => CartState()),
+          ChangeNotifierProvider.value(value: cart),
           ChangeNotifierProvider(create: (_) => OrdersState()),
           ChangeNotifierProvider(create: (_) => PickupState()),
           ChangeNotifierProvider(create: (_) => CheckoutState()),
@@ -150,6 +163,6 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
           ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); return TrackingState(orders: os.orders, verifications: os.verifications); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],
-        child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false),
+        child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false, builder: (context, child) => CartMergePrompt(child: child ?? const SizedBox.shrink())),
       );
 }

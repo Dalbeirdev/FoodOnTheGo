@@ -1,0 +1,38 @@
+{
+  "module": "M27",
+  "date": "2026-10-05T15:30:12.106Z",
+  "note": "Local machine: php artisan serve (single process, no OPcache) behind the Node proxy, PostgreSQL 18, Redis cache. End-to-end HTTP time as seen by a client; measurements, not targets.",
+  "cart": "5 lines at Burger Hub (2 with options)",
+  "timings_ms": {
+    "get_empty": {
+      "median_ms": 349,
+      "min_ms": 312,
+      "max_ms": 439,
+      "runs": 5
+    },
+    "add": {
+      "median_ms": 446,
+      "min_ms": 435,
+      "max_ms": 613,
+      "runs": 5
+    },
+    "get": {
+      "median_ms": 451,
+      "min_ms": 414,
+      "max_ms": 560,
+      "runs": 5
+    },
+    "update": {
+      "median_ms": 476,
+      "min_ms": 415,
+      "max_ms": 536,
+      "runs": 5
+    },
+    "refresh": {
+      "median_ms": 454,
+      "min_ms": 416,
+      "max_ms": 465,
+      "runs": 5
+    }
+  }
+}

@@ -19,7 +19,7 @@ void main() {
   final menu = MockMenuRepository(latency: Duration.zero);
   final rest = MockRestaurantRepository(latency: Duration.zero);
 
-  Widget app(Widget home, CartState cart) => MultiProvider(
+  Widget app(Widget home, CartState cart, {GoRouter? router}) => MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => HealthState()),
           ChangeNotifierProvider(create: (_) => AuthState(repository: MockAuthRepository(store: MemoryKeyValueStore(), latency: Duration.zero))),
@@ -29,7 +29,7 @@ void main() {
           ChangeNotifierProvider.value(value: cart),
           ChangeNotifierProvider(create: (_) => OrdersState()),
         ],
-        child: MaterialApp.router(routerConfig: GoRouter(routes: [GoRoute(path: '/', builder: (_, _) => home), GoRoute(path: '/cart', builder: (_, _) => const Scaffold(body: Text('cart'))), GoRoute(path: '/restaurants', builder: (_, _) => const Scaffold(body: Text('list'))), GoRoute(path: '/restaurants/:id', builder: (_, _) => const Scaffold(body: Text('restaurant')))])),
+        child: MaterialApp.router(routerConfig: router ?? GoRouter(routes: [GoRoute(path: '/', builder: (_, _) => home), GoRoute(path: '/cart', builder: (_, _) => const Scaffold(body: Text('cart'))), GoRoute(path: '/restaurants', builder: (_, _) => const Scaffold(body: Text('list'))), GoRoute(path: '/restaurants/:id', builder: (_, _) => const Scaffold(body: Text('restaurant')))])),
       );
   Widget item(String rid, String slug) => ItemDetailScreen(restaurantId: rid, itemSlug: slug, restaurantRepository: rest, menuRepository: menu);
   void tall(WidgetTester t) { t.view.physicalSize = const Size(390, 2400); t.view.devicePixelRatio = 1; addTearDown(t.view.resetPhysicalSize); addTearDown(t.view.resetDevicePixelRatio); }
@@ -116,6 +116,30 @@ void main() {
     await t.tap(find.text('チャーシュー')); await t.pumpAndSettle();
     expect(find.text('¥1,140'), findsOneWidget);
     expect(find.text('Sold out'), findsOneWidget); // 味玉
+  });
+  testWidgets('moving from one item straight to another shows the other item, and "Add to cart" adds that one', (t) async {
+    tall(t);
+    final cart = CartState(repository: MemoryCartRepository()); await cart.ready;
+    // Two items of one restaurant that need no choice, so each can be added with one tap.
+    final simple = (await menu.getItems('dhaba-junction-ropar')).items.where((i) => i.isAvailable && !i.customizable).toList();
+    expect(simple.length, greaterThanOrEqualTo(2));
+    final first = simple[0], second = simple[1];
+    // The same route for both items, as in the app: the router keeps the page and only its parameters change.
+    final router = GoRouter(initialLocation: '/restaurants/dhaba-junction-ropar/item/${first.slug}', routes: [
+      GoRoute(path: '/restaurants/:id/item/:itemId', builder: (_, s) => item(s.pathParameters['id']!, s.pathParameters['itemId']!)),
+      GoRoute(path: '/cart', builder: (_, _) => const Scaffold(body: Text('cart'))),
+    ]);
+    await t.pumpWidget(app(const SizedBox(), cart, router: router)); await t.pumpAndSettle();
+    expect(find.text(first.name), findsWidgets);
+    await t.tap(find.text('Add to cart')); await t.pumpAndSettle();
+    expect(find.text('Added to your cart'), findsOneWidget);
+    expect(cart.items.single.menuItemId, first.id);
+
+    router.go('/restaurants/dhaba-junction-ropar/item/${second.slug}'); await t.pumpAndSettle();
+    expect(find.text(second.name), findsWidgets);
+    expect(find.text(first.name), findsNothing); // nothing of the previous item is left on the screen
+    await t.tap(find.text('Add to cart')); await t.pumpAndSettle();
+    expect(cart.items.map((i) => i.menuItemId), [first.id, second.id]);
   });
   testWidgets('invalid slug → not-found with a way back', (t) async {
     final cart = CartState(repository: MemoryCartRepository()); await cart.ready;

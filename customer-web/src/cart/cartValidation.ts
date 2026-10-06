@@ -9,8 +9,8 @@ import type { Cart, CartItem } from './cartModel'
  * restaurant state before the customer may continue. Frontend validation is a courtesy —
  * the backend must revalidate authoritatively (CART REVALIDATION = FUTURE BACKEND REQUIREMENT).
  */
-export type LineIssueKind = 'unavailable' | 'modifier_unavailable' | 'price_changed' | 'quantity'
-export type LineIssue = { itemId: string; kind: LineIssueKind; oldUnitMinor?: number; newUnitMinor?: number; optionNames?: string[]; min?: number; max?: number }
+export type LineIssueKind = 'unavailable' | 'modifier_unavailable' | 'price_changed' | 'quantity' | 'needs_choice'
+export type LineIssue = { itemId: string; kind: LineIssueKind; oldUnitMinor?: number; newUnitMinor?: number; optionNames?: string[]; min?: number; max?: number; groupName?: string }
 export type RestaurantIssue = 'inactive' | 'not_accepting' | 'closed' | null
 export type CartReview = {
   empty: boolean
@@ -20,6 +20,36 @@ export type CartReview = {
   /** True when checkout must not proceed (closed is only a warning: orders are prepared for pickup when the restaurant opens). */
   blocking: boolean
   ok: boolean
+  /** Backend carts (Module 27) only. */
+  expired?: boolean
+  menuUnavailable?: boolean
+  journeyStale?: boolean
+}
+
+/**
+ * API mode: the review IS the backend's validation of the cart (Module 27) — nothing is checked in the browser.
+ * The first issue of a line decides how the line is shown; the backend's verdict decides whether the cart may proceed.
+ */
+export function reviewFromServer(cart: Cart): CartReview {
+  const server = cart.server
+  if (!server) return { empty: cart.items.length === 0, currencyMismatch: false, restaurantIssue: null, lineIssues: [], blocking: true, ok: false }
+  const has = (code: string) => server.validation.issues.some((i) => i.code === code)
+  const lineIssues: LineIssue[] = []
+  for (const item of cart.items) {
+    const first = item.server?.issues[0]
+    if (!first) continue
+    const d = first.details
+    if (first.code.startsWith('ITEM_')) lineIssues.push({ itemId: item.id, kind: 'unavailable' })
+    else if (first.code === 'OPTION_UNAVAILABLE') lineIssues.push({ itemId: item.id, kind: 'modifier_unavailable', optionNames: Array.isArray(d.options) ? (d.options as string[]) : [] })
+    else if (first.code === 'PRICE_CHANGED') lineIssues.push({ itemId: item.id, kind: 'price_changed', oldUnitMinor: Number(d.previous_unit_price_minor), newUnitMinor: Number(d.current_unit_price_minor) })
+    else if (first.code === 'QUANTITY_LIMIT') lineIssues.push({ itemId: item.id, kind: 'quantity', min: Number(d.min ?? 1), max: Number(d.max ?? 1) })
+    else lineIssues.push({ itemId: item.id, kind: 'needs_choice', groupName: typeof d.group === 'string' ? d.group : undefined })
+  }
+  const restaurantIssue: RestaurantIssue = has('RESTAURANT_UNAVAILABLE') ? 'inactive' : has('RESTAURANT_NOT_ACCEPTING') ? 'not_accepting' : has('RESTAURANT_CLOSED_NOW') ? 'closed' : null
+  return {
+    empty: cart.items.length === 0, currencyMismatch: has('CURRENCY_MISMATCH'), restaurantIssue, lineIssues, blocking: !server.validation.canProceed, ok: server.validation.canProceed,
+    expired: server.status === 'EXPIRED', menuUnavailable: has('MENU_UNAVAILABLE'), journeyStale: has('JOURNEY_STALE'),
+  }
 }
 
 /** Development-only stale-cart simulation (sessionStorage fotg.mock.stale = price | unavailable | modifier | closed | not_accepting). */

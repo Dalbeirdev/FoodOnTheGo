@@ -20,6 +20,9 @@ import 'restaurant_detail_screen.dart' show routeContextFor;
 /// Cart (Module 09) — Android. Runs on the Module 08 CartState: restaurant + pickup + journey context,
 /// structured lines (edit / remove with confirmation / quantity), validation against the current menu,
 /// summary with only configured amounts, order note, promo area, sticky Continue to pickup time.
+///
+/// With CART_MODE=api (Module 27) the cart, its prices, its validation and its issues are the backend's: the screen
+/// shows them and checks nothing itself; it reads the cart again when it opens and when the app comes back to the front.
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key, this.restaurantRepository, this.menuRepository, this.simulate = StaleSimulation.none});
   final MockRestaurantRepository? restaurantRepository;
@@ -30,7 +33,7 @@ class CartScreen extends StatefulWidget {
   State<CartScreen> createState() => _CartScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _CartScreenState extends State<CartScreen> with WidgetsBindingObserver {
   late final MockRestaurantRepository _rr = widget.restaurantRepository ?? MockRestaurantRepository();
   late final MenuRepository _mr = widget.menuRepository ?? defaultMenuRepository();
   GlobalRestaurant? r;
@@ -44,14 +47,19 @@ class _CartScreenState extends State<CartScreen> {
 
   CartState? _listened;
   @override
+  void initState() { super.initState(); WidgetsBinding.instance.addObserver(this); }
+  // The backend revalidates on every read: ask again when the customer comes back to the app.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) { if (state == AppLifecycleState.resumed) _listened?.reload(); }
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final cart = context.read<CartState>();
-    if (_listened != cart) { _listened?.removeListener(_onCart); _listened = cart; cart.addListener(_onCart); WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _sync(cart); }); }
+    if (_listened != cart) { _listened?.removeListener(_onCart); _listened = cart; cart.addListener(_onCart); WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) { _sync(cart); if (cart.backendMode) cart.reload(); } }); }
   }
   void _onCart() { final c = _listened; if (c != null && mounted) _sync(c); }
   @override
-  void dispose() { _listened?.removeListener(_onCart); promoCtl.dispose(); noteCtl.dispose(); super.dispose(); }
+  void dispose() { WidgetsBinding.instance.removeObserver(this); _listened?.removeListener(_onCart); promoCtl.dispose(); noteCtl.dispose(); super.dispose(); }
 
   Future<void> _sync(CartState cart) async {
     final c = cart.cart;
@@ -60,6 +68,12 @@ class _CartScreenState extends State<CartScreen> {
       _loadedSlug = slug;
       r = null;
       if (slug != null) { try { final x = await _rr.getRestaurantBySlug(slug); if (mounted && _loadedSlug == slug) setState(() => r = x); } catch (_) {} }
+    }
+    if (cart.backendMode) {
+      // The review IS the backend's validation of the cart.
+      final next = c == null || c.items.isEmpty ? null : reviewFromServer(c);
+      if (mounted) setState(() { review = next; reviewStatus = 'ready'; });
+      return;
     }
     final key = c == null ? '' : c.items.map((i) => '${i.id}:${i.quantity}:${i.unitPriceMinor}').join('|');
     if (key == _lastKey && review != null) return;
@@ -81,6 +95,16 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartState>();
     final c = cart.cart;
+    if (cart.backendMode && c == null && (!cart.hydrated || cart.offline)) {
+      // Unknown is not empty: the cart could not be read (yet).
+      return Scaffold(
+        appBar: BrandAppBar(title: S.t('cartpage.title'), showCart: false),
+        body: PageBody(children: [
+          if (!cart.offline) Padding(padding: const EdgeInsets.all(24), child: Semantics(identifier: 'cart-loading', child: Text(S.t('cartpage.loading'), style: const TextStyle(color: Brand.grey))))
+          else Card(child: Padding(padding: const EdgeInsets.all(24), child: Semantics(identifier: 'cart-load-failed', child: EmptyState(icon: Icons.cloud_off_outlined, title: S.t('cartpage.loadFailed.title'), sub: S.t('cartpage.loadFailed.text'), actionLabel: S.t('cartpage.retry'), onAction: () => cart.reload())))),
+        ]),
+      );
+    }
     if (c == null || c.items.isEmpty) {
       return Scaffold(
         appBar: BrandAppBar(title: S.t('cartpage.title'), showCart: false),
@@ -101,7 +125,10 @@ class _CartScreenState extends State<CartScreen> {
     final route = (rest != null && journey?.route != null) ? routeContextFor(rest, journey!) : null;
     final earliest = rest == null ? null : DateTime.now().toUtc().add(Duration(minutes: rest.prepTimeMin));
     final res = review;
-    final blocked = reviewStatus != 'ready' || res == null || res.blocking;
+    final blocked = reviewStatus != 'ready' || res == null || res.blocking || cart.offline;
+    final server = c.server;
+    final linked = server?.journey;
+    final currentJourney = (journey != null && journey.backend && !journey.expired) ? journey : null;
     String money(int m) => formatMoney(m, c.currency);
     final promo = cart.promo;
 
@@ -130,7 +157,19 @@ class _CartScreenState extends State<CartScreen> {
             const SizedBox(height: 6),
             Text(S.t('cartpage.pickupOnly'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
             const SizedBox(height: 10),
-            if (journey != null)
+            if (cart.backendMode && linked != null)
+              Semantics(identifier: linked.stale ? 'cart-journey-stale' : 'cart-journey-active', container: true, child: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: linked.stale ? const Color(0xFFF2F3F6) : const Color(0xFFFFF7F2), borderRadius: BorderRadius.circular(12)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.directions_car_outlined, size: 16, color: linked.stale ? Brand.grey : Brand.orangeDeep), const SizedBox(width: 8), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(S.t('cartpage.journey.text', {'origin': linked.originLabel ?? '—', 'destination': linked.destinationLabel ?? '—'}), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                if (linked.stale) Text(S.t('cartpage.journey.stale'), style: const TextStyle(color: Brand.grey, fontSize: 12))
+                else if (!linked.restaurantOnRoute) Text(S.t('cartpage.journey.offRoute'), style: const TextStyle(color: Brand.grey, fontSize: 12))
+                else if (linked.detourSeconds != null && linked.distanceFromRouteM != null && linked.estimatedArrivalAt != null && rest != null) Text('${S.t('cartpage.journey.route', {'distance': formatDistance(linked.distanceFromRouteM!, units), 'detour': formatMinutes((linked.detourSeconds! / 60).ceil()), 'time': formatLocalTime(linked.estimatedArrivalAt!, rest.timezone)})} · ${S.t(linked.estimateSource == 'development' ? 'cartpage.journey.development' : 'cartpage.journey.estimate')}', style: const TextStyle(color: Brand.grey, fontSize: 12))
+                else Text(S.t('cartpage.journey.noFigures'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+                if (linked.stale) TextButton(style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact), onPressed: () => context.push('/plan-journey'), child: Text(S.t('cartpage.empty.plan')))
+                else if (currentJourney != null && currentJourney.id != linked.id) TextButton(style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact), onPressed: cart.linkCurrentJourney, child: Text(S.t('cartpage.journey.useCurrent'))),
+              ]))])))
+            else if (cart.backendMode)
+              Semantics(identifier: 'cart-journey-none', container: true, child: Row(children: [const Icon(Icons.directions_car_outlined, size: 16, color: Brand.grey), const SizedBox(width: 8), Expanded(child: Text(S.t('cartpage.noJourney'), style: const TextStyle(color: Brand.grey, fontSize: 12.5))), currentJourney != null ? TextButton(onPressed: cart.linkCurrentJourney, child: Text(S.t('cartpage.journey.useCurrent'))) : TextButton(onPressed: () => context.push('/plan-journey'), child: Text(S.t('cartpage.empty.plan')))]))
+            else if (journey != null)
               Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFFFFF7F2), borderRadius: BorderRadius.circular(12)), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const Icon(Icons.directions_car_outlined, size: 16, color: Brand.orangeDeep), const SizedBox(width: 8), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(S.t('cartpage.journey.text', {'origin': journey.origin.name, 'destination': journey.destination.name}), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                 if (route != null && rest != null && route.distanceFromRouteM != null) Text('${S.t('cartpage.journey.route', {'distance': formatDistance(route.distanceFromRouteM!, units), 'detour': formatMinutes(route.detourDurationMin ?? 0), 'time': formatLocalTime(route.estimatedArrival!, rest.timezone)})} · ${S.t('mock.estimate')}', style: const TextStyle(color: Brand.grey, fontSize: 12)),
@@ -140,6 +179,12 @@ class _CartScreenState extends State<CartScreen> {
           ]),
         ),
         const SizedBox(height: 12),
+        // Backend cart: what the backend said about the cart as a whole
+        if (cart.offline) Padding(padding: const EdgeInsets.only(bottom: 10), child: Semantics(identifier: 'cart-offline', container: true, child: InfoBox(icon: Icons.cloud_off_outlined, color: Brand.red, bg: const Color(0xFFFDECEC), child: Row(children: [Expanded(child: Text(S.t('cartpage.offline'), style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13))), TextButton(onPressed: () => cart.reload(), child: Text(S.t('cartpage.retry')))])))),
+        if (cart.lastError != null) Padding(padding: const EdgeInsets.only(bottom: 10), child: Semantics(identifier: 'cart-error', container: true, liveRegion: true, child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Row(children: [Expanded(child: Text(cart.lastError!, style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13))), TextButton(onPressed: cart.dismissError, child: Text(S.t('cartpage.dismiss')))])))),
+        if (cart.flash != null) Padding(padding: const EdgeInsets.only(bottom: 10), child: Semantics(identifier: 'cart-flash', container: true, liveRegion: true, child: InfoBox(icon: Icons.info_outline, color: Brand.green, bg: Brand.greenBg, child: Row(children: [Expanded(child: Text(cart.flash!, style: const TextStyle(fontSize: 13))), TextButton(onPressed: cart.dismissFlash, child: Text(S.t('cartpage.dismiss')))])))),
+        if (res?.expired == true) Padding(padding: const EdgeInsets.only(bottom: 10), child: Semantics(identifier: 'cart-expired', container: true, child: InfoBox(icon: Icons.timer_off_outlined, color: Brand.red, bg: const Color(0xFFFDECEC), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('${S.t('cartpage.expired.title')} ${S.t('cartpage.expired.text')}', style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13)), TextButton(style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact), onPressed: cart.clearCart, child: Text(S.t('cartpage.expired.start')))])))),
+        if (res?.menuUnavailable == true) Padding(padding: const EdgeInsets.only(bottom: 10), child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text(S.t('cartpage.menuUnavailable'), style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13)))),
         // Review notices
         if (reviewStatus == 'error') InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Row(children: [Expanded(child: Text(S.t('cartpage.error'), style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 13))), TextButton(onPressed: () { _lastKey = ''; _sync(cart); }, child: Text(S.t('cartpage.retry')))])),
         if (res != null && (res.lineIssues.isNotEmpty || res.currencyMismatch)) Padding(padding: const EdgeInsets.only(bottom: 10), child: InfoBox(icon: Icons.warning_amber_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('cartpage.review.title'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF6B4300))))),
@@ -180,7 +225,7 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(height: 6),
           Text(S.t('cartpage.feesNote'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
           const SizedBox(height: 4),
-          Text(S.t('cartpage.mock'), style: const TextStyle(color: Color(0xFF6B4300), fontSize: 11.5, fontWeight: FontWeight.w600)),
+          if (!cart.backendMode) Text(S.t('cartpage.mock'), style: const TextStyle(color: Color(0xFF6B4300), fontSize: 11.5, fontWeight: FontWeight.w600)),
         ])),
       ]),
       bottomNavigationBar: BottomBar(
@@ -210,7 +255,9 @@ class _CartScreenState extends State<CartScreen> {
 
   Widget _line(BuildContext context, CartState cart, Cart c, CartItem line, LineIssue? issue, String Function(int) money) {
     final opts = line.allOptions;
-    return Container(
+    // Backend carts: a line the backend will not change (unavailable item, invalid options, expired cart, no connection) can only be edited or removed.
+    final frozen = cart.backendMode && (cart.offline || c.server?.expired == true || (line.server?.issues.any((i) => i.severity == CartIssueSeverity.blocking && i.code != 'QUANTITY_LIMIT') ?? false));
+    return Semantics(identifier: 'cart-line-${issue?.kind.name ?? 'ok'}', container: true, explicitChildNodes: true, child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(color: issue != null ? const Color(0xFFFFF8E6) : Brand.bg, borderRadius: BorderRadius.circular(14), border: issue != null ? Border.all(color: const Color(0xFFF3D38A)) : null),
@@ -238,14 +285,14 @@ class _CartScreenState extends State<CartScreen> {
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999), border: Border.all(color: Brand.line)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Semantics(button: true, label: '${S.t('item.quantity.decrease')} ${line.itemName}', excludeSemantics: true, child: RoundIconButton(icon: Icons.remove, gradient: false, size: 30, onTap: () => cart.updateQuantity(line.id, line.quantity - 1))),
+              Semantics(button: true, label: '${S.t('item.quantity.decrease')} ${line.itemName}', enabled: !frozen, excludeSemantics: true, child: RoundIconButton(icon: Icons.remove, gradient: false, size: 30, onTap: frozen ? () {} : () => cart.updateQuantity(line.id, line.quantity - 1))),
               SizedBox(width: 30, child: Text('${line.quantity}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w800))),
-              Semantics(button: true, label: '${S.t('item.quantity.increase')} ${line.itemName}', enabled: line.quantity < line.maximumQuantity, excludeSemantics: true, child: RoundIconButton(icon: Icons.add, size: 30, onTap: line.quantity >= line.maximumQuantity ? () {} : () => cart.updateQuantity(line.id, line.quantity + 1))),
+              Semantics(button: true, label: '${S.t('item.quantity.increase')} ${line.itemName}', enabled: line.quantity < line.maximumQuantity && !frozen, excludeSemantics: true, child: RoundIconButton(icon: Icons.add, size: 30, onTap: line.quantity >= line.maximumQuantity || frozen ? () {} : () => cart.updateQuantity(line.id, line.quantity + 1))),
             ]),
           )),
         ]),
       ]),
-    );
+    ));
   }
 
   Widget _issueText(BuildContext context, CartState cart, Cart c, CartItem line, LineIssue issue, String Function(int) money) {
@@ -255,6 +302,7 @@ class _CartScreenState extends State<CartScreen> {
       LineIssueKind.modifierUnavailable => Text(S.t('cartpage.issue.modifier', {'options': issue.optionNames.join(', ')}), style: style),
       LineIssueKind.priceChanged => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('cartpage.issue.price', {'old': money(issue.oldUnitMinor ?? 0), 'new': money(issue.newUnitMinor ?? 0)}), style: style), TextButton(style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact), onPressed: () => cart.acceptPriceChange(line.id, issue.newUnitMinor ?? line.unitPriceMinor), child: Text(S.t('cartpage.issue.price.accept')))]),
       LineIssueKind.quantity => Text(S.t('cartpage.issue.quantity', {'min': issue.min ?? 1, 'max': issue.max ?? 1}), style: style),
+      LineIssueKind.needsChoice => Text(issue.groupName != null ? S.t('cartpage.issue.needsChoice', {'group': issue.groupName!}) : S.t('cartpage.issue.needsChoiceNoGroup'), style: style),
     };
   }
 }

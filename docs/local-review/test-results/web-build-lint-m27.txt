@@ -1,0 +1,21 @@
+# Module 27 — Customer Web checks (LOCAL, 2026-10-06): tsc, oxlint, vitest, vite build
+
+== npx tsc -b --noEmit
+exit 0
+
+== npm run lint (oxlint)
+exit 0; 0 errors; 112 warnings (the same 112 as before Module 27: react(only-export-components), react(set-state-in-effect) and similar in existing files — none added by this module)
+
+== npx vitest run --maxWorkers=6   (six workers: the machine also runs other workloads; with full parallelism a few long UI tests hit the 5 s timeout under load — CF-362)
+ Test Files  51 passed (51)
+      Tests  612 passed (612)
+   Duration  74.38s (tests 43%, environment 42%, setup 7%, import 5%, transform 3%)
+exit 0
+   new in Module 27: src/cart/api/apiCart.test.tsx (20 tests: cart mapping, gateway requests, error vocabulary, ServerCartProvider, Cart page on the backend cart)
+
+== npx vite build
+dist/assets/DashboardApp-CtILnFp_.js    167.45 kB │ gzip:  37.50 kB
+dist/assets/AdminApp-BHUq_c9Q.js        398.00 kB │ gzip:  83.05 kB
+dist/assets/index-CJkWGolG.js         1,077.43 kB │ gzip: 300.56 kB
+✓ built in 824ms
+exit 0

@@ -154,6 +154,8 @@ class CustomerOtpTest extends TestCase
 
     public function test_resend_respects_the_server_cooldown_and_invalidates_the_previous_code(): void
     {
+        // The clock stands still between the two requests: on a busy machine a second could pass and the cooldown read 29.
+        $this->freezeTime();
         $first = $this->requestCode()->json('challenge_id');
 
         $this->requestCode()->assertStatus(429)->assertJsonPath('error.code', 'otp_resend_too_soon')->assertJsonPath('error.details.retry_after_seconds', 30);

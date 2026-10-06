@@ -119,7 +119,8 @@ describe('Cart page (web)', () => {
     const line = await screen.findByRole('listitem', { name: 'Classic Burger' })
     await user.click(within(line).getByRole('link', { name: /edit classic burger/i }))
     expect(await screen.findByRole('heading', { level: 2, name: /editing your cart item/i })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: /large/i })).toBeChecked()
+    // The previous configuration is restored just after the item has loaded.
+    await waitFor(() => expect(screen.getByRole('radio', { name: /large/i })).toBeChecked())
     expect(screen.getByRole('checkbox', { name: /extra cheese/i })).toBeChecked()
     expect(screen.getByLabelText(/special instructions/i)).toHaveValue('No onion please')
     await waitFor(() => expect(screen.getByText(/item total/i).parentElement).toHaveTextContent('₹700.00'))

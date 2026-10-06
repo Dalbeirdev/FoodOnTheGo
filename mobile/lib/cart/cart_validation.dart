@@ -10,11 +10,12 @@ import '../menu/menu_repository.dart';
 import '../pricing/pricing_service.dart' show clampQuantity;
 import 'cart_models.dart';
 
-enum LineIssueKind { unavailable, modifierUnavailable, priceChanged, quantity }
+enum LineIssueKind { unavailable, modifierUnavailable, priceChanged, quantity, needsChoice }
 
 class LineIssue {
-  const LineIssue(this.itemId, this.kind, {this.oldUnitMinor, this.newUnitMinor, this.optionNames = const [], this.min, this.max});
+  const LineIssue(this.itemId, this.kind, {this.oldUnitMinor, this.newUnitMinor, this.optionNames = const [], this.min, this.max, this.groupName});
   final String itemId;
+  final String? groupName;
   final LineIssueKind kind;
   final int? oldUnitMinor, newUnitMinor, min, max;
   final List<String> optionNames;
@@ -24,12 +25,40 @@ enum RestaurantIssue { none, inactive, notAccepting, closed }
 enum StaleSimulation { none, price, unavailable, modifier, closed, notAccepting }
 
 class CartReview {
-  const CartReview({required this.empty, required this.currencyMismatch, required this.restaurantIssue, required this.lineIssues, required this.blocking});
+  const CartReview({required this.empty, required this.currencyMismatch, required this.restaurantIssue, required this.lineIssues, required this.blocking, this.expired = false, this.menuUnavailable = false, this.journeyStale = false});
   final bool empty, currencyMismatch, blocking;
+  /// Backend carts (Module 27) only.
+  final bool expired, menuUnavailable, journeyStale;
   final RestaurantIssue restaurantIssue;
   final List<LineIssue> lineIssues;
   bool get ok => !blocking;
   LineIssue? forItem(String id) => lineIssues.where((i) => i.itemId == id).firstOrNull;
+}
+
+/// CART_MODE=api: the review IS the backend's validation of the cart (Module 27) — nothing is checked in the app.
+/// The first issue of a line decides how the line is shown; the backend's verdict decides whether the cart may proceed.
+CartReview reviewFromServer(Cart cart) {
+  final server = cart.server;
+  if (server == null) return CartReview(empty: cart.items.isEmpty, currencyMismatch: false, restaurantIssue: RestaurantIssue.none, lineIssues: const [], blocking: true);
+  final issues = <LineIssue>[];
+  for (final item in cart.items) {
+    final first = item.server?.issues.firstOrNull;
+    if (first == null) continue;
+    final d = first.details;
+    if (first.code.startsWith('ITEM_')) {
+      issues.add(LineIssue(item.id, LineIssueKind.unavailable));
+    } else if (first.code == 'OPTION_UNAVAILABLE') {
+      issues.add(LineIssue(item.id, LineIssueKind.modifierUnavailable, optionNames: [for (final o in (d['options'] as List? ?? const [])) '$o']));
+    } else if (first.code == 'PRICE_CHANGED') {
+      issues.add(LineIssue(item.id, LineIssueKind.priceChanged, oldUnitMinor: d['previous_unit_price_minor'] as int?, newUnitMinor: d['current_unit_price_minor'] as int?));
+    } else if (first.code == 'QUANTITY_LIMIT') {
+      issues.add(LineIssue(item.id, LineIssueKind.quantity, min: d['min'] as int?, max: d['max'] as int?));
+    } else {
+      issues.add(LineIssue(item.id, LineIssueKind.needsChoice, groupName: d['group'] as String?));
+    }
+  }
+  final restaurant = server.has('RESTAURANT_UNAVAILABLE') ? RestaurantIssue.inactive : server.has('RESTAURANT_NOT_ACCEPTING') ? RestaurantIssue.notAccepting : server.has('RESTAURANT_CLOSED_NOW') ? RestaurantIssue.closed : RestaurantIssue.none;
+  return CartReview(empty: cart.items.isEmpty, currencyMismatch: server.has('CURRENCY_MISMATCH'), restaurantIssue: restaurant, lineIssues: issues, blocking: !server.canProceed, expired: server.expired, menuUnavailable: server.has('MENU_UNAVAILABLE'), journeyStale: server.has('JOURNEY_STALE'));
 }
 
 /// Unit price the line would have today + option names that no longer exist / are unavailable.

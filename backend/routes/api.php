@@ -4,6 +4,7 @@ use App\Enums\Permission;
 use App\Enums\PrincipalType;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
+use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Api\Auth\SessionController;
 use App\Http\Controllers\Api\Auth\StaffAuthController;
 use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\Customer\AccountController;
 use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationPreferenceController;
@@ -63,6 +65,7 @@ Route::pattern('itemSlug', '[a-z0-9]+(?:-[a-z0-9]+)*');
 Route::pattern('category', '[0-9a-fA-F-]{36}');
 Route::pattern('item', '[0-9a-fA-F-]{36}');
 Route::pattern('journey', '[0-9a-fA-F-]{36}');
+Route::pattern('line', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -95,6 +98,25 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::get('/journeys/{journey}/restaurants', [JourneyRestaurantController::class, 'index'])->middleware('throttle:journey-read')->name('journeys.restaurants');
         });
     });
+
+    // The cart (Module 27): one per guest (header X-Cart-Token) or signed-in customer, always the caller's own — no
+    // route takes a cart id. Prices, currency and validation are the backend's; `idempotent:…,optional` honours an
+    // Idempotency-Key when a client sends one (retries, double taps).
+    Route::prefix('cart')->name('cart.')->middleware(['customer.optional', 'cart.owner'])->group(function (): void {
+        Route::get('/', [CartController::class, 'show'])->middleware('throttle:cart-read')->name('show');
+        Route::middleware('throttle:cart-write')->group(function (): void {
+            Route::post('/items', [CartController::class, 'add'])->middleware('idempotent:cart.add,optional')->name('items.add');
+            Route::patch('/items/{line}', [CartController::class, 'update'])->middleware('idempotent:cart.update,optional')->name('items.update');
+            Route::delete('/items/{line}', [CartController::class, 'remove'])->middleware('idempotent:cart.remove,optional')->name('items.remove');
+            Route::delete('/', [CartController::class, 'clear'])->name('clear');
+            Route::post('/refresh', [CartController::class, 'refresh'])->middleware('idempotent:cart.refresh,optional')->name('refresh');
+            Route::post('/switch-restaurant', [CartController::class, 'switchRestaurant'])->middleware('idempotent:cart.switch,optional')->name('switch');
+            Route::put('/journey', [CartController::class, 'linkJourney'])->name('journey.link');
+            Route::delete('/journey', [CartController::class, 'unlinkJourney'])->name('journey.unlink');
+        });
+    });
+    // Taking over the cart built before signing in: only as the signed-in customer, with the guest cart's token.
+    Route::post('/cart/claim', [CartController::class, 'claim'])->middleware(['auth:customer', 'active', 'throttle:cart-write', 'idempotent:cart.claim,optional'])->name('cart.claim');
 
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
     Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
@@ -272,6 +294,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
 
         // Provider health (Module 26) is platform-wide system information.
         Route::get('/system/providers', [ProviderHealthController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.providers');
+        // Cart numbers (Module 27): counts only — there is no way to read a customer's cart from here.
+        Route::get('/system/carts', [CartMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.carts');
 
         // Security events are platform-wide: the permission must be held without a market scope.
         Route::middleware('can:'.Permission::AdminSecurityView->value)->group(function (): void {

@@ -1,0 +1,9 @@
+# Module 27 — Android app checks (LOCAL, 2026-10-06): flutter analyze, flutter test
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 4.8s)
+
+== flutter test
++415: All tests passed!
+   new in Module 27: test/api_cart_test.dart (21 tests: cart API layer, cart state on the backend incl. editing a line, Cart screen states, the two-carts question), test/item_detail_test.dart +1 (moving from one item straight to another shows and adds the other item — BUG-163)

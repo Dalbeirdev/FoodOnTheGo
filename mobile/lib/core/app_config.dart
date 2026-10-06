@@ -21,13 +21,17 @@ class AppConfig {
   /// routing provider's route, actual detours, arrival estimates); 'mock' = the in-app development providers (default, used by tests).
   static const String journeyMode = String.fromEnvironment('JOURNEY_MODE', defaultValue: 'mock');
 
+  /// 'api' = the cart is the backend's (Module 27: one per guest token or signed-in customer; prices, validation and
+  /// issues are the server's); 'mock' = the device-only development cart (default, used by tests).
+  static const String cartMode = String.fromEnvironment('CART_MODE', defaultValue: 'mock');
+
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 30;
+  static const int buildNumber = 31;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -40,6 +44,7 @@ class AppConfig {
         'Market data': marketMode == 'api' ? 'Backend (PostGIS coverage)' : 'Development fixtures',
         'Restaurants': restaurantMode == 'api' ? 'Backend, menus included (orders and reviews still development data)' : 'Development fixtures',
         'Journeys': journeyMode == 'api' ? 'Backend (places, route, detours and arrival times from the routing provider)' : 'Development providers in the app',
+        'Cart': cartMode == 'api' ? 'Backend (priced and validated by the server; pickup, checkout and orders still development data)' : 'Development cart on this device',
         'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',
         'App version': '$appVersion (build $buildNumber)',
         'Build label': buildLabel,

@@ -1,0 +1,42 @@
+{
+  "module": "M27",
+  "note": "Local machine, PostgreSQL test database inside one transaction, PHP CLI without OPcache, in-process requests (no HTTP server, no network). Timings are measurements, not targets.",
+  "cart": {
+    "lines": 20,
+    "selected_options_per_line": 3
+  },
+  "queries": {
+    "get_cart_1_line": 24,
+    "get_cart_20_lines": 24,
+    "add_item_to_20_line_cart": 39,
+    "update_quantity_on_21_line_cart": 39,
+    "refresh_21_line_cart": 89
+  },
+  "timings_ms": {
+    "get_cart_1_line": 29.8,
+    "get_cart_20_lines_with_validation": 61.2,
+    "add_item_median_of_19": 70.4,
+    "add_item_to_20_line_cart": 78.8,
+    "update_quantity_on_21_line_cart": 88.3,
+    "refresh_21_line_cart": 169.1
+  },
+  "conditions": "Run of 2026-10-06 inside the full backend suite, while browser regression suites were running on the same machine.",
+  "earlier_run_2026_10_05": {
+    "note": "Same test on 2026-10-05 with the machine otherwise idle (cart suite run alone).",
+    "queries": {
+      "get_cart_1_line": 24,
+      "get_cart_20_lines": 24,
+      "add_item_to_20_line_cart": 39,
+      "update_quantity_on_21_line_cart": 39,
+      "refresh_21_line_cart": 89
+    },
+    "timings_ms": {
+      "get_cart_1_line": 17.3,
+      "get_cart_20_lines_with_validation": 37.7,
+      "add_item_median_of_19": 56.5,
+      "add_item_to_20_line_cart": 48.8,
+      "update_quantity_on_21_line_cart": 51.4,
+      "refresh_21_line_cart": 117.9
+    }
+  }
+}

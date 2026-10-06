@@ -345,6 +345,15 @@ final class RouteDiscoveryService
     }
 
     /**
+     * The detour this journey already has for one restaurant, when it was calculated recently — a read of the
+     * journey's own results, never a provider call. The cart (Module 27) keeps it as the context of its restaurant.
+     */
+    public function knownDetourFor(Journey $journey, string $locationPublicId): ?DetourResult
+    {
+        return $this->knownDetours($journey)[$locationPublicId] ?? null;
+    }
+
+    /**
      * The detours this journey already has (a restaurant unreachable by road included), not older than the result
      * cache lifetime. A provider answer that failed for one restaurant is never kept: it is asked again.
      *

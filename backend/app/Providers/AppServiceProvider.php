@@ -183,5 +183,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('places-search', fn (Request $request) => $journeyLimit($request, 'places_search')->by('places:'.$journeyActor($request)));
         RateLimiter::for('journey-plan', fn (Request $request) => $journeyLimit($request, 'journey_plan')->by('journey-plan:'.$journeyActor($request)));
         RateLimiter::for('journey-read', fn (Request $request) => Limit::perMinute($perMinute('journey_read'))->by('journey-read:'.$journeyActor($request)));
+
+        // Carts (Module 27): by customer when signed in, otherwise by address (a guest token is cheap to obtain, so it is
+        // not an identity for rate limiting). Starting NEW guest carts is bounded separately in CartController.
+        RateLimiter::for('cart-read', fn (Request $request) => Limit::perMinute($perMinute('cart_read'))->by('cart-read:'.$journeyActor($request)));
+        RateLimiter::for('cart-write', fn (Request $request) => $journeyLimit($request, 'cart_write')->by('cart-write:'.$journeyActor($request)));
     }
 }

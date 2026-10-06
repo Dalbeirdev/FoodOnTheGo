@@ -40,4 +40,10 @@ return [
     'journey_plan_guest' => (int) env('RATE_LIMIT_JOURNEY_PLAN_GUEST', 6),
     'journey_detours' => (int) env('RATE_LIMIT_JOURNEY_DETOURS', 12),
     'journey_read' => (int) env('RATE_LIMIT_JOURNEY_READ', 120),
+    // Carts (Module 27): normal use must stay responsive — these only stop obvious abuse. cart_create_guest = how many NEW
+    // anonymous carts one address may start per minute (a signed-in customer has one cart per account anyway).
+    'cart_read' => (int) env('RATE_LIMIT_CART_READ', 120),
+    'cart_write' => (int) env('RATE_LIMIT_CART_WRITE', 60),
+    'cart_write_guest' => (int) env('RATE_LIMIT_CART_WRITE_GUEST', 40),
+    'cart_create_guest' => (int) env('RATE_LIMIT_CART_CREATE_GUEST', 10),
 ];

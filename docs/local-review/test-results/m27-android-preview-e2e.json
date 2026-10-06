@@ -1,0 +1,125 @@
+{
+  "module": "M27",
+  "date": "2026-10-06T06:54:20.542Z",
+  "target": "Flutter web preview of the Android app (same Dart code as the APK), CART_MODE=api, real local backend",
+  "note": "Not a device test: USER DEVICE VERIFICATION = PENDING for the APK. In this preview the app's secure storage is the browser's storage.",
+  "passed": 23,
+  "total": 23,
+  "results": [
+    {
+      "name": "C1 at start the app asks the backend for its cart (GET /cart) and is handed a guest token; nothing is created yet",
+      "pass": true,
+      "detail": "{\"cart\":null,\"guest_token\":\"gc1.tmh4bw.c8e4ddcb7ecdadb4e84607653e78126f9d921a99d2d1c2818b63524f8bd54cea.d46a7746b14c5c88"
+    },
+    {
+      "name": "C2 \"Add to cart\" sends ids and a quantity — no price, no currency — with the guest token in a header and an idempotency key; the backend answers 201 with ITS price",
+      "pass": true,
+      "detail": "201 {\"restaurant_id\":\"0a000000-0000-4000-8000-0000000000a1\",\"item_id\":\"d24cdf13-dd63-43e6-9818-6e776884d108\",\"selections\":[],\"quantity\":1,\"special_instructions\":null}"
+    },
+    {
+      "name": "C3 the app says \"Added to your cart\" and its cart bar shows the backend's count and subtotal",
+      "pass": true,
+      "detail": "he restaurant if you have an allergy.\nDietary tags are provided by the restaurant and are not an allergy guarantee. | Added to your cart | View cart | Item total | ₹149.00 | ₹149.00 each | Add to cart"
+    },
+    {
+      "name": "C4 the Cart screen shows the backend cart — restaurant, line, unit price, subtotal — reads it again when it opens, and has no \"development cart\" label",
+      "pass": true,
+      "detail": "Your cart | Clear cart | Pickup at\nBurger Hub\nSector 62, Noida, Uttar Pradesh 201309, India\nOpen\nCloses 11:30 PM GMT+5:30\nPrep 12m · Earliest pickup ~12:32 PM\nPre-order and collect at the restaurant. FoodOnTheGo does not deliver. | View restaurant | No journey"
+    },
+    {
+      "name": "C5 \"+\" is PATCH with the new absolute quantity and the cart version the app saw; the answer is the backend's cart",
+      "pass": true,
+      "detail": "200 {\"quantity\":2,\"cart_version\":1}"
+    },
+    {
+      "name": "C6 NETWORK RETRY: the first answer is lost (the add WAS applied); the app asks once more with the SAME Idempotency-Key and the backend replays its answer — the quantity rose by 1, not by 2",
+      "pass": true,
+      "detail": "201 lost, 201 quantity 3"
+    },
+    {
+      "name": "C7 an item of another restaurant is not added: the app asks \"Start a new cart?\" naming both restaurants, and nothing was sent",
+      "pass": true,
+      "detail": "Alert | Start a new cart? | Your cart contains items from Burger Hub. Adding this item from Pizza Point will clear it. | Cancel | Clear cart & continue"
+    },
+    {
+      "name": "C8 \"Clear cart & continue\" is the explicit, confirmed switch: one call, the new cart of Pizza Point with the item, and a summary of the replaced cart",
+      "pass": true,
+      "detail": "201 {\"confirm\":true,\"restaurant_id\":\"006f4b02-b4ff-442f-beec-38aabd54a4ad\",\"item\":{\"item_id\":\"cd3a9b7e-8a46-49dc-aae6-47c8ce6720be\",\"selections\":[],\"quantity\":1,\"special_instructions\":null},\"cart_version\":3}"
+    },
+    {
+      "name": "C9 APP RESTART (the page is loaded again): the cart is restored from the backend with the guest token from the device's storage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C10 THE RESTAURANT SELLS THE ITEM OUT → the customer's cart keeps the line, says \"This item is no longer available.\" and cannot continue (\"Review cart\")",
+      "pass": true,
+      "detail": "200 Your cart | Clear cart | Your cart has changed. Please review before continuing. | Pickup at\nBurger Hub\nSector 62, Noida, Uttar Pradesh 201309, India\nOpen\nCloses 11:30 PM GMT+5:30\nPrep 12m · Earliest "
+    },
+    {
+      "name": "C11 THE RESTAURANT RAISES THE PRICE → the cart shows \"Price updated from ₹149.00 to ₹159.00 each.\" and asks for a review",
+      "pass": true,
+      "detail": "200 Your cart | Clear cart | Your cart has changed. Please review before continuing. | Pickup at\nBurger Hub\nSector 62, Noida, Uttar Pradesh 201309, India\nOpen\nCloses 11:30 PM GMT+5:30\nPrep 12m · Earliest "
+    },
+    {
+      "name": "C12 \"Accept updated price\" is POST /cart/refresh; the cart may continue again",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "C13 an EXPIRED cart says so, still shows its line and offers \"Start a new cart\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C14 \"Start a new cart\" clears it on the backend (DELETE /cart) and the screen shows the empty cart",
+      "pass": true,
+      "detail": "DELETE 200 | Your cart | Your cart is empty.\nFind a restaurant on your route and add something to pick up on the way. | Explore restaurants | Plan a journey"
+    },
+    {
+      "name": "C15 NO CONNECTION (app restarted offline): the last cart the backend sent is shown with a notice that it cannot be changed — never an \"empty cart\"",
+      "pass": true,
+      "detail": "Your cart | Clear cart | Pickup at\nPizza Point\nPre-order and collect at the restaurant. FoodOnTheGo does not deliver. | View restaurant | No journey planned — you can still order and pick up directly. | Plan a journey | No connection: this is your cart as it w"
+    },
+    {
+      "name": "C16 offline, \"+\" does not pretend to work: the quantity stays and the app says the cart was not changed",
+      "pass": true,
+      "detail": "Cheese Garlic Bread | Line total  → Your cart | Clear cart | Pickup at\nPizza Point\nPre-order and collect at the restaurant. FoodOnTheGo does not deliver. | View restaurant | No journey planned — y"
+    },
+    {
+      "name": "C17 GUEST → CART → SIGN-IN (OTP): the app claims the guest cart with its token in the customer's session — the same cart, now the customer's",
+      "pass": true,
+      "detail": "200 {\"outcome\":\"claimed\"}"
+    },
+    {
+      "name": "C18 after sign-in the cart is read with the session and WITHOUT the guest token (it is spent)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C19 TWO RESTAURANTS at sign-in: nothing is merged — the app asks \"You have two carts\" with restaurant, item count and total of both, over whatever screen is open",
+      "pass": true,
+      "detail": "u have two carts | One from before you signed in and one saved in your account, from different restaurants. A cart holds items from one restaurant — which one do you want to keep? | Keep Pizza Point · 1 item(s) · ₹149.00 | Keep Burger Hub · 1 item(s) · ₹159.00"
+    },
+    {
+      "name": "C20 \"Keep Burger Hub\" (the account's cart): the guest cart is closed, the account keeps its cart, the question is gone",
+      "pass": true,
+      "detail": "200 {\"resolution\":\"keep_account\"}"
+    },
+    {
+      "name": "X1 URL audit: none of the app's API requests carries a cart token or a cart id in its URL",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "X2 no page errors in the app across these flows",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z the local database is back in its seeded state (no cart of this run, Onion Rings as before)",
+      "pass": true,
+      "detail": "{\"carts\":0,\"item\":\"ACTIVE:14900\"}"
+    }
+  ]
+}

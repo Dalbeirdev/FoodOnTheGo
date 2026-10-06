@@ -28,7 +28,29 @@ class ItemDetailScreen extends StatefulWidget {
   State<ItemDetailScreen> createState() => _ItemDetailScreenState();
 }
 
+/// The router keeps one page for this route, so moving from one item straight to another only updates the widget.
+/// The screen is therefore keyed by what it shows: another item (or another cart line to edit) gets a new state, and
+/// "Add to cart" can never add the item that was open before.
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
+  @override
+  Widget build(BuildContext context) => _ItemDetail(
+        key: ValueKey('${widget.restaurantId}|${widget.itemSlug}|${widget.editCartItemId ?? ''}'),
+        restaurantId: widget.restaurantId, itemSlug: widget.itemSlug, editCartItemId: widget.editCartItemId,
+        restaurantRepository: widget.restaurantRepository, menuRepository: widget.menuRepository,
+      );
+}
+
+class _ItemDetail extends StatefulWidget {
+  const _ItemDetail({super.key, required this.restaurantId, required this.itemSlug, this.editCartItemId, this.restaurantRepository, this.menuRepository});
+  final String restaurantId, itemSlug;
+  final String? editCartItemId;
+  final MockRestaurantRepository? restaurantRepository;
+  final MenuRepository? menuRepository;
+  @override
+  State<_ItemDetail> createState() => _ItemDetailState();
+}
+
+class _ItemDetailState extends State<_ItemDetail> {
   late final MockRestaurantRepository _rr = widget.restaurantRepository ?? MockRestaurantRepository();
   late final MenuRepository _mr = widget.menuRepository ?? defaultMenuRepository();
   String status = 'loading';
@@ -75,7 +97,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     });
   }
 
-  void _add() {
+  Future<void> _add() async {
     final d = detail!; final rest = r!;
     final issues = validateSelections(d, selections);
     setState(() => attempted = true);
@@ -89,24 +111,28 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final unit = unitPriceMinor(d, selections);
     final input = AddItemInput(
       menuItemId: d.item.id, itemSlug: d.item.slug, itemName: d.item.name, image: d.item.image, basePriceMinor: d.item.basePriceMinor, currency: d.item.currency,
-      restaurantId: rest.id, restaurantSlug: rest.slug, restaurantName: rest.name, restaurantCurrency: rest.currency,
+      restaurantId: rest.id, restaurantSlug: rest.slug, restaurantName: rest.name, restaurantCurrency: rest.currency, restaurantPublicId: rest.backendId,
       selectedVariants: chosen.where((e) => e.$1.kind == OptionGroupKind.variant).map(toSel).toList(), selectedModifiers: chosen.where((e) => e.$1.kind == OptionGroupKind.modifier).map(toSel).toList(),
       specialInstructions: normalizeInstructions(instructions.text, d.instructionsMaxLength), quantity: clampQuantity(d.minimumQuantity, d.maximumQuantity, quantity), unitPriceMinor: unit, minimumQuantity: d.minimumQuantity, maximumQuantity: d.maximumQuantity,
     );
     final cart = context.read<CartState>();
+    // With the backend cart the answer arrives once the server has priced and validated the item.
     if (widget.editCartItemId != null) {
-      final r2 = cart.editItem(widget.editCartItemId!, input);
+      final r2 = await cart.saveItem(widget.editCartItemId!, input);
+      if (!mounted) return;
       if (r2.ok) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.t('item.edit.saved')))); if (context.canPop()) { context.pop(); } else { context.go('/cart'); } }
+      else { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(r2.message ?? S.t('cart.error')))); }
       return;
     }
-    final res = cart.addItem(input);
+    final res = await cart.addToCart(input);
+    if (!mounted) return;
     if (res.ok) {
       setState(() => attempted = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.t('item.added')), action: SnackBarAction(label: S.t('item.added.view'), onPressed: () => context.push('/cart'))));
     } else if (res.failure == AddFailure.restaurantConflict) {
       _confirmReplace(cart);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.t('cart.error'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res.message ?? S.t('cart.error'))));
     }
   }
 
@@ -121,7 +147,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       ),
     );
     if (!mounted) return;
-    if (ok == true) { cart.confirmReplace(); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.t('item.added')))); } else { cart.cancelReplace(); }
+    if (ok != true) { cart.cancelReplace(); return; }
+    final replaced = await cart.confirmReplaceAndWait();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(replaced.ok ? S.t('item.added') : (replaced.message ?? S.t('cart.error')))));
   }
 
   String _rule(OptionGroup g) {

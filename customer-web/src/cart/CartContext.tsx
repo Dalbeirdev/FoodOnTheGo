@@ -1,84 +1,26 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { LocalCartRepository, cartItemCount, cartSubtotalMinor, type Cart, type CartItem, type CartRepository, type CartStatus, type SelectedOption } from './cartModel'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { LocalCartRepository, cartItemCount, cartSubtotalMinor, type Cart, type CartItem, type CartRepository, type CartStatus } from './cartModel'
 import { minorDigits } from '../i18n/format'
 import { t } from '../i18n/strings'
 import { configurationKey, lineTotalMinor } from '../pricing/pricing'
 import { NO_PROMO, discountMinor, evaluatePromo, type PromoState } from './cartValidation'
+import { CartContext, useCart, type AddItemInput, type AddResult, type CartApi, type CartLine } from './cartApi'
+import { cartMode } from './cartMode'
+import { ServerCartProvider } from './ServerCartProvider'
 import '../pages/account/AccountPage.css'
 import '../components/AccountStates.css'
 
 /**
- * Centralized cart state (Module 08). Structured CartItems, ONE ACTIVE CART = ONE RESTAURANT,
- * identical configurations merge (quantity increases), different configurations stay separate.
+ * Centralized cart state. Two implementations behind one interface (cartApi.ts): the backend cart of Module 27
+ * (ServerCartProvider, API mode) and the device cart below (mock mode: unit tests, share builds, or whenever a
+ * repository / starting cart is given explicitly).
+ *
+ * The device cart (Module 08): structured CartItems, ONE ACTIVE CART = ONE RESTAURANT, identical configurations
+ * merge (quantity increases), different configurations stay separate.
  * The legacy line API (lines / total / add / remove / removeLine / qtyOf / note) is derived from the
  * structured cart so the Module 01 Cart, Checkout and Orders pages keep working until the Cart module.
  */
 
-export type AddItemInput = {
-  menuItemId: string
-  itemSlug: string
-  itemName: string
-  image: string
-  fallback: string
-  basePriceMinor: number
-  currency: string
-  restaurant: { id: string; slug: string; name: string; currency: string }
-  selectedVariants: SelectedOption[]
-  selectedModifiers: SelectedOption[]
-  specialInstructions: string
-  quantity: number
-  unitPriceMinor: number
-  minimumQuantity?: number
-  maximumQuantity?: number
-  /** Legacy Module 01 pages pass their own line key; new callers leave it out (configuration key is used). */
-  lineKey?: string
-}
-
-export type AddResult = { ok: true; item: CartItem; merged: boolean } | { ok: false; reason: 'restaurant_conflict' | 'currency_mismatch' | 'invalid_quantity' | 'error' }
-
-/** Legacy line shape consumed by the Module 01 pages (unitPrice / total in MAJOR units of the cart currency). */
-export type CartLine = { key: string; itemId: string; restaurantId: string; name: string; detail?: string; unitPrice: number; qty: number; image?: string; fallback?: string }
-
-type CartApi = {
-  cart: Cart | null
-  status: CartStatus
-  /** False until the device store has been read once (pages must not redirect on an unhydrated empty cart). */
-  hydrated: boolean
-  count: number
-  subtotalMinor: number
-  currency: string | null
-  addItem: (input: AddItemInput) => AddResult
-  /** Last successful add (also after a confirmed cart replacement) so pages can show feedback. */
-  lastAdded: { at: number; menuItemId: string; merged: boolean } | null
-  /** Pending cross-restaurant conflict — the provider renders the confirmation dialog. */
-  conflict: { input: AddItemInput; current: Cart } | null
-  confirmReplace: () => void
-  cancelReplace: () => void
-  removeItem: (id: string) => void
-  updateQuantity: (id: string, quantity: number) => void
-  clearCart: () => void
-  replaceRestaurantCart: (input: AddItemInput) => AddResult
-  /** Replace a line with a re-configured version (merges if the new configuration already exists). */
-  editItem: (id: string, input: AddItemInput) => AddResult
-  /** Customer consciously accepts a changed price for a line (stale-cart review). */
-  acceptPriceChange: (id: string, newUnitMinor: number) => void
-  promo: PromoState
-  discountMinor: number
-  applyPromo: (code: string) => PromoState
-  removePromo: () => void
-  /* ---- legacy API (Module 01 pages) ---- */
-  lines: CartLine[]
-  total: number
-  note: string
-  setNote: (note: string) => void
-  add: (line: Omit<CartLine, 'qty'>, qty?: number) => void
-  remove: (key: string) => void
-  removeLine: (key: string) => void
-  clear: () => void
-  qtyOf: (itemId: string) => number
-}
-
-const CartContext = createContext<CartApi | null>(null)
 const NOTE_KEY = 'fotg.cart.note'
 const nowIso = () => new Date().toISOString()
 const newCartId = () => `cart-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -97,7 +39,16 @@ function buildItem(input: AddItemInput, quantity: number): CartItem {
 
 const withTotals = (item: CartItem, quantity: number): CartItem => ({ ...item, quantity, lineTotalMinor: lineTotalMinor(item.unitPriceMinor, quantity) })
 
+export type { AddItemInput, AddResult, CartLine } from './cartApi'
+export { useCart }
+
 export function CartProvider({ children, repository, initialCart }: { children: ReactNode; repository?: CartRepository; initialCart?: Cart | null }) {
+  // A repository or a starting cart given by the caller (tests, previews) always means the device cart.
+  if (cartMode() === 'api' && repository === undefined && initialCart === undefined) return <ServerCartProvider>{children}</ServerCartProvider>
+  return <DeviceCartProvider repository={repository} initialCart={initialCart}>{children}</DeviceCartProvider>
+}
+
+function DeviceCartProvider({ children, repository, initialCart }: { children: ReactNode; repository?: CartRepository; initialCart?: Cart | null }) {
   const repo = useRef<CartRepository>(repository ?? new LocalCartRepository()).current
   const [cart, setCart] = useState<Cart | null>(initialCart ?? null)
   const [status, setStatus] = useState<CartStatus>(initialCart ? 'active' : 'empty')
@@ -175,6 +126,7 @@ export function CartProvider({ children, repository, initialCart }: { children: 
     }))
     const restaurantMeta = (restaurantId: string) => (cart && cart.restaurantId === restaurantId ? { id: cart.restaurantId, slug: cart.restaurantSlug, name: cart.restaurantName, currency: cart.currency } : { id: restaurantId, slug: restaurantId, name: restaurantId, currency: 'INR' })
     return {
+      mode: 'mock' as const, loadFailed: false, reload: async () => {}, lastError: null, dismissError: () => {}, flash: null, dismissFlash: () => {}, linkCurrentJourney: () => {},
       cart, status, hydrated: hydratedState, count: cartItemCount(cart), subtotalMinor: cartSubtotalMinor(cart), currency: cart?.currency ?? null,
       addItem, lastAdded, conflict, confirmReplace, cancelReplace, removeItem, updateQuantity, clearCart, replaceRestaurantCart, editItem, acceptPriceChange,
       promo: cart ? (promo.status === 'applied' ? evaluatePromo(promo.code, cartSubtotalMinor(cart), cart.currency, minorDigits(cart.currency)) : promo) : NO_PROMO,
@@ -212,10 +164,4 @@ export function CartProvider({ children, repository, initialCart }: { children: 
       )}
     </CartContext.Provider>
   )
-}
-
-export function useCart() {
-  const ctx = useContext(CartContext)
-  if (!ctx) throw new Error('useCart must be used inside CartProvider')
-  return ctx
 }

@@ -13,3 +13,6 @@ Schedule::command('customer:prune-recent-locations')->daily();
 
 // Module 26: journey contexts expire; expired rows are removed after a grace period.
 Schedule::command('journeys:prune')->hourly();
+
+// Module 27: carts expire; expired carts are closed after a grace period and closed carts deleted after retention.
+Schedule::command('carts:prune')->hourly();

@@ -1,0 +1,87 @@
+# Module 27 — migration 2026_10_06_100000_create_cart_tables: rollback and re-apply, on the TEST database only (DB_DATABASE=foodonthego_test), 2026-10-05
+
+## database in use
+foodonthego_test
+
+## before: last migrations
+ 2026_10_05_100000_create_journey_tables .. [1] Ran 
+ 2026_10_06_100000_create_cart_tables .. [2] Ran 
+
+
+tables: cart_item_options, cart_items, carts
+
+## php artisan migrate:rollback --step=1
+
+ INFO Rolling back migrations. 
+
+ 2026_10_06_100000_create_cart_tables .. 43.32ms DONE
+
+tables: [absent]
+
+## php artisan migrate
+
+ INFO Running migrations. 
+
+ 2026_10_06_100000_create_cart_tables .. 167.68ms DONE
+
+tables: cart_item_options, cart_items, carts
+
+### carts
+columns: id bigint NOT NULL, public_id uuid NOT NULL, customer_id bigint, guest_token_hash character, spent_token_hash character, restaurant_location_id bigint NOT NULL, journey_public_id uuid, journey_summary jsonb, status character varying NOT NULL, closed_reason character varying, closed_at timestamp with time zone, currency character NOT NULL, version integer NOT NULL, menu_catalog_version integer, expires_at timestamp with time zone NOT NULL, last_activity_at timestamp with time zone NOT NULL, converted_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE INDEX carts_customer_id_status_index ON public.carts USING btree (customer_id, status)
+  CREATE INDEX carts_guest_token_hash_status_index ON public.carts USING btree (guest_token_hash, status)
+  CREATE UNIQUE INDEX carts_one_active_per_customer ON public.carts USING btree (customer_id) WHERE (((status)::text = 'ACTIVE'::text) AND (customer_id IS NOT NULL))
+  CREATE UNIQUE INDEX carts_one_active_per_guest ON public.carts USING btree (guest_token_hash) WHERE (((status)::text = 'ACTIVE'::text) AND (guest_token_hash IS NOT NULL))
+  CREATE UNIQUE INDEX carts_pkey ON public.carts USING btree (id)
+  CREATE UNIQUE INDEX carts_public_id_unique ON public.carts USING btree (public_id)
+  CREATE INDEX carts_restaurant_location_id_status_index ON public.carts USING btree (restaurant_location_id, status)
+  CREATE INDEX carts_spent_token_hash_index ON public.carts USING btree (spent_token_hash)
+  CREATE INDEX carts_status_closed_at_index ON public.carts USING btree (status, closed_at)
+  CREATE INDEX carts_status_expires_at_index ON public.carts USING btree (status, expires_at)
+constraints (check / foreign key / unique / primary):
+  carts_active_owner_check : CHECK ((((status)::text <> 'ACTIVE'::text) OR (customer_id IS NOT NULL) OR (guest_token_hash IS NOT NULL)))
+  carts_closed_check : CHECK ((((status)::text = 'ACTIVE'::text) = (closed_at IS NULL)))
+  carts_currency_check : CHECK ((currency ~ '^[A-Z]{3}$'::text))
+  carts_owner_check : CHECK ((NOT ((customer_id IS NOT NULL) AND (guest_token_hash IS NOT NULL))))
+  carts_status_check : CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'CONVERTED'::character varying, 'EXPIRED'::character varying, 'ABANDONED'::character varying, 'INVALIDATED'::character varying])::text[])))
+  carts_customer_id_foreign : FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+  carts_restaurant_location_id_foreign : FOREIGN KEY (restaurant_location_id) REFERENCES restaurant_locations(id) ON DELETE RESTRICT
+  carts_pkey : PRIMARY KEY (id)
+  carts_public_id_unique : UNIQUE (public_id)
+
+### cart_items
+columns: id bigint NOT NULL, public_id uuid NOT NULL, cart_id bigint NOT NULL, menu_item_id bigint NOT NULL, quantity smallint NOT NULL, item_name character varying NOT NULL, base_price_minor bigint NOT NULL, unit_price_minor bigint NOT NULL, currency character NOT NULL, item_version integer NOT NULL, special_instructions character varying, signature character NOT NULL, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX cart_items_cart_id_signature_unique ON public.cart_items USING btree (cart_id, signature)
+  CREATE INDEX cart_items_menu_item_id_index ON public.cart_items USING btree (menu_item_id)
+  CREATE UNIQUE INDEX cart_items_pkey ON public.cart_items USING btree (id)
+  CREATE UNIQUE INDEX cart_items_public_id_unique ON public.cart_items USING btree (public_id)
+constraints (check / foreign key / unique / primary):
+  cart_items_currency_check : CHECK ((currency ~ '^[A-Z]{3}$'::text))
+  cart_items_quantity_check : CHECK (((quantity >= 1) AND (quantity <= 1000)))
+  cart_items_cart_id_foreign : FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE
+  cart_items_menu_item_id_foreign : FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE RESTRICT
+  cart_items_pkey : PRIMARY KEY (id)
+  cart_items_cart_id_signature_unique : UNIQUE (cart_id, signature)
+  cart_items_public_id_unique : UNIQUE (public_id)
+
+### cart_item_options
+columns: id bigint NOT NULL, cart_item_id bigint NOT NULL, group_id bigint NOT NULL, option_id bigint NOT NULL, kind character varying NOT NULL, group_name character varying NOT NULL, option_name character varying NOT NULL, price_adjustment_minor bigint NOT NULL, display_order smallint NOT NULL, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX cart_item_options_cart_item_id_option_id_unique ON public.cart_item_options USING btree (cart_item_id, option_id)
+  CREATE INDEX cart_item_options_group_id_index ON public.cart_item_options USING btree (group_id)
+  CREATE INDEX cart_item_options_option_id_index ON public.cart_item_options USING btree (option_id)
+  CREATE UNIQUE INDEX cart_item_options_pkey ON public.cart_item_options USING btree (id)
+constraints (check / foreign key / unique / primary):
+  cart_item_options_kind_check : CHECK (((kind)::text = ANY ((ARRAY['VARIANT'::character varying, 'MODIFIER'::character varying])::text[])))
+  cart_item_options_cart_item_id_foreign : FOREIGN KEY (cart_item_id) REFERENCES cart_items(id) ON DELETE CASCADE
+  cart_item_options_group_id_foreign : FOREIGN KEY (group_id) REFERENCES menu_option_groups(id) ON DELETE RESTRICT
+  cart_item_options_option_id_foreign : FOREIGN KEY (option_id) REFERENCES menu_options(id) ON DELETE RESTRICT
+  cart_item_options_pkey : PRIMARY KEY (id)
+  cart_item_options_cart_item_id_option_id_unique : UNIQUE (cart_item_id, option_id)
+
+## after: last migrations
+ 2026_10_05_100000_create_journey_tables .. [1] Ran 
+ 2026_10_06_100000_create_cart_tables .. [2] Ran 
+

@@ -584,7 +584,7 @@ that were made are audited — a refused attempt is not an audit event.
 
 ## 10. Not built yet
 
-Cart, pickup slots, checkout, payments, orders, tracking, reviews, object
+Pickup slots, checkout, taxes / fees / promotions, payments, orders, tracking, reviews, object
 storage for images (menu photos and profile photos live on the local `public` disk), verification documents, restaurant self-service
 onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; customer e-mail verification, the
 account erasure process (a deletion request only restricts the account — legal rules pending), data export,
@@ -791,3 +791,45 @@ CONFIGURATION).
 - Configuration: `config/journey.php` (bounds and policy), `config/services.php` (`places`, `routing`: driver, key,
   timeout, base URL — environment only), `config/rate_limits.php`. Local `.env`: `PLACES_DRIVER=fake`,
   `ROUTING_DRIVER=fake`.
+
+## 15. Cart: guest and customer carts, customization validation, server-authoritative pricing (Module 27)
+
+The vocabulary, the domain diagram, ownership, status and lifetime, pricing, the validation table, the API and error
+tables, concurrency / idempotency, the sign-in merge policy, the journey link and the database rules are in
+[`cart-domain.md`](cart-domain.md). Everything below is local-only; nothing has touched production.
+
+- **ONE ACTIVE CART = ONE RESTAURANT LOCATION**, in the application (`CartService`) and in the database (partial
+  unique indexes on ACTIVE carts per customer and per guest token hash). Another restaurant's item is
+  `409 cart_restaurant_conflict`; the cart is replaced only by the confirmed `POST /cart/switch-restaurant`, in one
+  transaction.
+- Tables `carts`, `cart_items`, `cart_item_options` (migration `2026_10_06_100000_create_cart_tables`): a cart is owned
+  by a customer or by the holder of a guest token (only its SHA-256 hash is stored), carries currency, `version`,
+  `expires_at`, a status (`ACTIVE`, `CONVERTED`, `EXPIRED`, `ABANDONED`, `INVALIDATED`) and an optional journey reference
+  with a display summary (no coordinates, no geometry). A line is one configuration (signature) with a snapshot of the
+  name and prices the customer saw; its options are rows pointing at real menu groups / options. Menu rows are
+  `ON DELETE RESTRICT`.
+- Price and validation are the backend's: `CartPricingService` (on Module 24's `MenuPricingService`) calculates base +
+  variants + modifiers × quantity in integer minor units of the location's currency; `CartValidationService` compares the
+  cart with the current menu and restaurant on every read and reports issues (`PRICE_CHANGED`, `ITEM_SOLD_OUT`,
+  `OPTION_UNAVAILABLE`, `RESTAURANT_NOT_ACCEPTING`, …) — nothing is removed or repaired quietly. No tax, fee or discount
+  is part of a cart subtotal. A client sends ids, quantities and text; `price`, `currency`, `customer_id`, `status`,
+  `version` … are refused (422).
+- Routes: 11 new operations (164 in total) — `GET /cart`, `DELETE /cart`, `POST /cart/items`,
+  `PATCH|DELETE /cart/items/{line}`, `POST /cart/refresh`, `POST /cart/switch-restaurant`, `PUT|DELETE /cart/journey`,
+  `POST /cart/claim`, `GET /admin/system/carts` — all in `openapi/openapi.json` (128 paths, 244 schemas) and checked by
+  `CartOpenApiContractTest`. Middleware `cart.owner` (customer, guest token, or nobody — never a cart id); `idempotent`
+  gained an optional, owner-scoped mode; limiters `cart-read`, `cart-write` and a bound on new guest carts per address.
+- Guest → customer: `CartClaimService` — claimed with the guest token in the customer's session; same restaurant =
+  merge by configuration (quantities capped at the item's maximum and reported); different restaurants =
+  `409 cart_merge_conflict` until the customer chooses. The token is spent by the claim.
+- Concurrency: every change in one transaction on the locked cart row, `version` raised; optional `cart_version`
+  (409 when stale) and optional `Idempotency-Key`. No cart cache and no distributed lock.
+- Lifetime: guests 7 days, customers 30 days after the last change (`config/cart.php`); `carts:prune` (hourly) closes
+  expired carts after a 24-hour grace and deletes closed carts after 30 days; `CONVERTED` is never deleted.
+- Tests: `tests/Feature/Cart` + `tests/Unit/Cart` (62 tests) — see
+  `docs/local-review/test-results/backend-m27-phpunit.txt` for the whole suite. End-to-end on the real local stack:
+  `m27-web-e2e.json` (Customer Web, including restaurant-dashboard and administrator changes reaching a customer's cart
+  and two API processes racing) and `m27-android-preview-e2e.json` (the Android app's code as a Flutter web preview —
+  not a device test).
+- Fixture: Asha Verma (+91 98765 43212) has a cart at Pizza Point (`LocalCartFixtureSeeder`); the review account
+  (Rahul) starts with none.

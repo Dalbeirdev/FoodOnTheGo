@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { ReactNode } from 'react'
-import { CartProvider, useCart, type AddItemInput } from './CartContext'
+import { CartProvider, useCart, type AddItemInput, type AddResult } from './CartContext'
 import { MemoryCartRepository } from './cartModel'
 
 const restA = { id: 'r-a', slug: 'r-a', name: 'Restaurant A', currency: 'INR' }
@@ -29,8 +29,8 @@ describe('Cart state (Module 08)', () => {
   it('TEST 11 — identical configuration merges into one line (documented behaviour)', () => {
     const { result } = renderHook(() => useCart(), { wrapper })
     act(() => { result.current.addItem(base({ specialInstructions: 'No ice' })) })
-    let res: ReturnType<typeof result.current.addItem> | undefined
-    act(() => { res = result.current.addItem(base({ specialInstructions: 'no ice ' })) })
+    let res: AddResult | undefined
+    act(() => { res = result.current.addItem(base({ specialInstructions: 'no ice ' })) as AddResult })
     expect(res && res.ok && res.merged).toBe(true)
     expect(result.current.cart?.items).toHaveLength(1)
     expect(result.current.cart?.items[0].quantity).toBe(2)

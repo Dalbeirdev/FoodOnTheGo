@@ -13,6 +13,7 @@ param(
   [ValidateSet('api', 'mock')][string]$RestaurantMode = 'api',
   # api = places, journey planning, the route and the restaurants along it come from the local backend (Module 26); mock = the in-app development providers
   [ValidateSet('api', 'mock')][string]$JourneyMode = 'api',
+  [ValidateSet('api', 'mock')][string]$CartMode = 'api',
   # Local test code shown on the OTP screen of LOCAL builds. Default: OTP_DEV_CODE from the git-ignored backend/.env.
   [string]$DevOtp = ''
 )
@@ -25,7 +26,7 @@ $commit = try { (git -C $root rev-parse --short HEAD 2>$null) } catch { $null };
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 
 Write-Host "Syncing mobile/ into WSL and building $name (API $ApiBaseUrl)…"
-$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
+$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
 wsl.exe -d Ubuntu -u root -e bash -lc $cmd
 $apk = Join-Path $out $name
 if (-not (Test-Path $apk)) { Write-Host 'APK not produced' -ForegroundColor Red; exit 1 }
@@ -44,11 +45,12 @@ $manifest = @"
 | Build timestamp | $stamp |
 | Size | $size MB |
 | SHA-256 | $sha |
-| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=DEV_OTP=<local test code> |
+| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=DEV_OTP=<local test code> |
 | Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Market data | $MarketMode (api = market and coverage are read from the local backend at start-up) |
-| Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods, availability and menus from the local backend; carts, orders and reviews are still development data) |
+| Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods, availability and menus from the local backend; orders and reviews are still development data) |
 | Journey data | $JourneyMode (api = place search, journey planning, the route, actual detours and arrival times from the local backend. The backend's places / routing provider on this PC is its DEVELOPMENT provider — synthetic roads, no live provider is configured; the app labels the figures accordingly) |
+| Cart | $CartMode (api = the cart is the local backend's: one per guest (token in the device's secure storage) or signed-in customer, priced and validated by the server; pickup time, checkout, payment and orders after the cart are still development data) |
 | Location permission | asked only when "Use my current location" is tapped while planning a journey (ACCESS_COARSE_LOCATION / ACCESS_FINE_LOCATION; no background location) |
 | Account data | $AuthMode (api = profile, favorites, saved journey places, payment-method references and notification preferences from the local backend — follows the sign-in mode; the notification inbox is still development data) |
 | Install (USB) | adb install -r $name |

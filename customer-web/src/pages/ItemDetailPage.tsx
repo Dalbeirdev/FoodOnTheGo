@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import CartBar from '../components/CartBar'
 import { ChevronRightIcon } from '../components/Icons'
-import { useCart, type AddItemInput } from '../cart/CartContext'
+import { useCart, type AddItemInput, type AddResult } from '../cart/CartContext'
 import { menuRepository } from '../menu/menuRepository'
 import type { MenuItem, MenuItemDetail, OptionGroup } from '../menu/repositories'
 import { restaurantRepository } from '../repositories'
@@ -76,6 +76,7 @@ export default function ItemDetailPage() {
   const [groupNotice, setGroupNotice] = useState<Record<string, string>>({})
   const [slide, setSlide] = useState(0)
   const [toast, setToast] = useState<{ merged: boolean } | null>(null)
+  const [addError, setAddError] = useState<string | null>(null)
   const [more, setMore] = useState<MenuItem[]>([])
   const groupRefs = useRef<Record<string, HTMLFieldSetElement | null>>({})
   const [reloadTick, setReloadTick] = useState(0)
@@ -130,25 +131,28 @@ export default function ItemDetailPage() {
     else if (res.reason === 'max') { const g = groups.find((x) => x.id === groupId)!; setGroupNotice((n) => ({ ...n, [groupId]: t('item.maxReached', { count: g.maxSelections }, locale) })) }
   }, [item, selections, groups, locale])
 
-  const addToCart = () => {
+  // In API mode the cart answers only once the backend has priced and validated the item: the result is awaited.
+  const addToCart = async () => {
     if (!item || !restaurant || !canAdd) return
-    setAttempted(true)
+    setAttempted(true); setAddError(null)
     if (issues.length) { const first = groupRefs.current[issues[0].groupId]; first?.scrollIntoView({ block: 'center', behavior: 'smooth' }); first?.focus(); return }
     const chosen = selectedOptions(item, selections)
     const input: AddItemInput = {
       menuItemId: item.id, itemSlug: item.slug, itemName: item.name, image: item.image, fallback: item.fallback, basePriceMinor: item.basePriceMinor, currency: item.currency,
-      restaurant: { id: restaurant.id, slug: restaurant.slug, name: restaurant.name, currency: restaurant.currency },
+      restaurant: { id: restaurant.id, slug: restaurant.slug, name: restaurant.name, currency: restaurant.currency, publicId: restaurant.publicId },
       selectedVariants: chosen.filter((c) => c.group.kind === 'variant').map((c) => ({ groupId: c.group.id, groupName: c.group.name, optionId: c.option.id, optionName: c.option.name, priceAdjustmentMinor: c.option.priceAdjustmentMinor })),
       selectedModifiers: chosen.filter((c) => c.group.kind === 'modifier').map((c) => ({ groupId: c.group.id, groupName: c.group.name, optionId: c.option.id, optionName: c.option.name, priceAdjustmentMinor: c.option.priceAdjustmentMinor })),
       specialInstructions: normalizeInstructions(instructions, item.instructionsMaxLength), quantity: clampQuantity(item, quantity), unitPriceMinor: unit, minimumQuantity: item.minimumQuantity, maximumQuantity: item.maximumQuantity,
     }
+    // A restaurant conflict is answered by the cart's own dialog; everything else the backend refused is said here.
+    const refused = (res: AddResult) => { if (!res.ok && res.reason !== 'restaurant_conflict') setAddError(res.message ?? t('cart.error.generic', undefined, locale)) }
     if (editing) {
-      const res = cart.editItem(editing.id, input)
-      if (res.ok) { setAttempted(false); navigate('/cart', { state: { updated: true } }) }
+      const res = await cart.editItem(editing.id, input)
+      if (res.ok) { setAttempted(false); navigate('/cart', { state: { updated: true } }) } else refused(res)
       return
     }
-    const res = cart.addItem(input)
-    if (res.ok) setAttempted(false)
+    const res = await cart.addItem(input)
+    if (res.ok) setAttempted(false); else refused(res)
   }
   // Feedback for every successful add for this item — including one completed through the cart-replacement dialog.
   const lastAdded = cart.lastAdded
@@ -266,9 +270,10 @@ export default function ItemDetailPage() {
                   <strong aria-live="polite">{formatMoney(total, item.currency, locale)}</strong>
                   <small className="it-muted">{t('item.unit', { price: formatMoney(unit, item.currency, locale) }, locale)}</small>
                 </div>
-                <button type="button" className="btn btn--primary it-total__btn" onClick={addToCart} disabled={!canAdd} aria-disabled={!canAdd}><CartIcon /> {editing ? t('item.edit.save', undefined, locale) : t('item.addToCart', undefined, locale)}</button>
+                <button type="button" className="btn btn--primary it-total__btn" onClick={() => { void addToCart() }} disabled={!canAdd} aria-disabled={!canAdd} aria-busy={cart.status === 'updating'}><CartIcon /> {editing ? t('item.edit.save', undefined, locale) : t('item.addToCart', undefined, locale)}</button>
               </div>
               {attempted && issues.length > 0 && <p className="it-group__error" role="alert">{t('item.addToCart.fix', undefined, locale)}</p>}
+              {addError && <p className="it-group__error" role="alert" data-testid="item-add-error">{addError}</p>}
               {toast && (
                 <p className="it-toast" role="status">
                   <CheckIcon /> {t('item.added', undefined, locale)} <Link to="/cart">{t('item.added.view', undefined, locale)}</Link>

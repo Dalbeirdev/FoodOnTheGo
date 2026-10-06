@@ -7,6 +7,7 @@ use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnforceIdempotency;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\OptionalCustomer;
+use App\Http\Middleware\ResolveCartOwner;
 use App\Http\Middleware\ResolveJourney;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'idempotent' => EnforceIdempotency::class,
             'customer.optional' => OptionalCustomer::class,
             'journey' => ResolveJourney::class,
+            'cart.owner' => ResolveCartOwner::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -20,20 +20,33 @@ use Throwable;
  * - same key while the first request is still running: 409 idempotency_in_progress.
  *
  * Server errors (5xx) are not stored, so the client may retry with the same key.
+ *
+ * `idempotent:<operation>,optional` (cart changes, Module 27): the header is honoured when it is sent and not
+ * demanded when it is not. Routes open to guests name the actor themselves in the request attribute
+ * "idempotency_actor" (the cart owner); a request nobody can be held to (no session, no cart token) is passed
+ * through — there is nothing a key could be scoped to.
  */
 class EnforceIdempotency
 {
     public const HEADER = 'Idempotency-Key';
 
-    public function handle(Request $request, Closure $next, string $operation): Response
+    public function handle(Request $request, Closure $next, string $operation, string $mode = 'required'): Response
     {
         $key = (string) $request->headers->get(self::HEADER, '');
+        $named = $request->attributes->get('idempotency_actor');
 
+        if ($mode === 'optional' && ($key === '' || $named === 'nobody')) {
+            return $next($request);
+        }
         if (preg_match('/^[A-Za-z0-9._:-]{16,120}$/', $key) !== 1) {
             throw new ApiException(400, 'idempotency_key_required', 'A valid Idempotency-Key header is required for this operation.');
         }
 
-        $actor = $request->user() !== null ? 'user:'.$request->user()->getKey() : 'ip:'.$request->ip();
+        $actor = match (true) {
+            is_string($named) && $named !== '' => $named,
+            $request->user() !== null => 'user:'.$request->user()->getKey(),
+            default => 'ip:'.$request->ip(),
+        };
         $hash = hash('sha256', $request->method().'|'.$request->path().'|'.$request->getContent());
 
         [$record, $created] = $this->claim($actor, $operation, $key, $hash);
