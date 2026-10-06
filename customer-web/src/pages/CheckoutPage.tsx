@@ -56,8 +56,10 @@ export default function CheckoutPage() {
   const { prepare } = co
 
   useEffect(() => { document.title = `${t('checkout.title', undefined, locale)} · FoodOnTheGo` }, [locale])
-  // Prepare whenever the inputs that matter change (cart lines, pickup selection, auth, connectivity).
-  useEffect(() => { if (cart.hydrated) void prepare() }, [prepare, cart.hydrated, cartKey, pickup.selection?.requestedAt, auth.isAuthenticated, co.online]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Prepare whenever the inputs that matter change (cart lines, pickup selection, auth, connectivity) — and not before
+  // the stored pickup choice is known: after a page load it arrives from the backend one request after the cart, and
+  // "none yet" must not be taken for "none" (the customer would be sent back to choose a time they already chose).
+  useEffect(() => { if (cart.hydrated && pickup.ready) void prepare() }, [prepare, cart.hydrated, pickup.ready, cartKey, pickup.selection?.requestedAt, auth.isAuthenticated, co.online]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const r = co.restaurant
   const tz = pickup.selection?.restaurantTimezone ?? r?.timezone ?? 'UTC'
@@ -73,7 +75,7 @@ export default function CheckoutPage() {
   const email = profile?.email ?? auth.user?.email ?? ''
 
   if (cart.hydrated && (!c || c.items.length === 0)) return <Navigate to="/cart" replace />
-  if (cart.hydrated && !sel && co.status !== 'INITIALIZING') return <Navigate to="/pickup-time" replace state={{ from: location.pathname }} />
+  if (cart.hydrated && pickup.ready && !sel && co.status !== 'INITIALIZING') return <Navigate to="/pickup-time" replace state={{ from: location.pathname }} />
 
   const proceed = async () => {
     setShowIssues(true)

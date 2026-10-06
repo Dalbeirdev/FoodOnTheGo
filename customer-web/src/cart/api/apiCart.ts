@@ -153,6 +153,14 @@ export function selectionsOf(options: SelectedOption[]): CartItemRequest['select
 
 const RETRY_AFTER_MS = 700
 
+/**
+ * Who a cart-scoped request is made as (Module 28: pickup times belong to the cart): the guest cart token as a header,
+ * or the customer's session — exactly as the cart's own requests are sent.
+ */
+export function cartRequestIdentity(): { headers: Record<string, string>; auth: boolean } { return { headers: guestHeaders(), auth: signedIn() } }
+/** A fresh idempotency key for one cart-scoped operation. */
+export const newCartRequestKey = (operation: string) => newKey(operation)
+
 export class ApiCartGateway {
   /** The caller's cart. A guest without a token receives one and keeps it. */
   async load(signal?: AbortSignal): Promise<Cart | null> {

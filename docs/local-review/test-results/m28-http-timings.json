@@ -1,0 +1,26 @@
+{
+  "module": "M28",
+  "date": "2026-10-06T11:54:57.712Z",
+  "note": "Local machine: php artisan serve (single process, no OPcache) behind the Node proxy, PostgreSQL 18, Redis. End-to-end HTTP time as seen by a client; measurements, not targets. No availability cache exists: every answer is calculated.",
+  "cart": "1 line at Burger Hub; about 60 slots over a 24-hour horizon",
+  "timings_ms": {
+    "availability": {
+      "median_ms": 493,
+      "min_ms": 448,
+      "max_ms": 874,
+      "runs": 9
+    },
+    "selection_read": {
+      "median_ms": 436,
+      "min_ms": 396,
+      "max_ms": 540,
+      "runs": 9
+    },
+    "select": {
+      "median_ms": 451,
+      "min_ms": 423,
+      "max_ms": 553,
+      "runs": 7
+    }
+  }
+}

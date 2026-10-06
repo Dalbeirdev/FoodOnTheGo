@@ -9823,6 +9823,426 @@
           }
         }
       }
+    },
+    "/cart/pickup-availability": {
+      "get": {
+        "summary": "Pickup options for the caller's cart: ASAP, the scheduled slots, the backend's recommendation and the current selection. Calculated on the SERVER clock in the RESTAURANT's time zone from its opening hours (special hours, several periods a day, overnight), its pickup settings (preparation, lead time, buffer, interval, horizon, cut-off, capacity), the cart (preparation estimate) and — when the cart has a living journey — the traveller's estimated arrival. The restaurant is the cart's; no restaurant, customer or time can be sent. 200 also when nothing can be chosen (can_select false, issues). 404 cart_not_found; 409 cart_empty; 422 pickup_method_unavailable.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "name": "method",
+            "in": "query",
+            "required": false,
+            "description": "Pickup method to answer for (default: the restaurant's first offered method)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "COUNTER",
+                "CURBSIDE",
+                "DRIVE_THROUGH"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupAvailabilityEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupAvailabilityEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cart/pickup-selection": {
+      "get": {
+        "summary": "The pickup time chosen for the caller's cart, validated again against the cart, the restaurant and the clock — or selection: null. A selection is a choice, not a reservation.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupSelectionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupSelectionEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Choose ASAP or a scheduled slot (by its slot_key). Choosing again replaces the earlier choice: one selection per cart. The backend decides again whether the option is valid now; the choice holds no capacity (reserved is always false) and is validated again at checkout. Errors: 404 cart_not_found; 409 cart_empty, cart_invalid, cart_version_conflict, pickup_disabled, restaurant_unavailable, market_unavailable, restaurant_not_accepting, asap_unavailable (details.reason), slot_full, slot_expired; 410 cart_expired; 422 pickup_mode_unavailable, pickup_method_unavailable, slot_invalid (details.reason), slot_outside_horizon, validation_failed.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PickupSelectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PickupSelectionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupSelectionEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Forget the choice. Safe to repeat.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CartToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupSelectionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupSelectionEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/locations/{location}/pickup-preview": {
+      "get": {
+        "summary": "What customers are offered right now with the saved pickup settings and opening hours (restaurant.profile.view): the customer pickup engine itself, run for an order that needs the default preparation time, summarised per restaurant-local day — plus warnings about a configuration that offers customers nothing. Read-only.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupPreviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupPreviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/pickup": {
+      "get": {
+        "summary": "Pickup availability numbers for platform administrators (admin.system.view): how often availability was asked for, how often nothing could be offered, how often ASAP was possible, selections by state, and event counters of the last 24 hours. Counts only. A restaurant's pickup settings cannot be changed from the admin API.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupMetrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -24940,6 +25360,1494 @@
           }
         },
         "description": "Counts only: there is no endpoint that returns a customer's cart to anybody but its owner."
+      },
+      "PickupIssue": {
+        "type": "object",
+        "required": [
+          "code",
+          "severity",
+          "message",
+          "details"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "PICKUP_DISABLED",
+              "RESTAURANT_UNAVAILABLE",
+              "MARKET_UNAVAILABLE",
+              "RESTAURANT_NOT_ACCEPTING",
+              "RESTAURANT_CLOSED",
+              "CLOSES_TOO_SOON",
+              "ASAP_UNAVAILABLE",
+              "ASAP_DISABLED",
+              "SCHEDULED_DISABLED",
+              "NO_PICKUP_SLOTS",
+              "FULLY_BOOKED",
+              "SLOT_FULL",
+              "SLOT_EXPIRED",
+              "SLOT_INVALID",
+              "SLOT_TOO_EARLY",
+              "SLOT_OUTSIDE_HORIZON",
+              "PICKUP_METHOD_UNAVAILABLE",
+              "CART_INVALID",
+              "CART_CHANGED",
+              "CART_EXPIRED",
+              "JOURNEY_STALE"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "INFO"
+            ],
+            "description": "BLOCKING: nothing can be chosen (availability) / the selection cannot be used. INFO: context"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "description": "Machine-readable context, e.g. opens_next_at, resumes_at, cause, cart_validation"
+          }
+        }
+      },
+      "PickupSlot": {
+        "type": "object",
+        "required": [
+          "slot_key",
+          "starts_at",
+          "ends_at",
+          "local_starts_at",
+          "local_date",
+          "available",
+          "capacity_state",
+          "recommended",
+          "reason",
+          "arrival_vs_pickup_delta_seconds"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "slot_key": {
+            "type": "string",
+            "pattern": "^ps1_[0-9a-z]{1,12}_[0-9]{1,3}_[0-9a-f]{12}$",
+            "description": "Names a slot of this restaurant. Hand it back unchanged to choose the slot; it proves nothing about availability."
+          },
+          "starts_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "ends_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "local_starts_at": {
+            "type": "string",
+            "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+          },
+          "local_date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "Restaurant-local calendar date"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "capacity_state": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "LIMITED",
+              "FULL"
+            ],
+            "description": "Never a count: how many orders a slot takes is not shown to customers"
+          },
+          "recommended": {
+            "type": "boolean",
+            "description": "true on at most one slot: the backend's recommendation"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "PICKUP_DISABLED",
+              "RESTAURANT_UNAVAILABLE",
+              "MARKET_UNAVAILABLE",
+              "RESTAURANT_NOT_ACCEPTING",
+              "RESTAURANT_CLOSED",
+              "CLOSES_TOO_SOON",
+              "ASAP_UNAVAILABLE",
+              "ASAP_DISABLED",
+              "SCHEDULED_DISABLED",
+              "NO_PICKUP_SLOTS",
+              "FULLY_BOOKED",
+              "SLOT_FULL",
+              "SLOT_EXPIRED",
+              "SLOT_INVALID",
+              "SLOT_TOO_EARLY",
+              "SLOT_OUTSIDE_HORIZON",
+              "PICKUP_METHOD_UNAVAILABLE",
+              "CART_INVALID",
+              "CART_CHANGED",
+              "CART_EXPIRED",
+              "JOURNEY_STALE",
+              null
+            ],
+            "description": "Why an offered slot cannot be chosen (SLOT_FULL)"
+          },
+          "arrival_vs_pickup_delta_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Seconds from the traveller's estimated arrival to this pickup time: positive = the traveller is there first, negative = the order may be ready before they arrive. null without a usable journey."
+          }
+        },
+        "description": "One scheduled pickup slot [starts_at, ends_at). An option that was valid when the answer was calculated — not a reservation."
+      },
+      "PickupSelection": {
+        "type": "object",
+        "required": [
+          "id",
+          "mode",
+          "method",
+          "pickup_at",
+          "local_pickup_at",
+          "local_date",
+          "slot_key",
+          "slot_ends_at",
+          "timezone",
+          "cart_version",
+          "status",
+          "valid",
+          "reserved",
+          "issues",
+          "estimated_prep_minutes",
+          "traveler_arrival_at",
+          "arrival_vs_pickup_delta_seconds",
+          "selected_at",
+          "validated_at",
+          "expires_at",
+          "revalidate_after",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ASAP",
+              "SCHEDULED"
+            ],
+            "description": "Always explicit. ASAP = the earliest currently valid pickup time, not \"immediately\""
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH"
+            ]
+          },
+          "pickup_at": {
+            "type": "string",
+            "description": "SCHEDULED: the start of the chosen slot. ASAP: the earliest pickup as estimated now — it moves with the clock"
+          },
+          "local_pickup_at": {
+            "type": "string",
+            "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+          },
+          "local_date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+            "description": "Restaurant-local calendar date"
+          },
+          "slot_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^ps1_[0-9a-z]{1,12}_[0-9]{1,3}_[0-9a-f]{12}$"
+          },
+          "slot_ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA zone of the restaurant"
+          },
+          "cart_version": {
+            "type": "integer",
+            "description": "The cart version the choice was last validated against"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SELECTED",
+              "STALE",
+              "INVALID",
+              "EXPIRED"
+            ],
+            "description": "SELECTED: valid now. STALE: the cart changed and the time no longer fits (or the cart needs attention). INVALID: the restaurant, its hours / settings, the method or the slot's capacity no longer allow it. EXPIRED: the time passed or can no longer be met, or the cart expired"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "reserved": {
+            "type": "boolean",
+            "enum": [
+              false
+            ],
+            "description": "Always false: a selection is a choice. Nothing is held until checkout and order creation reserve the time"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickupIssue"
+            }
+          },
+          "estimated_prep_minutes": {
+            "type": "integer"
+          },
+          "traveler_arrival_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "arrival_vs_pickup_delta_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Seconds from the traveller's estimated arrival to this pickup time: positive = the traveller is there first, negative = the order may be ready before they arrive. null without a usable journey."
+          },
+          "selected_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "validated_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "With the cart at the latest; a scheduled choice also ends when its time comes"
+          },
+          "revalidate_after": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "description": "The pickup time chosen for the caller's cart, validated again on every read."
+      },
+      "PickupAvailability": {
+        "type": "object",
+        "required": [
+          "restaurant",
+          "timezone",
+          "cart_version",
+          "pickup_enabled",
+          "can_select",
+          "methods",
+          "method",
+          "preparation",
+          "earliest_pickup_at",
+          "asap",
+          "scheduled",
+          "slots",
+          "recommended",
+          "journey",
+          "selection",
+          "issues",
+          "generated_at",
+          "revalidate_after"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              }
+            },
+            "description": "Always the cart's restaurant"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA zone every calculation was made in — the restaurant's, never the server's or the device's"
+          },
+          "cart_version": {
+            "type": "integer"
+          },
+          "pickup_enabled": {
+            "type": "boolean"
+          },
+          "can_select": {
+            "type": "boolean",
+            "description": "false: nothing can be chosen right now — `issues` says why"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "method",
+                "instructions",
+                "requires_vehicle_info"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "COUNTER",
+                    "CURBSIDE",
+                    "DRIVE_THROUGH"
+                  ]
+                },
+                "instructions": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "requires_vehicle_info": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "The pickup methods this restaurant offers (enabled by it and allowed in its market)"
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH",
+              null
+            ],
+            "description": "The method this answer is for"
+          },
+          "preparation": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "estimated_minutes",
+              "buffer_minutes",
+              "minimum_lead_minutes",
+              "ready_in_minutes",
+              "is_estimate"
+            ],
+            "properties": {
+              "estimated_minutes": {
+                "type": "integer"
+              },
+              "buffer_minutes": {
+                "type": "integer"
+              },
+              "minimum_lead_minutes": {
+                "type": "integer"
+              },
+              "ready_in_minutes": {
+                "type": "integer",
+                "description": "max(estimated + buffer, minimum lead)"
+              },
+              "is_estimate": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              }
+            },
+            "description": "An estimate made before the order exists — never a promise"
+          },
+          "earliest_pickup_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "asap": {
+            "type": "object",
+            "required": [
+              "enabled",
+              "available",
+              "pickup_at",
+              "local_pickup_at",
+              "estimated_ready_in_minutes",
+              "recommended",
+              "reason",
+              "arrival_vs_pickup_delta_seconds"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Offered by the restaurant and its market"
+              },
+              "available": {
+                "type": "boolean",
+                "description": "Possible right now"
+              },
+              "pickup_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "local_pickup_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+              },
+              "estimated_ready_in_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "recommended": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "PICKUP_DISABLED",
+                  "RESTAURANT_UNAVAILABLE",
+                  "MARKET_UNAVAILABLE",
+                  "RESTAURANT_NOT_ACCEPTING",
+                  "RESTAURANT_CLOSED",
+                  "CLOSES_TOO_SOON",
+                  "ASAP_UNAVAILABLE",
+                  "ASAP_DISABLED",
+                  "SCHEDULED_DISABLED",
+                  "NO_PICKUP_SLOTS",
+                  "FULLY_BOOKED",
+                  "SLOT_FULL",
+                  "SLOT_EXPIRED",
+                  "SLOT_INVALID",
+                  "SLOT_TOO_EARLY",
+                  "SLOT_OUTSIDE_HORIZON",
+                  "PICKUP_METHOD_UNAVAILABLE",
+                  "CART_INVALID",
+                  "CART_CHANGED",
+                  "CART_EXPIRED",
+                  "JOURNEY_STALE",
+                  null
+                ],
+                "description": "Why ASAP is not possible: ASAP_DISABLED, RESTAURANT_CLOSED, CLOSES_TOO_SOON, FULLY_BOOKED"
+              },
+              "arrival_vs_pickup_delta_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Seconds from the traveller's estimated arrival to this pickup time: positive = the traveller is there first, negative = the order may be ready before they arrive. null without a usable journey."
+              }
+            }
+          },
+          "scheduled": {
+            "type": "object",
+            "required": [
+              "enabled",
+              "interval_minutes",
+              "horizon_minutes",
+              "horizon_ends_at",
+              "slot_count",
+              "available_slot_count",
+              "truncated"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "interval_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "horizon_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "horizon_ends_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "slot_count": {
+                "type": "integer"
+              },
+              "available_slot_count": {
+                "type": "integer"
+              },
+              "truncated": {
+                "type": "boolean",
+                "description": "true: the answer was cut at the platform's maximum number of slots"
+              }
+            }
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickupSlot"
+            },
+            "description": "In order; group by local_date. Full slots are listed as unavailable; times that are too early, past or beyond the horizon are not listed"
+          },
+          "recommended": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "mode",
+              "slot_key",
+              "pickup_at",
+              "local_pickup_at",
+              "basis",
+              "arrival_vs_pickup_delta_seconds"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "ASAP",
+                  "SCHEDULED"
+                ]
+              },
+              "slot_key": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^ps1_[0-9a-z]{1,12}_[0-9]{1,3}_[0-9a-f]{12}$"
+              },
+              "pickup_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "local_pickup_at": {
+                "type": "string",
+                "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+              },
+              "basis": {
+                "type": "string",
+                "enum": [
+                  "ARRIVAL",
+                  "KITCHEN"
+                ],
+                "description": "ARRIVAL: chosen for when the traveller is expected. KITCHEN: the earliest the order can be ready"
+              },
+              "arrival_vs_pickup_delta_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Seconds from the traveller's estimated arrival to this pickup time: positive = the traveller is there first, negative = the order may be ready before they arrive. null without a usable journey."
+              }
+            },
+            "description": "The first valid option at or after max(kitchen ready, traveller's arrival + buffer). The customer may choose any other valid option"
+          },
+          "journey": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "traveler_arrival_at",
+              "local_traveler_arrival_at",
+              "requires_refresh",
+              "estimate_source",
+              "arrival_buffer_minutes"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "STALE",
+                  "NO_ESTIMATE"
+                ]
+              },
+              "traveler_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "local_traveler_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+              },
+              "requires_refresh": {
+                "type": "boolean"
+              },
+              "estimate_source": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "development",
+                  "live",
+                  null
+                ]
+              },
+              "arrival_buffer_minutes": {
+                "type": "integer"
+              }
+            },
+            "description": "The traveller's estimated arrival at the restaurant, from the cart's journey. Times only — no place, no coordinates, no route. null without a journey"
+          },
+          "selection": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "mode",
+              "method",
+              "pickup_at",
+              "local_pickup_at",
+              "local_date",
+              "slot_key",
+              "slot_ends_at",
+              "timezone",
+              "cart_version",
+              "status",
+              "valid",
+              "reserved",
+              "issues",
+              "estimated_prep_minutes",
+              "traveler_arrival_at",
+              "arrival_vs_pickup_delta_seconds",
+              "selected_at",
+              "validated_at",
+              "expires_at",
+              "revalidate_after",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "ASAP",
+                  "SCHEDULED"
+                ],
+                "description": "Always explicit. ASAP = the earliest currently valid pickup time, not \"immediately\""
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "COUNTER",
+                  "CURBSIDE",
+                  "DRIVE_THROUGH"
+                ]
+              },
+              "pickup_at": {
+                "type": "string",
+                "description": "SCHEDULED: the start of the chosen slot. ASAP: the earliest pickup as estimated now — it moves with the clock"
+              },
+              "local_pickup_at": {
+                "type": "string",
+                "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+              },
+              "local_date": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "description": "Restaurant-local calendar date"
+              },
+              "slot_key": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^ps1_[0-9a-z]{1,12}_[0-9]{1,3}_[0-9a-f]{12}$"
+              },
+              "slot_ends_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA zone of the restaurant"
+              },
+              "cart_version": {
+                "type": "integer",
+                "description": "The cart version the choice was last validated against"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "SELECTED",
+                  "STALE",
+                  "INVALID",
+                  "EXPIRED"
+                ],
+                "description": "SELECTED: valid now. STALE: the cart changed and the time no longer fits (or the cart needs attention). INVALID: the restaurant, its hours / settings, the method or the slot's capacity no longer allow it. EXPIRED: the time passed or can no longer be met, or the cart expired"
+              },
+              "valid": {
+                "type": "boolean"
+              },
+              "reserved": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ],
+                "description": "Always false: a selection is a choice. Nothing is held until checkout and order creation reserve the time"
+              },
+              "issues": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PickupIssue"
+                }
+              },
+              "estimated_prep_minutes": {
+                "type": "integer"
+              },
+              "traveler_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "arrival_vs_pickup_delta_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Seconds from the traveller's estimated arrival to this pickup time: positive = the traveller is there first, negative = the order may be ready before they arrive. null without a usable journey."
+              },
+              "selected_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "validated_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "expires_at": {
+                "type": "string",
+                "description": "With the cart at the latest; a scheduled choice also ends when its time comes"
+              },
+              "revalidate_after": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "description": "The pickup time chosen for the caller's cart, validated again on every read."
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickupIssue"
+            }
+          },
+          "generated_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "revalidate_after": {
+            "type": "string",
+            "description": "Ask again after this instant: an answer is a snapshot of the clock, of capacity and of the restaurant"
+          }
+        },
+        "description": "What can be chosen right now for the caller's cart. Calculated on the server clock; nothing here is a reservation."
+      },
+      "PickupAvailabilityEnvelope": {
+        "type": "object",
+        "required": [
+          "pickup"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "pickup": {
+            "$ref": "#/components/schemas/PickupAvailability"
+          }
+        }
+      },
+      "PickupSelectionEnvelope": {
+        "type": "object",
+        "required": [
+          "selection"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "selection": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "mode",
+              "method",
+              "pickup_at",
+              "local_pickup_at",
+              "local_date",
+              "slot_key",
+              "slot_ends_at",
+              "timezone",
+              "cart_version",
+              "status",
+              "valid",
+              "reserved",
+              "issues",
+              "estimated_prep_minutes",
+              "traveler_arrival_at",
+              "arrival_vs_pickup_delta_seconds",
+              "selected_at",
+              "validated_at",
+              "expires_at",
+              "revalidate_after",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "ASAP",
+                  "SCHEDULED"
+                ],
+                "description": "Always explicit. ASAP = the earliest currently valid pickup time, not \"immediately\""
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "COUNTER",
+                  "CURBSIDE",
+                  "DRIVE_THROUGH"
+                ]
+              },
+              "pickup_at": {
+                "type": "string",
+                "description": "SCHEDULED: the start of the chosen slot. ASAP: the earliest pickup as estimated now — it moves with the clock"
+              },
+              "local_pickup_at": {
+                "type": "string",
+                "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+              },
+              "local_date": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "description": "Restaurant-local calendar date"
+              },
+              "slot_key": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^ps1_[0-9a-z]{1,12}_[0-9]{1,3}_[0-9a-f]{12}$"
+              },
+              "slot_ends_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA zone of the restaurant"
+              },
+              "cart_version": {
+                "type": "integer",
+                "description": "The cart version the choice was last validated against"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "SELECTED",
+                  "STALE",
+                  "INVALID",
+                  "EXPIRED"
+                ],
+                "description": "SELECTED: valid now. STALE: the cart changed and the time no longer fits (or the cart needs attention). INVALID: the restaurant, its hours / settings, the method or the slot's capacity no longer allow it. EXPIRED: the time passed or can no longer be met, or the cart expired"
+              },
+              "valid": {
+                "type": "boolean"
+              },
+              "reserved": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ],
+                "description": "Always false: a selection is a choice. Nothing is held until checkout and order creation reserve the time"
+              },
+              "issues": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PickupIssue"
+                }
+              },
+              "estimated_prep_minutes": {
+                "type": "integer"
+              },
+              "traveler_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "arrival_vs_pickup_delta_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "Seconds from the traveller's estimated arrival to this pickup time: positive = the traveller is there first, negative = the order may be ready before they arrive. null without a usable journey."
+              },
+              "selected_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "validated_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "expires_at": {
+                "type": "string",
+                "description": "With the cart at the latest; a scheduled choice also ends when its time comes"
+              },
+              "revalidate_after": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "version": {
+                "type": "integer"
+              }
+            },
+            "description": "The pickup time chosen for the caller's cart, validated again on every read."
+          }
+        }
+      },
+      "PickupSelectRequest": {
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ASAP",
+              "SCHEDULED"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH",
+              null
+            ],
+            "description": "Default: the restaurant's first offered method"
+          },
+          "slot_key": {
+            "type": "string",
+            "pattern": "^ps1_[0-9a-z]{1,12}_[0-9]{1,3}_[0-9a-f]{12}$",
+            "description": "Required for SCHEDULED, not allowed for ASAP"
+          },
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Optional: refuse the choice (409) when the cart changed meanwhile"
+          }
+        },
+        "description": "A mode, a pickup method and — for a scheduled time — the key of an offered slot. A time, a restaurant, a customer, a capacity, a status or a validity flag is refused (422): those are the server's."
+      },
+      "PickupPreview": {
+        "type": "object",
+        "required": [
+          "timezone",
+          "generated_at",
+          "pickup_enabled",
+          "customers_can_order",
+          "preparation",
+          "earliest_pickup_at",
+          "asap",
+          "scheduled",
+          "capacity_per_slot",
+          "capacity_unit",
+          "issues",
+          "warnings"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "timezone": {
+            "type": "string"
+          },
+          "generated_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "pickup_enabled": {
+            "type": "boolean"
+          },
+          "customers_can_order": {
+            "type": "boolean"
+          },
+          "preparation": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "estimated_minutes",
+              "buffer_minutes",
+              "minimum_lead_minutes",
+              "ready_in_minutes",
+              "is_estimate",
+              "default_minutes",
+              "slowest_item_minutes",
+              "quantity_extra_minutes",
+              "total_quantity"
+            ],
+            "properties": {
+              "estimated_minutes": {
+                "type": "integer"
+              },
+              "buffer_minutes": {
+                "type": "integer"
+              },
+              "minimum_lead_minutes": {
+                "type": "integer"
+              },
+              "ready_in_minutes": {
+                "type": "integer"
+              },
+              "is_estimate": {
+                "type": "boolean"
+              },
+              "default_minutes": {
+                "type": "integer"
+              },
+              "slowest_item_minutes": {
+                "type": "integer"
+              },
+              "quantity_extra_minutes": {
+                "type": "integer"
+              },
+              "total_quantity": {
+                "type": "integer"
+              }
+            }
+          },
+          "earliest_pickup_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "asap": {
+            "type": "object",
+            "required": [
+              "enabled",
+              "available",
+              "pickup_at",
+              "estimated_ready_in_minutes",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "available": {
+                "type": "boolean"
+              },
+              "pickup_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "estimated_ready_in_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "PICKUP_DISABLED",
+                  "RESTAURANT_UNAVAILABLE",
+                  "MARKET_UNAVAILABLE",
+                  "RESTAURANT_NOT_ACCEPTING",
+                  "RESTAURANT_CLOSED",
+                  "CLOSES_TOO_SOON",
+                  "ASAP_UNAVAILABLE",
+                  "ASAP_DISABLED",
+                  "SCHEDULED_DISABLED",
+                  "NO_PICKUP_SLOTS",
+                  "FULLY_BOOKED",
+                  "SLOT_FULL",
+                  "SLOT_EXPIRED",
+                  "SLOT_INVALID",
+                  "SLOT_TOO_EARLY",
+                  "SLOT_OUTSIDE_HORIZON",
+                  "PICKUP_METHOD_UNAVAILABLE",
+                  "CART_INVALID",
+                  "CART_CHANGED",
+                  "CART_EXPIRED",
+                  "JOURNEY_STALE",
+                  null
+                ]
+              }
+            }
+          },
+          "scheduled": {
+            "type": "object",
+            "required": [
+              "enabled",
+              "interval_minutes",
+              "horizon_minutes",
+              "slot_count",
+              "available_slot_count",
+              "truncated",
+              "days"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "interval_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "horizon_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "slot_count": {
+                "type": "integer"
+              },
+              "available_slot_count": {
+                "type": "integer"
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "days": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "local_date",
+                    "slots",
+                    "available",
+                    "first_slot_at",
+                    "last_slot_at"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "local_date": {
+                      "type": "string",
+                      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                      "description": "Restaurant-local calendar date"
+                    },
+                    "slots": {
+                      "type": "integer"
+                    },
+                    "available": {
+                      "type": "integer"
+                    },
+                    "first_slot_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "ISO 8601, UTC"
+                    },
+                    "last_slot_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "ISO 8601, UTC"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "capacity_per_slot": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "capacity_unit": {
+            "type": "string",
+            "enum": [
+              "ORDERS"
+            ]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickupIssue"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "NO_OPENING_HOURS",
+                    "CUTOFF_LONGER_THAN_OPENING",
+                    "ASAP_NEVER_POSSIBLE",
+                    "ALL_SLOTS_FULL",
+                    "NO_PICKUP_TIMES"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "A configuration that offers customers little or nothing"
+          }
+        },
+        "description": "What customers are offered right now with the saved settings and opening hours — the customer engine itself, for an order that needs the default preparation time."
+      },
+      "PickupPreviewEnvelope": {
+        "type": "object",
+        "required": [
+          "preview"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "preview": {
+            "$ref": "#/components/schemas/PickupPreview"
+          }
+        }
+      },
+      "PickupMetrics": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "selections",
+          "window_hours",
+          "events",
+          "rates",
+          "upcoming_capacity_units",
+          "slot_hold"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "selections": {
+            "type": "object",
+            "required": [
+              "selected",
+              "selected_asap",
+              "selected_scheduled",
+              "stale",
+              "invalid",
+              "expired",
+              "converted"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "selected": {
+                "type": "integer"
+              },
+              "selected_asap": {
+                "type": "integer"
+              },
+              "selected_scheduled": {
+                "type": "integer"
+              },
+              "stale": {
+                "type": "integer"
+              },
+              "invalid": {
+                "type": "integer"
+              },
+              "expired": {
+                "type": "integer"
+              },
+              "converted": {
+                "type": "integer"
+              }
+            }
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "events": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "How often each pickup event happened in the window"
+          },
+          "rates": {
+            "type": "object",
+            "required": [
+              "no_slots",
+              "asap_available",
+              "journey_aware"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "no_slots": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "asap_available": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "journey_aware": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "upcoming_capacity_units": {
+            "type": "object",
+            "required": [
+              "fixture",
+              "hold",
+              "order"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "fixture": {
+                "type": "integer"
+              },
+              "hold": {
+                "type": "integer"
+              },
+              "order": {
+                "type": "integer"
+              }
+            }
+          },
+          "slot_hold": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ],
+            "description": "Choosing a time holds no capacity; the hold belongs to checkout / orders"
+          }
+        },
+        "description": "Counts only: no cart, no customer, no chosen time, no journey."
       }
     }
   }

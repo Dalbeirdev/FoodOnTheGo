@@ -218,6 +218,22 @@ class CartBackend {
     }
   }
 
+  /// A cart-scoped request made as the cart's owner (Module 28: pickup times belong to the cart): the guest cart
+  /// token as a header or the customer's session, exactly as the cart's own requests go out — and, when an
+  /// [operation] is named, one more attempt with the SAME idempotency key after a lost connection. Errors are the
+  /// client's [ApiException]s; the caller gives them its own words.
+  Future<Object?> request(String method, String path, {Object? body, String? operation, Map<String, String?> query = const {}}) async {
+    final key = operation == null ? null : _key(operation);
+    Future<Object?> call() async => client.send(method, path, body: body, query: query, idempotencyKey: key, auth: await _customer(), extraHeaders: await _guestHeaders());
+    try {
+      return await call();
+    } on ApiException catch (e) {
+      if (e.kind != ApiErrorKind.network || key == null) rethrow;
+      await Future<void>.delayed(retryAfter);
+      return await call();
+    }
+  }
+
   /// The caller's cart. A guest without a token receives one and keeps it.
   Future<Cart?> load() async => (await _send('GET', '/cart')).cart;
 

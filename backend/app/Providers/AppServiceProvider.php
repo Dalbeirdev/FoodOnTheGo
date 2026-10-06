@@ -28,6 +28,8 @@ use App\Models\RouteCorridor;
 use App\Models\ServiceArea;
 use App\Services\Journey\Providers\ProviderManager;
 use App\Services\Market\MarketContext;
+use App\Services\Pickup\DatabasePickupCapacityRepository;
+use App\Services\Pickup\PickupCapacityRepository;
 use App\Services\Restaurant\RestaurantCatalog;
 use App\Services\Sms\SmsManager;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -54,6 +56,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProviderManager::class);
         $this->app->bind(PlacesProvider::class, fn () => $this->app->make(ProviderManager::class)->places());
         $this->app->bind(RoutingProvider::class, fn () => $this->app->make(ProviderManager::class)->routing());
+
+        // Pickup capacity (Module 28): PostgreSQL is the truth about how much of a slot is used.
+        $this->app->bind(PickupCapacityRepository::class, DatabasePickupCapacityRepository::class);
     }
 
     public function boot(): void

@@ -584,7 +584,7 @@ that were made are audited — a refused attempt is not an audit event.
 
 ## 10. Not built yet
 
-Pickup slots, checkout, taxes / fees / promotions, payments, orders, tracking, reviews, object
+Checkout, taxes / fees / promotions, the pickup slot hold and final reservation, payments, orders, tracking, reviews, object
 storage for images (menu photos and profile photos live on the local `public` disk), verification documents, restaurant self-service
 onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; customer e-mail verification, the
 account erasure process (a deletion request only restricts the account — legal rules pending), data export,
@@ -833,3 +833,37 @@ tables, concurrency / idempotency, the sign-in merge policy, the journey link an
   not a device test).
 - Fixture: Asha Verma (+91 98765 43212) has a cart at Pizza Point (`LocalCartFixtureSeeder`); the review account
   (Rahul) starts with none.
+
+## 16. Pickup availability: ASAP, scheduled slots, preparation time, capacity, arrival-aware pickup (Module 28)
+
+The vocabulary, the architecture diagram, the preparation algorithm, the slot rules, capacity, the journey
+recommendation, time zones, the selection and its revalidation table, the API and error tables and the database
+rules are in [`pickup-domain.md`](pickup-domain.md). Everything below is local-only; nothing has touched production.
+
+- **SELECTED ≠ RESERVED.** Choosing a pickup time holds no capacity; every answer says `reserved: false`. The
+  atomic reservation (`PickupCapacityRepository::reserve`, advisory lock per location and slot) exists and is
+  tested, but no customer flow calls it: PICKUP SLOT HOLD = MODULE 29 / 31.
+- `PickupAvailabilityService` is the single authority: restaurant state (approval, market / area, pickup enabled,
+  accepting orders / pause), cart validity, `PreparationTimeService`, ASAP, `PickupSlotGenerator`, capacity,
+  recommendation. Server clock, restaurant time zone; no client time, restaurant, capacity or validity is accepted.
+- Rule: ready in = `max(preparation estimate + buffer, minimum lead)`; estimate = `max(restaurant default, slowest
+  item) + step for a large order` — item times are never summed. ASAP = earliest valid pickup, not "immediately".
+- Slots: grid from local midnight in steps of the slot interval, inside opening hours (special hours, several
+  periods a day, overnight), from kitchen-ready to the horizon, never at or after closing minus the cut-off; a full
+  slot is listed as unavailable; at most 600 slots per answer.
+- Capacity unit = orders per slot; `pickup_slot_reservations` holds FIXTURE rows only until orders exist; customers
+  see AVAILABLE / LIMITED / FULL, never a count.
+- Journey: the cart's estimated arrival is used while fresh; recommendation = first valid option at or after
+  `max(kitchen ready, arrival + buffer)`; a stale journey is reported (`JOURNEY_STALE`) and not used.
+- Tables `cart_pickup_selections` (one per cart, cascade with the cart) and `pickup_slot_reservations` (migration
+  `2026_10_07_100000_create_pickup_tables`). No settings column was added: the engine reads Module 23's
+  `restaurant_pickup_settings`. Availability is computed, never stored.
+- Routes: 6 new operations (170 in total) — `GET /cart/pickup-availability`, `GET|POST|DELETE
+  /cart/pickup-selection`, `GET /restaurant/locations/{location}/pickup-preview`, `GET /admin/system/pickup` — all
+  in `openapi/openapi.json` (132 paths, 254 schemas) and checked by `PickupOpenApiContractTest`.
+- No cache: an answer costs the cart inspection plus one capacity query (26 queries whatever the cart, the slots or
+  the reservations). Redis: rate limits (the cart's) and event counters only.
+- Tests: `tests/Feature/Pickup` + `tests/Unit/Pickup`, all on a fixed clock — see
+  `docs/local-review/test-results/backend-m28-phpunit.txt` for the whole suite.
+- Fixture: Pizza Point has a capacity of 2 orders per slot with used slots today and tomorrow
+  (`LocalPickupFixtureSeeder`, FIXTURE records — not orders).

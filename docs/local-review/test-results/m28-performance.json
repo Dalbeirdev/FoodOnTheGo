@@ -1,0 +1,27 @@
+{
+    "module": "M28",
+    "note": "Local machine, PostgreSQL test database inside one transaction, PHP CLI without OPcache, in-process requests (no HTTP server, no network). Timings are measurements, not targets.",
+    "queries": {
+        "availability_1_line_51_slots": 26,
+        "availability_20_lines_400_reservations": 26,
+        "availability_week_600_slots": 26,
+        "select_slot": 27,
+        "read_selection": 26,
+        "availability_with_selection": 26,
+        "capacity_lookup": 1
+    },
+    "timings_ms": {
+        "availability_1_line_51_slots": 21.8,
+        "availability_20_lines_400_reservations": 59.7,
+        "availability_week_600_slots": 104.3,
+        "select_slot": 94.5,
+        "read_selection": 77.8,
+        "availability_with_selection": 87.4
+    },
+    "slots": {
+        "one_day_15_minutes": 51,
+        "one_week_5_minutes_bounded": 600,
+        "max_slots": 600
+    },
+    "cache": "none — every answer is calculated; Redis holds rate limits and event counters only"
+}

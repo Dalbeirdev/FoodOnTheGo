@@ -1,0 +1,7 @@
+# Module 28 — full backend test suite (php vendor/phpunit/phpunit/phpunit), LOCAL, 2026-10-06
+# Pickup suites: tests/Feature/Pickup (86 tests in 13 classes) + tests/Unit/Pickup (5) = 91. Every pickup test runs on a frozen server clock.
+# Earlier full run of the same day (before the client work; backend code unchanged since): 703 tests, 10,321 assertions, all passed. The run below is the final one.
+
+## final run
+{"tool":"phpunit","result":"passed","tests":703,"passed":703,"assertions":10321,"duration_ms":493723}
+exit 0

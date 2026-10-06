@@ -61,6 +61,7 @@
         "--dart-define=RESTAURANT_MODE=api",
         "--dart-define=JOURNEY_MODE=api",
         "--dart-define=CART_MODE=api",
+        "--dart-define=PICKUP_MODE=api",
         "--dart-define=DEV_OTP=123456",
         "--dart-define=BUILD_LABEL=web-preview"
       ],

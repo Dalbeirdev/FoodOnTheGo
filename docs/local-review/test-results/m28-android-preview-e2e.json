@@ -1,0 +1,115 @@
+{
+  "module": "M28",
+  "date": "2026-10-06T10:47:55.496Z",
+  "target": "Flutter web preview of the Android app (same Dart code as the APK), CART_MODE=api + PICKUP_MODE=api, real local backend",
+  "note": "Not a device test: USER DEVICE VERIFICATION = PENDING for the APK. In this preview the app's secure storage is the browser's storage, and \"background / resume\" is the browser's visibility change (the Android lifecycle itself is covered by a widget test and by the owner's device check). A pickup time is SELECTED, NOT RESERVED.",
+  "passed": 21,
+  "total": 21,
+  "results": [
+    {
+      "name": "P1 the Pickup screen asks the BACKEND for the times (GET /cart/pickup-availability): the guest cart token in a header, no query, no body; it shows the restaurant, the restaurant's time zone and the estimated preparation, and that there is no journey",
+      "pass": true,
+      "detail": "200 /cart/pickup-availability | Pickup time | Choose when you will collect your order. Times are shown in the restaurant’s local time. | Pickup at\nBurger Hub\nSector 62, Noida, Uttar Pradesh 201309, India\nRestaurant time: GMT+5:30 (Asia/Kolkata)\nEstimated preparation 12m · Earliest pickup ~4:"
+    },
+    {
+      "name": "P2 ASAP is the backend's time on the restaurant clock (the app worked nothing out): the screen shows it, marked Recommended as the backend says",
+      "pass": true,
+      "detail": "Pickup time | Choose when you will collect your order. Times are shown in the restaurant’s local time. | Pickup at\nBurger Hub\nSector 62, Noida, Uttar Pradesh 201309, India\nRestaurant time: GMT+5:30 (Asia/Kolkata)\nEstimated preparation 12m · Earliest pickup ~4:26 PM | Back to cart | No journey planned — pickup times are based on the restaurant schedule and the current time. | When would you like to"
+    },
+    {
+      "name": "P3 choosing ASAP sends a mode, the method and the cart version — no time — with the guest token in a header and an idempotency key; the backend stores it",
+      "pass": true,
+      "detail": "200 {\"mode\":\"ASAP\",\"method\":\"COUNTER\",\"cart_version\":1}"
+    },
+    {
+      "name": "P4 SELECTED IS NOT RESERVED: the answer says reserved: false, no capacity row was written, and the screen says \"selected, not reserved\" — never \"reserved\"",
+      "pass": true,
+      "detail": "Pickup date\nTue, Oct 6\nPickup time\nAs soon as possible · ~4:26 PM GMT+5:30\nEstimated ready\n~4:26 PM\nEstimated total · 1\n₹149.00 | Your pickup time is selected, not reserved. It is checked again when you place the order. | Change time | Added to your cart | View cart | ~4:26 PM | Continue to checkout"
+    },
+    {
+      "name": "P5 the slots on the screen are exactly the backend's slots of the restaurant-local day (28 today), each shown on the restaurant clock",
+      "pass": true,
+      "detail": "28 shown vs 28"
+    },
+    {
+      "name": "P6 tapping a slot sends its KEY (a mode, a key, the method, the cart version — never a timestamp); the backend answers with the slot it stored and the screen marks that slot as chosen",
+      "pass": true,
+      "detail": "200 {\"mode\":\"SCHEDULED\",\"slot_key\":\"ps1_tmhhz0_15_0a49797ee97f\",\"method\":\"COUNTER\",\"cart_version\":1}"
+    },
+    {
+      "name": "P7 RETRY WITHOUT A SECOND CHOICE: the answer to the tap is lost; the app asks once more with the SAME idempotency key and the backend answers the stored result — the choice was applied once",
+      "pass": true,
+      "detail": "[\"200 lost\",\"200\"] ps1_tmhjd0_15_2c092bb98d0f:3 v2"
+    },
+    {
+      "name": "P8 CAPACITY from the Restaurant Dashboard (2 orders per slot): the app shows the backend's state — the taken slot \"Full\" and not tappable, the one with its last place \"Limited\"; no number of places anywhere",
+      "pass": true,
+      "detail": "pk-slot-full-std-off-1791291600, pk-slot-limited-std-off-1791292500"
+    },
+    {
+      "name": "P9 a full slot sends nothing when tapped; A SLOT THAT FILLS UP WHILE THE CUSTOMER LOOKS is refused by the backend (409 slot_full) — the app says so in the backend's words, asks for the times again and shows the slot as Full; the earlier choice is untouched",
+      "pass": true,
+      "detail": "409 {\"error\":{\"code\":\"slot_full\",\"message\":\"That pickup time is no longer available. Please select another time.\",\"request_i notice true"
+    },
+    {
+      "name": "P10 THE RESTAURANT PAUSES ORDERS (dashboard): the app shows the backend's reason, offers no time, marks the stored choice as no longer valid and keeps Continue off",
+      "pass": true,
+      "detail": "{\"blocked\":true,\"says\":true,\"chooser\":false,\"continueEnabled\":false,\"slots\":0,\"ids\":[\"pk-journey-NONE\",\"pk-blocked-RESTAURANT_NOT_ACCEPTING\",\"pk-stale-RESTAURANT_NOT_ACCEPTING\",\"pk-summary-scheduled\",\"pk-not-reserved\",\"pk-continue-off\"],\"last\":false}"
+    },
+    {
+      "name": "P11 ON RESUME the app asks the backend again without being told to: back from the background the times are offered again (the restaurant accepts orders again) and the stored choice is valid again",
+      "pass": true,
+      "detail": "asked again: 200"
+    },
+    {
+      "name": "P12 NO CONNECTION: the app says \"Needs connection to confirm availability\", shows the last known selection as exactly that, offers no times from memory and keeps Continue OFF — an old slot is never taken for valid",
+      "pass": true,
+      "detail": "{\"needs\":true,\"says\":true,\"lastKnown\":true,\"unconfirmed\":true,\"time\":true,\"chooser\":false,\"slots\":0,\"continueEnabled\":false}"
+    },
+    {
+      "name": "P13 back online, \"Try again\" asks the backend: the notice is gone, the choice is confirmed by the backend and Continue is available again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P14 APP RESTART: the choice comes back from the backend with the cart (the guest token is in the device's secure storage) — the same slot",
+      "pass": true,
+      "detail": "Pickup time | Choose when you will collect your order. Times are shown in the restaurant’s local time. | Pickup at\nBurger Hub\nSector 62, Noida, Uttar Pradesh 201309, India\nRestaurant time: GMT+5:30 (Asia/Kolkata)\nEstimated preparation 12m · Earliest pickup ~4:28 PM | Back to cart | No journey planne"
+    },
+    {
+      "name": "P15 SIGN-IN KEEPS THE PICKUP CHOICE: the guest cart becomes the customer's and the chosen slot is still there; pickup requests now carry the session and no cart token",
+      "pass": true,
+      "detail": "{\"signedIn\":true,\"claim\":200,\"sel\":\"ps1_tmhjd0_15_2c092bb98d0f\"}"
+    },
+    {
+      "name": "P16a a journey that has no arrival estimate for this restaurant (the cart was linked to it without coming from route discovery) is shown as exactly that — no arrival is invented; the times follow the restaurant schedule",
+      "pass": true,
+      "detail": "{\"plan\":201,\"link\":200,\"journey\":{\"status\":\"NO_ESTIMATE\",\"traveler_arrival_at\":null,\"local_traveler_arrival_at\":null,\"requires_refresh\":false,\"estimate_source\":\"development\",\"arrival_buffer_minutes\":0},\"noEstimate\":true}"
+    },
+    {
+      "name": "P16b JOURNEY-AWARE: with an arrival 40 minutes ahead the backend reads it from the cart's journey; the app shows \"Your estimated arrival\" on the restaurant clock, labelled as a development estimate, and marks the backend's recommended time — the first slot that is ready and not before the arrival",
+      "pass": true,
+      "detail": "{\"plan\":201,\"link\":200,\"journey\":{\"status\":\"ACTIVE\",\"traveler_arrival_at\":\"2026-10-06T11:27:00+00:00\",\"local_traveler_arrival_at\":\"2026-10-06T16:57:00+05:30\",\"requires_refresh\":false,\"estimate_source\":\"development\",\"arrival_buffer_minutes\":0},\"rec\":{\"mode\":\"SCHEDULED\",\"slot_key\":\"ps1_tmhha0_15_7695a922dcc6\",\"pickup_at\":\"2026-10-06T11:30:00+00:00\",\"local_pickup_at\":\"2026-10-06T17:00:00+05:30\",\"basi"
+    },
+    {
+      "name": "P17 PREPARATION TIME 12 → 50 in the dashboard: the app shows \"Estimated preparation 50 min\", the earliest slot chosen before can no longer be met — the backend's warning is shown and Continue is off until another time is chosen",
+      "pass": true,
+      "detail": "{\"early\":200,\"stale\":true,\"prep\":true,\"continueEnabled\":false,\"ids\":[\"pk-journey-ACTIVE\",\"pk-stale-SLOT_TOO_EARLY\",\"pk-day-2026-10-06\",\"pk-day-2026-10-07\",\"pk-continue-off\"],\"sel\":\"INVALID:SLOT_TOO_EARLY\"}"
+    },
+    {
+      "name": "P18 the prep time is back: the same choice is valid again; \"Continue to checkout\" has the backend judge it once more and then opens checkout (checkout itself is still development data — Module 29)",
+      "pass": true,
+      "detail": "{\"canGo\":true,\"where\":\"Back | Checkout | Review everything before you continue to secure payment. Nothing is charged on this page.\\ndevelopment checkout — server pricing and payment ar\",\"judged\":\"200:{\\\"valid\\\":true,\\\"status\\\":\\\"SELECTED\\\",\\\"issues\\\":[]}\"}"
+    },
+    {
+      "name": "P19 no page error in the app during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z the local database is back in its seeded state (no cart, selection or capacity row of this run; Burger Hub's pickup settings as before, accepting orders)",
+      "pass": true,
+      "detail": "{\"carts\":0,\"reservations\":0,\"settings\":\"true:true:true:12:12:15:none\",\"accepting\":\"t\",\"settingsBefore\":\"true:true:true:12:12:15:none\"}"
+    }
+  ]
+}

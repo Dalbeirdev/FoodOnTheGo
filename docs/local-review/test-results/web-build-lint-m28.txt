@@ -1,0 +1,21 @@
+# Module 28 — Customer Web checks (LOCAL, 2026-10-06): tsc, oxlint, vitest, vite build
+
+== npx tsc -b --noEmit
+exit 0
+
+== npm run lint (oxlint)
+exit 0; 0 errors; 112 warnings (the same kinds as before Module 28 — react(only-export-components), react(set-state-in-effect) and similar in existing files)
+
+== npx vitest run --maxWorkers=6   (six workers: the machine also runs other workloads; with full parallelism a few long UI tests hit the 5 s timeout under load — CF-362)
+ Test Files  52 passed (52)
+      Tests  641 passed (641)
+   Duration  48.72s (tests 63%, environment 22%, transform 6%, setup 4%, import 4%)
+exit 0
+   new in Module 28: src/pickup/api/apiPickup.test.tsx (29 tests: pickup mapping, gateway requests, error vocabulary, ServerPickupProvider incl. the ready flag, the pickup page on the backend incl. a lost connection); src/dashboard/api/apiDashboard.test.ts (capacity per slot in the pickup settings)
+
+== npx vite build
+dist/assets/DashboardApp-DwvtwcmO.js    172.99 kB │ gzip:  38.98 kB
+dist/assets/AdminApp-BSQX1viI.js        400.09 kB │ gzip:  83.39 kB
+dist/assets/index-Cv4qwSPC.js         1,096.61 kB │ gzip: 305.83 kB
+✓ built in 699ms
+exit 0

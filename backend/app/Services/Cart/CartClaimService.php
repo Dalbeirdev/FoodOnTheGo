@@ -10,6 +10,7 @@ use App\Exceptions\ApiException;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
+use App\Services\Pickup\PickupSelectionService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -42,6 +43,7 @@ final class CartClaimService
         private readonly CartStore $store,
         private readonly CartValidationService $validation,
         private readonly CartJourneyLink $journeys,
+        private readonly PickupSelectionService $pickup,
     ) {}
 
     /**
@@ -129,6 +131,9 @@ final class CartClaimService
             $mine->journey_public_id = $guest->journey_public_id;
             $mine->journey_summary = $guest->journey_summary;
         }
+        // The pickup time chosen as a guest moves along unless the account's cart has its own; it is validated
+        // against the merged cart when it is next read (Module 28).
+        $this->pickup->carryOver($guest, $mine);
         $this->end($guest, CartCloseReason::Merged, $hash);
         $this->store->touch($mine);
         DB::afterCommit(fn () => event(new CartMerged($mine, ['lines_moved' => $moved, 'lines_combined' => $combined, 'quantities_capped' => count($adjusted)])));

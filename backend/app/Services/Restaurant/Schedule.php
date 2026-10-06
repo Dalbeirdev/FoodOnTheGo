@@ -96,6 +96,50 @@ final readonly class Schedule
     }
 
     /**
+     * Every open interval that overlaps [$from, $to), as [opens, closes) instants in order. An interval is returned
+     * whole (not cut at $from / $to), so its real closing time is known; back-to-back periods are joined, and an
+     * overnight period that opened the evening before $from is included.
+     *
+     * @return list<array{0: CarbonImmutable, 1: CarbonImmutable}>
+     */
+    public function openIntervals(CarbonInterface $from, CarbonInterface $to): array
+    {
+        $start = CarbonImmutable::instance($from);
+        $end = CarbonImmutable::instance($to);
+        if ($end->lessThanOrEqualTo($start)) {
+            return [];
+        }
+
+        $day = $start->setTimezone($this->timezone)->startOfDay()->subDay();
+        $lastDay = $end->setTimezone($this->timezone)->startOfDay();
+        $intervals = [];
+        for ($guard = 0; $day->lessThanOrEqualTo($lastDay) && $guard < 400; $day = $day->addDay(), $guard++) {
+            foreach ($this->periodsOpeningOn($day) as $period) {
+                [$opens, $closes] = $this->instants($day, $period);
+                if ($closes->greaterThan($start) && $opens->lessThan($end)) {
+                    $intervals[] = [$opens, $closes];
+                }
+            }
+        }
+        usort($intervals, fn (array $a, array $b): int => $a[0] <=> $b[0]);
+
+        $joined = [];
+        foreach ($intervals as $interval) {
+            $last = count($joined) - 1;
+            if ($last >= 0 && $interval[0]->lessThanOrEqualTo($joined[$last][1])) {
+                if ($interval[1]->greaterThan($joined[$last][1])) {
+                    $joined[$last][1] = $interval[1];
+                }
+
+                continue;
+            }
+            $joined[] = $interval;
+        }
+
+        return $joined;
+    }
+
+    /**
      * Whether a special date applies on the local date of $at.
      */
     public function specialOn(CarbonInterface $at): ?array

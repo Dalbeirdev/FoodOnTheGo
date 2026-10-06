@@ -1,0 +1,69 @@
+# Module 28 — migration 2026_10_07_100000_create_pickup_tables: rollback and re-apply, on the TEST database only (DB_DATABASE=foodonthego_test), 2026-10-06
+
+## database in use
+foodonthego_test
+
+## before: last migrations
+ 2026_10_06_100000_create_cart_tables .. [1] Ran 
+ 2026_10_07_100000_create_pickup_tables .. [1] Ran 
+
+
+tables: cart_pickup_selections, pickup_slot_reservations
+
+## php artisan migrate:rollback --step=1
+
+ INFO Rolling back migrations. 
+
+ 2026_10_07_100000_create_pickup_tables .. 23.97ms DONE
+
+tables: [absent]
+
+## php artisan migrate
+
+ INFO Running migrations. 
+
+ 2026_10_07_100000_create_pickup_tables .. 56.66ms DONE
+
+tables: cart_pickup_selections, pickup_slot_reservations
+
+### cart_pickup_selections
+columns: id bigint NOT NULL, public_id uuid NOT NULL, cart_id bigint NOT NULL, mode character varying NOT NULL, pickup_method character varying NOT NULL, pickup_at timestamp with time zone NOT NULL, slot_ends_at timestamp with time zone, slot_key character varying, slot_interval_minutes smallint, restaurant_timezone character varying NOT NULL, cart_version integer NOT NULL, settings_version integer NOT NULL, estimated_prep_minutes smallint NOT NULL, traveler_arrival_at timestamp with time zone, status character varying NOT NULL, status_reason character varying, validated_at timestamp with time zone NOT NULL, expires_at timestamp with time zone NOT NULL, version integer NOT NULL, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX cart_pickup_selections_cart_id_unique ON public.cart_pickup_selections USING btree (cart_id)
+  CREATE INDEX cart_pickup_selections_pickup_at_index ON public.cart_pickup_selections USING btree (pickup_at)
+  CREATE UNIQUE INDEX cart_pickup_selections_pkey ON public.cart_pickup_selections USING btree (id)
+  CREATE UNIQUE INDEX cart_pickup_selections_public_id_unique ON public.cart_pickup_selections USING btree (public_id)
+  CREATE INDEX cart_pickup_selections_status_expires_at_index ON public.cart_pickup_selections USING btree (status, expires_at)
+constraints (check / foreign key / unique / primary):
+  cart_pickup_selections_method_check : CHECK (((pickup_method)::text = ANY ((ARRAY['COUNTER'::character varying, 'CURBSIDE'::character varying, 'DRIVE_THROUGH'::character varying])::text[])))
+  cart_pickup_selections_mode_check : CHECK (((mode)::text = ANY ((ARRAY['ASAP'::character varying, 'SCHEDULED'::character varying])::text[])))
+  cart_pickup_selections_slot_check : CHECK ((((mode)::text = 'SCHEDULED'::text) = ((slot_key IS NOT NULL) AND (slot_interval_minutes IS NOT NULL) AND (slot_ends_at IS NOT NULL))))
+  cart_pickup_selections_status_check : CHECK (((status)::text = ANY ((ARRAY['SELECTED'::character varying, 'STALE'::character varying, 'INVALID'::character varying, 'EXPIRED'::character varying, 'CONVERTED'::character varying])::text[])))
+  cart_pickup_selections_cart_id_foreign : FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE
+  cart_pickup_selections_pkey : PRIMARY KEY (id)
+  cart_pickup_selections_cart_id_unique : UNIQUE (cart_id)
+  cart_pickup_selections_public_id_unique : UNIQUE (public_id)
+
+### pickup_slot_reservations
+columns: id bigint NOT NULL, public_id uuid NOT NULL, location_id bigint NOT NULL, slot_starts_at timestamp with time zone NOT NULL, units smallint NOT NULL, source character varying NOT NULL, reference character varying, status character varying NOT NULL, expires_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX pickup_slot_reservations_pkey ON public.pickup_slot_reservations USING btree (id)
+  CREATE UNIQUE INDEX pickup_slot_reservations_public_id_unique ON public.pickup_slot_reservations USING btree (public_id)
+  CREATE INDEX pickup_slot_reservations_slot_index ON public.pickup_slot_reservations USING btree (location_id, slot_starts_at, status)
+  CREATE INDEX pickup_slot_reservations_status_expires_at_index ON public.pickup_slot_reservations USING btree (status, expires_at)
+constraints (check / foreign key / unique / primary):
+  pickup_slot_reservations_hold_check : CHECK ((((source)::text <> 'HOLD'::text) OR (expires_at IS NOT NULL)))
+  pickup_slot_reservations_source_check : CHECK (((source)::text = ANY ((ARRAY['FIXTURE'::character varying, 'HOLD'::character varying, 'ORDER'::character varying])::text[])))
+  pickup_slot_reservations_status_check : CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'RELEASED'::character varying])::text[])))
+  pickup_slot_reservations_units_check : CHECK (((units >= 1) AND (units <= 500)))
+  pickup_slot_reservations_location_id_foreign : FOREIGN KEY (location_id) REFERENCES restaurant_locations(id) ON DELETE CASCADE
+  pickup_slot_reservations_pkey : PRIMARY KEY (id)
+  pickup_slot_reservations_public_id_unique : UNIQUE (public_id)
+
+### restaurant_pickup_settings.capacity_per_slot (Module 23 column, now enforced by the engine)
+capacity_per_slot smallint nullable=YES
+
+## after: last migrations
+ 2026_10_06_100000_create_cart_tables .. [1] Ran 
+ 2026_10_07_100000_create_pickup_tables .. [2] Ran 
+

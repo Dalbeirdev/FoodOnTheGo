@@ -7,13 +7,16 @@ use App\Enums\Permission;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Api\Restaurant\Concerns\LoadsRestaurantLocations;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Pickup\PickupPresenter;
 use App\Http\Resources\Restaurant\PickupSettingsResource;
 use App\Http\Resources\Restaurant\RestaurantLocationResource;
 use App\Models\RestaurantImage;
 use App\Models\RestaurantLocation;
+use App\Services\Pickup\PickupAvailabilityService;
 use App\Services\Restaurant\PickupSettingsService;
 use App\Services\Restaurant\RestaurantAccess;
 use App\Services\Restaurant\RestaurantProfileService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -103,6 +106,21 @@ class LocationController extends Controller
         $this->access->authorize($request->user(), $location, Permission::RestaurantProfileView);
 
         return new PickupSettingsResource($this->fresh($location));
+    }
+
+    /**
+     * GET /restaurant/locations/{location}/pickup-preview — what customers are offered right now with the saved
+     * settings and opening hours: the customer-facing pickup engine itself (Module 28), run for an order that needs
+     * no more than the default preparation time. Read-only, and never a second slot generator.
+     */
+    public function pickupPreview(Request $request, RestaurantLocation $location, PickupAvailabilityService $engine, PickupPresenter $presenter): JsonResponse
+    {
+        $this->access->authorize($request->user(), $location, Permission::RestaurantProfileView);
+
+        $location = $this->fresh($location);
+        $preview = $engine->preview($location);
+
+        return response()->json(['preview' => $presenter->preview($preview, $engine->configurationWarnings($location, $preview))]);
     }
 
     public function updatePickupSettings(Request $request, RestaurantLocation $location, PickupSettingsService $pickup): PickupSettingsResource

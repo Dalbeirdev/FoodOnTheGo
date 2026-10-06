@@ -22,7 +22,7 @@ import type { OpeningHours, Restaurant } from '../../repositories/types'
 import { legacyRestaurant } from '../../restaurants/api/restaurantData'
 import { dashboardRepositories } from '../mock/mockDashboard'
 import { ApiMenuManagementRepository } from './apiMenuManagement'
-import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus } from '../types'
+import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus, PickupPreview } from '../types'
 
 const R = { context: 'restaurant' as const }
 
@@ -58,6 +58,16 @@ type PickupDto = {
   methods: Array<{ method: 'COUNTER' | 'CURBSIDE' | 'DRIVE_THROUGH'; enabled: boolean; instructions: string | null; requires_vehicle_info: boolean; available_in_market: boolean }>
   market: { asap_allowed: boolean; scheduled_allowed: boolean }
   version: number
+}
+type PickupPreviewDto = {
+  timezone: string; generated_at: string; pickup_enabled: boolean; customers_can_order: boolean
+  preparation: { estimated_minutes: number; buffer_minutes: number; minimum_lead_minutes: number; ready_in_minutes: number } | null
+  earliest_pickup_at: string | null
+  asap: { enabled: boolean; available: boolean; pickup_at: string | null; estimated_ready_in_minutes: number | null; reason: string | null }
+  scheduled: { enabled: boolean; interval_minutes: number | null; horizon_minutes: number | null; slot_count: number; available_slot_count: number; truncated: boolean; days: Array<{ local_date: string; slots: number; available: number; first_slot_at: string | null; last_slot_at: string | null }> }
+  capacity_per_slot: number | null
+  issues: Array<{ code: string; severity: 'BLOCKING' | 'INFO'; message: string }>
+  warnings: Array<{ code: string; message: string }>
 }
 type MemberDto = { id: string; name: string; email: string; role: { code: string; name: string }; status: 'INVITED' | 'ACTIVE' | 'SUSPENDED' | 'REVOKED'; all_locations: boolean; locations: Array<{ id: string; name: string; branch_label: string | null }>; is_self: boolean; version: number }
 type TaxonomyDto = { cuisines: Array<{ code: string; name: string }>; features: Array<{ code: string; name: string; category: string }>; limits: { cuisines: number; features: number; description: number; periods_per_day: number; pause_max_hours: number } }
@@ -234,6 +244,7 @@ export class ApiRestaurantManagementRepository implements RestaurantManagementRe
       methods: d.methods.map((m) => ({ id: METHOD[m.method], type: METHOD[m.method], label: METHOD_LABEL[METHOD[m.method]], instructions: m.instructions ?? undefined, enabled: m.enabled, requiresVehicleInfo: m.requires_vehicle_info, availableInMarket: m.available_in_market })),
       instructions: loc.pickup_instructions ?? undefined,
       marketModes: { asap: d.market.asap_allowed, scheduled: d.market.scheduled_allowed },
+      capacityPerSlot: d.capacity_per_slot,
     }
   }
   async savePickupSettings(id: string, s: PickupSettings): Promise<PickupSettings> {
@@ -244,12 +255,32 @@ export class ApiRestaurantManagementRepository implements RestaurantManagementRe
       // With pickup switched off the modes keep their last values: the backend only asks for consistency while it is on.
       ...(enabled ? { asap_enabled: s.modes.includes('asap'), scheduled_enabled: s.modes.includes('scheduled') } : {}),
       slot_interval_minutes: s.intervalMinutes, minimum_lead_minutes: s.minimumLeadMinutes, schedule_horizon_minutes: s.maximumScheduleAheadMinutes, buffer_minutes: s.bufferMinutes, order_cutoff_minutes: s.acceptanceCutoffMinutes,
+      // Orders per pickup slot; null removes the limit. Left out when the form never showed it.
+      ...(s.capacityPerSlot !== undefined ? { capacity_per_slot: s.capacityPerSlot } : {}),
       methods: s.methods.map((m) => ({ method: METHOD_CODE[m.type], enabled: m.enabled, instructions: m.instructions ?? null, requires_vehicle_info: m.requiresVehicleInfo })),
     } })
     // The instructions customers read are a profile field of the location.
     const loc = this.dto(id)
     if ((s.instructions ?? null) !== (loc.pickup_instructions ?? null)) await api<LocationDto>(this.url(id, '/profile'), { ...R, method: 'PATCH', body: { version: loc.version, pickup_instructions: s.instructions ?? null } }).then((d) => this.remember(d))
     return this.getPickupSettings(id)
+  }
+
+  /** What customers are offered right now: the customer pickup engine's own answer (Module 28) — never worked out here. */
+  async getPickupPreview(id: string): Promise<PickupPreview> {
+    const d = (await api<{ preview: PickupPreviewDto }>(this.url(id, '/pickup-preview'), R)).preview
+    return {
+      timezone: d.timezone, generatedAt: d.generated_at, pickupEnabled: d.pickup_enabled, customersCanOrder: d.customers_can_order,
+      preparation: d.preparation ? { estimatedMinutes: d.preparation.estimated_minutes, bufferMinutes: d.preparation.buffer_minutes, minimumLeadMinutes: d.preparation.minimum_lead_minutes, readyInMinutes: d.preparation.ready_in_minutes } : null,
+      earliestPickupAt: d.earliest_pickup_at,
+      asap: { enabled: d.asap.enabled, available: d.asap.available, pickupAt: d.asap.pickup_at, readyInMinutes: d.asap.estimated_ready_in_minutes, reason: d.asap.reason },
+      scheduled: {
+        enabled: d.scheduled.enabled, intervalMinutes: d.scheduled.interval_minutes, horizonMinutes: d.scheduled.horizon_minutes, slotCount: d.scheduled.slot_count, availableSlotCount: d.scheduled.available_slot_count, truncated: d.scheduled.truncated,
+        days: d.scheduled.days.map((x) => ({ localDate: x.local_date, slots: x.slots, available: x.available, firstSlotAt: x.first_slot_at, lastSlotAt: x.last_slot_at })),
+      },
+      capacityPerSlot: d.capacity_per_slot,
+      issues: d.issues.map((i) => ({ code: i.code, message: i.message, blocking: i.severity === 'BLOCKING' })),
+      warnings: d.warnings,
+    }
   }
 
   /** Language and notification preferences are kept in this browser only (no backend for them yet). */

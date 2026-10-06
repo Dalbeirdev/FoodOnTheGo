@@ -71,8 +71,12 @@ DateTime toZone(DateTime utc, String timeZone) => utc.toUtc().add(Duration(minut
 String formatLocalTime(DateTime utc, String timeZone, {String locale = 'en_US'}) => DateFormat.jm(DateFormat.localeExists(locale) ? locale : 'en_US').format(toZone(utc, timeZone));
 
 /// Short zone label like "GMT+5:30" so travellers see which clock a time belongs to.
-String zoneLabel(String timeZone) {
-  final off = zoneOffsetMinutes(timeZone);
+String zoneLabel(String timeZone) => zoneLabelOfOffset(zoneOffsetMinutes(timeZone));
+
+/// A time on the wall clock that is [offsetMinutes] from UTC — used with the offset the backend sent for the instant.
+String formatTimeAtOffset(DateTime utc, int offsetMinutes) => DateFormat.jm('en_US').format(utc.toUtc().add(Duration(minutes: offsetMinutes)));
+
+String zoneLabelOfOffset(int off) {
   if (off == 0) return 'GMT';
   final sign = off < 0 ? '-' : '+';
   final a = off.abs();

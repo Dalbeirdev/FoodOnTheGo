@@ -140,7 +140,7 @@ class CartOpenApiContractTest extends TestCase
                 $documented[] = strtoupper($method).' '.$path;
             }
         }
-        $routes = collect(app('router')->getRoutes())->filter(fn ($r) => str_contains($r->uri(), 'v1/cart') || str_contains($r->uri(), 'system/carts'))
+        $routes = collect(app('router')->getRoutes())->filter(fn ($r) => (str_contains($r->uri(), 'v1/cart') && ! str_contains($r->uri(), 'cart/pickup-')) || str_contains($r->uri(), 'system/carts'))
             ->flatMap(fn ($r) => array_map(fn (string $m): string => $m.' /'.preg_replace('#^api/v1/#', '', $r->uri()), array_diff($r->methods(), ['HEAD'])))->values()->all();
         $this->assertEqualsCanonicalizing($routes, $documented);
         $this->assertCount(11, $routes);

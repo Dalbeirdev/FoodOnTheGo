@@ -44,9 +44,12 @@ export type PickupSettings = {
   instructions?: string
   /** Backend only: which ordering modes the market allows. */
   marketModes?: { asap: boolean; scheduled: boolean }
+  /** Backend only: orders one pickup slot takes (null = no limit). Undefined in the development engine. */
+  capacityPerSlot?: number | null
 }
 
-export type PickupEstimate = { prepMinutes: number; bufferMinutes: number; earliestPickupAt: string; restaurantTimezone: string; source: 'mock' }
+/** `source`: 'backend' = the server's estimate (Module 28); 'mock' = the development engine. */
+export type PickupEstimate = { prepMinutes: number; bufferMinutes: number; earliestPickupAt: string; restaurantTimezone: string; source: 'mock' | 'backend' }
 
 export type PickupSelection = {
   mode: PickupMode

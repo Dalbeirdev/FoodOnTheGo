@@ -1,46 +1,35 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Restaurant } from '../repositories/types'
-import type { JourneyLike } from '../repositories/types'
-import type { Cart } from '../cart/cartModel'
 import { etaService as defaultEta, pickupRepository as defaultRepo } from './mock/mockPickup'
 import type { EtaService, PickupEstimate, PickupMode, PickupRepository, PickupSelection, PickupSettings, PickupSlot, PickupValidation } from './repositories'
+import { PickupCtx, type LoadInput, type PickupApi, type PickupStatus } from './pickupApi'
+import { pickupMode } from './pickupMode'
+import { ServerPickupProvider } from './ServerPickupProvider'
 import { addLocalDays, localDateOf } from './time'
 
+export { usePickup } from './pickupApi'
+export type { PickupApi, PickupStatus } from './pickupApi'
+
 /**
- * Centralized pickup state (Module 10). NOT_SELECTED → LOADING_SLOTS → AVAILABLE → SELECTED → VALIDATING → (STALE | UNAVAILABLE | ERROR).
- * The selection is kept in sessionStorage so it survives the login / OTP round trip before checkout.
+ * Pickup state for the pages. `PickupProvider` picks the implementation: the backend (Module 28) when pickupMode() is
+ * 'api', otherwise the development slot engine of Module 10 below — which unit tests and share builds always use, and
+ * which a test can also force by handing in a repository.
  */
-export type PickupStatus = 'NOT_SELECTED' | 'LOADING_SLOTS' | 'AVAILABLE' | 'SELECTED' | 'VALIDATING' | 'STALE' | 'UNAVAILABLE' | 'ERROR'
-
-type LoadInput = { restaurant: Restaurant; cart: Cart; journey: JourneyLike | null; date?: string; prepMinutes: number; nowIso?: string }
-
-type PickupApi = {
-  status: PickupStatus
-  mode: PickupMode
-  date: string | null
-  days: string[]
-  slots: PickupSlot[]
-  settings: PickupSettings | null
-  estimate: PickupEstimate | null
-  eta: string | null
-  selection: PickupSelection | null
-  error: string | null
-  staleReason: Exclude<PickupValidation, { ok: true }>['reason'] | null
-  load: (input: LoadInput) => Promise<void>
-  setMode: (mode: PickupMode) => void
-  setDate: (date: string) => void
-  selectSlot: (slot: PickupSlot) => void
-  selectAsap: () => void
-  validate: (restaurant: Restaurant, nowIso?: string) => Promise<PickupValidation>
-  clear: () => void
-}
 
 const KEY = 'fotg.pickup.selection'
-const PickupCtx = createContext<PickupApi | null>(null)
 const readStored = (): PickupSelection | null => { try { const raw = sessionStorage.getItem(KEY); return raw ? (JSON.parse(raw) as PickupSelection) : null } catch { return null } }
 const store = (s: PickupSelection | null) => { try { if (s) sessionStorage.setItem(KEY, JSON.stringify(s)); else sessionStorage.removeItem(KEY) } catch { /* ignore */ } }
 
-export function PickupProvider({ children, repository = defaultRepo, eta = defaultEta }: { children: ReactNode; repository?: PickupRepository; eta?: EtaService }) {
+export function PickupProvider({ children, repository, eta }: { children: ReactNode; repository?: PickupRepository; eta?: EtaService }) {
+  if (!repository && !eta && pickupMode() === 'api') return <ServerPickupProvider>{children}</ServerPickupProvider>
+  return <DevicePickupProvider repository={repository} eta={eta}>{children}</DevicePickupProvider>
+}
+
+/**
+ * The development engine (Module 10): slots are generated in the browser from fixtures, and the selection is kept in
+ * sessionStorage so it survives the login / OTP round trip before checkout.
+ */
+export function DevicePickupProvider({ children, repository = defaultRepo, eta = defaultEta }: { children: ReactNode; repository?: PickupRepository; eta?: EtaService }) {
   const [status, setStatus] = useState<PickupStatus>(() => (readStored() ? 'SELECTED' : 'NOT_SELECTED'))
   const [mode, setModeState] = useState<PickupMode>(() => readStored()?.mode ?? 'asap')
   const [date, setDateState] = useState<string | null>(null)
@@ -114,13 +103,9 @@ export function PickupProvider({ children, repository = defaultRepo, eta = defau
   }, [repository, selection])
 
   const clear = useCallback(() => { setSelection(null); setStaleReason(null); setStatus('NOT_SELECTED') }, [setSelection])
+  const refresh = useCallback(async () => { const input = lastInput.current; if (input) await load(input) }, [load])
+  const setMethod = useCallback(() => { /* the development engine has one method per restaurant */ }, [])
 
-  const api = useMemo<PickupApi>(() => ({ status, mode, date, days, slots, settings, estimate, eta: etaIso, selection, error, staleReason, load, setMode, setDate, selectSlot, selectAsap, validate, clear }), [status, mode, date, days, slots, settings, estimate, etaIso, selection, error, staleReason, load, setMode, setDate, selectSlot, selectAsap, validate, clear])
+  const api = useMemo<PickupApi>(() => ({ source: 'mock', status, mode, date, days, slots, settings, estimate, eta: etaIso, selection, error, staleReason, server: null, busy: false, ready: true, method: null, load, refresh, setMode, setDate, setMethod, selectSlot, selectAsap, validate, clear }), [status, mode, date, days, slots, settings, estimate, etaIso, selection, error, staleReason, load, refresh, setMode, setDate, setMethod, selectSlot, selectAsap, validate, clear])
   return <PickupCtx.Provider value={api}>{children}</PickupCtx.Provider>
-}
-
-export function usePickup() {
-  const ctx = useContext(PickupCtx)
-  if (!ctx) throw new Error('usePickup must be used inside PickupProvider')
-  return ctx
 }

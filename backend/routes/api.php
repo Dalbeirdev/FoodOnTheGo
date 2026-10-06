@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\PickupMetricsController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\Auth\StaffAuthController;
 use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CartPickupController;
 use App\Http\Controllers\Api\Customer\AccountController;
 use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationPreferenceController;
@@ -104,6 +106,11 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     // Idempotency-Key when a client sends one (retries, double taps).
     Route::prefix('cart')->name('cart.')->middleware(['customer.optional', 'cart.owner'])->group(function (): void {
         Route::get('/', [CartController::class, 'show'])->middleware('throttle:cart-read')->name('show');
+        // Pickup times for this cart (Module 28): calculated on the server clock in the restaurant's time zone. The
+        // restaurant is the cart's; a client sends a mode, a method and a slot key — never a time. A selection is a
+        // choice, not a reservation.
+        Route::get('/pickup-availability', [CartPickupController::class, 'availability'])->middleware('throttle:cart-read')->name('pickup.availability');
+        Route::get('/pickup-selection', [CartPickupController::class, 'show'])->middleware('throttle:cart-read')->name('pickup.selection.show');
         Route::middleware('throttle:cart-write')->group(function (): void {
             Route::post('/items', [CartController::class, 'add'])->middleware('idempotent:cart.add,optional')->name('items.add');
             Route::patch('/items/{line}', [CartController::class, 'update'])->middleware('idempotent:cart.update,optional')->name('items.update');
@@ -113,6 +120,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/switch-restaurant', [CartController::class, 'switchRestaurant'])->middleware('idempotent:cart.switch,optional')->name('switch');
             Route::put('/journey', [CartController::class, 'linkJourney'])->name('journey.link');
             Route::delete('/journey', [CartController::class, 'unlinkJourney'])->name('journey.unlink');
+            Route::post('/pickup-selection', [CartPickupController::class, 'select'])->middleware('idempotent:cart.pickup.select,optional')->name('pickup.selection.select');
+            Route::delete('/pickup-selection', [CartPickupController::class, 'clear'])->name('pickup.selection.clear');
         });
     });
     // Taking over the cart built before signing in: only as the signed-in customer, with the guest cart's token.
@@ -231,6 +240,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::delete('/locations/{location}/special-hours/{specialHour}', [HoursController::class, 'specialDestroy'])->name('locations.special-hours.destroy');
         Route::get('/locations/{location}/pickup-settings', [LocationController::class, 'pickupSettings'])->name('locations.pickup-settings.show');
         Route::patch('/locations/{location}/pickup-settings', [LocationController::class, 'updatePickupSettings'])->name('locations.pickup-settings.update');
+        // What customers are offered right now with the saved settings and hours — the customer pickup engine itself (Module 28).
+        Route::get('/locations/{location}/pickup-preview', [LocationController::class, 'pickupPreview'])->name('locations.pickup-preview');
 
         // Menu management (Module 24). A category / item / image is reached through its own id; the location it
         // belongs to is what RestaurantAccess checks.
@@ -296,6 +307,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/system/providers', [ProviderHealthController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.providers');
         // Cart numbers (Module 27): counts only — there is no way to read a customer's cart from here.
         Route::get('/system/carts', [CartMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.carts');
+        // Pickup availability numbers (Module 28): counts only.
+        Route::get('/system/pickup', [PickupMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.pickup');
 
         // Security events are platform-wide: the permission must be held without a market scope.
         Route::middleware('can:'.Permission::AdminSecurityView->value)->group(function (): void {

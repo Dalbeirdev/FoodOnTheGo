@@ -181,7 +181,7 @@ describe('ApiRestaurantManagementRepository — pickup settings', () => {
     const { repo } = await loaded()
     expect(await repo.getPickupSettings('test-kitchen')).toEqual({
       restaurantId: 'test-kitchen', timezone: 'Asia/Kolkata', intervalMinutes: 10, minimumLeadMinutes: 15, maximumScheduleAheadMinutes: 2880, bufferMinutes: 5, acceptanceCutoffMinutes: 20,
-      modes: ['asap'], instructions: 'Show your code.', marketModes: { asap: true, scheduled: false },
+      modes: ['asap'], instructions: 'Show your code.', marketModes: { asap: true, scheduled: false }, capacityPerSlot: null,
       methods: [{ id: 'counter', type: 'counter', label: 'Counter pickup', instructions: undefined, enabled: true, requiresVehicleInfo: false, availableInMarket: true }, { id: 'curbside', type: 'curbside', label: 'Curbside pickup', instructions: undefined, enabled: false, requiresVehicleInfo: true, availableInMarket: false }],
     })
   })
@@ -191,10 +191,14 @@ describe('ApiRestaurantManagementRepository — pickup settings', () => {
     const settings = await repo.getPickupSettings('test-kitchen')
     await repo.savePickupSettings('test-kitchen', { ...settings, minimumLeadMinutes: 25, instructions: 'Ring the bell.' })
     expect(sent('PATCH', '/pickup-settings')[0].body).toEqual({
-      version: 9, pickup_enabled: true, asap_enabled: true, scheduled_enabled: false, slot_interval_minutes: 10, minimum_lead_minutes: 25, schedule_horizon_minutes: 2880, buffer_minutes: 5, order_cutoff_minutes: 20,
+      version: 9, pickup_enabled: true, asap_enabled: true, scheduled_enabled: false, slot_interval_minutes: 10, minimum_lead_minutes: 25, schedule_horizon_minutes: 2880, buffer_minutes: 5, order_cutoff_minutes: 20, capacity_per_slot: null,
       methods: [{ method: 'COUNTER', enabled: true, instructions: null, requires_vehicle_info: false }, { method: 'CURBSIDE', enabled: false, instructions: null, requires_vehicle_info: true }],
     })
     expect(sent('PATCH', '/profile')[0].body).toEqual({ version: 4, pickup_instructions: 'Ring the bell.' })
+
+    // Orders per pickup slot (Module 28) is a real setting now: a number sets the limit, null removes it.
+    await repo.savePickupSettings('test-kitchen', { ...settings, capacityPerSlot: 6 })
+    expect(sent('PATCH', '/pickup-settings')[1].body).toMatchObject({ capacity_per_slot: 6 })
   })
 
   it('switching pickup off does not touch the modes', async () => {

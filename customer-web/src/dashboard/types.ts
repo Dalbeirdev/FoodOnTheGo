@@ -124,6 +124,8 @@ export interface RestaurantManagementRepository {
   saveSpecialHours(id: string, list: SpecialHours[]): Promise<SpecialHours[]>
   getPickupSettings(id: string): Promise<PickupSettings>
   savePickupSettings(id: string, s: PickupSettings): Promise<PickupSettings>
+  /** Backend only (Module 28): what customers are offered right now with the saved settings and hours. */
+  getPickupPreview?(id: string): Promise<PickupPreview>
   getSettings(id: string): Promise<LocationSettings>
   saveSettings(id: string, s: LocationSettings): Promise<LocationSettings>
   /** Backend only: the options cuisines and features are chosen from. Absent = free text (development mock). */
@@ -177,4 +179,23 @@ export interface RestaurantNotificationRepository {
 export type DashboardRepositories = {
   management: RestaurantManagementRepository; menu: MenuManagementRepository; orders: RestaurantOrderRepository
   staff: RestaurantStaffRepository; reviews: RestaurantReviewRepository; analytics: RestaurantAnalyticsRepository; notifications: RestaurantNotificationRepository
+}
+
+/**
+ * What customers are offered right now (Module 28): the answer of the customer pickup engine itself for an order that
+ * needs the default preparation time, summarised per restaurant-local day, with warnings about a configuration that
+ * offers customers nothing. Never calculated in the browser.
+ */
+export type PickupPreview = {
+  timezone: string
+  generatedAt: string
+  pickupEnabled: boolean
+  customersCanOrder: boolean
+  preparation: { estimatedMinutes: number; bufferMinutes: number; minimumLeadMinutes: number; readyInMinutes: number } | null
+  earliestPickupAt: string | null
+  asap: { enabled: boolean; available: boolean; pickupAt: string | null; readyInMinutes: number | null; reason: string | null }
+  scheduled: { enabled: boolean; intervalMinutes: number | null; horizonMinutes: number | null; slotCount: number; availableSlotCount: number; truncated: boolean; days: Array<{ localDate: string; slots: number; available: number; firstSlotAt: string | null; lastSlotAt: string | null }> }
+  capacityPerSlot: number | null
+  issues: Array<{ code: string; message: string; blocking: boolean }>
+  warnings: Array<{ code: string; message: string }>
 }

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * A cart (Module 27): the items one customer — or one guest — intends to order from ONE restaurant location.
@@ -55,6 +56,16 @@ class Cart extends Model
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class)->orderBy('id');
+    }
+
+    /**
+     * The pickup time chosen for this cart (Module 28), if any.
+     *
+     * @return HasOne<CartPickupSelection, $this>
+     */
+    public function pickupSelection(): HasOne
+    {
+        return $this->hasOne(CartPickupSelection::class);
     }
 
     /**

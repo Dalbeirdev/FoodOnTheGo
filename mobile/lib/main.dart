@@ -6,6 +6,7 @@ import 'core/theme.dart';
 import 'discovery/api_restaurants.dart';
 import 'journey/api_journey.dart';
 import 'market/api_market.dart';
+import 'pickup/api_pickup.dart';
 import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
 import 'screens/plan_journey_screen.dart';
@@ -119,20 +120,26 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   final discovery = DiscoveryState();
   // The cart: the backend's when the build says so (CART_MODE=api), otherwise the device cart. With the backend
   // cart an item added from a journey carries that journey (its id, and the token that proves a guest's journey).
+  late final CartBackend? cartBackend = cartsFromApi ? (CartBackend()..onUnauthenticated = auth.expire) : null;
   late final cart = CartState(
-    backend: cartsFromApi ? (CartBackend()..onUnauthenticated = auth.expire) : null,
+    backend: cartBackend,
     journeyRef: () async {
       final j = journey.journey;
       if (j == null || !j.backend || j.expired) return null;
       return (id: j.id, headers: await journeyApi.tokens.headers(j.id));
     },
   );
+  // Pickup times: the backend's when the build says so (PICKUP_MODE=api, with the cart on the backend) — asked for
+  // and chosen as the cart's owner. Otherwise the development slot engine in the app.
+  late final pickup = PickupState(backend: pickupFromApi && cartBackend != null ? PickupBackend(cartBackend!) : null)..onCartOutdated = () { cart.reload(); };
   late final GoRouter router = buildRouter(auth);
 
   @override
   void initState() {
     super.initState();
     auth.addListener(_onAuth);
+    cart.addListener(_onCart);
+    cart.ready.then((_) { _cartReady = true; _onCart(); });
     if (journeysFromApi) journeyApi.onUnauthenticated = auth.expire;
     // Restore the session at app start so deep links to protected screens are guarded even when Splash is skipped.
     auth.restore();
@@ -141,9 +148,16 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   // Signing in claims the cart built as a guest; signing out goes back to a guest cart.
   void _onAuth() { account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated); }
 
+  // The pickup choice belongs to the cart: when the cart appears, changes or goes, the backend's judgement of the
+  // choice is read again (a changed cart may have made the chosen time unreachable).
+  // Not before the cart has been read once: "no cart yet" is not "no cart".
+  bool _cartReady = false;
+  void _onCart() { if (_cartReady) pickup.syncWithCart(cart.cart); }
+
   @override
   void dispose() {
     auth.removeListener(_onAuth);
+    cart.removeListener(_onCart);
     super.dispose();
   }
   @override
@@ -156,7 +170,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: discovery),
           ChangeNotifierProvider.value(value: cart),
           ChangeNotifierProvider(create: (_) => OrdersState()),
-          ChangeNotifierProvider(create: (_) => PickupState()),
+          ChangeNotifierProvider.value(value: pickup),
           ChangeNotifierProvider(create: (_) => CheckoutState()),
           ChangeNotifierProvider(create: (_) => PaymentState()),
           ChangeNotifierProvider(create: (_) => OrderState()),
