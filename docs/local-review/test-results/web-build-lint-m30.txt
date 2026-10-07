@@ -1,0 +1,22 @@
+# Module 30 — Customer Web checks (LOCAL, 2026-10-07): tsc, oxlint, vitest, vite build
+
+== npx tsc -b --noEmit
+exit 0
+
+== npm run lint (oxlint)
+exit 0; 0 errors; 117 warnings (the same kinds of warning as before — react(only-export-components), react(set-state-in-effect), react(refs); Module 29 had 117)
+
+== npx vitest run --maxWorkers=6   (six workers: the machine also runs other workloads; with full parallelism a few long UI tests hit the 5 s timeout under load — CF-362)
+ Test Files  55 passed (55)
+      Tests  705 passed (705)
+   Duration  59.42s (tests 47%, environment 36%, setup 7%, import 5%, transform 4%)
+exit 0
+   new in Module 30: src/payment/api/apiPayment.test.tsx (27 tests: payment mode, API mapping, requests that never carry an amount or a status, the same-key retry, the report of the provider's outcome, the error vocabulary, the provider script loaded only from the provider's own origin, Razorpay opened with the public key id only, and the payment page on the backend — pay, VERIFYING, verified with no order confirmation, refused success, cancel and retry, failure, pending, reload, a tab that kept nothing, no connection, refusals, provider unavailable) and src/admin/pages/BackendPaymentsPage.test.tsx (14 tests: the admin payment repository, the Payments page on backend data — list, filters, detail with timeline and provider events, "ask the provider again" with a reason, no way to mark a payment paid or refund it, permission — and the System page's payment card)
+   NOT covered by these tests: Razorpay's own window with real test keys — PENDING PROVIDER CONFIGURATION.
+
+== npx vite build
+dist/assets/DashboardApp-D1t1ZFxl.js    172.99 kB │ gzip:  38.98 kB
+dist/assets/AdminApp-CD-RNFT3.js        437.18 kB │ gzip:  91.68 kB
+dist/assets/index-DEYDCuxN.js         1,166.10 kB │ gzip: 323.61 kB
+✓ built in 592ms
+exit 0

@@ -235,7 +235,8 @@ class CheckoutOpenApiContractTest extends TestCase
     {
         $api = $this->openApi();
         $paths = $api['paths'];
-        $mine = fn (string $uri): bool => (bool) preg_match('#^(checkouts|admin/promotions|admin/tax-rules|admin/fee-rules|admin/system/checkout)|/(financial-rules|tax-rules|fee-rules)$#', $uri);
+        // The payment route under a checkout belongs to the payment module (Module 30) and has its own contract test.
+        $mine = fn (string $uri): bool => ! str_contains($uri, 'payment-attempts') && (bool) preg_match('#^(checkouts|admin/promotions|admin/tax-rules|admin/fee-rules|admin/system/checkout)|/(financial-rules|tax-rules|fee-rules)$#', $uri);
         $documented = [];
         foreach ($paths as $path => $operations) {
             if ($mine(ltrim($path, '/'))) {
@@ -268,14 +269,14 @@ class CheckoutOpenApiContractTest extends TestCase
             $this->assertFalse($schemas[$name]['additionalProperties']);
         }
         $this->assertFalse($schemas['CheckoutConfirmRequest']['properties']['payment_method']['additionalProperties']);
-        // What is documented as not existing: cash at pickup, a provider, a hold that is not implemented.
+        // What is documented as not existing: cash at pickup. A provider is either ready here or it is not (Module 30).
         $this->assertSame(['NOT_APPROVED'], $schemas['Checkout']['properties']['payment_methods']['properties']['cash_at_pickup']['enum']);
-        $this->assertSame(['NOT_INTEGRATED'], $schemas['CheckoutPayment']['properties']['provider']['properties']['status']['enum']);
+        $this->assertSame(['READY', 'UNAVAILABLE'], $schemas['CheckoutPayment']['properties']['provider']['properties']['status']['enum']);
         $this->assertSame(['IMPLEMENTED'], $schemas['CheckoutMetrics']['properties']['slot_hold']['enum']);
         $this->assertSame(['FIXED_AMOUNT', 'PERCENTAGE'], $schemas['AdminPromotion']['properties']['type']['enum']);
-        // No path of the API pays, creates an order or receives a provider's call.
+        // Payments exist since Module 30. No path of the API creates an order or a refund yet.
         foreach (array_keys($paths) as $path) {
-            $this->assertDoesNotMatchRegularExpression('#/(payments|payment-intents|orders|webhooks|refunds)(/|$)#', $path);
+            $this->assertDoesNotMatchRegularExpression('#/(orders|refunds|settlements)(/|$)#', $path);
         }
         // Every monetary field of the checkout is Money (integer minor units + currency) or an integer; no float anywhere.
         $numbers = [];

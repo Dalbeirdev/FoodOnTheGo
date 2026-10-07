@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\FinancialRuleController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Api\Admin\PickupMetricsController;
 use App\Http\Controllers\Api\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
@@ -32,11 +33,14 @@ use App\Http\Controllers\Api\Customer\PhoneChangeController;
 use App\Http\Controllers\Api\Customer\ProfileController;
 use App\Http\Controllers\Api\Customer\RecentLocationController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
+use App\Http\Controllers\Api\Dev\FakePaymentController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\JourneyController;
 use App\Http\Controllers\Api\JourneyRestaurantController;
 use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\PlaceController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\Restaurant\ContextController;
@@ -72,6 +76,8 @@ Route::pattern('item', '[0-9a-fA-F-]{36}');
 Route::pattern('journey', '[0-9a-fA-F-]{36}');
 Route::pattern('line', '[0-9a-fA-F-]{36}');
 Route::pattern('checkout', '[0-9a-fA-F-]{36}');
+Route::pattern('payment', '[0-9a-fA-F-]{36}');
+Route::pattern('paymentProvider', '[a-z][a-z0-9_]{1,23}');
 Route::pattern('promotion', '[0-9a-fA-F-]{36}');
 Route::pattern('taxRule', '[0-9a-fA-F-]{36}');
 Route::pattern('feeRule', '[0-9a-fA-F-]{36}');
@@ -145,7 +151,29 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::delete('/{checkout}/promotion', [CheckoutController::class, 'removePromotion'])->middleware('throttle:checkout-write')->name('promotion.remove');
         Route::post('/{checkout}/confirm', [CheckoutController::class, 'confirm'])->middleware(['throttle:checkout-write', 'idempotent:checkout.confirm,optional'])->name('confirm');
         Route::post('/{checkout}/cancel', [CheckoutController::class, 'cancel'])->middleware('throttle:checkout-write')->name('cancel');
+        // Payments (Module 30): a confirmed checkout is paid through a payment attempt. The amount is the checkout's
+        // total — no request carries one.
+        Route::post('/{checkout}/payment-attempts', [PaymentController::class, 'store'])->middleware(['throttle:payment', 'idempotent:payment.start,optional'])->name('payments.start');
     });
+
+    // A customer's own payment attempts: how they stand, and what the device reports of the provider's interface —
+    // which is verified, never believed. No order is created here (Module 31).
+    Route::prefix('payments')->name('payments.')->middleware(['auth:customer', 'active'])->group(function (): void {
+        Route::get('/{payment}', [PaymentController::class, 'show'])->middleware('throttle:payment-read')->name('show');
+        Route::post('/{payment}/complete', [PaymentController::class, 'complete'])->middleware('throttle:payment')->name('complete');
+    });
+
+    // Provider webhooks. No customer or admin session: the provider's signature over the raw body is the credential.
+    // Not counted against the per-address API limit (the sender is the provider), only against a flood.
+    Route::post('/webhooks/payments/{paymentProvider}', PaymentWebhookController::class)
+        ->withoutMiddleware('throttle:api')->middleware('throttle:payment-webhook')->name('webhooks.payments');
+
+    // DEVELOPMENT ONLY: the fake payment provider's side of a payment. Registered only where fake providers are
+    // allowed — never in production.
+    if ((bool) config('payments.providers.allow_fake')) {
+        Route::post('/dev/payments/{payment}/simulate', [FakePaymentController::class, 'simulate'])
+            ->middleware(['auth:customer', 'active', 'throttle:payment-read'])->name('dev.payments.simulate');
+    }
 
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
     Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
@@ -331,6 +359,11 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/system/pickup', [PickupMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.pickup');
         // Checkout numbers (Module 29): counts only.
         Route::get('/system/checkout', [FinancialRuleController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.checkout');
+        // Payments (Module 30): counts, the provider's configuration state (names, never values) and its health.
+        Route::get('/system/payments', [AdminPaymentController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.payments');
+        // The real payment attempts. Permissions (per market) are checked in the controller.
+        Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
 
         // Promotions, tax rules and fee rules (Module 29). Permissions are checked in the controllers, per market:
         // admin.promotions.* for promotions, admin.market_configuration.* for tax and fee rules.
@@ -360,6 +393,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/promotions', [PromotionController::class, 'store'])->name('promotions.store');
             Route::patch('/promotions/{promotion}', [PromotionController::class, 'update'])->name('promotions.update');
             Route::post('/promotions/{promotion}/status', [PromotionController::class, 'status'])->name('promotions.status');
+            // The only thing an administrator can do to a payment: ask the provider again. There is no "mark as paid".
+            Route::post('/payments/{payment}/reconcile', [AdminPaymentController::class, 'reconcile'])->name('payments.reconcile');
             Route::post('/markets/{market}/tax-rules', [FinancialRuleController::class, 'storeTaxRule'])->name('tax-rules.store');
             Route::patch('/tax-rules/{taxRule}', [FinancialRuleController::class, 'updateTaxRule'])->name('tax-rules.update');
             Route::post('/tax-rules/{taxRule}/status', [FinancialRuleController::class, 'taxRuleStatus'])->name('tax-rules.status');

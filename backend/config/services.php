@@ -112,12 +112,30 @@ return [
         'base_url' => env('ROUTING_BASE_URL', 'https://routes.googleapis.com'),
     ],
 
+    // Which payment provider is used: "razorpay", "fake" (never in production) or nothing (payments unavailable).
     'payment' => [
         'driver' => env('PAYMENT_DRIVER'),
-        'key_id' => env('PAYMENT_KEY_ID'),
-        'key_secret' => env('PAYMENT_KEY_SECRET'),
-        'webhook_secret' => env('PAYMENT_WEBHOOK_SECRET'),
         'timeout' => (int) env('PAYMENT_TIMEOUT', 15),
+    ],
+
+    // Razorpay — the initial provider for India (Module 30: TEST MODE ONLY). The key id is the only value a browser
+    // or an app may see; the key secret and the webhook secret never leave the server.
+    'razorpay' => [
+        'key_id' => env('RAZORPAY_KEY_ID'),
+        'key_secret' => env('RAZORPAY_KEY_SECRET'),
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
+        'mode' => env('RAZORPAY_MODE', 'test'),
+        'base_url' => env('RAZORPAY_BASE_URL', 'https://api.razorpay.com/v1'),
+        'checkout_script' => env('RAZORPAY_CHECKOUT_SCRIPT', 'https://checkout.razorpay.com/v1/checkout.js'),
+        // "automatic": every order asks for automatic capture. "dashboard": the account's own setting decides.
+        'capture' => [
+            'mode' => env('RAZORPAY_CAPTURE', 'automatic'),
+            'automatic_expiry_minutes' => (int) env('RAZORPAY_CAPTURE_AUTOMATIC_EXPIRY_MINUTES', 12),
+            'manual_expiry_minutes' => (int) env('RAZORPAY_CAPTURE_MANUAL_EXPIRY_MINUTES', 7200),
+            'refund_speed' => env('RAZORPAY_CAPTURE_REFUND_SPEED', 'normal'),
+        ],
+        // Method types to name in the application. Empty: the provider's own interface decides what the account offers.
+        'methods' => array_values(array_filter(array_map('trim', explode(',', (string) env('RAZORPAY_METHODS', ''))))),
     ],
 
     'fcm' => [

@@ -1,0 +1,8 @@
+# Module 30 — full backend test suite (php vendor/phpunit/phpunit/phpunit), LOCAL, 2026-10-07
+# Payment suites: tests/Feature/Payment (10 classes: initialization, verification, webhooks, reconciliation, retry and idempotency, the Razorpay client, the admin API, the OpenAPI contract, security, performance). Every payment test runs on a frozen server clock with the DEVELOPMENT provider (PAYMENT_DRIVER=fake); the Razorpay client is tested against faked HTTP answers in the shapes of Razorpay's documentation — NO call to Razorpay is made by any test, and none was possible: no credentials exist on this machine.
+# Earlier full run of the same day (before the client work and one change it led to — a refused proof now makes the backend ask the provider about its own order at once): 991 tests, 40,375 assertions, 0 failed. The run below is the final one.
+# Code style: vendor/bin/pint --test on the 69 PHP files this module added or changed: exit 0
+
+## final run
+{"tool":"phpunit","result":"passed","tests":992,"passed":992,"assertions":40392,"duration_ms":921610}
+exit 0

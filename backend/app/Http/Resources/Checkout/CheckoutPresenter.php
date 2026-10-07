@@ -12,6 +12,7 @@ use App\Services\Checkout\LegalDocuments;
 use App\Services\Checkout\PaymentOptions;
 use App\Services\Checkout\PaymentPreparation;
 use App\Services\Checkout\PickupSlotHoldService;
+use App\Services\Payment\PaymentProviderManager;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
@@ -113,7 +114,7 @@ final class CheckoutPresenter
                 'final_approval' => $this->legal->finalApproval($required),
             ],
             'payment_methods' => [
-                'provider_status' => (string) config('checkout.payment.provider_status'),
+                'provider_status' => app(PaymentProviderManager::class)->summary()['status'],
                 'available' => $this->payments->methods($session->market),
                 'saved' => $saved->map(fn ($m): array => (new PaymentMethodSummaryResource($m))->toArray(new Request))->values()->all(),
                 'selected' => $session->payment_method_type === null ? null : ['type' => (string) $session->payment_method_type, 'saved_method_id' => $session->savedPaymentMethod?->public_id],
@@ -130,7 +131,15 @@ final class CheckoutPresenter
      */
     private function payment(CheckoutSession $session): ?array
     {
-        return in_array($session->status, [CheckoutStatus::Ready, CheckoutStatus::PaymentPending], true) ? PaymentPreparation::for($session)->toArray() : null;
+        if (! in_array($session->status, [CheckoutStatus::Ready, CheckoutStatus::PaymentPending], true)) {
+            return null;
+        }
+        // The checkout's latest payment attempt, by reference: how a device that was closed or restarted finds its payment again.
+        $attempt = $session->paymentAttempts()->reorder()->orderByDesc('attempt_number')->first(['public_id', 'status', 'attempt_number']);
+
+        return PaymentPreparation::for($session)->toArray() + [
+            'attempt' => $attempt === null ? null : ['id' => (string) $attempt->public_id, 'status' => $attempt->status->value, 'attempt_number' => (int) $attempt->attempt_number],
+        ];
     }
 
     private static function utc(mixed $instant): ?string

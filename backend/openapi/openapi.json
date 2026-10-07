@@ -12119,6 +12119,973 @@
           }
         }
       }
+    },
+    "/checkouts/{checkout}/payment-attempts": {
+      "post": {
+        "summary": "Start paying a confirmed (READY) checkout. The amount and currency are the checkout's total — read by the backend; a request cannot carry them. The checkout goes into payment (its cart and pickup time are locked, its held pickup time is kept for as long as paying takes) and the provider is asked for its order. 201: a new attempt, ready for the provider's interface (provider_session). 200: the attempt that is already open for this checkout — a double tap, a reload or a second device gets the same one and no second provider order is created. A failed, cancelled or expired attempt is kept and a new one gets the next attempt_number. Errors: 404 checkout_not_found; 409 checkout_not_ready, checkout_stale (the price or the cart changed — the judgement is kept), payment_not_required, payment_already_verified (details.payment_id), payment_already_in_progress (details.payment_id — money may be on its way: no second payment beside it), payment_attempt_limit_reached, payment_window_closed; 410 checkout_expired; 422 payment_method_unavailable, validation_failed; 503 payment_provider_unavailable (nothing configured or the provider is down: nothing was charged), payment_initialization_failed, payment_initialization_unknown (it is not known whether the provider created its order — do not retry blindly; details.next_action).",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id — found only for the customer it belongs to.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentStartRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "PaymentEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "PaymentEnvelope — the attempt that is already open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/{payment}": {
+      "get": {
+        "summary": "The caller's payment attempt as it stands. While it is unsettled the backend looks at the provider (at most every few seconds) — poll this, never the provider. After a reload, an app restart or a lost connection this is how the client learns what happened: it never asks the customer to pay again on its own. 404 payment_not_found for anybody else's payment.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PaymentEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/{payment}/complete": {
+      "post": {
+        "summary": "The device reports how the provider's interface ended. This is a SIGNAL, never proof: with \"success\" the provider's signature is verified with the server-held key against the attempt's own order reference (422 payment_signature_invalid otherwise, and nothing changes), and then the PROVIDER is asked — only a captured payment on that order for the attempt's amount and currency makes the payment VERIFIED. \"cancelled\" or \"failed\" does not hide a payment the provider captured. Safe to repeat: a settled attempt answers what it is. Errors: 404 payment_not_found; 409 payment_not_ready; 422 validation_failed (a status, an amount or a currency was sent); 503 payment_provider_unavailable.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentCompleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PaymentEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/payments/{paymentProvider}": {
+      "post": {
+        "summary": "Where the payment provider reports events. NO customer or admin session: the only credential is the provider's signature over the RAW request body (for Razorpay the X-Razorpay-Signature header, HMAC-SHA256 with the webhook secret). The body is verified byte for byte before a field is read. An event is stored once however often it is delivered (X-Razorpay-Event-Id) and processed on a queue; events may arrive in any order and a late one cannot take a settled payment back. Errors: 400 webhook_payload_invalid; 401 webhook_signature_invalid; 404 for a provider that is not configured here; 413 webhook_payload_too_large. Anything but 2xx makes the provider deliver again.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "paymentProvider",
+            "in": "path",
+            "required": true,
+            "description": "The provider's name, e.g. razorpay. Only the provider configured here has an endpoint.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,23}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "The provider's own event. Its shape is the provider's; it is not stored — only its hash and the fields needed to reconcile."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "WebhookReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/payments/{payment}/simulate": {
+      "post": {
+        "summary": "DEVELOPMENT ONLY — not registered where fake providers are not allowed (never in production). Plays the customer in the fake provider's interface and the fake provider itself, for an attempt of the caller that was created with the fake provider. NO MONEY MOVES. It changes only the fake provider's own record and returns what a provider's interface would hand the device, or sends the provider's signed webhook through the real webhook path. Whether the payment becomes VERIFIED is still decided by the payment domain, exactly as for a real provider.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FakePaymentSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FakePaymentSimulation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FakePaymentSimulation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments": {
+      "get": {
+        "summary": "The real payment attempts (admin.payments.view). An administrator who holds the permission for some markets only sees and acts on those markets' payments. Search is by exact reference only — a payment id, its support reference (PAY-…), the checkout id, or a provider reference — never by a customer's name or number.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "An exact reference: payment id, PAY-… support reference, checkout id, provider order / payment reference",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "Attempt state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CREATED",
+                "PROVIDER_READY",
+                "PROCESSING",
+                "PENDING",
+                "AUTHORIZED",
+                "VERIFIED",
+                "FAILED",
+                "CANCELLED",
+                "EXPIRED",
+                "UNKNOWN",
+                "REVIEW_REQUIRED"
+              ]
+            }
+          },
+          {
+            "name": "filter[fulfillment]",
+            "in": "query",
+            "required": false,
+            "description": "What became of a verified payment",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NOT_APPLICABLE",
+                "ORDER_PENDING",
+                "RECOVERY_REQUIRED",
+                "ORDER_CREATED"
+              ]
+            }
+          },
+          {
+            "name": "filter[provider]",
+            "in": "query",
+            "required": false,
+            "description": "Provider name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[method]",
+            "in": "query",
+            "required": false,
+            "description": "Method type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UPI",
+                "CARD",
+                "NET_BANKING",
+                "WALLET",
+                "EMI",
+                "PAY_LATER"
+              ]
+            }
+          },
+          {
+            "name": "filter[currency]",
+            "in": "query",
+            "required": false,
+            "description": "ISO currency",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[restaurant]",
+            "in": "query",
+            "required": false,
+            "description": "Restaurant location id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[attention]",
+            "in": "query",
+            "required": false,
+            "description": "true: only what needs a person",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "filter[from]",
+            "in": "query",
+            "required": false,
+            "description": "Created on or after this day (YYYY-MM-DD, UTC)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[to]",
+            "in": "query",
+            "required": false,
+            "description": "Created on or before this day (YYYY-MM-DD, UTC)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "created_at, verified_at, amount_minor, status; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminPaymentPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaymentPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/{payment}": {
+      "get": {
+        "summary": "One payment attempt with its timeline, the provider's events and its references (admin.payments.view). An administrator who holds the permission for some markets only sees and acts on those markets' payments. No secret, no signature and no raw provider payload is shown. 404 payment_not_found.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminPaymentEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaymentEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/{payment}/reconcile": {
+      "post": {
+        "summary": "Ask the provider again about this payment (admin.payments.reconcile; with a reason; audited as payment.reconciled). It changes only what THE PROVIDER confirms — there is no \"mark as paid\", no status, amount or reference can be set, and no refund is issued here. An administrator who holds the permission for some markets only sees and acts on those markets' payments.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPaymentReconcileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminPaymentEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaymentEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/payments": {
+      "get": {
+        "summary": "Payment numbers for platform administrators (admin.system.view): the provider's configuration state (names, never values) and health, attempts by state, verified payments without an order, what needs review, webhook events, latencies. Counts only.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PaymentMetrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -29113,7 +30080,8 @@
           "idempotency_key",
           "payment_method",
           "expires_at",
-          "provider"
+          "provider",
+          "attempt"
         ],
         "additionalProperties": false,
         "properties": {
@@ -29178,20 +30146,82 @@
           "provider": {
             "type": "object",
             "required": [
-              "status"
+              "status",
+              "name",
+              "mode"
             ],
             "additionalProperties": false,
             "properties": {
               "status": {
                 "type": "string",
                 "enum": [
-                  "NOT_INTEGRATED"
-                ]
+                  "READY",
+                  "UNAVAILABLE"
+                ],
+                "description": "READY: a payment can be started here. UNAVAILABLE: no provider is configured (or it cannot be used) — there is no fallback and no invented payment."
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The provider's name, e.g. razorpay or fake (development only)"
+              },
+              "mode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "TEST",
+                  "LIVE",
+                  "FAKE",
+                  null
+                ],
+                "description": "TEST until live payments are deliberately enabled; FAKE for the development provider that moves no money"
               }
             }
+          },
+          "attempt": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "status",
+              "attempt_number"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "CREATED",
+                  "PROVIDER_READY",
+                  "PROCESSING",
+                  "PENDING",
+                  "AUTHORIZED",
+                  "VERIFIED",
+                  "FAILED",
+                  "CANCELLED",
+                  "EXPIRED",
+                  "UNKNOWN",
+                  "REVIEW_REQUIRED"
+                ]
+              },
+              "attempt_number": {
+                "type": "integer"
+              }
+            },
+            "description": "The checkout's latest payment attempt — how a device that was closed or restarted finds its payment again (GET /payments/{id}). Null when no payment was started."
           }
         },
-        "description": "What the payment module (Module 30) needs to start a payment — a PREPARATION. Nothing has been charged and no provider has been called."
+        "description": "What a payment for this checkout will be for: the amount is the checkout total and no request can change it. A payment is started with POST /checkouts/{checkout}/payment-attempts (Module 30)."
       },
       "Checkout": {
         "type": "object",
@@ -29552,8 +30582,10 @@
               "provider_status": {
                 "type": "string",
                 "enum": [
-                  "NOT_INTEGRATED"
-                ]
+                  "READY",
+                  "UNAVAILABLE"
+                ],
+                "description": "Whether payments can be taken here right now"
               },
               "available": {
                 "type": "array",
@@ -29635,7 +30667,8 @@
               "idempotency_key",
               "payment_method",
               "expires_at",
-              "provider"
+              "provider",
+              "attempt"
             ],
             "additionalProperties": false,
             "properties": {
@@ -29700,20 +30733,82 @@
               "provider": {
                 "type": "object",
                 "required": [
-                  "status"
+                  "status",
+                  "name",
+                  "mode"
                 ],
                 "additionalProperties": false,
                 "properties": {
                   "status": {
                     "type": "string",
                     "enum": [
-                      "NOT_INTEGRATED"
-                    ]
+                      "READY",
+                      "UNAVAILABLE"
+                    ],
+                    "description": "READY: a payment can be started here. UNAVAILABLE: no provider is configured (or it cannot be used) — there is no fallback and no invented payment."
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "The provider's name, e.g. razorpay or fake (development only)"
+                  },
+                  "mode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "TEST",
+                      "LIVE",
+                      "FAKE",
+                      null
+                    ],
+                    "description": "TEST until live payments are deliberately enabled; FAKE for the development provider that moves no money"
                   }
                 }
+              },
+              "attempt": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "status",
+                  "attempt_number"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "CREATED",
+                      "PROVIDER_READY",
+                      "PROCESSING",
+                      "PENDING",
+                      "AUTHORIZED",
+                      "VERIFIED",
+                      "FAILED",
+                      "CANCELLED",
+                      "EXPIRED",
+                      "UNKNOWN",
+                      "REVIEW_REQUIRED"
+                    ]
+                  },
+                  "attempt_number": {
+                    "type": "integer"
+                  }
+                },
+                "description": "The checkout's latest payment attempt — how a device that was closed or restarted finds its payment again (GET /payments/{id}). Null when no payment was started."
               }
             },
-            "description": "What the payment module (Module 30) needs to start a payment — a PREPARATION. Nothing has been charged and no provider has been called."
+            "description": "What a payment for this checkout will be for: the amount is the checkout total and no request can change it. A payment is started with POST /checkouts/{checkout}/payment-attempts (Module 30)."
           },
           "issues": {
             "type": "array",
@@ -31507,11 +32602,1915 @@
           "payment_provider": {
             "type": "string",
             "enum": [
-              "NOT_INTEGRATED"
+              "READY",
+              "UNAVAILABLE"
             ]
           }
         },
         "description": "Counts only: no cart, no customer, no code, no amount of anybody."
+      },
+      "PaymentProviderSession": {
+        "type": "object",
+        "required": [
+          "provider",
+          "mode",
+          "key_id",
+          "order_reference",
+          "amount",
+          "name",
+          "description",
+          "theme_color",
+          "checkout_script",
+          "prefill",
+          "preferred_method",
+          "methods",
+          "timeout_seconds"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "LIVE",
+              "FAKE"
+            ]
+          },
+          "key_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The provider's PUBLIC key id — the only provider value a browser or an app may hold. Never a secret."
+          },
+          "order_reference": {
+            "type": "string",
+            "description": "The provider's order / session for this attempt. Hand it to the provider's own interface."
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The same amount as the attempt — the checkout total"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "theme_color": {
+            "type": "string"
+          },
+          "checkout_script": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where a browser loads the provider's interface from (web). Null for a provider without one."
+          },
+          "prefill": {
+            "type": "object",
+            "required": [
+              "name",
+              "contact",
+              "email"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "contact": {
+                "type": "string"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "The account's own contact details, so the customer does not type them again"
+          },
+          "preferred_method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET",
+              "EMI",
+              "PAY_LATER",
+              null
+            ],
+            "description": "What the customer chose at checkout — where the provider's interface may start, never a restriction of ours"
+          },
+          "methods": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Method types named by configuration. Null: the provider's own interface shows what the account offers. Never a list from memory."
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "description": "How long the provider's interface may stay open"
+          }
+        },
+        "description": "What the PROVIDER'S OWN interface needs to open. Present only for the owner and only while the attempt can be paid. FoodOnTheGo never shows a card, UPI or bank form of its own."
+      },
+      "PaymentFailure": {
+        "type": "object",
+        "required": [
+          "category",
+          "code",
+          "message",
+          "retryable"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "CUSTOMER_CANCELLED",
+              "AUTHENTICATION_FAILED",
+              "INSUFFICIENT_FUNDS",
+              "PROVIDER_DECLINED",
+              "PROVIDER_UNAVAILABLE",
+              "TIMEOUT",
+              "VERIFICATION_FAILED",
+              "INITIALIZATION_FAILED",
+              "EXPIRED",
+              "UNKNOWN"
+            ]
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Safe to show. Never the provider's own wording, never a reproach."
+          },
+          "retryable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "required": [
+          "id",
+          "checkout_id",
+          "attempt_number",
+          "status",
+          "amount",
+          "provider",
+          "requested_method_type",
+          "method",
+          "failure",
+          "message",
+          "next_action",
+          "retry_after_seconds",
+          "provider_session",
+          "fulfillment",
+          "support_reference",
+          "expires_at",
+          "server_time",
+          "created_at",
+          "updated_at",
+          "verified_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "attempt_number": {
+            "type": "integer",
+            "description": "1 for the first attempt of a checkout. Earlier attempts are kept."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "PROVIDER_READY",
+              "PROCESSING",
+              "PENDING",
+              "AUTHORIZED",
+              "VERIFIED",
+              "FAILED",
+              "CANCELLED",
+              "EXPIRED",
+              "UNKNOWN",
+              "REVIEW_REQUIRED"
+            ],
+            "description": "FoodOnTheGo's own state of the attempt. VERIFIED is the only one that lets an order be created, and it is final. PROCESSING / PENDING / AUTHORIZED: not paid yet, keep asking. UNKNOWN / REVIEW_REQUIRED: neither paid nor unpaid may be assumed — do not pay again."
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The checkout total when the attempt was created. It never changes."
+          },
+          "provider": {
+            "type": "object",
+            "required": [
+              "name",
+              "mode"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "TEST",
+                  "LIVE",
+                  "FAKE"
+                ]
+              }
+            }
+          },
+          "requested_method_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET",
+              "EMI",
+              "PAY_LATER",
+              null
+            ]
+          },
+          "method": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "type",
+              "summary"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "UPI",
+                  "CARD",
+                  "NET_BANKING",
+                  "WALLET",
+                  "EMI",
+                  "PAY_LATER"
+                ]
+              },
+              "summary": {
+                "type": "object",
+                "description": "Safe fields only: a card's network, type and last four digits; a masked UPI address; a bank code; a wallet's name"
+              }
+            },
+            "description": "How the customer paid, as the provider reported it. Null until a payment is VERIFIED."
+          },
+          "failure": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "category",
+              "code",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "type": "string",
+                "enum": [
+                  "CUSTOMER_CANCELLED",
+                  "AUTHENTICATION_FAILED",
+                  "INSUFFICIENT_FUNDS",
+                  "PROVIDER_DECLINED",
+                  "PROVIDER_UNAVAILABLE",
+                  "TIMEOUT",
+                  "VERIFICATION_FAILED",
+                  "INITIALIZATION_FAILED",
+                  "EXPIRED",
+                  "UNKNOWN"
+                ]
+              },
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "description": "Safe to show. Never the provider's own wording, never a reproach."
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "next_action": {
+            "type": "string",
+            "enum": [
+              "OPEN_PROVIDER",
+              "WAIT",
+              "REFRESH_STATUS",
+              "RETRY_PAYMENT",
+              "SELECT_ANOTHER_METHOD",
+              "RETURN_TO_CHECKOUT",
+              "CONTACT_SUPPORT",
+              "PROCEED_TO_ORDER"
+            ],
+            "description": "What the client does next — decided by the backend. PROCEED_TO_ORDER only ever with a VERIFIED payment."
+          },
+          "retry_after_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "With WAIT / REFRESH_STATUS: ask again after this many seconds. Never ask the provider directly."
+          },
+          "provider_session": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "provider",
+              "mode",
+              "key_id",
+              "order_reference",
+              "amount",
+              "name",
+              "description",
+              "theme_color",
+              "checkout_script",
+              "prefill",
+              "preferred_method",
+              "methods",
+              "timeout_seconds"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": "string"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "TEST",
+                  "LIVE",
+                  "FAKE"
+                ]
+              },
+              "key_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The provider's PUBLIC key id — the only provider value a browser or an app may hold. Never a secret."
+              },
+              "order_reference": {
+                "type": "string",
+                "description": "The provider's order / session for this attempt. Hand it to the provider's own interface."
+              },
+              "amount": {
+                "$ref": "#/components/schemas/Money",
+                "description": "The same amount as the attempt — the checkout total"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "theme_color": {
+                "type": "string"
+              },
+              "checkout_script": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Where a browser loads the provider's interface from (web). Null for a provider without one."
+              },
+              "prefill": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "contact",
+                  "email"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "contact": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "description": "The account's own contact details, so the customer does not type them again"
+              },
+              "preferred_method": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "UPI",
+                  "CARD",
+                  "NET_BANKING",
+                  "WALLET",
+                  "EMI",
+                  "PAY_LATER",
+                  null
+                ],
+                "description": "What the customer chose at checkout — where the provider's interface may start, never a restriction of ours"
+              },
+              "methods": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "description": "Method types named by configuration. Null: the provider's own interface shows what the account offers. Never a list from memory."
+              },
+              "timeout_seconds": {
+                "type": "integer",
+                "description": "How long the provider's interface may stay open"
+              }
+            },
+            "description": "What the PROVIDER'S OWN interface needs to open. Present only for the owner and only while the attempt can be paid. FoodOnTheGo never shows a card, UPI or bank form of its own."
+          },
+          "fulfillment": {
+            "type": "object",
+            "required": [
+              "status",
+              "order_id",
+              "order_creation"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "NOT_APPLICABLE",
+                  "ORDER_PENDING",
+                  "RECOVERY_REQUIRED",
+                  "ORDER_CREATED"
+                ],
+                "description": "What became of a VERIFIED payment — separate from the payment itself. ORDER_PENDING: paid, the order is still to be created. RECOVERY_REQUIRED: paid, but the checkout cannot become an order as it stands."
+              },
+              "order_id": {
+                "type": "null",
+                "description": "Orders are created by the order module (Module 31). Until then there is no order — and none is invented."
+              },
+              "order_creation": {
+                "type": "string",
+                "enum": [
+                  "NOT_IMPLEMENTED"
+                ]
+              }
+            }
+          },
+          "support_reference": {
+            "type": "string",
+            "description": "A short reference the customer can read to support. It opens nothing."
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "server_time": {
+            "type": "string",
+            "description": "Count the time left from here, never from the device clock"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "verified_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "One attempt to pay one confirmed checkout. A payment is not an order."
+      },
+      "PaymentEnvelope": {
+        "type": "object",
+        "required": [
+          "payment"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "payment": {
+            "$ref": "#/components/schemas/Payment"
+          }
+        }
+      },
+      "PaymentStartRequest": {
+        "type": "object",
+        "required": [
+          "pricing_fingerprint"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "pricing_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "The price the customer saw (checkout.pricing.fingerprint). A payment is never started for another one."
+          },
+          "payment_method": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 16,
+                "description": "A method type the market offers. Never credentials, never cash."
+              }
+            }
+          }
+        },
+        "description": "No amount, currency, status or owner — a request that carries one is refused (422). No card number, CVV, UPI PIN or bank credential ever."
+      },
+      "PaymentCompleteRequest": {
+        "type": "object",
+        "required": [
+          "outcome"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "success",
+              "failed",
+              "cancelled"
+            ],
+            "description": "What the provider's interface told the device. \"success\" only means \"please verify\" — it is never believed."
+          },
+          "provider_payment_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Za-z0-9_]{6,64}$",
+            "description": "With success: the provider's reference of the payment"
+          },
+          "provider_signature": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-fA-F]{32,128}$",
+            "description": "With success: the provider's proof, verified by the backend with the server-held key against OUR order reference"
+          },
+          "provider_error": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "What the provider's interface said went wrong — kept for the message, trusted for nothing"
+          }
+        },
+        "description": "A report to be verified. A status, an amount or a currency cannot be sent."
+      },
+      "WebhookReceipt": {
+        "type": "object",
+        "required": [
+          "received"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "received": {
+            "type": "boolean"
+          },
+          "duplicate": {
+            "type": "boolean",
+            "description": "Present and true when the provider delivered an event that was stored before"
+          }
+        }
+      },
+      "FakePaymentSimulationRequest": {
+        "type": "object",
+        "required": [
+          "scenario"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "AUTHORIZED",
+              "PENDING",
+              "FAILED",
+              "CANCELLED",
+              "INVALID_SIGNATURE",
+              "AMOUNT_MISMATCH",
+              "LATE_SUCCESS",
+              "LATE_FAILURE",
+              "PROVIDER_DOWN",
+              "PROVIDER_UP"
+            ]
+          },
+          "webhook": {
+            "type": "string",
+            "enum": [
+              "none",
+              "deliver",
+              "first",
+              "only",
+              "duplicate",
+              "out_of_order"
+            ],
+            "description": "Whether and how the fake provider also sends its webhook"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$",
+            "maxLength": 64
+          }
+        }
+      },
+      "FakePaymentSimulation": {
+        "type": "object",
+        "required": [
+          "simulation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "simulation": {
+            "type": "object",
+            "required": [
+              "scenario",
+              "provider",
+              "money_moved"
+            ],
+            "properties": {
+              "scenario": {
+                "type": "string",
+                "enum": [
+                  "SUCCESS",
+                  "AUTHORIZED",
+                  "PENDING",
+                  "FAILED",
+                  "CANCELLED",
+                  "INVALID_SIGNATURE",
+                  "AMOUNT_MISMATCH",
+                  "LATE_SUCCESS",
+                  "LATE_FAILURE",
+                  "PROVIDER_DOWN",
+                  "PROVIDER_UP"
+                ]
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "fake"
+                ]
+              },
+              "money_moved": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "client": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "What the provider's interface would hand the device — the body for POST /payments/{payment}/complete. Null when the device hears nothing."
+              },
+              "webhooks": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
+              "provider_payment_reference": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "AdminPayment": {
+        "type": "object",
+        "required": [
+          "id",
+          "support_reference",
+          "checkout_id",
+          "attempt_number",
+          "status",
+          "status_reason",
+          "fulfillment_status",
+          "fulfillment_reason",
+          "needs_attention",
+          "verified_without_order",
+          "amount",
+          "provider",
+          "provider_mode",
+          "method_type",
+          "requested_method_type",
+          "failure_category",
+          "failure_code",
+          "restaurant",
+          "market",
+          "customer",
+          "created_at",
+          "verified_at",
+          "expires_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "support_reference": {
+            "type": "string"
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "attempt_number": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "PROVIDER_READY",
+              "PROCESSING",
+              "PENDING",
+              "AUTHORIZED",
+              "VERIFIED",
+              "FAILED",
+              "CANCELLED",
+              "EXPIRED",
+              "UNKNOWN",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "status_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fulfillment_status": {
+            "type": "string",
+            "enum": [
+              "NOT_APPLICABLE",
+              "ORDER_PENDING",
+              "RECOVERY_REQUIRED",
+              "ORDER_CREATED"
+            ]
+          },
+          "fulfillment_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "description": "Money that needs a person (REVIEW_REQUIRED) or a paid checkout that cannot become an order as it stands (RECOVERY_REQUIRED)"
+          },
+          "verified_without_order": {
+            "type": "boolean",
+            "description": "VERIFIED and no order exists — true for every verified payment until the order module creates orders"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "provider_mode": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "LIVE",
+              "FAKE"
+            ]
+          },
+          "method_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET",
+              "EMI",
+              "PAY_LATER",
+              null
+            ]
+          },
+          "requested_method_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET",
+              "EMI",
+              "PAY_LATER",
+              null
+            ]
+          },
+          "failure_category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CUSTOMER_CANCELLED",
+              "AUTHENTICATION_FAILED",
+              "INSUFFICIENT_FUNDS",
+              "PROVIDER_DECLINED",
+              "PROVIDER_UNAVAILABLE",
+              "TIMEOUT",
+              "VERIFICATION_FAILED",
+              "INITIALIZATION_FAILED",
+              "EXPIRED",
+              "UNKNOWN",
+              null
+            ]
+          },
+          "failure_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id",
+              "phone_masked"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "phone_masked": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "A reference and a masked number: the payment screens are not a customer directory"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "verified_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "AdminPaymentDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "support_reference",
+          "checkout_id",
+          "attempt_number",
+          "status",
+          "status_reason",
+          "fulfillment_status",
+          "fulfillment_reason",
+          "needs_attention",
+          "verified_without_order",
+          "amount",
+          "provider",
+          "provider_mode",
+          "method_type",
+          "requested_method_type",
+          "failure_category",
+          "failure_code",
+          "restaurant",
+          "market",
+          "customer",
+          "created_at",
+          "verified_at",
+          "expires_at",
+          "provider_references",
+          "provider_state",
+          "method_summary",
+          "verification",
+          "checkout",
+          "reconciliation",
+          "timeline",
+          "webhook_events",
+          "actions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "support_reference": {
+            "type": "string"
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "attempt_number": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "PROVIDER_READY",
+              "PROCESSING",
+              "PENDING",
+              "AUTHORIZED",
+              "VERIFIED",
+              "FAILED",
+              "CANCELLED",
+              "EXPIRED",
+              "UNKNOWN",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "status_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fulfillment_status": {
+            "type": "string",
+            "enum": [
+              "NOT_APPLICABLE",
+              "ORDER_PENDING",
+              "RECOVERY_REQUIRED",
+              "ORDER_CREATED"
+            ]
+          },
+          "fulfillment_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "description": "Money that needs a person (REVIEW_REQUIRED) or a paid checkout that cannot become an order as it stands (RECOVERY_REQUIRED)"
+          },
+          "verified_without_order": {
+            "type": "boolean",
+            "description": "VERIFIED and no order exists — true for every verified payment until the order module creates orders"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "provider_mode": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "LIVE",
+              "FAKE"
+            ]
+          },
+          "method_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET",
+              "EMI",
+              "PAY_LATER",
+              null
+            ]
+          },
+          "requested_method_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING",
+              "WALLET",
+              "EMI",
+              "PAY_LATER",
+              null
+            ]
+          },
+          "failure_category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CUSTOMER_CANCELLED",
+              "AUTHENTICATION_FAILED",
+              "INSUFFICIENT_FUNDS",
+              "PROVIDER_DECLINED",
+              "PROVIDER_UNAVAILABLE",
+              "TIMEOUT",
+              "VERIFICATION_FAILED",
+              "INITIALIZATION_FAILED",
+              "EXPIRED",
+              "UNKNOWN",
+              null
+            ]
+          },
+          "failure_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id",
+              "phone_masked"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "phone_masked": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "A reference and a masked number: the payment screens are not a customer directory"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "verified_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "provider_references": {
+            "type": "object",
+            "required": [
+              "order",
+              "payment",
+              "receipt"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "order": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "payment": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "receipt": {
+                "type": "string"
+              }
+            },
+            "description": "The provider's references, for support. Never a key, a secret or a signature."
+          },
+          "provider_state": {
+            "type": "object",
+            "required": [
+              "order",
+              "payment",
+              "error_code",
+              "error_reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "order": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "payment": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "error_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "error_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "method_summary": {
+            "type": "object",
+            "description": "Codes and references only"
+          },
+          "verification": {
+            "type": "object",
+            "required": [
+              "client_outcome",
+              "client_reported_at",
+              "signature_verified_at",
+              "signature_failures"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "client_outcome": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "success",
+                  "failed",
+                  "cancelled",
+                  null
+                ]
+              },
+              "client_reported_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "signature_verified_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "signature_failures": {
+                "type": "integer"
+              }
+            }
+          },
+          "checkout": {
+            "type": "object",
+            "required": [
+              "id",
+              "version",
+              "pricing_fingerprint",
+              "status",
+              "expires_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "version": {
+                "type": "integer"
+              },
+              "pricing_fingerprint": {
+                "type": "string"
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "reconciliation": {
+            "type": "object",
+            "required": [
+              "runs",
+              "last_at",
+              "next_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "runs": {
+                "type": "integer"
+              },
+              "last_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "next_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "type",
+                "source",
+                "from",
+                "to",
+                "detail"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "SYSTEM",
+                    "CLIENT",
+                    "PROVIDER",
+                    "WEBHOOK",
+                    "JOB",
+                    "ADMIN"
+                  ]
+                },
+                "from": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "detail": {
+                  "type": "object",
+                  "description": "Codes and references only"
+                }
+              }
+            },
+            "description": "What happened to the attempt, in order, and who or what said so"
+          },
+          "webhook_events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "normalized_type",
+                "received_at",
+                "processed_at",
+                "processing_status",
+                "outcome",
+                "deliveries",
+                "failure_reason"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "normalized_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "received_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "processed_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "processing_status": {
+                  "type": "string",
+                  "enum": [
+                    "RECEIVED",
+                    "PROCESSED",
+                    "IGNORED",
+                    "FAILED"
+                  ]
+                },
+                "outcome": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "deliveries": {
+                  "type": "integer"
+                },
+                "failure_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "actions": {
+            "type": "object",
+            "required": [
+              "mark_paid",
+              "refund"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "mark_paid": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ],
+                "description": "There is no way to mark a payment as paid"
+              },
+              "refund": {
+                "type": "string",
+                "enum": [
+                  "NOT_IMPLEMENTED"
+                ],
+                "description": "Refunds belong to a later module"
+              }
+            }
+          }
+        }
+      },
+      "AdminPaymentEnvelope": {
+        "type": "object",
+        "required": [
+          "payment"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "payment": {
+            "$ref": "#/components/schemas/AdminPaymentDetail"
+          }
+        }
+      },
+      "AdminPaymentPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminPayment"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "AdminPaymentReconcileRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "Nothing about a payment can be set by hand: a status, an amount or a reference in this request is refused."
+      },
+      "PaymentMetrics": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "window_hours",
+          "provider",
+          "attempts",
+          "verified_payments",
+          "needs_review",
+          "events",
+          "rates",
+          "latency_ms",
+          "verified_by_method",
+          "webhook_events",
+          "order_creation",
+          "refunds"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "provider": {
+            "type": "object",
+            "required": [
+              "driver",
+              "mode",
+              "configured",
+              "missing",
+              "fake",
+              "fake_allowed",
+              "live_allowed",
+              "timeout_seconds",
+              "methods",
+              "health"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "driver": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "TEST",
+                  "LIVE",
+                  "FAKE",
+                  null
+                ]
+              },
+              "configured": {
+                "type": "boolean"
+              },
+              "missing": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "NAMES of what is not configured — never a value"
+              },
+              "fake": {
+                "type": "boolean"
+              },
+              "fake_allowed": {
+                "type": "boolean",
+                "description": "Always false in production"
+              },
+              "live_allowed": {
+                "type": "boolean",
+                "description": "False: this build takes test-mode payments only"
+              },
+              "timeout_seconds": {
+                "type": "integer"
+              },
+              "methods": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "health": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Calls to the provider in the last minutes: state (OPERATIONAL / DEGRADED / OUTAGE / UNKNOWN), counts and the average latency — measured, not assumed"
+              }
+            }
+          },
+          "attempts": {
+            "type": "object",
+            "required": [
+              "created",
+              "provider_ready",
+              "processing",
+              "pending",
+              "authorized",
+              "verified",
+              "failed",
+              "cancelled",
+              "expired",
+              "unknown",
+              "review_required"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "created": {
+                "type": "integer"
+              },
+              "provider_ready": {
+                "type": "integer"
+              },
+              "processing": {
+                "type": "integer"
+              },
+              "pending": {
+                "type": "integer"
+              },
+              "authorized": {
+                "type": "integer"
+              },
+              "verified": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              },
+              "cancelled": {
+                "type": "integer"
+              },
+              "expired": {
+                "type": "integer"
+              },
+              "unknown": {
+                "type": "integer"
+              },
+              "review_required": {
+                "type": "integer"
+              }
+            },
+            "description": "Payment attempts by state, now"
+          },
+          "verified_payments": {
+            "type": "object",
+            "required": [
+              "order_pending",
+              "recovery_required",
+              "order_created"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "order_pending": {
+                "type": "integer"
+              },
+              "recovery_required": {
+                "type": "integer"
+              },
+              "order_created": {
+                "type": "integer"
+              }
+            },
+            "description": "Verified payments by what became of them"
+          },
+          "needs_review": {
+            "type": "integer"
+          },
+          "events": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "How often each payment event happened in the window"
+          },
+          "rates": {
+            "type": "object",
+            "required": [
+              "verified_of_settled",
+              "failed_of_settled"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "verified_of_settled": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "failed_of_settled": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "description": "A customer's cancellation is not a provider failure"
+          },
+          "latency_ms": {
+            "type": "object",
+            "required": [
+              "verification_avg",
+              "webhook_processing_avg"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "verification_avg": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "webhook_processing_avg": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            }
+          },
+          "verified_by_method": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "webhook_events": {
+            "type": "object",
+            "required": [
+              "received",
+              "processed",
+              "ignored",
+              "failed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "received": {
+                "type": "integer"
+              },
+              "processed": {
+                "type": "integer"
+              },
+              "ignored": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              }
+            }
+          },
+          "order_creation": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          },
+          "refunds": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          }
+        },
+        "description": "Counts and states only: no payment of anybody, no key, no secret."
       }
     }
   }

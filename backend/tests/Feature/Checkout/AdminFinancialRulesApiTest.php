@@ -399,7 +399,7 @@ class AdminFinancialRulesApiTest extends TestCase
         $numbers->assertJsonPath('checkouts.ready', 1)->assertJsonPath('checkouts.cancelled', 1)->assertJsonPath('checkouts.draft', 0)
             ->assertJsonPath('events.created', 2)->assertJsonPath('events.confirmed', 1)->assertJsonPath('events.cancelled', 1)->assertJsonPath('events.promotion_applied', 1)->assertJsonPath('events.promotion_refused', 1)
             ->assertJsonPath('rates.ready', 0.5)->assertJsonPath('rates.promotion_success', 0.5)->assertJsonPath('average_discount_minor', 10000)->assertJsonPath('active_pickup_holds', 1)
-            ->assertJsonPath('promotions.active', 1)->assertJsonPath('slot_hold', 'IMPLEMENTED')->assertJsonPath('payment_provider', 'NOT_INTEGRATED');
+            ->assertJsonPath('promotions.active', 1)->assertJsonPath('slot_hold', 'IMPLEMENTED')->assertJsonPath('payment_provider', 'READY');
         foreach (['Classic Burger', 'Burger Hub', 'Gate 4', 'SAVE100', 'NOSUCH', '+91', $ready['id'], $draft['pricing']['fingerprint'], 'customer_id'] as $private) {
             $this->assertStringNotContainsString($private, $numbers->getContent());
         }

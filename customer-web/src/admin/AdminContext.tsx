@@ -59,10 +59,11 @@ export const detectEnvironment = (): Environment => { const e = (import.meta.env
 /**
  * With the backend: market control, administrator accounts, the audit trail and security events talk to the admin API —
  * and, with the restaurant backend (Module 23), so do the restaurant list, details and approval lifecycle.
- * The other areas (customers, orders, payments, reviews, promotions, support, analytics) are still the mock.
+ * Promotions (Module 29) and payments (Module 30) are on the backend too. The other areas (customers, orders, refunds,
+ * settlements, reviews, support, analytics) are still the mock.
  */
 /** The admin sections that run on the backend: market control, administrator accounts, audit trail, security — and restaurants (Module 23). */
-export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', 'promotions', ...(restaurantMode() === 'api' ? ['restaurants'] : [])] : [])
+export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', 'promotions', 'payments', ...(restaurantMode() === 'api' ? ['restaurants'] : [])] : [])
 const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, ...(restaurantMode() === 'api' ? { restaurants: new ApiAdminRestaurantRepository() } : {}), promotions: new ApiAdminPromotionRepository(), marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {

@@ -7,6 +7,7 @@ use App\Auth\Principal;
 use App\Auth\Scope;
 use App\Contracts\Journey\PlacesProvider;
 use App\Contracts\Journey\RoutingProvider;
+use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Sms\SmsProvider;
 use App\Enums\Permission;
 use App\Enums\PrincipalType;
@@ -28,6 +29,7 @@ use App\Models\RouteCorridor;
 use App\Models\ServiceArea;
 use App\Services\Journey\Providers\ProviderManager;
 use App\Services\Market\MarketContext;
+use App\Services\Payment\PaymentProviderManager;
 use App\Services\Pickup\DatabasePickupCapacityRepository;
 use App\Services\Pickup\PickupCapacityRepository;
 use App\Services\Restaurant\RestaurantCatalog;
@@ -56,6 +58,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(ProviderManager::class);
         $this->app->bind(PlacesProvider::class, fn () => $this->app->make(ProviderManager::class)->places());
         $this->app->bind(RoutingProvider::class, fn () => $this->app->make(ProviderManager::class)->routing());
+
+        // Payments (Module 30): one manager builds the configured provider; the payment domain sees the interface only.
+        $this->app->singleton(PaymentProviderManager::class);
+        $this->app->bind(PaymentProvider::class, fn () => $this->app->make(PaymentProviderManager::class)->provider());
 
         // Pickup capacity (Module 28): PostgreSQL is the truth about how much of a slot is used.
         $this->app->bind(PickupCapacityRepository::class, DatabasePickupCapacityRepository::class);
@@ -197,6 +203,10 @@ class AppServiceProvider extends ServiceProvider
         // Checkout (Module 29): always a signed-in customer.
         RateLimiter::for('checkout-read', fn (Request $request) => Limit::perMinute($perMinute('checkout_read'))->by('checkout-read:'.$journeyActor($request)));
         RateLimiter::for('checkout-write', fn (Request $request) => Limit::perMinute($perMinute('checkout_write'))->by('checkout-write:'.$journeyActor($request)));
+        // Payments (Module 30). Reading a payment is polled while it is being verified; webhooks come from the provider
+        // and are limited per sending address only against a flood — the signature decides what is accepted.
+        RateLimiter::for('payment-read', fn (Request $request) => Limit::perMinute($perMinute('payment_read'))->by('payment-read:'.$journeyActor($request)));
+        RateLimiter::for('payment-webhook', fn (Request $request) => Limit::perMinute($perMinute('payment_webhook'))->by('payment-webhook:'.$request->ip()));
         RateLimiter::for('promotion-apply', fn (Request $request) => Limit::perMinute($perMinute('promotion_apply'))->by('promotion-apply:'.$journeyActor($request)));
     }
 }

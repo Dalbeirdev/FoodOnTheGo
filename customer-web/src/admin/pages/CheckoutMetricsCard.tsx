@@ -21,7 +21,7 @@ export type CheckoutMetricsDto = {
   active_pickup_holds: number
   promotions: { draft: number; active: number; paused: number; disabled: number }
   slot_hold: 'IMPLEMENTED'
-  payment_provider: 'NOT_INTEGRATED'
+  payment_provider: 'READY' | 'UNAVAILABLE'
 }
 
 const loadCheckoutMetrics = () => api<CheckoutMetricsDto>('/admin/system/checkout', { context: 'admin' })
@@ -32,7 +32,7 @@ export function CheckoutMetricsCard({ locale, load = loadCheckoutMetrics }: { lo
   // A rate without a single attempt is unknown, not zero.
   const share = (value: number | null | undefined) => (value === null || value === undefined ? '—' : new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(value))
   return (
-    <Card title={t('adm.checkout.title', undefined, locale)} subtitle={t('adm.checkout.subtitle', undefined, locale)} actions={data ? <Badge tone="amber">{t('adm.checkout.provider', undefined, locale)}</Badge> : undefined}>
+    <Card title={t('adm.checkout.title', undefined, locale)} subtitle={t('adm.checkout.subtitle', undefined, locale)} actions={data ? <Badge tone={data.payment_provider === 'READY' ? 'green' : 'amber'}>{t(`adm.checkout.provider.${data.payment_provider === 'READY' ? 'READY' : 'UNAVAILABLE'}`, undefined, locale)}</Badge> : undefined}>
       {state === 'loading' && <Skeleton rows={2} />}
       {state === 'error' && <ErrorState title={t('adm.error.loadTitle', undefined, locale)} onRetry={() => { void reload() }} locale={locale} />}
       {state === 'ready' && data && <>

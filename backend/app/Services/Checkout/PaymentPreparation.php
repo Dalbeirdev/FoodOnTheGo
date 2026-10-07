@@ -4,6 +4,7 @@ namespace App\Services\Checkout;
 
 use App\Enums\CheckoutStatus;
 use App\Models\CheckoutSession;
+use App\Services\Payment\PaymentProviderManager;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
 use LogicException;
@@ -34,7 +35,8 @@ final readonly class PaymentPreparation
         public ?string $paymentMethodType,
         public ?string $savedPaymentMethodId,
         public CarbonImmutable $expiresAt,
-        public string $providerStatus,
+        /** @var array{status: string, name: string|null, mode: string|null} */
+        public array $provider,
     ) {}
 
     /**
@@ -56,7 +58,7 @@ final readonly class PaymentPreparation
             paymentMethodType: $session->payment_method_type,
             savedPaymentMethodId: $session->savedPaymentMethod?->public_id,
             expiresAt: CarbonImmutable::instance($session->expires_at),
-            providerStatus: (string) config('checkout.payment.provider_status'),
+            provider: app(PaymentProviderManager::class)->summary(),
         );
     }
 
@@ -77,7 +79,7 @@ final readonly class PaymentPreparation
             'idempotency_key' => $this->idempotencyKey,
             'payment_method' => $this->paymentMethodType === null ? null : ['type' => $this->paymentMethodType, 'saved_method_id' => $this->savedPaymentMethodId],
             'expires_at' => $this->expiresAt->utc()->toIso8601String(),
-            'provider' => ['status' => $this->providerStatus],
+            'provider' => $this->provider,
         ];
     }
 }

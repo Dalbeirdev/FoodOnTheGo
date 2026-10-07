@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../core/theme.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
+import '../payment/api_payment.dart' show paymentsFromApi;
 import '../state/auth_state.dart';
 import '../state/cart_state.dart' hide PromoState, PromoStatus;
 import '../state/checkout_state.dart';
@@ -87,7 +88,10 @@ class CheckoutBackendView extends StatelessWidget {
         if (co.status == CheckoutStatus.expired) _notice('co-expired', S.t('checkout.expired'), error: true, action: Semantics(key: const ValueKey('co-restart'), identifier: 'co-restart', button: true, child: TextButton(onPressed: retry, child: Text(S.t('checkout.startAgain'))))),
         // The backend's reasons, each with the way to put it right.
         for (final i in fromBackend.where((x) => x.code != CheckoutIssueCode.checkoutExpired))
-          _notice('co-issue-${i.detail ?? i.code.name}', _issueText(i), action: switch (i.recover) {
+          _notice('co-issue-${i.detail ?? i.code.name}', _issueText(i), action: paymentsFromApi && (i.code == CheckoutIssueCode.paymentInProgress || i.recover == 'payment')
+              // A payment for this cart is in progress: the way on is the payment screen, which asks the backend what it is.
+              ? Semantics(key: const ValueKey('co-recover-payment'), identifier: 'co-recover-payment', button: true, child: TextButton(onPressed: () => context.push('/payment'), child: Text(S.t('checkout.recover.payment'))))
+              : switch (i.recover) {
             'cart' => Semantics(key: const ValueKey('co-recover-cart'), identifier: 'co-recover-cart', button: true, child: TextButton(onPressed: () => context.go('/cart'), child: Text(S.t('checkout.recover.cart')))),
             'pickup' => Semantics(key: const ValueKey('co-recover-pickup'), identifier: 'co-recover-pickup', button: true, child: TextButton(onPressed: () => context.push('/pickup-time'), child: Text(S.t('checkout.recover.pickup')))),
             'refresh' || 'checkout' => Semantics(key: const ValueKey('co-recover-refresh'), identifier: 'co-recover-refresh', button: true, child: TextButton(onPressed: retry, child: Text(S.t('checkout.recover.refresh')))),
@@ -177,7 +181,8 @@ class CheckoutBackendView extends StatelessWidget {
                 Semantics(key: ValueKey('co-method-${m.id}-${co.paymentMethodId == m.id}'), identifier: 'co-method-${m.id.startsWith('saved:') ? 'saved' : m.id}', container: true, child: RadioListTile<String>(value: m.id, contentPadding: EdgeInsets.zero, activeColor: Brand.orangeDeep, title: Text(m.label), subtitle: m.id.startsWith('saved:') ? Text(S.t('checkout.payment.saved'), style: const TextStyle(fontSize: 12)) : null)),
             ])),
             Text(S.t('checkout.payment.note'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
-            if (!free && s.providerStatus == 'NOT_INTEGRATED') Semantics(key: const ValueKey('co-provider-pending'), identifier: 'co-provider-pending', container: true, child: Text(S.t('checkout.payment.notIntegrated'), style: const TextStyle(color: Brand.grey, fontSize: 12))),
+            // The backend says whether payments can be taken right now; nothing is simulated when they cannot.
+            if (!free && s.providerStatus != 'READY') Semantics(key: const ValueKey('co-provider-unavailable'), identifier: 'co-provider-unavailable', container: true, liveRegion: true, child: Text(S.t('checkout.payment.unavailable'), style: const TextStyle(color: Color(0xFF6B4300), fontSize: 12, fontWeight: FontWeight.w700))),
           ])),
           const SizedBox(height: 12),
           // Summary — every line is a figure the backend sent.

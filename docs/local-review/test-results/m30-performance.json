@@ -1,0 +1,45 @@
+{
+    "module": "M30",
+    "note": "Local machine, PostgreSQL test database inside one transaction, PHP CLI without OPcache, in-process requests (no HTTP server, no network). The FAKE provider answers in-process: the provider's own latency is NOT in these numbers and has not been measured against Razorpay (no credentials). Timings are measurements, not targets.",
+    "queries": {
+        "one_line": {
+            "start": 54,
+            "start_again": 5,
+            "read_open": 10,
+            "read_open_within_interval": 3,
+            "complete_verified": 51,
+            "webhook_after_verified": 10,
+            "read_verified": 3
+        },
+        "twenty_lines": {
+            "start": 54,
+            "start_again": 5,
+            "read_open": 10,
+            "read_open_within_interval": 3,
+            "complete_verified": 51,
+            "webhook_after_verified": 10,
+            "read_verified": 3
+        }
+    },
+    "timings_ms": {
+        "one_line": {
+            "start": 133.2,
+            "start_again": 17.6,
+            "read_open": 31.2,
+            "read_open_within_interval": 10.2,
+            "complete_verified": 138.7,
+            "webhook_after_verified": 74.4,
+            "read_verified": 11.6
+        },
+        "twenty_lines": {
+            "start": 174.4,
+            "start_again": 18.9,
+            "read_open": 29.6,
+            "read_open_within_interval": 11.2,
+            "complete_verified": 162,
+            "webhook_after_verified": 23.8,
+            "read_verified": 9.5
+        }
+    },
+    "cache": "none for payments — PostgreSQL is the truth; the cache holds rate limits, a short lock per attempt while the provider is asked, and event counters"
+}

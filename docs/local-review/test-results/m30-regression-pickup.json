@@ -1,0 +1,356 @@
+{
+  "module": "M28",
+  "date": "2026-10-07T12:40:56.000Z",
+  "base": "http://localhost:5173",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "note": "Customer Web (VITE_PICKUP_MODE=api), Restaurant Dashboard and Platform Admin against the real local backend (PostgreSQL 18, Redis). Pickup times are SELECTED, NOT RESERVED: no slot hold exists yet (Module 29 / 31). Capacity rows used here are local test rows (source FIXTURE). Checkout, payment and orders are still development data.",
+  "passed": 69,
+  "total": 69,
+  "results": [
+    {
+      "name": "A1 the pickup page asks the backend (GET /cart/pickup-availability): the guest cart token in a header, no query, no body — and shows the restaurant, its time zone and the estimated preparation; nothing is labelled \"development pickup times\"",
+      "pass": true,
+      "detail": "Pickup time Choose when you will collect your order. Times are shown in the restaurant’s local time. PICKUP AT Burger Hub Sector 62, Noida, Uttar Pradesh 201309, India Open Closes 11:30 pm Restaurant "
+    },
+    {
+      "name": "A2 ASAP is the backend's sum: max(preparation 12 + buffer 0, minimum lead 12) = 12 min after the server clock, rounded up to the minute; it is on the restaurant's clock (+05:30) and marked recommended when there is no journey",
+      "pass": true,
+      "detail": "lead 12.533333333333333 delay 12"
+    },
+    {
+      "name": "A3 the page shows that ASAP time in restaurant time, with the backend's \"Recommended\"",
+      "pass": true,
+      "detail": "Ready in about 6:18 pm (IST) Recommended"
+    },
+    {
+      "name": "axe (pickup page, ASAP): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 choosing ASAP sends a mode, the method and the cart version — no time, no restaurant, no customer — with the guest token in a header and an Idempotency-Key; the backend stores the choice",
+      "pass": true,
+      "detail": "{\"mode\":\"ASAP\",\"method\":\"COUNTER\",\"cart_version\":1} 200"
+    },
+    {
+      "name": "A5 SELECTED IS NOT RESERVED: the answer says reserved: false, no capacity row was written, and the page says \"selected, not reserved\" — never \"reserved\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6 one selection row for the cart in the database: ASAP, SELECTED, restaurant time zone and the cart version it was made for",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 after a reload the choice is still there — it lives with the cart on the backend, and an ASAP choice follows the clock (its time is the current estimate)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 SLOTS are the backend's: every start is on the 15-minute grid of the restaurant's local clock, none is before the kitchen can be ready, today's last one starts 23:15 (before the 23:30 close), and the list ends at the 24-hour horizon — 61 slots over 2 local days",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B2 the page lists exactly the backend's slots of the chosen day, with a tab per restaurant-local day",
+      "pass": true,
+      "detail": "20 vs 20"
+    },
+    {
+      "name": "B3 choosing a slot sends its key — a mode, a key, the method, the cart version; never a timestamp — and the backend answers with the slot it stored",
+      "pass": true,
+      "detail": "{\"mode\":\"SCHEDULED\",\"slot_key\":\"ps1_tmji70_15_de66a67c4ce0\",\"method\":\"COUNTER\",\"cart_version\":1}"
+    },
+    {
+      "name": "B4 the summary shows that time on the restaurant clock and the row in the database holds the slot (still one row for the cart)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe (pickup page, scheduled): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B5 TAMPERING is refused and changes nothing: an altered slot key, a key of another restaurant, a malformed key, a missing key (422 slot_invalid / validation_failed); a timestamp, a restaurant, a customer, a cart id, a currency or a capacity in the request (422 — fields the client may not send); an unknown mode (422)",
+      "pass": true,
+      "detail": "{\"tampered\":\"422:slot_invalid\",\"foreign\":\"422:slot_invalid\",\"garbage\":\"422:slot_invalid\",\"missing\":\"422:validation_failed\",\"time\":\"422:validation_failed\",\"restaurant\":\"422:validation_failed\",\"customer\":\"422:validation_failed\",\"cartId\":\"422:validation_failed\",\"currency\":\"422:validation_failed\",\"capacity\":\"422:validation_failed\",\"mode\":\"422:validation_failed\"}"
+    },
+    {
+      "name": "B6 IDEMPOTENT: the same request with the same key is answered again without choosing twice (same selection version); the same key with another choice is refused (409 / 422); still one row",
+      "pass": true,
+      "detail": "200 200 409"
+    },
+    {
+      "name": "B7 five different choices sent at the same moment end as ONE valid selection — the last one stored — never two rows",
+      "pass": true,
+      "detail": "200,200,200,200,200"
+    },
+    {
+      "name": "B8 \"Change time\" clears the choice on the backend (DELETE): no row, the summary asks for a time again and Continue is off",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 CAPACITY (Pizza Point, 2 orders per slot, local fixture): the next 13:00 is FULL — listed, not available, reason SLOT_FULL — and 13:15, taken once, has its last place left: LIMITED and still available; other slots are untouched",
+      "pass": true,
+      "detail": "{\"full\":{\"slot_key\":\"ps1_tmkvi0_15_245c7fd8fa0a\",\"starts_at\":\"2026-10-08T07:30:00+00:00\",\"ends_at\":\"2026-10-08T07:45:00+00:00\",\"local_starts_at\":\"2026-10-08T13:00:00+05:30\",\"local_date\":\"2026-10-08\",\"available\":false,\"capacity_state\":\"FULL\",\"recommended\":false,\"reason\":\"SLOT_FULL\",\"arrival_vs_pickup"
+    },
+    {
+      "name": "C2 customers see a state, never a number: a slot carries no count, no capacity and no remaining places, and the answer has no capacity setting",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 the page shows the full slot as \"Full\", disabled, the one with its last place as \"Limited\", and the others as choosable",
+      "pass": true,
+      "detail": "{\"start\":\"2026-10-08T07:30:00+00:00\",\"capacity\":\"full\",\"recommended\":false,\"disabled\":true,\"on\":false,\"text\":\"1:00 pm Full\"}"
+    },
+    {
+      "name": "C4 the API refuses the full slot too: 409 slot_full, nothing selected",
+      "pass": true,
+      "detail": "409 {\"error\":{\"code\":\"slot_full\",\"message\":\"That pickup time is no longer available. Please select another time.\",\"request_id\":\"d364d217-0288-4b47-a5bd-8f52f9dfbba0"
+    },
+    {
+      "name": "C5 A SLOT FILLS UP WHILE THE CUSTOMER LOOKS: the tap is refused (409 slot_full), the page says so in the backend's words, shows the slot as Full after asking again, and nothing is selected",
+      "pass": true,
+      "detail": "409 {\"start\":\"2026-10-08T07:45:00+00:00\",\"capacity\":\"full\",\"recommended\":false,\"disabled\":true,\"on\":false,\"text\":\"1:15 pm Full\"}"
+    },
+    {
+      "name": "C6 A CHOSEN SLOT IS FILLED BY OTHERS (a selection holds no place): on the next read the backend marks the choice INVALID with SLOT_FULL; the page shows the warning and Continue is off until another time is chosen",
+      "pass": true,
+      "detail": "{\"id\":\"f452bad3-5ca2-4fb3-83b2-84e262288cb4\",\"mode\":\"SCHEDULED\",\"method\":\"COUNTER\",\"pickup_at\":\"2026-10-08T08:30:00+00:00\",\"local_pickup_at\":\"2026-10-08T14:00:00+05:30\",\"local_date\":\"2026-10-08\",\"slot_key\":\"ps1_tmkya0_15_9e33726760c0\",\"slot"
+    },
+    {
+      "name": "C7 when the place is free again the same stored choice is valid again — it is judged on every read, not frozen",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 JOURNEY-AWARE: the cart was started from a planned journey, so the backend reads the traveller's arrival from it (the same instant the cart shows) — status ACTIVE, labelled as the development routing estimate — and nothing was sent by the page to say so",
+      "pass": true,
+      "detail": "{\"status\":\"ACTIVE\",\"traveler_arrival_at\":\"2026-10-07T12:37:20+00:00\",\"local_traveler_arrival_at\":\"2026-10-07T18:07:20+05:30\",\"requires_refresh\":false,\"estimate_source\":\"development\",\"arrival_buffer_minutes\":0}"
+    },
+    {
+      "name": "D2 the RECOMMENDATION is the first time that is both ready and not before the arrival: ASAP at 6:19 (kitchen ready 6:19, arrival 6:07), basis KITCHEN",
+      "pass": true,
+      "detail": "{\"mode\":\"ASAP\",\"slot_key\":null,\"pickup_at\":\"2026-10-07T12:49:00+00:00\",\"local_pickup_at\":\"2026-10-07T18:19:00+05:30\",\"basis\":\"KITCHEN\",\"arrival_vs_pickup_delta_seconds\":700}"
+    },
+    {
+      "name": "D3 with the arrival 7:42 (a longer drive) the recommendation moves to the first slot at or after it — 7:45, basis ARRIVAL, at most one interval after the arrival; ASAP is no longer the recommended one; the page marks exactly that slot and explains it is guidance",
+      "pass": true,
+      "detail": "{\"mode\":\"SCHEDULED\",\"slot_key\":\"ps1_tmjjl0_15_d832e1888c14\",\"pickup_at\":\"2026-10-07T14:15:00+00:00\",\"local_pickup_at\":\"2026-10-07T19:45:00+05:30\",\"basis\":\"ARRIVAL\",\"arrival_vs_pickup_delta_seconds\":180} page [{\"start\":\"2026-10-07T14:15:00+00:00\",\"capacity\":\"available\",\"recommended\":true,\"disabled\":false,\"on\":false,\"text\":\"7:45 pm Recommended\"}]"
+    },
+    {
+      "name": "D4 the recommendation is guidance: the traveller may still choose ASAP; the answer then carries how far ahead of the arrival the pickup is (a negative number of seconds) so the app can say the food may wait",
+      "pass": true,
+      "detail": "{\"selection\":{\"id\":\"951b5966-a537-416c-9f85-6906b5de1945\",\"mode\":\"ASAP\",\"method\":\"COUNTER\",\"pickup_at\":\"2026-10-07T12:49:00+00:00\",\"local_pickup_at\":\"2026-10-07T18:19:00+05:30\",\"local_date\":\"2026-10-0"
+    },
+    {
+      "name": "D5 PRIVACY: what pickup says about the journey is a status, an instant and the source of the estimate — no place, no coordinate, no route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D6 the journey ENDS: pickup no longer trusts its arrival — status STALE, \"plan your journey again\" — the recommendation falls back to the kitchen (basis KITCHEN), and a time can still be chosen",
+      "pass": true,
+      "detail": "{\"status\":\"STALE\",\"traveler_arrival_at\":null,\"local_traveler_arrival_at\":null,\"requires_refresh\":true,\"estimate_source\":\"development\",\"arrival_buffer_minutes\":0}"
+    },
+    {
+      "name": "E1 a cart change that does not move the kitchen time keeps the choice: one more item, the same estimate, the selection stays SELECTED",
+      "pass": true,
+      "detail": "{\"id\":\"9b77eae0-a30c-4b1b-9f9b-8bf2b1ddaff1\",\"mode\":\"SCHEDULED\",\"method\":\"COUNTER\",\"pickup_at\":\"2026-10-07T13:00:00+00:00\",\"local_pickup_at\":\"2026-10-07T18:30:00+05:30\",\"local_date\":\"2026-10-07\",\"slot"
+    },
+    {
+      "name": "E2 A BIGGER ORDER NEEDS LONGER: 41 items raise the estimate from 12 to 32 minutes (large-order step), the chosen earliest slot can no longer be met → the choice is STALE with CART_CHANGED; the page shows the warning with the backend's words and Continue is off",
+      "pass": true,
+      "detail": "{\"prep\":{\"estimated_minutes\":32,\"buffer_minutes\":0,\"minimum_lead_minutes\":12,\"ready_in_minutes\":32,\"is_estimate\":true},\"sel\":\"STALE\",\"code\":\"CART_CHANGED\",\"cartVersion\":4}"
+    },
+    {
+      "name": "E3 choosing another time (offered for the bigger order) makes it valid again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E4 before sign-in the account's own cart has no pickup choice",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E5 Continue as a guest: the backend judged the choice again, then the page asks to sign in (checkout needs an account)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E6 SIGN-IN KEEPS THE PICKUP CHOICE: the guest cart is merged into the account's cart at the same restaurant and the chosen slot comes with it — the same slot, valid, now on the customer's cart; the guest token is gone",
+      "pass": true,
+      "detail": "{\"owner\":\"customer\",\"lines\":3,\"carried\":\"ps1_tmji70_15_de66a67c4ce0\",\"kept\":\"ps1_tmji70_15_de66a67c4ce0\",\"url\":\"http://localhost:5173/checkout\"}"
+    },
+    {
+      "name": "E7 the signed-in pickup page shows that choice; its requests carry the session, not a cart token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E8 OWNERSHIP / IDOR: the pickup endpoints have no cart id to guess — they act on the caller's own cart. A stranger's token, another guest using a Burger Hub slot key, nobody, a forged token, the restaurant owner and an administrator never read or change the customer's choice",
+      "pass": true,
+      "detail": "{\"strangerRead\":\"200:ok\",\"strangerAvailability\":\"404:cart_not_found\",\"strangerSelect\":\"404:cart_not_found\",\"strangerClear\":\"200:ok\",\"otherGuestWithKey\":\"422:slot_invalid\",\"nobody\":\"404:cart_not_found\",\"staff\":\"404:cart_not_found\",\"admin\":\"200:ok\",\"forged\":\"200:ok\"}"
+    },
+    {
+      "name": "F1 the dashboard's pickup settings page shows a PREVIEW that is the customer engine's own answer (GET …/pickup-preview): ASAP available, the slot count for the saved hours, capacity unit ORDERS, no warnings — the same first slot a customer is offered",
+      "pass": true,
+      "detail": "{\"enabled\":true,\"interval_minutes\":15,\"horizon_minutes\":1440,\"slot_count\":61,\"available_slot_count\":61,\"truncated\":false,\"days\":[{\"local_date\":\"2026-10-07\",\"slots\":20,\"available\":20,\"first_slot_at\":\"2"
+    },
+    {
+      "name": "axe (dashboard pickup settings): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F2 CAPACITY SET IN THE DASHBOARD (4 orders per slot, saved through the form): a slot with 3 of 4 places taken shows LIMITED to the customer — still choosable; the others stay AVAILABLE",
+      "pass": true,
+      "detail": "{\"code\":200,\"limited\":{\"slot_key\":\"ps1_tmjka0_15_c190e8592283\",\"starts_at\":\"2026-10-07T14:30:00+00:00\",\"ends_at\":\"2026-10-07T14:45:00+00:00\",\"local_starts_at\":\"2026-10-07T20:00:00+05:30\",\"local_date\":\"2026-10-07\",\"available\":true,\"capacity_state\":\"LIMITED\",\"recommended\":false,\"reason\":null,\"arrival_vs_pickup_delta_seconds\":null},\"tOnPage\":{\"start\":\"2026-10-07T14:30:00+00:00\",\"capacity\":\"limited\",\""
+    },
+    {
+      "name": "F3 the fourth place goes: the slot is FULL and refused (409 slot_full)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F4 NO LIMIT CONFIGURED = NO LIMIT INVENTED: the owner clears the capacity; with the same four places still taken the slot is AVAILABLE again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F5 INTERVAL 15 → 30 in the dashboard: customers are offered half-hour slots only (:00 / :30, 30 minutes long); a quarter-hour slot chosen before is no longer offered → the choice is INVALID (SLOT_INVALID) and the page asks for another time",
+      "pass": true,
+      "detail": "{\"n\":31,\"sel\":\"INVALID\",\"code\":\"SLOT_INVALID\"}"
+    },
+    {
+      "name": "F5b an old 15-minute key is refused when sent again (422 slot_invalid)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F6 PREPARATION TIME 12 → 50 in the dashboard: ASAP moves to 50 minutes from now, no slot is offered before that, and the earlier slot the customer had chosen is INVALID (SLOT_TOO_EARLY); the page shows \"Estimated preparation 50 min\"",
+      "pass": true,
+      "detail": "{\"prep\":{\"estimated_minutes\":50,\"buffer_minutes\":0,\"minimum_lead_minutes\":12,\"ready_in_minutes\":50,\"is_estimate\":true},\"lead50\":50.28333333333333,\"sel\":\"SLOT_TOO_EARLY\"}"
+    },
+    {
+      "name": "F7 ASAP SWITCHED OFF in the dashboard: customers are offered scheduled pickup only (no ASAP tab on the page), an ASAP choice made before is INVALID (ASAP_DISABLED), choosing ASAP is refused (422 pickup_mode_unavailable) and the recommendation is a slot",
+      "pass": true,
+      "detail": "{\"asap\":{\"enabled\":false,\"available\":false,\"pickup_at\":null,\"local_pickup_at\":null,\"estimated_ready_in_minutes\":null,\"recommended\":false,\"reason\":\"ASAP_DISABLED\",\"arrival_vs_pickup_delta_seconds\":null},\"sel\":{\"code\":\"ASAP_DISABLED\",\"severity\":\"BLOCKING\",\"message\":\"This restaurant no longer offers ASAP pickup.\",\"details\":{}},\"off\":\"422:pickup_mode_unavailable\"}"
+    },
+    {
+      "name": "F8 PICKUP SWITCHED OFF in the dashboard (switching both modes off while pickup stays on is refused with 422): customers are offered nothing — PICKUP_DISABLED, a choice is refused (409 pickup_disabled), the page says so — and the dashboard preview tells the owner that customers cannot order",
+      "pass": true,
+      "detail": "{\"bothOff\":422,\"issues\":[\"PICKUP_DISABLED\"],\"refused\":\"409:pickup_disabled\",\"preview\":\"false\",\"blocked\":\"PICKUP_DISABLED\"}"
+    },
+    {
+      "name": "F9 SCHEDULED SWITCHED OFF, ASAP on: ASAP only — no slots are generated and a slot key is refused (422 pickup_mode_unavailable)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F10 THE RESTAURANT PAUSES ORDERS: nothing can be chosen (can_select false, RESTAURANT_NOT_ACCEPTING), the stored choice is INVALID, a new choice is refused (409 restaurant_not_accepting) and the page says so instead of offering times",
+      "pass": true,
+      "detail": "{\"pause\":200,\"issues\":[\"RESTAURANT_NOT_ACCEPTING\"],\"sel\":{\"code\":\"RESTAURANT_NOT_ACCEPTING\",\"severity\":\"BLOCKING\",\"message\":\"This restaurant is not accepting orders right now.\",\"details\":{}},\"refused\":409}"
+    },
+    {
+      "name": "F11 orders are accepted again: the same ASAP choice is valid again without the customer doing anything",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F12 CLOSED NOW (the owner set today's hours to end at 17:00): ASAP is not available — reason RESTAURANT_CLOSED — and the ASAP choice is INVALID; the slots start at the NEXT OPENING, tomorrow 08:00 restaurant time, on the grid, and only inside opening hours; the page says ASAP is not available and offers to schedule",
+      "pass": true,
+      "detail": "{\"put\":200,\"asap\":{\"enabled\":true,\"available\":false,\"pickup_at\":null,\"local_pickup_at\":null,\"estimated_ready_in_minutes\":null,\"recommended\":false,\"reason\":\"RESTAURANT_CLOSED\",\"arrival_vs_pickup_delta_seconds\":null},\"first\":\"2026-10-08T08:00:00+05:30\",\"n\":36}"
+    },
+    {
+      "name": "F12b NO OPENING HOURS AT ALL (the owner removes every period): the customer is offered no time — NO_PICKUP_SLOTS, an empty list with the backend's explanation — and the dashboard preview WARNS the owner (NO_OPENING_HOURS: customers cannot be offered a pickup time)",
+      "pass": true,
+      "detail": "{\"put\":200,\"issues\":[\"RESTAURANT_CLOSED:{}\",\"NO_PICKUP_SLOTS:{\\\"cause\\\":\\\"NO_PICKUP_SLOTS\\\"}\"],\"warnCodes\":[\"NO_OPENING_HOURS\",\"NO_PICKUP_TIMES\"]}"
+    },
+    {
+      "name": "F13 the hours are put back: ASAP is available again and today has slots again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F14 AN ITEM OF THE CART IS SOLD OUT (dashboard): pickup is blocked until the cart is fixed — CART_INVALID, nothing to choose, a choice is refused (409 cart_invalid), the stored choice is STALE, and the page sends the customer back to the cart",
+      "pass": true,
+      "detail": "{\"soldOut\":200,\"issues\":[\"CART_INVALID\"],\"sel\":\"STALE\",\"refused\":\"409:cart_invalid\"}"
+    },
+    {
+      "name": "F15 AN ADMINISTRATOR SUSPENDS THE RESTAURANT: no pickup time is offered (RESTAURANT_UNAVAILABLE) and a choice is refused (409)",
+      "pass": true,
+      "detail": "{\"suspend\":200,\"issues\":[\"RESTAURANT_UNAVAILABLE\"],\"refused\":\"409:restaurant_unavailable\"}"
+    },
+    {
+      "name": "F16 approved again: pickup times are offered again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F17 WHO MAY CHANGE PICKUP: an administrator's session cannot alter a restaurant's pickup settings or read its preview through the restaurant API; the owner of one restaurant cannot preview another; a customer and nobody get nothing — and the prep time is still 12",
+      "pass": true,
+      "detail": "401,401,404,401,401"
+    },
+    {
+      "name": "G1 GET /admin/system/pickup (platform administrator): counts of this run — availability requests, ASAP and scheduled choices, refusals, full slots, invalidated choices — the selections by state, and \"slot hold: AT_CHECKOUT\" (taken when a checkout is confirmed — Module 29); numbers only: no cart, customer, token, slot key or time of anybody",
+      "pass": true,
+      "detail": "{\"checked_at\":\"2026-10-07T12:40:00+00:00\",\"selections\":{\"selected\":4,\"selected_asap\":2,\"selected_scheduled\":2,\"stale\":0,\"invalid\":0,\"expired\":0,\"converted\":0},\"window_hours\":24,\"events\":{\"availability_requests\":332,\"availability_blocked\":32,\"no_slots\":11,\"asap_available\":269,\"slots_generated\":16287,\"journey_aware\":19,\"selected_asap\":20,\"selected_scheduled\":107,\"cleared\":12,\"invalidated\":45,\"refuse"
+    },
+    {
+      "name": "G2 the endpoint needs the system permission: a customer, the restaurant owner and nobody are refused",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G3 the Platform Admin \"System status\" page shows the Pickup card with those numbers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H1 signed in with a valid choice, Continue opens checkout (checkout itself, payment and orders are still development data — Module 29 onwards)",
+      "pass": true,
+      "detail": "http://localhost:5173/checkout"
+    },
+    {
+      "name": "H1b a RELOAD of the checkout page stays on checkout: the stored pickup choice is read back from the backend before checkout judges it (the customer is not sent back to choose a time they already chose)",
+      "pass": true,
+      "detail": "http://localhost:5173/checkout | Checkout Review everything before you continue to secure payment. Nothing is charged on this page. Prices on this page are valid for 12:00. Customer Edit Name R"
+    },
+    {
+      "name": "H2 none of the 68 pickup requests of the pages carries a token, a phone number, a time or a slot key in its URL; the only query ever used is the pickup method",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H3 the application log of the run holds no cart token, no phone number, no slot key and no journey place",
+      "pass": true,
+      "detail": "log bytes 0"
+    },
+    {
+      "name": "H4 measured HTTP timings recorded (availability, reading the selection, choosing a slot)",
+      "pass": true,
+      "detail": "{\"availability\":556,\"selection_read\":494,\"select\":657}"
+    },
+    {
+      "name": "H5 no page error, no unexpected dialog and no console error in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H6 the fixture cart of the second fixture customer is exactly as it was before the run",
+      "pass": true,
+      "detail": "2:2 vs 2:2"
+    },
+    {
+      "name": "Z the local database is back in its seeded state: no cart, selection or capacity row of this run is left, the review account has no cart, Burger Hub (settings, hours, status, menu) and the Pizza Point capacity fixture are as before",
+      "pass": true,
+      "detail": "{\"carts\":0,\"selections\":0,\"rahul\":0,\"e2eReservations\":0,\"fixtureReservations\":\"8:12\",\"location\":\"APPROVED:true\",\"rings\":\"ACTIVE\",\"settingsAfter\":\"true:true:true:12:12:0:1440:15:0:none\",\"settingsBefore\":\"true:true:true:12:12:0:1440:15:0:none\",\"hoursSame\":true}"
+    }
+  ]
+}

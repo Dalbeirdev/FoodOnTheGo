@@ -17,6 +17,9 @@ param(
   # api = pickup times come from the local backend (Module 28: ASAP, slots, capacity state, arrival-aware recommendation; needs CartMode api); mock = the in-app development slot engine
   [ValidateSet('api', 'mock')][string]$PickupMode = 'api',
   [ValidateSet('api', 'mock')][string]$CheckoutMode = 'api',
+  # api = payments are the local backend's (Module 30: payment attempts, the provider's own checkout screen, server-side verification; needs CheckoutMode api); mock = the in-app development payment.
+  # Which provider the backend uses (Razorpay in test mode, or the development provider) is the backend's configuration — not the app's.
+  [ValidateSet('api', 'mock')][string]$PaymentMode = 'api',
   # Local test code shown on the OTP screen of LOCAL builds. Default: OTP_DEV_CODE from the git-ignored backend/.env.
   [string]$DevOtp = ''
 )
@@ -29,7 +32,7 @@ $commit = try { (git -C $root rev-parse --short HEAD 2>$null) } catch { $null };
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 
 Write-Host "Syncing mobile/ into WSL and building $name (API $ApiBaseUrl)…"
-$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
+$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=PAYMENT_MODE=$PaymentMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
 wsl.exe -d Ubuntu -u root -e bash -lc $cmd
 $apk = Join-Path $out $name
 if (-not (Test-Path $apk)) { Write-Host 'APK not produced' -ForegroundColor Red; exit 1 }
@@ -48,14 +51,15 @@ $manifest = @"
 | Build timestamp | $stamp |
 | Size | $size MB |
 | SHA-256 | $sha |
-| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=DEV_OTP=<local test code> |
+| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=PAYMENT_MODE=$PaymentMode --dart-define=DEV_OTP=<local test code> |
 | Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Market data | $MarketMode (api = market and coverage are read from the local backend at start-up) |
 | Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods, availability and menus from the local backend; orders and reviews are still development data) |
 | Journey data | $JourneyMode (api = place search, journey planning, the route, actual detours and arrival times from the local backend. The backend's places / routing provider on this PC is its DEVELOPMENT provider — synthetic roads, no live provider is configured; the app labels the figures accordingly) |
 | Cart | $CartMode (api = the cart is the local backend's: one per guest (token in the device's secure storage) or signed-in customer, priced and validated by the server; checkout, payment and orders after the cart are still development data) |
 | Pickup times | $PickupMode (api = ASAP, pickup slots, capacity state and the arrival-aware recommendation come from the local backend on its clock, in the restaurant's time zone; the choice is stored with the cart and checked again on every read. A chosen time is SELECTED, NOT RESERVED — the slot hold belongs to checkout / order creation) |
-| Checkout | $CheckoutMode (api = the checkout is the local backend's: final validation of the cart and the pickup time, one promotion, the configured tax and fee rules, the total, the legal documents to accept, the pickup-time hold and the payment preparation. NOTHING IS CHARGED: no payment provider is connected; the payment and order screens after it are still development data; mock = the in-app development checkout) |
+| Checkout | $CheckoutMode (api = the checkout is the local backend's: final validation of the cart and the pickup time, one promotion, the configured tax and fee rules, the total, the legal documents to accept, the pickup-time hold and the payment preparation; mock = the in-app development checkout) |
+| Payments | $PaymentMode (api = the payment step is the local backend's: a payment attempt per try, the payment provider's own screen, verification on the server, recovery after a restart. The PROVIDER AND ITS MODE ARE THE BACKEND'S CONFIGURATION: Razorpay in TEST mode when test keys are configured there, otherwise the development provider, whose place on the phone is a development sheet — no real money moves in either. A verified payment creates NO ORDER yet (next module); mock = the in-app development payment) |
 | Location permission | asked only when "Use my current location" is tapped while planning a journey (ACCESS_COARSE_LOCATION / ACCESS_FINE_LOCATION; no background location) |
 | Account data | $AuthMode (api = profile, favorites, saved journey places, payment-method references and notification preferences from the local backend — follows the sign-in mode; the notification inbox is still development data) |
 | Install (USB) | adb install -r $name |

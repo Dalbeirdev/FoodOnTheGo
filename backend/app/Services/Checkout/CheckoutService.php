@@ -24,6 +24,7 @@ use App\Services\Cart\CartStore;
 use App\Support\PlainText;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Closure;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -297,17 +298,24 @@ final class CheckoutService
     }
 
     /**
-     * For Module 30: a payment is about to be created for this checkout. READY → PAYMENT_PENDING in one step, only
+     * A payment is about to be created for this checkout (Module 30). READY → PAYMENT_PENDING in one step, only
      * while the checkout is still exactly what was confirmed and only for the price the caller names. From then on
      * the cart and the pickup selection cannot be changed until the payment ends.
      *
+     * $keepUntil: the checkout, its held pickup time and its promotion use are kept at least until then — a payment
+     * takes longer than the minutes a confirmed checkout lives, and the place must not be given away while the
+     * customer is paying. $then runs inside the same transaction with the locked session: what it writes (the
+     * payment attempt) exists if and only if the checkout went into payment.
+     *
+     * @param  (Closure(CheckoutSession): void)|null  $then
+     *
      * @throws ApiException 409 checkout_stale / payment_in_progress / checkout_not_ready; 410 checkout_expired
      */
-    public function beginPayment(Customer $customer, string $checkoutId, string $pricingFingerprint, ?CarbonInterface $at = null): PaymentPreparation
+    public function beginPayment(Customer $customer, string $checkoutId, string $pricingFingerprint, ?CarbonInterface $at = null, ?CarbonInterface $keepUntil = null, ?Closure $then = null): PaymentPreparation
     {
         $at = CarbonImmutable::instance($at ?? now());
 
-        return $this->unlessRefused(DB::transaction(function () use ($customer, $checkoutId, $pricingFingerprint, $at): PaymentPreparation|ApiException {
+        return $this->unlessRefused(DB::transaction(function () use ($customer, $checkoutId, $pricingFingerprint, $at, $keepUntil, $then): PaymentPreparation|ApiException {
             $session = $this->own($customer, $checkoutId, lock: true);
             if ($session->status === Status::PaymentPending) {
                 throw ApiException::conflict(Code::PaymentInProgress->errorCode(), 'A payment for this checkout is already in progress.');
@@ -323,10 +331,104 @@ final class CheckoutService
                 throw ApiException::conflict(Code::CheckoutStale->errorCode(), 'The payment does not match the confirmed price.', ['reason' => Code::PricingChanged->value]);
             }
             $session->forceFill(['status' => Status::PaymentPending->value, 'payment_started_at' => $at])->save();
+            if ($keepUntil !== null) {
+                $this->keepUntil($session, $keepUntil);
+            }
+            if ($then !== null) {
+                $then($session);
+            }
             event(new CheckoutEvent(CheckoutEvent::PAYMENT_STARTED, $session));
 
             return PaymentPreparation::for($session->refresh());
         }));
+    }
+
+    /**
+     * Keeps a checkout — and the pickup time and promotion use it holds — until a later moment. Never shortens:
+     * a time that is not later than the present end changes nothing. The caller holds the session's row lock.
+     */
+    public function keepUntil(CheckoutSession $session, CarbonInterface $until): void
+    {
+        $until = CarbonImmutable::instance($until)->utc();
+        if ($session->expires_at !== null && $until->lessThanOrEqualTo($session->expires_at)) {
+            return;
+        }
+        $session->forceFill(['expires_at' => $until])->save();
+        // The hold is prolonged only while it still exists: a place that was given back is not taken again here.
+        if ($this->holds->active($session) !== null && ($location = $session->location) !== null) {
+            $this->holds->hold($session, $location, $until);
+        }
+        PromotionReservation::query()->where('checkout_session_id', $session->getKey())->where('status', PromotionReservation::STATUS_ACTIVE)->update(['expires_at' => $until, 'updated_at' => now()]);
+    }
+
+    /**
+     * The payment of this checkout ended without money (failed, cancelled, expired). While its time lasts the
+     * checkout is a confirmed checkout again — the customer can pay once more or change the cart — otherwise it is
+     * over and gives back what it held. The caller holds the session's row lock.
+     */
+    public function releasePayment(CheckoutSession $session, ?CarbonInterface $at = null): void
+    {
+        if ($session->status !== Status::PaymentPending) {
+            return;
+        }
+        $at = CarbonImmutable::instance($at ?? now());
+        if ($at->greaterThanOrEqualTo($session->expires_at)) {
+            $this->close($session, Status::Expired, Code::CheckoutExpired->value, $at);
+            event(new CheckoutEvent(CheckoutEvent::EXPIRED, $session));
+
+            return;
+        }
+        $session->forceFill(['status' => Status::Ready->value, 'payment_started_at' => null])->save();
+        event(new CheckoutEvent(CheckoutEvent::PAYMENT_ENDED, $session));
+    }
+
+    /**
+     * A payment that had been closed as unpaid turned out to be paid while its checkout is a confirmed checkout
+     * again and still has its time: the checkout goes back into payment, so that nothing about it can change before
+     * the order is created. False when the checkout is anything else — then the payment needs recovery. The caller
+     * holds the session's row lock.
+     */
+    public function reclaimForPayment(CheckoutSession $session, ?CarbonInterface $at = null): bool
+    {
+        $at = CarbonImmutable::instance($at ?? now());
+        if ($session->status !== Status::Ready || $at->greaterThanOrEqualTo($session->expires_at)) {
+            return false;
+        }
+        $session->forceFill(['status' => Status::PaymentPending->value, 'payment_started_at' => $at])->save();
+
+        return true;
+    }
+
+    /**
+     * Can this paid checkout still become an order exactly as it stands? Null when it can; otherwise the reason.
+     * Only what would make an order wrong counts: the checkout is in payment and not run out, its pickup time is
+     * still held, the restaurant still takes orders and the items can still be made. A price that moved after the
+     * checkout was confirmed does not count — the customer paid the confirmed price.
+     */
+    public function orderReadiness(CheckoutSession $session, ?CarbonInterface $at = null): ?string
+    {
+        $at = CarbonImmutable::instance($at ?? now());
+        if ($session->status !== Status::PaymentPending) {
+            return 'CHECKOUT_NOT_IN_PAYMENT';
+        }
+        if ($at->greaterThanOrEqualTo($session->expires_at)) {
+            return Code::CheckoutExpired->value;
+        }
+        if ($this->holds->active($session, $at) === null) {
+            return 'PICKUP_HOLD_EXPIRED';
+        }
+        $customer = $session->customer;
+        if ($customer === null) {
+            return 'CUSTOMER_MISSING';
+        }
+        $blocking = [Code::CartMissing, Code::CartEmpty, Code::CartExpired, Code::CartInvalid, Code::ItemUnavailable, Code::RestaurantUnavailable, Code::RestaurantNotAccepting, Code::MarketUnavailable];
+        foreach ($this->validation->validate($customer, $at)->issues as $issue) {
+            if (in_array(Code::tryFrom((string) $issue['code']), $blocking, true)) {
+                return (string) $issue['code'];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -363,8 +465,8 @@ final class CheckoutService
 
     /**
      * Housekeeping: run-out checkouts become EXPIRED and give back what they held; run-out holds and promotion uses
-     * are closed; closed checkouts are deleted after the retention period. A checkout that led to a payment or an
-     * order (PAYMENT_PENDING, CONVERTED) is never touched.
+     * are closed; closed checkouts are deleted after the retention period. A checkout that is being paid or became
+     * an order (PAYMENT_PENDING, CONVERTED) is never touched, and one that somebody tried to pay is never deleted.
      *
      * @return array{expired: int, holds_expired: int, promotion_uses_released: int, deleted: int}
      */
@@ -386,6 +488,8 @@ final class CheckoutService
         $deleted = CheckoutSession::query()
             ->whereIn('status', [Status::Expired->value, Status::Stale->value, Status::Cancelled->value])
             ->where('closed_at', '<', $at->subDays(max(1, (int) config('checkout.ttl.closed_retention_days'))))
+            // A checkout somebody tried to pay is the context of a financial record: it stays.
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('payment_attempts')->whereColumn('payment_attempts.checkout_session_id', 'checkout_sessions.id'))
             ->delete();
 
         return ['expired' => $expired, 'holds_expired' => $holds, 'promotion_uses_released' => (int) $uses, 'deleted' => (int) $deleted];

@@ -1,0 +1,116 @@
+{
+  "module": "M30",
+  "suite": "Android app code (Flutter web preview, PAYMENT_MODE=api) on the real local backend, DEVELOPMENT payment provider",
+  "note": "The same Dart code as the APK, run in the browser preview. Razorpay's Android screen cannot run in a browser (the plugin has no web build) and no Razorpay credentials exist on this machine: the provider's own screen is NOT exercised here. The real device is verified by the owner (USER DEVICE VERIFICATION = PENDING).",
+  "ran_at": "2026-10-07T11:41:48.934Z",
+  "passed": 21,
+  "failed": 0,
+  "total": 21,
+  "results": [
+    {
+      "name": "A0 the app signs in against the local backend (same Dart code as the APK, PAYMENT_MODE=api)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 THE CONFIRMED CHECKOUT SAYS PAYMENTS CAN BE TAKEN: provider READY (the development provider, FAKE) — and the payment screen is the BACKEND'S: \"Ready to pay\"",
+      "pass": true,
+      "detail": "{\"status\":\"READY\",\"name\":\"fake\",\"mode\":\"FAKE\"}"
+    },
+    {
+      "name": "B2 THE SCREEN shows the backend's total with its currency (₹427.00 · INR), puts it on the button — and has no field for a card, a CVV or a UPI PIN (no input at all)",
+      "pass": true,
+      "detail": "Amount\n₹427.00 · INR | Pay ₹427.00 securely | inputs 0"
+    },
+    {
+      "name": "B3 PAY ASKS THE BACKEND FOR A PAYMENT ATTEMPT: the request names the price the customer saw (its fingerprint) and a method TYPE — no amount, no currency, no status — with the customer session and an idempotency key",
+      "pass": true,
+      "detail": "201 {\"pricing_fingerprint\":\"104fcfca3cc5a5b9a250e74f8fb63850fb6092b50dd3afa3c80368671efe571a\",\"payment_method\":{\"type\":\"UPI\"}}"
+    },
+    {
+      "name": "B4 THREE QUICK TAPS, ONE PAYMENT: exactly one start request left the phone and the checkout has one attempt",
+      "pass": true,
+      "detail": "1 PROVIDER_READY"
+    },
+    {
+      "name": "B5 THE ATTEMPT IS THE BACKEND'S: PROVIDER_READY for exactly the checkout's total in INR; the checkout is PAYMENT_PENDING; on this machine the development provider's sheet stands in for the provider's own screen (\"no money moves\")",
+      "pass": true,
+      "detail": "{\"id\":\"6ee18fc6-be5f-42e9-b95f-4df55c282417\",\"checkout_id\":\"3b156bf2-d463-4c8c-b21b-79f1756081eb\",\"attempt_number\":1,\"status\":\"PROVIDER_READY\",\"amount\":{\"amount\":42700,\"currency\":\"INR\"},\"provider\":{\"n"
+    },
+    {
+      "name": "B6 THE PROVIDER'S OUTCOME IS REPORTED, NOT BELIEVED: the app sends outcome \"success\" with the provider's payment reference and proof — no amount, no status — and the BACKEND answers VERIFIED",
+      "pass": true,
+      "detail": "200 outcome,provider_payment_reference,provider_signature"
+    },
+    {
+      "name": "B7 PAID IS NOT ORDERED: the screen says \"Payment verified\" and \"order creation is pending\", shows no order confirmation and no order number, and offers nothing to pay again; in the database the attempt is VERIFIED with its order state ORDER_PENDING",
+      "pass": true,
+      "detail": "Back | Payment | SECURE PAYMENT\nComplete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details.\nSecure payment. FoodOnTheGo does not store card numbers, CVV codes, UPI PINs or bank passwords. | development pa {\"status\":\"VERIFIED\",\"amount\":42700,\"fulfillment\":\"ORDER_PENDING\",\"client\":\"success\",\"signed\":true}"
+    },
+    {
+      "name": "B8 the phone keeps no proof of payment: neither the provider's proof nor its payment reference is in the app's storage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 APP KILLED AFTER PAYING, STARTED AGAIN: the app asks the BACKEND what the payment is (GET /payments/{id}) and shows VERIFIED — it posts nothing and opens no provider",
+      "pass": true,
+      "detail": "GET /payments/6ee18fc6-be5f-42e9-b95f-4df55c282417"
+    },
+    {
+      "name": "C2 A PHONE THAT KEPT NOTHING FINDS THE PAYMENT AGAIN: checkout is refused by the backend (409 payment_in_progress, naming the checkout), the screen offers \"Go to payment\", and the payment screen reads that checkout and shows the VERIFIED payment — nothing is started",
+      "pass": true,
+      "detail": "2 409 true /checkouts/3b156bf2-d463-4c8c-b21b-79f1756081eb, /payments/6ee18fc6-be5f-42e9-b95f-4df55c282417"
+    },
+    {
+      "name": "D1 CANCEL: the app reports \"cancelled\" (nothing else), the backend answers CANCELLED in its own safe words; the checkout is READY again with nothing charged, and the screen offers to try again",
+      "pass": true,
+      "detail": "{\"outcome\":\"cancelled\"} READY"
+    },
+    {
+      "name": "D2 RETRY IS A NEW ATTEMPT, AND A FAILURE IS SHOWN IN THE BACKEND'S SAFE WORDS: attempt 2 with another id; the provider says failed, the backend answers FAILED with a category; the screen shows the backend's message and no provider error code",
+      "pass": true,
+      "detail": "201 CANCELLED,FAILED"
+    },
+    {
+      "name": "D3 PENDING: the bank has not answered — the screen waits, warns \"do not pay again\", offers \"check payment status\" and no Pay or retry button",
+      "pass": true,
+      "detail": "PENDING PENDING"
+    },
+    {
+      "name": "D4 NO CONNECTION WHILE THE PAYMENT IS PENDING: the screen says the payment status needs confirmation and not to pay again — it does not say the payment failed and offers no retry",
+      "pass": true,
+      "detail": "UNKNOWN Back | Payment | SECURE PAYMENT\nComplete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details.\nSecure payment. FoodOnTheGo does not store card numb"
+    },
+    {
+      "name": "D5 BACK IN FRONT WITH A CONNECTION: the app asks the backend at once and shows PENDING again — still nothing is paid twice (one open attempt)",
+      "pass": true,
+      "detail": "true PENDING CANCELLED,FAILED,PENDING"
+    },
+    {
+      "name": "D6 THE PROVIDER'S EVENT SETTLES IT: the bank confirms later, the provider sends a signed event, the backend verifies — the app, asking the backend, shows VERIFIED; the phone never reported a success",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"fulfillment\":\"ORDER_PENDING\",\"client\":\"\",\"signed\":false} CANCELLED,FAILED,VERIFIED"
+    },
+    {
+      "name": "E1 THE RESTAURANT PAUSES ORDERS BEFORE THE CUSTOMER PAYS: Pay is refused by the backend (409 checkout_stale) — no attempt, nothing charged — and the screen sends the customer back to review the order",
+      "pass": true,
+      "detail": "Back | Payment | SECURE PAYMENT\nComplete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details.\nSecure payment. FoodOnTheGo does not store card numb"
+    },
+    {
+      "name": "E2 \"Review my order again\" leads back to checkout, where the backend makes a new checkout for the cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 no JavaScript error in the app during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every payment attempt, provider event, checkout and hold of this run is removed; Burger Hub is as it was",
+      "pass": true,
+      "detail": "{\"attempts\":0,\"webhooks\":0,\"checkouts\":0,\"holds\":0,\"hub\":true}"
+    }
+  ]
+}

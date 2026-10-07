@@ -15,7 +15,7 @@ export type AdminPermission =
   | 'restaurants.view' | 'restaurants.approve' | 'restaurants.suspend'
   | 'customers.view' | 'customers.manage'
   | 'orders.view' | 'orders.override'
-  | 'payments.view' | 'refunds.view' | 'refunds.issue' | 'settlements.view'
+  | 'payments.view' | 'payments.reconcile' | 'refunds.view' | 'refunds.issue' | 'settlements.view'
   | 'reviews.view' | 'reviews.moderate'
   | 'promotions.view' | 'promotions.manage'
   | 'support.view' | 'support.manage'

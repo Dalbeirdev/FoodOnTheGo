@@ -35,6 +35,9 @@ final class CheckoutEvent
 
     public const PAYMENT_STARTED = 'payment_started';
 
+    /** The payment ended without money; the checkout is a confirmed checkout again. */
+    public const PAYMENT_ENDED = 'payment_ended';
+
     public readonly ?string $checkoutId;
 
     public readonly ?string $status;

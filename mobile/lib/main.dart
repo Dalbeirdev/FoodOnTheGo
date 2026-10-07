@@ -7,6 +7,7 @@ import 'discovery/api_restaurants.dart';
 import 'journey/api_journey.dart';
 import 'market/api_market.dart';
 import 'checkout/api_checkout.dart';
+import 'payment/api_payment.dart';
 import 'pickup/api_pickup.dart';
 import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
@@ -19,6 +20,7 @@ import 'screens/cart_screen.dart';
 import 'screens/pickup_time_screen.dart';
 import 'screens/checkout_screen.dart';
 import 'screens/payment_screen.dart';
+import 'screens/payment_backend_screen.dart';
 import 'screens/legal_screen.dart';
 import 'screens/auth_screens.dart';
 import 'screens/help_screen.dart';
@@ -36,6 +38,7 @@ import 'state/discovery_state.dart';
 import 'state/pickup_state.dart';
 import 'state/checkout_state.dart';
 import 'state/payment_state.dart';
+import 'state/payment_backend_state.dart';
 import 'state/order_state.dart';
 import 'state/tracking_state.dart';
 import 'screens/order_tracking_screen.dart';
@@ -57,7 +60,7 @@ Future<void> main() async {
 }
 
 /// Screens that need an account. Everything else is available to guests.
-const protectedPrefixes = ['/my-orders', '/order/', '/my-profile', '/checkout', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
+const protectedPrefixes = ['/my-orders', '/order/', '/my-profile', '/checkout', '/payment', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
 
 GoRouter buildRouter(AuthState auth) => GoRouter(
   initialLocation: '/',
@@ -90,7 +93,8 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/cart', builder: (_, _) => const CartScreen()),
     GoRoute(path: '/pickup-time', builder: (_, _) => const PickupTimeScreen()),
     GoRoute(path: '/checkout', builder: (_, _) => const CheckoutScreen()),
-    GoRoute(path: '/payment', builder: (_, s) => PaymentScreen(key: ValueKey('payment-${s.uri.queryParameters['mock'] ?? ''}'), mockOutcome: s.uri.queryParameters['mock'])),
+    // With the backend (PAYMENT_MODE=api) the payment step is the backend's; otherwise the development payment.
+    GoRoute(path: '/payment', builder: (_, s) => paymentsFromApi ? const PaymentBackendScreen() : PaymentScreen(key: ValueKey('payment-${s.uri.queryParameters['mock'] ?? ''}'), mockOutcome: s.uri.queryParameters['mock'])),
     GoRoute(path: '/legal/:slug', builder: (_, s) => LegalScreen(slug: s.pathParameters['slug']!)),
     GoRoute(path: '/order-confirmation/:number', builder: (_, s) => OrderConfirmationScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
@@ -135,6 +139,8 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   late final pickup = PickupState(backend: pickupFromApi && cartBackend != null ? PickupBackend(cartBackend!) : null)..onCartOutdated = () { cart.reload(); };
   // Checkout on the backend (Module 29) goes out as the cart's owner does: it shares the cart's API client.
   late final checkout = CheckoutState(backend: checkoutFromApi && cartBackend != null ? CheckoutBackend(cartBackend!) : null);
+  // Payments on the backend (Module 30) go out as the checkout does: as the signed-in customer.
+  late final PaymentBackendState? paymentBackend = paymentsFromApi && cartBackend != null ? PaymentBackendState(backend: PaymentBackend(cartBackend!)) : null;
   String? _checkoutOwner;
   late final GoRouter router = buildRouter(auth);
 
@@ -154,7 +160,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
     account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated);
     // Signing out, or another customer on this phone: nothing of the earlier checkout may be shown or paid.
     final owner = auth.user?.id;
-    if (checkout.backendMode && _checkoutOwner != null && _checkoutOwner != owner) checkout.reset();
+    if (checkout.backendMode && _checkoutOwner != null && _checkoutOwner != owner) { checkout.reset(); paymentBackend?.reset(); }
     _checkoutOwner = owner;
   }
 
@@ -183,6 +189,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: pickup),
           ChangeNotifierProvider.value(value: checkout),
           ChangeNotifierProvider(create: (_) => PaymentState()),
+          if (paymentBackend != null) ChangeNotifierProvider<PaymentBackendState>.value(value: paymentBackend!),
           ChangeNotifierProvider(create: (_) => OrderState()),
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
           ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); return TrackingState(orders: os.orders, verifications: os.verifications); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),

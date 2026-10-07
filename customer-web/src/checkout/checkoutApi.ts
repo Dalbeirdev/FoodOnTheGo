@@ -44,6 +44,11 @@ export type CheckoutApi = {
   request: CheckoutRequest | null
   /** API mode: the checkout exactly as the backend priced it (null in mock mode and until the first answer). */
   server: ServerCheckout | null
+  /**
+   * API mode: the checkout the backend says is being paid for right now (null otherwise). It is how the payment page
+   * finds a payment again when nothing was kept in this tab — a new tab, another device.
+   */
+  paymentCheckoutId: string | null
   notice: CheckoutNotice | null
   prepare: () => Promise<void>
   /**

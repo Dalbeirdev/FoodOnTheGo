@@ -2,18 +2,26 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { t } from '../../i18n/strings'
 import { Card, Drawer, Tabs } from '../../dashboard/components/ui'
-import { useAdmin } from '../AdminContext'
+import { adminBackendSections, useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, Select, Stat, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminPayment, AdminRefund, PaymentState, RefundStatus, Settlement, SettlementStatus } from '../types'
+import { BackendPaymentsPage } from './BackendPaymentsPage'
 import { MarketScopeChip, Cell, StatusPill, fmtDateTime, money, useLoad, usePageTitle } from './shared'
 
 const CURRENCIES = ['INR', 'USD', 'GBP', 'JPY', 'EUR', 'AED']
 const PAY_STATES: PaymentState[] = ['CREATED', 'PENDING', 'AUTHORIZED', 'CAPTURED', 'FAILED', 'CANCELLED', 'REFUND_PENDING', 'PARTIALLY_REFUNDED', 'REFUNDED']
 const P_DEFAULTS = { q: '', status: 'all', currency: 'all', page: '1' }
 
-/** Payment Management (Module 18): attempts with provider references, safe details, event history and reconciliation readiness. */
+/**
+ * Payment Management. With the backend (Module 30) it is the real payment attempts — BackendPaymentsPage; the
+ * development page below, with its fixture rows, stays for unit tests and builds without a backend.
+ */
 export function PaymentsPage() {
+  return adminBackendSections().includes('payments') ? <BackendPaymentsPage /> : <DevelopmentPaymentsPage />
+}
+
+function DevelopmentPaymentsPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.payments')
   const [s, set] = useUrlState(P_DEFAULTS); const [open, setOpen] = useState<AdminPayment | null>(null)
   const filter = useMemo(() => ({ query: s.q, status: s.status as PaymentState | 'all', currency: s.currency, page: Number(s.page) || 1, pageSize: 10 }), [s])

@@ -72,6 +72,7 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
   const [accepted, setAccepted] = useState<string | null>(() => read(TERMS_KEY))
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<CheckoutNotice | null>(null)
+  const [paymentCheckoutId, setPaymentCheckoutId] = useState<string | null>(null)
   const [online, setOnline] = useState(() => connectivity.isOnline())
   const [request, setRequestState] = useState<CheckoutRequest | null>(() => { try { const raw = read(REQUEST_KEY); return raw ? (JSON.parse(raw) as CheckoutRequest) : null } catch { return null } })
   const seq = useRef(0)
@@ -88,7 +89,7 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
 
   /** Takes a checkout the backend sent as the truth: what is shown, what can be confirmed, what can be paid. */
   const accept = useCallback((checkout: ServerCheckout) => {
-    setServer(checkout); setBlocked([]); setError(null)
+    setServer(checkout); setBlocked([]); setError(null); setPaymentCheckoutId(null)
     const req = requestRef.current
     // A stored payment request stands only for the very checkout and price it was made from.
     const stillRequested = req !== null && req.checkoutId === checkout.id && req.pricingFingerprint === checkout.pricing.fingerprint && checkout.status === 'READY'
@@ -117,6 +118,8 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
     if (CART_CODES.has(e.code)) { setServer(null); setRequest(null); setBlocked(issues); setStatus('INVALID_CART'); return }
     if (PICKUP_CODES.has(e.code)) { setServer(null); setRequest(null); setBlocked(issues); setStatus('INVALID_PICKUP'); return }
     if (e.code === 'expired') { setRequest(null); setBlocked(issues); setStatus('EXPIRED'); return }
+    // "A payment is in progress" names its checkout: the payment page finds the payment through it.
+    if (e.code === 'payment_in_progress' && typeof e.details.checkout_id === 'string') setPaymentCheckoutId(e.details.checkout_id)
     setError(e.message); setBlocked(e.code === 'payment_in_progress' ? issues : []); setStatus('ERROR')
   }, [connectivity, setServer, setRequest])
 
@@ -173,7 +176,7 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
         return current ? now.pricing.fingerprint === current.pricing.fingerprint && now.status === current.status : now.status === 'READY' && now.pricing.fingerprint === stored?.pricingFingerprint
       }
       if (now.status === 'EXPIRED') { setServer(now); setRequest(null); setBlocked(now.issues.map(issueOf)); setStatus('EXPIRED'); return false }
-      if (now.status === 'PAYMENT_PENDING' || now.status === 'CONVERTED') { setServer(now); setBlocked([{ code: 'payment_in_progress', blocking: true }]); setStatus('ERROR'); return false }
+      if (now.status === 'PAYMENT_PENDING' || now.status === 'CONVERTED') { setServer(now); setPaymentCheckoutId(now.id); setBlocked([{ code: 'payment_in_progress', blocking: true }]); setStatus('ERROR'); return false }
       const why = now.issues[0]
       await restart(why?.code === 'LEGAL_ACCEPTANCE_REQUIRED' ? 'LEGAL' : why?.message ?? null)
       return false
@@ -314,7 +317,7 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
   }, [auth.user, connectivity, gateway, accepted, paymentMethodId, accept, refuse, restart, setRequest])
 
   const clearRequest = useCallback(() => {
-    setRequest(null); setServer(null); setBlocked([]); setNotice(null); setPromoRefused(null); setAccepted(null); write(TERMS_KEY, null); setStatus('INITIALIZING')
+    setRequest(null); setServer(null); setPaymentCheckoutId(null); setBlocked([]); setNotice(null); setPromoRefused(null); setAccepted(null); write(TERMS_KEY, null); setStatus('INITIALIZING')
   }, [setRequest, setServer])
   // In API mode a changed price is never "accepted" line by line: the backend prices the checkout from the current menu and says what moved.
   const acceptPriceChange = useCallback(() => { void prepare() }, [prepare])
@@ -331,12 +334,12 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
     const foreign = owner !== null && requestRef.current !== null && requestRef.current.customerId !== owner
     if (previous === null && !foreign) return
     seq.current++
-    setRequest(null); setServer(null); setBlocked([]); setNotice(null); setPromoRefused(null); setAccepted(null); write(TERMS_KEY, null); setPaymentMethodId(null); setStatus('INITIALIZING')
+    setRequest(null); setServer(null); setPaymentCheckoutId(null); setBlocked([]); setNotice(null); setPromoRefused(null); setAccepted(null); write(TERMS_KEY, null); setPaymentMethodId(null); setStatus('INITIALIZING')
   }, [owner, setRequest, setServer])
 
   const api = useMemo<CheckoutApi>(() => ({
-    source: 'api', status, restaurant, review: null, pickupResult: null, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, server, notice,
+    source: 'api', status, restaurant, review: null, pickupResult: null, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, server, paymentCheckoutId, notice,
     prepare, revalidate, applyPromo, removePromo, setPaymentMethod: setPaymentMethodId, setTermsAccepted, continueToPayment, clearRequest, acceptPriceChange,
-  }), [status, restaurant, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, server, notice, prepare, revalidate, applyPromo, removePromo, setTermsAccepted, continueToPayment, clearRequest, acceptPriceChange])
+  }), [status, restaurant, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, server, paymentCheckoutId, notice, prepare, revalidate, applyPromo, removePromo, setTermsAccepted, continueToPayment, clearRequest, acceptPriceChange])
   return <CheckoutCtx.Provider value={api}>{children}</CheckoutCtx.Provider>
 }

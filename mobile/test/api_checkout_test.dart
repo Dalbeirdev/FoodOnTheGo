@@ -49,7 +49,7 @@ Map<String, dynamic> checkoutDto({String id = ck, String status = 'DRAFT', int v
       'customer': {'name': 'Asha Verma', 'phone': '+919876543212', 'phone_verified': true, 'email': null},
       'order_note': null,
       'legal': {'required': documents ?? legal, 'accepted': status == 'READY' ? [for (final d in documents ?? legal) {'type': d['type'], 'version': d['version'], 'status': d['status'], 'accepted_at': utc(now)}] : [], 'final_approval': false},
-      'payment_methods': {'provider_status': 'NOT_INTEGRATED', 'available': [{'type': 'UPI', 'status': 'PLANNED'}, {'type': 'CARD', 'status': 'PLANNED'}], 'saved': saved, 'selected': null, 'cash_at_pickup': 'NOT_APPROVED'},
+      'payment_methods': {'provider_status': 'READY', 'available': [{'type': 'UPI', 'status': 'AVAILABLE'}, {'type': 'CARD', 'status': 'AVAILABLE'}], 'saved': saved, 'selected': null, 'cash_at_pickup': 'NOT_APPROVED'},
       'payment': payment, 'issues': issues, 'changes': changes,
     };
 
@@ -62,7 +62,7 @@ Map<String, dynamic> pricedDto({String status = 'DRAFT', bool held = false, Map<
       ],
       'tax_total': inr(2000), 'fees': [{'code': 'PLATFORM_FEE', 'label': 'Test platform fee', 'amount': inr(1500), 'taxable': false}], 'fee_total': inr(1500), 'total': inr(43500), 'fingerprint': 'b' * 64, 'configuration': {'tax': 'TEST', 'fees': 'TEST'},
     });
-Map<String, dynamic> paymentDto(int amount, {String status = 'READY_FOR_PAYMENT'}) => {'status': status, 'checkout_id': ck, 'checkout_version': 2, 'amount': inr(amount), 'currency': 'INR', 'pricing_fingerprint': fp, 'idempotency_key': 'pay_${'c' * 40}', 'payment_method': status == 'READY_FOR_PAYMENT' ? {'type': 'UPI', 'saved_method_id': null} : null, 'expires_at': utc(now.add(const Duration(minutes: 10))), 'provider': {'status': 'NOT_INTEGRATED'}};
+Map<String, dynamic> paymentDto(int amount, {String status = 'READY_FOR_PAYMENT'}) => {'status': status, 'checkout_id': ck, 'checkout_version': 2, 'amount': inr(amount), 'currency': 'INR', 'pricing_fingerprint': fp, 'idempotency_key': 'pay_${'c' * 40}', 'payment_method': status == 'READY_FOR_PAYMENT' ? {'type': 'UPI', 'saved_method_id': null} : null, 'expires_at': utc(now.add(const Duration(minutes: 10))), 'provider': {'status': 'READY', 'name': 'fake', 'mode': 'FAKE'}, 'attempt': null};
 Map<String, dynamic> issueDto(String code, String recover, [String? message]) => {'code': code, 'message': message ?? '$code message', 'recover': recover, 'details': <String, dynamic>{}};
 
 class Recorder {
@@ -137,13 +137,17 @@ void main() {
       expect([c.items.single.name, c.items.single.quantity, c.items.single.unitPriceMinor, c.items.single.lineSubtotalMinor, c.items.single.options, c.items.single.specialInstructions], ['Classic Burger', 2, 25000, 50000, ['Size: Large'], 'No onions']);
       expect([c.restaurantName, c.timezone, c.asap, c.held, c.customerPhone, c.phoneVerified], ['Burger Hub', 'Asia/Kolkata', false, false, '+919876543212', true]);
       expect(c.legalSignature, 'TERMS@draft-2026-09|PRIVACY@draft-2026-09|REFUND@draft-2026-09');
-      expect([c.legalFinalApproval, c.providerStatus, c.methodTypes, c.paymentStatus], [false, 'NOT_INTEGRATED', ['UPI', 'CARD'], null]);
+      expect([c.legalFinalApproval, c.providerStatus, c.methodTypes, c.paymentStatus], [false, 'READY', ['UPI', 'CARD'], null]);
     });
 
     test('a confirmed checkout carries its hold and its payment preparation; nothing of a provider or a credential', () {
       final c = ServerCheckout.fromJson(pricedDto(status: 'READY', held: true, payment: paymentDto(43500)), receivedAt: now);
       expect([c.status, c.held, c.holdExpiresAt, c.paymentStatus, c.paymentKey], ['READY', true, now.add(const Duration(minutes: 10)), 'READY_FOR_PAYMENT', 'pay_${'c' * 40}']);
       expect(c.acceptedAt, now);
+      // No payment attempt yet; once there is one the checkout names it — how a restarted phone finds its payment.
+      expect(c.paymentAttemptId, isNull);
+      final paying = ServerCheckout.fromJson(checkoutDto(status: 'PAYMENT_PENDING', payment: {...paymentDto(50000), 'attempt': {'id': 'pay-attempt-1', 'status': 'PENDING', 'attempt_number': 1}}), receivedAt: now);
+      expect([paying.status, paying.paymentAttemptId, paying.open], ['PAYMENT_PENDING', 'pay-attempt-1', false]);
     });
 
     test('the time left is counted on the server clock, whatever this phone thinks the time is', () {
@@ -382,6 +386,25 @@ void main() {
       t.api.on = (_, _) => offline;
       expect(await t.co.revalidate(auth: t.auth, cart: t.cart), isFalse);
       expect(t.co.status, CheckoutStatus.error);
+    });
+
+    test('a payment in progress names its checkout — the way to the payment — and nothing is opened beside it', () async {
+      final t = await boot();
+      // The phone kept nothing: opening the checkout is refused, and the refusal says which checkout is being paid for.
+      t.api.on = (_, _) => refused(409, 'payment_in_progress', 'A payment for this cart is in progress.', {'checkout_id': ck});
+      await t.co.prepare(auth: t.auth, cart: t.cart, pickup: t.pk);
+      expect([t.co.status, t.co.paymentCheckoutId, t.co.server], [CheckoutStatus.error, ck, null]);
+      expect(t.co.issues(authenticated: true, cart: t.cart.cart, selection: null).firstWhere((i) => i.blocking).code, CheckoutIssueCode.paymentInProgress);
+      // Once the payment ended unpaid the checkout is open again: nothing points to a payment any more.
+      t.api.on = (_, _) => checkoutDto();
+      await t.co.prepare(auth: t.auth, cart: t.cart, pickup: t.pk);
+      expect([t.co.status, t.co.paymentCheckoutId], [CheckoutStatus.ready, null]);
+      // Found on resume: the confirmed checkout is in payment.
+      t.api.on = (step, _) => step == 'show' ? checkoutDto(status: 'PAYMENT_PENDING') : checkoutDto();
+      expect(await t.co.revalidate(auth: t.auth, cart: t.cart), isFalse);
+      expect([t.co.paymentCheckoutId, t.co.status], [ck, CheckoutStatus.error]);
+      t.co.reset();
+      expect(t.co.paymentCheckoutId, isNull);
     });
 
     test('a stale checkout found on resume is replaced, and the customer is told what changed', () async {

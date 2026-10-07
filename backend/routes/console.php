@@ -18,3 +18,5 @@ Schedule::command('journeys:prune')->hourly();
 Schedule::command('carts:prune')->hourly();
 // Module 29: checkouts and the pickup times held for them are short-lived; what ran out is closed promptly.
 Schedule::command('checkouts:prune')->everyFiveMinutes();
+// Payments (Module 30): unsettled attempts, unprocessed webhook events and verified payments that need recovery.
+Schedule::command('payments:reconcile')->everyMinute()->withoutOverlapping();

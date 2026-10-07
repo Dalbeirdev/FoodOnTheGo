@@ -1,0 +1,13 @@
+# Module 30 — Android app checks (LOCAL, 2026-10-07): flutter analyze, flutter test
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 17.3s)
+exit 0
+
+== flutter test
++507: All tests passed!
+failed tests: 0
+exit 0
+   new in Module 30: test/api_payment_test.dart (26 tests: payment mode, API mapping, requests that never carry an amount or a status, the same-key retry, the report of the provider's outcome, the error vocabulary, the options handed to Razorpay's screen — public key id only — and the payment state on the backend: pay, verify, forged success refused, cancel and retry, pending, restart, a phone that kept nothing, no connection, refusals, double tap, provider screen unavailable or gone) and test/payment_backend_screen_test.dart (6 widget tests: the backend's amount, VERIFIED with "order creation is pending" and no order confirmation, failure and retry, pending, changed checkout, recovery through the checkout, nothing to pay). test/api_checkout_test.dart +1 (a payment in progress names its checkout). The development-payment tests (mock mode) are unchanged.
+   NOT covered by these tests: Razorpay's own Android screen. The plugin (razorpay_flutter 1.4.7) needs a device and test-mode keys — PENDING PROVIDER CONFIGURATION / USER DEVICE VERIFICATION.

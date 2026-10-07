@@ -144,6 +144,7 @@ export default function CheckoutPage() {
                 <WarnIcon /> <span>{i.message ?? issueText(i.code, i.detail)}</span>{' '}
                 {i.recover === 'cart' && <Link to="/cart" className="cart-link" data-testid="co-recover-cart">{t('checkout.recover.cart', undefined, locale)}</Link>}
                 {i.recover === 'pickup' && <Link to="/pickup-time" className="cart-link" data-testid="co-recover-pickup">{t('checkout.recover.pickup', undefined, locale)}</Link>}
+                {(i.recover === 'payment' || i.code === 'payment_in_progress') && <Link to="/payment" className="cart-link" data-testid="co-recover-payment">{t('checkout.recover.payment', undefined, locale)}</Link>}
                 {(i.recover === 'refresh' || i.recover === 'checkout') && <button type="button" className="cart-link" data-testid="co-recover-refresh" onClick={() => { void co.prepare() }}>{t('checkout.recover.refresh', undefined, locale)}</button>}
               </p>
             ))}
@@ -322,7 +323,7 @@ export default function CheckoutPage() {
                 </div>
               )}
               <p className="cart-muted">{t('checkout.payment.note', undefined, locale)}</p>
-              {backend && sv && sv.paymentMethods.providerStatus === 'NOT_INTEGRATED' && !free && <p className="cart-muted" data-testid="co-provider-pending">{t('checkout.payment.notIntegrated', undefined, locale)}</p>}
+              {backend && sv && sv.paymentMethods.providerStatus !== 'READY' && !free && <p className="cart-notice cart-notice--warn" role="status" data-testid="co-provider-unavailable">{t('checkout.payment.unavailable', undefined, locale)}</p>}
             </section>
           </div>
 

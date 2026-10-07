@@ -1,0 +1,130 @@
+# Module 30 — regression runs of the earlier suites against the REAL local backend after the payment module (customer-web on :5173, API on :8001; VITE_AUTH_MODE, VITE_MARKET_MODE, VITE_RESTAURANT_MODE, VITE_JOURNEY_MODE, VITE_CART_MODE, VITE_PICKUP_MODE, VITE_CHECKOUT_MODE and VITE_PAYMENT_MODE = api; PAYMENT_DRIVER = fake, the development provider)
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression_m30.js (Module 19 full-site suite), m23_e2e.js (Module 23 restaurants suite), m24_e2e.js (Module 24 menus suite), m25_e2e.js (Module 25 customer account suite), m26_e2e.js (Module 26 journeys suite), m27_e2e.js (Module 27 cart suite), m28_e2e.js (Module 28 pickup suite), m29_e2e_m30.js (Module 29 checkout suite).
+# CHANGES TO THE SCRIPTS FOR THIS MODULE (scratchpad shots/m30_regress_build.py makes the two copies):
+#   1. The full-site suite and the checkout suite keep the PAYMENT STEP in its development mode for their browser (localStorage fotg.payment.mode = mock, the per-device override). Both go on after the payment step with an ORDER, and orders do not exist on the backend yet (Module 31): with the backend payment the journey ends at "payment verified — order creation is pending". The backend payment is covered by its own suite (m30-web-e2e.json), not by these two.
+#   2. The checkout suite expects what the backend says now: the payment provider status of a checkout and of the admin checkout numbers is READY (it was NOT_INTEGRATED), and the checkout page no longer says that the provider is not connected (three expectations).
+#   Every other suite runs unchanged.
+# Before each suite the carts (and with them the pickup selections and checkouts) left in the LOCAL database by the previous one are removed; the fixture cart and the Pizza Point capacity fixture are not touched.
+
+=== m28_e2e.js (run by name)  11:07:25Z  (carts removed before the run: 0)
+FAIL D1 JOURNEY-AWARE: the cart was started from a planned journey, so the backend reads the traveller's arrival from it (the same instant the cart shows) — status ACTIVE, labelled as the development routing estimate — and nothing was sent by the page to say so — {"status":"ACTIVE","traveler_arrival_at":"2026-10-07T11:10:12+00:00","local_traveler_arrival_at":"2026-10-07T16:40:12+05:30","requires_refresh":false,"estimate_source":"development","arrival_buffer_minutes":0}
+FAIL E7 the signed-in pickup page shows that choice; its requests carry the session, not a cart token
+67/69 passed
+=== exit 1
+
+# Result: m28_e2e.js 67/69 (67/69).
+#   miss in m28_e2e.js: D1 JOURNEY-AWARE: the cart was started from a planned journey, so the backend reads the traveller's arrival from it (the same instant the cart shows) — status ACTIVE, labelled as the development routing estimate — and nothing was sent by the page to say so
+#   miss in m28_e2e.js: E7 the signed-in pickup page shows that choice; its requests carry the session, not a cart token
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+=== m28_e2e.js (run by name)  11:17:08Z  (carts removed before the run: 0)
+FAIL D1 JOURNEY-AWARE: the cart was started from a planned journey, so the backend reads the traveller's arrival from it (the same instant the cart shows) — status ACTIVE, labelled as the development routing estimate — and nothing was sent by the page to say so — {"status":"ACTIVE","traveler_arrival_at":"2026-10-07T11:19:26+00:00","local_traveler_arrival_at":"2026-10-07T16:49:26+05:30","requires_refresh":false,"estimate_source":"development","arrival_buffer_minutes":0}
+68/69 passed
+=== exit 1
+
+# Result: m28_e2e.js 68/69 (68/69).
+#   miss in m28_e2e.js: D1 JOURNEY-AWARE: the cart was started from a planned journey, so the backend reads the traveller's arrival from it (the same instant the cart shows) — status ACTIVE, labelled as the development routing estimate — and nothing was sent by the page to say so
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+=== m22_auth_regression.js (run by name)  11:43:19Z  (carts removed before the run: 0)
+FAIL B9 the owner sees the full navigation (Staff, Analytics, Menu, Settings) — Overview Settings Help
+47/48 passed
+=== exit 1
+
+=== m22_e2e.js (run by name)  11:46:08Z  (carts removed before the run: 0)
+51/51 passed
+=== exit 0
+
+=== m22_regression_m30.js (run by name)  11:49:52Z  (carts removed before the run: 0)
+FAIL A9 auth return: after phone + OTP the customer lands on /checkout with cart, restaurant and pickup preserved
+FAIL E2 one active cart = one restaurant: the cart holds only Pizza Point
+66/68 passed
+=== exit 1
+
+=== m23_e2e.js (run by name)  12:13:47Z  (carts removed before the run: 2)
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":1,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+99/101 passed
+=== exit 1
+
+=== m24_e2e.js (run by name)  12:20:55Z  (carts removed before the run: 0)
+48/48 passed
+=== exit 0
+
+=== m25_e2e.js (run by name)  12:22:55Z  (carts removed before the run: 1)
+63/63 passed
+=== exit 0
+
+=== m26_e2e.js (run by name)  12:25:15Z  (carts removed before the run: 0)
+63/63 passed
+=== exit 0
+
+=== m27_e2e.js (run by name)  12:29:20Z  (carts removed before the run: 0)
+76/76 passed
+=== exit 0
+
+=== m28_e2e.js (run by name)  12:35:12Z  (carts removed before the run: 0)
+69/69 passed
+=== exit 0
+
+=== m29_e2e_m30.js (run by name)  12:40:56Z  (carts removed before the run: 0)
+FAIL G3 MODULE 29 CHARGES NOTHING: no route of the API creates a payment, an order, a refund or receives a provider webhook; there is no payments or orders table — api/v1/admin/system/checkout api/v1/checkouts api/v1/checkouts/{checkout} api/v1/checkouts/{checkout}/cancel api/v1/checkouts/{checkout}/confirm api/v1/checkouts/{checkout}/payment-attempts api/v1/checkouts/{checkout}/promotion api/v1/checkouts/{checkout}/promotion
+FAIL G4 the API has 198 routes under /api/v1 — 19 of them new in this module (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers) — 198
+75/77 passed
+=== exit 1
+
+# Result: m22_auth_regression.js 47/48, m22_e2e.js 51/51, m22_regression_m30.js 66/68, m23_e2e.js 99/101, m24_e2e.js 48/48, m25_e2e.js 63/63, m26_e2e.js 63/63, m27_e2e.js 76/76, m28_e2e.js 69/69, m29_e2e_m30.js 75/77 (657/664).
+#   miss in m22_auth_regression.js: B9 the owner sees the full navigation (Staff, Analytics, Menu, Settings)
+#   miss in m22_regression_m30.js: A9 auth return: after phone + OTP the customer lands on /checkout with cart, restaurant and pickup preserved
+#   miss in m22_regression_m30.js: E2 one active cart = one restaurant: the cart holds only Pizza Point
+#   miss in m23_e2e.js: C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+#   miss in m23_e2e.js: D3 sections that are still development data carry a "Demo data" label; the backend sections do not
+#   miss in m29_e2e_m30.js: G3 MODULE 29 CHARGES NOTHING: no route of the API creates a payment, an order, a refund or receives a provider webhook; there is no payments or orders table
+#   miss in m29_e2e_m30.js: G4 the API has 198 routes under /api/v1 — 19 of them new in this module (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers)
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+
+# ===== ANDROID PREVIEW (Flutter web preview of the Android code on :5174, built with PAYMENT_MODE=api) =====
+# Script: m29_flutter_m30.js — the Module 29 Android preview suite (checkout). CHANGES FOR THIS MODULE (shots/m30_regress_build.py): the payment provider status of a checkout is READY (it was NOT_INTEGRATED), the checkout screen has no "provider not connected" note, and the payment step that follows is the backend's payment screen ("Ready to pay" with the backend total) instead of the development payment — three expectations and the way back from the payment screen. Its screenshots go to a scratch folder.
+# The Android preview suites of Modules 21–28 were NOT run again (CF-396).
+=== m29_flutter_m30.js  12:46:53Z
+31/31 passed
+=== exit 0
+# Result: m29_flutter_m30.js 31/31.
+=== m22_auth_regression.js (run by name)  12:53:39Z  (carts removed before the run: 0)
+48/48 passed
+=== exit 0
+
+=== m22_regression_m30.js (run by name)  12:56:08Z  (carts removed before the run: 0)
+FAIL AUTH invalid OTP is rejected with a message and the customer stays on /verify-otp
+FAIL A9 auth return: after phone + OTP the customer lands on /checkout with cart, restaurant and pickup preserved
+66/68 passed
+=== exit 1
+
+# Result: m22_auth_regression.js 48/48, m22_regression_m30.js 66/68 (114/116).
+#   miss in m22_regression_m30.js: AUTH invalid OTP is rejected with a message and the customer stays on /verify-otp
+#   miss in m22_regression_m30.js: A9 auth return: after phone + OTP the customer lands on /checkout with cart, restaurant and pickup preserved
+# Carts removed after the last suite: 3. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+=== m22_regression_m30.js (run by name)  13:26:57Z  (carts removed before the run: 1)
+68/68 passed
+=== exit 0
+
+=== m29_e2e_m30.js (run by name)  13:43:21Z  (carts removed before the run: 3)
+77/77 passed
+=== exit 0
+
+# Result: m22_regression_m30.js 68/68, m29_e2e_m30.js 77/77 (145/145).
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+
+# ===== NOTES (written 2026-10-07 after the last run) =====
+# FINAL RESULT PER SUITE (the m30-regression-<name>.json files hold the last run of each): sign-in 48/48, market 51/51, full site 68/68, restaurants 99/101, menus 48/48, account 63/63, journeys 63/63, cart 76/76, pickup 69/69, checkout 77/77 — 662/664; Android preview checkout 31/31.
+# No miss in any run of this file was a defect of the product. The misses and why:
+# - restaurants C14, D3: the two Module 23 expectations that Module 24 made obsolete; they have missed in every run since Module 24 (same as the Module 29 log).
+# - checkout G3, G4 (first run, 75/77): two Module 29 expectations that Module 30 changes BY DESIGN — "no route of the API creates a payment or receives a webhook; no payments table" and "the API has 189 routes". Module 30 adds nine payment routes (198) and three payment tables. The copy of the suite was adapted (G3 now: payment routes exist, still no order or refund route and no orders table; G4: 198 routes) and run again: 77/77 (19:18 IST, alone).
+# - pickup D1 (and E7 in the first run): the suite reads the page a moment after a backend answer; in the first run (16:37 IST) a Flutter web compile of the Android preview was started on the same machine, in the second (16:47) nothing else ran but D1 still missed, and in the chain run (18:13, nothing else running) the suite passed 69/69. D1 was also run alone with the page text logged (scratchpad shots/m30_d1_debug.js): the arrival time and the "development estimate" label are on the page 2.4 s after the pickup page opens, exactly as the step expects. Product unchanged on that path by Module 30.
+# - sign-in B9 (first run, 47/48): the dashboard navigation was read before its role-specific items had rendered ("Overview Settings Help"). The chain's first two suites ran while the full backend PHPUnit suite (992 tests, 15 minutes) was running on the same machine — a mistake of the operator, not of the suite. Run alone afterwards: 48/48.
+# - full site A9 (both chain runs), E2 (first run), AUTH invalid OTP (second run): A9 reads the checkout page right after "Order summary" appears and then waits for a loading text ("Validating cart and pickup") that the checkout page on the backend does not show, so under load it reads before the backend checkout has arrived; the next step (A10) passes on the same page a moment later in both runs. The A1–A9 path was run alone with the page text logged (scratchpad shots/m30_a9_debug.js): the restaurant, the item and the pickup are on the page at the first read and at every read in the nine seconds after. E2 and the invalid-OTP step are the same kind of early read (each missed once and passed in the other run). Third run of the suite alone: 68/68 (19:13 IST, alone). The payment step of this suite stays in development mode by the per-device override (see the head of this file).
+#
+# Times in the "===" lines are UTC; India is UTC+5:30.
+#
+# WHAT THE SUITES DO NOT COVER: Razorpay itself. Every payment in these runs went through the DEVELOPMENT provider (PAYMENT_DRIVER=fake). No Razorpay credentials exist on this machine.
+# The Android preview suites of Modules 21–28 were not run again (CF-396); the Module 29 Android preview suite was (31/31, adapted as described in its section).
+#
+# After the last run the evidence files that the earlier suites rewrite (their JSON results, screenshots, the Module 28 timings and API responses, the Module 29 samples and timings) were put back to their committed state by the runner; no tracked evidence of an earlier module differs from the last commit.

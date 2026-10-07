@@ -12,6 +12,8 @@ import { formatLocalTime, formatMoney, zoneLabel } from '../i18n/format'
 import { formatLocalDate } from '../pickup/time'
 import { t, useLocale } from '../i18n/strings'
 import { checkoutSnapshot, usePayment } from '../payment/PaymentContext'
+import { paymentMode } from '../payment/paymentMode'
+import BackendPaymentPage from './BackendPaymentPage'
 import { readMockOutcome, setMockOutcome, type MockOutcome } from '../payment/mock/mockPayment'
 import type { PaymentStatus } from '../payment/repositories'
 import { restaurantRepository } from '../repositories'
@@ -34,7 +36,16 @@ const ClockIcon = ({ size = 18 }: P) => (<svg {...stroke(size)}><circle cx="12" 
 const DEV = import.meta.env.DEV
 const OUTCOMES: MockOutcome[] = ['success', 'failure', 'cancelled', 'pending', 'timeout', 'unknown']
 
+/**
+ * Module 30: with the payment step on the backend the page is BackendPaymentPage — a real payment attempt, the
+ * provider's own window and the backend's verification. The development payment below stays for unit tests and
+ * static share builds, where there is no backend.
+ */
 export default function PaymentPage() {
+  return paymentMode() === 'api' ? <BackendPaymentPage /> : <DevelopmentPaymentPage />
+}
+
+function DevelopmentPaymentPage() {
   const auth = useAuth()
   const co = useCheckout()
   const pay = usePayment()

@@ -584,14 +584,15 @@ that were made are audited — a refused attempt is not an audit event.
 
 ## 10. Not built yet
 
-Checkout, taxes / fees / promotions, the pickup slot hold and final reservation, payments, orders, tracking, reviews, object
+Orders and order confirmation, the final pickup reservation of an order, refunds, settlements, a payment provider exercised with real
+credentials (Razorpay is implemented — section 18 — but not configured), tracking, reviews, object
 storage for images (menu photos and profile photos live on the local `public` disk), verification documents, restaurant self-service
-onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), promotions and tax; customer e-mail verification, the
+onboarding, menu schedules (OUTSIDE_ITEM_SCHEDULE reserved), approved tax rules for any market; customer e-mail verification, the
 account erasure process (a deletion request only restricts the account — legal rules pending), data export,
 push-token registration and notification delivery, a Places provider for saved-place pins; live SMS and e-mail
 providers, a LIVE places / routing provider (the Google drivers exist and are contract-tested, but no credentials are
 configured and no live call has been made — journeys run on the development providers), map tiles, journey history,
-turn-by-turn navigation, Razorpay, FCM, WebSockets; region boundary polygons and a surveyed market
+turn-by-turn navigation, Razorpay test-mode credentials and live mode, a public webhook address, FCM, WebSockets; region boundary polygons and a surveyed market
 border; drawing a boundary or corridor on a real map; production deployment, backups and monitoring. These are
 tracked in `docs/project-progress.html`.
 
@@ -874,8 +875,8 @@ The vocabulary, the architecture diagram, the life cycle, the exact financial ca
 and fee rules, the hold, legal acceptance, the payment preparation, the API and error tables and the database rules
 are in [`checkout-domain.md`](checkout-domain.md). Everything below is local-only; nothing has touched production.
 
-- **NOTHING IS CHARGED.** No payment provider is integrated (`NOT_INTEGRATED`), no payment is created and no order
-  exists. A checkout is a short-lived, server-priced quote for a signed-in customer's cart — not an order.
+- **A checkout charges nothing** and no order exists. It is a short-lived, server-priced quote for a signed-in
+  customer's cart — not an order. Paying it is Module 30 (section 18).
 - **The client is never authoritative.** A request carries a promotion code, the legal documents shown, a
   payment-method type and an order note. A subtotal, discount, tax, fee, total, currency, owner, status, time or
   payment credential in a request is refused (422), never read.
@@ -906,3 +907,38 @@ are in [`checkout-domain.md`](checkout-domain.md). Everything below is local-onl
   state (and no tax or fee rule).
 - Tests: `tests/Feature/Checkout` + `tests/Unit/Support/RoundingTest` — see
   `docs/local-review/test-results/backend-m29-phpunit.txt` for the whole suite.
+
+## 18. Payments: payment attempts, the provider hand-off, server-side verification, webhooks, reconciliation (Module 30)
+
+The rule, the documentation that was reviewed, the vocabulary, the architecture and state diagrams, starting a
+payment, verification, webhooks, reconciliation, duplicate protection, the checkout / pickup race, the hand-off to
+orders, the API and error tables and the database rules are in [`payment-domain.md`](payment-domain.md). Everything
+below is local-only; nothing has touched production.
+
+- **Razorpay is implemented and NOT exercised.** No Razorpay credentials exist on the development machine: the
+  real API, Razorpay's own checkout and a webhook sent by Razorpay are PENDING PROVIDER CONFIGURATION. Locally the
+  development provider (`PAYMENT_DRIVER=fake`, never in production) stands in. No money moves.
+- **No fallback.** Without a configured provider, payments are unavailable (503) — a successful payment is never
+  simulated. A live key is refused; live mode is switched off in code.
+- **Payment truth is the backend's.** VERIFIED = the provider reports a captured payment on this attempt's own
+  provider order for this attempt's amount and currency. A client's "success", a valid client signature alone or a
+  webhook's content alone never verifies. VERIFIED is final.
+- **A verified payment creates no order.** It waits as `ORDER_PENDING` (or `RECOVERY_REQUIRED` when its checkout
+  can no longer become an order). Orders are Module 31. Refunds are not built.
+- `PaymentService` (start / show / complete), `PaymentReconciliationService` (the one place that settles a
+  payment), `PaymentStateMachine` (the one place that writes VERIFIED), `PaymentWebhookService`,
+  `PaymentProviderManager` and the `PaymentProvider` interface with `RazorpayPaymentProvider` (HTTP, no SDK) and
+  `FakePaymentProvider`.
+- One attempt = one provider order; a retry is a new attempt. One open attempt and one verified attempt per
+  checkout, unique provider references, unique webhook events — enforced by unique indexes.
+- Webhooks: raw-body signature → deduplication → a summary of safe fields stored → 200 → the queue `payments` →
+  reconciliation. `payments:reconcile` runs every minute and is the safety net.
+- Tables: `payment_attempts`, `payment_attempt_events`, `payment_webhook_events`
+  (migration `2026_10_09_100000_create_payment_tables`).
+- Routes: 9 new operations (198 in total) — 3 customer, 1 webhook, 1 development simulator, 4 admin — all in
+  `openapi/openapi.json` (157 paths, 294 schemas) and checked by `PaymentOpenApiContractTest`.
+- Permission `admin.payments.reconcile` (super admin, finance admin): ask the provider again, with a reason,
+  audited. There is no "mark as paid".
+- Secrets: `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` live in the git-ignored `.env` only; only the key id
+  leaves the backend. `.env.example` carries the names with empty values (checked by `SecurityBaselineTest`).
+- Tests: `tests/Feature/Payment` — see `docs/local-review/test-results/backend-m30-phpunit.txt` for the whole suite.

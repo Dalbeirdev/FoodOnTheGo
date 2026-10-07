@@ -55,7 +55,7 @@ class CheckoutSessionTest extends TestCase
         $this->assertFalse($checkout['pickup']['hold']['held'], 'a draft holds nothing');
         $this->assertNull($checkout['payment'], 'nothing is prepared for payment before the checkout is confirmed');
         $this->assertSame('+919876543210', $checkout['customer']['phone']);
-        $this->assertSame('NOT_INTEGRATED', $checkout['payment_methods']['provider_status']);
+        $this->assertSame('READY', $checkout['payment_methods']['provider_status']);   // the test environment's (fake) provider
         $this->assertSame('NOT_APPROVED', $checkout['payment_methods']['cash_at_pickup']);
     }
 
@@ -137,7 +137,7 @@ class CheckoutSessionTest extends TestCase
         $this->assertSame('INR', $ready['payment']['currency']);
         $this->assertSame($ready['id'], $ready['payment']['checkout_id']);
         $this->assertSame($ready['pricing']['fingerprint'], $ready['payment']['pricing_fingerprint']);
-        $this->assertSame(['status' => 'NOT_INTEGRATED'], $ready['payment']['provider']);
+        $this->assertSame(['status' => 'READY', 'name' => 'fake', 'mode' => 'FAKE'], $ready['payment']['provider']);
         $this->assertMatchesRegularExpression('/\Apay_[0-9a-f]{40}\z/', $ready['payment']['idempotency_key']);
     }
 

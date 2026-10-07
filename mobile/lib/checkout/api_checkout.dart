@@ -75,7 +75,7 @@ class ServerCheckout {
     required this.fees, required this.feeMinor, required this.totalMinor, required this.paymentRequired, required this.fingerprint, required this.taxConfiguration, required this.feeConfiguration,
     this.promotionCode, this.promotionName, required this.customerName, required this.customerPhone, required this.phoneVerified, this.customerEmail, this.orderNote,
     required this.legal, required this.legalFinalApproval, required this.acceptedAt, required this.providerStatus, required this.methodTypes, required this.savedMethods, this.selectedType, this.selectedSavedId,
-    this.paymentStatus, this.paymentKey, required this.issues, required this.changes,
+    this.paymentStatus, this.paymentKey, this.paymentAttemptId, required this.issues, required this.changes,
   });
 
   factory ServerCheckout.fromJson(Map<String, dynamic> j, {DateTime? receivedAt}) {
@@ -87,6 +87,7 @@ class ServerCheckout {
     final payment = j['payment'] is Map ? Map<String, dynamic>.from(j['payment'] as Map) : null;
     final promotion = j['promotion'] is Map ? Map<String, dynamic>.from(j['promotion'] as Map) : null;
     final selected = methods['selected'] is Map ? Map<String, dynamic>.from(methods['selected'] as Map) : null;
+    final attempt = payment?['attempt'] is Map ? Map<String, dynamic>.from(payment!['attempt'] as Map) : null;
     final configuration = pricing['configuration'] is Map ? Map<String, dynamic>.from(pricing['configuration'] as Map) : const <String, dynamic>{};
     List<Map<String, dynamic>> list(Object? v) => v is List ? [for (final x in v) if (x is Map) Map<String, dynamic>.from(x)] : const [];
     List<String> options(Map<String, dynamic> line) => [
@@ -116,7 +117,7 @@ class ServerCheckout {
       providerStatus: '${methods['provider_status']}', methodTypes: [for (final m in list(methods['available'])) '${m['type']}'],
       savedMethods: [for (final m in list(methods['saved'])) SavedMethod(id: '${m['id']}', type: '${m['type']}', label: '${m['display_label']}')],
       selectedType: selected?['type'] as String?, selectedSavedId: selected?['saved_method_id'] as String?,
-      paymentStatus: payment?['status'] as String?, paymentKey: payment?['idempotency_key'] as String?,
+      paymentStatus: payment?['status'] as String?, paymentKey: payment?['idempotency_key'] as String?, paymentAttemptId: attempt?['id'] as String?,
       issues: [for (final i in list(j['issues'])) CheckoutIssueView.fromJson(i)], changes: list(j['changes']),
     );
   }
@@ -153,12 +154,15 @@ class ServerCheckout {
   final List<LegalDocument> legal;
   final bool legalFinalApproval;
   final DateTime? acceptedAt;
+  /// READY · UNAVAILABLE — whether payments can be taken here right now (Module 30).
   final String providerStatus;
   final List<String> methodTypes;
   final List<SavedMethod> savedMethods;
   final String? selectedType, selectedSavedId;
   /// READY_FOR_PAYMENT · PAYMENT_NOT_REQUIRED — present only once the checkout is confirmed. Nothing has been charged.
   final String? paymentStatus, paymentKey;
+  /// The checkout's latest payment attempt (Module 30) — how a phone that was closed or restarted finds its payment again.
+  final String? paymentAttemptId;
   final List<CheckoutIssueView> issues;
   final List<Map<String, dynamic>> changes;
 

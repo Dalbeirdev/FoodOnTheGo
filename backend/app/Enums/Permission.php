@@ -35,6 +35,8 @@ enum Permission: string
     case AdminOrdersView = 'admin.orders.view';
     case AdminOrdersOverride = 'admin.orders.override';
     case AdminPaymentsView = 'admin.payments.view';
+    /** Ask the provider again about a payment. It changes nothing a provider does not confirm; there is no "mark as paid". */
+    case AdminPaymentsReconcile = 'admin.payments.reconcile';
     case AdminRefundsView = 'admin.refunds.view';
     case AdminRefundsIssue = 'admin.refunds.issue';
     case AdminSettlementsView = 'admin.settlements.view';

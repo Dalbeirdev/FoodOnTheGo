@@ -51,4 +51,9 @@ return [
     'checkout_read' => (int) env('RATE_LIMIT_CHECKOUT_READ', 120),
     'checkout_write' => (int) env('RATE_LIMIT_CHECKOUT_WRITE', 30),
     'promotion_apply' => (int) env('RATE_LIMIT_PROMOTION_APPLY', 10),
+    // Payments (Module 30). 'payment' above limits starting a payment and reporting its end; reading the status is
+    // polled while a payment is being verified. Webhooks come from the provider, not from a customer: their limit
+    // is per sending address and only keeps a flood away — the signature decides what is accepted.
+    'payment_read' => (int) env('RATE_LIMIT_PAYMENT_READ', 120),
+    'payment_webhook' => (int) env('RATE_LIMIT_PAYMENT_WEBHOOK', 600),
 ];

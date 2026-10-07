@@ -76,6 +76,16 @@
         <env name="RATE_LIMIT_JOURNEY_DETOURS" value="1000" force="true"/>
         <env name="RATE_LIMIT_JOURNEY_READ" value="1000" force="true"/>
         <env name="PLACES_DRIVER" value="fake" force="true"/>
+        <env name="PAYMENT_DRIVER" value="fake" force="true"/>
+        <env name="PAYMENT_ALLOW_FAKE_PROVIDER" value="true" force="true"/>
+        <env name="PAYMENT_PROVIDER_RETRY_BACKOFF_MS" value="0" force="true"/>
+        <env name="PAYMENT_PROVIDER_RETRY_JITTER_MS" value="0" force="true"/>
+        <env name="RAZORPAY_KEY_ID" value="" force="true"/>
+        <env name="RAZORPAY_KEY_SECRET" value="" force="true"/>
+        <env name="RAZORPAY_WEBHOOK_SECRET" value="" force="true"/>
+        <env name="RATE_LIMIT_PAYMENT" value="1000" force="true"/>
+        <env name="RATE_LIMIT_PAYMENT_READ" value="1000" force="true"/>
+        <env name="RATE_LIMIT_PAYMENT_WEBHOOK" value="1000" force="true"/>
         <env name="ROUTING_DRIVER" value="fake" force="true"/>
         <env name="JOURNEY_ALLOW_FAKE_PROVIDERS" value="true" force="true"/>
         <env name="JOURNEY_PROVIDER_RETRY_BACKOFF_MS" value="0" force="true"/>

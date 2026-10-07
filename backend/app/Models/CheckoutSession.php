@@ -107,6 +107,11 @@ class CheckoutSession extends Model
         return $this->hasOne(PromotionReservation::class);
     }
 
+    public function paymentAttempts(): HasMany
+    {
+        return $this->hasMany(PaymentAttempt::class)->orderBy('attempt_number');
+    }
+
     /**
      * @return array<string, string>
      */

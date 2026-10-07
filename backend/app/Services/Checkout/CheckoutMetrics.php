@@ -3,6 +3,7 @@
 namespace App\Services\Checkout;
 
 use App\Enums\CheckoutStatus;
+use App\Services\Payment\PaymentProviderManager;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ final class CheckoutMetrics
 
     public const EVENTS = [
         'created', 'reused', 'blocked', 'confirmed', 'stale', 'expired', 'cancelled', 'promotion_applied', 'promotion_refused', 'promotion_removed',
-        'hold_failed', 'payment_started', 'price_changed', 'pickup_invalid', 'discount_minor_total',
+        'hold_failed', 'payment_started', 'payment_ended', 'price_changed', 'pickup_invalid', 'discount_minor_total',
     ];
 
     public function record(string $event, int $by = 1): void
@@ -72,7 +73,7 @@ final class CheckoutMetrics
             'active_pickup_holds' => $holds,
             'promotions' => ['draft' => (int) ($promotions['DRAFT'] ?? 0), 'active' => (int) ($promotions['ACTIVE'] ?? 0), 'paused' => (int) ($promotions['PAUSED'] ?? 0), 'disabled' => (int) ($promotions['DISABLED'] ?? 0)],
             'slot_hold' => 'IMPLEMENTED',
-            'payment_provider' => (string) config('checkout.payment.provider_status'),
+            'payment_provider' => app(PaymentProviderManager::class)->summary()['status'],
         ];
     }
 }

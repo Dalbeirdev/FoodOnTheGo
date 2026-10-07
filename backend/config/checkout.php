@@ -37,8 +37,6 @@ return [
     ],
 
     'payment' => [
-        // Module 30 integrates the provider. Until then checkout only PREPARES a payment and says so.
-        'provider_status' => 'NOT_INTEGRATED',
 
         // The method names a market may offer, mapped from its payment configuration. Cash at pickup is not approved
         // and is never offered, whatever a client sends.

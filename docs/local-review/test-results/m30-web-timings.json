@@ -1,0 +1,27 @@
+{
+  "module": "M30",
+  "measured_at": "2026-10-07T11:06:21.610Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, PostgreSQL 18 and Redis local, the DEVELOPMENT payment provider (in-process: no network time of a real provider is in these numbers). Milliseconds per request as seen by the test client. Measurements, not targets.",
+  "timings": {
+    "start": {
+      "n": 10,
+      "median_ms": 812,
+      "max_ms": 2121
+    },
+    "status": {
+      "n": 2,
+      "median_ms": 1007,
+      "max_ms": 1007
+    },
+    "complete": {
+      "n": 3,
+      "median_ms": 415,
+      "max_ms": 433
+    },
+    "webhook": {
+      "n": 2,
+      "median_ms": 657,
+      "max_ms": 657
+    }
+  }
+}

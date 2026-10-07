@@ -34,13 +34,18 @@ class AppConfig {
   /// Needs CART_MODE=api and PICKUP_MODE=api.
   static const String checkoutMode = String.fromEnvironment('CHECKOUT_MODE', defaultValue: 'mock');
 
+  /// 'api' = payments are the backend's (Module 30: payment attempts, the provider's own checkout screen, server-side
+  /// verification, recovery after a restart); 'mock' = the development payment in the app (default, used by tests).
+  /// Needs CHECKOUT_MODE=api. Which provider is used — and in which mode — is the backend's configuration, not the app's.
+  static const String paymentMode = String.fromEnvironment('PAYMENT_MODE', defaultValue: 'mock');
+
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 33;
+  static const int buildNumber = 34;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -54,7 +59,8 @@ class AppConfig {
         'Restaurants': restaurantMode == 'api' ? 'Backend, menus included (orders and reviews still development data)' : 'Development fixtures',
         'Journeys': journeyMode == 'api' ? 'Backend (places, route, detours and arrival times from the routing provider)' : 'Development providers in the app',
         'Cart': cartMode == 'api' ? 'Backend (priced and validated by the server)' : 'Development cart on this device',
-        'Checkout': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' ? 'Backend (final validation, promotion, configured taxes and fees, total, pickup-time hold; payment and orders still development data — nothing is charged)' : 'Development checkout in the app',
+        'Checkout': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' ? 'Backend (final validation, promotion, configured taxes and fees, total, pickup-time hold)' : 'Development checkout in the app',
+        'Payments': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' ? 'Backend (payment attempts verified by the server with the payment provider; the provider and its mode are set on the server; orders are not created yet)' : 'Development payment in the app — no money moves',
         'Pickup times': cartMode == 'api' && pickupMode == 'api' ? 'Backend (ASAP, slots and capacity on the server clock; a chosen time is selected, not reserved)' : 'Development slot engine in the app',
         'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',
         'App version': '$appVersion (build $buildNumber)',

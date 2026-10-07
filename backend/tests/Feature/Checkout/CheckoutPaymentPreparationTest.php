@@ -128,7 +128,7 @@ class CheckoutPaymentPreparationTest extends TestCase
     {
         $methods = $this->checkout['payment_methods'];
 
-        $this->assertSame('NOT_INTEGRATED', $methods['provider_status']);
+        $this->assertSame('READY', $methods['provider_status']);   // the test environment's (fake) provider
         $this->assertSame([['type' => 'UPI', 'status' => 'PLANNED'], ['type' => 'CARD', 'status' => 'PLANNED'], ['type' => 'NET_BANKING', 'status' => 'PLANNED'], ['type' => 'WALLET', 'status' => 'PLANNED']], $methods['available']);
         $this->assertSame([[], null, 'NOT_APPROVED'], [$methods['saved'], $methods['selected'], $methods['cash_at_pickup']]);
         // A draft has no payment preparation at all.
@@ -194,9 +194,10 @@ class CheckoutPaymentPreparationTest extends TestCase
         $ready = $this->confirmCheckout($this->asha, $draft)->assertOk()->json('checkout');
         $payment = $ready['payment'];
 
-        $this->assertSame(['status', 'checkout_id', 'checkout_version', 'amount', 'currency', 'pricing_fingerprint', 'idempotency_key', 'payment_method', 'expires_at', 'provider'], array_keys($payment));
+        $this->assertSame(['status', 'checkout_id', 'checkout_version', 'amount', 'currency', 'pricing_fingerprint', 'idempotency_key', 'payment_method', 'expires_at', 'provider', 'attempt'], array_keys($payment));
+        $this->assertNull($payment['attempt']);   // no payment has been started for it
         $this->assertSame(['READY_FOR_PAYMENT', $ready['id'], $ready['version'], $this->inr(43500), 'INR'], [$payment['status'], $payment['checkout_id'], $payment['checkout_version'], $payment['amount'], $payment['currency']]);
-        $this->assertSame([$ready['pricing']['fingerprint'], $ready['expires_at'], ['status' => 'NOT_INTEGRATED']], [$payment['pricing_fingerprint'], $payment['expires_at'], $payment['provider']]);
+        $this->assertSame([$ready['pricing']['fingerprint'], $ready['expires_at'], ['status' => 'READY', 'name' => 'fake', 'mode' => 'FAKE']], [$payment['pricing_fingerprint'], $payment['expires_at'], $payment['provider']]);
         $this->assertMatchesRegularExpression('/\Apay_[0-9a-f]{40}\z/', $payment['idempotency_key']);
         // The same checkout always prepares the same payment: a retry cannot become a second one.
         $this->assertSame($payment, $this->showCheckout($this->asha, $ready['id'])->json('checkout.payment'));
@@ -322,20 +323,21 @@ class CheckoutPaymentPreparationTest extends TestCase
         $this->assertSame('EXPIRED', $this->sessionModel($next['id'])->status->value);
     }
 
-    public function test_module_29_has_no_route_that_pays_creates_an_order_or_talks_to_a_provider(): void
+    public function test_a_checkout_is_paid_through_a_payment_attempt_and_no_route_creates_an_order_or_a_refund(): void
     {
         $routes = collect(app('router')->getRoutes())->map(fn ($r): string => implode('|', $r->methods()).' '.$r->uri())->filter(fn (string $r): bool => str_contains($r, 'api/v1'));
 
-        foreach (['payments', 'payment-intents', 'orders', 'webhooks', 'refunds', 'razorpay', 'capture', '/pay'] as $segment) {
-            $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts') && str_contains($r, $segment))->values()->all(), $segment);
+        // Since Module 30 a confirmed checkout has exactly one payment route: a payment attempt for its total.
+        $this->assertSame(['POST api/v1/checkouts/{checkout}/payment-attempts'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts') && str_contains($r, 'pay'))->values()->all());
+        // Orders, refunds, captures and settlements belong to later modules: nothing of them exists.
+        foreach (['orders', 'refunds', 'capture', 'settlements', 'payment-intents'] as $segment) {
+            $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, $segment))->values()->all(), $segment);
         }
-        $this->assertSame([], $routes->filter(fn (string $r): bool => (bool) preg_match('#api/v1/(payments|orders|webhooks)#', $r))->values()->all());
         $ready = $this->confirmCheckout($this->asha, $this->checkout)->assertOk()->json('checkout');
-        foreach (['/pay', '/payment', '/payments', '/order', '/capture'] as $suffix) {
+        foreach (['/pay', '/payment', '/payments', '/order', '/capture', '/refund'] as $suffix) {
             $this->postJson('/api/v1/checkouts/'.$ready['id'].$suffix, [], $this->using($this->asha))->assertNotFound();
         }
-        // No table of this module holds a provider payment or an order.
-        foreach (['payments', 'payment_intents', 'orders'] as $table) {
+        foreach (['orders', 'refunds', 'payment_intents', 'settlements'] as $table) {
             $this->assertFalse(DB::getSchemaBuilder()->hasTable($table), $table);
         }
     }

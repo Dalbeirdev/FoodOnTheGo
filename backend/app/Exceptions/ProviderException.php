@@ -56,6 +56,16 @@ class ProviderException extends RuntimeException
         return new self(ProviderFailure::Misconfigured, $provider, "{$provider}: {$detail}");
     }
 
+    public static function rejected(string $provider, string $detail = ''): self
+    {
+        return new self(ProviderFailure::Rejected, $provider, $detail === '' ? '' : "{$provider}: {$detail}");
+    }
+
+    public static function notFound(string $provider): self
+    {
+        return new self(ProviderFailure::NotFound, $provider);
+    }
+
     /**
      * The API error this failure becomes. Route and place lookups fail "softly" (422 / 404) because the
      * customer can change the input; everything else is a 503 the clients retry later. Nothing is fabricated.

@@ -48,7 +48,7 @@ class CheckoutFixtureTest extends TestCase
         ]);
         // The market's method types are offered as PLANNED; cash at pickup is not.
         $this->assertSame(['UPI', 'CARD', 'NET_BANKING', 'WALLET'], array_column($checkout['payment_methods']['available'], 'type'));
-        $this->assertSame(['NOT_APPROVED', 'NOT_INTEGRATED', false], [$checkout['payment_methods']['cash_at_pickup'], $checkout['payment_methods']['provider_status'], $checkout['legal']['final_approval']]);
+        $this->assertSame(['NOT_APPROVED', 'READY', false], [$checkout['payment_methods']['cash_at_pickup'], $checkout['payment_methods']['provider_status'], $checkout['legal']['final_approval']]);
 
         $apply = fn (string $code) => $this->postJson('/api/v1/checkouts/'.$checkout['id'].'/promotion', ['code' => $code], $this->using($asha));
         $total = fn (string $code): int => $apply($code)->assertOk()->json('checkout.pricing.total.amount');

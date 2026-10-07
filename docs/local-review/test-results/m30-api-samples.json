@@ -1,0 +1,522 @@
+{
+  "checkout_payment_block": {
+    "status": "READY_FOR_PAYMENT",
+    "checkout_id": "0161bbae-c199-45bb-ae73-49b248b80322",
+    "checkout_version": 2,
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "currency": "INR",
+    "pricing_fingerprint": "226507185d7e37404b9f3f4ff831ded5aa9db8246ce55fb735aecd91054c70f1",
+    "idempotency_key": "pay_daa77a582935656a8b00d857c25dfedacb185d1b",
+    "payment_method": {
+      "type": "UPI",
+      "saved_method_id": null
+    },
+    "expires_at": "2026-10-07T11:07:44+00:00",
+    "provider": {
+      "status": "READY",
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "attempt": null
+  },
+  "payment_started": {
+    "id": "679b74c4-9e3d-4bb6-93d8-f5e5abdc8e89",
+    "checkout_id": "0161bbae-c199-45bb-ae73-49b248b80322",
+    "attempt_number": 1,
+    "status": "PROVIDER_READY",
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": {
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "requested_method_type": "UPI",
+    "method": null,
+    "failure": null,
+    "message": null,
+    "next_action": "OPEN_PROVIDER",
+    "retry_after_seconds": null,
+    "provider_session": {
+      "provider": "fake",
+      "mode": "FAKE",
+      "key_id": "fake_key_local",
+      "order_reference": "fakeorder_bv81ld0eo0hyit",
+      "amount": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "name": "FoodOnTheGo",
+      "description": "Food order for pickup",
+      "theme_color": "#E4572E",
+      "checkout_script": null,
+      "prefill": {
+        "name": "Rahul Sharma",
+        "contact": "+919876543210",
+        "email": "rahul.sharma@example.com"
+      },
+      "preferred_method": "UPI",
+      "methods": [
+        "UPI",
+        "CARD",
+        "NET_BANKING",
+        "WALLET"
+      ],
+      "timeout_seconds": 898
+    },
+    "fulfillment": {
+      "status": "NOT_APPLICABLE",
+      "order_id": null,
+      "order_creation": "NOT_IMPLEMENTED"
+    },
+    "support_reference": "PAY-679B74C49E",
+    "expires_at": "2026-10-07T11:12:45+00:00",
+    "server_time": "2026-10-07T10:57:46+00:00",
+    "created_at": "2026-10-07T10:57:46+00:00",
+    "updated_at": "2026-10-07T10:57:46+00:00",
+    "verified_at": null
+  },
+  "payment_verified": {
+    "id": "679b74c4-9e3d-4bb6-93d8-f5e5abdc8e89",
+    "checkout_id": "0161bbae-c199-45bb-ae73-49b248b80322",
+    "attempt_number": 1,
+    "status": "VERIFIED",
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": {
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "requested_method_type": "UPI",
+    "method": {
+      "type": "UPI",
+      "summary": {
+        "vpa": "su***@fake"
+      }
+    },
+    "failure": null,
+    "message": "Payment received. We're confirming your order.",
+    "next_action": "PROCEED_TO_ORDER",
+    "retry_after_seconds": null,
+    "provider_session": null,
+    "fulfillment": {
+      "status": "ORDER_PENDING",
+      "order_id": null,
+      "order_creation": "NOT_IMPLEMENTED"
+    },
+    "support_reference": "PAY-679B74C49E",
+    "expires_at": "2026-10-07T11:12:45+00:00",
+    "server_time": "2026-10-07T10:57:49+00:00",
+    "created_at": "2026-10-07T10:57:46+00:00",
+    "updated_at": "2026-10-07T10:57:49+00:00",
+    "verified_at": "2026-10-07T10:57:49+00:00"
+  },
+  "payment_cancelled": {
+    "id": "e9c0b64b-8e87-4a60-ae39-3f55271373ab",
+    "checkout_id": "4a82b8ae-a596-4945-acd9-2f7895ffa65d",
+    "attempt_number": 1,
+    "status": "CANCELLED",
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": {
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "requested_method_type": "UPI",
+    "method": null,
+    "failure": {
+      "category": "CUSTOMER_CANCELLED",
+      "code": "PAYMENT_CANCELLED",
+      "message": "The payment was cancelled. Nothing was charged.",
+      "retryable": true
+    },
+    "message": "The payment was cancelled. Nothing was charged.",
+    "next_action": "RETRY_PAYMENT",
+    "retry_after_seconds": null,
+    "provider_session": null,
+    "fulfillment": {
+      "status": "NOT_APPLICABLE",
+      "order_id": null,
+      "order_creation": "NOT_IMPLEMENTED"
+    },
+    "support_reference": "PAY-E9C0B64B8E",
+    "expires_at": "2026-10-07T11:13:23+00:00",
+    "server_time": "2026-10-07T10:58:25+00:00",
+    "created_at": "2026-10-07T10:58:23+00:00",
+    "updated_at": "2026-10-07T10:58:25+00:00",
+    "verified_at": null
+  },
+  "payment_failed": {
+    "id": "ec1fb1b5-17b2-4cee-91cb-0f30eea62a76",
+    "checkout_id": "4a82b8ae-a596-4945-acd9-2f7895ffa65d",
+    "attempt_number": 2,
+    "status": "FAILED",
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": {
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "requested_method_type": "UPI",
+    "method": null,
+    "failure": {
+      "category": "UNKNOWN",
+      "code": "PAYMENT_FAILED",
+      "message": "The payment could not be completed. Please try again.",
+      "retryable": true
+    },
+    "message": "The payment could not be completed. Please try again.",
+    "next_action": "RETRY_PAYMENT",
+    "retry_after_seconds": null,
+    "provider_session": null,
+    "fulfillment": {
+      "status": "NOT_APPLICABLE",
+      "order_id": null,
+      "order_creation": "NOT_IMPLEMENTED"
+    },
+    "support_reference": "PAY-EC1FB1B517",
+    "expires_at": "2026-10-07T11:13:28+00:00",
+    "server_time": "2026-10-07T10:58:30+00:00",
+    "created_at": "2026-10-07T10:58:28+00:00",
+    "updated_at": "2026-10-07T10:58:30+00:00",
+    "verified_at": null
+  },
+  "webhook_receipt": {
+    "received": true
+  },
+  "payment_review_required": {
+    "id": "a5f7ba88-9be4-457f-8c0a-b449ae96c512",
+    "checkout_id": "c3bdc465-7373-4d7a-93f1-a711f1ba426b",
+    "attempt_number": 1,
+    "status": "REVIEW_REQUIRED",
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": {
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "requested_method_type": "UPI",
+    "method": null,
+    "failure": null,
+    "message": "We are checking this payment. Please do not pay again.",
+    "next_action": "CONTACT_SUPPORT",
+    "retry_after_seconds": null,
+    "provider_session": null,
+    "fulfillment": {
+      "status": "NOT_APPLICABLE",
+      "order_id": null,
+      "order_creation": "NOT_IMPLEMENTED"
+    },
+    "support_reference": "PAY-A5F7BA889B",
+    "expires_at": "2026-10-07T11:17:02+00:00",
+    "server_time": "2026-10-07T11:02:07+00:00",
+    "created_at": "2026-10-07T11:02:03+00:00",
+    "updated_at": "2026-10-07T11:02:07+00:00",
+    "verified_at": null
+  },
+  "admin_payment_row": {
+    "id": "a5f7ba88-9be4-457f-8c0a-b449ae96c512",
+    "support_reference": "PAY-A5F7BA889B",
+    "checkout_id": "c3bdc465-7373-4d7a-93f1-a711f1ba426b",
+    "attempt_number": 1,
+    "status": "REVIEW_REQUIRED",
+    "status_reason": "PAYMENT_AMOUNT_MISMATCH",
+    "fulfillment_status": "NOT_APPLICABLE",
+    "fulfillment_reason": null,
+    "needs_attention": true,
+    "verified_without_order": false,
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": "fake",
+    "provider_mode": "FAKE",
+    "method_type": null,
+    "requested_method_type": "UPI",
+    "failure_category": null,
+    "failure_code": "PAYMENT_AMOUNT_MISMATCH",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "market": "india",
+    "customer": {
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "phone_masked": "+91******3210"
+    },
+    "created_at": "2026-10-07T11:02:03+00:00",
+    "verified_at": null,
+    "expires_at": "2026-10-07T11:17:02+00:00"
+  },
+  "admin_payment_detail": {
+    "id": "a5f7ba88-9be4-457f-8c0a-b449ae96c512",
+    "support_reference": "PAY-A5F7BA889B",
+    "checkout_id": "c3bdc465-7373-4d7a-93f1-a711f1ba426b",
+    "attempt_number": 1,
+    "status": "REVIEW_REQUIRED",
+    "status_reason": "PAYMENT_AMOUNT_MISMATCH",
+    "fulfillment_status": "NOT_APPLICABLE",
+    "fulfillment_reason": null,
+    "needs_attention": true,
+    "verified_without_order": false,
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": "fake",
+    "provider_mode": "FAKE",
+    "method_type": null,
+    "requested_method_type": "UPI",
+    "failure_category": null,
+    "failure_code": "PAYMENT_AMOUNT_MISMATCH",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "market": "india",
+    "customer": {
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "phone_masked": "+91******3210"
+    },
+    "created_at": "2026-10-07T11:02:03+00:00",
+    "verified_at": null,
+    "expires_at": "2026-10-07T11:17:02+00:00",
+    "provider_references": {
+      "order": "fakeorder_ekxlluebdnql0j",
+      "payment": null,
+      "receipt": "pa_07c21b823d1a4c86b016d60079b96b07"
+    },
+    "provider_state": {
+      "order": "created",
+      "payment": "captured",
+      "error_code": null,
+      "error_reason": null
+    },
+    "method_summary": {},
+    "verification": {
+      "client_outcome": "success",
+      "client_reported_at": "2026-10-07T11:02:07+00:00",
+      "signature_verified_at": "2026-10-07T11:02:07+00:00",
+      "signature_failures": 0
+    },
+    "checkout": {
+      "id": "c3bdc465-7373-4d7a-93f1-a711f1ba426b",
+      "version": 2,
+      "pricing_fingerprint": "8f2a9c205a511aa109d9a6d55f24737afa294a048134f4e27de044348d77ffd6",
+      "status": "PAYMENT_PENDING",
+      "expires_at": "2026-10-07T11:22:02+00:00"
+    },
+    "reconciliation": {
+      "runs": 0,
+      "last_at": "2026-10-07T11:02:07+00:00",
+      "next_at": null
+    },
+    "timeline": [
+      {
+        "at": "2026-10-07T11:02:03+00:00",
+        "type": "attempt_created",
+        "source": "SYSTEM",
+        "from": null,
+        "to": null,
+        "detail": {
+          "mode": "FAKE",
+          "attempt": 1,
+          "provider": "fake"
+        }
+      },
+      {
+        "at": "2026-10-07T11:02:03+00:00",
+        "type": "provider_ready",
+        "source": "PROVIDER",
+        "from": "CREATED",
+        "to": "PROVIDER_READY",
+        "detail": {
+          "order": "fakeorder_ekxlluebdnql0j"
+        }
+      },
+      {
+        "at": "2026-10-07T11:02:07+00:00",
+        "type": "client_callback",
+        "source": "CLIENT",
+        "from": null,
+        "to": null,
+        "detail": {
+          "outcome": "success",
+          "payment": "fakepay_9mlyccha537sox"
+        }
+      },
+      {
+        "at": "2026-10-07T11:02:07+00:00",
+        "type": "processing",
+        "source": "CLIENT",
+        "from": "PROVIDER_READY",
+        "to": "PROCESSING",
+        "detail": {}
+      },
+      {
+        "at": "2026-10-07T11:02:07+00:00",
+        "type": "review_required",
+        "source": "CLIENT",
+        "from": "PROCESSING",
+        "to": "REVIEW_REQUIRED",
+        "detail": {
+          "payment": "fakepay_9mlyccha537sox",
+          "provider_currency": "INR",
+          "provider_amount_minor": 42800
+        }
+      }
+    ],
+    "webhook_events": [],
+    "actions": {
+      "mark_paid": false,
+      "refund": "NOT_IMPLEMENTED"
+    }
+  },
+  "admin_payment_metrics": {
+    "checked_at": "2026-10-07T11:03:04+00:00",
+    "window_hours": 24,
+    "provider": {
+      "driver": "fake",
+      "mode": "FAKE",
+      "configured": true,
+      "missing": [],
+      "fake": true,
+      "fake_allowed": true,
+      "live_allowed": false,
+      "timeout_seconds": 15,
+      "methods": [
+        "UPI",
+        "CARD",
+        "NET_BANKING",
+        "WALLET"
+      ],
+      "health": {
+        "state": "OPERATIONAL",
+        "window_minutes": 10,
+        "calls": 23,
+        "ok": 23,
+        "failures": 0,
+        "timeouts": 0,
+        "rate_limited": 0,
+        "not_found": 0,
+        "avg_latency_ms": 2,
+        "last_call_at": "2026-10-07T11:02:49+00:00"
+      }
+    },
+    "attempts": {
+      "created": 0,
+      "provider_ready": 0,
+      "processing": 0,
+      "pending": 0,
+      "authorized": 0,
+      "verified": 6,
+      "failed": 1,
+      "cancelled": 1,
+      "expired": 0,
+      "unknown": 0,
+      "review_required": 1
+    },
+    "verified_payments": {
+      "order_pending": 6,
+      "recovery_required": 0,
+      "order_created": 0
+    },
+    "needs_review": 1,
+    "events": {
+      "attempt_created": 9,
+      "provider_ready": 9,
+      "initialization_failed": 0,
+      "initialization_unknown": 0,
+      "client_callback": 4,
+      "signature_invalid": 2,
+      "webhook_received": 5,
+      "webhook_duplicate": 2,
+      "webhook_rejected": 4,
+      "webhook_ignored": 0,
+      "webhook_failed": 0,
+      "webhook_processed": 5,
+      "processing": 4,
+      "pending": 1,
+      "authorized": 0,
+      "verified": 6,
+      "late_success": 0,
+      "failed": 1,
+      "cancelled": 1,
+      "expired": 0,
+      "unknown": 0,
+      "review_required": 1,
+      "mismatch": 1,
+      "duplicate_payment": 0,
+      "reconciled": 14,
+      "recovery_required": 0
+    },
+    "rates": {
+      "verified_of_settled": 0.75,
+      "failed_of_settled": 0.125
+    },
+    "latency_ms": {
+      "verification_avg": 12517,
+      "webhook_processing_avg": 1794
+    },
+    "verified_by_method": {
+      "UPI": 6
+    },
+    "webhook_events": {
+      "received": 0,
+      "processed": 5,
+      "ignored": 0,
+      "failed": 0
+    },
+    "order_creation": "NOT_IMPLEMENTED",
+    "refunds": "NOT_IMPLEMENTED"
+  },
+  "payment_recovery_required": {
+    "id": "b9b57c12-ce16-4310-ab20-8bb787f6f8ca",
+    "checkout_id": "0a82b35d-8002-4fa9-9334-0202f9e19b97",
+    "attempt_number": 1,
+    "status": "VERIFIED",
+    "amount": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "provider": {
+      "name": "fake",
+      "mode": "FAKE"
+    },
+    "requested_method_type": "UPI",
+    "method": {
+      "type": "UPI",
+      "summary": {
+        "vpa": "su***@fake"
+      }
+    },
+    "failure": null,
+    "message": "Payment received. We could not confirm your order yet — you do not need to pay again.",
+    "next_action": "PROCEED_TO_ORDER",
+    "retry_after_seconds": null,
+    "provider_session": null,
+    "fulfillment": {
+      "status": "RECOVERY_REQUIRED",
+      "order_id": null,
+      "order_creation": "NOT_IMPLEMENTED"
+    },
+    "support_reference": "PAY-B9B57C12CE",
+    "expires_at": "2026-10-07T11:18:46+00:00",
+    "server_time": "2026-10-07T11:03:50+00:00",
+    "created_at": "2026-10-07T11:03:46+00:00",
+    "updated_at": "2026-10-07T11:03:50+00:00",
+    "verified_at": "2026-10-07T11:03:50+00:00"
+  }
+}

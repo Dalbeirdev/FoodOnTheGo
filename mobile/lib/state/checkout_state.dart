@@ -51,6 +51,9 @@ class CheckoutState extends ChangeNotifier {
   bool get backendMode => backend != null;
   /// Backend mode: the checkout exactly as the backend priced it.
   ServerCheckout? server;
+  /// Backend mode: the checkout the backend says is being paid for right now (null otherwise). It is how the payment
+  /// screen finds a payment again when this phone kept nothing of it.
+  String? paymentCheckoutId;
   CheckoutNotice? notice;
   List<CheckoutIssue> _blocked = const [];
   String? _accepted;
@@ -180,7 +183,7 @@ class CheckoutState extends ChangeNotifier {
   /// Called once the order exists — a consumed request must never re-enter payment.
   void clearRequest() {
     request = null; status = CheckoutStatus.initializing; _store.write(requestKey, null).catchError((_) {});
-    if (backendMode) { server = null; summary = null; _blocked = const []; notice = null; _refusedPromo = null; promo = null; _accepted = null; termsAccepted = false; _store.write(termsKey, null).catchError((_) {}); }
+    if (backendMode) { server = null; paymentCheckoutId = null; summary = null; _blocked = const []; notice = null; _refusedPromo = null; promo = null; _accepted = null; termsAccepted = false; _store.write(termsKey, null).catchError((_) {}); }
     notifyListeners();
   }
   void setPaymentMethod(String id) { paymentMethodId = id; notifyListeners(); }
@@ -228,7 +231,7 @@ class CheckoutState extends ChangeNotifier {
 
   /// Takes a checkout the backend sent as the truth: what is shown, what can be confirmed, what can be paid.
   void _accept(ServerCheckout c, {CartState? cart}) {
-    server = c; _blocked = const []; error = null;
+    server = c; _blocked = const []; error = null; paymentCheckoutId = null;
     summary = CheckoutSummary(
       currency: c.currency, itemCount: c.itemCount, subtotalMinor: c.subtotalMinor, discountMinor: c.discountMinor, totalMinor: c.totalMinor, expiresAt: c.expiresAt, paymentEligible: c.paymentRequired, source: 'api',
       taxes: [for (final t in c.taxes) SummaryLine('tax:${t.code}', t.label, t.amountMinor, 'tax', included: t.included, rateBasisPoints: t.rateBasisPoints)],
@@ -264,6 +267,8 @@ class CheckoutState extends ChangeNotifier {
     if (e.cart) { drop(); _blocked = issues; status = CheckoutStatus.invalidCart; return; }
     if (e.pickup) { drop(); _blocked = issues; status = CheckoutStatus.invalidPickup; return; }
     if (e.code == CheckoutErrorCode.expired) { request = null; _store.write(requestKey, null).catchError((_) {}); _blocked = issues; status = CheckoutStatus.expired; return; }
+    // "A payment is in progress" names its checkout: the payment screen finds the payment through it.
+    if (e.code == CheckoutErrorCode.paymentInProgress && e.details['checkout_id'] is String) paymentCheckoutId = e.details['checkout_id'] as String;
     error = e.message; _blocked = e.code == CheckoutErrorCode.paymentInProgress ? issues : const []; status = CheckoutStatus.error;
   }
 
@@ -323,7 +328,7 @@ class CheckoutState extends ChangeNotifier {
         if (_blocked.isEmpty) _blocked = const [CheckoutIssue(CheckoutIssueCode.checkoutExpired, recover: 'refresh')];
         status = CheckoutStatus.expired; notifyListeners(); return false;
       }
-      if (now.status == 'PAYMENT_PENDING' || now.status == 'CONVERTED') { server = now; _blocked = const [CheckoutIssue(CheckoutIssueCode.paymentInProgress)]; status = CheckoutStatus.error; notifyListeners(); return false; }
+      if (now.status == 'PAYMENT_PENDING' || now.status == 'CONVERTED') { server = now; paymentCheckoutId = now.id; _blocked = const [CheckoutIssue(CheckoutIssueCode.paymentInProgress)]; status = CheckoutStatus.error; notifyListeners(); return false; }
       final why = now.issues.firstOrNull;
       await _restart(auth: auth, cart: cart, reason: why?.message, legal: why?.code == 'LEGAL_ACCEPTANCE_REQUIRED');
       return false;
@@ -404,7 +409,7 @@ class CheckoutState extends ChangeNotifier {
   /// Signing out, or another customer on this phone: nothing of the earlier checkout may be shown or paid.
   void reset() {
     _seq++;
-    request = null; server = null; summary = null; promo = null; _refusedPromo = null; _blocked = const []; notice = null; _accepted = null; termsAccepted = false; paymentMethodId = null; error = null; status = CheckoutStatus.initializing;
+    request = null; server = null; paymentCheckoutId = null; summary = null; promo = null; _refusedPromo = null; _blocked = const []; notice = null; _accepted = null; termsAccepted = false; paymentMethodId = null; error = null; status = CheckoutStatus.initializing;
     _store.write(requestKey, null).catchError((_) {}); _store.write(termsKey, null).catchError((_) {});
     notifyListeners();
   }

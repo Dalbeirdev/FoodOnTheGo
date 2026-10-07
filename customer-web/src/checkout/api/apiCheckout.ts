@@ -53,7 +53,8 @@ export type CheckoutDto = {
   }
   payment: {
     status: 'READY_FOR_PAYMENT' | 'PAYMENT_NOT_REQUIRED'; checkout_id: string; checkout_version: number; amount: MoneyDto; currency: string; pricing_fingerprint: string
-    idempotency_key: string; payment_method: { type: string; saved_method_id: string | null } | null; expires_at: string; provider: { status: string }
+    idempotency_key: string; payment_method: { type: string; saved_method_id: string | null } | null; expires_at: string
+    provider: { status: string; name?: string | null; mode?: string | null }; attempt?: { id: string; status: string; attempt_number: number } | null
   } | null
   issues: CheckoutIssueDto[]
   changes: Array<{ code: string } & Record<string, unknown>>
@@ -107,7 +108,13 @@ export type ServerCheckout = {
   legal: { required: LegalDocument[]; accepted: Array<{ type: string; version: string; acceptedAt: string }>; finalApproval: boolean }
   paymentMethods: { providerStatus: string; available: Array<{ type: string; status: string }>; saved: SavedMethod[]; selected: { type: string; savedMethodId: string | null } | null }
   /** The preparation for the payment module — present only once the checkout is confirmed. Nothing has been charged. */
-  payment: { status: 'READY_FOR_PAYMENT' | 'PAYMENT_NOT_REQUIRED'; amountMinor: number; currency: string; idempotencyKey: string; fingerprint: string; expiresAt: string; checkoutVersion: number } | null
+  payment: {
+    status: 'READY_FOR_PAYMENT' | 'PAYMENT_NOT_REQUIRED'; amountMinor: number; currency: string; idempotencyKey: string; fingerprint: string; expiresAt: string; checkoutVersion: number
+    /** Whether payments can be taken here right now (Module 30). */
+    provider: { status: 'READY' | 'UNAVAILABLE'; name: string | null; mode: string | null }
+    /** The checkout's latest payment attempt — how a reloaded page finds its payment again. */
+    attempt: { id: string; status: string; attemptNumber: number } | null
+  } | null
   issues: CheckoutIssueView[]
   /** What was different when this checkout was created (a price, a promotion) — to tell the customer before they pay. */
   changes: Array<{ code: string } & Record<string, unknown>>
@@ -148,7 +155,11 @@ export function toCheckout(d: CheckoutDto, receivedAtMs: number = Date.now()): S
       saved: d.payment_methods.saved.map((m) => ({ id: m.id, type: m.type, label: m.display_label, brand: m.brand, last4: m.last4, isDefault: m.is_default })),
       selected: d.payment_methods.selected ? { type: d.payment_methods.selected.type, savedMethodId: d.payment_methods.selected.saved_method_id } : null,
     },
-    payment: d.payment ? { status: d.payment.status, amountMinor: d.payment.amount.amount, currency: d.payment.currency, idempotencyKey: d.payment.idempotency_key, fingerprint: d.payment.pricing_fingerprint, expiresAt: d.payment.expires_at, checkoutVersion: d.payment.checkout_version } : null,
+    payment: d.payment ? {
+      status: d.payment.status, amountMinor: d.payment.amount.amount, currency: d.payment.currency, idempotencyKey: d.payment.idempotency_key, fingerprint: d.payment.pricing_fingerprint, expiresAt: d.payment.expires_at, checkoutVersion: d.payment.checkout_version,
+      provider: { status: d.payment.provider?.status === 'READY' ? 'READY' : 'UNAVAILABLE', name: d.payment.provider?.name ?? null, mode: d.payment.provider?.mode ?? null },
+      attempt: d.payment.attempt ? { id: d.payment.attempt.id, status: d.payment.attempt.status, attemptNumber: d.payment.attempt.attempt_number } : null,
+    } : null,
     issues: d.issues.map((i) => ({ code: i.code, message: i.message, recover: i.recover, details: i.details ?? {} })),
     changes: d.changes ?? [],
   }

@@ -54,7 +54,7 @@ const checkoutDto = (patch: Partial<CheckoutDto> = {}, pricing: Partial<Checkout
   customer: { name: 'Asha Verma', phone: '+919876543212', phone_verified: true, email: null },
   order_note: null,
   legal: { required: LEGAL, accepted: [], final_approval: false },
-  payment_methods: { provider_status: 'NOT_INTEGRATED', available: [{ type: 'UPI', status: 'PLANNED' }, { type: 'CARD', status: 'PLANNED' }], saved: [], selected: null, cash_at_pickup: 'NOT_APPROVED' },
+  payment_methods: { provider_status: 'READY', available: [{ type: 'UPI', status: 'PLANNED' }, { type: 'CARD', status: 'PLANNED' }], saved: [], selected: null, cash_at_pickup: 'NOT_APPROVED' },
   payment: null, issues: [], changes: [], ...patch,
 })
 /** ₹500 − ₹100 + ₹15 fee + 2 × 2.5 % test tax on ₹400 = ₹435. */
@@ -72,7 +72,7 @@ const readyDto = (base: CheckoutDto = checkoutDto()): CheckoutDto => ({
   payment_methods: { ...base.payment_methods, selected: base.pricing.payment_required ? { type: 'UPI', saved_method_id: null } : null },
   payment: {
     status: base.pricing.payment_required ? 'READY_FOR_PAYMENT' : 'PAYMENT_NOT_REQUIRED', checkout_id: base.id, checkout_version: base.version + 1, amount: base.pricing.total, currency: 'INR', pricing_fingerprint: base.pricing.fingerprint,
-    idempotency_key: `pay_${'c'.repeat(40)}`, payment_method: base.pricing.payment_required ? { type: 'UPI', saved_method_id: null } : null, expires_at: at(10), provider: { status: 'NOT_INTEGRATED' },
+    idempotency_key: `pay_${'c'.repeat(40)}`, payment_method: base.pricing.payment_required ? { type: 'UPI', saved_method_id: null } : null, expires_at: at(10), provider: { status: 'READY', name: 'fake', mode: 'FAKE' }, attempt: null,
   },
 })
 const cartDto = (): CartDto => ({
@@ -143,7 +143,10 @@ describe('checkout API mapping', () => {
     const c = toCheckout(readyDto(pricedDto()))
     expect(c.status).toBe('READY')
     expect(c.pickup).toMatchObject({ held: true, holdExpiresAt: at(10) })
-    expect(c.payment).toEqual({ status: 'READY_FOR_PAYMENT', amountMinor: 43500, currency: 'INR', idempotencyKey: `pay_${'c'.repeat(40)}`, fingerprint: 'b'.repeat(64), expiresAt: at(10), checkoutVersion: 2 })
+    expect(c.payment).toEqual({ status: 'READY_FOR_PAYMENT', amountMinor: 43500, currency: 'INR', idempotencyKey: `pay_${'c'.repeat(40)}`, fingerprint: 'b'.repeat(64), expiresAt: at(10), checkoutVersion: 2, provider: { status: 'READY', name: 'fake', mode: 'FAKE' }, attempt: null })
+    // Once a payment was started the checkout names its latest attempt — how a reloaded page finds its payment again (Module 30).
+    const paying = readyDto(pricedDto()); paying.payment = { ...paying.payment!, attempt: { id: 'pay-attempt-1', status: 'PENDING', attempt_number: 2 } }
+    expect(toCheckout(paying).payment?.attempt).toEqual({ id: 'pay-attempt-1', status: 'PENDING', attemptNumber: 2 })
     expect(c.paymentMethods.selected).toEqual({ type: 'UPI', savedMethodId: null })
     // Nothing of a provider, and no credential field anywhere in what the pages read.
     expect(JSON.stringify(c)).not.toMatch(/card_number|cvv|upi_pin|provider_payment|secret/i)
@@ -440,7 +443,7 @@ describe('checkout page on the backend', () => {
     expect(cta.textContent).toMatch(/Continue to payment · ₹435\.00/)
     // A test configuration is called one; no invoice, no delivery, no development-checkout label, no invented tax name.
     expect(screen.getByTestId('co-config-test')).toHaveTextContent(/TEST TAX \/ FEE CONFIGURATION/)
-    expect(screen.getByTestId('co-provider-pending')).toBeInTheDocument()
+    expect(screen.queryByTestId('co-provider-unavailable')).toBeNull()   // payments can be taken: nothing to warn about
     expect(screen.getByTestId('co-legal-draft')).toBeInTheDocument()
     expect(screen.getAllByTestId('co-legal-doc').map((n) => `${n.getAttribute('data-type')}@${n.getAttribute('data-version')}`)).toEqual(['TERMS@draft-2026-09', 'PRIVACY@draft-2026-09', 'REFUND@draft-2026-09'])
     expect(document.body.textContent).not.toMatch(/GST|VAT|delivery fee|tax invoice|development checkout|cash at pickup/i)

@@ -15,6 +15,10 @@ enum ProviderFailure: string
     case PlaceNotFound = 'PLACE_NOT_FOUND';
     case InvalidLocation = 'INVALID_LOCATION';
     case Misconfigured = 'MISCONFIGURED';
+    /** The provider understood the request and refused it. Repeating the same request cannot help. */
+    case Rejected = 'REJECTED';
+    /** The provider has no such record. */
+    case NotFound = 'NOT_FOUND';
 
     /**
      * A failure that a second attempt may resolve. Rate limiting is deliberately NOT retried: a retry would make
@@ -33,7 +37,7 @@ enum ProviderFailure: string
         return match ($this) {
             self::Timeout => 'timeouts',
             self::RateLimited => 'rate_limited',
-            self::RouteNotFound, self::PlaceNotFound, self::InvalidLocation => 'not_found',
+            self::RouteNotFound, self::PlaceNotFound, self::InvalidLocation, self::NotFound => 'not_found',
             default => 'failures',
         };
     }

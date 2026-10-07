@@ -4,8 +4,9 @@ Status: **built and verified locally** (LOCAL ONLY — nothing here is deployed,
 
 This document describes what exists in the code. Where something is not built, it says so.
 
-- No payment provider is integrated. `Payment Provider Status = NOT_INTEGRATED`. No payment is created, captured,
-  verified or refunded, and there is no webhook. That is Module 30.
+- A checkout charges nothing. Payments are Module 30 — see [`payment-domain.md`](payment-domain.md): a confirmed
+  checkout is paid through a payment attempt. The checkout says whether payments can be taken right now
+  (`provider.status` READY / UNAVAILABLE) and names its latest payment attempt.
 - No order is created. A checkout is **not** an order. That is Module 31.
 - **No tax rule and no fee rule is seeded for any market.** India's tax configuration is `NOT_CONFIGURED` and stays
   a production blocker until approved rules are supplied. The code contains no rate and no tax name of any country.
@@ -168,8 +169,9 @@ No rule ⇒ no line. The answer says so: `pricing.configuration = { tax: NOT_CON
   without a clean-up job. It is released when the checkout is cancelled, replaced, goes stale or expires.
 - `PickupSlotHoldService::consume()` turns the hold into the order's reservation (same row) — ready for Module 31.
 - PostgreSQL is the authority; Redis is not involved in capacity.
-- Known limit, for Module 30: the hold ends when the READY window ends (10 minutes). A provider payment that takes
-  longer needs the payment module to extend or re-take it.
+- When a payment is started (Module 30) the checkout's expiry and the hold are extended to the payment attempt's
+  expiry plus a grace period, so a payment at the provider does not outlive the pickup time it pays for. An
+  attempt that ends unpaid gives the checkout back (READY) with its hold.
 
 ## Legal acceptance
 
@@ -189,11 +191,14 @@ No rule ⇒ no line. The answer says so: `pricing.configuration = { tax: NOT_CON
 - Confirming names a method type, optionally a saved reference of that type. That is **context**, not a provider
   capability check.
 - `payment` (READY only): status `READY_FOR_PAYMENT` or `PAYMENT_NOT_REQUIRED`, the checkout id and version, the
-  amount (= the checkout total), the pricing fingerprint, a deterministic idempotency key and
-  `provider.status = NOT_INTEGRATED`.
+  amount (= the checkout total), the pricing fingerprint, a deterministic idempotency key,
+  `provider {status: READY | UNAVAILABLE, name, mode}` (Module 30: whether payments can be taken right now) and
+  `attempt {id, status, attempt_number}` — the checkout's latest payment attempt, or null.
 - `CheckoutService::beginPayment()` is the hand-over for Module 30: READY → PAYMENT_PENDING in one transaction,
   only for the confirmed fingerprint. While PAYMENT_PENDING the cart and the pickup selection are locked
-  (409 `cart_locked_for_payment`). No route calls it yet.
+  (409 `cart_locked_for_payment`). It is called by `PaymentService::start` (Module 30) — together with writing the
+  payment attempt, or not at all. Opening a checkout for a cart whose payment is in progress is refused with
+  409 `payment_in_progress` and the `checkout_id` that is being paid for.
 
 ## API
 
@@ -262,8 +267,8 @@ deletes closed checkouts after 30 days. PAYMENT_PENDING and CONVERTED are never 
   behind the interface the pages already used. The checkout page shows the backend's customer, restaurant, pickup
   time, lines, promotion, tax and fee lines and total; the button carries the backend total; a stale or expired
   checkout is started again and the customer is told what changed; a total of zero does not go to a payment step.
-  The cart page has no promo field of its own. The payment step that follows is still the **development** payment
-  of Module 12 — it shows the backend total, and it asks the backend again before "paying".
+  The cart page has no promo field of its own. The payment step that follows is the backend's with
+  `VITE_PAYMENT_MODE=api` (Module 30), otherwise the development payment of Module 12.
 - **Android** (`--dart-define=CHECKOUT_MODE=api`): `CheckoutState` with a `CheckoutBackend`; the same rules,
   revalidation on app resume, and a countdown on the server clock.
 - **Platform Admin**: Promotions on the backend; Market › Configuration › Tax lists the real tax and fee rules
@@ -281,6 +286,6 @@ payment preparation, admin promotions, admin tax / fee rules, performance, OpenA
 
 ## Not in this module
 
-Real payment creation, capture, verification, webhooks, refunds (Module 30); order creation and confirmation
-(Module 31); invoices and receipts; restaurant-created promotions; promotion stacking; buy-one-get-one, free-item
+Payment creation, verification, webhooks and reconciliation (Module 30, [`payment-domain.md`](payment-domain.md));
+refunds; order creation and confirmation (Module 31); invoices and receipts; restaurant-created promotions; promotion stacking; buy-one-get-one, free-item
 and cashback promotions; settlement, commission and platform revenue accounting; live tax rates for any country.
