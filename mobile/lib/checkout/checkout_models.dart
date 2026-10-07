@@ -5,11 +5,13 @@ library;
 import '../cart/cart_models.dart';
 import '../pickup/pickup_models.dart';
 
-enum CheckoutStatus { initializing, ready, validating, requiresAuth, invalidCart, invalidPickup, paymentReady, error, offline }
+/// `expired` exists in backend mode only: the backend checkout ran out of time and is started again, never revived.
+enum CheckoutStatus { initializing, ready, validating, requiresAuth, invalidCart, invalidPickup, paymentReady, error, offline, expired }
 
 /* ---------------- promotions ---------------- */
 enum PromotionType { fixedAmount, percentage, restaurantPromotion, platformPromotion }
-enum PromoStatus { idle, applying, applied, invalid, expired, notEligible, minSpend, restaurantNotEligible, marketNotEligible, currencyNotEligible }
+/// The last four exist in backend mode only: every use is taken · this customer used theirs · too many attempts · the code could not be checked.
+enum PromoStatus { idle, applying, applied, invalid, expired, notEligible, minSpend, restaurantNotEligible, marketNotEligible, currencyNotEligible, limitReached, alreadyUsed, rateLimited, unavailable }
 
 class Promotion {
   const Promotion({required this.code, required this.type, required this.value, this.eligibility = 'all', this.minimumSpendMinor = 0, this.maximumDiscountMinor, this.currency, this.restaurantScope, this.marketScope, required this.validFrom, this.validTo});
@@ -54,14 +56,20 @@ class PaymentMethodOption {
 
 /* ---------------- summary + request ---------------- */
 class SummaryLine {
-  const SummaryLine(this.id, this.label, this.amountMinor, this.kind);
+  const SummaryLine(this.id, this.label, this.amountMinor, this.kind, {this.included = false, this.rateBasisPoints});
   final String id, label, kind;
   final int amountMinor;
+  /// A tax the prices already contain: shown, not added to the total.
+  final bool included;
+  /// The configured rate in basis points (5 % = 500) — the backend's, shown as it is.
+  final int? rateBasisPoints;
 }
 
 class CheckoutSummary {
-  const CheckoutSummary({required this.currency, required this.itemCount, required this.subtotalMinor, required this.discountMinor, this.taxes = const [], this.fees = const [], required this.totalMinor, this.expiresAt, required this.paymentEligible});
+  const CheckoutSummary({required this.currency, required this.itemCount, required this.subtotalMinor, required this.discountMinor, this.taxes = const [], this.fees = const [], required this.totalMinor, this.expiresAt, required this.paymentEligible, this.source = 'mock'});
   final String currency;
+  /// 'api': every figure is the backend's (Module 29). 'mock': built on the device by the development checkout.
+  final String source;
   final int itemCount, subtotalMinor, discountMinor, totalMinor;
   final List<SummaryLine> taxes, fees;
   final DateTime? expiresAt;
@@ -70,24 +78,29 @@ class CheckoutSummary {
 
 /// Payment-intent preparation — no client-controlled final amount is authoritative.
 class CheckoutRequest {
-  const CheckoutRequest({required this.idempotencyKey, required this.customerId, required this.cartId, required this.restaurantId, required this.pickupSelection, this.promoCode, required this.currency, required this.orderNote, required this.termsAccepted, required this.termsVersion, required this.privacyVersion, required this.acceptedAt, required this.paymentMethodId, required this.displayedTotalMinor, required this.createdAt});
+  const CheckoutRequest({required this.idempotencyKey, required this.customerId, required this.cartId, required this.restaurantId, required this.pickupSelection, this.promoCode, required this.currency, required this.orderNote, required this.termsAccepted, required this.termsVersion, required this.privacyVersion, required this.acceptedAt, required this.paymentMethodId, required this.displayedTotalMinor, required this.createdAt, this.checkoutId, this.pricingFingerprint});
   final String idempotencyKey, customerId, cartId, restaurantId, currency, orderNote, termsVersion, privacyVersion, paymentMethodId;
   final String? promoCode;
+  /// Backend mode: the confirmed backend checkout this request stands for, and the exact price it was confirmed at.
+  final String? checkoutId, pricingFingerprint;
   final PickupSelection pickupSelection;
   final bool termsAccepted;
   final DateTime acceptedAt, createdAt;
   final int displayedTotalMinor;
-  factory CheckoutRequest.fromJson(Map<String, dynamic> j) => CheckoutRequest(idempotencyKey: j['idempotencyKey'] as String, customerId: j['customerId'] as String, cartId: j['cartId'] as String, restaurantId: j['restaurantId'] as String, pickupSelection: PickupSelection.fromJson(j['pickupSelection'] as Map<String, dynamic>), promoCode: j['promoCode'] as String?, currency: j['currency'] as String, orderNote: (j['orderNote'] as String?) ?? '', termsAccepted: j['termsAccepted'] as bool, termsVersion: j['termsVersion'] as String, privacyVersion: j['privacyVersion'] as String, acceptedAt: DateTime.parse(j['acceptedAt'] as String), paymentMethodId: j['paymentMethodId'] as String, displayedTotalMinor: j['displayedTotalMinor'] as int, createdAt: DateTime.parse(j['createdAt'] as String));
-  Map<String, dynamic> toJson() => {'idempotencyKey': idempotencyKey, 'customerId': customerId, 'cartId': cartId, 'restaurantId': restaurantId, 'pickupSelection': pickupSelection.toJson(), 'promoCode': promoCode, 'currency': currency, 'orderNote': orderNote, 'termsAccepted': termsAccepted, 'termsVersion': termsVersion, 'privacyVersion': privacyVersion, 'acceptedAt': acceptedAt.toIso8601String(), 'paymentMethodId': paymentMethodId, 'displayedTotalMinor': displayedTotalMinor, 'createdAt': createdAt.toIso8601String()};
+  factory CheckoutRequest.fromJson(Map<String, dynamic> j) => CheckoutRequest(idempotencyKey: j['idempotencyKey'] as String, customerId: j['customerId'] as String, cartId: j['cartId'] as String, restaurantId: j['restaurantId'] as String, pickupSelection: PickupSelection.fromJson(j['pickupSelection'] as Map<String, dynamic>), promoCode: j['promoCode'] as String?, currency: j['currency'] as String, orderNote: (j['orderNote'] as String?) ?? '', termsAccepted: j['termsAccepted'] as bool, termsVersion: j['termsVersion'] as String, privacyVersion: j['privacyVersion'] as String, acceptedAt: DateTime.parse(j['acceptedAt'] as String), paymentMethodId: j['paymentMethodId'] as String, displayedTotalMinor: j['displayedTotalMinor'] as int, createdAt: DateTime.parse(j['createdAt'] as String), checkoutId: j['checkoutId'] as String?, pricingFingerprint: j['pricingFingerprint'] as String?);
+  Map<String, dynamic> toJson() => {'idempotencyKey': idempotencyKey, 'customerId': customerId, 'cartId': cartId, 'restaurantId': restaurantId, 'pickupSelection': pickupSelection.toJson(), 'promoCode': promoCode, 'currency': currency, 'orderNote': orderNote, 'termsAccepted': termsAccepted, 'termsVersion': termsVersion, 'privacyVersion': privacyVersion, 'acceptedAt': acceptedAt.toIso8601String(), 'paymentMethodId': paymentMethodId, 'displayedTotalMinor': displayedTotalMinor, 'createdAt': createdAt.toIso8601String(), if (checkoutId != null) 'checkoutId': checkoutId, if (pricingFingerprint != null) 'pricingFingerprint': pricingFingerprint};
 }
 
-enum CheckoutIssueCode { offline, auth, cartEmpty, cartInvalid, priceChanged, pickupMissing, pickupInvalid, restaurantUnavailable, restaurantNotAccepting, promoInvalid, terms, paymentMethod, currency }
+/// The last six exist in backend mode only.
+enum CheckoutIssueCode { offline, auth, cartEmpty, cartInvalid, priceChanged, pickupMissing, pickupInvalid, restaurantUnavailable, restaurantNotAccepting, promoInvalid, terms, paymentMethod, currency, itemUnavailable, pickupFull, checkoutExpired, checkoutChanged, paymentInProgress, server }
 
 class CheckoutIssue {
-  const CheckoutIssue(this.code, {this.blocking = true, this.detail});
+  const CheckoutIssue(this.code, {this.blocking = true, this.detail, this.message, this.recover});
   final CheckoutIssueCode code;
   final bool blocking;
   final String? detail;
+  /// Backend mode: the backend's own words for it, and where the customer goes to put it right (cart · pickup · checkout · refresh · payment).
+  final String? message, recover;
 }
 
 class CheckoutException implements Exception {

@@ -93,9 +93,11 @@ final class PickupMetrics
                 'asap_available' => $events['availability_requests'] === 0 ? null : round($events['asap_available'] / $requests, 4),
                 'journey_aware' => $events['availability_requests'] === 0 ? null : round($events['journey_aware'] / $requests, 4),
             ],
-            // Capacity units in upcoming slots by where they come from. Orders and checkout holds do not exist yet.
+            // Capacity units in upcoming slots by where they come from: fixtures, the holds of confirmed checkouts
+            // (Module 29) and — once they exist — orders.
             'upcoming_capacity_units' => ['fixture' => (int) ($capacity['FIXTURE'] ?? 0), 'hold' => (int) ($capacity['HOLD'] ?? 0), 'order' => (int) ($capacity['ORDER'] ?? 0)],
-            'slot_hold' => 'NOT_IMPLEMENTED',
+            // Choosing a time still holds nothing; the hold is taken when a checkout is confirmed.
+            'slot_hold' => 'AT_CHECKOUT',
         ];
     }
 }

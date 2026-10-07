@@ -8,6 +8,8 @@ import type { PickupSelection } from '../pickup/repositories'
  * No raw card / UPI / bank credentials are collected anywhere in this layer.
  */
 export type CheckoutStatus = 'INITIALIZING' | 'READY' | 'VALIDATING' | 'REQUIRES_AUTH' | 'INVALID_CART' | 'INVALID_PICKUP' | 'PAYMENT_READY' | 'ERROR' | 'OFFLINE'
+  /** API mode only: the backend checkout ran out of time. It is started again, never revived. */
+  | 'EXPIRED'
 
 /* ---------------- promotions ---------------- */
 export type PromotionType = 'fixed_amount' | 'percentage' | 'restaurant_promotion' | 'platform_promotion'
@@ -28,6 +30,8 @@ export type Promotion = {
   validTo: string | null
 }
 export type PromoStatus = 'idle' | 'applying' | 'applied' | 'invalid' | 'expired' | 'not_eligible' | 'min_spend' | 'restaurant_not_eligible' | 'market_not_eligible' | 'currency_not_eligible'
+  /** API mode only: every use is taken · this customer used theirs · too many attempts · the code could not be checked. */
+  | 'limit_reached' | 'already_used' | 'rate_limited' | 'unavailable'
 export type PromoContext = { subtotalMinor: number; currency: string; restaurantId: string; countryCode: string; nowIso?: string; customerIsNew?: boolean }
 export type PromoResult = { code: string; status: PromoStatus; discountMinor: number; promotion: Promotion | null; minimumSpendMinor?: number }
 
@@ -47,8 +51,17 @@ export interface PaymentMethodRepository {
 }
 
 /* ---------------- checkout summary + request ---------------- */
-export type SummaryLine = { id: string; label: string; amountMinor: number; kind: 'subtotal' | 'discount' | 'tax' | 'fee' | 'total' }
-/** What a server-authoritative checkout summary will look like (mock-built today from the same domain data). */
+export type SummaryLine = {
+  id: string; label: string; amountMinor: number; kind: 'subtotal' | 'discount' | 'tax' | 'fee' | 'total'
+  /** A tax the prices already contain: shown, not added to the total. */
+  included?: boolean
+  /** The configured rate in basis points (5 % = 500) — the backend's, shown as it is. */
+  rateBasisPoints?: number
+}
+/**
+ * The checkout summary. `source: 'api'` — every figure is the backend's (Module 29); `source: 'mock'` — built in the
+ * browser by the development checkout (unit tests, share builds).
+ */
 export type CheckoutSummary = {
   currency: string
   itemCount: number
@@ -60,7 +73,7 @@ export type CheckoutSummary = {
   totalMinor: number
   expiresAt: string | null
   paymentEligible: boolean
-  source: 'mock'
+  source: 'mock' | 'api'
 }
 
 /** Payment-intent preparation. No client-controlled final charge amount: the server prices this request itself. */
@@ -81,9 +94,21 @@ export type CheckoutRequest = {
   /** Display-only echo so support can compare what the customer saw; never authoritative. */
   displayedTotalMinor: number
   createdAt: string
+  /** API mode: the confirmed backend checkout this request stands for, and the exact price it was confirmed at. */
+  checkoutId?: string
+  pricingFingerprint?: string
 }
 
-export type CheckoutIssue = { code: 'auth' | 'cart_empty' | 'cart_invalid' | 'price_changed' | 'pickup_missing' | 'pickup_invalid' | 'restaurant_unavailable' | 'restaurant_not_accepting' | 'promo_invalid' | 'terms' | 'payment_method' | 'currency' | 'offline'; blocking: boolean; detail?: string }
+export type CheckoutIssue = {
+  code: 'auth' | 'cart_empty' | 'cart_invalid' | 'price_changed' | 'pickup_missing' | 'pickup_invalid' | 'restaurant_unavailable' | 'restaurant_not_accepting' | 'promo_invalid' | 'terms' | 'payment_method' | 'currency' | 'offline'
+    /** API mode only. */
+    | 'item_unavailable' | 'pickup_full' | 'checkout_expired' | 'checkout_changed' | 'payment_in_progress' | 'server'
+  blocking: boolean
+  detail?: string
+  /** API mode: the backend's own words for it, and where the customer goes to put it right. */
+  message?: string
+  recover?: 'cart' | 'pickup' | 'checkout' | 'refresh' | 'payment'
+}
 
 export interface CheckoutRepository {
   /** Builds the (mock) summary from validated domain data. */

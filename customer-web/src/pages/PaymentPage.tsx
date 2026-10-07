@@ -47,8 +47,20 @@ export default function PaymentPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(co.restaurant)
   const [outcome, setOutcome] = useState<MockOutcome>(() => readMockOutcome())
   const handoff = useRef(false)
+  const { revalidate } = co
+  const backendCheckout = co.source === 'api'
 
   useEffect(() => { document.title = `${t('payment.title', undefined, locale)} · FoodOnTheGo` }, [locale])
+  // API mode: the request on this page stands for a confirmed backend checkout. Back on this tab, the backend is asked
+  // whether it still is one — when it is not, the request is withdrawn and the customer is taken back to checkout.
+  useEffect(() => {
+    if (!backendCheckout) return
+    // On arriving here (also after a reload) and whenever the tab comes back.
+    if (co.server === null) void revalidate()
+    const check = () => { if (document.visibilityState === 'visible' && !handoff.current) void revalidate() }
+    document.addEventListener('visibilitychange', check); window.addEventListener('focus', check)
+    return () => { document.removeEventListener('visibilitychange', check); window.removeEventListener('focus', check) }
+  }, [backendCheckout, revalidate]) // eslint-disable-line react-hooks/exhaustive-deps
   // Restaurant context (country → provider, zone → pickup display). After a refresh the checkout provider may not have it yet.
   useEffect(() => {
     if (!req) return
@@ -153,7 +165,7 @@ export default function PaymentPage() {
 
               <div className="pay-actions">
                 {(s === 'READY' || s === 'PREPARING' || s === 'OPENING_PROVIDER' || s === 'PROCESSING' || s === 'VERIFYING' || s === 'SUCCESS_CLIENT_SIDE') && (
-                  <button type="button" className="btn btn--primary cart-proceed" disabled={!canPay} aria-busy={inFlight} onClick={() => { void pay.pay() }}>
+                  <button type="button" className="btn btn--primary cart-proceed" data-testid="pay-submit" disabled={!canPay} aria-busy={inFlight} onClick={() => { void (async () => { if (backendCheckout && !(await revalidate())) return; await pay.pay() })() }}>
                     <LockIcon size={16} /> {s === 'READY' ? t('pay.button', { amount: money(req.displayedTotalMinor) }, locale) : stateText.button}
                   </button>
                 )}

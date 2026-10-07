@@ -46,4 +46,9 @@ return [
     'cart_write' => (int) env('RATE_LIMIT_CART_WRITE', 60),
     'cart_write_guest' => (int) env('RATE_LIMIT_CART_WRITE_GUEST', 40),
     'cart_create_guest' => (int) env('RATE_LIMIT_CART_CREATE_GUEST', 10),
+
+    // Checkout (Module 29), per signed-in customer. Trying promotion codes is the tightest: a code is a secret of sorts.
+    'checkout_read' => (int) env('RATE_LIMIT_CHECKOUT_READ', 120),
+    'checkout_write' => (int) env('RATE_LIMIT_CHECKOUT_WRITE', 30),
+    'promotion_apply' => (int) env('RATE_LIMIT_PROMOTION_APPLY', 10),
 ];

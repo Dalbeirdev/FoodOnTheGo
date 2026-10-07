@@ -20,7 +20,7 @@ interface PickupCapacityRepository
      *
      * @return array<int, int> unix timestamp of the slot start => units
      */
-    public function usage(RestaurantLocation $location, CarbonInterface $from, CarbonInterface $to, ?CarbonInterface $at = null): array;
+    public function usage(RestaurantLocation $location, CarbonInterface $from, CarbonInterface $to, ?CarbonInterface $at = null, ?int $exceptCartId = null): array;
 
     /**
      * Takes $units of the slot [$slotStart, $slotEnd) — atomically: of two callers competing for the last unit

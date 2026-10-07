@@ -1,0 +1,166 @@
+{
+  "module": "M29",
+  "suite": "Android app code (Flutter web preview, CHECKOUT_MODE=api) on the real local backend",
+  "note": "The same Dart code as the APK, run in the browser preview. The real device is verified by the owner (USER DEVICE VERIFICATION = PENDING).",
+  "ran_at": "2026-10-06T15:19:13.521Z",
+  "passed": 31,
+  "failed": 0,
+  "total": 31,
+  "results": [
+    {
+      "name": "A0 the app signs in against the local backend (same Dart code as the APK, CHECKOUT_MODE=api)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 the customer's cart (2 onion rings, 1 masala fries at Burger Hub) and a pickup slot exist on the backend",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "A2 the cart screen has no promo field of its own: a code is entered at checkout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 OPENING CHECKOUT ASKS THE BACKEND: POST /checkouts with an EMPTY body (no cart, no restaurant, no amount), the customer session and an idempotency key",
+      "pass": true,
+      "detail": "201 {}"
+    },
+    {
+      "name": "B2 THE TOTAL ON THE SCREEN IS THE BACKEND'S: the bar shows ₹427.00 = the backend checkout total = the cart's server subtotal (nothing configured, nothing applied)",
+      "pass": true,
+      "detail": "42700"
+    },
+    {
+      "name": "B3 THE BUTTON CARRIES THE BACKEND TOTAL: \"Continue to payment · ₹427.00\"",
+      "pass": true,
+      "detail": "Continue to payment · ₹427.00"
+    },
+    {
+      "name": "B4 NOTHING IS INVENTED: no tax line, no fee line, no discount; the screen says no taxes or fees are configured",
+      "pass": true,
+      "detail": "co-expires,co-phone,co-restaurant,co-pickup-time,co-line,co-promo-input,co-promo-apply,co-bar-total,co-continue,co-note-input,co-terms,co-legal-doc,co-legal-draft,co-method-saved,co-method-upi,co-method-card,co-method-netbanking,co-method-wallet,co-provider-pending,co-subtotal,co-total-42700,co-config-none"
+    },
+    {
+      "name": "B5 the screen shows the backend's customer, restaurant, pickup time and lines, the three legal documents (drafts pending approval), the payment-method types and that the provider is not connected",
+      "pass": true,
+      "detail": "co-expires,co-phone,co-restaurant,co-pickup-time,co-line,co-promo-input,co-promo-apply,co-bar-total,co-continue,co-note-input,co-terms,co-legal-doc,co-legal-draft,co-method-saved,co-method-upi,co-method-card,co-method-netbanking,co-method-wallet,co-provider-pending,co-subtotal,co-total-42700,co-config-none"
+    },
+    {
+      "name": "B6 no development-checkout label, no delivery fee, no \"tax invoice\", no GST / VAT wording, no cash at pickup; the documents carry the backend's version",
+      "pass": true,
+      "detail": "Checkout | Review everything before you continue to secure payment. Nothing is charged on this page. | Prices on this page are valid for 14:50. 890 | Customer\nName\nRahul Sharma\nEmail\nrahul.sharma@exam"
+    },
+    {
+      "name": "B7 a draft holds nothing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 APPLY WELCOME10: the app sends only the code; the backend takes 10 % off and the bar shows the backend total",
+      "pass": true,
+      "detail": "200 {\"code\":\"welcome10\"}"
+    },
+    {
+      "name": "C2 an expired code is refused by the backend (422 promotion_expired): the screen says so, and the applied code and its total stay",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 REMOVE: the backend prices the checkout again without the code",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 WITHOUT ACCEPTING THE TERMS nothing is confirmed: no confirm request leaves the phone and the screen says what is missing",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 CONFIRM sends the fingerprint of the price on the screen, the three documents with their versions and a method TYPE — no amount, no currency, no customer; with an idempotency key",
+      "pass": true,
+      "detail": "200 {\"pricing_fingerprint\":\"bc88a1f6ac7e0e6b3a47845be850a51a2c15cc76135047bba607f834030b5255\",\"accepted_documents\":[{\"type\":\"TERMS\",\"version\":\"draft-2026-09\"},{\"type\":\"PRIVACY\",\"version\":\"draft-2026-09\"},"
+    },
+    {
+      "name": "D3 READY on the backend: acceptance recorded, payment PREPARED for exactly the total (provider NOT_INTEGRATED) and ONE place held in the slot until the checkout expires",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D4 THE PAYMENT STEP shows the backend total of the confirmed checkout; it is a development payment — no provider is connected and nothing is charged",
+      "pass": true,
+      "detail": "Back | Payment | SECURE PAYMENT\nComplete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details.\ndevelopment payment — a deterministic mock provider "
+    },
+    {
+      "name": "D5 back on checkout the confirmed checkout is shown with its held pickup time",
+      "pass": true,
+      "detail": "{\"cta\":true,\"bar\":42700,\"ids\":\"co-expires,co-phone,co-restaurant,co-pickup-time,co-hold,co-line,co-promo-input,co-promo-apply,co-bar-total,co-continue,co-note-input,co-terms,co-legal-doc,co-legal-draft,co-method-saved,co-method-upi,co-method-card,co-method-netbanking,co-method-wallet,co-provider-pending,co-subtotal,co-total-42700,co-config-none\",\"calls\":\"POST /checkouts 200 DRAFT ; POST /checkouts"
+    },
+    {
+      "name": "E1 THE RESTAURANT RAISES A PRICE; the app comes back to the foreground: it asks the backend (GET /checkouts/{id}), the checkout is STALE, a new one is opened and the bar shows the NEW total — with a notice that the price changed. The old hold is released",
+      "pass": true,
+      "detail": "44700 vs 44700 STALE"
+    },
+    {
+      "name": "E2 the price goes back and the checkout follows",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 THE RESTAURANT MARKS AN ITEM SOLD OUT: checkout is BLOCKED — the backend's reason with the way back to the cart, the button is disabled and no total is shown",
+      "pass": true,
+      "detail": "co-issue-ITEM_UNAVAILABLE,co-recover-cart,co-bar-total,co-continue"
+    },
+    {
+      "name": "E4 AN ADMINISTRATOR ACTIVATES A TEST FEE (₹15) AND A TEST TAX (5 %): the app shows a fee line and a tax line, the total is subtotal + fee + tax (calculated independently here with integers, half up) and the screen calls it a TEST configuration",
+      "pass": true,
+      "detail": "46335 vs 46335 co-updated,co-expires,co-phone,co-restaurant,co-pickup-time,co-line,co-promo-input,co-promo-apply,co-bar-total,co-continue,co-note-input,co-terms,co-legal-doc,co-legal-draft,co-method-saved,co-method-upi,co-method-card,co-method-netbanking,co-method-wallet,co-provider-pending,co-subtotal,co-fee,co-tax,co-total-46335,co-config-test"
+    },
+    {
+      "name": "E5 the rules are disabled again: no tax, no fee",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 EXPIRY ON THE SERVER CLOCK: the checkout's time is over — the app says it expired, the button is disabled, and the backend answers EXPIRED",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F2 \"Start again\" asks the backend for a new checkout: a new id, the current total, the button is back",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 NO CONNECTION: back in the app the backend cannot be asked — the screen says so and the button is disabled; a checkout cannot be continued on an unconfirmed total",
+      "pass": true,
+      "detail": "co-error,co-phone,co-restaurant,co-pickup-time,co-line,co-promo-input,co-promo-apply,co-bar-total,co-continue,co-note-input,co-terms,co-legal-doc,co-legal-draft,co-method-saved,co-method-upi,co-method-card,co-method-netbanking,co-method-wallet"
+    },
+    {
+      "name": "F4 with the connection back the backend is asked again and the checkout can be continued",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F5 A TOTAL OF ZERO (a 100 % test promotion): no payment method is asked for, the button says \"Confirm — nothing to pay\", the confirmation carries no payment method, the backend answers PAYMENT_NOT_REQUIRED and the app does NOT go to a payment step",
+      "pass": true,
+      "detail": "{\"bar\":0,\"payFree\":true,\"upi\":false,\"cta\":\"Confirm — nothing to pay\",\"status\":200,\"keys\":\"pricing_fingerprint,accepted_documents\",\"pay\":\"PAYMENT_NOT_REQUIRED\",\"confirmed\":true,\"text\":\"Checkout | Review everything before you continue to secure payment. Nothing is charged on this page. | Confirmed — nothi\"}"
+    },
+    {
+      "name": "G1 across the whole run no request of the app carried an amount, a currency, a customer, a cart or a restaurant: only a promotion code, the fingerprint, the documents and a method type",
+      "pass": true,
+      "detail": "{} {} {\"code\":\"welcome10\"} {\"code\":\"EXPIRED\"} {\"pricing_fingerprint\":\"bc88a1f6ac7e0e6b3a47845be850a51a2c15cc76135047bba607f834030b5255\",\"accepted_documents\":[{\"type\":\"TERMS\",\"version\":\"draft-2026-09\"}"
+    },
+    {
+      "name": "G2 no JavaScript error in the app during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every checkout, hold and rule of this run is removed; the fixture promotions and the onion rings are as they were",
+      "pass": true,
+      "detail": "{\"checkouts\":0,\"holds\":0,\"rules\":\"0:0\",\"promotions\":true,\"price\":\"14900:ACTIVE\"}"
+    }
+  ]
+}

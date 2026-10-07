@@ -30,7 +30,20 @@ class PickupSlotReservation extends Model
 
     public const STATUS_RELEASED = 'RELEASED';
 
+    /** A hold whose time ran out (set by the clean-up; a run-out hold stops counting the moment it runs out). */
+    public const STATUS_EXPIRED = 'EXPIRED';
+
     protected $guarded = ['*'];
+
+    /**
+     * The checkout this pickup time is held for (source HOLD, Module 29).
+     *
+     * @return BelongsTo<CheckoutSession, $this>
+     */
+    public function checkoutSession(): BelongsTo
+    {
+        return $this->belongsTo(CheckoutSession::class);
+    }
 
     /**
      * @return BelongsTo<RestaurantLocation, $this>

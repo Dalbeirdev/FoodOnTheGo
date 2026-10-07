@@ -12,6 +12,7 @@ import type { MarketSnapshot } from '../types'
 import { ConfigurationFormDrawer, RegionFormDrawer, RouteFormDrawer } from './MarketAdminForms'
 import { CityFormDrawer, ServiceAreaFormDrawer } from './MarketGeoForms'
 import { Cell, fmtDate, useLoad, usePageTitle } from './shared'
+import { FinancialRulesPanel } from './FinancialRulesPanel'
 
 /* ------------------------------------------------------------------ shared */
 /** One status → tone system for the whole control center: green active, blue pilot / testing, amber planned, red paused / disabled, grey neutral. */
@@ -297,7 +298,9 @@ export function MarketConfigurationTab() {
         <div className="db-table-wrap" tabIndex={0}><table className="db-table" data-testid="cfg-payments"><caption className="db-sr-only">{t('adm.mkt.cfg.payments', undefined, locale)}</caption><thead><tr><th scope="col">{t('adm.mkt.cfg.method', undefined, locale)}</th><th scope="col">{t('adm.mkt.col.status', undefined, locale)}</th><th scope="col">{t('adm.mkt.cfg.note', undefined, locale)}</th></tr></thead><tbody>{c.payment.methods.map((p) => <tr key={p.method}><td className="adm-td--primary">{t(`adm.mkt.pay.${p.method}`, undefined, locale)}</td><td><Badge tone={p.status === 'ENABLED' ? 'green' : p.status === 'PLANNED' ? 'amber' : 'red'} dot>{t(`adm.mkt.payStatus.${p.status}`, undefined, locale)}</Badge></td><td>{p.note ?? '—'}</td></tr>)}</tbody></table></div>
         <Details rows={[[t('adm.mkt.cfg.providers', undefined, locale), c.payment.candidateProviders.join(', ')]]} /><DevNote>{t('adm.mkt.cfg.paymentsNote', undefined, locale)}</DevNote>
       </Card>}
-      {tab === 'tax' && <Card title={t('adm.mkt.cfg.tax', undefined, locale)} subtitle={c.tax.regime} actions={<Badge tone="amber">{t('adm.mkt.cfg.pendingBackend', undefined, locale)}</Badge>}><p data-testid="cfg-tax" style={{ margin: 0 }}>{c.tax.note}</p><DevNote>{t('adm.mkt.cfg.taxNote', undefined, locale)}</DevNote></Card>}
+      {tab === 'tax' && <Card title={t('adm.mkt.cfg.tax', undefined, locale)} subtitle={c.tax.regime} actions={api() ? undefined : <Badge tone="amber">{t('adm.mkt.cfg.pendingBackend', undefined, locale)}</Badge>}><p data-testid="cfg-tax" style={{ margin: 0 }}>{c.tax.note}</p><DevNote>{t(api() ? 'adm.fin.regimeNote' : 'adm.mkt.cfg.taxNote', undefined, locale)}</DevNote></Card>}
+      {/* With the backend: the tax rules and fee rules that actually decide what customers of this market pay. */}
+      {tab === 'tax' && api() && <FinancialRulesPanel marketId={m.id} canManage={a.can('market_configuration.manage')} locale={locale} />}
       {tab === 'legal' && <Card title={t('adm.mkt.cfg.legal', undefined, locale)} subtitle={t('adm.settings.legalNote', undefined, locale)}><ul className="adm-legal" data-testid="cfg-legal">{c.legal.documents.map((d) => <li key={d.key}><span>{t(`adm.settings.legal.${d.key}`, undefined, locale)} <small className="db-muted">{t('adm.settings.version', { v: d.version }, locale)}</small></span><Badge tone="amber">{t('adm.settings.pendingApproval', undefined, locale)}</Badge></li>)}</ul></Card>}
     </div>
   )

@@ -5,6 +5,7 @@ import Header from '../components/Header'
 import { ClockIcon, PinIcon } from '../components/Icons'
 import { useCart } from '../cart/CartContext'
 import type { CartItem } from '../cart/cartModel'
+import { checkoutMode } from '../checkout/checkoutMode'
 import { estimatedTotalMinor, readStaleSimulation, reviewCart, reviewFromServer, type CartReview, type LineIssue } from '../cart/cartValidation'
 import { useJourney } from '../journey/JourneyContext'
 import { menuRepository } from '../menu/menuRepository'
@@ -102,7 +103,10 @@ export default function CartPage() {
   const currency = c?.currency ?? marketRepository.getActiveMarket().defaultCurrency
   const money = (minor: number) => formatMoney(minor, currency, locale)
   const subtotal = cart.subtotalMinor
-  const discount = cart.discountMinor
+  // With the backend checkout (Module 29) a promo code is entered at checkout, where the backend decides whether it
+  // applies: the cart has no promo field and shows no discount of its own.
+  const promoAtCheckout = checkoutMode() === 'api'
+  const discount = promoAtCheckout ? 0 : cart.discountMinor
   const total = estimatedTotalMinor(subtotal, discount)
   const serverReview = useMemo(() => (backend && c ? reviewFromServer(c) : null), [backend, c])
   const result = backend ? serverReview : review.result
@@ -311,7 +315,8 @@ export default function CartPage() {
           <aside className="cart__side">
             <section className="cart-card cart-summary" aria-labelledby="cart-sum-title">
               <h2 id="cart-sum-title">{t('cartpage.summary', undefined, locale)}</h2>
-              <form className="cart-promo" onSubmit={(e) => { e.preventDefault(); cart.applyPromo(promoInput) }}>
+              {promoAtCheckout && <p className="cart-muted" data-testid="cart-promo-at-checkout">{t('cartpage.promo.atCheckout', undefined, locale)}</p>}
+              <form className="cart-promo" hidden={promoAtCheckout} onSubmit={(e) => { e.preventDefault(); if (!promoAtCheckout) cart.applyPromo(promoInput) }}>
                 <label htmlFor="cart-promo">{t('cartpage.promo', undefined, locale)}</label>
                 <div className="cart-promo__row">
                   <input id="cart-promo" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} autoComplete="off" />
@@ -327,7 +332,7 @@ export default function CartPage() {
                 {discount > 0 && <div className="cart-sum__disc"><dt>{t('cartpage.discount', { code: cart.promo.code }, locale)}</dt><dd>−{money(discount)}</dd></div>}
                 <div className="cart-sum__total"><dt>{t('cartpage.estimated', undefined, locale)}</dt><dd>{money(total)}</dd></div>
               </dl>
-              <p className="cart-muted">{t('cartpage.feesNote', undefined, locale)}</p>
+              <p className="cart-muted">{t(promoAtCheckout ? 'cartpage.feesNote.checkout' : 'cartpage.feesNote', undefined, locale)}</p>
               {reviewStatus === 'checking' && <p className="cart-muted" role="status">{t('cartpage.loading', undefined, locale)}</p>}
               <button type="button" className="btn btn--primary cart-proceed" data-testid="cart-proceed" onClick={proceed} disabled={blocked} aria-disabled={blocked}>{blocked && result && result.blocking ? t('cartpage.proceed.blocked', undefined, locale) : t('cartpage.proceed', undefined, locale)}</button>
             </section>

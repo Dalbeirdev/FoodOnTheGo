@@ -175,6 +175,7 @@ final class CartService
             if ($cart === null) {
                 return false;
             }
+            $this->assertNotBeingPaid($cart);
             $cart->close($cart->isExpired() ? CartCloseReason::Expired : CartCloseReason::Cleared);
             $cart->save();
             $this->after(new CartCleared($cart));
@@ -399,6 +400,17 @@ final class CartService
     {
         if ($cart !== null && $cart->isExpired()) {
             throw new ApiException(410, 'cart_expired', 'This cart has expired. Clear it to start a new one.', ['expired_at' => $cart->expires_at?->utc()->toIso8601String()]);
+        }
+        $this->assertNotBeingPaid($cart);
+    }
+
+    /**
+     * Once a payment for the cart has been started (Module 29 / 30) nothing about it may change until the payment ends.
+     */
+    private function assertNotBeingPaid(?Cart $cart): void
+    {
+        if ($cart !== null && $cart->paymentInProgress()) {
+            throw ApiException::conflict('cart_locked_for_payment', 'A payment for this cart is in progress. It cannot be changed until the payment has finished.');
         }
     }
 

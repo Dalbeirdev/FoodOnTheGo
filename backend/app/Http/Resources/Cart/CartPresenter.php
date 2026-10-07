@@ -88,9 +88,11 @@ final class CartPresenter
     }
 
     /**
+     * One line as a customer sees it — also what a checkout shows (Module 29).
+     *
      * @return array<string, mixed>
      */
-    private function line(CartLineInspection $inspection): array
+    public function line(CartLineInspection $inspection): array
     {
         $line = $inspection->line;
         $item = $inspection->item;

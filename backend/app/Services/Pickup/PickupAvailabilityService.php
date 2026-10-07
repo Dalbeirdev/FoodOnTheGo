@@ -86,6 +86,7 @@ final class PickupAvailabilityService
             issues: $issues,
             cartVersion: (int) $cart->version,
             journey: $this->journeyContext($inspection, $at),
+            cartId: (int) $cart->getKey(),
         );
     }
 
@@ -155,7 +156,7 @@ final class PickupAvailabilityService
      * @param  list<array{code: string, severity: string, message: string, details: array<string, mixed>}>  $issues
      * @param  array{status: string, arrival_at: CarbonImmutable|null, requires_refresh: bool, source: string|null}|null  $journey
      */
-    private function build(RestaurantLocation $location, RestaurantAvailability $state, ?PreparationEstimate $preparation, ?PickupMethod $method, CarbonImmutable $at, array $issues, ?int $cartVersion, ?array $journey): PickupAvailability
+    private function build(RestaurantLocation $location, RestaurantAvailability $state, ?PreparationEstimate $preparation, ?PickupMethod $method, CarbonImmutable $at, array $issues, ?int $cartVersion, ?array $journey, ?int $cartId = null): PickupAvailability
     {
         $settings = $location->pickupSettings;
         $timezone = (string) $location->timezone;
@@ -200,7 +201,7 @@ final class PickupAvailabilityService
                     $until = $bound;
                 }
             }
-            $usage = $this->capacity->usage($location, PickupSlotGenerator::alignDown($at, $interval, $timezone), $until->addMinutes($interval), $at);
+            $usage = $this->capacity->usage($location, PickupSlotGenerator::alignDown($at, $interval, $timezone), $until->addMinutes($interval), $at, $cartId);
         }
 
         /* ------------------------------------------------------------------ ASAP */

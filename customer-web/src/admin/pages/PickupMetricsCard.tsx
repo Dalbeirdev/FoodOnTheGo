@@ -19,7 +19,8 @@ export type PickupMetricsDto = {
   events: Record<string, number>
   rates: { no_slots: number | null; asap_available: number | null; journey_aware: number | null }
   upcoming_capacity_units: { fixture: number; hold: number; order: number }
-  slot_hold: 'NOT_IMPLEMENTED'
+  /** Choosing a time holds nothing; a confirmed checkout holds its slot (Module 29). */
+  slot_hold: 'AT_CHECKOUT'
 }
 
 const loadPickupMetrics = () => api<PickupMetricsDto>('/admin/system/pickup', { context: 'admin' })

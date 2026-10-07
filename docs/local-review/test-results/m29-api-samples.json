@@ -1,0 +1,766 @@
+{
+  "checkout_draft": {
+    "id": "b3df6326-e4b4-4f55-9b8e-76ab8e223aff",
+    "status": "DRAFT",
+    "status_reason": null,
+    "version": 1,
+    "expires_at": "2026-10-06T14:57:26+00:00",
+    "server_time": "2026-10-06T14:42:30+00:00",
+    "created_at": "2026-10-06T14:42:26+00:00",
+    "cart_version": 2,
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub",
+      "slug": "burger-hub",
+      "timezone": "Asia/Kolkata"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-06T15:45:00+00:00",
+      "local_pickup_at": "2026-10-06T21:15:00+05:30",
+      "local_date": "2026-10-06",
+      "slot_starts_at": "2026-10-06T15:45:00+00:00",
+      "slot_ends_at": "2026-10-06T16:00:00+00:00",
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null,
+      "hold": {
+        "held": false,
+        "expires_at": null
+      }
+    },
+    "items": [
+      {
+        "id": "d57c48d9-96ec-47a9-ad88-48fcbeacc9da",
+        "item": {
+          "id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+          "name": "Onion Rings",
+          "slug": "onion-rings",
+          "image": null,
+          "version": 25
+        },
+        "name": "Onion Rings",
+        "currency": "INR",
+        "quantity": 2,
+        "variants": [],
+        "modifiers": [],
+        "unit_price_minor": 14900,
+        "line_subtotal_minor": 29800,
+        "special_instructions": null
+      },
+      {
+        "id": "d72c6927-6d4e-47e7-9fff-ec864b6c8262",
+        "item": {
+          "id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+          "name": "Masala Fries",
+          "slug": "masala-fries",
+          "image": null,
+          "version": 1
+        },
+        "name": "Masala Fries",
+        "currency": "INR",
+        "quantity": 1,
+        "variants": [
+          {
+            "kind": "VARIANT",
+            "options": [
+              {
+                "id": "7603b4e4-df66-484a-8ef0-42b28b3d5875",
+                "name": "Regular",
+                "available": true,
+                "price_adjustment_minor": 0
+              }
+            ],
+            "group_id": "4b925767-743c-4de8-bf92-cc2858d624c3",
+            "group_name": "Size"
+          }
+        ],
+        "modifiers": [],
+        "unit_price_minor": 12900,
+        "line_subtotal_minor": 12900,
+        "special_instructions": null
+      }
+    ],
+    "item_count": 3,
+    "pricing": {
+      "currency": "INR",
+      "items_subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discounts": [],
+      "discount_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "taxes": [],
+      "tax_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fees": [],
+      "fee_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "payment_required": true,
+      "fingerprint": "9d99c0a8cb08bfdf14d1d69a7e6778b61c0070c4f0afe75018f69a3e7029c38b",
+      "configuration": {
+        "tax": "NOT_CONFIGURED",
+        "fees": "NOT_CONFIGURED"
+      }
+    },
+    "promotion": null,
+    "customer": {
+      "name": "Rahul Sharma",
+      "phone": "+919876543210",
+      "phone_verified": true,
+      "email": "rahul.sharma@example.com"
+    },
+    "order_note": null,
+    "legal": {
+      "required": [
+        {
+          "type": "TERMS",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "terms"
+        },
+        {
+          "type": "PRIVACY",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "privacy"
+        },
+        {
+          "type": "REFUND",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "refund-policy"
+        }
+      ],
+      "accepted": [],
+      "final_approval": false
+    },
+    "payment_methods": {
+      "provider_status": "NOT_INTEGRATED",
+      "available": [
+        {
+          "type": "UPI",
+          "status": "PLANNED"
+        },
+        {
+          "type": "CARD",
+          "status": "PLANNED"
+        },
+        {
+          "type": "NET_BANKING",
+          "status": "PLANNED"
+        },
+        {
+          "type": "WALLET",
+          "status": "PLANNED"
+        }
+      ],
+      "saved": [
+        {
+          "id": "f17aeb56-5d53-4e26-84d2-30c624311156",
+          "type": "CARD",
+          "provider": "development",
+          "brand": "Visa",
+          "display_label": "Visa •••• 4242",
+          "last4": "4242",
+          "expiry": {
+            "month": 12,
+            "year": 2028
+          },
+          "upi_handle_masked": null,
+          "is_default": true,
+          "status": "ACTIVE",
+          "created_at": "2026-10-03T08:37:42+00:00"
+        },
+        {
+          "id": "42ecc54c-e015-4a65-9782-21ba0b9e6f03",
+          "type": "UPI",
+          "provider": "development",
+          "brand": null,
+          "display_label": "UPI ra***@okaxis",
+          "last4": null,
+          "expiry": null,
+          "upi_handle_masked": "ra***@okaxis",
+          "is_default": false,
+          "status": "ACTIVE",
+          "created_at": "2026-10-03T08:37:42+00:00"
+        }
+      ],
+      "selected": null,
+      "cash_at_pickup": "NOT_APPROVED"
+    },
+    "payment": null,
+    "issues": [],
+    "changes": []
+  },
+  "checkout_ready": {
+    "id": "b3df6326-e4b4-4f55-9b8e-76ab8e223aff",
+    "status": "READY",
+    "status_reason": null,
+    "version": 4,
+    "expires_at": "2026-10-06T14:52:59+00:00",
+    "server_time": "2026-10-06T14:42:59+00:00",
+    "created_at": "2026-10-06T14:42:26+00:00",
+    "cart_version": 2,
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub",
+      "slug": "burger-hub",
+      "timezone": "Asia/Kolkata"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-06T15:45:00+00:00",
+      "local_pickup_at": "2026-10-06T21:15:00+05:30",
+      "local_date": "2026-10-06",
+      "slot_starts_at": "2026-10-06T15:45:00+00:00",
+      "slot_ends_at": "2026-10-06T16:00:00+00:00",
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null,
+      "hold": {
+        "held": true,
+        "expires_at": "2026-10-06T14:52:59+00:00"
+      }
+    },
+    "items": [
+      {
+        "id": "d57c48d9-96ec-47a9-ad88-48fcbeacc9da",
+        "item": {
+          "id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+          "name": "Onion Rings",
+          "slug": "onion-rings",
+          "image": null,
+          "version": 25
+        },
+        "name": "Onion Rings",
+        "currency": "INR",
+        "quantity": 2,
+        "variants": [],
+        "modifiers": [],
+        "unit_price_minor": 14900,
+        "line_subtotal_minor": 29800,
+        "special_instructions": null
+      },
+      {
+        "id": "d72c6927-6d4e-47e7-9fff-ec864b6c8262",
+        "item": {
+          "id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+          "name": "Masala Fries",
+          "slug": "masala-fries",
+          "image": null,
+          "version": 1
+        },
+        "name": "Masala Fries",
+        "currency": "INR",
+        "quantity": 1,
+        "variants": [
+          {
+            "kind": "VARIANT",
+            "options": [
+              {
+                "id": "7603b4e4-df66-484a-8ef0-42b28b3d5875",
+                "name": "Regular",
+                "available": true,
+                "price_adjustment_minor": 0
+              }
+            ],
+            "group_id": "4b925767-743c-4de8-bf92-cc2858d624c3",
+            "group_name": "Size"
+          }
+        ],
+        "modifiers": [],
+        "unit_price_minor": 12900,
+        "line_subtotal_minor": 12900,
+        "special_instructions": null
+      }
+    ],
+    "item_count": 3,
+    "pricing": {
+      "currency": "INR",
+      "items_subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discounts": [],
+      "discount_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "taxes": [],
+      "tax_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fees": [],
+      "fee_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "payment_required": true,
+      "fingerprint": "9d99c0a8cb08bfdf14d1d69a7e6778b61c0070c4f0afe75018f69a3e7029c38b",
+      "configuration": {
+        "tax": "NOT_CONFIGURED",
+        "fees": "NOT_CONFIGURED"
+      }
+    },
+    "promotion": null,
+    "customer": {
+      "name": "Rahul Sharma",
+      "phone": "+919876543210",
+      "phone_verified": true,
+      "email": "rahul.sharma@example.com"
+    },
+    "order_note": "Please pack the sauce separately.",
+    "legal": {
+      "required": [
+        {
+          "type": "TERMS",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "terms"
+        },
+        {
+          "type": "PRIVACY",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "privacy"
+        },
+        {
+          "type": "REFUND",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "refund-policy"
+        }
+      ],
+      "accepted": [
+        {
+          "type": "TERMS",
+          "version": "draft-2026-09",
+          "status": "DRAFT_PENDING_APPROVAL",
+          "accepted_at": "2026-10-06T14:42:59+00:00"
+        },
+        {
+          "type": "PRIVACY",
+          "version": "draft-2026-09",
+          "status": "DRAFT_PENDING_APPROVAL",
+          "accepted_at": "2026-10-06T14:42:59+00:00"
+        },
+        {
+          "type": "REFUND",
+          "version": "draft-2026-09",
+          "status": "DRAFT_PENDING_APPROVAL",
+          "accepted_at": "2026-10-06T14:42:59+00:00"
+        }
+      ],
+      "final_approval": false
+    },
+    "payment_methods": {
+      "provider_status": "NOT_INTEGRATED",
+      "available": [
+        {
+          "type": "UPI",
+          "status": "PLANNED"
+        },
+        {
+          "type": "CARD",
+          "status": "PLANNED"
+        },
+        {
+          "type": "NET_BANKING",
+          "status": "PLANNED"
+        },
+        {
+          "type": "WALLET",
+          "status": "PLANNED"
+        }
+      ],
+      "saved": [
+        {
+          "id": "f17aeb56-5d53-4e26-84d2-30c624311156",
+          "type": "CARD",
+          "provider": "development",
+          "brand": "Visa",
+          "display_label": "Visa •••• 4242",
+          "last4": "4242",
+          "expiry": {
+            "month": 12,
+            "year": 2028
+          },
+          "upi_handle_masked": null,
+          "is_default": true,
+          "status": "ACTIVE",
+          "created_at": "2026-10-03T08:37:42+00:00"
+        },
+        {
+          "id": "42ecc54c-e015-4a65-9782-21ba0b9e6f03",
+          "type": "UPI",
+          "provider": "development",
+          "brand": null,
+          "display_label": "UPI ra***@okaxis",
+          "last4": null,
+          "expiry": null,
+          "upi_handle_masked": "ra***@okaxis",
+          "is_default": false,
+          "status": "ACTIVE",
+          "created_at": "2026-10-03T08:37:42+00:00"
+        }
+      ],
+      "selected": {
+        "type": "CARD",
+        "saved_method_id": null
+      },
+      "cash_at_pickup": "NOT_APPROVED"
+    },
+    "payment": {
+      "status": "READY_FOR_PAYMENT",
+      "checkout_id": "b3df6326-e4b4-4f55-9b8e-76ab8e223aff",
+      "checkout_version": 4,
+      "amount": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "currency": "INR",
+      "pricing_fingerprint": "9d99c0a8cb08bfdf14d1d69a7e6778b61c0070c4f0afe75018f69a3e7029c38b",
+      "idempotency_key": "pay_e4e98b58f035d0acd78cdb35d46cc202ab359a5e",
+      "payment_method": {
+        "type": "CARD",
+        "saved_method_id": null
+      },
+      "expires_at": "2026-10-06T14:52:59+00:00",
+      "provider": {
+        "status": "NOT_INTEGRATED"
+      }
+    },
+    "issues": [],
+    "changes": []
+  },
+  "checkout_with_test_rules": {
+    "id": "647b0b4c-2b99-403c-adc1-0776518a0985",
+    "status": "DRAFT",
+    "status_reason": null,
+    "version": 1,
+    "expires_at": "2026-10-06T15:00:58+00:00",
+    "server_time": "2026-10-06T14:46:00+00:00",
+    "created_at": "2026-10-06T14:45:58+00:00",
+    "cart_version": 4,
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub",
+      "slug": "burger-hub",
+      "timezone": "Asia/Kolkata"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-06T16:30:00+00:00",
+      "local_pickup_at": "2026-10-06T22:00:00+05:30",
+      "local_date": "2026-10-06",
+      "slot_starts_at": "2026-10-06T16:30:00+00:00",
+      "slot_ends_at": "2026-10-06T16:45:00+00:00",
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null,
+      "hold": {
+        "held": false,
+        "expires_at": null
+      }
+    },
+    "items": [
+      {
+        "id": "d57c48d9-96ec-47a9-ad88-48fcbeacc9da",
+        "item": {
+          "id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+          "name": "Onion Rings",
+          "slug": "onion-rings",
+          "image": null,
+          "version": 29
+        },
+        "name": "Onion Rings",
+        "currency": "INR",
+        "quantity": 2,
+        "variants": [],
+        "modifiers": [],
+        "unit_price_minor": 14900,
+        "line_subtotal_minor": 29800,
+        "special_instructions": null
+      },
+      {
+        "id": "d72c6927-6d4e-47e7-9fff-ec864b6c8262",
+        "item": {
+          "id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+          "name": "Masala Fries",
+          "slug": "masala-fries",
+          "image": null,
+          "version": 1
+        },
+        "name": "Masala Fries",
+        "currency": "INR",
+        "quantity": 1,
+        "variants": [
+          {
+            "kind": "VARIANT",
+            "options": [
+              {
+                "id": "7603b4e4-df66-484a-8ef0-42b28b3d5875",
+                "name": "Regular",
+                "available": true,
+                "price_adjustment_minor": 0
+              }
+            ],
+            "group_id": "4b925767-743c-4de8-bf92-cc2858d624c3",
+            "group_name": "Size"
+          }
+        ],
+        "modifiers": [],
+        "unit_price_minor": 12900,
+        "line_subtotal_minor": 12900,
+        "special_instructions": null
+      }
+    ],
+    "item_count": 3,
+    "pricing": {
+      "currency": "INR",
+      "items_subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discounts": [],
+      "discount_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "taxes": [
+        {
+          "code": "TEST_TAX_A",
+          "label": "Test tax A",
+          "applies_to": "MERCHANDISE",
+          "rate_basis_points": 250,
+          "taxable_amount": {
+            "amount": 42700,
+            "currency": "INR"
+          },
+          "amount": {
+            "amount": 1068,
+            "currency": "INR"
+          },
+          "included_in_prices": false
+        },
+        {
+          "code": "TEST_TAX_B",
+          "label": "Test tax B",
+          "applies_to": "MERCHANDISE",
+          "rate_basis_points": 250,
+          "taxable_amount": {
+            "amount": 42700,
+            "currency": "INR"
+          },
+          "amount": {
+            "amount": 1068,
+            "currency": "INR"
+          },
+          "included_in_prices": false
+        }
+      ],
+      "tax_total": {
+        "amount": 2136,
+        "currency": "INR"
+      },
+      "tax_included_total": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fees": [
+        {
+          "code": "E2E_PLATFORM_FEE",
+          "label": "Test platform fee",
+          "amount": {
+            "amount": 1500,
+            "currency": "INR"
+          },
+          "taxable": false
+        }
+      ],
+      "fee_total": {
+        "amount": 1500,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 46336,
+        "currency": "INR"
+      },
+      "payment_required": true,
+      "fingerprint": "bdc9db728d2261279c4f57bf6c23df2ae67dc9123fb1d3522403e9fc3cb1c105",
+      "configuration": {
+        "tax": "TEST",
+        "fees": "TEST"
+      }
+    },
+    "promotion": null,
+    "customer": {
+      "name": "Rahul Sharma",
+      "phone": "+919876543210",
+      "phone_verified": true,
+      "email": "rahul.sharma@example.com"
+    },
+    "order_note": null,
+    "legal": {
+      "required": [
+        {
+          "type": "TERMS",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "terms"
+        },
+        {
+          "type": "PRIVACY",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "privacy"
+        },
+        {
+          "type": "REFUND",
+          "version": "draft-2026-09",
+          "effective_date": null,
+          "status": "DRAFT_PENDING_APPROVAL",
+          "slug": "refund-policy"
+        }
+      ],
+      "accepted": [],
+      "final_approval": false
+    },
+    "payment_methods": {
+      "provider_status": "NOT_INTEGRATED",
+      "available": [
+        {
+          "type": "UPI",
+          "status": "PLANNED"
+        },
+        {
+          "type": "CARD",
+          "status": "PLANNED"
+        },
+        {
+          "type": "NET_BANKING",
+          "status": "PLANNED"
+        },
+        {
+          "type": "WALLET",
+          "status": "PLANNED"
+        }
+      ],
+      "saved": [
+        {
+          "id": "f17aeb56-5d53-4e26-84d2-30c624311156",
+          "type": "CARD",
+          "provider": "development",
+          "brand": "Visa",
+          "display_label": "Visa •••• 4242",
+          "last4": "4242",
+          "expiry": {
+            "month": 12,
+            "year": 2028
+          },
+          "upi_handle_masked": null,
+          "is_default": true,
+          "status": "ACTIVE",
+          "created_at": "2026-10-03T08:37:42+00:00"
+        },
+        {
+          "id": "42ecc54c-e015-4a65-9782-21ba0b9e6f03",
+          "type": "UPI",
+          "provider": "development",
+          "brand": null,
+          "display_label": "UPI ra***@okaxis",
+          "last4": null,
+          "expiry": null,
+          "upi_handle_masked": "ra***@okaxis",
+          "is_default": false,
+          "status": "ACTIVE",
+          "created_at": "2026-10-03T08:37:42+00:00"
+        }
+      ],
+      "selected": null,
+      "cash_at_pickup": "NOT_APPROVED"
+    },
+    "payment": null,
+    "issues": [],
+    "changes": []
+  },
+  "admin_checkout_numbers": {
+    "checked_at": "2026-10-06T14:47:49+00:00",
+    "window_hours": 24,
+    "checkouts": {
+      "draft": 1,
+      "ready": 0,
+      "stale": 8,
+      "expired": 1,
+      "payment_pending": 0,
+      "converted": 0,
+      "cancelled": 3
+    },
+    "events": {
+      "created": 52,
+      "reused": 80,
+      "blocked": 32,
+      "confirmed": 32,
+      "stale": 31,
+      "expired": 4,
+      "cancelled": 8,
+      "promotion_applied": 24,
+      "promotion_refused": 36,
+      "promotion_removed": 11,
+      "hold_failed": 0,
+      "payment_started": 0,
+      "price_changed": 7,
+      "pickup_invalid": 12
+    },
+    "rates": {
+      "ready": 0.6154,
+      "promotion_success": 0.4
+    },
+    "average_discount_minor": 10805,
+    "active_pickup_holds": 0,
+    "promotions": {
+      "draft": 1,
+      "active": 12,
+      "paused": 2,
+      "disabled": 1
+    },
+    "slot_hold": "IMPLEMENTED",
+    "payment_provider": "NOT_INTEGRATED"
+  }
+}

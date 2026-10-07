@@ -9,6 +9,7 @@ import '../discovery/discovery_repository.dart';
 import '../discovery/restaurant_models.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
+import '../state/auth_state.dart';
 import '../state/cart_state.dart' hide PromoStatus, PromoState;
 import '../state/checkout_state.dart';
 import '../state/payment_state.dart';
@@ -211,7 +212,7 @@ class _PaymentScreenState extends State<PaymentScreen> with WidgetsBindingObserv
           ],
         ]),
         bottomNavigationBar: (s == PaymentStatus.ready || inFlightStatuses.contains(s) || s == PaymentStatus.successClientSide)
-            ? BottomBar(child: BrandButton(icon: Icons.lock_outline, label: s == PaymentStatus.ready ? S.t('pay.button', {'amount': money(req.displayedTotalMinor)}) : S.t('pay.state.$k.button'), onPressed: canPay ? () => pay.pay(online: online) : null))
+            ? BottomBar(child: BrandButton(icon: Icons.lock_outline, label: s == PaymentStatus.ready ? S.t('pay.button', {'amount': money(req.displayedTotalMinor)}) : S.t('pay.state.$k.button'), onPressed: canPay ? () async { final auth = context.read<AuthState>(); final cartState = context.read<CartState>(); if (co.backendMode && !await co.revalidate(auth: auth, cart: cartState)) { if (context.mounted) context.go('/checkout'); return; } await pay.pay(online: online); } : null))
             : null,
       ),
     );

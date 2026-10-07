@@ -1,0 +1,8 @@
+# Module 29 — full backend test suite (php vendor/phpunit/phpunit/phpunit), LOCAL, 2026-10-06
+# Checkout suites: tests/Feature/Checkout (13 classes) + tests/Unit/Support/RoundingTest. Every checkout test runs on a frozen server clock.
+# Earlier full run of the same day (before the last admin changes): 872 tests, 37,899 assertions, 1 failed — the Module 28 expectation of the foreign keys of pickup_slot_reservations, which this module extends (checkout_session_id); the expectation was updated. The run below is the final one.
+# Code style: vendor/bin/pint --test on the 78 PHP files this module added or changed: first check exit 1 — one file, tests/Feature/Checkout/CheckoutPerformanceTest.php (import order and a fully-qualified type; style only). Pint fixed it while the run below was already under way; that class was run again afterwards on its own (3 tests, 102 assertions, passed — the run that wrote m29-performance.json), and the check was repeated on the 78 files: exit 0, "passed".
+
+## final run
+{"tool":"phpunit","result":"passed","tests":872,"passed":872,"assertions":37915,"duration_ms":729266}
+exit 0

@@ -867,3 +867,42 @@ rules are in [`pickup-domain.md`](pickup-domain.md). Everything below is local-o
   `docs/local-review/test-results/backend-m28-phpunit.txt` for the whole suite.
 - Fixture: Pizza Point has a capacity of 2 orders per slot with used slots today and tomorrow
   (`LocalPickupFixtureSeeder`, FIXTURE records — not orders).
+
+## 17. Checkout: final validation, server-authoritative pricing, promotions, tax and fee rules, pickup-time hold, payment preparation (Module 29)
+
+The vocabulary, the architecture diagram, the life cycle, the exact financial calculation sequence, promotions, tax
+and fee rules, the hold, legal acceptance, the payment preparation, the API and error tables and the database rules
+are in [`checkout-domain.md`](checkout-domain.md). Everything below is local-only; nothing has touched production.
+
+- **NOTHING IS CHARGED.** No payment provider is integrated (`NOT_INTEGRATED`), no payment is created and no order
+  exists. A checkout is a short-lived, server-priced quote for a signed-in customer's cart — not an order.
+- **The client is never authoritative.** A request carries a promotion code, the legal documents shown, a
+  payment-method type and an order note. A subtotal, discount, tax, fee, total, currency, owner, status, time or
+  payment credential in a request is refused (422), never read.
+- `CheckoutService` (open / show / promotion / confirm / cancel / `beginPayment` / prune) uses Module 27's cart
+  validation and Module 28's pickup validation — nothing is validated twice in two places — and adds
+  `CheckoutPricingService` (promotion → fees → taxes), `PickupSlotHoldService`, `LegalDocuments`,
+  `PaymentOptions` / `PaymentPreparation`.
+- Statuses DRAFT → READY → (PAYMENT_PENDING → CONVERTED later); STALE, EXPIRED, CANCELLED. One live checkout per
+  cart. DRAFT lives 15 minutes, READY 10, on the server clock. A checkout is never repaired: stale → a new one.
+- Money: integer minor units, rates in basis points, half-up rounding in `App\Support\Rounding`, the total equation
+  enforced by a database CHECK. total = subtotal − discount + fees + added tax; zero total ⇒ no payment needed.
+- **No tax rule and no fee rule is seeded.** India is `NOT_CONFIGURED` (production blocker). Rules are created by
+  an administrator per market, are DRAFT → ACTIVE (frozen) → DISABLED, and are TEST until marked APPROVED; TEST
+  rules never apply when `APP_ENV=production`. A `DELIVERY` or `COMMISSION` fee cannot be configured.
+- Promotions: FIXED_AMOUNT and PERCENTAGE, one per checkout (stacking NOT APPROVED), four scopes, limits with a
+  held use per confirmed checkout. Managed by administrators only; every change audited with a reason.
+- **SLOT HOLD = IMPLEMENTED.** Confirming holds one place in the pickup slot until the checkout expires (advisory
+  lock; PostgreSQL is the authority). Released on cancel / replace / stale / expiry; `consume()` is ready for orders.
+- Legal: acceptance recorded per document and version; the texts are DRAFTS — `final_approval` false (blocker).
+- Tables: `checkout_sessions`, `checkout_legal_acceptances`, `promotions`, `promotion_reservations`, `tax_rules`,
+  `tax_rule_components`, `fee_rules` (migration `2026_10_08_100000_create_checkout_tables`).
+- Routes: 19 new operations (189 in total) — 6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers —
+  all in `openapi/openapi.json` (148 paths, 279 schemas) and checked by `CheckoutOpenApiContractTest`.
+- No cache: every answer is validated and priced again (41 queries to open, 37 to read, 56 to confirm — the same
+  for 1 line and for 20 lines). Redis: rate limits (reads 120, writes 30, promotion attempts 10 per minute) and
+  event counters only.
+- `checkouts:prune` every five minutes. Fixture: `LocalCheckoutFixtureSeeder` seeds development promotions in every
+  state (and no tax or fee rule).
+- Tests: `tests/Feature/Checkout` + `tests/Unit/Support/RoundingTest` — see
+  `docs/local-review/test-results/backend-m29-phpunit.txt` for the whole suite.

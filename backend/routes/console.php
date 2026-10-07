@@ -16,3 +16,5 @@ Schedule::command('journeys:prune')->hourly();
 
 // Module 27: carts expire; expired carts are closed after a grace period and closed carts deleted after retention.
 Schedule::command('carts:prune')->hourly();
+// Module 29: checkouts and the pickup times held for them are short-lived; what ran out is closed promptly.
+Schedule::command('checkouts:prune')->everyFiveMinutes();

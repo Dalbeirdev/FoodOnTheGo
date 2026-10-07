@@ -1,0 +1,12 @@
+# Module 29 — Android app checks (LOCAL, 2026-10-06): flutter analyze, flutter test
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 20.5s)
+exit 0
+
+== flutter test
++474: All tests passed!
+failed tests: 0
+exit 0
+   new in Module 29: test/api_checkout_test.dart (21 tests: checkout API mapping, gateway requests that never carry an amount, error vocabulary, checkout state on the backend — open, blocked, promotion, confirm, stale, expired, no connection, zero total). Mock-mode tests of checkout and payment unchanged and passing.

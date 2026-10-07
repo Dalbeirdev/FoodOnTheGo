@@ -5,9 +5,11 @@ use App\Enums\PrincipalType;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\CartMetricsController;
+use App\Http\Controllers\Api\Admin\FinancialRuleController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
 use App\Http\Controllers\Api\Admin\PickupMetricsController;
+use App\Http\Controllers\Api\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
@@ -21,6 +23,7 @@ use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CartPickupController;
+use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\Customer\AccountController;
 use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationPreferenceController;
@@ -68,6 +71,10 @@ Route::pattern('category', '[0-9a-fA-F-]{36}');
 Route::pattern('item', '[0-9a-fA-F-]{36}');
 Route::pattern('journey', '[0-9a-fA-F-]{36}');
 Route::pattern('line', '[0-9a-fA-F-]{36}');
+Route::pattern('checkout', '[0-9a-fA-F-]{36}');
+Route::pattern('promotion', '[0-9a-fA-F-]{36}');
+Route::pattern('taxRule', '[0-9a-fA-F-]{36}');
+Route::pattern('feeRule', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -126,6 +133,19 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     });
     // Taking over the cart built before signing in: only as the signed-in customer, with the guest cart's token.
     Route::post('/cart/claim', [CartController::class, 'claim'])->middleware(['auth:customer', 'active', 'throttle:cart-write', 'idempotent:cart.claim,optional'])->name('cart.claim');
+
+    // Checkout (Module 29): a signed-in customer's short-lived, server-priced quote for their own cart and pickup
+    // selection. No route names a cart, a restaurant or an amount; a checkout is found only for its owner. Nothing
+    // here charges money (Module 30) or creates an order (Module 31).
+    Route::prefix('checkouts')->name('checkouts.')->middleware(['auth:customer', 'active'])->group(function (): void {
+        Route::post('/', [CheckoutController::class, 'open'])->middleware(['throttle:checkout-write', 'idempotent:checkout.open,optional'])->name('open');
+        Route::get('/{checkout}', [CheckoutController::class, 'show'])->middleware('throttle:checkout-read')->name('show');
+        // Trying promotion codes is bounded more tightly than anything else here.
+        Route::post('/{checkout}/promotion', [CheckoutController::class, 'applyPromotion'])->middleware('throttle:promotion-apply')->name('promotion.apply');
+        Route::delete('/{checkout}/promotion', [CheckoutController::class, 'removePromotion'])->middleware('throttle:checkout-write')->name('promotion.remove');
+        Route::post('/{checkout}/confirm', [CheckoutController::class, 'confirm'])->middleware(['throttle:checkout-write', 'idempotent:checkout.confirm,optional'])->name('confirm');
+        Route::post('/{checkout}/cancel', [CheckoutController::class, 'cancel'])->middleware('throttle:checkout-write')->name('cancel');
+    });
 
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
     Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
@@ -309,6 +329,14 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/system/carts', [CartMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.carts');
         // Pickup availability numbers (Module 28): counts only.
         Route::get('/system/pickup', [PickupMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.pickup');
+        // Checkout numbers (Module 29): counts only.
+        Route::get('/system/checkout', [FinancialRuleController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.checkout');
+
+        // Promotions, tax rules and fee rules (Module 29). Permissions are checked in the controllers, per market:
+        // admin.promotions.* for promotions, admin.market_configuration.* for tax and fee rules.
+        Route::get('/promotions', [PromotionController::class, 'index'])->name('promotions.index');
+        Route::get('/promotions/{promotion}', [PromotionController::class, 'show'])->name('promotions.show');
+        Route::get('/markets/{market}/financial-rules', [FinancialRuleController::class, 'rules'])->name('markets.financial-rules');
 
         // Security events are platform-wide: the permission must be held without a market scope.
         Route::middleware('can:'.Permission::AdminSecurityView->value)->group(function (): void {
@@ -328,6 +356,16 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::patch('/service-areas/{serviceArea}', [GeographyController::class, 'updateServiceArea'])->name('service-areas.update');
             Route::post('/markets/{market}/route-corridors', [GeographyController::class, 'storeRouteCorridor'])->name('route-corridors.store');
             Route::patch('/route-corridors/{routeCorridor}', [GeographyController::class, 'updateRouteCorridor'])->name('route-corridors.update');
+
+            Route::post('/promotions', [PromotionController::class, 'store'])->name('promotions.store');
+            Route::patch('/promotions/{promotion}', [PromotionController::class, 'update'])->name('promotions.update');
+            Route::post('/promotions/{promotion}/status', [PromotionController::class, 'status'])->name('promotions.status');
+            Route::post('/markets/{market}/tax-rules', [FinancialRuleController::class, 'storeTaxRule'])->name('tax-rules.store');
+            Route::patch('/tax-rules/{taxRule}', [FinancialRuleController::class, 'updateTaxRule'])->name('tax-rules.update');
+            Route::post('/tax-rules/{taxRule}/status', [FinancialRuleController::class, 'taxRuleStatus'])->name('tax-rules.status');
+            Route::post('/markets/{market}/fee-rules', [FinancialRuleController::class, 'storeFeeRule'])->name('fee-rules.store');
+            Route::patch('/fee-rules/{feeRule}', [FinancialRuleController::class, 'updateFeeRule'])->name('fee-rules.update');
+            Route::post('/fee-rules/{feeRule}/status', [FinancialRuleController::class, 'feeRuleStatus'])->name('fee-rules.status');
 
             Route::patch('/restaurants/{location}', [AdminRestaurantController::class, 'update'])->name('restaurants.update');
             Route::post('/restaurants/{location}/status', [AdminRestaurantController::class, 'status'])->name('restaurants.status');

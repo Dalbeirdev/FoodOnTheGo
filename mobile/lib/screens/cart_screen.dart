@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../checkout/api_checkout.dart' show checkoutFromApi;
 import '../cart/cart_validation.dart';
 import '../core/theme.dart';
 import '../discovery/discovery_repository.dart';
@@ -211,6 +212,8 @@ class _CartScreenState extends State<CartScreen> with WidgetsBindingObserver {
         const SizedBox(height: 12),
         // Summary + promo
         SectionCard(title: S.t('cartpage.summary'), icon: Icons.receipt_long_outlined, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // With the checkout backend (Module 29) a code is entered at checkout, where the backend decides whether it applies.
+          if (checkoutFromApi) Semantics(identifier: 'cart-promo-at-checkout', container: true, child: Text(S.t('cartpage.promo.atCheckout'), style: const TextStyle(color: Brand.grey, fontSize: 12.5))) else ...[
           Text(S.t('cartpage.promo'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
           const SizedBox(height: 6),
           Row(children: [Expanded(child: TextField(controller: promoCtl, textCapitalization: TextCapitalization.characters, decoration: const InputDecoration(isDense: true, hintText: 'CODE'))), const SizedBox(width: 8), OutlineButton(label: S.t('cartpage.promo.apply'), expand: false, height: 44, onPressed: () => cart.applyPromo(promoCtl.text))]),
@@ -218,12 +221,13 @@ class _CartScreenState extends State<CartScreen> with WidgetsBindingObserver {
           if (promo.status == PromoStatus.invalid) Padding(padding: const EdgeInsets.only(top: 6), child: Text(S.t('cartpage.promo.invalid'), style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 12.5))),
           if (promo.status == PromoStatus.expired) Padding(padding: const EdgeInsets.only(top: 6), child: Text(S.t('cartpage.promo.expired'), style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 12.5))),
           if (promo.status == PromoStatus.minSpend) Padding(padding: const EdgeInsets.only(top: 6), child: Text(S.t('cartpage.promo.minSpend', {'amount': money(promo.minSpendMinor)}), style: const TextStyle(color: Color(0xFF9A1D17), fontSize: 12.5))),
+          ],
           const Divider(height: 22),
           SummaryRow('${S.t('cartpage.subtotal')} · ${cart.count}', money(cart.subtotalMinor)),
-          if (cart.discountMinorValue > 0) SummaryRow(S.t('cartpage.discount', {'code': promo.code}), '−${money(cart.discountMinorValue)}', green: true),
-          SummaryRow(S.t('cartpage.estimated'), money(cart.estimatedTotalMinor), bold: true),
+          if (!checkoutFromApi && cart.discountMinorValue > 0) SummaryRow(S.t('cartpage.discount', {'code': promo.code}), '−${money(cart.discountMinorValue)}', green: true),
+          SummaryRow(S.t('cartpage.estimated'), money(checkoutFromApi ? cart.subtotalMinor : cart.estimatedTotalMinor), bold: true),
           const SizedBox(height: 6),
-          Text(S.t('cartpage.feesNote'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+          Text(S.t(checkoutFromApi ? 'cartpage.feesNote.checkout' : 'cartpage.feesNote'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
           const SizedBox(height: 4),
           if (!cart.backendMode) Text(S.t('cartpage.mock'), style: const TextStyle(color: Color(0xFF6B4300), fontSize: 11.5, fontWeight: FontWeight.w600)),
         ])),

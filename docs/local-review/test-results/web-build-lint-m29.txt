@@ -1,0 +1,21 @@
+# Module 29 — Customer Web checks (LOCAL, 2026-10-07): tsc, oxlint, vitest, vite build
+
+== npx tsc -b --noEmit
+exit 0
+
+== npm run lint (oxlint)
+exit 0; 0 errors; 117 warnings (the same kinds of warning as before Module 29 — react(only-export-components), react(set-state-in-effect), react(refs); Module 28 had 112. The first lint run of this module reported 1 error — a test helper in src/checkout/api/apiCheckout.test.tsx whose name began with "use", so the hook rule applied to it; the helper was renamed and every check below was run again)
+
+== npx vitest run --maxWorkers=6   (six workers: the machine also runs other workloads; with full parallelism a few long UI tests hit the 5 s timeout under load — CF-362)
+ Test Files  53 passed (53)
+      Tests  664 passed (664)
+   Duration  53.43s (tests 61%, environment 24%, transform 6%, setup 4%, import 4%)
+exit 0
+   new in Module 29: src/checkout/api/apiCheckout.test.tsx (23 tests: checkout mapping, gateway requests that never carry an amount, error vocabulary, ServerCheckoutProvider — open, blocked, promotion, confirm, stale, legal version, expired, zero total — and the checkout page on the backend)
+
+== npx vite build
+dist/assets/DashboardApp-CQcqi09m.js    172.99 kB │ gzip:  38.98 kB
+dist/assets/AdminApp-CY53E_wg.js        422.75 kB │ gzip:  88.27 kB
+dist/assets/index-B_hYiomf.js         1,134.91 kB │ gzip: 315.87 kB
+✓ built in 539ms
+exit 0

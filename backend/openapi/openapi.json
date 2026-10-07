@@ -10243,6 +10243,1882 @@
           }
         }
       }
+    },
+    "/checkouts": {
+      "post": {
+        "summary": "Open the checkout for the caller's cart. EVERYTHING is validated again — the cart, every item and option, the restaurant, its market, the pickup selection and its slot — and the total is calculated by the backend from the current menu, one promotion, the configured fee rules and the configured tax rules. 201: a new checkout (DRAFT). 200: the live checkout of this cart, when nothing changed — a second device or a repeated request gets the same one. A price that changed is never kept: the checkout shows the current total and `changes` says what moved. A checkout is not an order and charges nothing. Errors: 404 cart_not_found; 409 cart_empty, cart_invalid, item_unavailable, restaurant_unavailable, restaurant_not_accepting, market_unavailable, pickup_required, pickup_invalid, pickup_slot_full, pickup_selection_expired, cart_version_conflict, payment_in_progress — each with details.issues[] (code, message, recover); 410 cart_expired; 422 promotion_not_found, promotion_not_applicable, promotion_expired, promotion_minimum_not_met (details.minimum_spend), promotion_limit_reached, promotion_customer_limit_reached, validation_failed.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutOpenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CheckoutEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "CheckoutEnvelope — the live checkout, unchanged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checkouts/{checkout}": {
+      "get": {
+        "summary": "The caller's checkout as it stands NOW. It is judged again on every read: past its expiry it is EXPIRED; when the cart, the pickup selection, a price, the promotion, a tax or fee rule, the restaurant or the required legal documents changed it is STALE (issues says why) and what it held is given back. A stale or expired checkout is replaced by opening a new one, never repaired. 404 checkout_not_found.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CheckoutEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checkouts/{checkout}/promotion": {
+      "post": {
+        "summary": "Apply one promotion code (it replaces an earlier one: promotions do not stack). The backend decides whether it applies — status and time window on the server clock, scope, currency, minimum spend, limits — and prices the checkout again; a confirmed checkout goes back to DRAFT because its total changed. A code that does not apply changes nothing: 422 promotion_not_found (also for a code that is not published — nothing about campaigns is revealed), promotion_not_applicable, promotion_expired, promotion_minimum_not_met, promotion_limit_reached, promotion_customer_limit_reached. Limited to a few attempts a minute (429). 404 checkout_not_found; 409 checkout_stale (details.reason, details.issues), payment_in_progress; 410 checkout_expired.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutPromotionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CheckoutEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove the promotion; the checkout is priced again without it. 404 checkout_not_found; 409 checkout_stale (details.reason, details.issues), payment_in_progress; 410 checkout_expired.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CheckoutEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checkouts/{checkout}/confirm": {
+      "post": {
+        "summary": "Confirm the checkout: the customer saw exactly this price (pricing_fingerprint), accepted the current legal documents and named how they intend to pay. Everything is validated once more; then ONE place in the pickup slot is held until the checkout expires (atomically — of two customers competing for the last place one gets it), one use of a limited promotion is held, the acceptance is recorded per document and version, and the checkout is READY with its payment preparation. Repeating it changes and prolongs nothing. No payment is created. 404 checkout_not_found; 409 checkout_stale (details.reason, details.issues), payment_in_progress; 410 checkout_expired. Also 409 pickup_slot_unavailable, promotion_limit_reached; 422 legal_acceptance_required (details.missing), payment_method_required, payment_method_unavailable, validation_failed.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CheckoutEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checkouts/{checkout}/cancel": {
+      "post": {
+        "summary": "Leave this checkout: the held pickup time and promotion use are given back. Safe to repeat. 404 checkout_not_found; 409 payment_in_progress.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id (opaque UUID) — found only for the customer it belongs to; anybody else gets 404.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CheckoutEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/promotions": {
+      "get": {
+        "summary": "Promotions (admin.promotions.view). A permission held for one market covers the promotions of that market and of its restaurants; a platform-wide promotion needs the permission platform-wide.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Search in code and name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "What the promotion is right now",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "SCHEDULED",
+                "ACTIVE",
+                "PAUSED",
+                "EXPIRED",
+                "DISABLED"
+              ]
+            }
+          },
+          {
+            "name": "filter[type]",
+            "in": "query",
+            "required": false,
+            "description": "Type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FIXED_AMOUNT",
+                "PERCENTAGE"
+              ]
+            }
+          },
+          {
+            "name": "filter[scope]",
+            "in": "query",
+            "required": false,
+            "description": "Scope",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLATFORM",
+                "MARKET",
+                "RESTAURANT_ORGANIZATION",
+                "RESTAURANT_LOCATION"
+              ]
+            }
+          },
+          {
+            "name": "filter[market]",
+            "in": "query",
+            "required": false,
+            "description": "Market id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[restaurant]",
+            "in": "query",
+            "required": false,
+            "description": "Restaurant location id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[date]",
+            "in": "query",
+            "required": false,
+            "description": "Usable on this day (YYYY-MM-DD, UTC)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+              "description": "Restaurant-local calendar date"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "code, name, created_at, updated_at, starts_at, ends_at; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminPromotionPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPromotionPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a promotion as DRAFT (admin.promotions.manage). Audited. Restaurant staff have no promotion endpoint: restaurant-created discounts are not approved. 409 promotion_code_taken. A permission held for one market covers the promotions of that market and of its restaurants; a platform-wide promotion needs the permission platform-wide.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPromotionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminPromotionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPromotionEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/promotions/{promotion}": {
+      "get": {
+        "summary": "One promotion (admin.promotions.view).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "promotion",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminPromotionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPromotionEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Change a promotion (admin.promotions.manage). Versioned and audited with what changed. 409 stale_update, promotion_live_edit_refused (details.field), promotion_disabled, promotion_code_taken.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "promotion",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminPromotionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminPromotionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPromotionEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/promotions/{promotion}/status": {
+      "post": {
+        "summary": "DRAFT → ACTIVE ⇄ PAUSED → DISABLED (admin.promotions.manage). DISABLED is final. A checkout that carries the promotion goes stale and is priced again. 409 stale_update, invalid_status_transition.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "promotion",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminPromotionEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPromotionEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/markets/{market}/financial-rules": {
+      "get": {
+        "summary": "The tax rules and fee rules of a market (admin.market_configuration.view). An empty list means NOT CONFIGURED: customers of that market are charged no tax and no fee, and nothing is invented.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FinancialRules",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialRules"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/markets/{market}/tax-rules": {
+      "post": {
+        "summary": "Create a tax rule as DRAFT (admin.market_configuration.manage for this market). Audited. Restaurant staff have no access to tax or fee configuration.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxRuleCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "TaxRuleEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/tax-rules/{taxRule}": {
+      "patch": {
+        "summary": "Change a tax rule (admin.market_configuration.manage for this market). Audited. Restaurant staff have no access to tax or fee configuration. 409 stale_update, rule_frozen (details.field).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "taxRule",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxRuleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "TaxRuleEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/tax-rules/{taxRule}/status": {
+      "post": {
+        "summary": "DRAFT → ACTIVE, DRAFT / ACTIVE → DISABLED (admin.market_configuration.manage for this market). Audited. Restaurant staff have no access to tax or fee configuration. Open checkouts of the market go stale and are priced again. 409 stale_update, invalid_status_transition, rule_incomplete.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "taxRule",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "TaxRuleEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxRuleEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/markets/{market}/fee-rules": {
+      "post": {
+        "summary": "Create a fee rule as DRAFT (admin.market_configuration.manage for this market). Audited. Restaurant staff have no access to tax or fee configuration. A delivery fee or a commission cannot be configured (422).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeeRuleCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "FeeRuleEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeRuleEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/fee-rules/{feeRule}": {
+      "patch": {
+        "summary": "Change a fee rule (admin.market_configuration.manage for this market). Audited. Restaurant staff have no access to tax or fee configuration. 409 stale_update, rule_frozen (details.field).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "feeRule",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeeRuleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FeeRuleEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeRuleEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/fee-rules/{feeRule}/status": {
+      "post": {
+        "summary": "DRAFT → ACTIVE, DRAFT / ACTIVE → DISABLED (admin.market_configuration.manage for this market). Audited. Restaurant staff have no access to tax or fee configuration. 409 stale_update, invalid_status_transition.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "feeRule",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminStatusChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FeeRuleEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeeRuleEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/checkout": {
+      "get": {
+        "summary": "Checkout numbers for platform administrators (admin.system.view): checkouts by state, how many were confirmed, went stale or expired, how promotions fared, how often a pickup time could not be held. Counts only — a customer's checkout cannot be read from the admin API.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CheckoutMetrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26842,12 +28718,2800 @@
           "slot_hold": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
+              "AT_CHECKOUT"
             ],
-            "description": "Choosing a time holds no capacity; the hold belongs to checkout / orders"
+            "description": "Choosing a time holds no capacity; a confirmed checkout holds its slot (Module 29)"
           }
         },
         "description": "Counts only: no cart, no customer, no chosen time, no journey."
+      },
+      "CheckoutIssue": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "recover",
+          "details"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "CART_NOT_FOUND",
+              "CART_EMPTY",
+              "CART_EXPIRED",
+              "CART_INVALID",
+              "CART_CHANGED",
+              "ITEM_UNAVAILABLE",
+              "PRICE_CHANGED",
+              "RESTAURANT_UNAVAILABLE",
+              "RESTAURANT_NOT_ACCEPTING",
+              "MARKET_UNAVAILABLE",
+              "PICKUP_REQUIRED",
+              "PICKUP_INVALID",
+              "PICKUP_CHANGED",
+              "PICKUP_SLOT_FULL",
+              "PICKUP_SLOT_UNAVAILABLE",
+              "PICKUP_SELECTION_EXPIRED",
+              "PROMOTION_INVALID",
+              "PROMOTION_EXPIRED",
+              "PROMOTION_MINIMUM_NOT_MET",
+              "PROMOTION_LIMIT_REACHED",
+              "PROMOTION_CHANGED",
+              "PRICING_CHANGED",
+              "TAX_CONFIGURATION_CHANGED",
+              "FEE_CONFIGURATION_CHANGED",
+              "CURRENCY_MISMATCH",
+              "CHECKOUT_EXPIRED",
+              "CHECKOUT_STALE",
+              "LEGAL_ACCEPTANCE_REQUIRED",
+              "PAYMENT_METHOD_REQUIRED",
+              "PAYMENT_METHOD_UNAVAILABLE",
+              "PAYMENT_IN_PROGRESS"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "recover": {
+            "type": "string",
+            "enum": [
+              "cart",
+              "pickup",
+              "checkout",
+              "refresh",
+              "payment"
+            ],
+            "description": "Where the customer goes to put it right: back to the cart, to the pickup time, stay on checkout, start checkout again (refresh), or wait for the payment"
+          },
+          "details": {
+            "type": "object",
+            "description": "Machine-readable context, e.g. previous_total / total, promotion_code, minimum_spend"
+          }
+        },
+        "description": "Why a checkout cannot be used, or could not be opened."
+      },
+      "CheckoutItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "item",
+          "name",
+          "quantity",
+          "special_instructions",
+          "variants",
+          "modifiers",
+          "unit_price_minor",
+          "line_subtotal_minor",
+          "currency"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "item": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "image",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "url",
+                  "alt_text",
+                  "width",
+                  "height",
+                  "display_order"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "Absolute URL served by GET /media/{path}; immutable, may be cached for a day. No storage path appears anywhere."
+                  },
+                  "alt_text": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "display_order": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "special_instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartSelection"
+            }
+          },
+          "modifiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CartSelection"
+            }
+          },
+          "unit_price_minor": {
+            "type": "integer",
+            "description": "From the CURRENT menu when the checkout was priced — never a price the client sent or the cart displayed"
+          },
+          "line_subtotal_minor": {
+            "type": "integer",
+            "description": "unit_price_minor × quantity"
+          },
+          "currency": {
+            "type": "string"
+          }
+        },
+        "description": "One line of the checkout, as it was priced."
+      },
+      "CheckoutPricing": {
+        "type": "object",
+        "required": [
+          "currency",
+          "items_subtotal",
+          "discounts",
+          "discount_total",
+          "taxes",
+          "tax_total",
+          "tax_included_total",
+          "fees",
+          "fee_total",
+          "total",
+          "payment_required",
+          "fingerprint",
+          "configuration"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "The restaurant market's currency. One currency per checkout; nothing is converted."
+          },
+          "items_subtotal": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "discounts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "label",
+                "amount"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "amount": {
+                  "$ref": "#/components/schemas/Money"
+                }
+              }
+            },
+            "description": "At most one: promotions do not stack"
+          },
+          "discount_total": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Never more than items_subtotal"
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "label",
+                "applies_to",
+                "rate_basis_points",
+                "taxable_amount",
+                "amount",
+                "included_in_prices"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "applies_to": {
+                  "type": "string",
+                  "enum": [
+                    "MERCHANDISE",
+                    "FEES"
+                  ]
+                },
+                "rate_basis_points": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "description": "Basis points, an integer: 5 % = 500. Never a float."
+                },
+                "taxable_amount": {
+                  "$ref": "#/components/schemas/Money"
+                },
+                "amount": {
+                  "$ref": "#/components/schemas/Money"
+                },
+                "included_in_prices": {
+                  "type": "boolean",
+                  "description": "true: the prices already contain this tax — it is shown, not added"
+                }
+              }
+            },
+            "description": "One line per component of a configured tax rule. Empty when no rule exists: no tax is invented."
+          },
+          "tax_total": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Tax ADDED on top of the prices"
+          },
+          "tax_included_total": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Tax the prices already contain (not added to the total)"
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "label",
+                "amount",
+                "taxable"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "amount": {
+                  "$ref": "#/components/schemas/Money"
+                },
+                "taxable": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "One line per configured fee rule. Empty when none exists. There is no delivery fee and no restaurant commission."
+          },
+          "fee_total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money",
+            "description": "items_subtotal − discount_total + fee_total + tax_total. Never below zero."
+          },
+          "payment_required": {
+            "type": "boolean",
+            "description": "false when the total is zero: no payment method is asked for and no payment is created"
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "Names exactly one price: the cart lines, the pickup selection, the promotion, the tax and fee rules and every total. Any change gives another fingerprint."
+          },
+          "configuration": {
+            "type": "object",
+            "required": [
+              "tax",
+              "fees"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "tax": {
+                "type": "string",
+                "enum": [
+                  "NOT_CONFIGURED",
+                  "TEST",
+                  "APPROVED"
+                ]
+              },
+              "fees": {
+                "type": "string",
+                "enum": [
+                  "NOT_CONFIGURED",
+                  "TEST",
+                  "APPROVED"
+                ]
+              }
+            },
+            "description": "NOT_CONFIGURED: no rule exists for this market. TEST: a development configuration (never applied in production). APPROVED: rules an administrator approved."
+          }
+        },
+        "description": "Calculated by the backend in integer minor units; rounding is half up at the minor unit. Not a receipt and not a tax invoice."
+      },
+      "CheckoutPayment": {
+        "type": "object",
+        "required": [
+          "status",
+          "checkout_id",
+          "checkout_version",
+          "amount",
+          "currency",
+          "pricing_fingerprint",
+          "idempotency_key",
+          "payment_method",
+          "expires_at",
+          "provider"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "READY_FOR_PAYMENT",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "checkout_version": {
+            "type": "integer"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The checkout total. No request can change it."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "pricing_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "Names exactly one price: the cart lines, the pickup selection, the promotion, the tax and fee rules and every total. Any change gives another fingerprint."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "pattern": "^pay_[0-9a-f]{40}$",
+            "description": "Derived from the checkout, its version and its price: the same confirmed checkout can lead to one payment only"
+          },
+          "payment_method": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "type",
+              "saved_method_id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "saved_method_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              }
+            }
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "provider": {
+            "type": "object",
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "NOT_INTEGRATED"
+                ]
+              }
+            }
+          }
+        },
+        "description": "What the payment module (Module 30) needs to start a payment — a PREPARATION. Nothing has been charged and no provider has been called."
+      },
+      "Checkout": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "status_reason",
+          "version",
+          "expires_at",
+          "server_time",
+          "created_at",
+          "cart_version",
+          "restaurant",
+          "pickup",
+          "items",
+          "item_count",
+          "pricing",
+          "promotion",
+          "customer",
+          "order_note",
+          "legal",
+          "payment_methods",
+          "payment",
+          "issues",
+          "changes"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "READY",
+              "STALE",
+              "EXPIRED",
+              "PAYMENT_PENDING",
+              "CONVERTED",
+              "CANCELLED"
+            ],
+            "description": "DRAFT: validated and priced. READY: confirmed — pickup time held, payment can be started. STALE: something it was priced from changed. EXPIRED: its time ran out. PAYMENT_PENDING: a payment is in progress. CONVERTED: an order exists. CANCELLED: ended by the customer or replaced"
+          },
+          "status_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "expires_at": {
+            "type": "string",
+            "description": "On the server clock. A device clock plays no part."
+          },
+          "server_time": {
+            "type": "string",
+            "description": "The server clock when this answer was made — count down from here, not from the device clock"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "cart_version": {
+            "type": "integer"
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              }
+            }
+          },
+          "pickup": {
+            "type": "object",
+            "required": [
+              "mode",
+              "method",
+              "pickup_at",
+              "local_pickup_at",
+              "local_date",
+              "slot_starts_at",
+              "slot_ends_at",
+              "timezone",
+              "estimated_prep_minutes",
+              "traveler_arrival_at",
+              "hold"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "ASAP",
+                  "SCHEDULED"
+                ]
+              },
+              "method": {
+                "type": "string",
+                "enum": [
+                  "COUNTER",
+                  "CURBSIDE",
+                  "DRIVE_THROUGH"
+                ]
+              },
+              "pickup_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "local_pickup_at": {
+                "type": "string",
+                "description": "The same instant on the RESTAURANT's clock, ISO 8601 with its UTC offset"
+              },
+              "local_date": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+                "description": "Restaurant-local calendar date"
+              },
+              "slot_starts_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "slot_ends_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "estimated_prep_minutes": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "traveler_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "hold": {
+                "type": "object",
+                "required": [
+                  "held",
+                  "expires_at"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "held": {
+                    "type": "boolean"
+                  },
+                  "expires_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "ISO 8601, UTC"
+                  }
+                },
+                "description": "A confirmed checkout holds one place in its pickup slot until it expires, is cancelled or goes stale"
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckoutItem"
+            }
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/CheckoutPricing"
+          },
+          "promotion": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code",
+              "name",
+              "discount"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "discount": {
+                "$ref": "#/components/schemas/Money"
+              }
+            }
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "name",
+              "phone",
+              "phone_verified",
+              "email"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "phone": {
+                "type": "string"
+              },
+              "phone_verified": {
+                "type": "boolean"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "The account's own details. They cannot be changed through checkout."
+          },
+          "order_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "legal": {
+            "type": "object",
+            "required": [
+              "required",
+              "accepted",
+              "final_approval"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "required": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "version",
+                    "effective_date",
+                    "status",
+                    "slug"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "TERMS",
+                        "PRIVACY",
+                        "REFUND"
+                      ]
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "effective_date": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "DRAFT_PENDING_APPROVAL until the text has final business / legal approval"
+                    },
+                    "slug": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "accepted": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "version",
+                    "status",
+                    "accepted_at"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "TERMS",
+                        "PRIVACY",
+                        "REFUND"
+                      ]
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "accepted_at": {
+                      "type": "string",
+                      "description": "ISO 8601, UTC"
+                    }
+                  }
+                }
+              },
+              "final_approval": {
+                "type": "boolean",
+                "description": "true only when every required document of the market is approved"
+              }
+            }
+          },
+          "payment_methods": {
+            "type": "object",
+            "required": [
+              "provider_status",
+              "available",
+              "saved",
+              "selected",
+              "cash_at_pickup"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider_status": {
+                "type": "string",
+                "enum": [
+                  "NOT_INTEGRATED"
+                ]
+              },
+              "available": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "status"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "UPI",
+                        "CARD",
+                        "NET_BANKING",
+                        "WALLET"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "description": "The method types the market is configured for. Naming one is context for the later payment, not a provider capability check."
+              },
+              "saved": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PaymentMethodSummary"
+                },
+                "description": "The customer's own usable saved references — a label and four digits, never credentials"
+              },
+              "selected": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "type",
+                  "saved_method_id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "saved_method_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f-]{36}$"
+                  }
+                }
+              },
+              "cash_at_pickup": {
+                "type": "string",
+                "enum": [
+                  "NOT_APPROVED"
+                ],
+                "description": "Never offered and never accepted"
+              }
+            }
+          },
+          "payment": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "status",
+              "checkout_id",
+              "checkout_version",
+              "amount",
+              "currency",
+              "pricing_fingerprint",
+              "idempotency_key",
+              "payment_method",
+              "expires_at",
+              "provider"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "READY_FOR_PAYMENT",
+                  "PAYMENT_NOT_REQUIRED"
+                ]
+              },
+              "checkout_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "checkout_version": {
+                "type": "integer"
+              },
+              "amount": {
+                "$ref": "#/components/schemas/Money",
+                "description": "The checkout total. No request can change it."
+              },
+              "currency": {
+                "type": "string"
+              },
+              "pricing_fingerprint": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "description": "Names exactly one price: the cart lines, the pickup selection, the promotion, the tax and fee rules and every total. Any change gives another fingerprint."
+              },
+              "idempotency_key": {
+                "type": "string",
+                "pattern": "^pay_[0-9a-f]{40}$",
+                "description": "Derived from the checkout, its version and its price: the same confirmed checkout can lead to one payment only"
+              },
+              "payment_method": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "type",
+                  "saved_method_id"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "saved_method_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f-]{36}$"
+                  }
+                }
+              },
+              "expires_at": {
+                "type": "string",
+                "description": "ISO 8601, UTC"
+              },
+              "provider": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "NOT_INTEGRATED"
+                    ]
+                  }
+                }
+              }
+            },
+            "description": "What the payment module (Module 30) needs to start a payment — a PREPARATION. Nothing has been charged and no provider has been called."
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckoutIssue"
+            }
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "enum": [
+                    "CART_NOT_FOUND",
+                    "CART_EMPTY",
+                    "CART_EXPIRED",
+                    "CART_INVALID",
+                    "CART_CHANGED",
+                    "ITEM_UNAVAILABLE",
+                    "PRICE_CHANGED",
+                    "RESTAURANT_UNAVAILABLE",
+                    "RESTAURANT_NOT_ACCEPTING",
+                    "MARKET_UNAVAILABLE",
+                    "PICKUP_REQUIRED",
+                    "PICKUP_INVALID",
+                    "PICKUP_CHANGED",
+                    "PICKUP_SLOT_FULL",
+                    "PICKUP_SLOT_UNAVAILABLE",
+                    "PICKUP_SELECTION_EXPIRED",
+                    "PROMOTION_INVALID",
+                    "PROMOTION_EXPIRED",
+                    "PROMOTION_MINIMUM_NOT_MET",
+                    "PROMOTION_LIMIT_REACHED",
+                    "PROMOTION_CHANGED",
+                    "PRICING_CHANGED",
+                    "TAX_CONFIGURATION_CHANGED",
+                    "FEE_CONFIGURATION_CHANGED",
+                    "CURRENCY_MISMATCH",
+                    "CHECKOUT_EXPIRED",
+                    "CHECKOUT_STALE",
+                    "LEGAL_ACCEPTANCE_REQUIRED",
+                    "PAYMENT_METHOD_REQUIRED",
+                    "PAYMENT_METHOD_UNAVAILABLE",
+                    "PAYMENT_IN_PROGRESS"
+                  ]
+                }
+              },
+              "description": "What was different when this checkout was created (a price that changed, a promotion that no longer applied) — to tell the customer before they pay"
+            }
+          }
+        },
+        "description": "A short-lived, server-priced checkout for the caller's cart. Not an order; nothing is charged."
+      },
+      "CheckoutEnvelope": {
+        "type": "object",
+        "required": [
+          "checkout"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checkout": {
+            "$ref": "#/components/schemas/Checkout"
+          }
+        }
+      },
+      "CheckoutOpenRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "promotion_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 40,
+            "description": "Optional. A code that does not apply is refused (422 promotion_*) and no checkout is created."
+          },
+          "cart_version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Optional: refuse (409 cart_version_conflict) when the cart changed meanwhile"
+          }
+        },
+        "description": "No cart, restaurant or pickup time is named: they are the caller's own. A request never carries an amount, a currency, a customer, a cart, a restaurant, a status, a time or a payment credential (card number, CVV, UPI PIN, bank password): such a field is refused (422), never read."
+      },
+      "CheckoutPromotionRequest": {
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Compared trimmed and without regard to case"
+          }
+        },
+        "description": "A request never carries an amount, a currency, a customer, a cart, a restaurant, a status, a time or a payment credential (card number, CVV, UPI PIN, bank password): such a field is refused (422), never read."
+      },
+      "CheckoutConfirmRequest": {
+        "type": "object",
+        "required": [
+          "pricing_fingerprint",
+          "accepted_documents"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "pricing_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "The fingerprint of the price the customer was shown"
+          },
+          "accepted_documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "version"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "TERMS",
+                    "PRIVACY",
+                    "REFUND"
+                  ]
+                },
+                "version": {
+                  "type": "string",
+                  "maxLength": 40
+                }
+              }
+            },
+            "description": "Every document of checkout.legal.required, at the version listed there"
+          },
+          "payment_method": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 16
+              },
+              "saved_method_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              }
+            },
+            "description": "How the customer INTENDS to pay: a method type the checkout offers, optionally one of their saved references. Required when payment_required. Never credentials."
+          },
+          "order_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 300,
+            "description": "Plain text; markup is refused"
+          }
+        },
+        "description": "A request never carries an amount, a currency, a customer, a cart, a restaurant, a status, a time or a payment credential (card number, CVV, UPI PIN, bank password): such a field is refused (422), never read."
+      },
+      "AdminPromotion": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "type",
+          "status",
+          "effective_status",
+          "scope",
+          "market",
+          "organization",
+          "location",
+          "currency",
+          "amount_minor",
+          "percent_basis_points",
+          "maximum_discount_minor",
+          "minimum_spend_minor",
+          "starts_at",
+          "ends_at",
+          "usage_limit",
+          "per_customer_limit",
+          "redeemed_count",
+          "held_count",
+          "funding_source",
+          "stacking",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FIXED_AMOUNT",
+              "PERCENTAGE"
+            ],
+            "description": "The approved types. Nothing else exists (no buy-one-get-one, no free item, no cashback)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "PAUSED",
+              "DISABLED"
+            ],
+            "description": "The stored life-cycle state"
+          },
+          "effective_status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "SCHEDULED",
+              "ACTIVE",
+              "PAUSED",
+              "EXPIRED",
+              "DISABLED"
+            ],
+            "description": "What it is right now: SCHEDULED and EXPIRED follow from the server clock"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "MARKET",
+              "RESTAURANT_ORGANIZATION",
+              "RESTAURANT_LOCATION"
+            ]
+          },
+          "market": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name",
+              "country_code"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "country_code": {
+                "type": "string"
+              }
+            }
+          },
+          "organization": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "location": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{3}$",
+            "description": "Required when the promotion has an amount; such a promotion applies only to checkouts in this currency"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Integer minor units (paise for INR)"
+          },
+          "percent_basis_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "Basis points, an integer: 5 % = 500. Never a float."
+          },
+          "maximum_discount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Integer minor units (paise for INR)"
+          },
+          "minimum_spend_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Integer minor units (paise for INR)"
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "per_customer_limit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "redeemed_count": {
+            "type": "integer",
+            "description": "Uses that became orders"
+          },
+          "held_count": {
+            "type": "integer",
+            "description": "Uses currently held by confirmed checkouts"
+          },
+          "funding_source": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "RESTAURANT",
+              "SHARED"
+            ]
+          },
+          "stacking": {
+            "type": "string",
+            "enum": [
+              "NOT_APPROVED"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "AdminPromotionEnvelope": {
+        "type": "object",
+        "required": [
+          "promotion"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "promotion": {
+            "$ref": "#/components/schemas/AdminPromotion"
+          }
+        }
+      },
+      "AdminPromotionPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminPromotion"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "AdminPromotionCreate": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "type",
+          "scope"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+            "description": "Stored trimmed and in upper case; unique"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FIXED_AMOUNT",
+              "PERCENTAGE"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "MARKET",
+              "RESTAURANT_ORGANIZATION",
+              "RESTAURANT_LOCATION"
+            ]
+          },
+          "market_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "organization_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Za-z]{3}$"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "percent_basis_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "Basis points, an integer: 5 % = 500. Never a float."
+          },
+          "maximum_discount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "minimum_spend_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "per_customer_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "funding_source": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "RESTAURANT",
+              "SHARED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "Created as DRAFT. FIXED_AMOUNT needs amount_minor and currency; PERCENTAGE needs percent_basis_points. Amounts are integer minor units, rates integer basis points."
+      },
+      "AdminPromotionUpdate": {
+        "type": "object",
+        "required": [
+          "version",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 40,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+            "description": "Stored trimmed and in upper case; unique"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FIXED_AMOUNT",
+              "PERCENTAGE"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "MARKET",
+              "RESTAURANT_ORGANIZATION",
+              "RESTAURANT_LOCATION"
+            ]
+          },
+          "market_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "organization_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Za-z]{3}$"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "percent_basis_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "Basis points, an integer: 5 % = 500. Never a float."
+          },
+          "maximum_discount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "minimum_spend_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "usage_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "per_customer_limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "funding_source": {
+            "type": "string",
+            "enum": [
+              "PLATFORM",
+              "RESTAURANT",
+              "SHARED"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version that was looked at. Stale: 409 stale_update (details.current_version)."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "While the promotion is ACTIVE or SCHEDULED only name, description, ends_at, usage_limit and per_customer_limit may change (else 409 promotion_live_edit_refused): pause it first."
+      },
+      "AdminStatusChange": {
+        "type": "object",
+        "required": [
+          "status",
+          "version",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version that was looked at. Stale: 409 stale_update (details.current_version)."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        }
+      },
+      "TaxRule": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "applies_to",
+          "price_treatment",
+          "discount_treatment",
+          "status",
+          "approval",
+          "in_force",
+          "effective_from",
+          "effective_until",
+          "location",
+          "components",
+          "version",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "applies_to": {
+            "type": "string",
+            "enum": [
+              "MERCHANDISE",
+              "FEES"
+            ]
+          },
+          "price_treatment": {
+            "type": "string",
+            "enum": [
+              "EXCLUSIVE",
+              "INCLUSIVE"
+            ],
+            "description": "EXCLUSIVE: added on top of the prices. INCLUSIVE: the prices already contain it"
+          },
+          "discount_treatment": {
+            "type": "string",
+            "enum": [
+              "AFTER_DISCOUNT",
+              "BEFORE_DISCOUNT"
+            ],
+            "description": "Whether the promotion discount reduces the taxable amount"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "description": "DRAFT: charges nobody. ACTIVE: applied inside its window, and frozen. DISABLED: final."
+          },
+          "approval": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "APPROVED"
+            ],
+            "description": "TEST: a development configuration, never applied in production"
+          },
+          "in_force": {
+            "type": "boolean",
+            "description": "ACTIVE and inside its effective window right now"
+          },
+          "effective_from": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "effective_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "label",
+                "rate_basis_points"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "What the customer reads on the tax line"
+                },
+                "rate_basis_points": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "description": "Basis points, an integer: 5 % = 500. Never a float."
+                }
+              }
+            }
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A tax rule of one market (optionally one restaurant). No rate exists in the code: a rule is what an administrator configured."
+      },
+      "FeeRule": {
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "label",
+          "type",
+          "currency",
+          "amount_minor",
+          "percent_basis_points",
+          "percent_of",
+          "minimum_minor",
+          "maximum_minor",
+          "pickup_method",
+          "taxable",
+          "status",
+          "approval",
+          "in_force",
+          "effective_from",
+          "effective_until",
+          "location",
+          "version",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,23}$",
+            "description": "A code containing DELIVERY or COMMISSION is refused"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FIXED",
+              "PERCENTAGE"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{3}$"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Integer minor units (paise for INR)"
+          },
+          "percent_basis_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "Basis points, an integer: 5 % = 500. Never a float."
+          },
+          "percent_of": {
+            "type": "string",
+            "enum": [
+              "SUBTOTAL",
+              "DISCOUNTED_SUBTOTAL"
+            ],
+            "description": "What a percentage is taken of. A promotion reduces a fee only when the fee is configured that way"
+          },
+          "minimum_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Integer minor units (paise for INR)"
+          },
+          "maximum_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Integer minor units (paise for INR)"
+          },
+          "pickup_method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH",
+              null
+            ],
+            "description": "Only for this way of picking up; null = every method"
+          },
+          "taxable": {
+            "type": "boolean",
+            "description": "Whether a FEES tax rule applies to this fee"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "DISABLED"
+            ],
+            "description": "DRAFT: charges nobody. ACTIVE: applied inside its window, and frozen. DISABLED: final."
+          },
+          "approval": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "APPROVED"
+            ],
+            "description": "TEST: a development configuration, never applied in production"
+          },
+          "in_force": {
+            "type": "boolean",
+            "description": "ACTIVE and inside its effective window right now"
+          },
+          "effective_from": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "effective_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "version": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A fee rule of one market (optionally one restaurant). None exists until an administrator configures one. There is no delivery fee and no commission."
+      },
+      "FinancialRules": {
+        "type": "object",
+        "required": [
+          "market",
+          "tax_rules",
+          "fee_rules",
+          "test_rules_applied",
+          "configured"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "market": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "default_currency"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "default_currency": {
+                "type": "string"
+              }
+            }
+          },
+          "tax_rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaxRule"
+            }
+          },
+          "fee_rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeeRule"
+            }
+          },
+          "test_rules_applied": {
+            "type": "boolean",
+            "description": "Whether TEST rules are applied in this environment (never in production)"
+          },
+          "configured": {
+            "type": "object",
+            "required": [
+              "tax",
+              "fees"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "tax": {
+                "type": "boolean"
+              },
+              "fees": {
+                "type": "boolean"
+              }
+            },
+            "description": "true only with an ACTIVE rule that is APPROVED"
+          }
+        }
+      },
+      "TaxRuleEnvelope": {
+        "type": "object",
+        "required": [
+          "tax_rule"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "tax_rule": {
+            "$ref": "#/components/schemas/TaxRule"
+          }
+        }
+      },
+      "FeeRuleEnvelope": {
+        "type": "object",
+        "required": [
+          "fee_rule"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "fee_rule": {
+            "$ref": "#/components/schemas/FeeRule"
+          }
+        }
+      },
+      "TaxRuleCreate": {
+        "type": "object",
+        "required": [
+          "name",
+          "applies_to",
+          "price_treatment",
+          "effective_from",
+          "components",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "applies_to": {
+            "type": "string",
+            "enum": [
+              "MERCHANDISE",
+              "FEES"
+            ]
+          },
+          "price_treatment": {
+            "type": "string",
+            "enum": [
+              "EXCLUSIVE",
+              "INCLUSIVE"
+            ]
+          },
+          "discount_treatment": {
+            "type": "string",
+            "enum": [
+              "AFTER_DISCOUNT",
+              "BEFORE_DISCOUNT"
+            ]
+          },
+          "approval": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "APPROVED"
+            ]
+          },
+          "effective_from": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "effective_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "components": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "label",
+                "rate_basis_points"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]{1,23}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "rate_basis_points": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "description": "Basis points, an integer: 5 % = 500. Never a float."
+                }
+              }
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "Created as DRAFT and TEST. Rates are integer basis points."
+      },
+      "TaxRuleUpdate": {
+        "type": "object",
+        "required": [
+          "version",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "applies_to": {
+            "type": "string",
+            "enum": [
+              "MERCHANDISE",
+              "FEES"
+            ]
+          },
+          "price_treatment": {
+            "type": "string",
+            "enum": [
+              "EXCLUSIVE",
+              "INCLUSIVE"
+            ]
+          },
+          "discount_treatment": {
+            "type": "string",
+            "enum": [
+              "AFTER_DISCOUNT",
+              "BEFORE_DISCOUNT"
+            ]
+          },
+          "approval": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "APPROVED"
+            ]
+          },
+          "effective_from": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "effective_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "components": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "label",
+                "rate_basis_points"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_]{1,23}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "rate_basis_points": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000,
+                  "description": "Basis points, an integer: 5 % = 500. Never a float."
+                }
+              }
+            }
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version that was looked at. Stale: 409 stale_update (details.current_version)."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "A DRAFT can be rewritten. Once ACTIVE only effective_until may change (409 rule_frozen otherwise): to change a rate, end the rule and create a new one."
+      },
+      "FeeRuleCreate": {
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "type",
+          "effective_from",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,23}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FIXED",
+              "PERCENTAGE"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The market's currency"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "percent_basis_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "Basis points, an integer: 5 % = 500. Never a float."
+          },
+          "percent_of": {
+            "type": "string",
+            "enum": [
+              "SUBTOTAL",
+              "DISCOUNTED_SUBTOTAL"
+            ]
+          },
+          "minimum_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "maximum_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "pickup_method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH",
+              null
+            ]
+          },
+          "taxable": {
+            "type": "boolean"
+          },
+          "approval": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "APPROVED"
+            ]
+          },
+          "effective_from": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "effective_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "Created as DRAFT and TEST. FIXED needs amount_minor and currency; PERCENTAGE needs percent_basis_points."
+      },
+      "FeeRuleUpdate": {
+        "type": "object",
+        "required": [
+          "version",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{2,23}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FIXED",
+              "PERCENTAGE"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The market's currency"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "percent_basis_points": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 10000,
+            "description": "Basis points, an integer: 5 % = 500. Never a float."
+          },
+          "percent_of": {
+            "type": "string",
+            "enum": [
+              "SUBTOTAL",
+              "DISCOUNTED_SUBTOTAL"
+            ]
+          },
+          "minimum_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "maximum_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "pickup_method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH",
+              null
+            ]
+          },
+          "taxable": {
+            "type": "boolean"
+          },
+          "approval": {
+            "type": "string",
+            "enum": [
+              "TEST",
+              "APPROVED"
+            ]
+          },
+          "effective_from": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "effective_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "The version that was looked at. Stale: 409 stale_update (details.current_version)."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "A DRAFT can be rewritten. Once ACTIVE only effective_until may change (409 rule_frozen otherwise)."
+      },
+      "CheckoutMetrics": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "window_hours",
+          "checkouts",
+          "events",
+          "rates",
+          "average_discount_minor",
+          "active_pickup_holds",
+          "promotions",
+          "slot_hold",
+          "payment_provider"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "checkouts": {
+            "type": "object",
+            "required": [
+              "draft",
+              "ready",
+              "stale",
+              "expired",
+              "payment_pending",
+              "converted",
+              "cancelled"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "draft": {
+                "type": "integer"
+              },
+              "ready": {
+                "type": "integer"
+              },
+              "stale": {
+                "type": "integer"
+              },
+              "expired": {
+                "type": "integer"
+              },
+              "payment_pending": {
+                "type": "integer"
+              },
+              "converted": {
+                "type": "integer"
+              },
+              "cancelled": {
+                "type": "integer"
+              }
+            },
+            "description": "Checkouts by state, now"
+          },
+          "events": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "How often each checkout event happened in the window"
+          },
+          "rates": {
+            "type": "object",
+            "required": [
+              "ready",
+              "promotion_success"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "ready": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "promotion_success": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            }
+          },
+          "average_discount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "active_pickup_holds": {
+            "type": "integer"
+          },
+          "promotions": {
+            "type": "object",
+            "required": [
+              "draft",
+              "active",
+              "paused",
+              "disabled"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "draft": {
+                "type": "integer"
+              },
+              "active": {
+                "type": "integer"
+              },
+              "paused": {
+                "type": "integer"
+              },
+              "disabled": {
+                "type": "integer"
+              }
+            }
+          },
+          "slot_hold": {
+            "type": "string",
+            "enum": [
+              "IMPLEMENTED"
+            ],
+            "description": "A confirmed checkout holds its pickup slot"
+          },
+          "payment_provider": {
+            "type": "string",
+            "enum": [
+              "NOT_INTEGRATED"
+            ]
+          }
+        },
+        "description": "Counts only: no cart, no customer, no code, no amount of anybody."
       }
     }
   }

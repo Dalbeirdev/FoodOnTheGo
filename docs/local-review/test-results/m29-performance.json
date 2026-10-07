@@ -1,0 +1,29 @@
+{
+    "module": "M29",
+    "note": "Local machine, PostgreSQL test database inside one transaction, PHP CLI without OPcache, in-process requests (no HTTP server, no network). Timings are measurements, not targets. Each request validates the cart and the pickup time again and prices from the current menu and rules; nothing is cached.",
+    "queries": {
+        "open_1_line": 41,
+        "open_20_lines_40_other_rules_400_reservations": 41,
+        "open_again_reused": 38,
+        "read_draft_1_line": 37,
+        "read_draft_20_lines": 37,
+        "read_ready_1_line": 40,
+        "read_ready_20_lines": 40,
+        "confirm_1_line": 56,
+        "confirm_20_lines": 56,
+        "remove_promotion": 46
+    },
+    "timings_ms": {
+        "open_1_line": 63.5,
+        "open_20_lines": 127.9,
+        "open_again_reused": 57.7,
+        "read_draft_1_line": 54.3,
+        "read_draft_20_lines": 83.5,
+        "read_ready_1_line": 56.4,
+        "read_ready_20_lines": 73.5,
+        "confirm_1_line": 90,
+        "confirm_20_lines": 107.4,
+        "remove_promotion": 76
+    },
+    "cache": "none — every answer is validated and priced again; Redis holds rate limits and event counters only"
+}

@@ -112,7 +112,8 @@ class PickupPerformanceTest extends TestCase
 
         $fks = collect(DB::select("select conrelid::regclass::text as tbl, confrelid::regclass::text as ref, confdeltype from pg_constraint where contype = 'f' and conrelid::regclass::text in ('cart_pickup_selections', 'pickup_slot_reservations')"))
             ->map(fn (object $r): string => $r->tbl.'>'.$r->ref.':'.$r->confdeltype)->sort()->values()->all();
-        $this->assertSame(['cart_pickup_selections>carts:c', 'pickup_slot_reservations>restaurant_locations:c'], $fks);
+        // (Module 29: a hold names its checkout; when the checkout row goes, the reservation stays without it.)
+        $this->assertSame(['cart_pickup_selections>carts:c', 'pickup_slot_reservations>checkout_sessions:n', 'pickup_slot_reservations>restaurant_locations:c'], $fks);
 
         $checks = collect(DB::select("select conname from pg_constraint where contype = 'c' and conrelid::regclass::text in ('cart_pickup_selections', 'pickup_slot_reservations')"))->pluck('conname')->sort()->values()->all();
         $this->assertSame([

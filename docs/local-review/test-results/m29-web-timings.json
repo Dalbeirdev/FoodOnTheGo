@@ -1,0 +1,27 @@
+{
+  "module": "M29",
+  "measured_at": "2026-10-06T14:48:07.524Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, PostgreSQL 18 local. Milliseconds per request as seen by the test client. Measurements, not targets.",
+  "timings": {
+    "open": {
+      "n": 20,
+      "median_ms": 670,
+      "max_ms": 3367
+    },
+    "read": {
+      "n": 4,
+      "median_ms": 608,
+      "max_ms": 869
+    },
+    "promotion": {
+      "n": 2,
+      "median_ms": 713,
+      "max_ms": 713
+    },
+    "confirm": {
+      "n": 18,
+      "median_ms": 552,
+      "max_ms": 1009
+    }
+  }
+}

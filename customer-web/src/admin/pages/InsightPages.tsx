@@ -8,6 +8,7 @@ import { Badge, DevNote, Select, Stat, useUrlState } from '../components/DataTab
 import type { AnalyticsQuery } from '../types'
 import { CartMetricsCard } from './CartMetricsCard'
 import { PickupMetricsCard } from './PickupMetricsCard'
+import { CheckoutMetricsCard } from './CheckoutMetricsCard'
 import { ProviderHealthCard } from './ProviderHealthCard'
 import { MarketScopeChip, KNOWN_MARKET_CODES, Stars, StatusPill, fmtDateTime, marketOptions, money, pct, useLoad, usePageTitle } from './shared'
 
@@ -69,6 +70,7 @@ export function SystemPage() {
       {real && <ProviderHealthCard locale={locale} />}
       {real && <CartMetricsCard locale={locale} />}
       {real && <PickupMetricsCard locale={locale} />}
+      {real && <CheckoutMetricsCard locale={locale} />}
       {state === 'loading' && <Skeleton rows={5} />}{state === 'error' && <ErrorState title={t('adm.error.loadTitle', undefined, locale)} onRetry={() => { void reload() }} locale={locale} />}
       {state === 'ready' && sys && <>
         <Card title={t('adm.system.services', undefined, locale)}><div className="db-table-wrap" tabIndex={0}><table className="db-table" data-testid="sys-services"><caption className="db-sr-only">{t('adm.system.services', undefined, locale)}</caption><thead><tr><th scope="col">{t('adm.system.col.service', undefined, locale)}</th><th scope="col">{t('adm.system.col.kind', undefined, locale)}</th><th scope="col">{t('adm.system.col.state', undefined, locale)}</th><th scope="col" className="adm-td--end">{t('adm.system.col.latency', undefined, locale)}</th><th scope="col" className="adm-hide-mobile">{t('adm.system.col.note', undefined, locale)}</th><th scope="col" className="adm-hide-mobile">{t('adm.system.col.checked', undefined, locale)}</th></tr></thead><tbody>{services.map((x) => <tr key={x.id} data-service={x.id}><td className="adm-td--primary">{x.name}</td><td>{t(`adm.system.kind.${x.kind}`, undefined, locale)}</td><td><StatusPill status={x.state} prefix="adm.health" dot /></td><td className="adm-td--end">{x.latencyMs == null ? '—' : t('adm.system.ms', { n: x.latencyMs.toLocaleString(locale) }, locale)}</td><td className="adm-hide-mobile">{x.note ?? '—'}</td><td className="adm-hide-mobile">{fmtDateTime(x.checkedAt, locale)}</td></tr>)}</tbody></table></div></Card>

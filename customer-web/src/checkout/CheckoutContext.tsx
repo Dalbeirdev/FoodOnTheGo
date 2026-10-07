@@ -1,5 +1,5 @@
 import { marketRepository } from '../market/mock/mockMarket'
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useCart } from '../cart/CartContext'
 import { readStaleSimulation, reviewCart, type CartReview } from '../cart/cartValidation'
@@ -10,44 +10,34 @@ import { restaurantRepository } from '../repositories'
 import type { Restaurant } from '../repositories/types'
 import { PRIVACY_VERSION, TERMS_VERSION, checkoutRepository as defaultCheckout, connectivity as defaultConnectivity, paymentMethodRepository as defaultPayments, promotionRepository as defaultPromos } from './mock/mockCheckout'
 import type { CheckoutIssue, CheckoutRepository, CheckoutRequest, CheckoutStatus, CheckoutSummary, ConnectivityService, PaymentMethodOption, PaymentMethodRepository, PromoResult, PromotionRepository } from './repositories'
+import { CheckoutCtx as Ctx, useCheckout, type CheckoutApi } from './checkoutApi'
+import { checkoutMode } from './checkoutMode'
+import { ServerCheckoutProvider } from './ServerCheckoutProvider'
+
+export { useCheckout }
+
+type Props = { children: ReactNode; promotions?: PromotionRepository; payments?: PaymentMethodRepository; checkout?: CheckoutRepository; connectivity?: ConnectivityService }
 
 /**
- * Centralized checkout state (Module 11): INITIALIZING → READY / REQUIRES_AUTH / INVALID_CART / INVALID_PICKUP /
- * OFFLINE / ERROR → VALIDATING → PAYMENT_READY. Reads auth, cart, pickup and restaurant state; never owns them.
- * The CheckoutRequest it produces carries no authoritative amount — the server prices it.
+ * Checkout state for the whole app. In API mode (checkoutMode) the checkout is the backend's (Module 29); otherwise —
+ * unit tests, share builds, and whenever a repository is handed in — the development checkout of Module 11 below.
  */
-type CheckoutApi = {
-  status: CheckoutStatus
-  restaurant: Restaurant | null
-  review: CartReview | null
-  pickupResult: PickupValidation | null
-  summary: CheckoutSummary | null
-  issues: CheckoutIssue[]
-  promo: PromoResult | null
-  promoBusy: boolean
-  methods: PaymentMethodOption[]
-  paymentMethodId: string | null
-  termsAccepted: boolean
-  error: string | null
-  online: boolean
-  request: CheckoutRequest | null
-  prepare: () => Promise<void>
-  applyPromo: (code: string) => Promise<PromoResult>
-  removePromo: () => void
-  setPaymentMethod: (id: string) => void
-  setTermsAccepted: (v: boolean) => void
-  continueToPayment: () => Promise<CheckoutRequest | null>
-  /** Called once the order exists — a consumed request must never re-enter payment. */
-  clearRequest: () => void
-  acceptPriceChange: (itemId: string, newUnitMinor: number) => void
+export function CheckoutProvider(props: Props) {
+  const device = props.promotions !== undefined || props.payments !== undefined || props.checkout !== undefined
+  if (!device && checkoutMode() === 'api') return <ServerCheckoutProvider connectivity={props.connectivity}>{props.children}</ServerCheckoutProvider>
+  return <DeviceCheckoutProvider {...props} />
 }
 
-const Ctx = createContext<CheckoutApi | null>(null)
+/**
+ * The development checkout (Module 11): INITIALIZING → READY / REQUIRES_AUTH / INVALID_CART / INVALID_PICKUP /
+ * OFFLINE / ERROR → VALIDATING → PAYMENT_READY. Reads auth, cart, pickup and restaurant state; never owns them.
+ * Its totals are development figures built in the browser; the CheckoutRequest carries no authoritative amount.
+ */
 const TERMS_KEY = 'fotg.checkout.terms'
 const REQUEST_KEY = 'fotg.checkout.request'
 const uuid = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `ck-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)
 
-export function CheckoutProvider({ children, promotions = defaultPromos, payments = defaultPayments, checkout = defaultCheckout, connectivity = defaultConnectivity }: { children: ReactNode; promotions?: PromotionRepository; payments?: PaymentMethodRepository; checkout?: CheckoutRepository; connectivity?: ConnectivityService }) {
+function DeviceCheckoutProvider({ children, promotions = defaultPromos, payments = defaultPayments, checkout = defaultCheckout, connectivity = defaultConnectivity }: Props) {
   const auth = useAuth()
   const cart = useCart()
   const pickup = usePickup()
@@ -166,14 +156,9 @@ export function CheckoutProvider({ children, promotions = defaultPromos, payment
   }, [prepare, connectivity, auth.user, c, pickup, summary, termsAccepted, paymentMethodId, restaurant, promo, cart.note])
 
   const clearRequest = useCallback(() => { setRequest(null); setStatus('INITIALIZING'); try { sessionStorage.removeItem(REQUEST_KEY); sessionStorage.removeItem(TERMS_KEY) } catch { /* ignore */ } }, [])
-  const api = useMemo<CheckoutApi>(() => ({ status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setPaymentMethod: setPaymentMethodId, setTermsAccepted, continueToPayment, clearRequest, acceptPriceChange }), [status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setTermsAccepted, continueToPayment, acceptPriceChange, clearRequest])
+  const revalidate = useCallback(async () => true /* the development checkout has nothing behind it to ask */, [])
+  const api = useMemo<CheckoutApi>(() => ({ source: 'mock', server: null, notice: null, revalidate, status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setPaymentMethod: setPaymentMethodId, setTermsAccepted, continueToPayment, clearRequest, acceptPriceChange }), [revalidate, status, restaurant, review, pickupResult, summary, issues, promo, promoBusy, methods, paymentMethodId, termsAccepted, error, online, request, prepare, applyPromo, removePromo, setTermsAccepted, continueToPayment, acceptPriceChange, clearRequest])
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }
 
 const cartSubtotal = (c: NonNullable<ReturnType<typeof useCart>['cart']>) => c.items.reduce((a, i) => a + i.lineTotalMinor, 0)
-
-export function useCheckout() {
-  const ctx = useContext(Ctx)
-  if (!ctx) throw new Error('useCheckout must be used inside CheckoutProvider')
-  return ctx
-}

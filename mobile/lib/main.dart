@@ -6,6 +6,7 @@ import 'core/theme.dart';
 import 'discovery/api_restaurants.dart';
 import 'journey/api_journey.dart';
 import 'market/api_market.dart';
+import 'checkout/api_checkout.dart';
 import 'pickup/api_pickup.dart';
 import 'screens/account_pages.dart';
 import 'screens/account_screens.dart';
@@ -132,6 +133,9 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   // Pickup times: the backend's when the build says so (PICKUP_MODE=api, with the cart on the backend) — asked for
   // and chosen as the cart's owner. Otherwise the development slot engine in the app.
   late final pickup = PickupState(backend: pickupFromApi && cartBackend != null ? PickupBackend(cartBackend!) : null)..onCartOutdated = () { cart.reload(); };
+  // Checkout on the backend (Module 29) goes out as the cart's owner does: it shares the cart's API client.
+  late final checkout = CheckoutState(backend: checkoutFromApi && cartBackend != null ? CheckoutBackend(cartBackend!) : null);
+  String? _checkoutOwner;
   late final GoRouter router = buildRouter(auth);
 
   @override
@@ -146,7 +150,13 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   }
 
   // Signing in claims the cart built as a guest; signing out goes back to a guest cart.
-  void _onAuth() { account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated); }
+  void _onAuth() {
+    account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated);
+    // Signing out, or another customer on this phone: nothing of the earlier checkout may be shown or paid.
+    final owner = auth.user?.id;
+    if (checkout.backendMode && _checkoutOwner != null && _checkoutOwner != owner) checkout.reset();
+    _checkoutOwner = owner;
+  }
 
   // The pickup choice belongs to the cart: when the cart appears, changes or goes, the backend's judgement of the
   // choice is read again (a changed cart may have made the chosen time unreachable).
@@ -171,7 +181,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: cart),
           ChangeNotifierProvider(create: (_) => OrdersState()),
           ChangeNotifierProvider.value(value: pickup),
-          ChangeNotifierProvider(create: (_) => CheckoutState()),
+          ChangeNotifierProvider.value(value: checkout),
           ChangeNotifierProvider(create: (_) => PaymentState()),
           ChangeNotifierProvider(create: (_) => OrderState()),
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class DatabasePickupCapacityRepository implements PickupCapacityRepository
 {
-    public function usage(RestaurantLocation $location, CarbonInterface $from, CarbonInterface $to, ?CarbonInterface $at = null): array
+    public function usage(RestaurantLocation $location, CarbonInterface $from, CarbonInterface $to, ?CarbonInterface $at = null, ?int $exceptCartId = null): array
     {
         $now = CarbonImmutable::instance($at ?? now())->utc();
         $rows = DB::table('pickup_slot_reservations')
@@ -27,6 +27,9 @@ final class DatabasePickupCapacityRepository implements PickupCapacityRepository
             ->where('slot_starts_at', '>=', CarbonImmutable::instance($from)->utc())
             ->where('slot_starts_at', '<', CarbonImmutable::instance($to)->utc())
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', $now))
+            // The place a cart's own checkout holds (Module 29) is not taken from that cart: its owner must still be
+            // offered the time they are holding.
+            ->when($exceptCartId !== null, fn ($q) => $q->where(fn ($w) => $w->whereNull('checkout_session_id')->orWhereNotIn('checkout_session_id', DB::table('checkout_sessions')->select('id')->where('cart_id', $exceptCartId))))
             ->groupBy('slot_starts_at')
             ->selectRaw('extract(epoch from slot_starts_at)::bigint as starts, sum(units)::int as units')
             ->get();

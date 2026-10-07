@@ -97,6 +97,9 @@ final class PickupSelectionService
             if ($cart === null) {
                 throw ApiException::notFound('cart_not_found', 'There is no cart to choose a pickup time for.');
             }
+            if ($cart->paymentInProgress()) {
+                throw ApiException::conflict('cart_locked_for_payment', 'A payment for this cart is in progress. The pickup time cannot be changed until the payment has finished.');
+            }
             if (isset($input['cart_version']) && (int) $input['cart_version'] !== (int) $cart->version) {
                 throw ApiException::conflict('cart_version_conflict', 'Your cart changed somewhere else. Reload it and try again.', ['current_version' => (int) $cart->version]);
             }
@@ -146,6 +149,9 @@ final class PickupSelectionService
         $cart = $this->cartOf($owner);
         if ($cart === null) {
             return false;
+        }
+        if ($cart->paymentInProgress()) {
+            throw ApiException::conflict('cart_locked_for_payment', 'A payment for this cart is in progress. The pickup time cannot be changed until the payment has finished.');
         }
         $removed = CartPickupSelection::query()->where('cart_id', $cart->getKey())->delete() > 0;
         if ($removed) {

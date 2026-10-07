@@ -69,6 +69,25 @@ class Cart extends Model
     }
 
     /**
+     * The checkout sessions created for this cart (Module 29); at most one of them is live.
+     *
+     * @return HasMany<CheckoutSession, $this>
+     */
+    public function checkoutSessions(): HasMany
+    {
+        return $this->hasMany(CheckoutSession::class);
+    }
+
+    /**
+     * A payment for this cart has been started (Module 30 sets a checkout to PAYMENT_PENDING): until it ends, the
+     * cart and its pickup time must stay exactly what is being paid for.
+     */
+    public function paymentInProgress(): bool
+    {
+        return $this->exists && CheckoutSession::query()->where('cart_id', $this->getKey())->where('status', 'PAYMENT_PENDING')->exists();
+    }
+
+    /**
      * @param  Builder<Cart>  $query
      */
     public function scopeActive(Builder $query): void

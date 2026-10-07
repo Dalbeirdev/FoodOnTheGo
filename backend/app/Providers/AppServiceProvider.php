@@ -193,5 +193,10 @@ class AppServiceProvider extends ServiceProvider
         // not an identity for rate limiting). Starting NEW guest carts is bounded separately in CartController.
         RateLimiter::for('cart-read', fn (Request $request) => Limit::perMinute($perMinute('cart_read'))->by('cart-read:'.$journeyActor($request)));
         RateLimiter::for('cart-write', fn (Request $request) => $journeyLimit($request, 'cart_write')->by('cart-write:'.$journeyActor($request)));
+
+        // Checkout (Module 29): always a signed-in customer.
+        RateLimiter::for('checkout-read', fn (Request $request) => Limit::perMinute($perMinute('checkout_read'))->by('checkout-read:'.$journeyActor($request)));
+        RateLimiter::for('checkout-write', fn (Request $request) => Limit::perMinute($perMinute('checkout_write'))->by('checkout-write:'.$journeyActor($request)));
+        RateLimiter::for('promotion-apply', fn (Request $request) => Limit::perMinute($perMinute('promotion_apply'))->by('promotion-apply:'.$journeyActor($request)));
     }
 }

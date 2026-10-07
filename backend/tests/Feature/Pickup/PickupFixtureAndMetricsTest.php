@@ -107,7 +107,7 @@ class PickupFixtureAndMetricsTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $report['events']['journey_aware']);
         $this->assertGreaterThan(50, $report['events']['slots_generated']);
         $this->assertSame(['fixture' => 2, 'hold' => 0, 'order' => 0], $report['upcoming_capacity_units']);
-        $this->assertSame('NOT_IMPLEMENTED', $report['slot_hold']);
+        $this->assertSame('AT_CHECKOUT', $report['slot_hold']);
         $this->assertIsFloat($report['rates']['asap_available']);
 
         // Through the admin endpoint: the same numbers, and nothing that identifies a cart, a customer or a time.

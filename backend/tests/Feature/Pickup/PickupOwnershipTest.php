@@ -95,7 +95,7 @@ class PickupOwnershipTest extends TestCase
 
         $this->actingAsPrincipal($this->adminWith([Permission::AdminSystemView]));
         $report = $this->getJson('/api/v1/admin/system/pickup')->assertOk();
-        $report->assertJsonPath('selections.selected', 1)->assertJsonPath('selections.selected_scheduled', 1)->assertJsonPath('slot_hold', 'NOT_IMPLEMENTED')
+        $report->assertJsonPath('selections.selected', 1)->assertJsonPath('selections.selected_scheduled', 1)->assertJsonPath('slot_hold', 'AT_CHECKOUT')
             ->assertJsonPath('events.selected_scheduled', 1)->assertJsonPath('events.availability_requests', 1);
         foreach (['13:15', '07:45', $cartId, 'ps1_', 'slot_key', 'pickup_at', 'Burger Hub'] as $private) {
             $this->assertStringNotContainsString((string) $private, $report->getContent());

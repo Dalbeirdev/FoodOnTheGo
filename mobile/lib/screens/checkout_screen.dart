@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -15,7 +17,11 @@ import '../state/checkout_state.dart';
 import '../state/journey_state.dart';
 import '../state/pickup_state.dart';
 import '../widgets/common.dart';
+import 'checkout_backend_view.dart';
 
+/// Checkout review — Android. With the checkout backend (Module 29) the screen is [CheckoutBackendView]: everything
+/// on it is the backend's checkout. Otherwise the development review of Module 11 below.
+///
 /// Checkout review (Module 11) — Android. Sections: customer, restaurant, pickup, items, promo, order note,
 /// legal acknowledgement, payment method entry point; sticky total + Continue to secure payment.
 /// No raw card / UPI / bank fields exist; Module 12 hands off to the provider's secure flow.
@@ -25,15 +31,46 @@ class CheckoutScreen extends StatefulWidget {
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class _CheckoutScreenState extends State<CheckoutScreen> with WidgetsBindingObserver {
   final promoCtl = TextEditingController();
   final noteCtl = TextEditingController();
   bool showIssues = false;
   bool continuing = false;
   String _lastKey = '';
+  Timer? _ticker;
+  bool _asked = false;
 
   @override
-  void dispose() { promoCtl.dispose(); noteCtl.dispose(); super.dispose(); }
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Backend mode: the time left is counted every second from the server's clock; when it is over the backend is
+    // asked what the checkout is now.
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final co = context.read<CheckoutState>();
+      if (!co.backendMode) return;
+      final left = co.timeLeft();
+      if (left == null) { _asked = false; return; }
+      if (left <= Duration.zero && !_asked) { _asked = true; unawaited(_revalidate()); }
+      if (left > Duration.zero) _asked = false;
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() { WidgetsBinding.instance.removeObserver(this); _ticker?.cancel(); promoCtl.dispose(); noteCtl.dispose(); super.dispose(); }
+
+  /// Back in the app: what was on the screen may be old. The backend is asked what the checkout is now.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted && context.read<CheckoutState>().backendMode) unawaited(_revalidate());
+  }
+
+  Future<void> _revalidate() async {
+    if (!mounted) return;
+    await context.read<CheckoutState>().revalidate(auth: context.read<AuthState>(), cart: context.read<CartState>());
+  }
 
   @override
   void didChangeDependencies() {
@@ -51,10 +88,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final req = await co.continueToPayment(auth: context.read<AuthState>(), cart: context.read<CartState>(), pickup: context.read<PickupState>());
     if (!mounted) return;
     setState(() => continuing = false);
-    if (req != null) context.push('/payment');
+    // Nothing to pay: there is no payment step to go to (and no payment of zero is ever created).
+    if (req != null && !(co.backendMode && req.displayedTotalMinor == 0)) context.push('/payment');
   }
 
-  String _issueText(CheckoutIssue i) => S.t('checkout.issue.${switch (i.code) { CheckoutIssueCode.offline => 'offline', CheckoutIssueCode.auth => 'auth', CheckoutIssueCode.cartEmpty => 'cart_empty', CheckoutIssueCode.cartInvalid => 'cart_invalid', CheckoutIssueCode.priceChanged => 'price_changed', CheckoutIssueCode.pickupMissing => 'pickup_missing', CheckoutIssueCode.pickupInvalid => 'pickup_invalid', CheckoutIssueCode.restaurantUnavailable => 'restaurant_unavailable', CheckoutIssueCode.restaurantNotAccepting => 'restaurant_not_accepting', CheckoutIssueCode.promoInvalid => 'promo_invalid', CheckoutIssueCode.terms => 'terms', CheckoutIssueCode.paymentMethod => 'payment_method', CheckoutIssueCode.currency => 'currency' }}', {'detail': i.detail ?? ''});
+  String _issueText(CheckoutIssue i) => S.t('checkout.issue.${switch (i.code) { CheckoutIssueCode.offline => 'offline', CheckoutIssueCode.auth => 'auth', CheckoutIssueCode.cartEmpty => 'cart_empty', CheckoutIssueCode.cartInvalid => 'cart_invalid', CheckoutIssueCode.priceChanged => 'price_changed', CheckoutIssueCode.pickupMissing => 'pickup_missing', CheckoutIssueCode.pickupInvalid => 'pickup_invalid', CheckoutIssueCode.restaurantUnavailable => 'restaurant_unavailable', CheckoutIssueCode.restaurantNotAccepting => 'restaurant_not_accepting', CheckoutIssueCode.promoInvalid => 'promo_invalid', CheckoutIssueCode.terms => 'terms', CheckoutIssueCode.paymentMethod => 'payment_method', CheckoutIssueCode.currency => 'currency', CheckoutIssueCode.itemUnavailable => 'item_unavailable', CheckoutIssueCode.pickupFull => 'pickup_full', CheckoutIssueCode.checkoutExpired => 'checkout_expired', CheckoutIssueCode.checkoutChanged => 'checkout_changed', CheckoutIssueCode.paymentInProgress => 'payment_in_progress', CheckoutIssueCode.server => 'server' }}', {'detail': i.detail ?? ''});
   String _promoText(PromoResult p, String Function(int) money) => switch (p.status) { PromoStatus.invalid => S.t('checkout.promo.invalid'), PromoStatus.expired => S.t('checkout.promo.expired'), PromoStatus.notEligible => S.t('checkout.promo.not_eligible'), PromoStatus.minSpend => S.t('checkout.promo.min_spend', {'amount': money(p.minimumSpendMinor ?? 0)}), PromoStatus.restaurantNotEligible => S.t('checkout.promo.restaurant_not_eligible'), PromoStatus.marketNotEligible => S.t('checkout.promo.market_not_eligible'), PromoStatus.currencyNotEligible => S.t('checkout.promo.currency_not_eligible'), _ => '' };
 
   @override
@@ -69,6 +107,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!auth.isAuthenticated) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (c == null || c.items.isEmpty) {
       return Scaffold(appBar: BrandAppBar(title: S.t('checkout.title'), showCart: false), body: PageBody(children: [Card(child: Padding(padding: const EdgeInsets.all(24), child: EmptyState(icon: Icons.shopping_cart_outlined, title: S.t('cartpage.empty.title'), sub: S.t('cartpage.empty.text'), actionLabel: S.t('cartpage.empty.explore'), onAction: () => context.go('/restaurants'))))]));
+    }
+    if (co.backendMode) {
+      final left = co.timeLeft();
+      return CheckoutBackendView(co: co, auth: auth, cart: cart, pickup: pk, promoCtl: promoCtl, noteCtl: noteCtl, showIssues: showIssues, continuing: continuing, secondsLeft: left == null ? null : (left.inMilliseconds / 1000).ceil().clamp(0, 86400), onContinue: _continue);
     }
     final sel = pk.selection;
     final r = co.restaurant;

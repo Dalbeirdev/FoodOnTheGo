@@ -1,0 +1,188 @@
+# Module 29 — migration 2026_10_08_100000_create_checkout_tables: rollback and re-apply, on the TEST database only (DB_DATABASE=foodonthego_test), 2026-10-06
+
+## database in use
+foodonthego_test
+
+## before: last migrations
+ 2026_10_07_100000_create_pickup_tables .. [1] Ran 
+ 2026_10_08_100000_create_checkout_tables .. [1] Ran 
+
+
+tables: checkout_legal_acceptances, checkout_sessions, fee_rules, promotion_reservations, promotions, tax_rule_components, tax_rules
+pickup_slot_reservations.checkout_session_id: present
+pickup_slot_reservations status check: CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'RELEASED'::character varying, 'EXPIRED'::character varying])::text[])))
+
+## php artisan migrate:rollback --step=1
+
+ INFO Rolling back migrations. 
+
+ 2026_10_08_100000_create_checkout_tables .. 96.61ms DONE
+
+tables: [absent]
+pickup_slot_reservations.checkout_session_id: [absent]
+pickup_slot_reservations status check: CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'RELEASED'::character varying])::text[])))
+
+## php artisan migrate
+
+ INFO Running migrations. 
+
+ 2026_10_08_100000_create_checkout_tables .. 392.52ms DONE
+
+tables: checkout_legal_acceptances, checkout_sessions, fee_rules, promotion_reservations, promotions, tax_rule_components, tax_rules
+pickup_slot_reservations.checkout_session_id: present
+pickup_slot_reservations status check: CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'RELEASED'::character varying, 'EXPIRED'::character varying])::text[])))
+
+### promotions
+columns: id bigint NOT NULL, public_id uuid NOT NULL, code character varying NOT NULL, name character varying NOT NULL, description character varying, type character varying NOT NULL, status character varying NOT NULL, scope character varying NOT NULL, market_id bigint, organization_id bigint, location_id bigint, currency character, amount_minor bigint, percent_basis_points integer, maximum_discount_minor bigint, minimum_spend_minor bigint, starts_at timestamp with time zone, ends_at timestamp with time zone, usage_limit integer, per_customer_limit integer, redeemed_count integer NOT NULL, funding_source character varying NOT NULL, version integer NOT NULL, created_by_admin_id bigint, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX promotions_code_unique ON public.promotions USING btree (code)
+  CREATE INDEX promotions_location_id_index ON public.promotions USING btree (location_id)
+  CREATE INDEX promotions_market_id_index ON public.promotions USING btree (market_id)
+  CREATE INDEX promotions_organization_id_index ON public.promotions USING btree (organization_id)
+  CREATE UNIQUE INDEX promotions_pkey ON public.promotions USING btree (id)
+  CREATE UNIQUE INDEX promotions_public_id_unique ON public.promotions USING btree (public_id)
+  CREATE INDEX promotions_status_starts_at_ends_at_index ON public.promotions USING btree (status, starts_at, ends_at)
+constraints (check / foreign key / unique / primary):
+  promotions_code_check : CHECK ((((code)::text = upper(btrim((code)::text))) AND (char_length((code)::text) >= 3)))
+  promotions_currency_check : CHECK ((((amount_minor IS NULL) AND (maximum_discount_minor IS NULL) AND (minimum_spend_minor IS NULL)) OR (currency IS NOT NULL)))
+  promotions_currency_format_check : CHECK (((currency IS NULL) OR (currency ~ '^[A-Z]{3}$'::text)))
+  promotions_funding_check : CHECK (((funding_source)::text = ANY ((ARRAY['PLATFORM'::character varying, 'RESTAURANT'::character varying, 'SHARED'::character varying])::text[])))
+  promotions_limits_check : CHECK ((((usage_limit IS NULL) OR (usage_limit > 0)) AND ((per_customer_limit IS NULL) OR (per_customer_limit > 0))))
+  promotions_scope_check : CHECK (((scope)::text = ANY ((ARRAY['PLATFORM'::character varying, 'MARKET'::character varying, 'RESTAURANT_ORGANIZATION'::character varying, 'RESTAURANT_LOCATION'::character varying])::text[])))
+  promotions_scope_target_check : CHECK (((((scope)::text = 'PLATFORM'::text) AND (market_id IS NULL) AND (organization_id IS NULL) AND (location_id IS NULL)) OR (((scope)::text = 'MARKET'::text) AND (market_id IS NOT NULL) AND (organization_id IS NULL) AND (location_id IS NULL)) OR (((scope)::text = 'RESTAURANT_ORGANIZATION'::text) AND (organization_id IS NOT NULL) AND (location_id IS NULL)) OR (((scope)::text = 'RESTAURANT_LOCATION'::text) AND (location_id IS NOT NULL))))
+  promotions_status_check : CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'ACTIVE'::character varying, 'PAUSED'::character varying, 'DISABLED'::character varying])::text[])))
+  promotions_type_check : CHECK (((type)::text = ANY ((ARRAY['FIXED_AMOUNT'::character varying, 'PERCENTAGE'::character varying])::text[])))
+  promotions_value_check : CHECK (((((type)::text = 'FIXED_AMOUNT'::text) AND (amount_minor IS NOT NULL) AND (amount_minor > 0) AND (percent_basis_points IS NULL) AND (maximum_discount_minor IS NULL)) OR (((type)::text = 'PERCENTAGE'::text) AND ((percent_basis_points >= 1) AND (percent_basis_points <= 10000)) AND (amount_minor IS NULL))))
+  promotions_window_check : CHECK (((starts_at IS NULL) OR (ends_at IS NULL) OR (ends_at > starts_at)))
+  promotions_created_by_admin_id_foreign : FOREIGN KEY (created_by_admin_id) REFERENCES admin_users(id) ON DELETE SET NULL
+  promotions_location_id_foreign : FOREIGN KEY (location_id) REFERENCES restaurant_locations(id) ON DELETE RESTRICT
+  promotions_market_id_foreign : FOREIGN KEY (market_id) REFERENCES markets(id) ON DELETE RESTRICT
+  promotions_organization_id_foreign : FOREIGN KEY (organization_id) REFERENCES restaurant_organizations(id) ON DELETE RESTRICT
+  promotions_pkey : PRIMARY KEY (id)
+  promotions_code_unique : UNIQUE (code)
+  promotions_public_id_unique : UNIQUE (public_id)
+
+### tax_rules
+columns: id bigint NOT NULL, public_id uuid NOT NULL, market_id bigint NOT NULL, location_id bigint, name character varying NOT NULL, applies_to character varying NOT NULL, price_treatment character varying NOT NULL, discount_treatment character varying NOT NULL, status character varying NOT NULL, approval character varying NOT NULL, effective_from timestamp with time zone NOT NULL, effective_until timestamp with time zone, version integer NOT NULL, created_by_admin_id bigint, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE INDEX tax_rules_location_id_index ON public.tax_rules USING btree (location_id)
+  CREATE UNIQUE INDEX tax_rules_pkey ON public.tax_rules USING btree (id)
+  CREATE UNIQUE INDEX tax_rules_public_id_unique ON public.tax_rules USING btree (public_id)
+  CREATE INDEX tax_rules_scope_index ON public.tax_rules USING btree (market_id, status, effective_from, effective_until)
+constraints (check / foreign key / unique / primary):
+  tax_rules_applies_check : CHECK (((applies_to)::text = ANY ((ARRAY['MERCHANDISE'::character varying, 'FEES'::character varying])::text[])))
+  tax_rules_approval_check : CHECK (((approval)::text = ANY ((ARRAY['TEST'::character varying, 'APPROVED'::character varying])::text[])))
+  tax_rules_discount_check : CHECK (((discount_treatment)::text = ANY ((ARRAY['AFTER_DISCOUNT'::character varying, 'BEFORE_DISCOUNT'::character varying])::text[])))
+  tax_rules_status_check : CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'ACTIVE'::character varying, 'DISABLED'::character varying])::text[])))
+  tax_rules_treatment_check : CHECK (((price_treatment)::text = ANY ((ARRAY['EXCLUSIVE'::character varying, 'INCLUSIVE'::character varying])::text[])))
+  tax_rules_window_check : CHECK (((effective_until IS NULL) OR (effective_until > effective_from)))
+  tax_rules_created_by_admin_id_foreign : FOREIGN KEY (created_by_admin_id) REFERENCES admin_users(id) ON DELETE SET NULL
+  tax_rules_location_id_foreign : FOREIGN KEY (location_id) REFERENCES restaurant_locations(id) ON DELETE CASCADE
+  tax_rules_market_id_foreign : FOREIGN KEY (market_id) REFERENCES markets(id) ON DELETE RESTRICT
+  tax_rules_pkey : PRIMARY KEY (id)
+  tax_rules_public_id_unique : UNIQUE (public_id)
+
+### tax_rule_components
+columns: id bigint NOT NULL, tax_rule_id bigint NOT NULL, code character varying NOT NULL, label character varying NOT NULL, rate_basis_points integer NOT NULL, sequence smallint NOT NULL, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX tax_rule_components_pkey ON public.tax_rule_components USING btree (id)
+  CREATE UNIQUE INDEX tax_rule_components_tax_rule_id_code_unique ON public.tax_rule_components USING btree (tax_rule_id, code)
+constraints (check / foreign key / unique / primary):
+  tax_rule_components_rate_check : CHECK (((rate_basis_points >= 0) AND (rate_basis_points <= 10000)))
+  tax_rule_components_tax_rule_id_foreign : FOREIGN KEY (tax_rule_id) REFERENCES tax_rules(id) ON DELETE CASCADE
+  tax_rule_components_pkey : PRIMARY KEY (id)
+  tax_rule_components_tax_rule_id_code_unique : UNIQUE (tax_rule_id, code)
+
+### fee_rules
+columns: id bigint NOT NULL, public_id uuid NOT NULL, market_id bigint NOT NULL, location_id bigint, code character varying NOT NULL, label character varying NOT NULL, type character varying NOT NULL, currency character, amount_minor bigint, percent_basis_points integer, percent_of character varying NOT NULL, minimum_minor bigint, maximum_minor bigint, pickup_method character varying, taxable boolean NOT NULL, status character varying NOT NULL, approval character varying NOT NULL, effective_from timestamp with time zone NOT NULL, effective_until timestamp with time zone, version integer NOT NULL, created_by_admin_id bigint, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE INDEX fee_rules_location_id_index ON public.fee_rules USING btree (location_id)
+  CREATE UNIQUE INDEX fee_rules_pkey ON public.fee_rules USING btree (id)
+  CREATE UNIQUE INDEX fee_rules_public_id_unique ON public.fee_rules USING btree (public_id)
+  CREATE INDEX fee_rules_scope_index ON public.fee_rules USING btree (market_id, status, effective_from, effective_until)
+constraints (check / foreign key / unique / primary):
+  fee_rules_approval_check : CHECK (((approval)::text = ANY ((ARRAY['TEST'::character varying, 'APPROVED'::character varying])::text[])))
+  fee_rules_bounds_check : CHECK ((((minimum_minor IS NULL) AND (maximum_minor IS NULL)) OR (currency IS NOT NULL)))
+  fee_rules_code_check : CHECK ((((code)::text ~ '^[A-Z][A-Z0-9_]{2,23}$'::text) AND ((code)::text !~~ '%DELIVERY%'::text) AND ((code)::text !~~ '%COMMISSION%'::text)))
+  fee_rules_method_check : CHECK (((pickup_method IS NULL) OR ((pickup_method)::text = ANY ((ARRAY['COUNTER'::character varying, 'CURBSIDE'::character varying, 'DRIVE_THROUGH'::character varying])::text[]))))
+  fee_rules_percent_of_check : CHECK (((percent_of)::text = ANY ((ARRAY['SUBTOTAL'::character varying, 'DISCOUNTED_SUBTOTAL'::character varying])::text[])))
+  fee_rules_range_check : CHECK (((minimum_minor IS NULL) OR (maximum_minor IS NULL) OR (maximum_minor >= minimum_minor)))
+  fee_rules_status_check : CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'ACTIVE'::character varying, 'DISABLED'::character varying])::text[])))
+  fee_rules_type_check : CHECK (((type)::text = ANY ((ARRAY['FIXED'::character varying, 'PERCENTAGE'::character varying])::text[])))
+  fee_rules_value_check : CHECK (((((type)::text = 'FIXED'::text) AND (amount_minor IS NOT NULL) AND (amount_minor > 0) AND (currency IS NOT NULL) AND (percent_basis_points IS NULL)) OR (((type)::text = 'PERCENTAGE'::text) AND ((percent_basis_points >= 1) AND (percent_basis_points <= 10000)) AND (amount_minor IS NULL))))
+  fee_rules_window_check : CHECK (((effective_until IS NULL) OR (effective_until > effective_from)))
+  fee_rules_created_by_admin_id_foreign : FOREIGN KEY (created_by_admin_id) REFERENCES admin_users(id) ON DELETE SET NULL
+  fee_rules_location_id_foreign : FOREIGN KEY (location_id) REFERENCES restaurant_locations(id) ON DELETE CASCADE
+  fee_rules_market_id_foreign : FOREIGN KEY (market_id) REFERENCES markets(id) ON DELETE RESTRICT
+  fee_rules_pkey : PRIMARY KEY (id)
+  fee_rules_public_id_unique : UNIQUE (public_id)
+
+### checkout_sessions
+columns: id bigint NOT NULL, public_id uuid NOT NULL, customer_id bigint NOT NULL, cart_id bigint NOT NULL, cart_version integer NOT NULL, pickup_selection_id bigint, pickup_selection_version integer NOT NULL, pickup_mode character varying NOT NULL, pickup_method character varying NOT NULL, pickup_at timestamp with time zone NOT NULL, pickup_slot_starts_at timestamp with time zone NOT NULL, pickup_slot_ends_at timestamp with time zone NOT NULL, restaurant_timezone character varying NOT NULL, location_id bigint NOT NULL, market_id bigint NOT NULL, currency character NOT NULL, status character varying NOT NULL, status_reason character varying, subtotal_minor bigint NOT NULL, discount_minor bigint NOT NULL, tax_minor bigint NOT NULL, tax_included_minor bigint NOT NULL, fee_minor bigint NOT NULL, total_minor bigint NOT NULL, payment_required boolean NOT NULL, pricing_fingerprint character NOT NULL, promotion_id bigint, promotion_code character varying, snapshot jsonb NOT NULL, order_note character varying, payment_method_type character varying, customer_payment_method_id bigint, confirmed_at timestamp with time zone, payment_started_at timestamp with time zone, closed_at timestamp with time zone, expires_at timestamp with time zone NOT NULL, version integer NOT NULL, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE INDEX checkout_sessions_customer_id_status_index ON public.checkout_sessions USING btree (customer_id, status)
+  CREATE INDEX checkout_sessions_location_id_index ON public.checkout_sessions USING btree (location_id)
+  CREATE INDEX checkout_sessions_market_id_index ON public.checkout_sessions USING btree (market_id)
+  CREATE UNIQUE INDEX checkout_sessions_one_live_per_cart ON public.checkout_sessions USING btree (cart_id) WHERE ((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'READY'::character varying, 'PAYMENT_PENDING'::character varying])::text[]))
+  CREATE UNIQUE INDEX checkout_sessions_pkey ON public.checkout_sessions USING btree (id)
+  CREATE INDEX checkout_sessions_promotion_id_index ON public.checkout_sessions USING btree (promotion_id)
+  CREATE UNIQUE INDEX checkout_sessions_public_id_unique ON public.checkout_sessions USING btree (public_id)
+  CREATE INDEX checkout_sessions_status_expires_at_index ON public.checkout_sessions USING btree (status, expires_at)
+constraints (check / foreign key / unique / primary):
+  checkout_sessions_currency_check : CHECK ((currency ~ '^[A-Z]{3}$'::text))
+  checkout_sessions_mode_check : CHECK (((pickup_mode)::text = ANY ((ARRAY['ASAP'::character varying, 'SCHEDULED'::character varying])::text[])))
+  checkout_sessions_payment_check : CHECK ((payment_required = (total_minor > 0)))
+  checkout_sessions_ready_check : CHECK ((((status)::text <> ALL ((ARRAY['READY'::character varying, 'PAYMENT_PENDING'::character varying, 'CONVERTED'::character varying])::text[])) OR (confirmed_at IS NOT NULL)))
+  checkout_sessions_status_check : CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'READY'::character varying, 'STALE'::character varying, 'EXPIRED'::character varying, 'PAYMENT_PENDING'::character varying, 'CONVERTED'::character varying, 'CANCELLED'::character varying])::text[])))
+  checkout_sessions_total_check : CHECK (((discount_minor <= subtotal_minor) AND (total_minor = (((subtotal_minor - discount_minor) + tax_minor) + fee_minor))))
+  checkout_sessions_cart_id_foreign : FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE
+  checkout_sessions_customer_id_foreign : FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+  checkout_sessions_customer_payment_method_id_foreign : FOREIGN KEY (customer_payment_method_id) REFERENCES customer_payment_methods(id) ON DELETE SET NULL
+  checkout_sessions_location_id_foreign : FOREIGN KEY (location_id) REFERENCES restaurant_locations(id) ON DELETE RESTRICT
+  checkout_sessions_market_id_foreign : FOREIGN KEY (market_id) REFERENCES markets(id) ON DELETE RESTRICT
+  checkout_sessions_pickup_selection_id_foreign : FOREIGN KEY (pickup_selection_id) REFERENCES cart_pickup_selections(id) ON DELETE SET NULL
+  checkout_sessions_promotion_id_foreign : FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE SET NULL
+  checkout_sessions_pkey : PRIMARY KEY (id)
+  checkout_sessions_public_id_unique : UNIQUE (public_id)
+
+### checkout_legal_acceptances
+columns: id bigint NOT NULL, checkout_session_id bigint NOT NULL, customer_id bigint NOT NULL, document_type character varying NOT NULL, document_version character varying NOT NULL, document_effective_date date, document_status character varying NOT NULL, accepted_at timestamp with time zone NOT NULL, request_id character varying, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX checkout_legal_acceptances_checkout_session_id_document_type_un ON public.checkout_legal_acceptances USING btree (checkout_session_id, document_type)
+  CREATE INDEX checkout_legal_acceptances_customer_id_document_type_index ON public.checkout_legal_acceptances USING btree (customer_id, document_type)
+  CREATE UNIQUE INDEX checkout_legal_acceptances_pkey ON public.checkout_legal_acceptances USING btree (id)
+constraints (check / foreign key / unique / primary):
+  checkout_legal_acceptances_type_check : CHECK (((document_type)::text = ANY ((ARRAY['TERMS'::character varying, 'PRIVACY'::character varying, 'REFUND'::character varying])::text[])))
+  checkout_legal_acceptances_checkout_session_id_foreign : FOREIGN KEY (checkout_session_id) REFERENCES checkout_sessions(id) ON DELETE CASCADE
+  checkout_legal_acceptances_customer_id_foreign : FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+  checkout_legal_acceptances_pkey : PRIMARY KEY (id)
+  checkout_legal_acceptances_checkout_session_id_document_type_un : UNIQUE (checkout_session_id, document_type)
+
+### promotion_reservations
+columns: id bigint NOT NULL, promotion_id bigint NOT NULL, checkout_session_id bigint, customer_id bigint NOT NULL, status character varying NOT NULL, expires_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone
+indexes:
+  CREATE UNIQUE INDEX promotion_reservations_checkout_session_id_unique ON public.promotion_reservations USING btree (checkout_session_id)
+  CREATE UNIQUE INDEX promotion_reservations_pkey ON public.promotion_reservations USING btree (id)
+  CREATE INDEX promotion_reservations_promotion_id_customer_id_status_index ON public.promotion_reservations USING btree (promotion_id, customer_id, status)
+  CREATE INDEX promotion_reservations_promotion_id_status_expires_at_index ON public.promotion_reservations USING btree (promotion_id, status, expires_at)
+constraints (check / foreign key / unique / primary):
+  promotion_reservations_status_check : CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'RELEASED'::character varying, 'REDEEMED'::character varying])::text[])))
+  promotion_reservations_checkout_session_id_foreign : FOREIGN KEY (checkout_session_id) REFERENCES checkout_sessions(id) ON DELETE SET NULL
+  promotion_reservations_customer_id_foreign : FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+  promotion_reservations_promotion_id_foreign : FOREIGN KEY (promotion_id) REFERENCES promotions(id) ON DELETE CASCADE
+  promotion_reservations_pkey : PRIMARY KEY (id)
+  promotion_reservations_checkout_session_id_unique : UNIQUE (checkout_session_id)
+
+### pickup_slot_reservations (Module 28 table, extended)
+  CREATE UNIQUE INDEX pickup_slot_reservations_one_hold_per_checkout ON public.pickup_slot_reservations USING btree (checkout_session_id) WHERE (((status)::text = 'ACTIVE'::text) AND (checkout_session_id IS NOT NULL))
+  pickup_slot_reservations_checkout_session_id_foreign : FOREIGN KEY (checkout_session_id) REFERENCES checkout_sessions(id) ON DELETE SET NULL
+  pickup_slot_reservations_status_check : CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'RELEASED'::character varying, 'EXPIRED'::character varying])::text[])))
+  pickup_slot_reservations_status_not_null : NOT NULL status
+
+### money columns that are not integers (expected: none)
+none
+
+## after: last migrations
+ 2026_10_07_100000_create_pickup_tables .. [1] Ran 
+ 2026_10_08_100000_create_checkout_tables .. [2] Ran 
+
