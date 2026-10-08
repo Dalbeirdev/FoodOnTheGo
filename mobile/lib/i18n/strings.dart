@@ -411,6 +411,10 @@ class S {
     'pay.api.verified.title': 'Payment verified',
     'pay.api.verified.text': 'FoodOnTheGo has verified your payment with the payment provider.',
     'pay.api.orderPending': 'Payment verified — order creation is pending. Creating the order is the next step of this development build: no order has been confirmed yet, and no order confirmation is shown.',
+    // Module 31 — the order is created by the server from the verified payment
+    'pay.api.orderCreating': 'Payment verified — we are placing your order. This takes a moment; please do not pay again.',
+    'pay.api.orderReady': 'Your order {number} is placed.',
+    'pay.api.orderRecovery': 'Payment received, but we could not confirm your order yet. You do not need to pay again — our team is looking at it. Reference: {ref}',
     'pay.api.unconfirmed': 'Payment status needs confirmation. We could not reach FoodOnTheGo just now — we will check again as soon as the connection is back. Please do not pay again.',
     'pay.api.unavailable': 'Payments are temporarily unavailable. Nothing was charged — please try again in a moment.',
     'pay.api.checkoutChanged': 'This order has changed or its time has run out. Please review it again before paying — nothing was charged.',

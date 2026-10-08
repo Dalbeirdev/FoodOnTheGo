@@ -36,6 +36,9 @@ final class PaymentPresenter
     public function present(PaymentAttempt $attempt, Customer $customer, ?CarbonInterface $at = null): array
     {
         $at = CarbonImmutable::instance($at ?? now());
+        if ($attempt->status === PaymentStatus::Verified && $attempt->fulfillment_status === PaymentFulfillmentStatus::OrderPending) {
+            $attempt->refresh(); // the order may have been created after this request's commit (the queue is synchronous locally)
+        }
         $session = $attempt->status->payable() && ! $attempt->expired($at) ? $this->session($attempt, $customer, $at) : null;
         [$action, $wait] = $this->next($attempt, $session !== null, $at);
         $failure = $attempt->failure_category;
@@ -61,9 +64,10 @@ final class PaymentPresenter
             'provider_session' => $session,
             'fulfillment' => [
                 'status' => $attempt->fulfillment_status->value,
-                // The order is created by the order module. Until it exists there is no order to show — and none is invented.
-                'order_id' => null,
-                'order_creation' => 'NOT_IMPLEMENTED',
+                // The order the payment became (Module 31) — created on the server from the verified payment. Until it
+                // exists there is no order to show, and none is invented: a client waits for order_number.
+                'order_id' => $attempt->order?->public_id === null ? null : (string) $attempt->order->public_id,
+                'order_number' => $attempt->order?->order_number,
             ],
             'support_reference' => $attempt->supportReference(),
             'expires_at' => self::utc($attempt->expires_at),
@@ -210,9 +214,11 @@ final class PaymentPresenter
             PaymentStatus::Processing => 'We\'re confirming your payment.',
             PaymentStatus::Pending, PaymentStatus::Authorized => 'We\'re confirming your payment. This can take a moment.',
             PaymentStatus::Unknown => 'We could not confirm your payment yet. Please do not pay again — we are checking.',
-            PaymentStatus::Verified => $attempt->fulfillment_status === PaymentFulfillmentStatus::RecoveryRequired
-                ? 'Payment received. We could not confirm your order yet — you do not need to pay again.'
-                : 'Payment received. We\'re confirming your order.',
+            PaymentStatus::Verified => match ($attempt->fulfillment_status) {
+                PaymentFulfillmentStatus::RecoveryRequired => 'Payment received. We could not confirm your order yet — you do not need to pay again.',
+                PaymentFulfillmentStatus::OrderCreated => 'Payment received. Your order is placed.',
+                default => 'Payment received. We\'re confirming your order.',
+            },
             PaymentStatus::ReviewRequired => 'We are checking this payment. Please do not pay again.',
             PaymentStatus::Failed, PaymentStatus::Cancelled, PaymentStatus::Expired => $attempt->failure_category?->customerMessage() ?? 'The payment could not be completed.',
         };

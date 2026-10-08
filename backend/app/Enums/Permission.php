@@ -34,6 +34,8 @@ enum Permission: string
     case AdminCustomersManage = 'admin.customers.manage';
     case AdminOrdersView = 'admin.orders.view';
     case AdminOrdersOverride = 'admin.orders.override';
+    /** Ask for a failed order creation to be tried again. Creates nothing by hand; the payment's verification still decides. */
+    case AdminOrdersRecover = 'admin.orders.recover';
     case AdminPaymentsView = 'admin.payments.view';
     /** Ask the provider again about a payment. It changes nothing a provider does not confirm; there is no "mark as paid". */
     case AdminPaymentsReconcile = 'admin.payments.reconcile';

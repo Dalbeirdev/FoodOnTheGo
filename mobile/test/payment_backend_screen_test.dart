@@ -123,7 +123,7 @@ void main() {
     expect(find.text('Payment verified'), findsOneWidget);
     expect(find.text('Payment received. We\'re confirming your order.'), findsOneWidget);
     expect(id('pay-order-pending'), findsOneWidget);
-    expect(find.textContaining('order creation is pending'), findsOneWidget);
+    expect(find.textContaining('placing your order'), findsOneWidget);   // Module 31: the order is the server's to create; the screen waits for its number
     // Paid is not ordered: no order confirmation, no order number, the cart is not emptied by the app.
     expect(find.text('order confirmation screen'), findsNothing);
     expect(find.textContaining('FOTG-'), findsNothing);
@@ -134,6 +134,7 @@ void main() {
 
     await t.tap(find.text('Back to home')); await t.pumpAndSettle();
     expect(find.text('home screen'), findsOneWidget);
+    pay.reset();   // Module 31: the state keeps asking for the order number after VERIFIED; the test ends that
   });
 
   testWidgets('TEST 2 — a failed payment shows the backend\'s safe words and a retry that makes a NEW attempt', (t) async {
@@ -180,6 +181,7 @@ void main() {
     await t.tap(find.text('Check payment status')); await t.pumpAndSettle();
     expect(id('pay-view-VERIFIED'), findsOneWidget);
     expect(backend.log.where((s) => s == 'start'), hasLength(1));
+    pay.reset();   // Module 31: the state keeps asking for the order number after VERIFIED; the test ends that
   });
 
   testWidgets('TEST 4 — a checkout that changed sends the customer back to review it; nothing is offered to pay', (t) async {

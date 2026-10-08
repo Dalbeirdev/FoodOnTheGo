@@ -30,7 +30,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late final ReorderService _reorder = widget.reorderService ?? MockReorderService();
 
   @override
-  void initState() { super.initState(); WidgetsBinding.instance.addPostFrameCallback((_) => _load()); }
+  void initState() { super.initState(); }
+  // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the
+  // customer is known (and again for another customer), never twice for the same one.
+  String? _loadedFor;
+  void _loadWhenSignedIn(BuildContext context, String? customerId, void Function() load) {
+    if (customerId == null || _loadedFor == customerId) return;
+    _loadedFor = customerId;
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) load(); });
+  }
   Future<void> _load() async {
     final os = context.read<OrderState>(); final auth = context.read<AuthState>();
     setState(() => state = 'loading');
@@ -66,6 +74,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _loadWhenSignedIn(context, context.watch<AuthState>().user?.id, _load);
     final o = order;
     if (o == null) {
       Widget body;

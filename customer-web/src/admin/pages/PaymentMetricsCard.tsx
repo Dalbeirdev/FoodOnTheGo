@@ -25,7 +25,7 @@ export type PaymentMetricsDto = {
   rates: { verified_of_settled: number | null; failed_of_settled: number | null }
   latency_ms: { verification_avg: number | null; webhook_processing_avg: number | null }
   webhook_events: { received: number; processed: number; ignored: number; failed: number }
-  order_creation: 'NOT_IMPLEMENTED'
+  order_creation: 'IMPLEMENTED' | 'NOT_IMPLEMENTED'
   refunds: 'NOT_IMPLEMENTED'
 }
 

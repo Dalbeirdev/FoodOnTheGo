@@ -13086,6 +13086,1656 @@
           }
         }
       }
+    },
+    "/checkouts/{checkout}/fulfill": {
+      "post": {
+        "summary": "Turns a confirmed checkout with NOTHING TO PAY (pricing.payment_required = false, e.g. a promotion covers everything) into an order. This is the only order creation a customer asks for: a checkout that has to be paid becomes an order only through its VERIFIED payment, on the server (409 order_payment_required here). Judged on the server: the checkout is READY and unexpired, the restaurant and the market take orders, the pickup place is kept or taken again. Idempotent: asked twice, the same order is answered (200). Errors: 404 checkout_not_found; 409 order_payment_required / order_pickup_capacity_unavailable / order_restaurant_unavailable / order_market_unavailable / order_checkout_invalid / order_creation_failed; 422 validation_failed.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "checkout",
+            "in": "path",
+            "required": true,
+            "description": "Checkout id — found only for the customer it belongs to.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutFulfillRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OrderEnvelope (the order already existed)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/orders": {
+      "get": {
+        "summary": "The caller's own orders, newest first. No request names a customer.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "Order state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "WAITING_FOR_RESTAURANT",
+                "ACCEPTED",
+                "PREPARING",
+                "READY_FOR_PICKUP",
+                "PICKED_UP",
+                "COMPLETED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "filter[active]",
+            "in": "query",
+            "required": false,
+            "description": "true: on their way (WAITING_FOR_RESTAURANT … READY_FOR_PICKUP); false: finished",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Sort field; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderSummaryPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderSummaryPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/orders/{order}": {
+      "get": {
+        "summary": "One of the caller's own orders, by order number or id. Anybody else's order — and a number that was never issued — is 404 order_not_found; there is no 403, so nothing leaks. The confirmation screen (/order-confirmation/{order_number}) renders this and nothing else: a real order, after it was created.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders": {
+      "get": {
+        "summary": "The orders of ONE location (restaurant.orders.view for it): by default every active order, by pickup time. `location` is required and must be the caller's (404 otherwise). Counts of the active queue come with every page.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "The location's id (required)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "An order number or its beginning",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[queue]",
+            "in": "query",
+            "required": false,
+            "description": "true: only active orders",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "One state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "WAITING_FOR_RESTAURANT",
+                "ACCEPTED",
+                "PREPARING",
+                "READY_FOR_PICKUP",
+                "PICKED_UP",
+                "COMPLETED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "filter[day]",
+            "in": "query",
+            "required": false,
+            "description": "Orders to be picked up on this restaurant-local day (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Sort field; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantOrderPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantOrderPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders/{order}": {
+      "get": {
+        "summary": "One order of a location the caller may see (restaurant.orders.view). 404 order_not_found for any other.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders/{order}/accept": {
+      "post": {
+        "summary": "WAITING_FOR_RESTAURANT → ACCEPTED. Needs restaurant.orders.update for the order's location (403). Idempotent: the same step asked twice succeeds once and then answers the order as it is, without a second event; with an Idempotency-Key the exact request is replayed. Errors: 404 order_not_found; 409 order_version_conflict (the order moved — details carry current_version and current_status) / order_invalid_transition; 422 validation_failed.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStepRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders/{order}/reject": {
+      "post": {
+        "summary": "WAITING_FOR_RESTAURANT → REJECTED, with a structured reason. A PAID order becomes REFUND REQUIRED: a refund record is created for the refund module and the customer is told — nothing is refunded here, and the amount is never changed (an unavailable item after payment is a rejection, not a repricing). The pickup place is given back and the pickup credential revoked. Needs restaurant.orders.update for the order's location (403). Idempotent: the same step asked twice succeeds once and then answers the order as it is, without a second event; with an Idempotency-Key the exact request is replayed. Errors: 404 order_not_found; 409 order_version_conflict (the order moved — details carry current_version and current_status) / order_invalid_transition; 422 validation_failed.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRejectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders/{order}/start-preparing": {
+      "post": {
+        "summary": "ACCEPTED → PREPARING. Needs restaurant.orders.update for the order's location (403). Idempotent: the same step asked twice succeeds once and then answers the order as it is, without a second event; with an Idempotency-Key the exact request is replayed. Errors: 404 order_not_found; 409 order_version_conflict (the order moved — details carry current_version and current_status) / order_invalid_transition; 422 validation_failed.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStepRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders/{order}/ready": {
+      "post": {
+        "summary": "PREPARING → READY_FOR_PICKUP. There is no \"picked up\" step for the restaurant: that is Module 32's verified transition. Needs restaurant.orders.update for the order's location (403). Idempotent: the same step asked twice succeeds once and then answers the order as it is, without a second event; with an Idempotency-Key the exact request is replayed. Errors: 404 order_not_found; 409 order_version_conflict (the order moved — details carry current_version and current_status) / order_invalid_transition; 422 validation_failed.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStepRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/orders": {
+      "get": {
+        "summary": "The orders (admin.orders.view). An administrator who holds the permission for some markets only sees and acts on those markets' orders. Search is by exact reference — an order number, an order id, the checkout or the payment it came from — never by a customer's name or number.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "An exact reference: order number, order id, checkout id or payment id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "Order state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "WAITING_FOR_RESTAURANT",
+                "ACCEPTED",
+                "PREPARING",
+                "READY_FOR_PICKUP",
+                "PICKED_UP",
+                "COMPLETED",
+                "REJECTED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "filter[payment_state]",
+            "in": "query",
+            "required": false,
+            "description": "PAID or PAYMENT_NOT_REQUIRED",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PAID",
+                "PAYMENT_NOT_REQUIRED"
+              ]
+            }
+          },
+          {
+            "name": "filter[refund_status]",
+            "in": "query",
+            "required": false,
+            "description": "Money state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NONE",
+                "REQUIRED",
+                "PENDING",
+                "PARTIAL",
+                "REFUNDED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "filter[restaurant]",
+            "in": "query",
+            "required": false,
+            "description": "Restaurant location id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[attention]",
+            "in": "query",
+            "required": false,
+            "description": "true: only orders with a refund REQUIRED or FAILED",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "filter[from]",
+            "in": "query",
+            "required": false,
+            "description": "Placed on or after this day (YYYY-MM-DD, UTC)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[to]",
+            "in": "query",
+            "required": false,
+            "description": "Placed on or before this day (YYYY-MM-DD, UTC)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Sort field; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminOrderPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/orders/{order}": {
+      "get": {
+        "summary": "One order with its money state, its payment and fulfilment linked, its refunds and its full timeline (admin.orders.view). An administrator who holds the permission for some markets only sees and acts on those markets' orders. 404 order_not_found.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/orders/{order}/cancel": {
+      "post": {
+        "summary": "Ends an order that is still on its way (admin.orders.override; with a reason; audited as order.cancelled). A PAID order becomes REFUND REQUIRED — nothing is refunded here. The pickup place is given back and the credential revoked. Customers cannot cancel their own orders in this module; a finished order (COMPLETED, REJECTED, CANCELLED) cannot be cancelled (409 order_invalid_transition). An administrator who holds the permission for some markets only sees and acts on those markets' orders.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see; anything else is 404 order_not_found.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminOrderCancelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminOrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/order-fulfillments": {
+      "get": {
+        "summary": "How checkouts became orders — above all the paid ones that did NOT (filter[attention]=true): payment VERIFIED, order NOT CREATED is a state this list shows until a person resolves it (admin.orders.view). An administrator who holds the permission for some markets only sees and acts on those markets' orders.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "Fulfilment state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "PROCESSING",
+                "SUCCEEDED",
+                "RETRYING",
+                "FAILED",
+                "REVIEW_REQUIRED"
+              ]
+            }
+          },
+          {
+            "name": "filter[attention]",
+            "in": "query",
+            "required": false,
+            "description": "true: REVIEW_REQUIRED, FAILED and RETRYING only",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "filter[checkout]",
+            "in": "query",
+            "required": false,
+            "description": "Checkout id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[payment]",
+            "in": "query",
+            "required": false,
+            "description": "Payment id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "Sort field; prefix - for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderFulfillmentPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderFulfillmentPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/order-fulfillments/{fulfillment}/recover": {
+      "post": {
+        "summary": "Asks for the order to be created again from this checkout (admin.orders.recover; with a reason; audited as order.recovery_attempted). Everything is judged again from scratch on the server — whether the payment is VERIFIED is still the payment domain's word, the pickup place is taken again only if it is free — and nothing is created by hand. Answers the fulfilment as it stands afterwards (SUCCEEDED with the order, or still REVIEW_REQUIRED with the reason). 409 order_already_exists when the order exists. An administrator who holds the permission for some markets only sees and acts on those markets' orders.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fulfillment",
+            "in": "path",
+            "required": true,
+            "description": "Order creation record id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderRecoverRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OrderFulfillmentEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderFulfillmentEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/orders": {
+      "get": {
+        "summary": "Order numbers for platform administrators (admin.system.view): orders by state, verified payments without an order, fulfilment retries and reviews, creation latency. Counts only.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderMetrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -33093,7 +34743,7 @@
             "required": [
               "status",
               "order_id",
-              "order_creation"
+              "order_number"
             ],
             "additionalProperties": false,
             "properties": {
@@ -33104,20 +34754,26 @@
                   "ORDER_PENDING",
                   "RECOVERY_REQUIRED",
                   "ORDER_CREATED"
-                ],
-                "description": "What became of a VERIFIED payment — separate from the payment itself. ORDER_PENDING: paid, the order is still to be created. RECOVERY_REQUIRED: paid, but the checkout cannot become an order as it stands."
+                ]
               },
               "order_id": {
-                "type": "null",
-                "description": "Orders are created by the order module (Module 31). Until then there is no order — and none is invented."
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$",
+                "description": "The order this payment became (Module 31) — created on the server from the VERIFIED payment, never from the device. Null until it exists."
               },
-              "order_creation": {
-                "type": "string",
-                "enum": [
-                  "NOT_IMPLEMENTED"
-                ]
+              "order_number": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+                "description": "A client waits for this after VERIFIED (poll GET /payments/{payment}) and then opens /order-confirmation/{order_number}. RECOVERY_REQUIRED: the order could not be created as it stands; a person will resolve it and the customer must not pay again."
               }
-            }
+            },
+            "description": "What became of a verified payment. Set by the order domain; the payment itself does not change."
           },
           "support_reference": {
             "type": "string",
@@ -33475,7 +35131,7 @@
           },
           "verified_without_order": {
             "type": "boolean",
-            "description": "VERIFIED and no order exists — true for every verified payment until the order module creates orders"
+            "description": "VERIFIED and no order exists yet (fulfillment_status ORDER_PENDING or RECOVERY_REQUIRED) — the condition an operator must never lose sight of"
           },
           "amount": {
             "$ref": "#/components/schemas/Money"
@@ -34500,8 +36156,9 @@
           "order_creation": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
-            ]
+              "IMPLEMENTED"
+            ],
+            "description": "Orders are created from verified payments (Module 31); see /admin/system/orders for the numbers"
           },
           "refunds": {
             "type": "string",
@@ -34511,6 +36168,2639 @@
           }
         },
         "description": "Counts and states only: no payment of anybody, no key, no secret."
+      },
+      "OrderPickup": {
+        "type": "object",
+        "required": [
+          "mode",
+          "method",
+          "pickup_at",
+          "pickup_at_local",
+          "slot",
+          "timezone",
+          "estimated_prep_minutes",
+          "traveler_arrival_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ASAP",
+              "SCHEDULED"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "COUNTER",
+              "CURBSIDE",
+              "DRIVE_THROUGH"
+            ]
+          },
+          "pickup_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "pickup_at_local": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The same instant on the restaurant's clock, with its UTC offset"
+          },
+          "slot": {
+            "type": "object",
+            "required": [
+              "starts_at",
+              "ends_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "starts_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "ends_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "estimated_prep_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "traveler_arrival_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "Copied from the confirmed checkout when the order was created; never recalculated"
+      },
+      "OrderItemOption": {
+        "type": "object",
+        "required": [
+          "kind",
+          "group",
+          "name",
+          "price_adjustment"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "VARIANT",
+              "MODIFIER"
+            ]
+          },
+          "group": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price_adjustment": {
+            "$ref": "#/components/schemas/Money"
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "item_id",
+          "slug",
+          "name",
+          "quantity",
+          "unit_price",
+          "line_subtotal",
+          "special_instructions",
+          "options"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "item_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "The menu item at the time — a reference only; the order keeps its own name and price"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "unit_price": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "line_subtotal": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "special_instructions": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOption"
+            }
+          }
+        },
+        "description": "An immutable line of the order: what was bought, at the price that was paid"
+      },
+      "OrderPricing": {
+        "type": "object",
+        "required": [
+          "currency",
+          "subtotal",
+          "discount",
+          "tax",
+          "tax_included",
+          "fee",
+          "total"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "subtotal": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "discount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "tax": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "tax_included": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "fee": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          }
+        },
+        "description": "The checkout's server-authoritative pricing, frozen. total = subtotal - discount + tax + fee; nothing is priced again after payment."
+      },
+      "OrderTaxLine": {
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "applies_to",
+          "rate_basis_points",
+          "taxable_amount",
+          "amount",
+          "included_in_prices"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "applies_to": {
+            "type": "string"
+          },
+          "rate_basis_points": {
+            "type": "integer"
+          },
+          "taxable_amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "included_in_prices": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrderFeeLine": {
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "amount",
+          "taxable"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "taxable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrderTimes": {
+        "type": "object",
+        "required": [
+          "placed_at",
+          "accepted_at",
+          "rejected_at",
+          "preparing_at",
+          "ready_at",
+          "picked_up_at",
+          "completed_at",
+          "cancelled_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "accepted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "rejected_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "preparing_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "ready_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "picked_up_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "cancelled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "OrderTimelineEntry": {
+        "type": "object",
+        "required": [
+          "at",
+          "type",
+          "from",
+          "to",
+          "actor",
+          "detail"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "type": {
+            "type": "string"
+          },
+          "from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CREATED",
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED",
+              null
+            ]
+          },
+          "to": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CREATED",
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED",
+              null
+            ]
+          },
+          "actor": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "object",
+            "description": "Codes and references only"
+          }
+        },
+        "description": "One line of the order's append-only timeline. The customer's copy carries states and public reasons only — never a staff note, a trigger or an internal id."
+      },
+      "OrderLegalReference": {
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "accepted_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "accepted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "Which legal documents the customer accepted, by type and version. A reference, never the text."
+      },
+      "OrderSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "status",
+          "payment_state",
+          "refund_status",
+          "restaurant",
+          "item_count",
+          "total",
+          "pickup",
+          "placed_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+            "description": "FOTG-YYYYMMDD-XXXXXX: the restaurant-local date the order was placed and six characters from an alphabet without 0/O/1/I. A name for people, never authorization: every lookup is narrowed by who asks."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "branch_label"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "branch_label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/OrderPickup"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "One of the customer's orders, as the list shows it"
+      },
+      "Order": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "status",
+          "payment_state",
+          "refund_status",
+          "restaurant",
+          "item_count",
+          "total",
+          "pickup",
+          "placed_at",
+          "updated_at",
+          "items",
+          "pricing",
+          "promotion",
+          "taxes",
+          "fees",
+          "payment",
+          "customer_note",
+          "journey",
+          "legal",
+          "rejection",
+          "cancellation",
+          "pickup_credential",
+          "pickup_verification",
+          "timeline",
+          "next_action",
+          "times",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+            "description": "FOTG-YYYYMMDD-XXXXXX: the restaurant-local date the order was placed and six characters from an alphabet without 0/O/1/I. A name for people, never authorization: every lookup is narrowed by who asks."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name",
+              "branch_label",
+              "formatted_address",
+              "phone",
+              "timezone",
+              "pickup_instructions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "name": {
+                "type": "string"
+              },
+              "branch_label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "formatted_address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "phone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "pickup_instructions": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/OrderPickup"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/OrderPricing"
+          },
+          "promotion": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code",
+              "name",
+              "discount"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "discount": {
+                "$ref": "#/components/schemas/Money"
+              }
+            }
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTaxLine"
+            }
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderFeeLine"
+            }
+          },
+          "payment": {
+            "type": "object",
+            "required": [
+              "required",
+              "id",
+              "provider",
+              "method",
+              "verified_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "required": {
+                "type": "boolean"
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "provider": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "method": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "type",
+                  "summary"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "summary": {
+                    "type": "object",
+                    "description": "Codes and references only"
+                  }
+                }
+              },
+              "verified_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "A reference to the payment the order came from — never a provider secret, a signature or a card. required=false: a zero total, nothing was paid and no payment exists."
+          },
+          "customer_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "journey": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "estimated_arrival_at",
+              "detour"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "estimated_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "detour": {
+                "type": "object",
+                "description": "Codes and references only"
+              }
+            },
+            "description": "Only when the traveller is expected and how long the detour is. Never the origin, the destination or the route."
+          },
+          "legal": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLegalReference"
+            }
+          },
+          "rejection": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "reason",
+              "message"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "ITEM_UNAVAILABLE",
+                  "KITCHEN_CAPACITY",
+                  "CLOSING",
+                  "TECHNICAL_ISSUE",
+                  "OTHER"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "description": "Neutral words for the customer. The restaurant's note is never here."
+              }
+            }
+          },
+          "cancellation": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "message"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          },
+          "pickup_credential": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code",
+              "qr_payload",
+              "status"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "Six characters the customer reads out at the counter"
+              },
+              "qr_payload": {
+                "type": "string",
+                "description": "Opaque: carries no order, customer or amount"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "CONSUMED",
+                  "REVOKED",
+                  "EXPIRED"
+                ]
+              }
+            },
+            "description": "Present while there is something to pick up (active statuses); null afterwards. Verifying it is Module 32."
+          },
+          "pickup_verification": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ],
+            "description": "Module 32"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTimelineEntry"
+            }
+          },
+          "next_action": {
+            "type": "string",
+            "enum": [
+              "WAIT_FOR_RESTAURANT",
+              "TRACK",
+              "GO_TO_PICKUP",
+              "DONE",
+              "ORDER_AGAIN",
+              "AWAIT_REFUND"
+            ],
+            "description": "Decided by the server, so Web and Android never guess from a status"
+          },
+          "times": {
+            "$ref": "#/components/schemas/OrderTimes"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "description": "An order as its owner sees it: an immutable copy of what was confirmed and paid, plus where it stands. Nothing here can be changed by a customer request."
+      },
+      "OrderEnvelope": {
+        "type": "object",
+        "required": [
+          "order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          }
+        }
+      },
+      "OrderSummaryPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderSummary"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "CheckoutFulfillRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "description": "An empty body. Nothing about the order — no amount, status, payment, item or pickup time — can be sent; a request that tries is refused (422)."
+      },
+      "RestaurantOrderSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "status",
+          "payment_state",
+          "refund_status",
+          "location_id",
+          "customer",
+          "item_count",
+          "total",
+          "pickup",
+          "placed_at",
+          "updated_at",
+          "version",
+          "allowed_actions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+            "description": "FOTG-YYYYMMDD-XXXXXX: the restaurant-local date the order was placed and six characters from an alphabet without 0/O/1/I. A name for people, never authorization: every lookup is narrowed by who asks."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "location_id": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "name",
+              "phone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "phone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "How to reach the customer about THIS order — the name and number it was placed with. Not a customer directory."
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/OrderPickup"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Send it back as expected_version with a step, so that a stale screen cannot act on an order that moved"
+          },
+          "allowed_actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "accept",
+                "reject",
+                "start_preparing",
+                "ready"
+              ]
+            },
+            "description": "The steps the state machine allows from here. \"picked_up\" is never among them (Module 32)."
+          }
+        }
+      },
+      "RestaurantOrder": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "status",
+          "payment_state",
+          "refund_status",
+          "location_id",
+          "customer",
+          "item_count",
+          "total",
+          "pickup",
+          "placed_at",
+          "updated_at",
+          "version",
+          "allowed_actions",
+          "items",
+          "pricing",
+          "promotion",
+          "taxes",
+          "fees",
+          "customer_note",
+          "rejection",
+          "cancellation",
+          "journey",
+          "timeline",
+          "times"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+            "description": "FOTG-YYYYMMDD-XXXXXX: the restaurant-local date the order was placed and six characters from an alphabet without 0/O/1/I. A name for people, never authorization: every lookup is narrowed by who asks."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "location_id": {
+            "type": "string"
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "name",
+              "phone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "phone": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "How to reach the customer about THIS order — the name and number it was placed with. Not a customer directory."
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/OrderPickup"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer",
+            "description": "Send it back as expected_version with a step, so that a stale screen cannot act on an order that moved"
+          },
+          "allowed_actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "accept",
+                "reject",
+                "start_preparing",
+                "ready"
+              ]
+            },
+            "description": "The steps the state machine allows from here. \"picked_up\" is never among them (Module 32)."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/OrderPricing"
+          },
+          "promotion": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              }
+            }
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTaxLine"
+            }
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderFeeLine"
+            }
+          },
+          "customer_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rejection": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "reason",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "ITEM_UNAVAILABLE",
+                  "KITCHEN_CAPACITY",
+                  "CLOSING",
+                  "TECHNICAL_ISSUE",
+                  "OTHER"
+                ]
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "cancellation": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "journey": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "estimated_arrival_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "estimated_arrival_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "When the traveller is expected — nothing else of the journey"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTimelineEntry"
+            }
+          },
+          "times": {
+            "$ref": "#/components/schemas/OrderTimes"
+          }
+        },
+        "description": "An order as the restaurant works it. No pickup credential (the restaurant verifies it, Module 32), no payment method, no promotion economics."
+      },
+      "RestaurantOrderEnvelope": {
+        "type": "object",
+        "required": [
+          "order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/RestaurantOrder"
+          }
+        }
+      },
+      "RestaurantOrderPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "counts"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantOrderSummary"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          },
+          "counts": {
+            "type": "object",
+            "required": [
+              "waiting_for_restaurant",
+              "accepted",
+              "preparing",
+              "ready_for_pickup"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "waiting_for_restaurant": {
+                "type": "integer"
+              },
+              "accepted": {
+                "type": "integer"
+              },
+              "preparing": {
+                "type": "integer"
+              },
+              "ready_for_pickup": {
+                "type": "integer"
+              }
+            },
+            "description": "The location's active orders by state, whatever the page shows"
+          }
+        }
+      },
+      "OrderStepRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "description": "The version the screen showed. When the order moved meanwhile the step is refused (409 order_version_conflict) with the current version and state."
+          }
+        },
+        "description": "Nothing about the order itself can be sent: a status, an amount, an item, a customer or \"picked up\" is refused (422)."
+      },
+      "OrderRejectRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "ITEM_UNAVAILABLE",
+              "KITCHEN_CAPACITY",
+              "CLOSING",
+              "TECHNICAL_ISSUE",
+              "OTHER"
+            ],
+            "description": "Structured; the customer reads a neutral message for it, never a free text of the restaurant"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "For the restaurant and the platform. Never shown to the customer."
+          }
+        }
+      },
+      "AdminOrder": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "status",
+          "payment_state",
+          "refund_status",
+          "needs_attention",
+          "restaurant",
+          "market",
+          "customer",
+          "payment_id",
+          "checkout_id",
+          "item_count",
+          "total",
+          "pickup",
+          "placed_at",
+          "updated_at",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+            "description": "FOTG-YYYYMMDD-XXXXXX: the restaurant-local date the order was placed and six characters from an alphabet without 0/O/1/I. A name for people, never authorization: every lookup is narrowed by who asks."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "description": "Money owed to a customer (refund REQUIRED or FAILED)"
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "organization"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "organization": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id",
+              "phone_masked"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "phone_masked": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "A reference and a masked number: the order screens are not a customer directory"
+          },
+          "payment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "The payment the order came from (GET /admin/payments/{payment}); null for a zero total"
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/OrderPickup"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "AdminOrderRefund": {
+        "type": "object",
+        "required": [
+          "id",
+          "amount",
+          "reason",
+          "status",
+          "requested_by",
+          "requested_at",
+          "processing"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUIRED",
+              "PENDING",
+              "PROCESSED",
+              "FAILED"
+            ]
+          },
+          "requested_by": {
+            "type": "object",
+            "required": [
+              "type",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "requested_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "processing": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ],
+            "description": "The refund module processes it; nothing is refunded here"
+          }
+        }
+      },
+      "OrderFulfillment": {
+        "type": "object",
+        "required": [
+          "id",
+          "checkout_id",
+          "payment_id",
+          "order_id",
+          "order_number",
+          "trigger",
+          "status",
+          "attempts",
+          "last_error_code",
+          "last_error_detail",
+          "next_attempt_at",
+          "needs_attention",
+          "started_at",
+          "finished_at",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "payment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "Null for a zero-total checkout"
+          },
+          "order_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "PAYMENT_VERIFIED",
+              "ZERO_TOTAL",
+              "RECOVERY"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "SUCCEEDED",
+              "RETRYING",
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "last_error_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ORDER_PAYMENT_NOT_VERIFIED",
+              "ORDER_PAYMENT_MISMATCH",
+              "ORDER_CHECKOUT_INVALID",
+              "ORDER_PICKUP_CAPACITY_UNAVAILABLE",
+              "ORDER_RESTAURANT_UNAVAILABLE",
+              "ORDER_MARKET_UNAVAILABLE",
+              "ORDER_CUSTOMER_MISSING",
+              "ORDER_CREATION_FAILED",
+              null
+            ]
+          },
+          "last_error_detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "next_attempt_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "description": "REVIEW_REQUIRED or FAILED: a paid checkout that did not become an order and will not by itself — a person decides"
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "The one record of turning a checkout into an order. SUCCEEDED points at the order; RETRYING is tried again by the sweep (orders:recover, every minute) with a growing wait; REVIEW_REQUIRED waits for an administrator."
+      },
+      "AdminOrderDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number",
+          "status",
+          "payment_state",
+          "refund_status",
+          "needs_attention",
+          "restaurant",
+          "market",
+          "customer",
+          "payment_id",
+          "checkout_id",
+          "item_count",
+          "total",
+          "pickup",
+          "placed_at",
+          "updated_at",
+          "version",
+          "items",
+          "pricing",
+          "promotion",
+          "taxes",
+          "fees",
+          "payment",
+          "customer_note",
+          "rejection",
+          "cancellation",
+          "refunds",
+          "pickup_credential",
+          "journey",
+          "legal",
+          "pricing_fingerprint",
+          "fulfillment",
+          "timeline",
+          "times",
+          "actions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$",
+            "description": "FOTG-YYYYMMDD-XXXXXX: the restaurant-local date the order was placed and six characters from an alphabet without 0/O/1/I. A name for people, never authorization: every lookup is narrowed by who asks."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "needs_attention": {
+            "type": "boolean",
+            "description": "Money owed to a customer (refund REQUIRED or FAILED)"
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "organization"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "organization": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "phone_masked"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "phone_masked": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "payment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "The payment the order came from (GET /admin/payments/{payment}); null for a zero total"
+          },
+          "checkout_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "item_count": {
+            "type": "integer"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "pickup": {
+            "$ref": "#/components/schemas/OrderPickup"
+          },
+          "placed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "pricing": {
+            "$ref": "#/components/schemas/OrderPricing"
+          },
+          "promotion": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code",
+              "name",
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "taxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTaxLine"
+            }
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderFeeLine"
+            }
+          },
+          "payment": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The payment as the order recorded it: id, provider, mode, provider payment reference, method type and summary, amount, verified_at. Never a key, a secret or a signature."
+          },
+          "customer_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rejection": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "reason",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "ITEM_UNAVAILABLE",
+                  "KITCHEN_CAPACITY",
+                  "CLOSING",
+                  "TECHNICAL_ISSUE",
+                  "OTHER"
+                ]
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "cancellation": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderRefund"
+            }
+          },
+          "pickup_credential": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "status",
+              "issued_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "CONSUMED",
+                  "REVOKED",
+                  "EXPIRED"
+                ]
+              },
+              "issued_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "Its state only — the code and the token are the customer's"
+          },
+          "journey": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "legal": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLegalReference"
+            }
+          },
+          "pricing_fingerprint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fulfillment": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "checkout_id",
+              "payment_id",
+              "order_id",
+              "order_number",
+              "trigger",
+              "status",
+              "attempts",
+              "last_error_code",
+              "last_error_detail",
+              "next_attempt_at",
+              "needs_attention",
+              "started_at",
+              "finished_at",
+              "created_at",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "checkout_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "payment_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$",
+                "description": "Null for a zero-total checkout"
+              },
+              "order_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "order_number": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$"
+              },
+              "trigger": {
+                "type": "string",
+                "enum": [
+                  "PAYMENT_VERIFIED",
+                  "ZERO_TOTAL",
+                  "RECOVERY"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING",
+                  "PROCESSING",
+                  "SUCCEEDED",
+                  "RETRYING",
+                  "FAILED",
+                  "REVIEW_REQUIRED"
+                ]
+              },
+              "attempts": {
+                "type": "integer"
+              },
+              "last_error_code": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "ORDER_PAYMENT_NOT_VERIFIED",
+                  "ORDER_PAYMENT_MISMATCH",
+                  "ORDER_CHECKOUT_INVALID",
+                  "ORDER_PICKUP_CAPACITY_UNAVAILABLE",
+                  "ORDER_RESTAURANT_UNAVAILABLE",
+                  "ORDER_MARKET_UNAVAILABLE",
+                  "ORDER_CUSTOMER_MISSING",
+                  "ORDER_CREATION_FAILED",
+                  null
+                ]
+              },
+              "last_error_detail": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "next_attempt_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "needs_attention": {
+                "type": "boolean",
+                "description": "REVIEW_REQUIRED or FAILED: a paid checkout that did not become an order and will not by itself — a person decides"
+              },
+              "started_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "finished_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "created_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "The one record of turning a checkout into an order. SUCCEEDED points at the order; RETRYING is tried again by the sweep (orders:recover, every minute) with a growing wait; REVIEW_REQUIRED waits for an administrator."
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTimelineEntry"
+            }
+          },
+          "times": {
+            "$ref": "#/components/schemas/OrderTimes"
+          },
+          "actions": {
+            "type": "object",
+            "required": [
+              "cancel",
+              "refund"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "cancel": {
+                "type": "boolean",
+                "description": "Whether the order can still be cancelled (admin.orders.override)"
+              },
+              "refund": {
+                "type": "string",
+                "enum": [
+                  "NOT_IMPLEMENTED"
+                ],
+                "description": "Refunds belong to the refund module"
+              }
+            }
+          }
+        }
+      },
+      "AdminOrderEnvelope": {
+        "type": "object",
+        "required": [
+          "order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/AdminOrderDetail"
+          }
+        }
+      },
+      "OrderFulfillmentEnvelope": {
+        "type": "object",
+        "required": [
+          "fulfillment"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "fulfillment": {
+            "$ref": "#/components/schemas/OrderFulfillment"
+          }
+        }
+      },
+      "AdminOrderPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrder"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "OrderFulfillmentPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderFulfillment"
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": [
+              "first",
+              "last",
+              "prev",
+              "next"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          }
+        }
+      },
+      "AdminOrderCancelRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "Nothing else can be sent: no status, refund state, amount or item."
+      },
+      "OrderRecoverRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Why — written to the audit log"
+          }
+        },
+        "description": "Nothing is created by hand: no order number, payment state or amount can be sent."
+      },
+      "OrderMetrics": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "window_hours",
+          "events",
+          "orders",
+          "active",
+          "waiting_for_restaurant",
+          "refund_required",
+          "verified_payments_without_order",
+          "fulfillment",
+          "latency_ms",
+          "realtime_tracking",
+          "pickup_verification",
+          "refund_processing"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "events": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "How often each order event happened in the window (created, creation_failed, recovery_required, review_required, accepted, rejected, preparing, ready, cancelled, refund_required, zero_total)"
+          },
+          "orders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Orders by state, now"
+          },
+          "active": {
+            "type": "integer"
+          },
+          "waiting_for_restaurant": {
+            "type": "integer"
+          },
+          "refund_required": {
+            "type": "integer"
+          },
+          "verified_payments_without_order": {
+            "type": "integer",
+            "description": "Money that waits for an order: the operational condition that must never go unseen"
+          },
+          "fulfillment": {
+            "type": "object",
+            "required": [
+              "retrying",
+              "review_required",
+              "failed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "retrying": {
+                "type": "integer"
+              },
+              "review_required": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              }
+            }
+          },
+          "latency_ms": {
+            "type": "object",
+            "required": [
+              "creation_avg"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "creation_avg": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            }
+          },
+          "realtime_tracking": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          },
+          "pickup_verification": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          },
+          "refund_processing": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          }
+        },
+        "description": "Counts and states only: no order of anybody."
       }
     }
   }

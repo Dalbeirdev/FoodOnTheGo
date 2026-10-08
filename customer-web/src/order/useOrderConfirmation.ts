@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { MockPaymentRepository } from '../payment/mock/mockPayment'
 import type { PaymentRepository } from '../payment/repositories'
+import { ApiOrderRepository, ApiPickupVerificationRepository } from './api/apiOrder'
 import { MockOrderRepository, MockPickupVerificationRepository, MockReceiptRepository } from './mock/mockOrder'
+import { orderMode } from './orderMode'
 import type { Order, OrderRepository, PickupVerification, PickupVerificationRepository, Receipt, ReceiptRepository } from './repositories'
 
 /**
@@ -12,7 +14,10 @@ import type { Order, OrderRepository, PickupVerification, PickupVerificationRepo
  */
 export type ConfirmationStatus = 'LOADING' | 'CONFIRMED' | 'PAYMENT_PENDING' | 'PAYMENT_FAILED' | 'FAILED_TO_LOAD' | 'ORDER_NOT_FOUND' | 'CANCELLED'
 export type OrderConfirmationDeps = { orders?: OrderRepository; verifications?: PickupVerificationRepository; receipts?: ReceiptRepository; payments?: PaymentRepository }
-const defaults = { orders: new MockOrderRepository(), verifications: new MockPickupVerificationRepository(), receipts: new MockReceiptRepository(), payments: new MockPaymentRepository() }
+// Module 31: with the backend, orders are read from it (created there from the verified payment); the receipt is still rendered from the order.
+const defaults = orderMode() === 'api'
+  ? { orders: new ApiOrderRepository() as OrderRepository, verifications: new ApiPickupVerificationRepository() as PickupVerificationRepository, receipts: new MockReceiptRepository(), payments: new MockPaymentRepository() }
+  : { orders: new MockOrderRepository() as OrderRepository, verifications: new MockPickupVerificationRepository() as PickupVerificationRepository, receipts: new MockReceiptRepository(), payments: new MockPaymentRepository() }
 export const orderRepositories = defaults
 
 export function useOrderConfirmation(orderNumber: string, deps: OrderConfirmationDeps = {}) {

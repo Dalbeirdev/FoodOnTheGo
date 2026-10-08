@@ -1,0 +1,662 @@
+{
+  "order_number": "FOTG-20261008-P9YYTV",
+  "customer_order": {
+    "id": "dd665ca2-a951-49fa-8848-decb18d798e3",
+    "order_number": "FOTG-20261008-P9YYTV",
+    "status": "WAITING_FOR_RESTAURANT",
+    "payment_state": "PAID",
+    "refund_status": "NONE",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "branch_label": "Sector 62 · Noida",
+      "formatted_address": "Sector 62, Noida, Uttar Pradesh 201309, India",
+      "phone": null,
+      "timezone": "Asia/Kolkata",
+      "pickup_instructions": "Show your pickup code at the counter."
+    },
+    "item_count": 3,
+    "total": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-08T11:45:00+00:00",
+      "pickup_at_local": "2026-10-08T17:15:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-08T11:45:00+00:00",
+        "ends_at": "2026-10-08T12:00:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-08T10:41:30+00:00",
+    "updated_at": "2026-10-08T10:41:30+00:00",
+    "items": [
+      {
+        "id": "11d6bcea-1705-4c53-9efd-290745d98cea",
+        "item_id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+        "slug": "onion-rings",
+        "name": "Onion Rings",
+        "quantity": 2,
+        "unit_price": {
+          "amount": 14900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 29800,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": []
+      },
+      {
+        "id": "c78a1a89-96d4-449a-9353-9d7bea78b08c",
+        "item_id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+        "slug": "masala-fries",
+        "name": "Masala Fries",
+        "quantity": 1,
+        "unit_price": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": [
+          {
+            "kind": "VARIANT",
+            "group": "Size",
+            "name": "Regular",
+            "price_adjustment": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "pricing": {
+      "currency": "INR",
+      "subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discount": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      }
+    },
+    "promotion": null,
+    "taxes": [],
+    "fees": [],
+    "payment": {
+      "required": true,
+      "id": "c0207924-cd47-41e4-b457-d3751e967d8b",
+      "provider": "fake",
+      "method": {
+        "type": "UPI",
+        "summary": {
+          "vpa": "su***@fake"
+        }
+      },
+      "verified_at": "2026-10-08T10:41:30+00:00"
+    },
+    "customer_note": null,
+    "journey": null,
+    "legal": [
+      {
+        "type": "TERMS",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:41:27+00:00"
+      },
+      {
+        "type": "PRIVACY",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:41:27+00:00"
+      },
+      {
+        "type": "REFUND",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:41:27+00:00"
+      }
+    ],
+    "rejection": null,
+    "cancellation": null,
+    "pickup_credential": {
+      "code": "3Q4PVV",
+      "qr_payload": "fotg:pickup:fcdd79911522a93a91b8ed6167ab796b",
+      "status": "ACTIVE"
+    },
+    "pickup_verification": "NOT_IMPLEMENTED",
+    "timeline": [
+      {
+        "at": "2026-10-08T10:41:30+00:00",
+        "type": "ORDER_CREATED",
+        "from": "CREATED",
+        "to": "WAITING_FOR_RESTAURANT",
+        "actor": "FOODONTHEGO",
+        "detail": {}
+      }
+    ],
+    "next_action": "WAIT_FOR_RESTAURANT",
+    "times": {
+      "placed_at": "2026-10-08T10:41:30+00:00",
+      "accepted_at": null,
+      "rejected_at": null,
+      "preparing_at": null,
+      "ready_at": null,
+      "picked_up_at": null,
+      "completed_at": null,
+      "cancelled_at": null
+    },
+    "version": 1
+  },
+  "restaurant_row": {
+    "id": "dd665ca2-a951-49fa-8848-decb18d798e3",
+    "order_number": "FOTG-20261008-P9YYTV",
+    "status": "WAITING_FOR_RESTAURANT",
+    "payment_state": "PAID",
+    "refund_status": "NONE",
+    "location_id": "0a000000-0000-4000-8000-0000000000a1",
+    "customer": {
+      "name": "Rahul Sharma",
+      "phone": "+919876543210"
+    },
+    "item_count": 3,
+    "total": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-08T11:45:00+00:00",
+      "pickup_at_local": "2026-10-08T17:15:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-08T11:45:00+00:00",
+        "ends_at": "2026-10-08T12:00:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-08T10:41:30+00:00",
+    "updated_at": "2026-10-08T10:41:30+00:00",
+    "version": 1,
+    "allowed_actions": [
+      "accept",
+      "reject"
+    ]
+  },
+  "zero_total_order": {
+    "id": "b975224f-6507-4a7e-a38d-0f00af05594f",
+    "order_number": "FOTG-20261008-8MPF5T",
+    "status": "WAITING_FOR_RESTAURANT",
+    "payment_state": "PAYMENT_NOT_REQUIRED",
+    "refund_status": "NONE",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "branch_label": "Sector 62 · Noida",
+      "formatted_address": "Sector 62, Noida, Uttar Pradesh 201309, India",
+      "phone": null,
+      "timezone": "Asia/Kolkata",
+      "pickup_instructions": "Show your pickup code at the counter."
+    },
+    "item_count": 1,
+    "total": {
+      "amount": 0,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-08T12:45:00+00:00",
+      "pickup_at_local": "2026-10-08T18:15:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-08T12:45:00+00:00",
+        "ends_at": "2026-10-08T13:00:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-08T10:43:10+00:00",
+    "updated_at": "2026-10-08T10:43:10+00:00",
+    "items": [
+      {
+        "id": "0b72106d-8e00-47ec-9036-445d79420fd8",
+        "item_id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+        "slug": "masala-fries",
+        "name": "Masala Fries",
+        "quantity": 1,
+        "unit_price": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": [
+          {
+            "kind": "VARIANT",
+            "group": "Size",
+            "name": "Regular",
+            "price_adjustment": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "pricing": {
+      "currency": "INR",
+      "subtotal": {
+        "amount": 12900,
+        "currency": "INR"
+      },
+      "discount": {
+        "amount": 12900,
+        "currency": "INR"
+      },
+      "tax": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 0,
+        "currency": "INR"
+      }
+    },
+    "promotion": {
+      "code": "FREEMEAL",
+      "name": "TEST — 100 % off (a total of zero)",
+      "discount": {
+        "amount": 12900,
+        "currency": "INR"
+      }
+    },
+    "taxes": [],
+    "fees": [],
+    "payment": {
+      "required": false,
+      "id": null,
+      "provider": null,
+      "method": null,
+      "verified_at": null
+    },
+    "customer_note": null,
+    "journey": null,
+    "legal": [
+      {
+        "type": "TERMS",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:43:10+00:00"
+      },
+      {
+        "type": "PRIVACY",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:43:10+00:00"
+      },
+      {
+        "type": "REFUND",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:43:10+00:00"
+      }
+    ],
+    "rejection": null,
+    "cancellation": null,
+    "pickup_credential": {
+      "code": "F3MHUJ",
+      "qr_payload": "fotg:pickup:c1133a78b3c653dd3f6ae774deb059ab",
+      "status": "ACTIVE"
+    },
+    "pickup_verification": "NOT_IMPLEMENTED",
+    "timeline": [
+      {
+        "at": "2026-10-08T10:43:10+00:00",
+        "type": "ORDER_CREATED",
+        "from": "CREATED",
+        "to": "WAITING_FOR_RESTAURANT",
+        "actor": "FOODONTHEGO",
+        "detail": {}
+      }
+    ],
+    "next_action": "WAIT_FOR_RESTAURANT",
+    "times": {
+      "placed_at": "2026-10-08T10:43:10+00:00",
+      "accepted_at": null,
+      "rejected_at": null,
+      "preparing_at": null,
+      "ready_at": null,
+      "picked_up_at": null,
+      "completed_at": null,
+      "cancelled_at": null
+    },
+    "version": 1
+  },
+  "admin_detail": {
+    "id": "cfe171f9-8e88-4734-8a11-3a3f3071f48f",
+    "order_number": "FOTG-20261008-ZM9WSA",
+    "status": "REJECTED",
+    "payment_state": "PAID",
+    "refund_status": "REQUIRED",
+    "needs_attention": true,
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub",
+      "organization": "Riverside Hospitality Group"
+    },
+    "market": "india",
+    "customer": {
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "name": "Rahul Sharma",
+      "phone_masked": "+91******3210"
+    },
+    "payment_id": "1961b73a-7e19-42c0-810b-df43536f9a60",
+    "checkout_id": "365cb883-bd6b-4fc7-90ab-c5f8e03dd022",
+    "item_count": 3,
+    "total": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-08T12:15:00+00:00",
+      "pickup_at_local": "2026-10-08T17:45:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-08T12:15:00+00:00",
+        "ends_at": "2026-10-08T12:30:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-08T10:42:44+00:00",
+    "updated_at": "2026-10-08T10:42:59+00:00",
+    "version": 2,
+    "items": [
+      {
+        "id": "31209666-b6ee-490f-9c0a-ca46beccc1a5",
+        "item_id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+        "slug": "onion-rings",
+        "name": "Onion Rings",
+        "quantity": 2,
+        "unit_price": {
+          "amount": 14900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 29800,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": []
+      },
+      {
+        "id": "c4a0bae5-9c41-4050-8b14-7af8c663d107",
+        "item_id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+        "slug": "masala-fries",
+        "name": "Masala Fries",
+        "quantity": 1,
+        "unit_price": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": [
+          {
+            "kind": "VARIANT",
+            "group": "Size",
+            "name": "Regular",
+            "price_adjustment": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "pricing": {
+      "currency": "INR",
+      "subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discount": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      }
+    },
+    "promotion": null,
+    "taxes": [],
+    "fees": [],
+    "payment": {
+      "id": "1961b73a-7e19-42c0-810b-df43536f9a60",
+      "mode": "FAKE",
+      "amount": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "provider": "fake",
+      "method_type": "UPI",
+      "verified_at": "2026-10-08T10:42:44+00:00",
+      "method_summary": {
+        "vpa": "su***@fake"
+      },
+      "provider_payment_reference": "fakepay_wgh0lzicumgpaj"
+    },
+    "customer_note": null,
+    "rejection": {
+      "reason": "ITEM_UNAVAILABLE",
+      "note": "Onion rings finished for today"
+    },
+    "cancellation": null,
+    "refunds": [
+      {
+        "id": "1286a93a-e272-4334-9cba-38a7d67997f7",
+        "amount": {
+          "amount": 42700,
+          "currency": "INR"
+        },
+        "reason": "RESTAURANT_REJECTED:ITEM_UNAVAILABLE",
+        "status": "REQUIRED",
+        "requested_by": {
+          "type": "RESTAURANT_USER",
+          "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc"
+        },
+        "requested_at": "2026-10-08T10:42:59+00:00",
+        "processing": "NOT_IMPLEMENTED"
+      }
+    ],
+    "pickup_credential": {
+      "status": "REVOKED",
+      "issued_at": "2026-10-08T10:42:44+00:00"
+    },
+    "journey": null,
+    "legal": [
+      {
+        "type": "TERMS",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:42:41+00:00"
+      },
+      {
+        "type": "PRIVACY",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:42:41+00:00"
+      },
+      {
+        "type": "REFUND",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-08T10:42:41+00:00"
+      }
+    ],
+    "pricing_fingerprint": "6ad55a1f97b7e34a27d1e772c917975ac7a756562ee1ca38a99dcc511c6bf4c5",
+    "fulfillment": {
+      "id": "53673e1e-0fd9-4f80-8df3-bf780078567c",
+      "checkout_id": "365cb883-bd6b-4fc7-90ab-c5f8e03dd022",
+      "payment_id": "1961b73a-7e19-42c0-810b-df43536f9a60",
+      "order_id": "cfe171f9-8e88-4734-8a11-3a3f3071f48f",
+      "order_number": "FOTG-20261008-ZM9WSA",
+      "trigger": "PAYMENT_VERIFIED",
+      "status": "SUCCEEDED",
+      "attempts": 1,
+      "last_error_code": null,
+      "last_error_detail": null,
+      "next_attempt_at": null,
+      "needs_attention": false,
+      "started_at": "2026-10-08T10:42:44+00:00",
+      "finished_at": "2026-10-08T10:42:44+00:00",
+      "created_at": "2026-10-08T10:42:44+00:00",
+      "updated_at": "2026-10-08T10:42:44+00:00"
+    },
+    "timeline": [
+      {
+        "at": "2026-10-08T10:42:44+00:00",
+        "type": "ORDER_CREATED",
+        "from": "CREATED",
+        "to": "WAITING_FOR_RESTAURANT",
+        "actor": "SYSTEM",
+        "detail": {
+          "payment": "1961b73a-7e19-42c0-810b-df43536f9a60",
+          "trigger": "PAYMENT_VERIFIED"
+        }
+      },
+      {
+        "at": "2026-10-08T10:42:59+00:00",
+        "type": "RESTAURANT_REJECTED",
+        "from": "WAITING_FOR_RESTAURANT",
+        "to": "REJECTED",
+        "actor": "RESTAURANT_USER",
+        "detail": {
+          "reason": "ITEM_UNAVAILABLE",
+          "message": "The restaurant could not accept your order: an item is no longer available."
+        }
+      },
+      {
+        "at": "2026-10-08T10:42:59+00:00",
+        "type": "REFUND_REQUIRED",
+        "from": null,
+        "to": null,
+        "actor": "SYSTEM",
+        "detail": {
+          "reason": "RESTAURANT_REJECTED:ITEM_UNAVAILABLE",
+          "currency": "INR",
+          "amount_minor": 42700
+        }
+      }
+    ],
+    "times": {
+      "placed_at": "2026-10-08T10:42:44+00:00",
+      "accepted_at": null,
+      "rejected_at": "2026-10-08T10:42:59+00:00",
+      "preparing_at": null,
+      "ready_at": null,
+      "picked_up_at": null,
+      "completed_at": null,
+      "cancelled_at": null
+    },
+    "actions": {
+      "cancel": false,
+      "refund": "NOT_IMPLEMENTED"
+    }
+  },
+  "admin_metrics": {
+    "checked_at": "2026-10-08T10:43:37+00:00",
+    "window_hours": 24,
+    "events": {
+      "created": 19,
+      "creation_failed": 0,
+      "recovery_required": 0,
+      "review_required": 0,
+      "accepted": 8,
+      "rejected": 8,
+      "preparing": 8,
+      "ready": 8,
+      "cancelled": 2,
+      "refund_required": 10,
+      "zero_total": 3
+    },
+    "orders": {
+      "waiting_for_restaurant": 1,
+      "accepted": 0,
+      "preparing": 0,
+      "ready_for_pickup": 1,
+      "picked_up": 0,
+      "completed": 0,
+      "rejected": 1,
+      "cancelled": 0
+    },
+    "active": 2,
+    "waiting_for_restaurant": 1,
+    "refund_required": 1,
+    "verified_payments_without_order": 0,
+    "fulfillment": {
+      "retrying": 0,
+      "review_required": 0,
+      "failed": 0
+    },
+    "latency_ms": {
+      "creation_avg": 102
+    },
+    "realtime_tracking": "NOT_IMPLEMENTED",
+    "pickup_verification": "NOT_IMPLEMENTED",
+    "refund_processing": "NOT_IMPLEMENTED"
+  }
+}

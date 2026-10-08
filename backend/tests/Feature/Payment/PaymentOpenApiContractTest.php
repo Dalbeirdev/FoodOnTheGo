@@ -124,8 +124,9 @@ class PaymentOpenApiContractTest extends TestCase
         $this->assertSame(['type'], array_keys($schemas['PaymentStartRequest']['properties']['payment_method']['properties']));
         // The documented states are the states of the code, and what does not exist is said so.
         $this->assertSame(array_map(fn (PaymentStatus $s): string => $s->value, PaymentStatus::cases()), $schemas['Payment']['properties']['status']['enum']);
-        $this->assertSame(['NOT_IMPLEMENTED'], $schemas['Payment']['properties']['fulfillment']['properties']['order_creation']['enum']);
-        $this->assertSame('null', $schemas['Payment']['properties']['fulfillment']['properties']['order_id']['type']);
+        // Since Module 31 the payment says which order it became — a nullable reference, never an order of its own.
+        $this->assertSame(['string', 'null'], $schemas['Payment']['properties']['fulfillment']['properties']['order_id']['type']);
+        $this->assertSame(['string', 'null'], $schemas['Payment']['properties']['fulfillment']['properties']['order_number']['type']);
         $this->assertSame([false], $schemas['AdminPaymentDetail']['properties']['actions']['properties']['mark_paid']['enum']);
         $this->assertSame(['NOT_IMPLEMENTED'], $schemas['AdminPaymentDetail']['properties']['actions']['properties']['refund']['enum']);
         // Every amount is Money (integer minor units + currency) or an integer: no float anywhere in the payment schemas.

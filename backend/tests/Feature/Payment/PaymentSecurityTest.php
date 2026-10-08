@@ -179,7 +179,7 @@ class PaymentSecurityTest extends TestCase
         $never = [
             self::SECRET, self::WEBHOOK_SECRET, 'fake-provider-signing-key', 'fake-provider-webhook-key',
             $proof['provider_signature'], $webhookHeaders[FakePaymentProvider::SIGNATURE_HEADER], str_repeat('cd', 32),
-            '+919876543210', $headers['Authorization'], substr($headers['Authorization'], 7), '1007', 'Visa', $body,
+            '+919876543210', $headers['Authorization'], substr($headers['Authorization'], 7), '"1007"', 'Visa', $body,   // the card's last four as a value (an order number carries the date 20261007)
         ];
         foreach ($never as $value) {
             $this->assertStringNotContainsString($value, $log);

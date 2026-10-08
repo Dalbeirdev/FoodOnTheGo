@@ -76,7 +76,7 @@ class AdminPaymentApiTest extends TestCase
         $this->assertSame([$payments['open']['id'], $payments['cancelled']['id'], $payments['verified']['id']], array_column($list['data'], 'id'));   // newest first
         $row = collect($list['data'])->firstWhere('id', $payments['verified']['id']);
         $this->assertSame([
-            'status' => 'VERIFIED', 'fulfillment_status' => 'ORDER_PENDING', 'needs_attention' => false, 'verified_without_order' => true,
+            'status' => 'VERIFIED', 'fulfillment_status' => 'ORDER_CREATED', 'needs_attention' => false, 'verified_without_order' => false,   // Module 31: the verified payment became an order
             'amount' => ['amount' => 50000, 'currency' => 'INR'], 'provider' => 'fake', 'provider_mode' => 'FAKE', 'method_type' => 'CARD', 'failure_category' => null,
         ], array_intersect_key($row, array_flip(['status', 'fulfillment_status', 'needs_attention', 'verified_without_order', 'amount', 'provider', 'provider_mode', 'method_type', 'failure_category'])));
         $this->assertSame('Burger Hub', $row['restaurant']['name']);
@@ -99,7 +99,8 @@ class AdminPaymentApiTest extends TestCase
         $this->assertSame([$payments['verified']['id']], $ids('filter[status]=VERIFIED'));
         $this->assertSame([$payments['cancelled']['id']], $ids('filter[status]=cancelled'));
         $this->assertSame([$payments['verified']['id']], $ids('filter[method]=card'));
-        $this->assertSame([$payments['verified']['id']], $ids('filter[fulfillment]=ORDER_PENDING'));
+        $this->assertSame([$payments['verified']['id']], $ids('filter[fulfillment]=ORDER_CREATED'));
+        $this->assertSame([], $ids('filter[fulfillment]=ORDER_PENDING'));
         $this->assertCount(3, $ids('filter[provider]=fake&filter[currency]=INR'));
         $this->assertSame([], $ids('filter[provider]=razorpay'));
         $this->assertCount(3, $ids('filter[restaurant]='.$this->burgerHub->public_id));
@@ -136,11 +137,11 @@ class AdminPaymentApiTest extends TestCase
         $this->assertSame(['order' => $attempt->provider_order_reference, 'payment' => $paid->reference, 'receipt' => $attempt->provider_receipt], $detail['provider_references']);
         $this->assertSame(['client_outcome' => 'success', 'signature_failures' => 0], array_intersect_key($detail['verification'], array_flip(['client_outcome', 'signature_failures'])));
         $this->assertNotNull($detail['verification']['signature_verified_at']);
-        $this->assertSame([$checkout['id'], 'PAYMENT_PENDING'], [$detail['checkout']['id'], $detail['checkout']['status']]);
+        $this->assertSame([$checkout['id'], 'CONVERTED'], [$detail['checkout']['id'], $detail['checkout']['status']]);   // Module 31: the paid checkout became an order
         $this->assertSame(['vpa' => 'su***@fake'], $detail['method_summary']);
         // The timeline tells the story in order, with who said what.
         $this->assertSame(
-            [['attempt_created', 'SYSTEM'], ['provider_ready', 'PROVIDER'], ['client_callback', 'CLIENT'], ['processing', 'CLIENT'], ['verified', 'CLIENT'], ['webhook_payment_captured', 'WEBHOOK']],
+            [['attempt_created', 'SYSTEM'], ['provider_ready', 'PROVIDER'], ['client_callback', 'CLIENT'], ['processing', 'CLIENT'], ['verified', 'CLIENT'], ['fulfillment_order_created', 'JOB'], ['webhook_payment_captured', 'WEBHOOK']],   // Module 31: the order was created from the verified payment
             array_map(fn (array $line): array => [$line['type'], $line['source']], $detail['timeline']),
         );
         $this->assertSame(['PROCESSING', 'VERIFIED'], [$detail['timeline'][4]['from'], $detail['timeline'][4]['to']]);
@@ -285,7 +286,7 @@ class AdminPaymentApiTest extends TestCase
         $this->assertSame([3, 3, 1, 1], [$numbers['events']['attempt_created'], $numbers['events']['provider_ready'], $numbers['events']['verified'], $numbers['events']['cancelled']]);
         $this->assertEquals(['verified_of_settled' => 0.5, 'failed_of_settled' => 0], $numbers['rates']);   // a cancellation is not a failure
         $this->assertSame(['CARD' => 1], $numbers['verified_by_method']);
-        $this->assertSame(['NOT_IMPLEMENTED', 'NOT_IMPLEMENTED'], [$numbers['order_creation'], $numbers['refunds']]);
+        $this->assertSame(['IMPLEMENTED', 'NOT_IMPLEMENTED'], [$numbers['order_creation'], $numbers['refunds']]);
         $json = json_encode($numbers);
         foreach (['ShouldNeverShow', 'should-never-show', 'fake-provider', '+91', 'fakepay_', 'fakeorder_', 'pa_'] as $absent) {
             $this->assertStringNotContainsString($absent, $json);

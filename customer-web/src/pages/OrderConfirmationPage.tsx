@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { formatLocalTime, formatMoney, zoneLabel } from '../i18n/format'
 import { t, useLocale } from '../i18n/strings'
 import { formatLocalDate } from '../pickup/time'
+import { orderMode } from '../order/orderMode'
 import { useOrderConfirmation, type OrderConfirmationDeps } from '../order/useOrderConfirmation'
 import type { Order, OrderItemSnapshot, OrderPricing, PickupVerification, Receipt } from '../order/repositories'
 import { PickupCode } from '../order/PickupCodeCard'
@@ -97,7 +98,7 @@ function Confirmed({ order: o, verification, receipt, locale, customerName, show
           <div><dt>{t('oc.paymentStatus', undefined, locale)}</dt><dd><span className="co-badge co-badge--ok" data-testid="oc-payment-status">{t(`oc.pay.${o.paymentStatus}`, undefined, locale)}</span></dd></div>
           <div><dt>{t('oc.total', undefined, locale)}</dt><dd><b data-testid="oc-total">{money(o.pricing.totalMinor)}</b> <span className="co-badge co-badge--muted">{o.pricing.currency}</span></dd></div>
         </dl>
-        <p className="cart-mock">{t('oc.mock', undefined, locale)}</p>
+        {orderMode() !== 'api' && <p className="cart-mock">{t('oc.mock', undefined, locale)}</p>}
         <div className="pay-actions ocp-primary">
           <Link to={`/order-tracking/${o.orderNumber}`} className="btn btn--primary cart-proceed" data-testid="oc-track">{t('oc.action.track', undefined, locale)}</Link>
           <Link to={`/order/${o.orderNumber}`} className="btn btn--outline" data-testid="oc-details">{t('oc.action.details', undefined, locale)}</Link>

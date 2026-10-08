@@ -248,7 +248,7 @@ class CheckoutOpenApiContractTest extends TestCase
         $routes = collect(app('router')->getRoutes())->map(fn ($r) => [preg_replace('#^api/v1/#', '', $r->uri()), array_diff($r->methods(), ['HEAD'])])->filter(fn (array $r): bool => $mine($r[0]))
             ->flatMap(fn (array $r) => array_map(fn (string $m): string => $m.' /'.$r[0], $r[1]))->values()->all();
         $this->assertEqualsCanonicalizing($routes, $documented);
-        $this->assertCount(19, $routes);
+        $this->assertCount(20, $routes);   // 19 of Modules 29 / 30 + POST /checkouts/{checkout}/fulfill (Module 31, zero-total orders)
 
         // A customer operation names nothing but the checkout: the cart, the restaurant and the customer are the caller's.
         foreach (['/checkouts', '/checkouts/{checkout}', '/checkouts/{checkout}/promotion', '/checkouts/{checkout}/confirm', '/checkouts/{checkout}/cancel'] as $path) {
@@ -274,10 +274,12 @@ class CheckoutOpenApiContractTest extends TestCase
         $this->assertSame(['READY', 'UNAVAILABLE'], $schemas['CheckoutPayment']['properties']['provider']['properties']['status']['enum']);
         $this->assertSame(['IMPLEMENTED'], $schemas['CheckoutMetrics']['properties']['slot_hold']['enum']);
         $this->assertSame(['FIXED_AMOUNT', 'PERCENTAGE'], $schemas['AdminPromotion']['properties']['type']['enum']);
-        // Payments exist since Module 30. No path of the API creates an order or a refund yet.
+        // Payments exist since Module 30 and orders since Module 31 (created on the server from the verified payment).
+        // No path of the API refunds or settles anything yet.
         foreach (array_keys($paths) as $path) {
-            $this->assertDoesNotMatchRegularExpression('#/(orders|refunds|settlements)(/|$)#', $path);
+            $this->assertDoesNotMatchRegularExpression('#/(refunds|settlements)(/|$)#', $path);
         }
+        $this->assertArrayHasKey('/customer/orders/{order}', $paths);
         // Every monetary field of the checkout is Money (integer minor units + currency) or an integer; no float anywhere.
         $numbers = [];
         array_walk_recursive($schemas['CheckoutPricing'], function ($value, $key) use (&$numbers): void {

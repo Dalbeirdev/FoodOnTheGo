@@ -90,6 +90,18 @@ class _PaymentBackendScreenState extends State<PaymentBackendScreen> with Widget
     final co = context.watch<CheckoutState>();
     final pay = context.watch<PaymentBackendState>();
     final cart = context.watch<CartState>();
+    // The payment became an order (Module 31): this tab's request and remembered attempt are dropped, the cart is read
+    // again (it is CONVERTED on the server) and the real order's confirmation opens. Once.
+    final placed = pay.payment;
+    if (placed != null && placed.verified && placed.orderNumber != null && !pay.handedOff) {
+      pay.markHandedOff();
+      final number = placed.orderNumber!;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await pay.forget(); co.clearRequest(); cart.reload();
+        if (context.mounted) context.go('/order-confirmation/$number');
+      });
+    }
+    if (pay.handedOff) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     _ensure(co, cart, pay);
     final subject = pay.subject;
     if (subject == null) {
@@ -166,8 +178,10 @@ class _PaymentBackendScreenState extends State<PaymentBackendScreen> with Widget
             _sem('pay-text', Text(text, style: const TextStyle(fontSize: 14.5, height: 1.4)), state: text),
             if (inFlight || view == PayView.verifying) const Padding(padding: EdgeInsets.only(top: 12), child: LinearProgressIndicator(minHeight: 6, borderRadius: BorderRadius.all(Radius.circular(99)))),
             if (p != null) Padding(padding: const EdgeInsets.only(top: 8), child: _sem('pay-status-${p.status}', Text('${S.t('pay.api.reference', {'ref': p.supportReference})}${p.attemptNumber > 1 ? ' · ${S.t('pay.api.attempt', {'n': p.attemptNumber})}' : ''}', style: const TextStyle(color: Brand.grey, fontSize: 12, fontFamily: 'monospace')), state: '${p.id}:${p.attemptNumber}')),
-            // Paid is not ordered. Until the order module exists this is where the journey ends — and it says so.
-            if (view == PayView.verified) Padding(padding: const EdgeInsets.only(top: 10), child: _sem('pay-order-pending', InfoBox(icon: Icons.schedule, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('pay.api.orderPending'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B4300)))), state: p?.fulfillment)),
+            // Paid, and the order is the backend's to create (Module 31): waited for, never invented here.
+            if (view == PayView.verified && p != null && p.orderNumber != null) Padding(padding: const EdgeInsets.only(top: 10), child: _sem('pay-order-ready', InfoBox(icon: Icons.check_circle_outline, color: const Color(0xFF15733A), bg: const Color(0xFFE7F6EC), child: Text(S.t('pay.api.orderReady', {'number': p.orderNumber!}), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF15733A)))), state: p.orderNumber)),
+            if (view == PayView.verified && p != null && p.orderNumber == null && p.fulfillment == 'RECOVERY_REQUIRED') Padding(padding: const EdgeInsets.only(top: 10), child: _sem('pay-order-recovery', InfoBox(icon: Icons.support_agent_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('pay.api.orderRecovery', {'ref': p.supportReference}), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B4300)))), live: true, state: p.fulfillment)),
+            if (view == PayView.verified && (p == null || (p.orderNumber == null && p.fulfillment != 'RECOVERY_REQUIRED'))) Padding(padding: const EdgeInsets.only(top: 10), child: _sem('pay-order-pending', InfoBox(icon: Icons.schedule, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('pay.api.orderCreating'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B4300)))), state: p?.fulfillment)),
             if (isWait) Padding(padding: const EdgeInsets.only(top: 10), child: _sem('pay-do-not-pay-again', InfoBox(icon: Icons.warning_amber_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('pay.doNotPayAgain'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B4300)))))),
             if (p?.status == 'REVIEW_REQUIRED') Padding(padding: const EdgeInsets.only(top: 10), child: _sem('pay-support', InfoBox(icon: Icons.support_agent_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('pay.api.support', {'ref': p!.supportReference}), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B4300)))))),
             if (pay.providerError) Padding(padding: const EdgeInsets.only(top: 8), child: _sem('pay-provider-error', Text(S.t('pay.api.providerWindow'), style: const TextStyle(color: Color(0xFF9A1D17), fontWeight: FontWeight.w700, fontSize: 12.5)), live: true)),

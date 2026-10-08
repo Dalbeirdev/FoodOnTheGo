@@ -1,0 +1,9 @@
+# Module 31 — full backend test suite (php artisan test — the project's JSON reporter; phpunit.xml: DB_DATABASE=foodonthego_test on the local PostgreSQL 18 + PostGIS, QUEUE_CONNECTION=sync, CACHE_STORE=array), LOCAL, 2026-10-08
+# Order suites: tests/Feature/Order (6 classes, 31 tests: OrderCreationTest 7, RestaurantOrderWorkflowTest 7, OrderRecoveryTest 6, OrderSecurityTest 5, OrderOpenApiContractTest 2, OrderPerformanceTest 4). Every order test runs with the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) on a frozen server clock; with the sync queue a verified payment becomes an order inside the test's own request. Tests that need "verified, no order yet" fake the PaymentVerified event for that step.
+# Module 29 / 30 tests adapted to orders existing: CheckoutOpenApiContractTest, CheckoutPaymentPreparationTest, AdminPaymentApiTest, PaymentVerificationTest, PaymentOpenApiContractTest, PaymentPerformanceTest, PaymentReconciliationTest, PaymentRetryAndIdempotencyTest, PaymentSecurityTest.
+# Earlier full run of the same day (before the last two Module 29 test adaptations): 1023 tests, 44,113 assertions, 2 failed (CheckoutOpenApiContractTest: the documented checkout paths count 19 → 20, the zero-total fulfil route; CheckoutPaymentPreparationTest: 'no route creates an order' → the order routes exist now). Both were adapted and the run below is the final one.
+# Code style: vendor/bin/pint --format agent on the PHP files this module added or changed: no changes needed.
+
+## final run
+{"tool":"phpunit","result":"passed","tests":1023,"passed":1023,"assertions":44328,"duration_ms":559358}
+exit 0

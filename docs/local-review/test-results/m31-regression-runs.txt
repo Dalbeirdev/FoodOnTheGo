@@ -1,0 +1,86 @@
+# Module 31 — regression runs of the earlier suites against the REAL local backend after the order module (customer-web on :5173, API on :8001; VITE_AUTH_MODE, VITE_MARKET_MODE, VITE_RESTAURANT_MODE, VITE_JOURNEY_MODE, VITE_CART_MODE, VITE_PICKUP_MODE, VITE_CHECKOUT_MODE, VITE_PAYMENT_MODE and VITE_ORDER_MODE = api; PAYMENT_DRIVER = fake, the development provider)
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression_m30.js (Module 19 full-site suite), m23_e2e.js (Module 23 restaurants suite), m24_e2e.js (Module 24 menus suite), m25_e2e.js (Module 25 customer account suite), m26_e2e.js (Module 26 journeys suite), m27_e2e.js (Module 27 cart suite), m28_e2e.js (Module 28 pickup suite), m29_e2e_m30.js (Module 29 checkout suite).
+# CHANGES TO THE SCRIPTS FOR THIS MODULE (scratchpad shots/m30_regress_build.py makes the two copies):
+#   1. The full-site suite and the checkout suite keep the PAYMENT STEP in its development mode for their browser (localStorage fotg.payment.mode = mock, the per-device override). Both go on after the payment step with an ORDER, and orders do not exist on the backend yet (Module 31): with the backend payment the journey ends at "payment verified — order creation is pending". The backend payment is covered by its own suite (m30-web-e2e.json), not by these two.
+#   2. The checkout suite expects what the backend says now: the payment provider status of a checkout and of the admin checkout numbers is READY (it was NOT_INTEGRATED), and the checkout page no longer says that the provider is not connected (three expectations).
+#   3. (Module 31) The Module 30 payment suite (m30_e2e.js) runs UNCHANGED: its steps that assert "a verified payment creates NO order" (A9, A10, and whatever follows from the checkout being CONVERTED) are EXPECTED MISSES now that Module 31 creates the order — they are listed below as such. The backend order path has its own suite (m31-web-e2e.json).
+#   Every other suite runs unchanged.
+#   NOT RUN AGAIN: the Module 30 ANDROID preview suite (m30_flutter.js). Its scenario — a verified payment with NO order, the app restarted on the payment screen showing VERIFIED — no longer exists: with Module 31 the app leaves the payment screen for the order. The same code path is covered by the Module 31 preview suite (m31-android-preview-e2e.json: pay, the order, restart on the confirmation and on the payment screen).
+# Before each suite the carts (and with them the pickup selections and checkouts) left in the LOCAL database by the previous one are removed; the fixture cart and the Pizza Point capacity fixture are not touched.
+# Result: m22_auth_regression.js 48/48, m22_e2e.js 51/51, m22_regression_m30.js 68/68, m23_e2e.js 18/20, m24_e2e.js 48/48, m25_e2e.js 63/63, m26_e2e.js 62/63, m27_e2e.js 76/76, m28_e2e.js 64/69, m29_e2e_m30.js 75/77, m30_e2e.js 59/63 (632/646).
+
+# RESULT PER SUITE (the latest run of each; the history of every run is at the end)
+
+=== m22_auth_regression.js  [run 1]  08:53:52Z  (carts removed before the run: 0)
+48/48 passed
+
+=== m22_e2e.js  [run 1]  08:56:40Z  (carts removed before the run: 0)
+51/51 passed
+
+=== m22_regression_m30.js  [run 1]  09:00:00Z  (carts removed before the run: 0)
+68/68 passed
+
+=== m23_e2e.js  [run 3] (run by name)  10:14:57Z  (carts removed before the run: 0)
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":0,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+FAIL A2b the header says where the data of each section comes from: "Backend data" on Restaurants, "Mock data" on Orders (still development data) — Local
+98/101 passed
+
+=== m24_e2e.js  [run 1]  09:22:07Z  (carts removed before the run: 0)
+48/48 passed
+
+=== m25_e2e.js  [run 1]  09:23:55Z  (carts removed before the run: 1)
+63/63 passed
+
+=== m26_e2e.js  [run 2] (run by name)  09:59:29Z  (carts removed before the run: 0)
+63/63 passed
+
+=== m27_e2e.js  [run 1]  09:31:18Z  (carts removed before the run: 0)
+76/76 passed
+
+=== m28_e2e.js  [run 2] (run by name)  10:03:29Z  (carts removed before the run: 0)
+69/69 passed
+
+=== m29_e2e_m30.js  [run 1]  09:43:46Z  (carts removed before the run: 0)
+FAIL G3 A CHECKOUT CHARGES NOTHING — paying it is Module 30, whose routes exist beside it: no route of the API creates an order or a refund; there is no orders table — api/v1/admin/payments api/v1/admin/payments/{payment} api/v1/admin/payments/{payment}/reconcile api/v1/admin/system/checkout api/v1/admin/system/payments api/v1/checkouts api/v1/checkouts/{checkout} api/v1/checkouts/{checkout}/cancel api/v1/checkouts/{checkout}/confirm api/v1/checkouts/{checkout}/fulfill api/v1/checkouts/{checkout}/payment-attempts api/v1/checkouts/{checkout}/promotion api/v1/chec
+FAIL G4 the API has 213 routes under /api/v1 — 19 of them from Module 29 (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers) and 9 from Module 30 — 213
+75/77 passed
+
+=== m30_e2e.js  [run 2] (run by name)  10:08:13Z  (carts removed before the run: 0)
+FAIL A9 PAID IS NOT ORDERED: the page says "Payment verified — order creation is pending", stays on /payment, shows no order confirmation and no order number, and offers nothing to pay again — {"view":"VERIFIED","status":"VERIFIED","pending":true,"fulfillment":"ORDER_PENDING","url":"/payment","text":"SECURE PAYMENT Payment Complete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details. development payment p","submit":false,"retry":false}
+FAIL A10 DATABASE: the attempt is VERIFIED (proof checked, provider payment reference kept, verified_at set), its order state is ORDER_PENDING — and there is NO ORDER: no orders table exists yet; the checkout stays PAYMENT_PENDING with its hold — {"status":"VERIFIED","amount":42700,"currency":"INR","provider":"fake","mode":"FAKE","order":"fakeorder_9xgeyk8elcbzow","payment":"fakepay_xuudz8pqo37tsw","fulfillment":"ORDER_PENDING","reason":"","client":"success","signed":true,"failures":0,"number":1,"fulfillmentReason":"","failure":"","verifiedAt":true}
+FAIL H8 ADMIN › SYSTEM shows the payment numbers of the backend: the provider in use (the development provider — "no money moves"), verified payments, "verified, no order yet", "need review" — and the note that orders and refunds are not built; the same report by API names no key and no secret — {"driver":"fake","mode":"FAKE","configured":"true","text":"6 Verified payments 6 Verified, no order yet 0 Verified, recovery required 1 Need review","note":"Events cover the last 24 hours. A verified payment becomes an order on the server (Orders). Refunds are not built yet: nothing can be refunded 
+FAIL I3 THE RESTAURANT PAUSES AFTER THE PROVIDER OPENED — AND THE CUSTOMER PAYS: the money is real, so the payment IS verified, and it is marked RECOVERY_REQUIRED (RESTAURANT_NOT_ACCEPTING): the page says the payment was received, that the order could not be confirmed yet and that the customer need not pay again — no order is invented — {"status":"VERIFIED","amount":42700,"currency":"INR","provider":"fake","mode":"FAKE","order":"fakeorder_cbvvbbwm3ecody","payment":"fakepay_bpnqqarjl8axjl","fulfillment":"RECOVERY_REQUIRED","reason":"","client":"success","signed":true,"failures":0,"number":1,"fulfillmentReason":"RESTAURANT_NOT_ACCEPTING","failure":"","verifiedAt":true} SECURE PAYMENT Payment Complete your payment with the provider'
+59/63 passed
+
+# NOTES — every miss of the latest runs, with its cause (nothing here is a Module 31 regression of the product):
+# - m29_e2e_m30.js (checkout) G3, G4: the two Module 29 expectations that Module 31 made obsolete — "no route creates an order, there is no orders table" and "the API has 207 routes". There are 213 routes now and the order tables exist. Expected; the same class as the C14 / D3 misses of Module 24.
+# - m30_e2e.js (payments) A9, A10, I3: the Module 30 expectations "a verified payment creates NO order" (page text "order creation is pending", no orders table, the recovery page text) — obsolete since Module 31. The suite starts its own worker for the queue "payments" only, so inside this suite verified payments stay ORDER_PENDING (no worker for the queue "orders" ran during it) and A9 / A10 miss on the changed page text and the existing table. H8: the admin System › Payments note changed in Module 31 ("a verified payment becomes an order on the server; refunds are not built yet"). Expected, listed as such in the header.
+# - m23_e2e.js (restaurants), third run 98/101: C14 and D3 are the two expectations obsolete since Module 24 (a backend restaurant without development menu data showed "menu unavailable"; the Menu section carried the "Demo data" label) — they missed in the Module 27 … 30 regressions in the same way (99/101 each). A2b is a Module 31 effect: the suite expects the Platform Admin ORDERS page to say "Mock data"; since Module 31 the admin orders are the backend's and the page says "Backend data". Expected.
+# - m23_e2e.js (restaurants), first and second run: aborted at C13 — the fixture special hour "Closed for staff training" is seeded for "+1 day" (seeded on 2026-10-06 → 2026-10-07) and the customer page lists upcoming special hours only; on 2026-10-08 it was in the past. The fixture row was moved to 2026-10-09 (what seeding on 2026-10-08 produces) and the suite was run again (run 3). Not a product change.
+# - m26_e2e.js (journeys), first run: X1 needs the second API process on port 8003, which had not been started after the reboot; started, and the suite run again (run 2): 63/63.
+# - m28_e2e.js (pickup), first run: C1, C3, C4, C5 — the Pizza Point capacity fixture is dated (today + tomorrow at seeding time) and had been seeded on 2026-10-06; re-seeded with LocalPickupFixtureSeeder (idempotent: it deletes and re-creates its own rows) and the suite run again (run 2): 69/69. D1 passed in the second run as well.
+# - NOT RUN AGAIN: m30_flutter.js (the Module 30 Android preview suite) — its scenario no longer exists (see the header); m31-android-preview-e2e.json covers the path.
+# Fixture state after the runs: see the "Fixture cart (Asha)" line of each run below; the special-hour row 1 (ambala-chai-point) is now dated 2026-10-09.
+
+# HISTORY OF THE RUNS
+# run 1: m22_auth_regression.js  08:53:52Z  (carts removed before the run: 0) → 48/48 passed
+# run 1: m22_e2e.js  08:56:40Z  (carts removed before the run: 0) → 51/51 passed
+# run 1: m22_regression_m30.js  09:00:00Z  (carts removed before the run: 0) → 68/68 passed
+# run 1: m23_e2e.js  09:20:31Z  (carts removed before the run: 3) → 18/20 passed
+# run 1: m24_e2e.js  09:22:07Z  (carts removed before the run: 0) → 48/48 passed
+# run 1: m25_e2e.js  09:23:55Z  (carts removed before the run: 1) → 63/63 passed
+# run 1: m26_e2e.js  09:26:39Z  (carts removed before the run: 0) → 62/63 passed
+# run 1: m27_e2e.js  09:31:18Z  (carts removed before the run: 0) → 76/76 passed
+# run 1: m28_e2e.js  09:38:49Z  (carts removed before the run: 0) → 64/69 passed
+# run 1: m29_e2e_m30.js  09:43:46Z  (carts removed before the run: 0) → 75/77 passed
+# run 1: m30_e2e.js  09:49:23Z  (carts removed before the run: 0) → 59/63 passed
+# run 2: m23_e2e.js (run by name)  09:57:59Z  (carts removed before the run: 0) → 18/20 passed
+# run 2: m26_e2e.js (run by name)  09:59:29Z  (carts removed before the run: 0) → 63/63 passed
+# run 2: m28_e2e.js (run by name)  10:03:29Z  (carts removed before the run: 0) → 69/69 passed
+# run 2: m30_e2e.js (run by name)  10:08:13Z  (carts removed before the run: 0) → 59/63 passed
+# run 3: m23_e2e.js (run by name)  10:14:57Z  (carts removed before the run: 0) → 98/101 passed
+
+# run 1: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+# run 2: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+# run 3: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.

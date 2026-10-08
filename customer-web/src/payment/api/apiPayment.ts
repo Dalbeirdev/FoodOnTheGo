@@ -29,7 +29,8 @@ export type PaymentDto = {
   message: string | null
   next_action: PaymentNextAction; retry_after_seconds: number | null
   provider_session: ProviderSessionDto | null
-  fulfillment: { status: FulfillmentStatus; order_id: null; order_creation: 'NOT_IMPLEMENTED' }
+  /** What became of a verified payment (Module 31): the order it became, once the backend created it. */
+  fulfillment: { status: FulfillmentStatus; order_id: string | null; order_number: string | null }
   support_reference: string
   expires_at: string | null; server_time: string; created_at: string | null; updated_at: string | null; verified_at: string | null
 }
@@ -51,6 +52,8 @@ export type ServerPayment = {
   nextAction: PaymentNextAction; retryAfterSeconds: number | null
   session: ProviderSession | null
   fulfillment: FulfillmentStatus
+  /** The order the payment became — null until the backend created it. A client waits for it after VERIFIED. */
+  orderNumber: string | null; orderId: string | null
   supportReference: string
   expiresAt: string | null; verifiedAt: string | null
 }
@@ -68,7 +71,7 @@ export function toPayment(d: PaymentDto): ServerPayment {
       name: s.name, description: s.description, themeColor: s.theme_color, checkoutScript: s.checkout_script, prefill: s.prefill,
       preferredMethod: s.preferred_method, methods: s.methods, timeoutSeconds: s.timeout_seconds,
     },
-    fulfillment: d.fulfillment.status, supportReference: d.support_reference, expiresAt: d.expires_at, verifiedAt: d.verified_at,
+    fulfillment: d.fulfillment.status, orderNumber: d.fulfillment.order_number ?? null, orderId: d.fulfillment.order_id ?? null, supportReference: d.support_reference, expiresAt: d.expires_at, verifiedAt: d.verified_at,
   }
 }
 

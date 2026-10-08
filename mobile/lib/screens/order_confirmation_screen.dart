@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
+import '../order/api_order.dart' show ordersFromApi;
 import '../state/auth_state.dart';
 import '../state/order_state.dart';
 import '../widgets/common.dart';
@@ -29,13 +30,21 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) { final auth = context.read<AuthState>(); context.read<OrderState>().load(widget.number, customerId: auth.user?.id, customerName: auth.user?.name); });
   }
 
+  // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the
+  // customer is known (and again for another customer), never twice for the same one.
+  String? _loadedFor;
+  void _loadWhenSignedIn(BuildContext context, String? customerId, void Function() load) {
+    if (customerId == null || _loadedFor == customerId) return;
+    _loadedFor = customerId;
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) load(); });
+  }
   @override
   Widget build(BuildContext context) {
     final os = context.watch<OrderState>();
     final auth = context.watch<AuthState>();
+    _loadWhenSignedIn(context, auth.user?.id, () => context.read<OrderState>().load(widget.number, customerId: auth.user?.id, customerName: auth.user?.name));
     if (os.redirectTo != null && _redirected != os.redirectTo && os.loadedFor == widget.number) {
       _redirected = os.redirectTo;
       WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) context.go(os.redirectTo!); });
@@ -98,7 +107,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
         const SizedBox(height: 10),
         Wrap(spacing: 8, runSpacing: 6, alignment: WrapAlignment.center, children: [_chip('${S.t('oc.orderStatus')}: ${S.t('oc.status.${orderStatusKey(o.orderStatus)}')}'), _chip('${S.t('oc.paymentStatus')}: ${S.t('oc.pay.${paymentStatusKey(o.paymentStatus)}')}'), _chip('${S.t('oc.total')}: ${money(o.pricing.totalMinor)} ${o.pricing.currency}')]),
         const SizedBox(height: 8),
-        Text(S.t('oc.mock'), style: const TextStyle(color: Color(0xFF6B4300), fontSize: 11.5, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
+        if (!ordersFromApi) Text(S.t('oc.mock'), style: const TextStyle(color: Color(0xFF6B4300), fontSize: 11.5, fontWeight: FontWeight.w600), textAlign: TextAlign.center),   // Module 31: with the backend this is the server's order
       ])))),
       const SizedBox(height: 12),
       // Pickup code / QR

@@ -41,9 +41,10 @@ class PaymentVerificationTest extends TestCase
         $this->assertNull($verified['failure']);
         $this->assertNotNull($verified['verified_at']);
         $this->assertNull($verified['provider_session']);
-        $this->assertSame(['type' => 'CARD', 'summary' => ['network' => 'Visa', 'card_type' => 'debit', 'last4' => '1007']], $verified['method']);
-        // Paid is not ordered: the order belongs to the next module and none is invented.
-        $this->assertSame(['status' => 'ORDER_PENDING', 'order_id' => null, 'order_creation' => 'NOT_IMPLEMENTED'], $verified['fulfillment']);
+        $this->assertSame('CARD', $verified['method']['type']);
+        $this->assertEqualsCanonicalizing(['network' => 'Visa', 'card_type' => 'debit', 'last4' => '1007'], $verified['method']['summary']);
+        // Paid is not yet ordered: the order is created by the order domain from PaymentVerified (faked here) — none is invented.
+        $this->assertSame(['status' => 'ORDER_PENDING', 'order_id' => null, 'order_number' => null], $verified['fulfillment']);
         $this->assertSame('Payment received. We\'re confirming your order.', $verified['message']);
 
         $attempt = $this->attempt($payment['id']);

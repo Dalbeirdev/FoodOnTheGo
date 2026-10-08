@@ -109,7 +109,7 @@ export const adminStrings: Record<string, string> = {
   'adm.paynum.open': 'In progress', 'adm.paynum.unknown': 'Unknown', 'adm.paynum.failed': 'Failed', 'adm.paynum.cancelled': 'Cancelled or expired',
   'adm.paynum.health': 'Provider', 'adm.paynum.health.OPERATIONAL': 'Operational', 'adm.paynum.health.DEGRADED': 'Degraded', 'adm.paynum.health.OUTAGE': 'Outage', 'adm.paynum.health.UNKNOWN': 'No calls yet',
   'adm.paynum.providerLatency': 'Provider answer time', 'adm.paynum.verifiedRate': 'Verified of settled', 'adm.paynum.webhooks': 'Provider events handled / failed',
-  'adm.paynum.note': 'Events cover the last {hours} hours. Orders and refunds are not built yet: a verified payment has no order, and nothing can be refunded from here.',
+  'adm.paynum.note': 'Events cover the last {hours} hours. A verified payment becomes an order on the server (Orders). Refunds are not built yet: nothing can be refunded from here.',
   'adm.checkout.title': 'Checkout', 'adm.checkout.subtitle': 'Counts from the backend. No cart, customer, promo code or amount is shown here.', 'adm.checkout.provider.READY': 'Payments available', 'adm.checkout.provider.UNAVAILABLE': 'Payments unavailable',
   'adm.checkout.created': 'Checkouts started', 'adm.checkout.confirmed': 'Confirmed', 'adm.checkout.readyRate': 'Confirmed of started', 'adm.checkout.holds': 'Pickup times held now',
   'adm.checkout.open': 'Open now', 'adm.checkout.stale': 'Went stale', 'adm.checkout.expired': 'Expired', 'adm.checkout.holdFailed': 'Pickup time taken meanwhile',

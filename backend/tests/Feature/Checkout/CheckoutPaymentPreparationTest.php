@@ -329,16 +329,22 @@ class CheckoutPaymentPreparationTest extends TestCase
 
         // Since Module 30 a confirmed checkout has exactly one payment route: a payment attempt for its total.
         $this->assertSame(['POST api/v1/checkouts/{checkout}/payment-attempts'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts') && str_contains($r, 'pay'))->values()->all());
-        // Orders, refunds, captures and settlements belong to later modules: nothing of them exists.
-        foreach (['orders', 'refunds', 'capture', 'settlements', 'payment-intents'] as $segment) {
+        // Refunds, captures and settlements belong to later modules: nothing of them exists. Orders exist since Module 31 —
+        // created by the server from the verified payment; the one order route under /checkouts is for a ZERO total.
+        foreach (['refunds', 'capture', 'settlements', 'payment-intents'] as $segment) {
             $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, $segment))->values()->all(), $segment);
         }
+        $this->assertSame(['POST api/v1/checkouts/{checkout}/fulfill'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts/') && str_contains($r, 'fulfill'))->values()->all());
+        $this->assertCount(15, $routes->filter(fn (string $r): bool => str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill')));
         $ready = $this->confirmCheckout($this->asha, $this->checkout)->assertOk()->json('checkout');
         foreach (['/pay', '/payment', '/payments', '/order', '/capture', '/refund'] as $suffix) {
             $this->postJson('/api/v1/checkouts/'.$ready['id'].$suffix, [], $this->using($this->asha))->assertNotFound();
         }
-        foreach (['orders', 'refunds', 'payment_intents', 'settlements'] as $table) {
+        foreach (['payment_intents', 'settlements'] as $table) {
             $this->assertFalse(DB::getSchemaBuilder()->hasTable($table), $table);
         }
+        // Orders exist since Module 31; their refund records are a foundation only (nothing is refunded).
+        $this->assertTrue(DB::getSchemaBuilder()->hasTable('orders'));
+        $this->assertSame(0, DB::table('order_refunds')->count());
     }
 }

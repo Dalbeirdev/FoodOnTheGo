@@ -1,0 +1,395 @@
+{
+  "module": "M29",
+  "suite": "Customer Web + Platform Admin on the real local backend",
+  "ran_at": "2026-10-08T09:49:23.277Z",
+  "passed": 75,
+  "failed": 2,
+  "total": 77,
+  "results": [
+    {
+      "name": "A0 the web runs checkout on the backend (VITE_CHECKOUT_MODE=api): no checkout exists for a customer without a cart — 404 cart_not_found",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 no pickup time chosen: the backend refuses a checkout (409 pickup_required) and says where to go (recover: pickup)",
+      "pass": true,
+      "detail": "{\"error\":{\"code\":\"pickup_required\",\"message\":\"Choose a pickup time before checkout.\",\"details\":{\"issues\":[{\"code\":\"PICKUP_REQUIRED\",\"message\":\"Choose a pickup time before checkout.\",\"recover\":\"pickup\""
+    },
+    {
+      "name": "A2 a pickup slot is chosen for the cart (still only a choice: reserved = false)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A3 THE CHECKOUT PAGE SHOWS THE BACKEND'S CHECKOUT: the summary is the server's (source api), the subtotal is the cart's server subtotal and the total is the backend total — the same figures GET /checkouts/{id} returns",
+      "pass": true,
+      "detail": "{\"source\":\"api\",\"currency\":\"INR\",\"subtotal\":42700,\"total\":42700,\"cta\":42700,\"ctaText\":\"Continue to payment · ₹427.00\"}"
+    },
+    {
+      "name": "A4 NOTHING IS INVENTED: no tax line, no fee line, no discount; the page says no taxes or fees are configured; the backend says tax NOT_CONFIGURED / fees NOT_CONFIGURED; total = subtotal",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 THE BUTTON CARRIES THE BACKEND TOTAL: \"Continue to payment · ₹…\" with the amount of the backend checkout",
+      "pass": true,
+      "detail": "Continue to payment · ₹427.00"
+    },
+    {
+      "name": "A6 the page has no development-checkout label, no delivery fee, no \"tax invoice\", no GST / VAT wording and no cash at pickup",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 LEGAL: the three documents the backend requires are listed with their versions, marked as drafts pending approval (final approval = false)",
+      "pass": true,
+      "detail": "TERMS@draft-2026-09:DRAFT_PENDING_APPROVAL,PRIVACY@draft-2026-09:DRAFT_PENDING_APPROVAL,REFUND@draft-2026-09:DRAFT_PENDING_APPROVAL"
+    },
+    {
+      "name": "A8 PAYMENT METHODS come from the backend (UPI, card, net banking, wallet for India) plus the saved references of the customer (a label only — 2 shown, as many as the backend lists); cash at pickup is not offered; the backend says payments can be taken (provider READY) and the page shows no \"payments unavailable\" note",
+      "pass": true,
+      "detail": "saved:f17aeb56-5d53-4e26-84d2-30c624311156,saved:42ecc54c-e015-4a65-9782-21ba0b9e6f03,upi,card,netbanking,wallet"
+    },
+    {
+      "name": "A9 the customer, the restaurant, the pickup time and the lines on the page are the backend checkout's",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A10 the time left is counted from the server clock: about 15 minutes for a draft",
+      "pass": true,
+      "detail": "897"
+    },
+    {
+      "name": "A11 a draft holds nothing: no capacity is reserved by opening a checkout",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe (checkout on the backend): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 APPLY WELCOME10 (typed in lower case): the backend applies 10 % — discount and total on the page are the backend's",
+      "pass": true,
+      "detail": "38430"
+    },
+    {
+      "name": "B2 an expired code is refused (422) with \"expired\"; the applied code and its total stay",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B3 a minimum spend that is not reached: refused with the minimum (₹1,500.00) in the message",
+      "pass": true,
+      "detail": "This code needs a subtotal of at least ₹1,500.00."
+    },
+    {
+      "name": "B4 a code of another restaurant is refused as not applicable",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B5 a code whose uses are all taken is refused",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B6 an unknown code, a draft and a paused promotion get the same answer: nothing about campaigns is revealed",
+      "pass": true,
+      "detail": "422|invalid|That code is not valid. / 422|invalid|That code is not valid. / 422|invalid|That code is not valid."
+    },
+    {
+      "name": "B7 REMOVE: the backend prices the checkout again without the code — the total is the subtotal again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B8 the cart page has no promo field of its own any more: a code is entered at checkout, where the backend decides",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 WITHOUT ACCEPTING THE TERMS nothing is confirmed: the page lists what is missing and no confirm request is sent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C2 the BACKEND refuses a confirmation without the documents (422 legal_acceptance_required, the three missing documents named) — the checkbox is only UX",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 CONFIRM sends the fingerprint of the price on the screen, the three documents with their versions, a method TYPE and the note — no amount, no currency, no customer, no cart",
+      "pass": true,
+      "detail": "{\"pricing_fingerprint\":\"3c5b0ec2fdac7d5b1f09d5b84910445d83c9ea3477cf0ce9c971505bf1c4a0cc\",\"accepted_documents\":[{\"type\":\"TERMS\",\"version\":\"draft-2026-09\"},{\"type\":\"PRIVACY\",\"version\":\"draft-2026-09\"},{\"type\":\"REFUND\",\"version\":\"draft-2026-09\"}],\"payment_method\":{\"type\":\"CARD\"},\"order_note\":\"Please p"
+    },
+    {
+      "name": "C4 READY: the checkout is confirmed, the acceptance is recorded per document and version, the note is stored as plain text, and a payment PREPARATION exists for exactly the total (the payment provider is READY; confirming a checkout charges nothing)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C5 SLOT HOLD: confirming holds ONE place in the chosen slot until the checkout expires (a HOLD row bound to this checkout, same expiry)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 the acceptance rows carry what was accepted and when — and no address, no device",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C7 THE PAYMENT STEP shows the backend total of the confirmed checkout and its currency; it is labelled a development payment (no provider is connected, no money moves)",
+      "pass": true,
+      "detail": "₹427.00"
+    },
+    {
+      "name": "C8 CONFIRMING AGAIN changes and prolongs nothing: same version, same expiry, same payment key, still one hold",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C9 ONE LIVE CHECKOUT PER CART: opening again (another device) returns the same confirmed checkout (200, same id)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C10 a reload of the payment step asks the backend for the checkout again and still shows its total",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C11 back on checkout the page shows the confirmed checkout with its held pickup time",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 CHECKOUT NEEDS A SIGNED-IN CUSTOMER: a guest cart token is refused on every route (401)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 IDOR: another customer gets 404 checkout_not_found for Rahul's checkout on read, promotion, confirm and cancel — exactly as for an id nobody has; Rahul's checkout is untouched",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D3 TAMPERING: a total, an amount, a discount, a tax, a currency, a customer, a restaurant, a status, an expiry, a pickup time, a hold, a card number, a CVV, a UPI PIN, a bank password and cash-at-pickup in a request are ALL REFUSED by name (422) on open and on confirm — never read",
+      "pass": true,
+      "detail": "422/422 "
+    },
+    {
+      "name": "D4 after all of it the checkout is what it was: same total, same fingerprint, same status",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D5 CASH AT PICKUP is not a payment method (422 payment_method_unavailable for CASH_AT_PICKUP / CASH / COD), and card data inside the payment method is refused (422)",
+      "pass": true,
+      "detail": "payment_method_unavailable,payment_method_unavailable,payment_method_unavailable"
+    },
+    {
+      "name": "D6 changing the promotion of a confirmed checkout took it back to DRAFT and released the hold: the old total can no longer be paid",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D7 an order note with markup is refused (422): notes are plain text",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D8 not one digit of the card number reached the database or the audit trail",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E1 THE RESTAURANT RAISES A PRICE (dashboard API) while the checkout is confirmed: back on the tab the customer sees a NEW checkout with the NEW total and is told the price changed — the old one is STALE and its hold released",
+      "pass": true,
+      "detail": "44700 vs 44700 STALE:PRICE_CHANGED patch=200 change=true updated=false hold=RELEASED,RELEASED"
+    },
+    {
+      "name": "E2 the old price can no longer be confirmed or paid (409 checkout_stale)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 the price goes back: the checkout follows again (never a kept old price)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E4 THE RESTAURANT MARKS AN ITEM SOLD OUT: checkout is BLOCKED — the backend's reason is shown with the way back to the cart, the button is disabled and no total is shown",
+      "pass": true,
+      "detail": "{\"code\":\"ITEM_UNAVAILABLE\",\"recover\":\"cart\",\"disabled\":true,\"total\":false}"
+    },
+    {
+      "name": "E5 THE RESTAURANT PAUSES ORDERS: checkout is blocked (RESTAURANT_NOT_ACCEPTING), the button is disabled; the API refuses too (409)",
+      "pass": true,
+      "detail": "RESTAURANT_NOT_ACCEPTING"
+    },
+    {
+      "name": "E6 AN ADMINISTRATOR SUSPENDS THE RESTAURANT: the confirmed, unpaid checkout becomes STALE (hold released) and a new one is refused — the page shows the block",
+      "pass": true,
+      "detail": "STALE"
+    },
+    {
+      "name": "E7 THE SLOT FILLS UP (capacity 1, taken by somebody else): the confirmation is refused, nothing is held, and the page sends the customer to choose another time",
+      "pass": true,
+      "detail": "{\"code\":\"PICKUP_SLOT_FULL\",\"recover\":\"pickup\"} 409"
+    },
+    {
+      "name": "E8 with another time the checkout confirms, and with capacity 1 that slot is now FULL for everybody else but still valid for its holder",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E9 AN ADMINISTRATOR CREATES A PROMOTION (draft), ACTIVATES it, the customer confirms a checkout with it (one use HELD, shown to the admin as a count), then the administrator PAUSES it: the unpaid checkout goes stale and the page shows the full total again with the reason",
+      "pass": true,
+      "detail": "STALE:PROMOTION_CHANGED 42700"
+    },
+    {
+      "name": "E10 NO RULE IS SEEDED AND A DRAFT CHARGES NOBODY: India has no tax and no fee rule (configured: false / false); the draft rules an administrator just created leave the checkout total unchanged",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E11 AN ADMINISTRATOR ACTIVATES A TEST FEE (₹15) AND A TEST TAX (2.5 % + 2.5 %): the confirmed checkout goes stale, the new one shows one fee line and two tax lines, the total is subtotal + fee + tax (calculated independently here with integers, half up) and the page calls it a TEST configuration",
+      "pass": true,
+      "detail": "46336 vs 46336 Test tax A (2.5%) ₹10.68 | Test tax B (2.5%) ₹10.68"
+    },
+    {
+      "name": "E12 an ACTIVE rule is frozen (409 rule_frozen), a DELIVERY fee cannot be configured (422), and neither the restaurant owner nor a customer reaches tax, fee or promotion configuration (401)",
+      "pass": true,
+      "detail": "409 422 401,401,401,401"
+    },
+    {
+      "name": "E13 the rules are disabled again: the next checkout charges no tax and no fee",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E14 every one of those changes is in the audit log with its reason (promotion created / status changed ×2, fee and tax rule created / status changed ×2 each)",
+      "pass": true,
+      "detail": "promotion.created,promotion.status_changed,promotion.status_changed,fee_rule.created,tax_rule.created,fee_rule.status_changed,tax_rule.status_changed,fee_rule.status_changed,tax_rule.status_changed"
+    },
+    {
+      "name": "F1 EXPIRY ON THE SERVER CLOCK: the checkout's time is over — the page says it expired, the button is disabled, the API answers EXPIRED and refuses a confirmation (410); the hold no longer counts",
+      "pass": true,
+      "detail": "{\"banner\":true,\"disabled\":true} EXPIRED,410"
+    },
+    {
+      "name": "F2 \"Start again\" asks the backend for a new checkout: a new id, the current total, the button is back",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 the scheduled clean-up runs (checkouts:prune) and reports counts only",
+      "pass": true,
+      "detail": "Expired 0 checkout(s) and 0 pickup hold(s); released 0 promotion use(s); deleted 0 closed checkout(s) past retention."
+    },
+    {
+      "name": "F4 A TOTAL OF ZERO (a 100 % test promotion): no payment method is asked for, the button says \"Confirm — nothing to pay\", the backend answers PAYMENT_NOT_REQUIRED, no payment of ₹0 is created and the customer is NOT sent to a payment step",
+      "pass": true,
+      "detail": "{\"total\":0,\"cta\":\"Confirm — nothing to pay\",\"noMethod\":true,\"methods\":0}"
+    },
+    {
+      "name": "F5 OFFLINE: the page says so, the button is disabled and no confirmation leaves the device — a checkout cannot be continued from a page that cannot ask the backend",
+      "pass": true,
+      "detail": "{\"notice\":true,\"disabled\":true}"
+    },
+    {
+      "name": "F6 back online the backend is asked again and the checkout can be continued",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G1 IDEMPOTENCY: the same Idempotency-Key replays the first answer (same checkout, Idempotency-Replayed: true) and is refused with another body (409 idempotency_key_reused)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G2 CANCEL: the customer leaves the checkout — CANCELLED, safe to repeat",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G3 A CHECKOUT CHARGES NOTHING — paying it is Module 30, whose routes exist beside it: no route of the API creates an order or a refund; there is no orders table",
+      "pass": false,
+      "detail": "api/v1/admin/payments api/v1/admin/payments/{payment} api/v1/admin/payments/{payment}/reconcile api/v1/admin/system/checkout api/v1/admin/system/payments api/v1/checkouts api/v1/checkouts/{checkout} api/v1/checkouts/{checkout}/cancel api/v1/checkouts/{checkout}/confirm api/v1/checkouts/{checkout}/fulfill api/v1/checkouts/{checkout}/payment-attempts api/v1/checkouts/{checkout}/promotion api/v1/chec"
+    },
+    {
+      "name": "G4 the API has 213 routes under /api/v1 — 19 of them from Module 29 (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers) and 9 from Module 30",
+      "pass": false,
+      "detail": "213"
+    },
+    {
+      "name": "H1 ADMIN › PROMOTIONS IS THE BACKEND'S LIST: the seeded development promotions and the one this run created are shown with what they are right now (active, paused, expired, scheduled, draft, disabled)",
+      "pass": true,
+      "detail": "Promotions CODE TYPE VALUE SCOPE PERIOD USAGE STATUS ACTIONS E2ESAVE50 E2E ₹50 off Fixed amount ₹50.00 INR Restaurant · IN · Burger Hub — – — 0 / 1 Paused Resume Disable Edit WELCOME10 10 % off your order Percentage 10% Platform 1 Jan 2026 – — 0 / Unlimited Active Pause Disable Edit TRAVEL5 5 % off "
+    },
+    {
+      "name": "H2 A PROMOTION IS CREATED FROM THE ADMIN FORM through the backend: stored as a DRAFT with a normalized code and 10 % as 1000 basis points",
+      "pass": true,
+      "detail": "{\"promotion\":{\"id\":\"d4befecc-c449-41d4-a253-9761c1ad5b5c\",\"code\":\"E2EUI10\",\"name\":\"E2E UI ten percent\",\"description\":null,\"type\":\"PERCENTAGE\",\"status\":\"DRAFT\",\"effective_status\":\"DRAFT\",\"scope\":\"PLATF"
+    },
+    {
+      "name": "H3 while it is a draft a customer cannot use it (422); ACTIVATED from the admin UI with a reason, the same customer's checkout takes 10 % off",
+      "pass": true,
+      "detail": "422 200 200"
+    },
+    {
+      "name": "H4 ADMIN › MARKET › CONFIGURATION › TAX SHOWS THE REAL RULES: the tax rule and the fee rule of this run, each DISABLED and marked \"TEST configuration\", \"Not configured\" for the market, and the note that no rate is an official rate",
+      "pass": true,
+      "detail": "DISABLED:TEST:false Tax rules Applied by the backend at checkout. No rate exists until an administrator configures one. Not configured New tax rule Tax rules RULE RATES APPLIES EFFECTIVE STATE ADM.COL.ACTIONS TEST TAX CO"
+    },
+    {
+      "name": "H5 A TAX RULE IS CREATED FROM THE ADMIN FORM: a DRAFT, TEST configuration, rate as integer basis points (500 = 5 %) — and as a draft it charges nobody",
+      "pass": true,
+      "detail": "{\"tax_rule\":{\"id\":\"c4d88e60-2aca-4ae7-83e9-b47a2add5dab\",\"name\":\"TEST TAX CONFIGURATION\",\"applies_to\":\"MERCHANDISE\",\"price_treatment\":\"EXCLUSIVE\",\"discount_treatment\":\"AFTER_DISCOUNT\",\"status\":\"DRAFT\""
+    },
+    {
+      "name": "H6 ADMIN › SYSTEM › CHECKOUT: counts of this run (started, confirmed, stale, expired, codes applied / refused, holds) — numbers only: no cart, customer, code or amount of anybody; slot hold IMPLEMENTED, payment provider READY",
+      "pass": true,
+      "detail": "{\"created\":34,\"reused\":33,\"blocked\":8,\"confirmed\":28,\"stale\":10,\"expired\":1,\"cancelled\":4,\"promotion_applied\":7,\"promotion_refused\":9,\"promotion_removed\":3,\"hold_failed\":0,\"payment_started\":14,\"payment_ended\":0,\"price_changed\":2,\"pickup_invalid\":5}"
+    },
+    {
+      "name": "H7 the pickup numbers now say where the hold is taken: slot hold AT_CHECKOUT",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I1 at phone width (390 px) the checkout shows the same backend total and does not scroll sideways",
+      "pass": true,
+      "detail": "overflow 0"
+    },
+    {
+      "name": "I2 LOGS: 80 checkout event lines were written in this run — ids, statuses, totals in minor units and reason codes only: no phone number, no item name, no order note, no promo code, no card number, no token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I3 nothing in the browser stored an amount as the truth: sessionStorage holds the request only as an echo of the confirmed backend checkout (its id and fingerprint), and no card data anywhere",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I4 MEASURED on this machine through the local API (PHP built-in server, no OPcache): checkout open 558 ms, read 488 ms, promotion 507 ms, confirm 406 ms (medians)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I5 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every checkout, hold, promotion use, promotion and rule of this run is removed; the fixture promotions, Burger Hub, its pickup capacity, the onion rings and Asha's fixture cart are as they were",
+      "pass": true,
+      "detail": "{\"checkouts\":0,\"promotions\":true,\"rules\":true,\"holds\":0,\"e2e\":0,\"hub\":true,\"capacity\":true,\"asha\":true,\"price\":\"14900:ACTIVE\"}"
+    }
+  ]
+}

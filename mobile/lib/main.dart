@@ -7,6 +7,7 @@ import 'discovery/api_restaurants.dart';
 import 'journey/api_journey.dart';
 import 'market/api_market.dart';
 import 'checkout/api_checkout.dart';
+import 'order/api_order.dart';
 import 'payment/api_payment.dart';
 import 'pickup/api_pickup.dart';
 import 'screens/account_pages.dart';
@@ -190,9 +191,10 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: checkout),
           ChangeNotifierProvider(create: (_) => PaymentState()),
           if (paymentBackend != null) ChangeNotifierProvider<PaymentBackendState>.value(value: paymentBackend!),
-          ChangeNotifierProvider(create: (_) => OrderState()),
+          // Orders (Module 31): the backend's when the build says so (ORDER_MODE=api, with payments on the backend) — read as the signed-in customer.
+          ChangeNotifierProvider(create: (_) => ordersFromApi && cartBackend != null ? OrderState(orders: ApiOrderRepository(cartBackend!), verifications: ApiPickupVerificationRepository(ApiOrderRepository(cartBackend!))) : OrderState()),
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
-          ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); return TrackingState(orders: os.orders, verifications: os.verifications); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
+          ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); final api = os.orders; return TrackingState(orders: api, verifications: os.verifications, tracking: api is ApiOrderRepository ? ApiOrderTrackingService(api) : null); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false, builder: (context, child) => CartMergePrompt(child: child ?? const SizedBox.shrink())),
       );

@@ -82,6 +82,9 @@ class PaymentBackendState extends ChangeNotifier {
   /// The development provider's sheet stands in for the provider's screen.
   bool sheet = false;
   bool pollPaused = false;
+  /// The order exists and the screen is leaving for its confirmation: nothing more is shown here.
+  bool handedOff = false;
+  void markHandedOff() { handedOff = true; }
   /// The checkout the payment was to be found through could not be read.
   bool resumeFailed = false;
 
@@ -166,7 +169,7 @@ class PaymentBackendState extends ChangeNotifier {
   Future<void> resume(String checkoutId, CheckoutBackend checkouts) async {
     if (subject?.checkoutId == checkoutId) return;
     final my = ++_seq;
-    resumeFailed = false; phase = PayPhase.loading; _notify();
+    resumeFailed = false; handedOff = false; phase = PayPhase.loading; _notify();
     try {
       final checkout = await checkouts.show(checkoutId);
       if (my != _seq) return;
@@ -288,7 +291,8 @@ class PaymentBackendState extends ChangeNotifier {
     _timer?.cancel(); _timer = null;
     if (_disposed) return;
     final p = payment;
-    final waiting = phase == PayPhase.idle && (unconfirmed && (p != null || _knownId != null) || (p != null && p.unsettled));
+    // Also while the verified payment has not become an order yet (Module 31): the order is the backend's to create.
+    final waiting = phase == PayPhase.idle && (unconfirmed && (p != null || _knownId != null) || (p != null && (p.unsettled || p.awaitingOrder)));
     if (!waiting) { _pollStarted = null; return; }
     if (pollPaused) return;
     final now = DateTime.now();
@@ -302,7 +306,7 @@ class PaymentBackendState extends ChangeNotifier {
   Future<void> forget() async {
     final s = subject;
     _seq++; _timer?.cancel(); _timer = null;
-    subject = null; payment = null; _knownId = null; error = null; providerError = false; unconfirmed = false; sheet = false; _busy = false; pollPaused = false; _pollStarted = null; resumeFailed = false; phase = PayPhase.loading;
+    subject = null; payment = null; _knownId = null; error = null; providerError = false; unconfirmed = false; sheet = false; _busy = false; pollPaused = false; _pollStarted = null; resumeFailed = false; handedOff = false; phase = PayPhase.loading;
     if (s != null) await _remember(s.checkoutId, null);
     _notify();
   }
@@ -310,7 +314,7 @@ class PaymentBackendState extends ChangeNotifier {
   /// Signing out, or another customer on this phone: nothing of the earlier payment may be shown.
   void reset() {
     _seq++; _timer?.cancel(); _timer = null;
-    subject = null; payment = null; _knownId = null; error = null; providerError = false; unconfirmed = false; sheet = false; _busy = false; pollPaused = false; _pollStarted = null; resumeFailed = false; phase = PayPhase.loading;
+    subject = null; payment = null; _knownId = null; error = null; providerError = false; unconfirmed = false; sheet = false; _busy = false; pollPaused = false; _pollStarted = null; resumeFailed = false; handedOff = false; phase = PayPhase.loading;
     _store.write(attemptKey, null).catchError((_) {});
     _notify();
   }

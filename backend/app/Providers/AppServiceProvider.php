@@ -208,5 +208,8 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('payment-read', fn (Request $request) => Limit::perMinute($perMinute('payment_read'))->by('payment-read:'.$journeyActor($request)));
         RateLimiter::for('payment-webhook', fn (Request $request) => Limit::perMinute($perMinute('payment_webhook'))->by('payment-webhook:'.$request->ip()));
         RateLimiter::for('promotion-apply', fn (Request $request) => Limit::perMinute($perMinute('promotion_apply'))->by('promotion-apply:'.$journeyActor($request)));
+        // Orders (Module 31): customers, restaurant staff and administrators are each limited by their own identity.
+        RateLimiter::for('order-read', fn (Request $request) => Limit::perMinute($perMinute('order_read'))->by('order-read:'.$actor($request)));
+        RateLimiter::for('order-write', fn (Request $request) => Limit::perMinute($perMinute('order_write'))->by('order-write:'.$actor($request)));
     }
 }

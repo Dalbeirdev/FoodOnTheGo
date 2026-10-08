@@ -42,7 +42,7 @@ class ProviderSession {
 
 /// A payment attempt exactly as the backend holds it.
 class ServerPayment {
-  const ServerPayment({required this.id, required this.checkoutId, required this.attemptNumber, required this.status, required this.amountMinor, required this.currency, required this.provider, required this.providerMode, this.methodType, this.methodSummary = const {}, this.failureCategory, this.failureMessage, this.message, required this.nextAction, this.retryAfterSeconds, this.session, required this.fulfillment, required this.supportReference});
+  const ServerPayment({required this.id, required this.checkoutId, required this.attemptNumber, required this.status, required this.amountMinor, required this.currency, required this.provider, required this.providerMode, this.methodType, this.methodSummary = const {}, this.failureCategory, this.failureMessage, this.message, required this.nextAction, this.retryAfterSeconds, this.session, required this.fulfillment, this.orderNumber, this.orderId, required this.supportReference});
   factory ServerPayment.fromJson(Map<String, dynamic> j) {
     Map<String, dynamic>? map(Object? v) => v is Map ? Map<String, dynamic>.from(v) : null;
     final amount = map(j['amount']) ?? const {};
@@ -57,7 +57,8 @@ class ServerPayment {
       failureCategory: failure?['category'] as String?, failureMessage: failure?['message'] as String?, message: j['message'] as String?,
       nextAction: '${j['next_action'] ?? 'WAIT'}', retryAfterSeconds: (j['retry_after_seconds'] as num?)?.toInt(),
       session: session == null ? null : ProviderSession.fromJson(session),
-      fulfillment: '${map(j['fulfillment'])?['status'] ?? 'NOT_APPLICABLE'}', supportReference: '${j['support_reference'] ?? ''}',
+      fulfillment: '${map(j['fulfillment'])?['status'] ?? 'NOT_APPLICABLE'}', orderNumber: map(j['fulfillment'])?['order_number'] as String?, orderId: map(j['fulfillment'])?['order_id'] as String?,
+      supportReference: '${j['support_reference'] ?? ''}',
     );
   }
 
@@ -83,6 +84,10 @@ class ServerPayment {
   final ProviderSession? session;
   /// NOT_APPLICABLE · ORDER_PENDING · RECOVERY_REQUIRED · ORDER_CREATED. A verified payment is not an order.
   final String fulfillment;
+  /// The order the payment became (Module 31) — null until the backend created it. The app waits for it after VERIFIED.
+  final String? orderNumber, orderId;
+  /// VERIFIED, and the backend has not named the order yet (and has not given up on it): the screen keeps asking.
+  bool get awaitingOrder => verified && orderNumber == null && fulfillment != 'RECOVERY_REQUIRED';
   final String supportReference;
 
   bool get verified => status == 'VERIFIED';

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useStaffSession } from '../auth/staff/StaffSession'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { t } from '../i18n/strings'
+import { orderMode } from '../order/orderMode'
 import { useDashboard } from './DashboardContext'
 import { Avatar, ErrorState, Icon, Skeleton, ToastLine, Toggle } from './components/ui'
 import type { Permission } from './types'
@@ -30,7 +31,7 @@ export const NAV: Array<{ id: string; path: string; icon: string; perm: Permissi
 ]
 
 /** Sections that are still development data when the restaurant domain runs on the backend (Module 23). */
-export const DEMO_SECTIONS = ['overview', 'orders', 'pickup-verification', 'reviews', 'analytics', 'notifications', 'settings']
+export const DEMO_SECTIONS = ['overview', ...(orderMode() === 'api' ? [] : ['orders']), 'pickup-verification', 'reviews', 'analytics', 'notifications', 'settings']
 /** Reasons that keep a restaurant away from customers altogether. */
 const HIDDEN_REASONS = ['MARKET_UNAVAILABLE', 'RESTAURANT_NOT_APPROVED', 'RESTAURANT_SUSPENDED', 'LOCATION_NOT_APPROVED', 'LOCATION_SUSPENDED', 'OUTSIDE_SERVICE_AREA']
 

@@ -64,6 +64,7 @@
         "--dart-define=PICKUP_MODE=api",
         "--dart-define=CHECKOUT_MODE=api",
         "--dart-define=PAYMENT_MODE=api",
+        "--dart-define=ORDER_MODE=api",
         "--dart-define=DEV_OTP=123456",
         "--dart-define=BUILD_LABEL=web-preview"
       ],

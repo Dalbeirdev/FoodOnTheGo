@@ -101,12 +101,14 @@ class PaymentPerformanceTest extends TestCase
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n");
         }
 
-        // No N+1: twenty lines cost what one line costs.
-        $this->assertSame($small['queries'], $large['queries'], 'a payment must not cost more queries for a larger cart');
+        // No N+1: twenty lines cost what one line costs — except the order the verification creates (Module 31, the queue
+        // runs synchronously here), which writes one row per line and option; that part is measured in OrderPerformanceTest.
+        $this->assertSame(array_diff_key($small['queries'], ['complete_verified' => 0]), array_diff_key($large['queries'], ['complete_verified' => 0]), 'a payment must not cost more queries for a larger cart');
+        $this->assertLessThanOrEqual($small['queries']['complete_verified'] + 19 * 3, $large['queries']['complete_verified'], 'verification + order creation grows by at most the order lines written');
         $this->assertLessThanOrEqual(110, $small['queries']['start']);
         $this->assertLessThanOrEqual(25, $small['queries']['read_open_within_interval']);
         $this->assertLessThanOrEqual(25, $small['queries']['read_verified']);
-        $this->assertLessThanOrEqual(110, $small['queries']['complete_verified']);
+        $this->assertLessThanOrEqual(160, $small['queries']['complete_verified']);   // verification + order creation
         $this->assertSame(3, PaymentAttempt::query()->where('status', 'VERIFIED')->count() + 1);
 
     }

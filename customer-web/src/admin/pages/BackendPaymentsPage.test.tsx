@@ -196,7 +196,7 @@ describe('PaymentMetricsCard', () => {
     expect(screen.getByTestId('sys-payments-states')).toHaveTextContent(/4/) // provider_ready 2 + processing 1 + pending 1
     const provider = screen.getByTestId('sys-payments-provider')
     expect(provider).toHaveTextContent('Operational'); expect(provider).toHaveTextContent('412 ms'); expect(provider).toHaveTextContent('50%'); expect(provider).toHaveTextContent('8 / 1')
-    expect(screen.getByTestId('sys-payments-note')).toHaveTextContent(/last 24 hours.*Orders and refunds are not built yet/)
+    expect(screen.getByTestId('sys-payments-note')).toHaveTextContent(/last 24 hours.*becomes an order on the server.*Refunds are not built yet/)
     expect(screen.queryByTestId('sys-payments-missing')).toBeNull()
   })
 

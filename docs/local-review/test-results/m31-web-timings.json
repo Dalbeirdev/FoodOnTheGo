@@ -1,0 +1,37 @@
+{
+  "module": "M31",
+  "measured_at": "2026-10-08T10:43:45.008Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, PostgreSQL 18 and Redis local, the DEVELOPMENT payment provider. Milliseconds per request as seen by the test client. Measurements, not targets.",
+  "timings": {
+    "order_read": {
+      "n": 1,
+      "median_ms": 294,
+      "max_ms": 294
+    },
+    "order_list": {
+      "n": 1,
+      "median_ms": 270,
+      "max_ms": 270
+    },
+    "restaurant_queue": {
+      "n": 1,
+      "median_ms": 291,
+      "max_ms": 291
+    },
+    "restaurant_step": {
+      "n": 3,
+      "median_ms": 318,
+      "max_ms": 324
+    },
+    "admin_list": {
+      "n": 1,
+      "median_ms": 310,
+      "max_ms": 310
+    },
+    "admin_detail": {
+      "n": 1,
+      "median_ms": 327,
+      "max_ms": 327
+    }
+  }
+}

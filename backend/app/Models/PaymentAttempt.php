@@ -11,6 +11,7 @@ use App\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * One try to pay one confirmed checkout through one provider order (Module 30).
@@ -65,6 +66,14 @@ class PaymentAttempt extends Model
     public function events(): HasMany
     {
         return $this->hasMany(PaymentAttemptEvent::class)->orderBy('id');
+    }
+
+    /**
+     * The order this payment became (Module 31) — at most one, ever.
+     */
+    public function order(): HasOne
+    {
+        return $this->hasOne(Order::class);
     }
 
     public function webhookEvents(): HasMany

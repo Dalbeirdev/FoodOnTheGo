@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import { useCart } from '../cart/CartContext'
 import { useCheckout } from '../checkout/CheckoutContext'
@@ -18,8 +18,10 @@ import './CheckoutPage.css'
  *   Pay            → the backend creates a payment attempt for the checkout's total and a provider order
  *   provider       → the provider's OWN window collects whatever the customer types — never this page
  *   provider says  → that is reported to the backend, which verifies it with the provider
- *   VERIFIED       → only the backend says so. And then there is still no order: orders are the next module, so the
- *                    page says "payment verified — order creation pending" and shows no order confirmation.
+ *   VERIFIED       → only the backend says so. The order is then created by the backend from that verified payment
+ *                    (Module 31): the page waits for the order number the payment reports and opens the real order's
+ *                    confirmation — it never creates, names or invents an order itself. RECOVERY_REQUIRED means a
+ *                    person will resolve it and the customer must not pay again.
  *
  * After a reload, a closed tab or a lost connection the page asks the backend what the payment is; it never asks the
  * customer to pay again on its own account. In a tab that kept nothing (a new tab, another device) the checkout the
@@ -58,6 +60,9 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
   const { locale } = useLocale()
   const gateway = useMemo(() => injected ?? new ApiPaymentGateway(), [injected])
   const checkouts = useMemo(() => injectedCheckouts ?? new ApiCheckoutGateway(), [injectedCheckouts])
+  const navigate = useNavigate()
+  /** The order exists: this page is leaving for its confirmation and renders nothing more. */
+  const handoff = useRef(false)
   const req = co.request
   // Nothing kept in this tab, but the backend says a checkout is being paid for: read it, and go on from there.
   const resumeId = req?.checkoutId ? null : co.paymentCheckoutId
@@ -126,8 +131,9 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
     }
   }, [payment?.id, checkoutId, gateway, accept])
 
-  // While the backend has not settled the payment the page asks again — the backend, never the provider.
-  const waiting = payment !== null && (isUnsettled(payment.status) || unconfirmed) && phase === 'IDLE'
+  // While the backend has not settled the payment — or has not yet created the order from it — the page asks again: the backend, never the provider.
+  const awaitingOrder = payment !== null && payment.status === 'VERIFIED' && payment.orderNumber === null && payment.fulfillment !== 'RECOVERY_REQUIRED'
+  const waiting = payment !== null && (isUnsettled(payment.status) || unconfirmed || awaitingOrder) && phase === 'IDLE'
   useEffect(() => {
     if (!waiting || pollPaused) { if (!waiting) pollStarted.current = null; return }
     pollStarted.current ??= Date.now()
@@ -136,6 +142,17 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
     const timer = window.setTimeout(() => { void refresh() }, seconds * 1000)
     return () => window.clearTimeout(timer)
   }, [waiting, pollPaused, payment, refresh])
+  // The payment became an order (Module 31): the checkout is consumed — this tab's request and remembered attempt are
+  // dropped, the cart is read again (it is CONVERTED on the server) and the real order's confirmation opens.
+  useEffect(() => {
+    if (!payment || payment.status !== 'VERIFIED' || !payment.orderNumber || handoff.current) return
+    handoff.current = true
+    const number = payment.orderNumber
+    if (checkoutId) remember(checkoutId, null)
+    co.clearRequest()
+    void Promise.resolve(cart.reload?.()).catch(() => undefined)
+    navigate(`/order-confirmation/${encodeURIComponent(number)}`, { replace: true })
+  }, [payment, checkoutId, co, cart, navigate])
   // Back on this tab or back online: ask at once.
   useEffect(() => {
     const check = () => { if (document.visibilityState === 'visible' && payment && (isUnsettled(payment.status) || unconfirmed || payment.status === 'PROVIDER_READY') && phase === 'IDLE') void refresh() }
@@ -199,6 +216,8 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
     try { await report(payment, await gateway.simulate(payment.id, scenario, webhook)) } catch (e) { setError(toPaymentError(e)); setSheet(false); setPhase('IDLE'); busy.current = false }
   }, [payment, gateway, report])
 
+  // Once the backend named the order, this page shows nothing: the effect above opens the confirmation.
+  if (payment?.status === 'VERIFIED' && payment.orderNumber) return null
   if (!subject) {
     // Being read again from the backend: nothing is shown as payable until it has answered.
     if (resumeId && !resumeFailed) return (<><Header /><main id="main" className="cart pay" data-testid="pay-backend" data-status="" data-view="PREPARING"><div className="cart__grid cart__grid--single"><div className="cart__main"><h1 className="cart-head">{t('payment.title', undefined, locale)}</h1><p className="cart-muted" role="status" data-testid="pay-text">{t('pay.state.preparing.text', undefined, locale)}</p></div></div></main></>)
@@ -267,9 +286,13 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
               {(inFlight || view === 'VERIFYING') && <div className="pay-progress" aria-hidden="true"><span /></div>}
               {payment && <p className="cart-muted pay-ref" data-testid="pay-reference">{t('pay.api.reference', { ref: payment.supportReference }, locale)}{payment.attemptNumber > 1 ? ` · ${t('pay.api.attempt', { n: payment.attemptNumber }, locale)}` : ''}</p>}
 
-              {view === 'VERIFIED' && <>
-                {/* Paid is not ordered. Until the order module exists this is where the journey ends — and it says so. */}
-                <p className="cart-notice cart-notice--warn" role="status" data-testid="pay-order-pending" data-fulfillment={payment?.fulfillment ?? ''}><ClockIcon /> {t('pay.api.orderPending', undefined, locale)}</p>
+              {view === 'VERIFIED' && payment && <>
+                {/* Paid, and the order is the backend's to create (Module 31): waited for, never invented here. */}
+                {payment.orderNumber
+                  ? <p className="cart-notice" role="status" data-testid="pay-order-ready" data-order-number={payment.orderNumber}><CheckIcon size={16} /> {t('pay.api.orderReady', { number: payment.orderNumber }, locale)}</p>
+                  : payment.fulfillment === 'RECOVERY_REQUIRED'
+                    ? <p className="cart-notice cart-notice--warn" role="alert" data-testid="pay-order-recovery" data-fulfillment={payment.fulfillment}><WarnIcon /> {t('pay.api.orderRecovery', { ref: payment.supportReference }, locale)}</p>
+                    : <p className="cart-notice cart-notice--warn" role="status" data-testid="pay-order-pending" data-fulfillment={payment.fulfillment}><ClockIcon /> {t('pay.api.orderCreating', undefined, locale)}</p>}
               </>}
               {(view === 'PENDING' || view === 'UNKNOWN') && <p className="cart-notice cart-notice--warn" role="alert" data-testid="pay-do-not-pay-again"><WarnIcon /> {t('pay.doNotPayAgain', undefined, locale)}</p>}
               {payment?.status === 'REVIEW_REQUIRED' && <p className="cart-notice cart-notice--warn" role="alert" data-testid="pay-support">{t('pay.api.support', { ref: payment.supportReference }, locale)}</p>}
@@ -289,6 +312,7 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
                 {(view === 'PENDING' || view === 'UNKNOWN' || (view === 'VERIFYING' && !inFlight)) && <button type="button" className="btn btn--primary" data-testid="pay-check" onClick={() => { pollStarted.current = null; setPollPaused(false); void refresh() }}>{t('pay.action.checkStatus', undefined, locale)}</button>}
                 {mustReturn && <Link to="/checkout" className="btn btn--primary" data-testid="pay-return" onClick={() => { if (checkoutId) remember(checkoutId, null); co.clearRequest() }}>{t('pay.api.backToCheckout', undefined, locale)}</Link>}
                 {!inFlight && !mustReturn && view !== 'VERIFIED' && view !== 'PENDING' && view !== 'UNKNOWN' && view !== 'VERIFYING' && <Link to="/checkout" className="btn btn--outline" data-testid="pay-back">{t('payment.back', undefined, locale)}</Link>}
+                {view === 'VERIFIED' && payment?.orderNumber && <Link to={`/order-confirmation/${encodeURIComponent(payment.orderNumber)}`} className="btn btn--primary" data-testid="pay-view-order">{t('pay.api.viewOrder', undefined, locale)}</Link>}
                 {view === 'VERIFIED' && <Link to="/" className="btn btn--outline" data-testid="pay-home">{t('pay.handoff.back', undefined, locale)}</Link>}
               </div>
               {inFlight && <p className="cart-muted">{t('pay.inflight.note', undefined, locale)}</p>}

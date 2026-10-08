@@ -97,7 +97,7 @@ class PaymentReconciliationTest extends TestCase
 
         $attempt = $this->attempt($payment['id']);
         $this->assertSame('VERIFIED', $attempt->status->value);
-        $this->assertSame('ORDER_PENDING', $attempt->fulfillment_status->value);
+        $this->assertSame('ORDER_CREATED', $attempt->fulfillment_status->value);   // Module 31: found paid, the order was created from it
         $this->showPayment($headers, $payment['id'])->assertOk()->assertJsonPath('payment.status', 'VERIFIED');
     }
 
@@ -287,10 +287,12 @@ class PaymentReconciliationTest extends TestCase
 
     public function test_a_verified_payment_whose_held_pickup_time_runs_out_before_an_order_exists_needs_recovery(): void
     {
+        // Module 31 creates the order from PaymentVerified; faked here, the payment stays VERIFIED without an order.
+        Event::fake([PaymentVerified::class]);
         [, $headers, $checkout, $payment] = $this->openPayment();
         $this->completePayment($headers, $payment['id'], $this->proofOf($payment['id'], $this->providerPays($payment['id'])))->assertOk()->assertJsonPath('payment.fulfillment.status', 'ORDER_PENDING');
 
-        // No order module exists yet: the 30 minutes kept for it pass.
+        // Nothing turns it into an order and the 30 minutes kept for it pass.
         $this->travel(31)->minutes();
         $this->artisan('checkouts:prune')->assertSuccessful();
         $this->artisan('payments:reconcile')->assertSuccessful();

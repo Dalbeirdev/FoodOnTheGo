@@ -39,13 +39,18 @@ class AppConfig {
   /// Needs CHECKOUT_MODE=api. Which provider is used — and in which mode — is the backend's configuration, not the app's.
   static const String paymentMode = String.fromEnvironment('PAYMENT_MODE', defaultValue: 'mock');
 
+  /// 'api' = orders are the backend's (Module 31: created on the server from the verified payment, read by order
+  /// number, tracked by polling until Module 32); 'mock' = the development orders in the app (default, used by tests).
+  /// Needs PAYMENT_MODE=api.
+  static const String orderMode = String.fromEnvironment('ORDER_MODE', defaultValue: 'mock');
+
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 34;
+  static const int buildNumber = 35;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -60,7 +65,8 @@ class AppConfig {
         'Journeys': journeyMode == 'api' ? 'Backend (places, route, detours and arrival times from the routing provider)' : 'Development providers in the app',
         'Cart': cartMode == 'api' ? 'Backend (priced and validated by the server)' : 'Development cart on this device',
         'Checkout': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' ? 'Backend (final validation, promotion, configured taxes and fees, total, pickup-time hold)' : 'Development checkout in the app',
-        'Payments': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' ? 'Backend (payment attempts verified by the server with the payment provider; the provider and its mode are set on the server; orders are not created yet)' : 'Development payment in the app — no money moves',
+        'Payments': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' ? 'Backend (payment attempts verified by the server with the payment provider; the provider and its mode are set on the server)' : 'Development payment in the app — no money moves',
+        'Orders': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' && orderMode == 'api' ? 'Backend (created by the server from the verified payment; order number, pickup code and status are the server\'s; tracking by polling until realtime arrives)' : 'Development orders on this device',
         'Pickup times': cartMode == 'api' && pickupMode == 'api' ? 'Backend (ASAP, slots and capacity on the server clock; a chosen time is selected, not reserved)' : 'Development slot engine in the app',
         'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',
         'App version': '$appVersion (build $buildNumber)',

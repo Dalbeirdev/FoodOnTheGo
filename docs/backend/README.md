@@ -942,3 +942,32 @@ below is local-only; nothing has touched production.
 - Secrets: `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` live in the git-ignored `.env` only; only the key id
   leaves the backend. `.env.example` carries the names with empty values (checked by `SecurityBaselineTest`).
 - Tests: `tests/Feature/Payment` — see `docs/local-review/test-results/backend-m30-phpunit.txt` for the whole suite.
+
+## 19. Orders: creation from a verified payment, the immutable snapshot, the restaurant workflow, recovery (Module 31)
+
+The rule, the vocabulary, the flow and state diagrams, the restaurant workflow, the customer and administrator APIs,
+capacity, the database rules, events and the clients are in [`order-domain.md`](order-domain.md). Everything below
+is local-only; nothing has touched production.
+
+- **An order is created by the backend from a VERIFIED payment** (`PaymentVerified` → `FulfillCheckoutJob` →
+  `OrderFulfillmentService`), or from a confirmed checkout with nothing to pay at the customer's request. Never from a
+  client's "paid". Exactly once: one locked fulfilment row per checkout, one order per checkout and per payment.
+- **The order is an immutable copy** of the confirmed checkout — nothing is priced or validated again after payment.
+  An item gone after payment is the restaurant's rejection, which requires a refund; the amount never changes.
+- **Payment VERIFIED, order NOT CREATED is represented**: fulfilment RETRYING (backoff, `orders:recover` every minute)
+  or REVIEW_REQUIRED, payment RECOVERY_REQUIRED; administrators see it (`GET /admin/order-fulfillments`) and may ask for
+  the creation again (`admin.orders.recover`, audited). A verified payment is never rewritten to FAILED.
+- Order numbers `FOTG-YYYYMMDD-XXXXXX` (restaurant-local date, no 0/O/1/I), unique, never authorization.
+- Statuses WAITING_FOR_RESTAURANT → ACCEPTED → PREPARING → READY_FOR_PICKUP (→ PICKED_UP → COMPLETED in Module 32),
+  REJECTED with a structured reason, CANCELLED by administrators only; `expected_version` → `409 order_version_conflict`;
+  idempotent steps. Money state apart: `payment_state`, `refund_status` (REQUIRED on a paid rejection / cancellation;
+  REFUNDED only by a provider's confirmation, later).
+- Pickup credential foundation: an opaque token (hash stored) for the QR and an encrypted six-character code;
+  verification is Module 32.
+- Tables: `order_fulfillments`, `orders`, `order_items`, `order_item_options`, `order_tax_lines`, `order_fee_lines`,
+  `order_events`, `order_pickup_credentials`, `order_refunds` (migration `2026_10_10_100000_create_order_tables`).
+- Routes: 15 new operations (213 in total) — 3 customer, 6 restaurant, 6 admin — in `openapi/openapi.json`
+  (172 paths, 325 schemas), checked by `OrderOpenApiContractTest`. The payment answer now carries
+  `fulfillment.order_id` / `order_number`.
+- Permission `admin.orders.recover` (super admin, operations admin, support admin).
+- Tests: `tests/Feature/Order` — see `docs/local-review/test-results/backend-m31-phpunit.txt` for the whole suite.

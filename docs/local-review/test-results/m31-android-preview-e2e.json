@@ -1,0 +1,86 @@
+{
+  "module": "M31",
+  "suite": "Android app code (Flutter web preview, ORDER_MODE=api) on the real local backend orders, DEVELOPMENT payment provider",
+  "note": "The same Dart code as the APK, run in the browser preview. Razorpay's Android screen cannot run in a browser and no Razorpay credentials exist on this machine: the provider's own screen is NOT exercised here. The real device is verified by the owner (USER DEVICE VERIFICATION = PENDING).",
+  "ran_at": "2026-10-08T08:53:33.915Z",
+  "passed": 15,
+  "failed": 0,
+  "total": 15,
+  "results": [
+    {
+      "name": "A0 the app signs in against the local backend (same Dart code as the APK, ORDER_MODE=api)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 THE PROVIDER'S SUCCESS IS REPORTED, THE BACKEND VERIFIES — AND THE APP WAITS FOR THE SERVER'S ORDER: the screen moved to /order-confirmation/FOTG-… on its own (the number the payment answer named); the phone posted nothing but the report",
+      "pass": true,
+      "detail": "#/order-confirmation/FOTG-20261008-ZNBJUU /payments/76528f33-32fa-494a-9483-a1406d0e4f19/complete"
+    },
+    {
+      "name": "B2 DATABASE: exactly one order for the checkout — WAITING_FOR_RESTAURANT, PAID, refund NONE, the checkout's total, version 1 — and the payment's fulfilment is ORDER_CREATED",
+      "pass": true,
+      "detail": "{\"status\":\"WAITING_FOR_RESTAURANT\",\"paymentState\":\"PAID\",\"refund\":\"NONE\",\"total\":42700,\"version\":1}"
+    },
+    {
+      "name": "B3 THE CONFIRMATION SCREEN renders THE REAL ORDER read from GET /customer/orders/{number}: \"Order confirmed\" on screen; the answer the app rendered carries the number, WAITING_FOR_RESTAURANT, PAID, the total and the pickup code the server issued (screenshot m31-01-order-confirmation.png shows them; no \"development order\" notice)",
+      "pass": true,
+      "detail": "Order confirmed | Order confirmed\nBurger Hub has your order. Show your pickup code at the counter when you arrive.\nORDER NUMBER\nFOTG-20261008-ZNBJUU\nOrder status: Waiting for restaurant\nPayment status: Paid\nTotal: ₹427.00 INR | Pickup code\nShow the QR code or read out the pickup code at the restaura"
+    },
+    {
+      "name": "B4 THE PHONE KEEPS NO ORDER OF ITS OWN: the order, its number and its pickup code are not in the app's storage — only the session; nothing of the payment's proof either",
+      "pass": true,
+      "detail": "687 chars kept"
+    },
+    {
+      "name": "C1 APP KILLED AND STARTED AGAIN ON THE CONFIRMATION: the app reads the order from the backend again (GET /customer/orders/{number}) — the same number and the same pickup code come back, still ONE order, nothing posted",
+      "pass": true,
+      "detail": "GET /customer/orders/FOTG-20261008-ZNBJUU"
+    },
+    {
+      "name": "C2 OPENING THE PAYMENT SCREEN AGAIN after the order exists: the app has nothing left to pay for (the hand-off dropped the paid checkout) or goes to the order — it starts nothing, posts nothing, and there is still one order and one payment",
+      "pass": true,
+      "detail": "#/payment Payment | Payment\nNo payment is prepared. Return to checkout to continue. | Back to checkout"
+    },
+    {
+      "name": "D1 MY ORDERS reads the backend's list (GET /customer/orders?…) and shows the real order with \"Waiting for restaurant\"",
+      "pass": true,
+      "detail": "My orders | Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder.\nSort\nShowing 1 of 1 | Search by order number or restaurant | All | Ongoing | Completed | "
+    },
+    {
+      "name": "D2 TRACKING reads the real order and waits for the restaurant",
+      "pass": true,
+      "detail": "Track order | LIVE ORDER TRACKING\nWaiting for the restaurant\nBurger Hub has received your order and will confirm it shortly.\nLive updates\nLast updated 2:21 PM India Standard Time\nOrder number\nFOTG-202"
+    },
+    {
+      "name": "E1 THE RESTAURANT ACCEPTS (through its own API): the app's tracking screen follows by polling the order — \"accepted\" — within seconds",
+      "pass": true,
+      "detail": "200 Track order | LIVE ORDER TRACKING\nRestaurant accepted your order\nBurger Hub accepted your order and will start preparing it.\nLive updates\nLast updated 2:22 PM I"
+    },
+    {
+      "name": "E2 READY FOR PICKUP is seen too (the tracking screen polled the order into READY_FOR_PICKUP with the pickup credential still present — screenshot m31-04)",
+      "pass": true,
+      "detail": "Track order | LIVE ORDER TRACKING\nRestaurant accepted your order\nBurger Hub accepted your order and will start preparing it.\nLive updates\nLast updated 2:22 PM India Standard Time\nOrder number\nFOTG-202 | polled: READY_FOR_PICKUP"
+    },
+    {
+      "name": "F1 A SECOND PAID ORDER with its own number",
+      "pass": true,
+      "detail": "#/order-confirmation/FOTG-20261008-LHAHEU"
+    },
+    {
+      "name": "F2 THE RESTAURANT REJECTS IT (kitchen at capacity): the app shows the rejection and the refund in progress in neutral words — never the restaurant's note; the amount is unchanged; refund REQUIRED on the server",
+      "pass": true,
+      "detail": "Order details | Burger Hub\nFOTG-20261008-LHAHEU · placed Thu, Oct 8 · 2:22 PM GMT+5:30\nOrder status: Rejected\nPayment status: Refund pending\nThe restaurant could not accept this order. Reason: the restaurant is at capaci"
+    },
+    {
+      "name": "G1 no JavaScript error in the app during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, payment attempt, checkout and reservation of this run is removed",
+      "pass": true,
+      "detail": "{\"orders\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0}"
+    }
+  ]
+}

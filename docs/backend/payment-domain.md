@@ -228,13 +228,15 @@ An attempt that ends unpaid gives the checkout back (READY), or closes it when i
 
 ## Order hand-off, recovery and refund readiness
 
-- `fulfillment_status` is the contract for Module 31: `ORDER_PENDING` attempts are the ones an order may be created
-  for; `CheckoutService::orderReadiness()` says whether a checkout can still become one.
-- Nothing creates an order here, and the clients show no order confirmation.
+- `fulfillment_status` is the contract with Module 31: `ORDER_PENDING` attempts are the ones an order is created for
+  (`PaymentVerified` → `FulfillCheckoutJob` → `OrderFulfillmentService`, see [`order-domain.md`](order-domain.md));
+  `ORDER_CREATED` names the order in the payment answer (`fulfillment.order_id` / `order_number`); `RECOVERY_REQUIRED`
+  carries the reason the order could not be made as it stands.
+- Nothing creates an order in the payment domain itself; the clients wait for the order number after VERIFIED.
 - Refunds are not built. What a refund will need is kept: the provider payment reference, the captured amount and
   currency, the provider and its mode, and the timeline. `PaymentProvider::refund()` exists on the interface and is
   not called.
-- Until Module 31 exists, a customer with a verified payment keeps a locked cart locally.
+- With Module 31 the paid checkout and its cart become CONVERTED when the order is created.
 
 ## Provider configuration
 
@@ -331,6 +333,6 @@ development provider: `docs/local-review/test-results/m30-*.json`.
 
 ## Not in this module
 
-Order creation and confirmation (Module 31) · refunds · settlements and payouts · saved cards / tokens / mandates ·
+Refunds · settlements and payouts · saved cards / tokens / mandates ·
 EMI, pay-later and international cards as product features · cash at pickup (not approved) · iOS · live mode ·
 an outbox for domain events · a public webhook address · provider IP allow-listing.

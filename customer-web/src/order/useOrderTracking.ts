@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { ApiOrderRepository, ApiOrderTrackingService } from './api/apiOrder'
 import { MockOrderTrackingService } from './mock/mockTracking'
+import { orderMode } from './orderMode'
 import type { Order, OrderEvent, OrderRepository, PickupVerification, PickupVerificationRepository } from './repositories'
 import { reduceOrder, TERMINAL_ORDER, type OrderTrackingService, type TrackingConnection } from './tracking'
 import { orderRepositories } from './useOrderConfirmation'
@@ -12,7 +14,8 @@ import { orderRepositories } from './useOrderConfirmation'
  */
 export type TrackingDeps = { orders?: OrderRepository; verifications?: PickupVerificationRepository; tracking?: OrderTrackingService & Partial<MockOrderTrackingService> }
 export type TrackingLoadError = 'not_found' | 'load_failed' | null
-const defaultTracking = new MockOrderTrackingService(orderRepositories.orders)
+// Module 31: against the backend the order is read again every few seconds (Module 32 brings the event stream); the mock keeps its scripts.
+const defaultTracking: OrderTrackingService & Partial<MockOrderTrackingService> = orderMode() === 'api' && orderRepositories.orders instanceof ApiOrderRepository ? new ApiOrderTrackingService(orderRepositories.orders) : new MockOrderTrackingService(orderRepositories.orders)
 export const trackingService = defaultTracking
 const isOffline = () => { try { if (sessionStorage.getItem('fotg.mock.offline') === '1') return true } catch { /* ignore */ } return typeof navigator !== 'undefined' && navigator.onLine === false }
 

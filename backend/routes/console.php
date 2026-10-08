@@ -20,3 +20,5 @@ Schedule::command('carts:prune')->hourly();
 Schedule::command('checkouts:prune')->everyFiveMinutes();
 // Payments (Module 30): unsettled attempts, unprocessed webhook events and verified payments that need recovery.
 Schedule::command('payments:reconcile')->everyMinute()->withoutOverlapping();
+// Orders (Module 31): order creation that is due again, and verified payments that nobody turned into an order.
+Schedule::command('orders:recover')->everyMinute()->withoutOverlapping();

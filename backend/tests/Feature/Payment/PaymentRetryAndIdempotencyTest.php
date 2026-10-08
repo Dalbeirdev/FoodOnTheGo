@@ -155,8 +155,9 @@ class PaymentRetryAndIdempotencyTest extends TestCase
         $this->assertCount(3, $attempts->pluck('provider_order_reference')->unique());
         $this->assertCount(3, $attempts->pluck('provider_receipt')->unique());
         $this->assertSame([50000, 50000, 50000], $attempts->pluck('amount_minor')->all());
-        // The checkout says which attempt is the latest.
-        $this->showCheckout($headers, $checkout['id'])->assertOk()->assertJsonPath('checkout.payment.attempt.id', $third['id'])->assertJsonPath('checkout.payment.attempt.status', 'VERIFIED');
+        // The verified attempt became the order (Module 31): the checkout is converted and names no payment to continue with.
+        $this->showCheckout($headers, $checkout['id'])->assertOk()->assertJsonPath('checkout.status', 'CONVERTED');
+        $this->assertSame($third['id'], (string) $this->attempt($third['id'])->order->payment_public_id);
     }
 
     public function test_a_checkout_cannot_be_used_to_open_provider_sessions_without_end(): void

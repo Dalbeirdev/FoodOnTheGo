@@ -56,4 +56,8 @@ return [
     // is per sending address and only keeps a flood away — the signature decides what is accepted.
     'payment_read' => (int) env('RATE_LIMIT_PAYMENT_READ', 120),
     'payment_webhook' => (int) env('RATE_LIMIT_PAYMENT_WEBHOOK', 600),
+    // Orders (Module 31). Reading is polled by a customer waiting for the order and by a restaurant's queue screen;
+    // a step (accept, reject, ready) is a person's click.
+    'order_read' => (int) env('RATE_LIMIT_ORDER_READ', 120),
+    'order_write' => (int) env('RATE_LIMIT_ORDER_WRITE', 60),
 ];

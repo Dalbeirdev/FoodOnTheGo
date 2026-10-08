@@ -22,6 +22,8 @@ import type { OpeningHours, Restaurant } from '../../repositories/types'
 import { legacyRestaurant } from '../../restaurants/api/restaurantData'
 import { dashboardRepositories } from '../mock/mockDashboard'
 import { ApiMenuManagementRepository } from './apiMenuManagement'
+import { ApiRestaurantOrderRepository } from './apiOrders'
+import { orderMode } from '../../order/orderMode'
 import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus, PickupPreview } from '../types'
 
 const R = { context: 'restaurant' as const }
@@ -340,7 +342,8 @@ export class ApiRestaurantStaffRepository implements RestaurantStaffRepository {
 /** Real backend for the restaurant and menu domains; the other areas are still the development repositories. */
 export const apiDashboardRepositories: DashboardRepositories = (() => {
   const management = new ApiRestaurantManagementRepository()
-  return { ...dashboardRepositories, management, staff: new ApiRestaurantStaffRepository(management), menu: new ApiMenuManagementRepository(management) }
+  // Orders (Module 31) come from the backend when the order domain runs there; otherwise the development mock stays.
+  return { ...dashboardRepositories, management, staff: new ApiRestaurantStaffRepository(management), menu: new ApiMenuManagementRepository(management), ...(orderMode() === 'api' ? { orders: new ApiRestaurantOrderRepository(management) } : {}) }
 })()
 
 /** The invited staff member accepts with the single-use link (public call, no token). A new account sends a password. */

@@ -1,0 +1,30 @@
+{
+  "module": "M31",
+  "note": "Local machine, PostgreSQL test database inside one transaction, PHP CLI without OPcache, in-process requests (no HTTP server, no network). create_* = the payment report request that verifies the payment AND creates the order (the queue runs synchronously in tests): one checkout of 1 and of 12 lines. read_* = GET /customer/orders/{number}. restaurant_queue = GET /restaurant/orders for 2 and for 30 active orders. Query counts are exact; milliseconds are measurements, not targets.",
+  "order_creation": {
+    "small": {
+      "lines": 1,
+      "create_queries": 85,
+      "create_ms": 238,
+      "read_queries": 12,
+      "read_ms": 26
+    },
+    "large": {
+      "lines": 12,
+      "create_queries": 96,
+      "create_ms": 261,
+      "read_queries": 12,
+      "read_ms": 28
+    }
+  },
+  "restaurant_queue": {
+    "two": {
+      "queries": 7,
+      "ms": 61
+    },
+    "thirty": {
+      "queries": 6,
+      "ms": 36
+    }
+  }
+}

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\FinancialRuleController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Api\Admin\PickupMetricsController;
 use App\Http\Controllers\Api\Admin\PromotionController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Api\JourneyController;
 use App\Http\Controllers\Api\JourneyRestaurantController;
 use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\PlaceController;
@@ -47,6 +49,7 @@ use App\Http\Controllers\Api\Restaurant\ContextController;
 use App\Http\Controllers\Api\Restaurant\HoursController;
 use App\Http\Controllers\Api\Restaurant\LocationController;
 use App\Http\Controllers\Api\Restaurant\MenuController;
+use App\Http\Controllers\Api\Restaurant\OrderController as RestaurantOrderController;
 use App\Http\Controllers\Api\Restaurant\StaffController;
 use App\Http\Controllers\Api\RestaurantController;
 use Illuminate\Support\Facades\Route;
@@ -81,6 +84,9 @@ Route::pattern('paymentProvider', '[a-z][a-z0-9_]{1,23}');
 Route::pattern('promotion', '[0-9a-fA-F-]{36}');
 Route::pattern('taxRule', '[0-9a-fA-F-]{36}');
 Route::pattern('feeRule', '[0-9a-fA-F-]{36}');
+// An order is named by its public id or its order number (FOTG-YYYYMMDD-XXXXXX). Neither one is authorization.
+Route::pattern('order', '[0-9a-fA-F-]{36}|[Ff][Oo][Tt][Gg]-[0-9]{8}-[A-Za-z0-9]{6}');
+Route::pattern('fulfillment', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -154,6 +160,15 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         // Payments (Module 30): a confirmed checkout is paid through a payment attempt. The amount is the checkout's
         // total — no request carries one.
         Route::post('/{checkout}/payment-attempts', [PaymentController::class, 'store'])->middleware(['throttle:payment', 'idempotent:payment.start,optional'])->name('payments.start');
+        // Orders (Module 31): the ONE order creation a customer asks for — a confirmed checkout with nothing to pay.
+        // A checkout that has to be paid becomes an order only through its verified payment, on the server.
+        Route::post('/{checkout}/fulfill', [OrderController::class, 'fulfill'])->middleware(['throttle:order-write', 'idempotent:order.fulfill,optional'])->name('fulfill');
+    });
+
+    // A customer's own orders (Module 31): by order number or id, the caller's own only.
+    Route::prefix('customer/orders')->name('orders.')->middleware(['auth:customer', 'active', 'throttle:order-read'])->group(function (): void {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/{order}', [OrderController::class, 'show'])->name('show');
     });
 
     // A customer's own payment attempts: how they stand, and what the device reports of the provider's interface —
@@ -311,6 +326,17 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::patch('/menu/items/{item}/images/{image}', [MenuController::class, 'updateImage'])->name('menu.items.images.update');
         Route::delete('/menu/items/{item}/images/{image}', [MenuController::class, 'destroyImage'])->name('menu.items.images.destroy');
 
+        // Orders (Module 31): the queue of one location (restaurant.orders.view) and the steps a restaurant takes
+        // (restaurant.orders.update). No "picked up" here: that is Module 32's verified step.
+        Route::get('/orders', [RestaurantOrderController::class, 'index'])->middleware('throttle:order-read')->name('orders.index');
+        Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])->middleware('throttle:order-read')->name('orders.show');
+        Route::middleware(['throttle:order-write', 'idempotent:order.step,optional'])->group(function (): void {
+            Route::post('/orders/{order}/accept', [RestaurantOrderController::class, 'accept'])->name('orders.accept');
+            Route::post('/orders/{order}/reject', [RestaurantOrderController::class, 'reject'])->name('orders.reject');
+            Route::post('/orders/{order}/start-preparing', [RestaurantOrderController::class, 'startPreparing'])->name('orders.start-preparing');
+            Route::post('/orders/{order}/ready', [RestaurantOrderController::class, 'ready'])->name('orders.ready');
+        });
+
         Route::get('/organizations/{organization}/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
             Route::post('/organizations/{organization}/staff', [StaffController::class, 'store'])->name('staff.store');
@@ -364,6 +390,12 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         // The real payment attempts. Permissions (per market) are checked in the controller.
         Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
+        // Orders (Module 31): the records and the paid checkouts that did not become one. Permissions (per market)
+        // are checked in the controller; the numbers are platform-wide.
+        Route::get('/system/orders', [AdminOrderController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.orders');
+        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
+        Route::get('/order-fulfillments', [AdminOrderController::class, 'fulfillments'])->name('order-fulfillments.index');
 
         // Promotions, tax rules and fee rules (Module 29). Permissions are checked in the controllers, per market:
         // admin.promotions.* for promotions, admin.market_configuration.* for tax and fee rules.
@@ -395,6 +427,11 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/promotions/{promotion}/status', [PromotionController::class, 'status'])->name('promotions.status');
             // The only thing an administrator can do to a payment: ask the provider again. There is no "mark as paid".
             Route::post('/payments/{payment}/reconcile', [AdminPaymentController::class, 'reconcile'])->name('payments.reconcile');
+            // Orders (Module 31): the two things an administrator can do — end an order (admin.orders.override) and ask
+            // for a failed order creation to be tried again (admin.orders.recover). Both with a reason, both audited;
+            // neither one edits an order by hand or touches money.
+            Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
+            Route::post('/order-fulfillments/{fulfillment}/recover', [AdminOrderController::class, 'recover'])->name('order-fulfillments.recover');
             Route::post('/markets/{market}/tax-rules', [FinancialRuleController::class, 'storeTaxRule'])->name('tax-rules.store');
             Route::patch('/tax-rules/{taxRule}', [FinancialRuleController::class, 'updateTaxRule'])->name('tax-rules.update');
             Route::post('/tax-rules/{taxRule}/status', [FinancialRuleController::class, 'taxRuleStatus'])->name('tax-rules.status');

@@ -109,7 +109,8 @@ final class PaymentMetrics
                 'ignored' => (int) ($webhooks[PaymentWebhookEvent::IGNORED] ?? 0),
                 'failed' => (int) ($webhooks[PaymentWebhookEvent::FAILED] ?? 0),
             ],
-            'order_creation' => 'NOT_IMPLEMENTED',
+            // Orders (Module 31) are created from verified payments; the order numbers are at /admin/system/orders.
+            'order_creation' => 'IMPLEMENTED',
             'refunds' => 'NOT_IMPLEMENTED',
         ];
     }

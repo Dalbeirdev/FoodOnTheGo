@@ -13,12 +13,15 @@ enum CartCloseReason: string
     case DiscardedAtSignIn = 'discarded_at_sign_in';
     case ReplacedAtSignIn = 'replaced_at_sign_in';
     case Expired = 'expired';
+    /** An order was created from it (Module 31). */
+    case Converted = 'converted';
 
     public function status(): CartStatus
     {
         return match ($this) {
             self::Expired => CartStatus::Expired,
             self::Merged => CartStatus::Invalidated,
+            self::Converted => CartStatus::Converted,
             default => CartStatus::Abandoned,
         };
     }

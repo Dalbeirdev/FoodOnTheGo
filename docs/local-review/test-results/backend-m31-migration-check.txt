@@ -1,0 +1,13 @@
+# Module 31 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_10_100000_create_order_tables .. 88.56ms DONE
+
+
+
+ INFO Running migrations. 
+
+ 2026_10_10_100000_create_order_tables .. 230.66ms DONE
+

@@ -30,7 +30,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) { final auth = context.read<AuthState>(); context.read<TrackingState>().load(widget.number, customerId: auth.user?.id); });
   }
   @override
   void dispose() { WidgetsBinding.instance.removeObserver(this); super.dispose(); }
@@ -39,10 +38,19 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
 
   String _k(OrderStatus s) => orderStatusKey(s);
 
+  // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the
+  // customer is known (and again for another customer), never twice for the same one.
+  String? _loadedFor;
+  void _loadWhenSignedIn(BuildContext context, String? customerId, void Function() load) {
+    if (customerId == null || _loadedFor == customerId) return;
+    _loadedFor = customerId;
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) load(); });
+  }
   @override
   Widget build(BuildContext context) {
     final tr = context.watch<TrackingState>();
     final auth = context.watch<AuthState>();
+    _loadWhenSignedIn(context, auth.user?.id, () => context.read<TrackingState>().load(widget.number, customerId: auth.user?.id));
     final o = tr.order;
     if (o == null) {
       Widget body;

@@ -40,13 +40,13 @@ const session = (patch: Partial<NonNullable<PaymentDto['provider_session']>> = {
 /** A ₹500 payment attempt as the backend answers it. */
 const paymentDto = (patch: Partial<PaymentDto> = {}): PaymentDto => ({
   id: PAY, checkout_id: CK, attempt_number: 1, status: 'PROVIDER_READY', amount: inr(50000), provider: { name: 'fake', mode: 'FAKE' }, requested_method_type: 'UPI', method: null, failure: null, message: null,
-  next_action: 'OPEN_PROVIDER', retry_after_seconds: null, provider_session: session(), fulfillment: { status: 'NOT_APPLICABLE', order_id: null, order_creation: 'NOT_IMPLEMENTED' }, support_reference: 'PAY-7D00000000',
+  next_action: 'OPEN_PROVIDER', retry_after_seconds: null, provider_session: session(), fulfillment: { status: 'NOT_APPLICABLE', order_id: null, order_number: null }, support_reference: 'PAY-7D00000000',
   expires_at: at(15), server_time: at(0), created_at: at(0), updated_at: at(0), verified_at: null, ...patch,
 })
 const settled = (status: PaymentDto['status'], patch: Partial<PaymentDto> = {}): PaymentDto => paymentDto({ status, provider_session: null, next_action: 'WAIT', ...patch })
 const verified = (patch: Partial<PaymentDto> = {}) => settled('VERIFIED', {
   next_action: 'PROCEED_TO_ORDER', verified_at: at(1), message: 'Payment received. We\'re confirming your order.', method: { type: 'CARD', summary: { network: 'Visa', card_type: 'debit', last4: '1007' } },
-  fulfillment: { status: 'ORDER_PENDING', order_id: null, order_creation: 'NOT_IMPLEMENTED' }, ...patch,
+  fulfillment: { status: 'ORDER_PENDING', order_id: null, order_number: null }, ...patch,
 })
 const cancelled = (patch: Partial<PaymentDto> = {}) => settled('CANCELLED', { next_action: 'RETRY_PAYMENT', failure: { category: 'CUSTOMER_CANCELLED', code: 'PAYMENT_CANCELLED', message: 'The payment was cancelled. Nothing was charged.', retryable: true }, message: 'The payment was cancelled. Nothing was charged.', ...patch })
 
@@ -302,7 +302,8 @@ describe('payment page on the backend', () => {
     await act(async () => { finish({ body: { payment: verified() } }) })
     await waitFor(() => expect(screen.getByTestId('pay-backend')).toHaveAttribute('data-view', 'VERIFIED'))
     expect(screen.getByTestId('pay-state')).toHaveTextContent('Payment verified')
-    expect(screen.getByTestId('pay-order-pending')).toHaveTextContent(/order creation is pending/i)
+    // Module 31: the order is the backend's to create; until it names one the page says so and waits.
+    expect(screen.getByTestId('pay-order-pending')).toHaveTextContent(/placing your order/i)
     expect(screen.getByTestId('pay-order-pending')).toHaveAttribute('data-fulfillment', 'ORDER_PENDING')
     expect(screen.getByTestId('pay-method')).toHaveTextContent('Visa •••• 1007')
     // No order number, no pickup code, no confirmation page: the page stays where it is.
