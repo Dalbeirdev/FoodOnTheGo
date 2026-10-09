@@ -1,0 +1,15 @@
+# Module 32 — Android app checks (LOCAL, 2026-10-08): flutter analyze, flutter test (Flutter 3.47.5, Windows host)
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 6.3s)
+exit 0
+
+== flutter test (final run, after the last Android change — the dead-socket detection and the transport line hidden while the status is stale)
++524: All tests passed!
+failed tests: 0
+exit 0
+   new in Module 32: test/realtime_test.dart (6 tests: the realtime mode — never the socket without the backend orders, REALTIME_MODE=api and a key; the Pusher client's bounded, jittered backoff; a private channel subscribed only after the backend authorized it with the session token, a refusal subscribing nothing, events delivered by channel, ping / pong; a dropped socket reported and reconnected with the channel subscribed again, closing stops everything; the live tracker — a notice is never applied, an older one is ignored, a newer one makes the order be read and only new lines reach the screen, the socket away → polling, connected → one read and no polling; without a realtime client the Module 31 poll). The socket is a StreamChannel the tests play; no server runs. Module 31 had 518 tests; 524 now.
+   The preview suite on the real local backend with Laravel Reverb (the same Dart code as the APK, Flutter web): m32-android-preview-e2e.json (18/18) — the socket authorized through the API, accept / ready / verified pickup / completion arriving live (measured), the phone posting no pickup and keeping no credential, killed and restarted, the network cut (dead socket detected by the missing pong, the "live" line gone) and back (reconnection, the missed step read). NOT a device.
+   Earlier preview runs of the same day: 17/18 four times — the offline step: first the suite's accumulating semantics reader kept a vanished line, then the app said "live" under a cut network because the client sent pings but never watched for a missing pong (fixed: a socket silent for a ping interval + 10 s is dropped and reconnected), then an unhandled handshake-failure future of the WebSocket package during reconnection attempts (caught). The run in the file above is the final one.
+   NOT covered by these tests: Razorpay's own Android screen (PENDING PROVIDER CONFIGURATION / USER DEVICE VERIFICATION); the APK on a device (build036, TE-339).

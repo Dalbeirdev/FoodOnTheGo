@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * What proves a pickup (foundation, Module 31): an opaque random token behind the QR code (stored as a hash only)
- * and a short code the customer can read out (stored encrypted, with a hash for lookup). Neither carries a customer,
- * an order number, a payment or an amount. Verification — and consuming it — is Module 32.
+ * What proves a pickup (Module 31 foundation, Module 32 verification): an opaque random secret behind the QR code
+ * and a short code the customer can read out. Both are stored ENCRYPTED (the customer sees the same QR and code on
+ * every visit and device) next to a hash that is the only thing a lookup or a comparison touches. Neither carries a
+ * customer, an order number, a payment or an amount. One ACTIVE credential per order; a rotation revokes the old row
+ * and issues a new one; a successful verification consumes it exactly once (consumed_at, by whom, by which method).
  */
 class OrderPickupCredential extends Model
 {
@@ -23,8 +25,13 @@ class OrderPickupCredential extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function consumedBy(): BelongsTo
+    {
+        return $this->belongsTo(RestaurantUser::class, 'consumed_by_restaurant_user_id');
+    }
+
     protected function casts(): array
     {
-        return ['status' => PickupCredentialStatus::class, 'display_code' => 'encrypted', 'expires_at' => 'datetime', 'consumed_at' => 'datetime'];
+        return ['status' => PickupCredentialStatus::class, 'display_code' => 'encrypted', 'token_secret' => 'encrypted', 'format_version' => 'integer', 'failed_attempts' => 'integer', 'issued_at' => 'datetime', 'expires_at' => 'datetime', 'consumed_at' => 'datetime', 'revoked_at' => 'datetime', 'locked_until' => 'datetime'];
     }
 }

@@ -971,3 +971,37 @@ is local-only; nothing has touched production.
   `fulfillment.order_id` / `order_number`.
 - Permission `admin.orders.recover` (super admin, operations admin, support admin).
 - Tests: `tests/Feature/Order` — see `docs/local-review/test-results/backend-m31-phpunit.txt` for the whole suite.
+
+## 20. Realtime order tracking, the order event stream, secure pickup verification, order completion (Module 32)
+
+The rules, the architecture and verification diagrams, the channels and their authorization, the notice schema, the
+event stream, the credential, the verification transaction, completion, the clients and the operations view are in
+[`realtime-and-pickup.md`](realtime-and-pickup.md). Everything below is local-only; nothing has touched production.
+
+- **PostgreSQL stays the order.** The realtime layer (Laravel Reverb, `BROADCAST_CONNECTION=reverb`) carries a notice
+  — version, event sequence, state — after the commit of each change; clients read the order from the API before
+  they show anything, ignore older notices, resync on a gap, a reconnection, a tab coming back or a resume, and poll
+  when the socket is away. SSE is not implemented (optional by design).
+- **Private channels only:** `customer.order.{order id}` (the owner), `restaurant.location.{location id}` (staff
+  reaching the location with `restaurant.orders.view`), authorized by `POST /customer|restaurant/broadcasting/auth`
+  with the API's bearer tokens; origins restricted; clients may not publish.
+- **Event stream:** `GET /customer/orders/{order}/events?after_sequence=n` and the restaurant's twin — bounded,
+  cursor-based, with the current state (a full resync in one call). `order_events.sequence` is unique per order.
+- **Pickup credential:** `FOTG1.` + 256 random bits (encrypted at rest with its hash; the hash is all a lookup or a
+  comparison touches) and a six-character code (no 0/O/1/I, bound to the order); one ACTIVE per order; rotation by
+  the customer (rate-limited, audited); absolute expiry 24 h after the pickup time; revoked with a rejection or a
+  cancellation. Never a phone, a name, an order number, a payment.
+- **Verification** (`POST /restaurant/pickup/verify`, `restaurant.pickup.verify` at the order's location = the
+  scanner's location, order READY): one transaction under the order's and the credential's locks — consume exactly
+  once, READY_FOR_PICKUP → PICKED_UP, `PICKUP_VERIFIED` recorded with the method and the staff member; replay 409
+  `pickup_already_verified`; foreign / malformed / wrong = 422 `pickup_credential_invalid` with nothing revealed;
+  wrong codes counted and locked; attempts per staff member and per location limited; every attempt recorded without
+  the secret. A customer cannot self-verify; administrators have no "mark picked up".
+- **Completion:** PICKED_UP → COMPLETED by `OrderCompletionService` in its own transaction right after the pickup,
+  retried by `CompleteOrderJob` and the sweep `orders:recover`; idempotent; the credential is never reactivated.
+- **Operations:** `GET /admin/system/realtime` (health, counters), `GET /admin/pickup-attempts` (security view), the
+  pickup audit on the admin order detail.
+- **Dependencies:** `laravel/reverb` ^1.12 (which pinned `guzzlehttp/psr7` to 2.x and `guzzlehttp/guzzle` to 7.x,
+  and moved the framework to 13.35). The payment and journey HTTP clients were re-tested on the downgraded client.
+- **Not built:** push / SMS / e-mail delivery (Module 33), refund execution, settlements, reviews (Module 34), an admin
+  pickup override, offline restaurant verification, rotating QR.

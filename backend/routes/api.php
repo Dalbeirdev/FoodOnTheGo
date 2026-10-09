@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Api\Admin\PickupMetricsController;
 use App\Http\Controllers\Api\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
+use App\Http\Controllers\Api\Admin\RealtimeController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Api\Auth\SessionController;
 use App\Http\Controllers\Api\Auth\StaffAuthController;
 use App\Http\Controllers\Api\Auth\StaffSecurityController;
 use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\Api\BroadcastingAuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CartPickupController;
 use App\Http\Controllers\Api\CheckoutController;
@@ -31,6 +33,7 @@ use App\Http\Controllers\Api\Customer\FavoriteController;
 use App\Http\Controllers\Api\Customer\NotificationPreferenceController;
 use App\Http\Controllers\Api\Customer\PaymentMethodController;
 use App\Http\Controllers\Api\Customer\PhoneChangeController;
+use App\Http\Controllers\Api\Customer\PickupCredentialController;
 use App\Http\Controllers\Api\Customer\ProfileController;
 use App\Http\Controllers\Api\Customer\RecentLocationController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
@@ -40,6 +43,7 @@ use App\Http\Controllers\Api\JourneyController;
 use App\Http\Controllers\Api\JourneyRestaurantController;
 use App\Http\Controllers\Api\MarketController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\Order\OrderEventsController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
@@ -50,6 +54,7 @@ use App\Http\Controllers\Api\Restaurant\HoursController;
 use App\Http\Controllers\Api\Restaurant\LocationController;
 use App\Http\Controllers\Api\Restaurant\MenuController;
 use App\Http\Controllers\Api\Restaurant\OrderController as RestaurantOrderController;
+use App\Http\Controllers\Api\Restaurant\PickupVerificationController;
 use App\Http\Controllers\Api\Restaurant\StaffController;
 use App\Http\Controllers\Api\RestaurantController;
 use Illuminate\Support\Facades\Route;
@@ -169,7 +174,13 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     Route::prefix('customer/orders')->name('orders.')->middleware(['auth:customer', 'active', 'throttle:order-read'])->group(function (): void {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+        // Module 32: the event stream (cursor = after_sequence) for resync, and the pickup credential to show.
+        Route::get('/{order}/events', [OrderEventsController::class, 'customer'])->name('events');
+        Route::get('/{order}/pickup-credential', [PickupCredentialController::class, 'show'])->name('pickup-credential.show');
+        Route::post('/{order}/pickup-credential/reissue', [PickupCredentialController::class, 'reissue'])->withoutMiddleware('throttle:order-read')->middleware(['throttle:order-write', 'idempotent:order.pickup-credential.reissue,optional'])->name('pickup-credential.reissue');
     });
+    // Module 32: private realtime channel authorization for the customer (the channel callbacks decide).
+    Route::post('/customer/broadcasting/auth', [BroadcastingAuthController::class, 'authorize'])->middleware(['auth:customer', 'active', 'throttle:channel-auth'])->name('customer.broadcasting.auth');
 
     // A customer's own payment attempts: how they stand, and what the device reports of the provider's interface —
     // which is verified, never believed. No order is created here (Module 31).
@@ -336,6 +347,11 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/orders/{order}/start-preparing', [RestaurantOrderController::class, 'startPreparing'])->name('orders.start-preparing');
             Route::post('/orders/{order}/ready', [RestaurantOrderController::class, 'ready'])->name('orders.ready');
         });
+        // Module 32: the order's event stream for the dashboard's resync; pickup verification (QR or order number +
+        // code) — the one way to PICKED_UP, restaurant.pickup.verify at the order's location; channel authorization.
+        Route::get('/orders/{order}/events', [OrderEventsController::class, 'restaurant'])->middleware('throttle:order-read')->name('orders.events');
+        Route::post('/pickup/verify', [PickupVerificationController::class, 'verify'])->middleware(['throttle:pickup-verify', 'idempotent:order.pickup.verify,optional'])->name('pickup.verify');
+        Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authorize'])->middleware('throttle:channel-auth')->name('broadcasting.auth');
 
         Route::get('/organizations/{organization}/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
@@ -393,6 +409,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         // Orders (Module 31): the records and the paid checkouts that did not become one. Permissions (per market)
         // are checked in the controller; the numbers are platform-wide.
         Route::get('/system/orders', [AdminOrderController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.orders');
+        // Module 32: the realtime layer's health and counters, the pickup verification counters, and the attempts (security view).
+        Route::get('/system/realtime', [RealtimeController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.realtime');
+        Route::get('/pickup-attempts', [RealtimeController::class, 'pickupAttempts'])->middleware('can:'.Permission::AdminSystemView->value)->name('pickup-attempts.index');
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::get('/order-fulfillments', [AdminOrderController::class, 'fulfillments'])->name('order-fulfillments.index');

@@ -136,6 +136,58 @@ trait BuildsOrders
         return $this->postJson('/api/v1/restaurant/orders/'.$reference.'/'.$step, $body, $headers);
     }
 
+    /* ------------------------------------------------------------------ Module 32: pickup + realtime */
+
+    /**
+     * A paid order taken to READY_FOR_PICKUP by order staff of Burger Hub (the staff member stays the actor).
+     *
+     * @return array{0: Customer, 1: array<string, string>, 2: array<string, mixed>, 3: RestaurantUser}
+     */
+    protected function readyOrder(string $phone = '+919876543210', ?string $slot = null): array
+    {
+        [$customer, $headers, , , $order] = $this->paidOrder($phone, $slot);
+        $staff = $this->orderStaff();
+        $this->step($order['order_number'], 'accept')->assertOk();
+        $this->step($order['order_number'], 'start-preparing')->assertOk();
+        $this->step($order['order_number'], 'ready')->assertOk()->assertJsonPath('order.status', 'READY_FOR_PICKUP');
+
+        return [$customer, $headers, $this->showOrder($headers, $order['order_number'])->assertOk()->json('order'), $staff];
+    }
+
+    /**
+     * @return array<string, mixed> the customer's pickup credential answer (code, qr_payload, status, …)
+     */
+    protected function credentialOf(array $headers, string $reference): array
+    {
+        return $this->getJson('/api/v1/customer/orders/'.$reference.'/pickup-credential', $this->using($headers))->assertOk()->json('pickup_credential');
+    }
+
+    protected function verifyQr(string $payload, ?string $location = null, array $headers = []): TestResponse
+    {
+        $this->act();
+
+        return $this->postJson('/api/v1/restaurant/pickup/verify', ['location' => $location ?? (string) $this->burgerHub->public_id, 'method' => 'QR', 'payload' => $payload], $headers);
+    }
+
+    protected function verifyCode(string $orderNumber, string $code, ?string $location = null, array $headers = []): TestResponse
+    {
+        $this->act();
+
+        return $this->postJson('/api/v1/restaurant/pickup/verify', ['location' => $location ?? (string) $this->burgerHub->public_id, 'method' => 'MANUAL_CODE', 'order_number' => $orderNumber, 'code' => $code], $headers);
+    }
+
+    protected function customerEvents(array $headers, string $reference, int $after = 0): TestResponse
+    {
+        return $this->getJson('/api/v1/customer/orders/'.$reference.'/events?after_sequence='.$after, $this->using($headers));
+    }
+
+    protected function restaurantEvents(string $reference, int $after = 0): TestResponse
+    {
+        $this->act();
+
+        return $this->getJson('/api/v1/restaurant/orders/'.$reference.'/events?after_sequence='.$after);
+    }
+
     /* ------------------------------------------------------------------ admin side */
 
     /**

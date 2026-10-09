@@ -1,0 +1,101 @@
+{
+  "module": "M32",
+  "suite": "Android app code (Flutter web preview, ORDER_MODE=api) on the real local backend orders, DEVELOPMENT payment provider",
+  "note": "The same Dart code as the APK, run in the browser preview. Razorpay's Android screen cannot run in a browser and no Razorpay credentials exist on this machine: the provider's own screen is NOT exercised here. The real device is verified by the owner (USER DEVICE VERIFICATION = PENDING).",
+  "ran_at": "2026-10-08T14:44:14.089Z",
+  "passed": 18,
+  "failed": 0,
+  "total": 18,
+  "results": [
+    {
+      "name": "A0 the app signs in against the local backend (same Dart code as the APK, ORDER_MODE=api)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 A PAID ORDER EXISTS and the app opened its confirmation (Module 31 path): FOTG-20261008-3DECGF",
+      "pass": true,
+      "detail": "#/order-confirmation/FOTG-20261008-3DECGF"
+    },
+    {
+      "name": "A2 THE ORDER THE APP RENDERED carries the realtime hints, a numbered timeline, pickup_verification NOT_YET and the real QR payload (FOTG1.<43 opaque characters>)",
+      "pass": true,
+      "detail": "{\"enabled\":true,\"channel\":\"customer.order.796121e5-9761-48e0-a6b4-52f25154ef1b\",\"event\":\"order.updated\",\"auth_endpoint\":\"/customer/broadcasting/auth\",\"poll_seconds\":8,\"terminal\":false}"
+    },
+    {
+      "name": "A3 THE CONFIRMATION SCREEN shows the real order with the pickup code (the QR is drawn from the same payload — screenshot m32-01)",
+      "pass": true,
+      "detail": "Order confirmed | Order confirmed\nBurger Hub has your order. Show your pickup code at the counter when you arrive.\nORDER NUMBER\nFOTG-20261008-3DECGF\nOrder statu"
+    },
+    {
+      "name": "B1 THE TRACKING SCREEN OPENS THE WEBSOCKET to the local Reverb server and authorizes the private channel through the API (POST /customer/broadcasting/auth with the session's bearer token for private-customer.order.<id>): \"Live updates on\" is on screen",
+      "pass": true,
+      "detail": "{\"auth\":200,\"body\":\"{\\\"socket_id\\\":\\\"708181829.663137911\\\",\\\"channel_name\\\":\\\"private-customer.order.796121e5-9761-48e0-a6b4-52f25154ef1b\\\"}\",\"text\":\"Track order | Live updates on\\nLive updates on | LIVE ORDER TRACKING\\nWaiting for \"}"
+    },
+    {
+      "name": "B2 THE RESTAURANT ACCEPTS (API) → the app shows \"accepted\" 4622 ms later WITHOUT a timer: the socket notice made the app read the order once (not a poll every 8 s)",
+      "pass": true,
+      "detail": "{\"ms\":4622,\"reads\":6}"
+    },
+    {
+      "name": "B3 READY FOR PICKUP arrives live too (4932 ms): the screen shows the pickup code / QR prominently",
+      "pass": true,
+      "detail": "4932"
+    },
+    {
+      "name": "C1 THE RESTAURANT VERIFIES THE QR THE APP SHOWED (POST /restaurant/pickup/verify, QR): PICKUP_VERIFIED, the order COMPLETED — and the app's tracking screen shows the end (4845 ms), the pickup code gone",
+      "pass": true,
+      "detail": "{\"status\":200,\"ms\":4845}"
+    },
+    {
+      "name": "C2 THE SAME QR AGAIN (a screenshot of it) → 409 pickup_already_verified: no second pickup",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "C3 THE PHONE NEVER POSTED A PICKUP: its POSTs were the cart, the pickup choice, the checkout, the payment and the channel authorization — no order status, no verification",
+      "pass": true,
+      "detail": "[\"/cart/claim\",\"/checkouts\",\"/checkouts\",\"/checkouts/00b44224-5880-496e-b612-ce02814e42da/confirm\",\"/checkouts/00b44224-5880-496e-b612-ce02814e42da/payment-attempts\",\"/payments/06a04003-de1f-4543-8fa8-2036e73b171d/complete\",\"/customer/broadcasting/auth\",\"/customer/broadcasting/auth\"]"
+    },
+    {
+      "name": "C4 THE PHONE KEEPS NO CREDENTIAL: neither the QR secret nor the code is in the app's storage",
+      "pass": true,
+      "detail": "687 chars"
+    },
+    {
+      "name": "D1 APP KILLED AND STARTED AGAIN on the order: the final state is read from the backend (GET /customer/orders/{number}) — COMPLETED, no pickup code",
+      "pass": true,
+      "detail": "Order details | Burger Hub\nFOTG-20261008-3DECGF · placed Thu, Oct 8 · 8:10 PM GMT+5:30\nOrder status: Completed\nPayment s"
+    },
+    {
+      "name": "D2 MY ORDERS lists the order as completed",
+      "pass": true,
+      "detail": "My orders | Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder.\nSort\nShowing 1 of 1 | Search by order number or r"
+    },
+    {
+      "name": "E1 A SECOND PAID ORDER with its own number",
+      "pass": true,
+      "detail": "#/order-confirmation/FOTG-20261008-2X4C8V"
+    },
+    {
+      "name": "E2 THE NETWORK GONE under an open socket: the app noticed it after 50 s (a failed read / the ping unanswered) and says the live updates are away — the \"Live updates on\" line is gone while the status is stale",
+      "pass": true,
+      "detail": "Track order | Live updates are temporarily unavailable. The status shown may be out of date.\nLast updated 8:12 PM | Refresh status | LIVE ORDER TRACKING\nWaiting for the restaurant\nBurger Hub has recei"
+    },
+    {
+      "name": "E3 THE NETWORK BACK: the socket reconnects (\"Live updates on\" again) and the order is read again — the step taken meanwhile (\"accepted\") is on screen",
+      "pass": true,
+      "detail": "Track order | Live updates are temporarily unavailable. The status shown may be out of date.\nLast updated 8:12 PM | Refresh status | LIVE ORDER TRACKING\nWaiting for the restaurant\nBurger Hub has recei"
+    },
+    {
+      "name": "F1 no JavaScript error in the app during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, payment attempt, checkout and reservation of this run is removed",
+      "pass": true,
+      "detail": "{\"orders\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0}"
+    }
+  ]
+}

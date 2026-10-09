@@ -27,6 +27,12 @@ final readonly class OrderEvent
 
     public const CANCELLED = 'order.cancelled';
 
+    public const PICKED_UP = 'order.picked_up';
+
+    public const COMPLETED = 'order.completed';
+
+    public const PICKUP_CREDENTIAL_REISSUED = 'order.pickup_credential_reissued';
+
     public const REFUND_REQUIRED = 'order.refund_required';
 
     public const RECOVERY_REQUIRED = 'order.recovery_required';
@@ -47,6 +53,12 @@ final readonly class OrderEvent
 
     public ?int $customerId;
 
+    public int $version;
+
+    public ?int $sequence;
+
+    public ?int $orderKey;
+
     /**
      * @param  array<string, mixed>  $detail
      */
@@ -59,5 +71,9 @@ final readonly class OrderEvent
         $this->paymentId = $order->payment_public_id === null ? null : (string) $order->payment_public_id;
         $this->locationId = $order->location_id === null ? null : (int) $order->location_id;
         $this->customerId = $order->customer_id === null ? null : (int) $order->customer_id;
+        $this->version = (int) $order->version;
+        $this->orderKey = $order->getKey() === null ? null : (int) $order->getKey();
+        // Module 32: the timeline line this event announces (the latest of the order when it was dispatched).
+        $this->sequence = isset($detail['sequence']) ? (int) $detail['sequence'] : null;
     }
 }

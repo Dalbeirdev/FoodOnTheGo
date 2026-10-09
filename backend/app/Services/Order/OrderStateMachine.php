@@ -57,8 +57,12 @@ final class OrderStateMachine
      */
     public function note(Order $order, string $type, string $actorType, ?string $actorPublicId = null, ?OrderStatus $from = null, ?OrderStatus $to = null, array $detail = [], ?CarbonInterface $at = null, ?string $requestId = null, bool $customerVisible = true): OrderEvent
     {
+        // Module 32: one deterministic number per line of this order. The caller holds the order's row lock (every
+        // state change does), so two lines cannot take the same number; the unique index refuses it if one ever tried.
+        $sequence = (int) OrderEvent::query()->where('order_id', $order->getKey())->max('sequence') + 1;
         $event = (new OrderEvent)->forceFill([
             'order_id' => $order->getKey(),
+            'sequence' => $sequence,
             'type' => $type,
             'from_status' => $from?->value,
             'to_status' => $to?->value,

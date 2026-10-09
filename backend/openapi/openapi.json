@@ -14736,6 +14736,809 @@
           }
         }
       }
+    },
+    "/customer/orders/{order}/events": {
+      "get": {
+        "summary": "The customer-visible event stream of one of the caller's own orders, by cursor: what a client reads after it noticed a gap in the realtime sequence, came back from the background or lost its socket. Carries the order's current status and version, so one call is a full resync. 404 order_not_found for anybody else's order.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after_sequence",
+            "in": "query",
+            "required": false,
+            "description": "Only lines with a greater sequence (0 or absent: everything)",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderEventsEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEventsEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/orders/{order}/pickup-credential": {
+      "get": {
+        "summary": "The pickup credential of one of the caller's own orders — the QR payload and the code to show at the counter — while the order is on its way (null afterwards). Private, never cached. Verifying it is the restaurant's (POST /restaurant/pickup/verify): a customer cannot mark their own pickup.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupCredentialEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupCredentialEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/orders/{order}/pickup-credential/reissue": {
+      "post": {
+        "summary": "A new credential for one of the caller's own active orders: the old QR and code are REVOKED at once, a new secret and code are issued (rate-limited per order and hour: 429). On the timeline as PICKUP_CREDENTIAL_REISSUED and recorded as a security event. 409 order_not_active for a finished order.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PickupCredentialReissueRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "PickupCredentialEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupCredentialEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/broadcasting/auth": {
+      "post": {
+        "summary": "Authorizes a private realtime channel for the signed-in customer: private-customer.order.{order id} of an order they own (403 channel_forbidden for anything else). Called by the WebSocket client (Laravel Echo / the Android client) with the bearer token; the answer is the Pusher-protocol signature. A channel name is an address, never a permission.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastingAuthRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "BroadcastingAuth",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastingAuth"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/orders/{order}/events": {
+      "get": {
+        "summary": "The full event stream of one order of the caller's locations (restaurant.orders.view), by cursor — the dashboard's resync after a lost socket or a gap. 404 order_not_found for any other.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-…) or the order id (UUID). Found only within what the caller may see.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "after_sequence",
+            "in": "query",
+            "required": false,
+            "description": "Only lines with a greater sequence (0 or absent: everything)",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderEventsEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEventsEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/pickup/verify": {
+      "post": {
+        "summary": "THE pickup step (Module 32): verifies what the customer presented and moves the order READY_FOR_PICKUP → PICKED_UP (then COMPLETED by itself). Needs restaurant.pickup.verify at the order's location, which must be the scanner's `location` (403 pickup_location_unauthorized when it is another location of the same organization). Judged in one transaction under the order's and the credential's locks: the order is READY (409 order_not_ready_for_pickup; 409 order_not_pickup_eligible when rejected / cancelled), the credential is ACTIVE (409 pickup_already_verified with the order's state when used before — a replay; 409 pickup_credential_revoked / pickup_credential_expired), the secret or code matches (422 pickup_credential_invalid — also for a credential of another restaurant: nothing is revealed). Wrong codes against one order lock it for a while (429 pickup_attempts_exceeded); attempts per staff member and per location are limited (429). Every attempt is recorded without the secret. Idempotent through the key; a retry after a lost answer meets pickup_already_verified with verified_by_you = true. Two staff scanning at once: exactly one pickup.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PickupVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PickupVerifyEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupVerifyEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/broadcasting/auth": {
+      "post": {
+        "summary": "Authorizes a private realtime channel for the signed-in restaurant user: private-restaurant.location.{location id} of a location they reach with restaurant.orders.view (an ACTIVE membership for the organization or the location; 403 channel_forbidden otherwise — another location, another organization, a suspended membership). The dashboard listens to one channel per location, not one per order.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastingAuthRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "BroadcastingAuth",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastingAuth"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/realtime": {
+      "get": {
+        "summary": "The realtime layer (admin.system.view): health of the WebSocket server, the transport hierarchy, the allowed origins, broadcast / channel-authorization / resync counters, the pickup verification counters and the completion counters. fresh=true probes the server again instead of the ten-second cache.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fresh",
+            "in": "query",
+            "required": false,
+            "description": "Probe the realtime server now",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RealtimeSystem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealtimeSystem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/pickup-attempts": {
+      "get": {
+        "summary": "The pickup verification attempts, newest first (admin.system.view): the security view of who tried what, where, with which result — and the staff accounts with repeated failures. Never a secret.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filter[result]",
+            "in": "query",
+            "required": false,
+            "description": "One result",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SUCCESS",
+                "INVALID_CREDENTIAL",
+                "NOT_READY",
+                "NOT_ELIGIBLE",
+                "WRONG_LOCATION",
+                "EXPIRED",
+                "REVOKED",
+                "ALREADY_USED",
+                "RATE_LIMITED",
+                "LOCKED"
+              ]
+            }
+          },
+          {
+            "name": "filter[failed]",
+            "in": "query",
+            "required": false,
+            "description": "true: failed attempts only",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "filter[location]",
+            "in": "query",
+            "required": false,
+            "description": "Restaurant location id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size (max 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PickupAttemptPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickupAttemptPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -36512,6 +37315,8 @@
       "OrderTimelineEntry": {
         "type": "object",
         "required": [
+          "sequence",
+          "event_id",
           "at",
           "type",
           "from",
@@ -36521,6 +37326,14 @@
         ],
         "additionalProperties": false,
         "properties": {
+          "sequence": {
+            "type": "integer",
+            "description": "Deterministic per order: 1, 2, 3 … Clients ignore what they have (≤ last seen) and read the stream again when a number is missing."
+          },
+          "event_id": {
+            "type": "string",
+            "description": "\"<order id>-<sequence>\": stable, for deduplication"
+          },
           "at": {
             "type": [
               "string",
@@ -36529,7 +37342,8 @@
             "description": "ISO 8601, UTC"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "One of: ORDER_CREATED, WAITING_FOR_RESTAURANT, RESTAURANT_ACCEPTED, RESTAURANT_REJECTED, PREPARATION_STARTED, READY_FOR_PICKUP, CUSTOMER_PICKED_UP, PICKUP_VERIFIED, ORDER_COMPLETED, ORDER_CANCELLED, REFUND_REQUIRED, RECOVERY_REQUIRED, STEP_REFUSED, PICKUP_CREDENTIAL_REISSUED - a client ignores a type it does not know and reads the order instead"
           },
           "from": {
             "type": [
@@ -36575,7 +37389,7 @@
             "description": "Codes and references only"
           }
         },
-        "description": "One line of the order's append-only timeline. The customer's copy carries states and public reasons only — never a staff note, a trigger or an internal id."
+        "description": "One line of the order's append-only timeline (Module 31 / 32). The customer's copy carries states, public reasons and the pickup method only — never a staff note, a trigger, a credential or a staff member."
       },
       "OrderLegalReference": {
         "type": "object",
@@ -36722,33 +37536,34 @@
       "Order": {
         "type": "object",
         "required": [
-          "id",
-          "order_number",
-          "status",
-          "payment_state",
-          "refund_status",
-          "restaurant",
-          "item_count",
-          "total",
-          "pickup",
-          "placed_at",
-          "updated_at",
-          "items",
-          "pricing",
-          "promotion",
-          "taxes",
-          "fees",
-          "payment",
+          "cancellation",
           "customer_note",
+          "fees",
+          "id",
+          "item_count",
+          "items",
           "journey",
           "legal",
-          "rejection",
-          "cancellation",
+          "next_action",
+          "order_number",
+          "payment",
+          "payment_state",
+          "pickup",
           "pickup_credential",
           "pickup_verification",
+          "placed_at",
+          "pricing",
+          "promotion",
+          "realtime",
+          "refund_status",
+          "rejection",
+          "restaurant",
+          "status",
+          "taxes",
           "timeline",
-          "next_action",
           "times",
+          "total",
+          "updated_at",
           "version"
         ],
         "additionalProperties": false,
@@ -37069,19 +37884,30 @@
               "null"
             ],
             "required": [
+              "public_id",
               "code",
               "qr_payload",
-              "status"
+              "status",
+              "expires_at",
+              "format_version"
             ],
             "additionalProperties": false,
             "properties": {
+              "public_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
               "code": {
                 "type": "string",
-                "description": "Six characters the customer reads out at the counter"
+                "description": "Six characters from an alphabet without 0/O/1/I, read out at the counter with the order number. Never derived from the order number or the phone."
               },
               "qr_payload": {
-                "type": "string",
-                "description": "Opaque: carries no order, customer or amount"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^FOTG1\\.[A-Za-z0-9_-]{43}$",
+                "description": "Rendered as the QR: \"FOTG1.\" + an opaque 256-bit secret. Carries no order, customer, amount, payment or restaurant. Single-use; verified on the server; null only for a credential of the previous module (rotated on the next read)."
               },
               "status": {
                 "type": "string",
@@ -37091,16 +37917,22 @@
                   "REVOKED",
                   "EXPIRED"
                 ]
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Absolute expiry (pickup time + 24 h): protects orders nobody collected; a late customer is not cut off at the minute"
+              },
+              "format_version": {
+                "type": "integer"
               }
             },
-            "description": "Present while there is something to pick up (active statuses); null afterwards. Verifying it is Module 32."
+            "description": "Present while there is something to pick up (active statuses); null afterwards. Verified by the restaurant (Module 32)."
           },
           "pickup_verification": {
-            "type": "string",
-            "enum": [
-              "NOT_IMPLEMENTED"
-            ],
-            "description": "Module 32"
+            "$ref": "#/components/schemas/OrderPickupVerification"
           },
           "timeline": {
             "type": "array",
@@ -37125,6 +37957,9 @@
           },
           "version": {
             "type": "integer"
+          },
+          "realtime": {
+            "$ref": "#/components/schemas/OrderRealtimeHints"
           }
         },
         "description": "An order as its owner sees it: an immutable copy of what was confirmed and paid, plus where it stands. Nothing here can be changed by a customer request."
@@ -37299,41 +38134,44 @@
                 "accept",
                 "reject",
                 "start_preparing",
-                "ready"
+                "ready",
+                "verify_pickup"
               ]
             },
-            "description": "The steps the state machine allows from here. \"picked_up\" is never among them (Module 32)."
+            "description": "The steps the state machine allows from here. verify_pickup = READY: the pickup is verified with the customer's credential, never clicked."
           }
         }
       },
       "RestaurantOrder": {
         "type": "object",
         "required": [
-          "id",
-          "order_number",
-          "status",
-          "payment_state",
-          "refund_status",
-          "location_id",
-          "customer",
-          "item_count",
-          "total",
-          "pickup",
-          "placed_at",
-          "updated_at",
-          "version",
           "allowed_actions",
+          "cancellation",
+          "customer",
+          "customer_note",
+          "fees",
+          "id",
+          "item_count",
           "items",
+          "journey",
+          "location_id",
+          "order_number",
+          "payment_state",
+          "pickup",
+          "pickup_verification",
+          "placed_at",
           "pricing",
           "promotion",
-          "taxes",
-          "fees",
-          "customer_note",
+          "realtime",
+          "refund_status",
           "rejection",
-          "cancellation",
-          "journey",
+          "status",
+          "taxes",
           "timeline",
-          "times"
+          "times",
+          "total",
+          "updated_at",
+          "version"
         ],
         "additionalProperties": false,
         "properties": {
@@ -37435,10 +38273,11 @@
                 "accept",
                 "reject",
                 "start_preparing",
-                "ready"
+                "ready",
+                "verify_pickup"
               ]
             },
-            "description": "The steps the state machine allows from here. \"picked_up\" is never among them (Module 32)."
+            "description": "The steps the state machine allows from here. verify_pickup = READY: the pickup is verified with the customer's credential, never clicked."
           },
           "items": {
             "type": "array",
@@ -37557,6 +38396,12 @@
           },
           "times": {
             "$ref": "#/components/schemas/OrderTimes"
+          },
+          "pickup_verification": {
+            "$ref": "#/components/schemas/OrderPickupVerification"
+          },
+          "realtime": {
+            "$ref": "#/components/schemas/OrderRealtimeHints"
           }
         },
         "description": "An order as the restaurant works it. No pickup credential (the restaurant verifies it, Module 32), no payment method, no promotion economics."
@@ -38048,41 +38893,44 @@
       "AdminOrderDetail": {
         "type": "object",
         "required": [
-          "id",
-          "order_number",
-          "status",
-          "payment_state",
-          "refund_status",
-          "needs_attention",
-          "restaurant",
-          "market",
-          "customer",
-          "payment_id",
-          "checkout_id",
-          "item_count",
-          "total",
-          "pickup",
-          "placed_at",
-          "updated_at",
-          "version",
-          "items",
-          "pricing",
-          "promotion",
-          "taxes",
-          "fees",
-          "payment",
-          "customer_note",
-          "rejection",
+          "actions",
           "cancellation",
-          "refunds",
-          "pickup_credential",
+          "checkout_id",
+          "customer",
+          "customer_note",
+          "fees",
+          "fulfillment",
+          "id",
+          "item_count",
+          "items",
           "journey",
           "legal",
+          "market",
+          "needs_attention",
+          "order_number",
+          "payment",
+          "payment_id",
+          "payment_state",
+          "pickup",
+          "pickup_attempts",
+          "pickup_credential",
+          "pickup_credentials",
+          "pickup_verification",
+          "placed_at",
+          "pricing",
           "pricing_fingerprint",
-          "fulfillment",
+          "promotion",
+          "refund_status",
+          "refunds",
+          "rejection",
+          "restaurant",
+          "status",
+          "taxes",
           "timeline",
           "times",
-          "actions"
+          "total",
+          "updated_at",
+          "version"
         ],
         "additionalProperties": false,
         "properties": {
@@ -38353,11 +39201,20 @@
               "null"
             ],
             "required": [
+              "id",
               "status",
-              "issued_at"
+              "issued_at",
+              "expires_at",
+              "format_version",
+              "failed_attempts",
+              "locked_until"
             ],
             "additionalProperties": false,
             "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
               "status": {
                 "type": "string",
                 "enum": [
@@ -38373,9 +39230,29 @@
                   "null"
                 ],
                 "description": "ISO 8601, UTC"
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "format_version": {
+                "type": "integer"
+              },
+              "failed_attempts": {
+                "type": "integer"
+              },
+              "locked_until": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
               }
             },
-            "description": "Its state only — the code and the token are the customer's"
+            "description": "Its state only — the code and the secret are the customer's"
           },
           "journey": {
             "type": [
@@ -38550,22 +39427,183 @@
             "type": "object",
             "required": [
               "cancel",
-              "refund"
+              "refund",
+              "mark_picked_up"
             ],
             "additionalProperties": false,
             "properties": {
               "cancel": {
-                "type": "boolean",
-                "description": "Whether the order can still be cancelled (admin.orders.override)"
+                "type": "boolean"
               },
               "refund": {
                 "type": "string",
                 "enum": [
                   "NOT_IMPLEMENTED"
+                ]
+              },
+              "mark_picked_up": {
+                "type": "string",
+                "enum": [
+                  "NOT_PROVIDED"
                 ],
-                "description": "Refunds belong to the refund module"
+                "description": "There is no administrative \"mark picked up\": a pickup is verified at the restaurant with the customer's credential"
               }
             }
+          },
+          "pickup_credentials": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "status",
+                "issued_at",
+                "revoked_at",
+                "revoke_reason",
+                "consumed_at",
+                "consumed_method"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "ACTIVE",
+                    "CONSUMED",
+                    "REVOKED",
+                    "EXPIRED"
+                  ]
+                },
+                "issued_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "revoked_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "revoke_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "consumed_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "consumed_method": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "QR",
+                    "MANUAL_CODE",
+                    null
+                  ]
+                }
+              }
+            },
+            "description": "The history: rotations and the consumed one"
+          },
+          "pickup_verification": {
+            "$ref": "#/components/schemas/OrderPickupVerification"
+          },
+          "pickup_attempts": {
+            "type": "object",
+            "required": [
+              "total",
+              "failed",
+              "last"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              },
+              "last": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "at",
+                    "method",
+                    "result",
+                    "staff"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "ISO 8601, UTC"
+                    },
+                    "method": {
+                      "type": "string",
+                      "enum": [
+                        "QR",
+                        "MANUAL_CODE"
+                      ]
+                    },
+                    "result": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS",
+                        "INVALID_CREDENTIAL",
+                        "NOT_READY",
+                        "NOT_ELIGIBLE",
+                        "WRONG_LOCATION",
+                        "EXPIRED",
+                        "REVOKED",
+                        "ALREADY_USED",
+                        "RATE_LIMITED",
+                        "LOCKED"
+                      ]
+                    },
+                    "staff": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f-]{36}$"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "The verification attempts on this order (the last ten): the audit of the pickup"
           }
         }
       },
@@ -38696,19 +39734,24 @@
       "OrderMetrics": {
         "type": "object",
         "required": [
-          "checked_at",
-          "window_hours",
-          "events",
-          "orders",
           "active",
-          "waiting_for_restaurant",
-          "refund_required",
-          "verified_payments_without_order",
+          "checked_at",
+          "completion",
+          "events",
           "fulfillment",
           "latency_ms",
-          "realtime_tracking",
+          "notification_delivery",
+          "order_completion",
+          "orders",
+          "pickup",
           "pickup_verification",
-          "refund_processing"
+          "realtime",
+          "realtime_tracking",
+          "refund_processing",
+          "refund_required",
+          "verified_payments_without_order",
+          "waiting_for_restaurant",
+          "window_hours"
         ],
         "additionalProperties": false,
         "properties": {
@@ -38784,13 +39827,13 @@
           "realtime_tracking": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
+              "IMPLEMENTED"
             ]
           },
           "pickup_verification": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
+              "IMPLEMENTED"
             ]
           },
           "refund_processing": {
@@ -38798,9 +39841,1182 @@
             "enum": [
               "NOT_IMPLEMENTED"
             ]
+          },
+          "order_completion": {
+            "type": "string",
+            "enum": [
+              "IMPLEMENTED"
+            ]
+          },
+          "notification_delivery": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          },
+          "realtime": {
+            "type": "object",
+            "required": [
+              "broadcast_sent",
+              "broadcast_failed",
+              "broadcast_avg_ms",
+              "channel_auth_granted",
+              "channel_auth_denied",
+              "events_resync"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "broadcast_sent": {
+                "type": "integer"
+              },
+              "broadcast_failed": {
+                "type": "integer"
+              },
+              "broadcast_avg_ms": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "channel_auth_granted": {
+                "type": "integer"
+              },
+              "channel_auth_denied": {
+                "type": "integer"
+              },
+              "events_resync": {
+                "type": "integer"
+              }
+            }
+          },
+          "pickup": {
+            "type": "object",
+            "required": [
+              "verified",
+              "verified_qr",
+              "verified_manual_code",
+              "refused",
+              "refused_invalid",
+              "refused_not_ready",
+              "refused_wrong_location",
+              "replay",
+              "rate_limited",
+              "locked",
+              "picked_up_not_completed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "verified": {
+                "type": "integer"
+              },
+              "verified_qr": {
+                "type": "integer"
+              },
+              "verified_manual_code": {
+                "type": "integer"
+              },
+              "refused": {
+                "type": "integer"
+              },
+              "refused_invalid": {
+                "type": "integer"
+              },
+              "refused_not_ready": {
+                "type": "integer"
+              },
+              "refused_wrong_location": {
+                "type": "integer"
+              },
+              "replay": {
+                "type": "integer"
+              },
+              "rate_limited": {
+                "type": "integer"
+              },
+              "locked": {
+                "type": "integer"
+              },
+              "picked_up_not_completed": {
+                "type": "integer"
+              }
+            }
+          },
+          "completion": {
+            "type": "object",
+            "required": [
+              "completed",
+              "after_pickup",
+              "by_sweep",
+              "deferred"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "completed": {
+                "type": "integer"
+              },
+              "after_pickup": {
+                "type": "integer"
+              },
+              "by_sweep": {
+                "type": "integer"
+              },
+              "deferred": {
+                "type": "integer"
+              }
+            }
           }
         },
         "description": "Counts and states only: no order of anybody."
+      },
+      "OrderPickupVerification": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_YET",
+              "AVAILABLE",
+              "VERIFIED",
+              "NOT_POSSIBLE"
+            ],
+            "description": "NOT_YET: the order is not READY; AVAILABLE: show the QR / code at the counter; VERIFIED: picked up; NOT_POSSIBLE: rejected / cancelled"
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "QR",
+              "MANUAL_CODE",
+              null
+            ]
+          },
+          "verified_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "verified_by": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "description": "The restaurant user who verified — for the restaurant and the administrator only, never the customer"
+          },
+          "credential_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ACTIVE",
+              "CONSUMED",
+              "REVOKED",
+              "EXPIRED",
+              null
+            ]
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "How the pickup stands. Decided on the server; a screen never marks a pickup by itself."
+      },
+      "OrderRealtimeHints": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "channel",
+          "event",
+          "auth_endpoint",
+          "poll_seconds",
+          "terminal"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "channel": {
+            "type": "string",
+            "description": "The private channel to listen to: customer.order.{order id} or restaurant.location.{location id}. An address, not a permission — the server authorizes every subscription."
+          },
+          "event": {
+            "type": "string",
+            "enum": [
+              "order.updated"
+            ]
+          },
+          "auth_endpoint": {
+            "type": "string",
+            "enum": [
+              "/customer/broadcasting/auth",
+              "/restaurant/broadcasting/auth"
+            ]
+          },
+          "poll_seconds": {
+            "type": "integer",
+            "description": "How often to read the order again when the socket is not available (adaptive: shorter while the order is on its way)"
+          },
+          "terminal": {
+            "type": "boolean",
+            "description": "Nothing more will happen: stop listening and polling"
+          }
+        },
+        "description": "Where to listen and how often to ask (Module 32). WebSocket (Laravel Reverb) first; GET order / GET events as the resync; polling as the fallback. SSE is not implemented (optional by design)."
+      },
+      "PickupCredential": {
+        "type": "object",
+        "required": [
+          "public_id",
+          "code",
+          "qr_payload",
+          "status",
+          "expires_at",
+          "format_version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "public_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "code": {
+            "type": "string",
+            "description": "Six characters from an alphabet without 0/O/1/I, read out at the counter with the order number. Never derived from the order number or the phone."
+          },
+          "qr_payload": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^FOTG1\\.[A-Za-z0-9_-]{43}$",
+            "description": "Rendered as the QR: \"FOTG1.\" + an opaque 256-bit secret. Carries no order, customer, amount, payment or restaurant. Single-use; verified on the server; null only for a credential of the previous module (rotated on the next read)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "CONSUMED",
+              "REVOKED",
+              "EXPIRED"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Absolute expiry (pickup time + 24 h): protects orders nobody collected; a late customer is not cut off at the minute"
+          },
+          "format_version": {
+            "type": "integer"
+          }
+        },
+        "description": "What the customer shows at pickup. Only the customer who owns the order can read it; answered with Cache-Control: private, no-store."
+      },
+      "OrderUpdatedBroadcast": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "order_public_id",
+          "order_number",
+          "version",
+          "status",
+          "event_type",
+          "event_sequence",
+          "event_id",
+          "payment_state",
+          "refund_status",
+          "pickup_at",
+          "ready_at",
+          "occurred_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "schema_version": {
+            "type": "integer"
+          },
+          "order_public_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": "string",
+            "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING_FOR_RESTAURANT",
+              "ACCEPTED",
+              "PREPARING",
+              "READY_FOR_PICKUP",
+              "PICKED_UP",
+              "COMPLETED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "order.created",
+              "order.status_changed",
+              "order.restaurant_accepted",
+              "order.restaurant_rejected",
+              "order.preparing",
+              "order.ready",
+              "order.picked_up",
+              "order.completed",
+              "order.cancelled",
+              "order.refund_required",
+              "order.pickup_credential_reissued"
+            ]
+          },
+          "event_sequence": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "event_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "payment_state": {
+            "type": "string",
+            "enum": [
+              "PAID",
+              "PAYMENT_NOT_REQUIRED"
+            ]
+          },
+          "refund_status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PENDING",
+              "PARTIAL",
+              "REFUNDED",
+              "FAILED"
+            ]
+          },
+          "pickup_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "ready_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "occurred_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "message_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Customer channel: a key the client translates (order.accepted …), never marketing copy"
+          },
+          "item_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "pickup_slot_starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "pickup_slot_ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "NOT an HTTP answer: the WebSocket event \"order.updated\" on the private channels (documented here for the clients). It says \"something changed, here is the version\" — the order itself is read from the API. May arrive twice, late or not at all; version / event_sequence decide what to apply."
+      },
+      "OrderEventsEnvelope": {
+        "type": "object",
+        "required": [
+          "order",
+          "events",
+          "cursor",
+          "realtime"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "type": "object",
+            "required": [
+              "id",
+              "order_number",
+              "status",
+              "version",
+              "refund_status",
+              "payment_state",
+              "updated_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "order_number": {
+                "type": "string",
+                "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "WAITING_FOR_RESTAURANT",
+                  "ACCEPTED",
+                  "PREPARING",
+                  "READY_FOR_PICKUP",
+                  "PICKED_UP",
+                  "COMPLETED",
+                  "REJECTED",
+                  "CANCELLED"
+                ]
+              },
+              "version": {
+                "type": "integer"
+              },
+              "refund_status": {
+                "type": "string",
+                "enum": [
+                  "NONE",
+                  "REQUIRED",
+                  "PENDING",
+                  "PARTIAL",
+                  "REFUNDED",
+                  "FAILED"
+                ]
+              },
+              "payment_state": {
+                "type": "string",
+                "enum": [
+                  "PAID",
+                  "PAYMENT_NOT_REQUIRED"
+                ]
+              },
+              "updated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            },
+            "description": "The order as it stands now: one call is a full resync"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTimelineEntry"
+            }
+          },
+          "cursor": {
+            "type": "object",
+            "required": [
+              "after_sequence",
+              "last_sequence",
+              "has_more"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "after_sequence": {
+                "type": "integer"
+              },
+              "last_sequence": {
+                "type": "integer"
+              },
+              "has_more": {
+                "type": "boolean"
+              }
+            }
+          },
+          "realtime": {
+            "$ref": "#/components/schemas/OrderRealtimeHints"
+          }
+        },
+        "description": "The event stream of one order after a sequence (bounded to 200 lines). The customer gets the customer-visible lines, the restaurant every line of its orders."
+      },
+      "PickupCredentialEnvelope": {
+        "type": "object",
+        "required": [
+          "order",
+          "pickup_credential",
+          "pickup_verification"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order": {
+            "type": "object",
+            "required": [
+              "id",
+              "order_number",
+              "status",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "order_number": {
+                "type": "string",
+                "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "WAITING_FOR_RESTAURANT",
+                  "ACCEPTED",
+                  "PREPARING",
+                  "READY_FOR_PICKUP",
+                  "PICKED_UP",
+                  "COMPLETED",
+                  "REJECTED",
+                  "CANCELLED"
+                ]
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          },
+          "pickup_credential": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "public_id",
+              "code",
+              "qr_payload",
+              "status",
+              "expires_at",
+              "format_version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "public_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "code": {
+                "type": "string",
+                "description": "Six characters from an alphabet without 0/O/1/I, read out at the counter with the order number. Never derived from the order number or the phone."
+              },
+              "qr_payload": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^FOTG1\\.[A-Za-z0-9_-]{43}$",
+                "description": "Rendered as the QR: \"FOTG1.\" + an opaque 256-bit secret. Carries no order, customer, amount, payment or restaurant. Single-use; verified on the server; null only for a credential of the previous module (rotated on the next read)."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "CONSUMED",
+                  "REVOKED",
+                  "EXPIRED"
+                ]
+              },
+              "expires_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Absolute expiry (pickup time + 24 h): protects orders nobody collected; a late customer is not cut off at the minute"
+              },
+              "format_version": {
+                "type": "integer"
+              }
+            },
+            "description": "What the customer shows at pickup. Only the customer who owns the order can read it; answered with Cache-Control: private, no-store."
+          },
+          "pickup_verification": {
+            "$ref": "#/components/schemas/OrderPickupVerification"
+          }
+        }
+      },
+      "PickupCredentialReissueRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          }
+        },
+        "description": "Nothing about the order can be sent. The old QR and code stop working at once."
+      },
+      "BroadcastingAuthRequest": {
+        "type": "object",
+        "required": [
+          "socket_id",
+          "channel_name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "socket_id": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+$",
+            "description": "The socket id the WebSocket server gave this connection"
+          },
+          "channel_name": {
+            "type": "string",
+            "pattern": "^private-(customer\\.order|restaurant\\.location)\\.[0-9a-fA-F-]{36}$",
+            "description": "Only private order / location channels exist; a public order channel is refused"
+          }
+        }
+      },
+      "BroadcastingAuth": {
+        "type": "object",
+        "required": [
+          "auth"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "auth": {
+            "type": "string",
+            "description": "\"<app key>:<HMAC-SHA256 signature>\" for this socket and channel — the Pusher protocol's private-channel authorization"
+          }
+        }
+      },
+      "PickupVerifyRequest": {
+        "type": "object",
+        "required": [
+          "location",
+          "method"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$",
+            "description": "The location the scanner / counter is on. The order must belong to it."
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "QR",
+              "MANUAL_CODE"
+            ],
+            "description": "QR: the decoded QR payload; MANUAL_CODE: the order number and the code the customer read out"
+          },
+          "payload": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 128,
+            "description": "QR: the decoded payload, untrusted input, bounded and format-checked on the server"
+          },
+          "order_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 24,
+            "description": "MANUAL_CODE: names the order the code is tried against (a code is never searched across orders)"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 16,
+            "description": "MANUAL_CODE: spaces, dashes and case are tolerated; characters are never \"corrected\""
+          }
+        },
+        "description": "Nothing about the outcome can be sent: no status, no \"picked up\", no customer, no override (422)."
+      },
+      "PickupVerifyEnvelope": {
+        "type": "object",
+        "required": [
+          "result",
+          "order",
+          "verification"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": [
+              "PICKUP_VERIFIED"
+            ]
+          },
+          "order": {
+            "$ref": "#/components/schemas/RestaurantOrder"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/OrderPickupVerification"
+          }
+        }
+      },
+      "RealtimeHealth": {
+        "type": "object",
+        "required": [
+          "status",
+          "driver",
+          "checked_at",
+          "latency_ms",
+          "detail"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPERATIONAL",
+              "DEGRADED",
+              "UNAVAILABLE",
+              "OFF"
+            ]
+          },
+          "driver": {
+            "type": "string"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "Whether the realtime server (Laravel Reverb) answers. None of it changes what orders do: REST and polling do not depend on it."
+      },
+      "RealtimeSystem": {
+        "type": "object",
+        "required": [
+          "realtime",
+          "pickup",
+          "completion",
+          "window_hours",
+          "checked_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "realtime": {
+            "type": "object",
+            "required": [
+              "health",
+              "transport",
+              "allowed_origins",
+              "counters",
+              "poll_seconds"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "health": {
+                "$ref": "#/components/schemas/RealtimeHealth"
+              },
+              "transport": {
+                "type": "object",
+                "required": [
+                  "preferred",
+                  "fallback",
+                  "sse"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "preferred": {
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "type": "string"
+                  },
+                  "sse": {
+                    "type": "string"
+                  }
+                }
+              },
+              "allowed_origins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "counters": {
+                "type": "object",
+                "required": [
+                  "broadcast_sent",
+                  "broadcast_failed",
+                  "broadcast_avg_ms",
+                  "channel_auth_granted",
+                  "channel_auth_denied",
+                  "events_resync"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "broadcast_sent": {
+                    "type": "integer"
+                  },
+                  "broadcast_failed": {
+                    "type": "integer"
+                  },
+                  "broadcast_avg_ms": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "channel_auth_granted": {
+                    "type": "integer"
+                  },
+                  "channel_auth_denied": {
+                    "type": "integer"
+                  },
+                  "events_resync": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "poll_seconds": {
+                "type": "object",
+                "required": [
+                  "active",
+                  "idle"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "active": {
+                    "type": "integer"
+                  },
+                  "idle": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "pickup": {
+            "type": "object",
+            "required": [
+              "verified",
+              "verified_qr",
+              "verified_manual_code",
+              "refused",
+              "refused_invalid",
+              "refused_not_ready",
+              "refused_wrong_location",
+              "replay",
+              "rate_limited",
+              "locked",
+              "picked_up_not_completed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "verified": {
+                "type": "integer"
+              },
+              "verified_qr": {
+                "type": "integer"
+              },
+              "verified_manual_code": {
+                "type": "integer"
+              },
+              "refused": {
+                "type": "integer"
+              },
+              "refused_invalid": {
+                "type": "integer"
+              },
+              "refused_not_ready": {
+                "type": "integer"
+              },
+              "refused_wrong_location": {
+                "type": "integer"
+              },
+              "replay": {
+                "type": "integer"
+              },
+              "rate_limited": {
+                "type": "integer"
+              },
+              "locked": {
+                "type": "integer"
+              },
+              "picked_up_not_completed": {
+                "type": "integer"
+              }
+            }
+          },
+          "completion": {
+            "type": "object",
+            "required": [
+              "completed",
+              "after_pickup",
+              "by_sweep",
+              "deferred"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "completed": {
+                "type": "integer"
+              },
+              "after_pickup": {
+                "type": "integer"
+              },
+              "by_sweep": {
+                "type": "integer"
+              },
+              "deferred": {
+                "type": "integer"
+              }
+            }
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "Counts and health only: no order of anybody, no connection of anybody."
+      },
+      "PickupAttempt": {
+        "type": "object",
+        "required": [
+          "id",
+          "attempted_at",
+          "method",
+          "result",
+          "order",
+          "staff",
+          "location",
+          "request_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "attempted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "QR",
+              "MANUAL_CODE"
+            ]
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "INVALID_CREDENTIAL",
+              "NOT_READY",
+              "NOT_ELIGIBLE",
+              "WRONG_LOCATION",
+              "EXPIRED",
+              "REVOKED",
+              "ALREADY_USED",
+              "RATE_LIMITED",
+              "LOCKED"
+            ]
+          },
+          "order": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "order_number"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "order_number": {
+                "type": "string",
+                "pattern": "^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$"
+              }
+            }
+          },
+          "staff": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "location": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "request_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "One verification attempt — never the submitted secret or code"
+      },
+      "PickupAttemptPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta",
+          "repeat_failures"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickupAttempt"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "required": [
+              "current_page",
+              "per_page",
+              "total",
+              "last_page"
+            ]
+          },
+          "repeat_failures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "staff",
+                "failed_attempts_24h"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "staff": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "required": [
+                    "id",
+                    "name"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "failed_attempts_24h": {
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "Staff accounts with five or more failed attempts in the last 24 hours"
+          }
+        }
       }
     }
   }

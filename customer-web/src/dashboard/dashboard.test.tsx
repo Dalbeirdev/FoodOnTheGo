@@ -123,13 +123,14 @@ describe('Restaurant order repository (shared domain)', () => {
   })
   it('TEST 17 / 18 / 19 pickup verification: valid code completes the order; invalid, not ready, wrong location, duplicate are safe', async () => {
     const repo = new MockRestaurantOrderRepository()
-    expect((await repo.verifyPickup('burger-hub', 'zzzzzz')).ok).toBe(false); expect(await repo.verifyPickup('burger-hub', 'NOPE')).toMatchObject({ ok: false, reason: 'invalid' })
-    expect(await repo.verifyPickup('burger-hub', 'PREP7C')).toMatchObject({ ok: false, reason: 'not_ready' })
-    expect(await repo.verifyPickup('kettleman-diner', 'RVG7K2')).toMatchObject({ ok: false, reason: 'wrong_location' })
-    const ok = await repo.verifyPickup('burger-hub', ' rvg7-k2 '); expect(ok.ok).toBe(true); if (ok.ok) { expect(ok.order.orderStatus).toBe('COMPLETED'); expect(ok.order.pickupVerificationStatus).toBe('VERIFIED') }
-    expect(await repo.verifyPickup('burger-hub', 'RVG7K2')).toMatchObject({ ok: false, reason: 'already_used' })
+    const code = (c: string) => ({ method: 'MANUAL_CODE' as const, orderNumber: '', code: c })   // Module 32: the input names the method
+    expect((await repo.verifyPickup('burger-hub', code('zzzzzz'))).ok).toBe(false); expect(await repo.verifyPickup('burger-hub', code('NOPE'))).toMatchObject({ ok: false, reason: 'invalid' })
+    expect(await repo.verifyPickup('burger-hub', code('PREP7C'))).toMatchObject({ ok: false, reason: 'not_ready' })
+    expect(await repo.verifyPickup('kettleman-diner', code('RVG7K2'))).toMatchObject({ ok: false, reason: 'wrong_location' })
+    const ok = await repo.verifyPickup('burger-hub', code(' rvg7-k2 ')); expect(ok.ok).toBe(true); if (ok.ok) { expect(ok.order.orderStatus).toBe('COMPLETED'); expect(ok.order.pickupVerificationStatus).toBe('VERIFIED') }
+    expect(await repo.verifyPickup('burger-hub', code('RVG7K2'))).toMatchObject({ ok: false, reason: 'already_used' })
     expect(order('FOTG-RD01-RDY1').events.filter((e) => e.type === 'PICKED_UP')).toHaveLength(1)
-    expect(await repo.verifyPickup('burger-hub', 'DONE1X')).toMatchObject({ ok: false, reason: 'already_used' })
+    expect(await repo.verifyPickup('burger-hub', code('DONE1X'))).toMatchObject({ ok: false, reason: 'already_used' })
   })
   it('TEST 10 / 105 sold out in the dashboard is sold out for customers (shared managed menu); new items are customer-compatible', async () => {
     setMockMenuLatency(0)
@@ -200,7 +201,7 @@ describe('Restaurant Dashboard (web UI)', () => {
     expect(details.textContent).not.toMatch(/4242|@|\+91/)
   }, 30000)
 
-  it('TEST 17 / 18 / 19 pickup verification UI: valid code succeeds, invalid is safe, duplicate refused, scanner shell documented as pending', async () => {
+  it('TEST 17 / 18 / 19 pickup verification UI: valid code succeeds, invalid is safe, duplicate refused, the scanner tab offers the camera and a payload field', async () => {
     const user = userEvent.setup(); mount('/restaurant-dashboard/pickup-verification')
     const input = await screen.findByTestId('pickup-code')
     await user.type(input, 'BADCOD'); await user.click(screen.getByTestId('pickup-submit'))
@@ -209,7 +210,9 @@ describe('Restaurant Dashboard (web UI)', () => {
     await waitFor(() => expect(screen.getByTestId('pickup-result')).toHaveAttribute('data-result', 'ok')); expect(screen.getByTestId('pickup-result')).toHaveTextContent('FOTG-RD01-RDY1'); expect(screen.getByTestId('pickup-result')).toHaveTextContent('Completed')
     await user.type(input, 'RVG7K2'); await user.click(screen.getByTestId('pickup-submit'))
     await waitFor(() => expect(screen.getByTestId('pickup-result')).toHaveAttribute('data-result', 'already_used'))
-    await user.click(screen.getByRole('tab', { name: /scan qr code/i })); expect(screen.getByTestId('pickup-scanner')).toHaveTextContent('PENDING')
+    // Module 32: the scanner tab is a real camera scanner (started by the staff member) with a field for a hardware scanner's payload.
+    await user.click(screen.getByRole('tab', { name: /scan qr code/i })); expect(screen.getByTestId('pickup-scanner')).toHaveAttribute('data-camera', 'off')
+    expect(screen.getByTestId('pickup-camera-start')).toBeInTheDocument(); expect(screen.getByTestId('pickup-payload')).toBeInTheDocument()
   }, 30000)
 
   it('TEST 6 / 7 / 10 menu: search + filters, add category, add item with a variant group, mark sold out', async () => {

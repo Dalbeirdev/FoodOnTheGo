@@ -4,7 +4,7 @@ import { ApiOrderRepository, ApiOrderTrackingService } from './api/apiOrder'
 import { MockOrderTrackingService } from './mock/mockTracking'
 import { orderMode } from './orderMode'
 import type { Order, OrderEvent, OrderRepository, PickupVerification, PickupVerificationRepository } from './repositories'
-import { reduceOrder, TERMINAL_ORDER, type OrderTrackingService, type TrackingConnection } from './tracking'
+import { reduceOrder, TERMINAL_ORDER, type OrderTrackingService, type TrackingConnection, type TransportState } from './tracking'
 import { orderRepositories } from './useOrderConfirmation'
 
 /**
@@ -26,6 +26,8 @@ export function useOrderTracking(orderNumber: string, deps: TrackingDeps = {}) {
   const [order, setOrder] = useState<Order | null>(null)
   const [verification, setVerification] = useState<PickupVerification | null>(null)
   const [connection, setConnection] = useState<TrackingConnection>('LOADING')
+  // Module 32: how the updates arrive (socket, reconnecting, polling) — apart from whether the status is current.
+  const [transport, setTransport] = useState<TransportState>('OFF')
   const [loadError, setLoadError] = useState<TrackingLoadError>(null)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
   const [ignored, setIgnored] = useState<{ duplicate: number; stale: number }>({ duplicate: 0, stale: 0 })
@@ -54,7 +56,7 @@ export function useOrderTracking(orderNumber: string, deps: TrackingDeps = {}) {
         // Subscribe before any further fetch so no live event (or dev step) can be lost in between.
         if (TERMINAL_ORDER.has(o.orderStatus)) setConnection('COMPLETED')
         else if (offline.current) setConnection('OFFLINE')
-        else unsubscribe = tracking.subscribe(o, { onEvent: applyEvent, onConnection: (c) => { if (!offline.current && !TERMINAL_ORDER.has(orderRef.current?.orderStatus ?? 'CONFIRMED')) setConnection(c) } })
+        else unsubscribe = tracking.subscribe(o, { onEvent: applyEvent, onConnection: (c) => { if (!offline.current && !TERMINAL_ORDER.has(orderRef.current?.orderStatus ?? 'CONFIRMED')) setConnection(c) }, onTransport: (t) => { if (on) setTransport(t) } })
         const pv = await verifications.getForOrder(o).catch(() => null)
         if (!on) return
         setVerification(pv)
@@ -88,5 +90,5 @@ export function useOrderTracking(orderNumber: string, deps: TrackingDeps = {}) {
   const injectDuplicate = useCallback(() => tracking.injectDuplicate?.(orderNumber), [tracking, orderNumber])
   const injectStale = useCallback(() => tracking.injectStale?.(orderNumber), [tracking, orderNumber])
 
-  return useMemo(() => ({ order, verification, connection, loadError, lastUpdated, ignored, refresh, reconnect, advance, injectDuplicate, injectStale }), [order, verification, connection, loadError, lastUpdated, ignored, refresh, reconnect, advance, injectDuplicate, injectStale])
+  return useMemo(() => ({ order, verification, connection, transport, loadError, lastUpdated, ignored, refresh, reconnect, advance, injectDuplicate, injectStale }), [order, verification, connection, transport, loadError, lastUpdated, ignored, refresh, reconnect, advance, injectDuplicate, injectStale])
 }

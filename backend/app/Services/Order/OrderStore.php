@@ -24,7 +24,7 @@ final class OrderStore
      */
     public static function relations(): array
     {
-        return ['items.options', 'taxLines', 'feeLines', 'events', 'pickupCredential', 'refunds', 'location', 'market'];
+        return ['items.options', 'taxLines', 'feeLines', 'events', 'pickupCredential.consumedBy', 'refunds', 'location', 'market'];
     }
 
     /**

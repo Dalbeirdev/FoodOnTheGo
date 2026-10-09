@@ -8,6 +8,7 @@ use App\Models\Market;
 use App\Models\Order;
 use App\Models\OrderRefund;
 use App\Models\PickupSlotReservation;
+use App\Services\Order\OrderNumbers;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ class OrderSecurityTest extends TestCase
         unset($row['id']);
         $refused = function (array $changes, string $constraint) use ($row): void {
             try {
-                DB::transaction(fn () => DB::table('orders')->insert([...$row, ...$changes, 'public_id' => Str::uuid()->toString(), 'order_number' => \App\Services\Order\OrderNumbers::generate(now(), 'Asia/Kolkata'), 'checkout_public_id' => Str::uuid()->toString(), 'checkout_session_id' => null, 'payment_attempt_id' => null, 'payment_public_id' => array_key_exists('payment_public_id', $changes) ? $changes['payment_public_id'] : Str::uuid()->toString()]));
+                DB::transaction(fn () => DB::table('orders')->insert([...$row, ...$changes, 'public_id' => Str::uuid()->toString(), 'order_number' => OrderNumbers::generate(now(), 'Asia/Kolkata'), 'checkout_public_id' => Str::uuid()->toString(), 'checkout_session_id' => null, 'payment_attempt_id' => null, 'payment_public_id' => array_key_exists('payment_public_id', $changes) ? $changes['payment_public_id'] : Str::uuid()->toString()]));
                 $this->fail("A row violating {$constraint} was accepted");
             } catch (QueryException $e) {
                 $this->assertStringContainsString($constraint, $e->getMessage());
@@ -77,7 +78,7 @@ class OrderSecurityTest extends TestCase
         foreach (['orders_order_number_unique', 'orders_checkout_session_id_unique', 'orders_checkout_public_id_unique', 'orders_payment_attempt_id_unique', 'orders_public_id_unique'] as $name) {
             $this->assertContains($name, $indexes);
         }
-        $this->assertContains('order_pickup_credentials_order_id_unique', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_pickup_credentials']))->pluck('indexname')->all());
+        $this->assertContains('order_pickup_credentials_one_active_per_order', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_pickup_credentials']))->pluck('indexname')->all());
         $this->assertContains('order_refunds_one_open_per_order', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_refunds']))->pluck('indexname')->all());
         $this->assertContains('order_fulfillments_checkout_public_id_unique', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_fulfillments']))->pluck('indexname')->all());
     }
@@ -127,7 +128,7 @@ class OrderSecurityTest extends TestCase
         $this->adminPost('/orders/'.$n.'/cancel', ['reason' => 'Support request', 'status' => 'COMPLETED'])->assertStatus(422);
         $this->patchJson('/api/v1/admin/orders/'.$n, ['status' => 'COMPLETED'])->assertStatus(405);
         $cancelled = $this->adminPost('/orders/'.$n.'/cancel', ['reason' => 'Support request: customer cannot travel'])->assertOk()->json('order');
-        $this->assertSame(['CANCELLED', 'PAID', 'REQUIRED', ['cancel' => false, 'refund' => 'NOT_IMPLEMENTED']], [$cancelled['status'], $cancelled['payment_state'], $cancelled['refund_status'], $cancelled['actions']]);
+        $this->assertSame(['CANCELLED', 'PAID', 'REQUIRED', ['cancel' => false, 'refund' => 'NOT_IMPLEMENTED', 'mark_picked_up' => 'NOT_PROVIDED']], [$cancelled['status'], $cancelled['payment_state'], $cancelled['refund_status'], $cancelled['actions']]);
         $this->assertSame(['reason' => 'Support request: customer cannot travel'], $cancelled['cancellation']);
         $this->assertCount(1, $cancelled['refunds']);
         $this->assertSame(['REQUIRED', 'ADMIN_CANCELLED', 'NOT_IMPLEMENTED'], [$cancelled['refunds'][0]['status'], $cancelled['refunds'][0]['reason'], $cancelled['refunds'][0]['processing']]);

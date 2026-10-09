@@ -28,6 +28,13 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
+        <!-- Module 32: the realtime signing driver in tests (no server runs; these are test values, not credentials) -->
+        <env name="REVERB_APP_ID" value="100001"/>
+        <env name="REVERB_APP_KEY" value="test-reverb-key"/>
+        <env name="REVERB_APP_SECRET" value="test-reverb-secret"/>
+        <env name="REVERB_HOST" value="127.0.0.1"/>
+        <env name="REVERB_PORT" value="8085"/>
+        <env name="REVERB_SCHEME" value="http"/>
         <env name="CACHE_STORE" value="array" force="true"/>
         <env name="CACHE_ARRAY_SERIALIZE" value="true" force="true"/>
         <env name="DB_CONNECTION" value="pgsql" force="true"/>

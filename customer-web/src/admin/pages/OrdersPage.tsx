@@ -77,6 +77,22 @@ export function OrderDetailsPage() {
             <h3 className="db-card__title" style={{ fontSize: '0.95rem', marginTop: 14 }}>{t('adm.order.refunds', undefined, locale)}</h3>
             {o.refunds.length === 0 ? <p className="db-muted">{t('adm.order.noRefunds', undefined, locale)}</p> : <ul className="db-list">{o.refunds.map((r) => <li key={r.reference}><Link to={`${BASE}/refunds?q=${encodeURIComponent(r.reference)}`} className="db-link">{r.reference}</Link> · {money(r.requestedMinor, r.currency, locale)} <StatusPill status={r.status} prefix="adm.refundStatus" /></li>)}</ul>}
           </Card>
+          {o.pickupVerification && (
+            <Card title={t('adm.order.pickupVerification', undefined, locale)}>
+              <div data-testid="adm-pickup-verification" data-status={o.pickupVerification.status}>
+                <p style={{ margin: '0 0 8px' }}><Badge tone={o.pickupVerification.status === 'VERIFIED' ? 'green' : o.pickupVerification.status === 'NOT_POSSIBLE' ? 'muted' : 'amber'}>{t(`adm.pickupv.status.${o.pickupVerification.status}`, undefined, locale)}</Badge></p>
+                {o.pickupVerification.status === 'VERIFIED' && <Details rows={[
+                  [t('adm.pickupv.method', undefined, locale), o.pickupVerification.method ? t(`adm.pickupv.method.${o.pickupVerification.method}`, undefined, locale) : '—'],
+                  [t('adm.pickupv.verifiedAt', undefined, locale), o.pickupVerification.verifiedAt ? fmtDateTime(o.pickupVerification.verifiedAt, locale) : '—'],
+                  [t('adm.pickupv.verifiedBy', undefined, locale), o.pickupVerification.verifiedBy ? `${o.pickupVerification.verifiedBy.name} · ${o.pickupVerification.verifiedBy.id.slice(0, 8)}` : '—'],
+                  [t('adm.pickupv.completedAt', undefined, locale), o.pickupVerification.completedAt ? fmtDateTime(o.pickupVerification.completedAt, locale) : t('adm.pickupv.notYet', undefined, locale)],
+                ]} />}
+                <p className="db-muted" style={{ margin: '8px 0 0', fontSize: '0.85rem' }}>{t('adm.pickupv.attempts', { total: o.pickupVerification.attempts.total, failed: o.pickupVerification.attempts.failed, credentials: o.pickupVerification.credentials.length }, locale)}</p>
+                {o.pickupVerification.attempts.last.length > 0 && <ul className="db-list" style={{ marginTop: 6 }} data-testid="adm-pickup-attempts">{o.pickupVerification.attempts.last.map((x, i) => <li key={i}><span>{x.at ? fmtDateTime(x.at, locale) : '—'} · {t(`adm.pickupv.method.${x.method}`, undefined, locale)} · <b>{x.result}</b>{x.staff ? ` · ${x.staff.name}` : ''}</span></li>)}</ul>}
+                <p className="db-muted" style={{ margin: '8px 0 0', fontSize: '0.8rem' }}>{t('adm.pickupv.note', undefined, locale)}</p>
+              </div>
+            </Card>
+          )}
           <Card title={t('adm.order.support', undefined, locale)}>{o.supportCases.length === 0 ? <p className="db-muted">{t('adm.order.noSupport', undefined, locale)}</p> : <ul className="db-list">{o.supportCases.map((sc) => <li key={sc.id}><Link to={`${BASE}/support/${sc.id}`} className="db-link">{sc.ticketNumber}</Link> · {sc.summary} <StatusPill status={sc.status} prefix="adm.supportStatus" /></li>)}</ul>}</Card>
           <Card title={t('adm.order.notes', undefined, locale)}>
             {o.adminNotes.length === 0 ? <p className="db-muted">{t('adm.order.notesEmpty', undefined, locale)}</p> : o.adminNotes.map((n, i) => <div key={i} className="adm-note"><small>{fmtDateTime(n.at, locale)} · {n.by}</small>{n.text}</div>)}

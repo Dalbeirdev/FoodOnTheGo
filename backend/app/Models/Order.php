@@ -92,9 +92,23 @@ class Order extends Model
         return $this->hasMany(OrderEvent::class)->orderBy('id');
     }
 
+    /**
+     * The credential that counts now: the ACTIVE one while the order is on its way, the CONSUMED one after the pickup,
+     * the last REVOKED / EXPIRED one otherwise (Module 32 keeps the history; Module 31 had one row per order).
+     */
     public function pickupCredential(): HasOne
     {
-        return $this->hasOne(OrderPickupCredential::class);
+        return $this->hasOne(OrderPickupCredential::class)->latestOfMany();
+    }
+
+    public function pickupCredentials(): HasMany
+    {
+        return $this->hasMany(OrderPickupCredential::class)->orderBy('id');
+    }
+
+    public function pickupVerificationAttempts(): HasMany
+    {
+        return $this->hasMany(OrderPickupVerificationAttempt::class)->orderBy('id');
     }
 
     public function refunds(): HasMany

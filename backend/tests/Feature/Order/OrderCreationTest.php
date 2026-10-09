@@ -68,7 +68,7 @@ class OrderCreationTest extends TestCase
         $this->assertNull($order['promotion']);
         $this->assertSame(1, $order['version']);
         $this->assertSame('WAIT_FOR_RESTAURANT', $order['next_action']);
-        $this->assertSame('NOT_IMPLEMENTED', $order['pickup_verification']);
+        $this->assertSame(['status' => 'NOT_YET', 'credential_status' => 'ACTIVE'], $order['pickup_verification']);   // Module 32: nothing to verify before READY
         // The legal documents the customer accepted, by type and version — a reference, never the text.
         $this->assertEqualsCanonicalizing(array_map('strtoupper', array_column($checkout['legal']['required'], 'type')), array_column($order['legal'], 'type'));
         $this->assertSame($checkout['legal']['required'][0]['version'], $order['legal'][0]['version']);
@@ -76,7 +76,7 @@ class OrderCreationTest extends TestCase
         // The pickup credential: a code and an opaque QR payload, nothing that names the order or the customer.
         $this->assertSame('ACTIVE', $order['pickup_credential']['status']);
         $this->assertMatchesRegularExpression('/\A[A-HJ-NP-Z2-9]{6}\z/', $order['pickup_credential']['code']);
-        $this->assertMatchesRegularExpression('/\Afotg:pickup:[0-9a-f]{32}\z/', $order['pickup_credential']['qr_payload']);
+        $this->assertMatchesRegularExpression('/\AFOTG1\.[A-Za-z0-9_-]{43}\z/', $order['pickup_credential']['qr_payload']);
         $this->assertStringNotContainsString($order['id'], $order['pickup_credential']['qr_payload']);
 
         // The customer's timeline starts with the order being placed; the restaurant's note is nowhere in it.

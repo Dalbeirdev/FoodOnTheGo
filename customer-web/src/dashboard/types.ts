@@ -73,8 +73,10 @@ export type OrderTab = 'new' | 'preparing' | 'ready' | 'completed' | 'cancelled'
 export type OrderListFilter = { tab: OrderTab; query?: string; date?: 'today' | 'all' }
 export type RejectReason = 'item_unavailable' | 'kitchen_capacity' | 'closing' | 'unable_to_prepare' | 'other'
 export type DelayReason = 'high_demand' | 'taking_longer' | 'capacity' | 'other'
-export type VerificationFailure = 'invalid' | 'expired' | 'wrong_location' | 'already_used' | 'not_ready' | 'permission'
-export type VerificationResult = { ok: true; order: Order } | { ok: false; reason: VerificationFailure }
+export type VerificationFailure = 'invalid' | 'expired' | 'revoked' | 'wrong_location' | 'already_used' | 'not_ready' | 'not_eligible' | 'permission' | 'rate_limited' | 'connection'
+/** Module 32: what the customer presented — the decoded QR payload, or the order number with the read-out code. */
+export type PickupVerifyInput = { method: 'QR'; payload: string } | { method: 'MANUAL_CODE'; orderNumber: string; code: string }
+export type VerificationResult = { ok: true; order: Order; method?: 'QR' | 'MANUAL_CODE'; verifiedAt?: string | null } | { ok: false; reason: VerificationFailure; detail?: { orderNumber?: string; status?: string; verifiedAt?: string | null; verifiedByYou?: boolean; retryAfterSeconds?: number; orderLocationName?: string } }
 
 export type ManagedMenu = { categories: MenuCategory[]; items: MenuItem[]; groups: Record<string, { variantGroups: VariantGroup[]; modifierGroups: ModifierGroup[] }> }
 export type MenuItemInput = Omit<MenuItem, 'id' | 'publicId' | 'slug' | 'restaurantId' | 'currency' | 'image' | 'fallback'> & { id?: string; images: string[] }
@@ -151,7 +153,7 @@ export interface RestaurantOrderRepository {
   startPreparing(locationId: string, orderNumber: string): Promise<Order>
   delay(locationId: string, orderNumber: string, etaReadyAt: string, reason: DelayReason): Promise<Order>
   markReady(locationId: string, orderNumber: string): Promise<Order>
-  verifyPickup(locationId: string, code: string): Promise<VerificationResult>
+  verifyPickup(locationId: string, input: PickupVerifyInput): Promise<VerificationResult>
   history(locationId: string, q: { query?: string; status?: 'all' | 'completed' | 'cancelled' | 'rejected'; cursor?: string | null; limit?: number }): Promise<{ orders: Order[]; nextCursor: string | null; total: number }>
 }
 /** `locationId` names the location the dashboard is on: the backend lists and changes the staff of ITS organization. */

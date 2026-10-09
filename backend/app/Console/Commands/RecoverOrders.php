@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Order\OrderCompletionService;
 use App\Services\Order\OrderFulfillmentService;
 use Illuminate\Console\Command;
 
@@ -15,10 +16,12 @@ class RecoverOrders extends Command
 
     protected $description = 'Retries order creation that is due again and picks up verified payments without an order';
 
-    public function handle(OrderFulfillmentService $fulfillment): int
+    public function handle(OrderFulfillmentService $fulfillment, OrderCompletionService $completion): int
     {
         $result = $fulfillment->sweep();
-        $this->info(sprintf('orders:recover retried %d, picked up %d', $result['retried'], $result['picked_up']));
+        // Module 32: picked-up orders whose completion did not happen (a failed job, no worker).
+        $completed = $completion->sweep();
+        $this->info(sprintf('orders:recover retried %d, picked up %d, completed %d', $result['retried'], $result['picked_up'], $completed));
 
         return self::SUCCESS;
     }

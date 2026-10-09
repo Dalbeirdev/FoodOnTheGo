@@ -6,19 +6,23 @@ import 'package:flutter/foundation.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../checkout/checkout_models.dart' show ConnectivityService, MockConnectivityService;
 import '../order/order_models.dart';
+import '../order/api_order.dart' show ApiOrderRepository, ApiOrderTrackingService;
 import '../order/order_tracking.dart';
+import '../realtime/pusher_client.dart';
 
 export '../order/order_models.dart';
 export '../order/order_tracking.dart';
+export '../realtime/pusher_client.dart' show RealtimeTransport;
 
 /// Centralized tracking state (Module 14) — Android. Connection state is kept apart from the order status; events pass
 /// through `reduceOrder`, so duplicates and stale sequences never regress the UI. `refresh()` re-reads the order and
 /// never creates events. Backgrounding / resume calls `refresh()` (TEST 15).
 class TrackingState extends ChangeNotifier {
-  TrackingState({required OrderRepository orders, required PickupVerificationRepository verifications, OrderTrackingService? tracking, ConnectivityService? connectivity, KeyValueStore? store})
+  TrackingState({required OrderRepository orders, required PickupVerificationRepository verifications, OrderTrackingService? tracking, ConnectivityService? connectivity, KeyValueStore? store, PusherClient? realtime})
       : _orders = orders, _verifications = verifications, connectivity = connectivity ?? MockConnectivityService() {
     final st = store ?? SecureKeyValueStore();
-    service = tracking ?? MockOrderTrackingService(orders, st);
+    // Module 32: on the backend the tracker listens to the private channel (when a client is given) and polls otherwise.
+    service = tracking ?? (orders is ApiOrderRepository ? ApiOrderTrackingService(orders, realtime: realtime, onTransport: setTransport) : MockOrderTrackingService(orders, st));
   }
   final OrderRepository _orders; final PickupVerificationRepository _verifications;
   late final OrderTrackingService service;
@@ -26,6 +30,9 @@ class TrackingState extends ChangeNotifier {
 
   Order? order; PickupVerification? verification;
   TrackingConnection connection = TrackingConnection.loading;
+  /// Module 32: how the updates arrive (socket, reconnecting, polling) — apart from whether the status is current.
+  RealtimeTransport transport = RealtimeTransport.off;
+  void setTransport(RealtimeTransport t) { if (transport != t) { transport = t; notifyListeners(); } }
   String? loadError; // not_found | load_failed
   DateTime? lastUpdated;
   int ignoredDuplicates = 0, ignoredStale = 0;
@@ -67,7 +74,8 @@ class TrackingState extends ChangeNotifier {
     if (!connectivity.isOnline) { if (connection != TrackingConnection.completed) connection = TrackingConnection.offline; notifyListeners(); return; }
     if (_unsub == null && order != null && !terminalOrderStatuses.contains(order!.orderStatus)) { await load(n, customerId: c); return; } // reconnect after offline
     try {
-      final o = await service.refresh(n, c);
+      final s = service;
+      final o = s is ApiOrderTrackingService ? await s.resume(n, c) : await s.refresh(n, c);   // Module 32: a resume also brings the socket back
       if (o != null) { order = o; lastUpdated = DateTime.now(); connection = terminalOrderStatuses.contains(o.orderStatus) ? TrackingConnection.completed : TrackingConnection.live; }
       notifyListeners();
     } catch (_) { connection = TrackingConnection.stale; notifyListeners(); }

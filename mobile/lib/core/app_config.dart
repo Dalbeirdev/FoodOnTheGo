@@ -43,6 +43,13 @@ class AppConfig {
   /// number, tracked by polling until Module 32); 'mock' = the development orders in the app (default, used by tests).
   /// Needs PAYMENT_MODE=api.
   static const String orderMode = String.fromEnvironment('ORDER_MODE', defaultValue: 'mock');
+  /// Module 32: api = live order updates over WebSocket (Laravel Reverb; needs ORDER_MODE=api); off = poll only.
+  static const String realtimeMode = String.fromEnvironment('REALTIME_MODE', defaultValue: 'off');
+  static const String reverbHost = String.fromEnvironment('REVERB_HOST', defaultValue: '10.0.2.2');
+  static const int reverbPort = int.fromEnvironment('REVERB_PORT', defaultValue: 8085);
+  /// The backend's REVERB_APP_KEY — public to clients by design; the secret never reaches the app.
+  static const String reverbKey = String.fromEnvironment('REVERB_APP_KEY', defaultValue: '');
+  static const String reverbScheme = String.fromEnvironment('REVERB_SCHEME', defaultValue: 'http');
 
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
@@ -50,7 +57,7 @@ class AppConfig {
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 35;
+  static const int buildNumber = 36;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -67,6 +74,7 @@ class AppConfig {
         'Checkout': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' ? 'Backend (final validation, promotion, configured taxes and fees, total, pickup-time hold)' : 'Development checkout in the app',
         'Payments': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' ? 'Backend (payment attempts verified by the server with the payment provider; the provider and its mode are set on the server)' : 'Development payment in the app — no money moves',
         'Orders': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' && orderMode == 'api' ? 'Backend (created by the server from the verified payment; order number, pickup code and status are the server\'s; tracking by polling until realtime arrives)' : 'Development orders on this device',
+        'Live updates': realtimeMode == 'api' && orderMode == 'api' && reverbKey.isNotEmpty ? 'WebSocket (Laravel Reverb at $reverbHost:$reverbPort) with polling as the fallback' : 'Polling only (REALTIME_MODE=off or no key)',
         'Pickup times': cartMode == 'api' && pickupMode == 'api' ? 'Backend (ASAP, slots and capacity on the server clock; a chosen time is selected, not reserved)' : 'Development slot engine in the app',
         'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',
         'App version': '$appVersion (build $buildNumber)',

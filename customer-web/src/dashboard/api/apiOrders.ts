@@ -2,15 +2,16 @@ import { ApiError, api } from '../../api/client'
 import { STATUS_FROM_API, toOrder, type BackendOrderStatus, type OrderDto } from '../../order/api/apiOrder'
 import type { Order } from '../../order/repositories'
 import type { ApiRestaurantManagementRepository } from './apiDashboard'
-import type { DelayReason, OrderListFilter, OrderTab, RejectReason, RestaurantOrderRepository, VerificationResult } from '../types'
+import type { DelayReason, OrderListFilter, OrderTab, PickupVerifyInput, RejectReason, RestaurantOrderRepository, VerificationFailure, VerificationResult } from '../types'
 
 /**
  * The restaurant's orders from the backend (Module 31). The queue is the backend's; every step (accept, reject, start
  * preparing, ready) is a request the backend judges — permission, tenant, state machine and version — and the order
  * shown afterwards is the backend's answer, never a local guess.
  *
- * Not here, by design: a "picked up" step (Module 32's verified transition), a delay step and pickup verification
- * (both still Module 32 / later) — the page's buttons for them stay the development mock's and are refused plainly.
+ * Module 32: pickup verification is the backend's (POST /restaurant/pickup/verify) — the decoded QR payload or the
+ * order number with the read-out code, judged on the server at the dashboard's location; the browser decides nothing.
+ * Not here, by design: a "picked up" button (there is none: the pickup is verified) and a delay step (later).
  */
 const R = { context: 'restaurant' as const }
 const REJECT: Record<RejectReason, string> = { item_unavailable: 'ITEM_UNAVAILABLE', kitchen_capacity: 'KITCHEN_CAPACITY', closing: 'CLOSING', unable_to_prepare: 'TECHNICAL_ISSUE', other: 'OTHER' }
@@ -128,9 +129,27 @@ export class ApiRestaurantOrderRepository implements RestaurantOrderRepository {
     throw new RestaurantOrderApiError('not_available', 'Reporting a delay is not available on the backend yet (planned for a later module).')
   }
 
-  /** Pickup verification is Module 32: nothing is verified here, and no code is ever accepted by the browser. */
-  async verifyPickup(_locationId: string, _code: string): Promise<VerificationResult> {
-    throw new RestaurantOrderApiError('not_available', 'Pickup verification is not available on the backend yet (Module 32).')
+  /**
+   * Verifies what the customer presented, on the backend, at this dashboard's location. Every refusal is a plain
+   * reason for the counter (nothing of another restaurant's order is ever in the answer).
+   */
+  async verifyPickup(locationId: string, input: PickupVerifyInput): Promise<VerificationResult> {
+    const loc = await this.location(locationId)
+    const tz = (await this.management.getLocation(locationId).catch(() => null))?.restaurant.timezone ?? 'UTC'
+    const body = input.method === 'QR' ? { location: loc.uuid, method: 'QR', payload: input.payload } : { location: loc.uuid, method: 'MANUAL_CODE', order_number: input.orderNumber.trim().toUpperCase(), code: input.code }
+    try {
+      const r = await api<{ result: string; order: DetailDto; verification: { method: 'QR' | 'MANUAL_CODE' | null; verified_at: string | null } }>('/restaurant/pickup/verify', { ...R, method: 'POST', body })
+      return { ok: true, order: this.toShared(r.order, loc.name, tz), method: r.verification.method ?? input.method, verifiedAt: r.verification.verified_at }
+    } catch (e) {
+      if (e instanceof ApiError) {
+        const reason: VerificationFailure = e.code === 'pickup_already_verified' ? 'already_used' : e.code === 'pickup_credential_expired' ? 'expired' : e.code === 'pickup_credential_revoked' ? 'revoked'
+          : e.code === 'order_not_ready_for_pickup' ? 'not_ready' : e.code === 'order_not_pickup_eligible' ? 'not_eligible' : e.code === 'pickup_location_unauthorized' ? 'wrong_location'
+            : e.code === 'pickup_attempts_exceeded' || e.kind === 'rate_limited' ? 'rate_limited' : e.kind === 'forbidden' ? 'permission' : e.kind === 'network' || e.kind === 'server' ? 'connection' : 'invalid'
+        const d = e.details as Record<string, unknown>
+        return { ok: false, reason, detail: { orderNumber: typeof d.order_number === 'string' ? d.order_number : undefined, status: typeof d.status === 'string' ? d.status : undefined, verifiedAt: typeof d.verified_at === 'string' ? d.verified_at : null, verifiedByYou: d.verified_by_you === true, retryAfterSeconds: typeof d.retry_after_seconds === 'number' ? d.retry_after_seconds : e.retryAfterSeconds ?? undefined, orderLocationName: typeof d.order_location_name === 'string' ? d.order_location_name : undefined } }
+      }
+      return { ok: false, reason: 'connection' }
+    }
   }
 
   async history(locationId: string, q: { query?: string; status?: 'all' | 'completed' | 'cancelled' | 'rejected'; cursor?: string | null; limit?: number }): Promise<{ orders: Order[]; nextCursor: string | null; total: number }> {

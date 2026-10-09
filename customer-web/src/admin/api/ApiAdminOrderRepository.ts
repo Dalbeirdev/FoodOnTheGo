@@ -24,7 +24,10 @@ type DetailDto = RowDto & {
   customer_note: string | null; rejection: { reason: string; note: string | null } | null; cancellation: { reason: string | null } | null
   refunds: Array<{ id: string; amount: MoneyDto; reason: string; status: 'REQUIRED' | 'PENDING' | 'PROCESSED' | 'FAILED'; requested_by: { type: string; id: string | null }; requested_at: string | null; processing: 'NOT_IMPLEMENTED' }>
   pickup_credential: { status: string; issued_at: string | null } | null; journey: unknown; legal: unknown[]; pricing_fingerprint: string | null
-  fulfillment: FulfillmentDto | null; timeline: OrderDto['timeline']; times: OrderDto['times']; actions: { cancel: boolean; refund: 'NOT_IMPLEMENTED' }
+  fulfillment: FulfillmentDto | null; timeline: OrderDto['timeline']; times: OrderDto['times']; actions: { cancel: boolean; refund: 'NOT_IMPLEMENTED'; mark_picked_up?: 'NOT_PROVIDED' }
+  pickup_verification?: { status: 'NOT_YET' | 'AVAILABLE' | 'VERIFIED' | 'NOT_POSSIBLE'; method?: 'QR' | 'MANUAL_CODE' | null; verified_at?: string | null; verified_by?: { id: string; name: string } | null; credential_status?: string | null; completed_at?: string | null }
+  pickup_attempts?: { total: number; failed: number; last: Array<{ at: string | null; method: string; result: string; staff: { id: string; name: string } | null }> }
+  pickup_credentials?: Array<{ id: string; status: string; issued_at: string | null; revoked_at: string | null; revoke_reason: string | null; consumed_at: string | null; consumed_method: string | null }>
 }
 export type FulfillmentDto = {
   id: string; checkout_id: string; payment_id: string | null; order_id: string | null; order_number: string | null; trigger: string; status: 'PENDING' | 'PROCESSING' | 'SUCCEEDED' | 'RETRYING' | 'FAILED' | 'REVIEW_REQUIRED'
@@ -104,7 +107,8 @@ export class ApiAdminOrderRepository implements AdminOrderRepository {
   async get(orderNumber: string): Promise<(AdminOrder & { payment: AdminPayment | null; refunds: AdminRefund[]; supportCases: SupportCase[] }) | null> {
     try {
       const { order } = await api<{ order: DetailDto }>(`/admin/orders/${encodeURIComponent(orderNumber)}`, { context: 'admin' })
-      return { ...toAdminOrder(order), payment: paymentOf(order), refunds: refundsOf(order), supportCases: [] }
+      const pv = order.pickup_verification
+      return { ...toAdminOrder(order), payment: paymentOf(order), refunds: refundsOf(order), supportCases: [], pickupVerification: pv ? { status: pv.status, method: pv.method ?? null, verifiedAt: pv.verified_at ?? null, verifiedBy: pv.verified_by ?? null, credentialStatus: pv.credential_status ?? null, completedAt: pv.completed_at ?? null, attempts: order.pickup_attempts ?? { total: 0, failed: 0, last: [] }, credentials: (order.pickup_credentials ?? []).map((c) => ({ id: c.id, status: c.status, issuedAt: c.issued_at, revokedAt: c.revoked_at, revokeReason: c.revoke_reason, consumedAt: c.consumed_at, consumedMethod: c.consumed_method })) } : undefined }
     } catch (e) {
       if (e instanceof ApiError && e.kind === 'not_found') return null
       throw e

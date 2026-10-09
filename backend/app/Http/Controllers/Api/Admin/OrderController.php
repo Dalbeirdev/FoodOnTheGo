@@ -156,7 +156,7 @@ class OrderController extends Controller
 
     private function find(string $reference, Permission $permission): Order
     {
-        $order = $this->orders->byReference(Order::query(), $reference)->with([...OrderStore::relations(), 'fulfillment'])->first()
+        $order = $this->orders->byReference(Order::query(), $reference)->with([...OrderStore::relations(), 'fulfillment', 'pickupCredentials', 'pickupVerificationAttempts.user'])->first()
             ?? throw ApiException::notFound('order_not_found', 'This order does not exist.');
         $this->authorizeFor($permission, $order->market);
 

@@ -47,6 +47,10 @@ class OrderEvent extends Model
 
     public const STEP_REFUSED = 'STEP_REFUSED';
 
+    public const PICKUP_VERIFIED = 'PICKUP_VERIFIED';
+
+    public const PICKUP_CREDENTIAL_REISSUED = 'PICKUP_CREDENTIAL_REISSUED';
+
     protected $guarded = ['*'];
 
     public function order(): BelongsTo
@@ -56,6 +60,6 @@ class OrderEvent extends Model
 
     protected function casts(): array
     {
-        return ['detail' => 'array', 'customer_visible' => 'boolean', 'occurred_at' => 'datetime', 'created_at' => 'datetime'];
+        return ['sequence' => 'integer', 'detail' => 'array', 'customer_visible' => 'boolean', 'occurred_at' => 'datetime', 'created_at' => 'datetime'];
     }
 }

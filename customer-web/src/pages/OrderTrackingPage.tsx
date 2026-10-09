@@ -102,6 +102,13 @@ function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: 
 
   return (
     <>
+      {/* Module 32: the transport — a socket, a reconnection, polling — apart from the connection state and the order status */}
+      {/* only while the status itself is current: an open socket over a cut network must not say "live" next to a stale banner */}
+      {tr.transport !== 'OFF' && !done && conn !== 'STALE' && conn !== 'OFFLINE' && (
+        <p className={`cart-muted trk-transport trk-transport--${tr.transport.toLowerCase()}`} role="status" data-testid="trk-transport" data-transport={tr.transport}>
+          {t(`track.transport.${tr.transport}`, undefined, locale)}
+        </p>
+      )}
       {/* Connection banner — separate from the order status */}
       {(conn === 'STALE' || conn === 'OFFLINE') && (
         <p className="cart-notice cart-notice--warn trk-conn" role="status" data-testid="trk-connection">

@@ -10,6 +10,8 @@ use App\Models\OrderFeeLine;
 use App\Models\OrderFulfillment;
 use App\Models\OrderItem;
 use App\Models\OrderItemOption;
+use App\Models\OrderPickupCredential;
+use App\Models\OrderPickupVerificationAttempt;
 use App\Models\OrderRefund;
 use App\Models\OrderTaxLine;
 use App\Services\Order\PickupCredentials;
@@ -96,8 +98,9 @@ final class OrderPresenter
             'cancellation' => $order->status === OrderStatus::Cancelled ? ['message' => 'This order was cancelled. If you paid, the amount will be refunded.'] : null,
             // The credential the customer shows at pickup: present only while there is something to pick up.
             'pickup_credential' => $order->status->isActive() ? $this->credentials->present($order->pickupCredential) : null,
-            'pickup_verification' => 'NOT_IMPLEMENTED',
-            'timeline' => $order->events->filter(fn (OrderEvent $e): bool => (bool) $e->customer_visible)->map(fn (OrderEvent $e): array => $this->line($e, false))->values()->all(),
+            'pickup_verification' => $this->pickupVerification($order),
+            'timeline' => $order->events->filter(fn (OrderEvent $e): bool => (bool) $e->customer_visible)->map(fn (OrderEvent $e): array => $this->eventLine($order, $e, false))->values()->all(),
+            'realtime' => $this->realtimeHints($order, false),
             'next_action' => $this->customerNextAction($order),
             'times' => $this->times($order),
             'version' => (int) $order->version,
@@ -149,8 +152,10 @@ final class OrderPresenter
             'rejection' => $order->rejection_reason === null ? null : ['reason' => $order->rejection_reason->value, 'note' => $order->rejection_note],
             'cancellation' => $order->status === OrderStatus::Cancelled ? ['reason' => $order->cancellation_reason] : null,
             'journey' => $snapshot['journey'] === null || ! isset($snapshot['journey']) ? null : ['estimated_arrival_at' => $snapshot['journey']['estimated_arrival_at'] ?? null],
-            'timeline' => $order->events->map(fn (OrderEvent $e): array => $this->line($e, true))->values()->all(),
+            'pickup_verification' => $this->pickupVerification($order, true),
+            'timeline' => $order->events->map(fn (OrderEvent $e): array => $this->eventLine($order, $e, true))->values()->all(),
             'times' => $this->times($order),
+            'realtime' => $this->realtimeHints($order, true),
         ]);
     }
 
@@ -209,14 +214,17 @@ final class OrderPresenter
                 'id' => (string) $r->public_id, 'amount' => (new Money((int) $r->amount_minor, (string) $r->currency))->toArray(), 'reason' => (string) $r->reason, 'status' => (string) $r->status,
                 'requested_by' => ['type' => (string) $r->requested_by_type, 'id' => $r->requested_by_public_id], 'requested_at' => self::utc($r->requested_at), 'processing' => 'NOT_IMPLEMENTED',
             ])->all(),
-            'pickup_credential' => $order->pickupCredential === null ? null : ['status' => $order->pickupCredential->status->value, 'issued_at' => self::utc($order->pickupCredential->created_at)],
+            'pickup_credential' => $order->pickupCredential === null ? null : ['id' => (string) $order->pickupCredential->public_id, 'status' => $order->pickupCredential->status->value, 'issued_at' => self::utc($order->pickupCredential->issued_at ?? $order->pickupCredential->created_at), 'expires_at' => self::utc($order->pickupCredential->expires_at), 'format_version' => (int) $order->pickupCredential->format_version, 'failed_attempts' => (int) $order->pickupCredential->failed_attempts, 'locked_until' => self::utc($order->pickupCredential->locked_until)],
+            'pickup_credentials' => $order->pickupCredentials->map(fn (OrderPickupCredential $c): array => ['id' => (string) $c->public_id, 'status' => $c->status->value, 'issued_at' => self::utc($c->issued_at ?? $c->created_at), 'revoked_at' => self::utc($c->revoked_at), 'revoke_reason' => $c->revoke_reason, 'consumed_at' => self::utc($c->consumed_at), 'consumed_method' => $c->consumed_method])->values()->all(),
+            'pickup_verification' => $this->pickupVerification($order, true),
+            'pickup_attempts' => ['total' => $order->pickupVerificationAttempts->count(), 'failed' => $order->pickupVerificationAttempts->where('result', '!=', 'SUCCESS')->count(), 'last' => $order->pickupVerificationAttempts->map(fn (OrderPickupVerificationAttempt $a): array => ['at' => self::utc($a->attempted_at), 'method' => (string) $a->method, 'result' => (string) $a->result, 'staff' => $a->user === null ? null : ['id' => (string) $a->user->public_id, 'name' => (string) $a->user->name]])->reverse()->take(10)->values()->all()],
             'journey' => $snapshot['journey'] ?? null,
             'legal' => array_values((array) ($snapshot['legal'] ?? [])),
             'pricing_fingerprint' => $snapshot['pricing_fingerprint'] ?? null,
             'fulfillment' => $order->fulfillment === null ? null : $this->fulfillment($order->fulfillment),
-            'timeline' => $order->events->map(fn (OrderEvent $e): array => $this->line($e, true))->values()->all(),
+            'timeline' => $order->events->map(fn (OrderEvent $e): array => $this->eventLine($order, $e, true))->values()->all(),
             'times' => $this->times($order),
-            'actions' => ['cancel' => ! $order->status->isTerminal(), 'refund' => 'NOT_IMPLEMENTED'],
+            'actions' => ['cancel' => ! $order->status->isTerminal(), 'refund' => 'NOT_IMPLEMENTED', 'mark_picked_up' => 'NOT_PROVIDED'],
         ]);
     }
 
@@ -258,6 +266,7 @@ final class OrderPresenter
             OrderStatus::WaitingForRestaurant => ['accept', 'reject'],
             OrderStatus::Accepted => ['start_preparing'],
             OrderStatus::Preparing => ['ready'],
+            OrderStatus::ReadyForPickup => ['verify_pickup'],
             default => [],
         };
     }
@@ -342,12 +351,66 @@ final class OrderPresenter
     /**
      * @return array<string, mixed>
      */
+    /**
+     * One timeline line with its sequence and a stable event id (Module 32): what clients deduplicate and order by.
+     *
+     * @return array<string, mixed>
+     */
+    public function eventLine(Order $order, OrderEvent $e, bool $internal): array
+    {
+        return ['sequence' => (int) $e->sequence, 'event_id' => (string) $order->public_id.'-'.(int) $e->sequence] + $this->line($e, $internal);
+    }
+
+    /**
+     * How the pickup stands (Module 32): nothing to verify yet, available (READY), verified (method, when, by whom —
+     * the staff member only for the restaurant / the administrator), or not possible any more.
+     *
+     * @return array<string, mixed>
+     */
+    public function pickupVerification(Order $order, bool $internal = false): array
+    {
+        $credential = $order->pickupCredential;
+        $status = match (true) {
+            $order->status === OrderStatus::PickedUp || $order->status === OrderStatus::Completed => 'VERIFIED',
+            $order->status->isTerminal() => 'NOT_POSSIBLE',
+            $order->status === OrderStatus::ReadyForPickup => 'AVAILABLE',
+            default => 'NOT_YET',
+        };
+
+        return array_filter([
+            'status' => $status,
+            'method' => $status === 'VERIFIED' ? $credential?->consumed_method : null,
+            'verified_at' => $status === 'VERIFIED' ? self::utc($credential?->consumed_at ?? $order->picked_up_at) : null,
+            'verified_by' => $status === 'VERIFIED' && $internal && $credential?->consumedBy !== null ? ['id' => (string) $credential->consumedBy->public_id, 'name' => (string) $credential->consumedBy->name] : null,
+            'credential_status' => $credential?->status->value,
+            'completed_at' => self::utc($order->completed_at),
+        ], fn ($v) => $v !== null);
+    }
+
+    /**
+     * Where to listen and how often to ask when listening is not possible (Module 32). The channel is an address,
+     * not a permission: the server authorizes every subscription.
+     *
+     * @return array<string, mixed>
+     */
+    public function realtimeHints(Order $order, bool $internal): array
+    {
+        return [
+            'enabled' => (bool) config('orders.realtime.enabled'),
+            'channel' => $internal ? 'restaurant.location.'.(string) ($order->location?->public_id ?? '') : 'customer.order.'.(string) $order->public_id,
+            'event' => 'order.updated',
+            'auth_endpoint' => $internal ? '/restaurant/broadcasting/auth' : '/customer/broadcasting/auth',
+            'poll_seconds' => $order->status->isActive() ? (int) config('orders.realtime.poll_seconds_active') : (int) config('orders.realtime.poll_seconds_idle'),
+            'terminal' => $order->status->isTerminal(),
+        ];
+    }
+
     private function line(OrderEvent $e, bool $internal): array
     {
         $detail = (array) ($e->detail ?? []);
         if (! $internal) {
             // The customer's timeline carries states and public reasons — never a staff note, a trigger or an id.
-            $detail = array_intersect_key($detail, array_flip(['reason', 'message', 'amount_minor', 'currency']));
+            $detail = array_intersect_key($detail, array_flip(['reason', 'message', 'amount_minor', 'currency', 'method']));
         }
 
         return [

@@ -335,7 +335,7 @@ class CheckoutPaymentPreparationTest extends TestCase
             $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, $segment))->values()->all(), $segment);
         }
         $this->assertSame(['POST api/v1/checkouts/{checkout}/fulfill'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts/') && str_contains($r, 'fulfill'))->values()->all());
-        $this->assertCount(15, $routes->filter(fn (string $r): bool => str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill')));
+        $this->assertCount(19, $routes->filter(fn (string $r): bool => str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill')));   // 15 (Module 31) + 4 (Module 32: the event streams and the pickup credential routes)
         $ready = $this->confirmCheckout($this->asha, $this->checkout)->assertOk()->json('checkout');
         foreach (['/pay', '/payment', '/payments', '/order', '/capture', '/refund'] as $suffix) {
             $this->postJson('/api/v1/checkouts/'.$ready['id'].$suffix, [], $this->using($this->asha))->assertNotFound();

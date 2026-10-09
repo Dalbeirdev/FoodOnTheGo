@@ -29,8 +29,8 @@ Map<String, dynamic> inr(int minor) => {'amount': minor, 'currency': 'INR'};
 
 /// The recorded customer order (Burger Hub, two lines, paid with the development provider, waiting for the restaurant).
 Map<String, dynamic> orderDto({String status = 'WAITING_FOR_RESTAURANT', String refund = 'NONE', Object? credential = const {'code': 'WU9GVM', 'qr_payload': 'fotg:pickup:a3321c70ecfa570779c4cd00a53543e7', 'status': 'ACTIVE'},
-    List<Map<String, dynamic>>? timeline, Map<String, dynamic>? rejection, bool required = true}) => {
-      'id': oid, 'order_number': number, 'status': status, 'payment_state': required ? 'PAID' : 'NOT_REQUIRED', 'refund_status': refund,
+    List<Map<String, dynamic>>? timeline, Map<String, dynamic>? rejection, bool required = true, int? version}) => {
+      'id': oid, 'order_number': number, 'status': status, 'payment_state': required ? 'PAID' : 'NOT_REQUIRED', 'refund_status': refund, 'version': version ?? (timeline?.length ?? 1),
       'restaurant': {'id': '0a000000-0000-4000-8000-0000000000a1', 'slug': 'burger-hub', 'name': 'Burger Hub', 'branch_label': 'Sector 62 · Noida', 'formatted_address': 'Sector 62, Noida, Uttar Pradesh 201309, India', 'phone': null, 'timezone': 'Asia/Kolkata', 'pickup_instructions': 'Show your pickup code at the counter.'},
       'item_count': 3, 'total': inr(42700),
       'pickup': {'mode': 'SCHEDULED', 'method': 'COUNTER', 'pickup_at': '2026-10-08T09:00:00+00:00', 'pickup_at_local': '2026-10-08T14:30:00+05:30', 'slot': {'starts_at': '2026-10-08T09:00:00+00:00', 'ends_at': '2026-10-08T09:15:00+00:00'}, 'timezone': 'Asia/Kolkata', 'estimated_prep_minutes': 12, 'traveler_arrival_at': null},

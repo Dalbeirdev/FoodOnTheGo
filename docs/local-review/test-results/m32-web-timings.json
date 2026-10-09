@@ -1,0 +1,42 @@
+{
+  "module": "M32",
+  "measured_at": "2026-10-09T11:31:33.602Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, Laravel Reverb on 127.0.0.1:8085, development payment provider. live_* = milliseconds from the restaurant's API step to the customer's page showing it (socket notice + order read). pickup_verify = milliseconds from the submit click on the scanner page to the answer of the backend, as seen by the page. Measurements, not targets.",
+  "timings": {
+    "order_read": {
+      "n": 1,
+      "median_ms": 324,
+      "max_ms": 324
+    },
+    "restaurant_step": {
+      "n": 1,
+      "median_ms": 746,
+      "max_ms": 746
+    },
+    "admin_detail": {
+      "n": 1,
+      "median_ms": 346,
+      "max_ms": 346
+    },
+    "live_accept_ms": {
+      "n": 1,
+      "median_ms": 749,
+      "max_ms": 749
+    },
+    "live_ready_ms": {
+      "n": 1,
+      "median_ms": 725,
+      "max_ms": 725
+    },
+    "live_pickup_ms": {
+      "n": 1,
+      "median_ms": 442,
+      "max_ms": 442
+    },
+    "pickup_verify": {
+      "n": 1,
+      "median_ms": 1332,
+      "max_ms": 1332
+    }
+  }
+}

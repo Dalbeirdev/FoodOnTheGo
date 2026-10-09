@@ -83,7 +83,7 @@ class RestaurantOrderWorkflowTest extends TestCase
         $this->assertSame(['PREPARING', 3, ['ready']], [$preparing['status'], $preparing['version'], $preparing['allowed_actions']]);
 
         $ready = $this->step($n, 'ready')->assertOk()->json('order');   // no expected_version: allowed, the step is still checked
-        $this->assertSame(['READY_FOR_PICKUP', 4, []], [$ready['status'], $ready['version'], $ready['allowed_actions']]);
+        $this->assertSame(['READY_FOR_PICKUP', 4, ['verify_pickup']], [$ready['status'], $ready['version'], $ready['allowed_actions']]);   // Module 32: the pickup is verified, not clicked
         $this->assertNotNull($ready['times']['ready_at']);
 
         // The customer sees the same journey, in their own words.

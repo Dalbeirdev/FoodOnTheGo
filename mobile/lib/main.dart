@@ -194,7 +194,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           // Orders (Module 31): the backend's when the build says so (ORDER_MODE=api, with payments on the backend) — read as the signed-in customer.
           ChangeNotifierProvider(create: (_) => ordersFromApi && cartBackend != null ? OrderState(orders: ApiOrderRepository(cartBackend!), verifications: ApiPickupVerificationRepository(ApiOrderRepository(cartBackend!))) : OrderState()),
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
-          ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); final api = os.orders; return TrackingState(orders: api, verifications: os.verifications, tracking: api is ApiOrderRepository ? ApiOrderTrackingService(api) : null); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
+          ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); final api = os.orders; return TrackingState(orders: api, verifications: os.verifications, realtime: api is ApiOrderRepository && realtimeFromApi && cartBackend != null ? customerRealtimeClient(cartBackend!) : null); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],
         child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false, builder: (context, child) => CartMergePrompt(child: child ?? const SizedBox.shrink())),
       );

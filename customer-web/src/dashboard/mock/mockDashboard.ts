@@ -18,7 +18,7 @@ import type { Review } from '../../review/repositories'
 import { minorDigits } from '../../i18n/format'
 import { INDIA_EXTRA_PROFILES, NOTIFICATION_SEEDS, ORDER_SEEDS, ORG, PROFILES, REVIEW_SEEDS, ROLES, buildSeedOrder, orgLocationIds, seedStaff } from './fixtures'
 import { marketAvailability } from '../../market/mock/mockMarket'
-import type { AnalyticsQuery, AnalyticsSummary, DashboardLocation, DashboardNotification, DashboardRepositories, DelayReason, LocationProfile, LocationSettings, ManagedMenu, MenuItemInput, MenuManagementRepository, Organization, OrderListFilter, OrderTab, OverviewSnapshot, Permission, ProfilePatch, RejectReason, RestaurantAnalyticsRepository, RestaurantManagementRepository, RestaurantNotificationRepository, RestaurantOrderRepository, RestaurantReviewRepository, RestaurantStaffRepository, RoleId, SpecialHours, StaffInvite, StaffMember, VerificationResult } from '../types'
+import type { AnalyticsQuery, AnalyticsSummary, DashboardLocation, DashboardNotification, DashboardRepositories, DelayReason, LocationProfile, LocationSettings, ManagedMenu, MenuItemInput, MenuManagementRepository, Organization, OrderListFilter, OrderTab, OverviewSnapshot, Permission, ProfilePatch, RejectReason, RestaurantAnalyticsRepository, RestaurantManagementRepository, RestaurantNotificationRepository, RestaurantOrderRepository, RestaurantReviewRepository, RestaurantStaffRepository, RoleId, SpecialHours, StaffInvite, StaffMember, VerificationResult, PickupVerifyInput } from '../types'
 
 const ORDERS_KEY = 'fotg.orders.v1', PV_KEY = 'fotg.pickup_verifications.v1', REVIEWS_KEY = 'fotg.reviews.v1'
 const K = { profiles: 'fotg.rd.profiles.v1', staff: 'fotg.rd.staff.v1', notifications: 'fotg.rd.notifications.v1', special: 'fotg.rd.special_hours.v1', settings: 'fotg.rd.settings.v1', seeded: 'fotg.rd.seeded.v1' }
@@ -156,10 +156,13 @@ export class MockRestaurantOrderRepository implements RestaurantOrderRepository 
   async delay(rid: string, n: string, etaReadyAt: string, reason: DelayReason) { await wait(); if (failing()) throw new Error('order_update_failed'); return this.apply(rid, n, 'DELAYED', null, { reasonKey: DELAY_KEY[reason], etaReadyAt }, ['ACCEPTED', 'PREPARING']) }
   async markReady(rid: string, n: string) { await wait(); if (failing()) throw new Error('order_update_failed'); const o = this.all(rid).find((x) => x.orderNumber === n); if (o?.orderStatus === 'ACCEPTED') this.apply(rid, n, 'PREPARING', 'PREPARING'); return this.apply(rid, n, 'READY_FOR_PICKUP', 'READY_FOR_PICKUP', {}, ['ACCEPTED', 'PREPARING']) }
   /** Development verification: the backend must do this atomically and idempotently later (CF). */
-  async verifyPickup(rid: string, rawCode: string): Promise<VerificationResult> {
+  async verifyPickup(rid: string, input: PickupVerifyInput): Promise<VerificationResult> {
     await wait()
-    const code = rawCode.replace(/[\s-]/g, '').toUpperCase(); if (!/^[A-Z0-9]{4,8}$/.test(code)) return { ok: false, reason: 'invalid' }
-    const pvs = ssLoad<PickupVerification>(PV_KEY); const pv = pvs.find((p) => p.code.toUpperCase() === code)
+    const pvs = ssLoad<PickupVerification>(PV_KEY)
+    // The development fixtures: a QR carries the fixture token; a code is looked up (with the order number when given).
+    const code = input.method === 'MANUAL_CODE' ? input.code.replace(/[\s-]/g, '').toUpperCase() : ''
+    if (input.method === 'MANUAL_CODE' && !/^[A-Z0-9]{4,8}$/.test(code)) return { ok: false, reason: 'invalid' }
+    const pv = input.method === 'QR' ? pvs.find((p) => p.qrToken === input.payload.trim()) : pvs.find((p) => p.code.toUpperCase() === code && (!input.orderNumber.trim() || ssLoad<Order>(ORDERS_KEY).find((o) => o.publicId === p.orderPublicId)?.orderNumber.toUpperCase() === input.orderNumber.trim().toUpperCase()))
     if (!pv) return { ok: false, reason: 'invalid' }
     const order = ssLoad<Order>(ORDERS_KEY).find((o) => o.publicId === pv.orderPublicId)
     if (!order) return { ok: false, reason: 'invalid' }

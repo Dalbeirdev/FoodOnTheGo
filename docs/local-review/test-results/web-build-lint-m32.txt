@@ -1,0 +1,71 @@
+# Module 32 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-09T07:32:37Z UTC, local machine
+# VITE_ORDER_MODE=api and VITE_REALTIME_MODE=api (orders and live updates from the local backend / Reverb); unit tests always run the development mocks.
+
+## tsc --noEmit -p tsconfig.app.json
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/dashboard/DashboardLayout.tsx:135:21: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/auth/staff/AccountSecurityPage.tsx:89:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/OrderDetailsPage.tsx:49:20: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/OrderDetailsPage.tsx:205:67: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/OrderDetailsPage.tsx:220:31: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/admin/pages/FinancialRulesPanel.tsx:29:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/auth/staff/StaffSession.tsx:24:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/pages/PaymentPage.tsx:117:20: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/pages/PaymentPage.tsx:78:67: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/admin/pages/PromotionsPage.tsx:17:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/pages/ReviewPage.tsx:77:20: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/auth/VerifyOtpPage.tsx:20:34: warning react(purity): Cannot call impure function during render help: `Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component re-renders
+
+## vitest run
+     × TEST 8 reject needs a category + public reason; internal note never enters the audit reason 5034ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/admin/admin.test.tsx > Restaurants & approvals > TEST 8 reject needs a category + public reason; internal note never enters the audit reason
+ Test Files  1 failed | 54 passed (55)
+      Tests  1 failed | 704 passed (705)
+   Duration  52.65s (tests 57%, environment 24%, transform 9%, import 5%, setup 5%)
+
+## vite build (npm run build)
+dist/assets/index-DT1qPfro.js         1,277.37 kB │ gzip: 354.88 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 540ms[39m
+
+## vitest re-runs after the full run above (2026-10-09T07:35:01Z UTC) — the one miss was a 5 s timeout of an older Module 17 test on a slow machine (whole run 52.65 s against 42 s the day before); nothing else ran during these
+### npx vitest run src/admin/admin.test.tsx (the file of the timed-out test, alone)
+ Test Files  1 passed (1)
+      Tests  27 passed (27)
+   Duration  24.27s (tests 84%, transform 8%, environment 5%, import 2%, setup 1%)
+### npx vitest run (the whole suite again)
+     × TEST 1 — new customer: mobile → OTP → setup → signed in and returned to the requested page 5061ms
+     × TEST 8 reject needs a category + public reason; internal note never enters the audit reason 5116ms
+     × TEST 9 suspend shows the impact warning, requires a reason, closes the restaurant everywhere; reactivate restores it 2528ms
+     × TEST 11 customers show masked identifiers only and status changes require a reason 5176ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/admin/admin.test.tsx > Restaurants & approvals > TEST 8 reject needs a category + public reason; internal note never enters the audit reason
+ FAIL  src/admin/admin.test.tsx > Restaurants & approvals > TEST 9 suspend shows the impact warning, requires a reason, closes the restaurant everywhere; reactivate restores it
+ FAIL  src/admin/admin.test.tsx > Customers, orders & finance > TEST 11 customers show masked identifiers only and status changes require a reason
+ FAIL  src/auth/otp-auth.test.tsx > Authentication flows (web UI) > TEST 1 — new customer: mobile → OTP → setup → signed in and returned to the requested page
+ Test Files  2 failed | 53 passed (55)
+      Tests  4 failed | 701 passed (705)
+   Duration  59.33s (tests 55%, environment 27%, transform 8%, setup 5%, import 5%)
+
+## machine state during these runs (2026-10-09T07:38:06Z UTC)
+# The laptop was running ON BATTERY (Win32_Battery.BatteryStatus = 1 = discharging, 32 % remaining, power scheme Balanced) after an overnight reboot;
+# the same unit suite took 28.29 s in the Module 31 run and 42.37 s the day before on mains. The misses above are 5 s test timeouts of
+# older Module 17 / 21 tests under that slowdown (src/admin/admin.test.tsx passes alone, 27/27, see the re-run; src/auth/otp-auth.test.tsx is re-run alone below); they are not Module 32 changes.
+
+## vitest on mains (2026-10-09T08:01:33Z UTC) — charger connected (Win32_Battery.BatteryStatus = 2), nothing else running
+### npx vitest run src/auth/otp-auth.test.tsx (alone)
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Duration  20.55s (tests 79%, transform 13%, environment 5%, import 3%, setup 1%)
+### npx vitest run (the whole suite)
+ Test Files  55 passed (55)
+      Tests  705 passed (705)
+   Duration  34.89s (tests 59%, environment 23%, transform 9%, import 5%, setup 4%)

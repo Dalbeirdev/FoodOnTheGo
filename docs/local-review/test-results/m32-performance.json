@@ -1,0 +1,51 @@
+{
+    "order_creation": {
+        "small": {
+            "lines": 1,
+            "create_queries": 89,
+            "create_ms": 107,
+            "read_queries": 12,
+            "read_ms": 14
+        },
+        "large": {
+            "lines": 12,
+            "create_queries": 100,
+            "create_ms": 118,
+            "read_queries": 12,
+            "read_ms": 14
+        }
+    },
+    "restaurant_queue": {
+        "two": {
+            "queries": 7,
+            "ms": 24
+        },
+        "thirty": {
+            "queries": 6,
+            "ms": 21
+        }
+    },
+    "pickup_verification": {
+        "qr": {
+            "queries": 49,
+            "ms": 64
+        },
+        "manual_code": {
+            "queries": 60,
+            "ms": 67
+        },
+        "replay_refused": {
+            "queries": 12,
+            "ms": 19
+        },
+        "note": "verification + completion in the same request (two transactions), the attempt row and the metrics included"
+    },
+    "event_stream_read": {
+        "queries": 14,
+        "ms": 14
+    },
+    "channel_auth": {
+        "queries": 3,
+        "ms": 5
+    }
+}

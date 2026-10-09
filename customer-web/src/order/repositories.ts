@@ -90,6 +90,8 @@ export type OrderEvent = {
 export type Order = {
   /** Public, non-sequential id (ULID-like). */
   publicId: string
+  /** The backend's version of the order (Module 32): a realtime notice older than this is ignored. Absent on development orders. */
+  version?: number
   /** Customer-friendly public reference. Format is a development fixture; the backend generates it later. */
   orderNumber: string
   customerId: string

@@ -19,7 +19,11 @@ final class OrderMetrics
 {
     private const PREFIX = 'orders:metrics:';
 
-    public const EVENTS = ['created', 'creation_failed', 'recovery_required', 'review_required', 'accepted', 'rejected', 'preparing', 'ready', 'cancelled', 'refund_required', 'zero_total'];
+    public const EVENTS = ['created', 'creation_failed', 'recovery_required', 'review_required', 'accepted', 'rejected', 'preparing', 'ready', 'cancelled', 'refund_required', 'zero_total',
+        // Module 32
+        'pickup_verified', 'pickup_verified_qr', 'pickup_verified_manual_code', 'pickup_refused', 'pickup_refused_invalid_credential', 'pickup_refused_not_ready', 'pickup_refused_not_eligible', 'pickup_refused_wrong_location', 'pickup_refused_expired', 'pickup_refused_revoked', 'pickup_refused_already_used', 'pickup_refused_locked', 'pickup_rate_limited', 'pickup_locked',
+        'completed', 'completed_auto_after_pickup', 'completed_sweep', 'completion_deferred',
+        'broadcast_sent', 'broadcast_failed', 'broadcast_ms_total', 'channel_auth_granted', 'channel_auth_denied', 'events_resync'];
 
     public function record(string $event, int $by = 1): void
     {
@@ -83,9 +87,38 @@ final class OrderMetrics
                 'failed' => OrderFulfillment::query()->where('status', OrderFulfillmentStatus::Failed->value)->count(),
             ],
             'latency_ms' => ['creation_avg' => $count > 0 ? (int) round($sum('creation_ms_total') / $count) : null],
-            'realtime_tracking' => 'NOT_IMPLEMENTED',
-            'pickup_verification' => 'NOT_IMPLEMENTED',
+            'realtime' => [
+                'broadcast_sent' => $events['broadcast_sent'],
+                'broadcast_failed' => $events['broadcast_failed'],
+                'broadcast_avg_ms' => $events['broadcast_sent'] > 0 ? (int) round($events['broadcast_ms_total'] / max(1, (int) ($events['broadcast_sent'] / 2))) : null,
+                'channel_auth_granted' => $events['channel_auth_granted'],
+                'channel_auth_denied' => $events['channel_auth_denied'],
+                'events_resync' => $events['events_resync'],
+            ],
+            'pickup' => [
+                'verified' => $events['pickup_verified'],
+                'verified_qr' => $events['pickup_verified_qr'],
+                'verified_manual_code' => $events['pickup_verified_manual_code'],
+                'refused' => $events['pickup_refused'],
+                'refused_invalid' => $events['pickup_refused_invalid_credential'],
+                'refused_not_ready' => $events['pickup_refused_not_ready'],
+                'refused_wrong_location' => $events['pickup_refused_wrong_location'],
+                'replay' => $events['pickup_refused_already_used'],
+                'rate_limited' => $events['pickup_rate_limited'] + $events['pickup_refused_locked'],
+                'locked' => $events['pickup_locked'],
+                'picked_up_not_completed' => (int) ($byStatus[OrderStatus::PickedUp->value] ?? 0),
+            ],
+            'completion' => [
+                'completed' => $events['completed'],
+                'after_pickup' => $events['completed_auto_after_pickup'],
+                'by_sweep' => $events['completed_sweep'],
+                'deferred' => $events['completion_deferred'],
+            ],
+            'realtime_tracking' => 'IMPLEMENTED',
+            'pickup_verification' => 'IMPLEMENTED',
+            'order_completion' => 'IMPLEMENTED',
             'refund_processing' => 'NOT_IMPLEMENTED',
+            'notification_delivery' => 'NOT_IMPLEMENTED',
         ];
     }
 }

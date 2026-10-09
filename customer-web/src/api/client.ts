@@ -59,7 +59,7 @@ export const tokenStore = { get: () => tokens.get('customer'), set: (token: stri
 const unauthenticatedHandlers: Partial<Record<AuthContextName, () => void>> = {}
 export function setUnauthenticatedHandler(handler: (() => void) | null, context: AuthContextName = 'customer') { if (handler) unauthenticatedHandlers[context] = handler; else delete unauthenticatedHandlers[context] }
 
-const newRequestId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)
+export const newRequestId = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)
 
 const FALLBACK: Record<ApiErrorKind, string> = {
   network: 'Cannot reach FoodOnTheGo right now. Check your connection and try again.',

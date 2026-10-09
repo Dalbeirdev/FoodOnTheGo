@@ -1,0 +1,30 @@
+# Module 32 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_12_100000_module32_realtime_and_pickup_verification .. 30.08ms DONE
+
+
+ INFO Running migrations. 
+
+ 2026_10_12_100000_module32_realtime_and_pickup_verification .. 58.00ms DONE
+
+
+# order_events.sequence, the credential columns and the attempts table after the re-apply:
+{
+ "order_events.sequence": true,
+ "credential_columns": [
+ "public_id",
+ "token_secret",
+ "format_version",
+ "issued_at",
+ "consumed_method",
+ "consumed_by_restaurant_user_id",
+ "revoked_at",
+ "revoke_reason",
+ "failed_attempts",
+ "locked_until"
+ ],
+ "attempts_table": true
+}

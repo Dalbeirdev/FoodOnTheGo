@@ -9,6 +9,7 @@ library;
 import 'dart:async';
 
 import '../cart/api_cart.dart';
+import '../realtime/pusher_client.dart';
 import '../core/app_config.dart';
 import '../data/api_client.dart';
 import '../payment/api_payment.dart' show paymentsFromApi;
@@ -18,6 +19,23 @@ import 'order_tracking.dart';
 
 /// Tests switch this; the app reads the build's --dart-define=ORDER_MODE.
 String? orderModeOverride;
+
+/// Tests switch this; the app reads the build's --dart-define=REALTIME_MODE.
+String? realtimeModeOverride;
+
+/// Live updates come over the socket only when orders do and a key is configured.
+bool get realtimeFromApi => ordersFromApi && (realtimeModeOverride ?? AppConfig.realtimeMode) == 'api' && AppConfig.reverbKey.isNotEmpty;
+
+/// The customer's realtime client (Module 32): private channels authorized by the backend with the session's bearer
+/// token — POST /customer/broadcasting/auth answers the Pusher signature or refuses (403 / 401 → no subscription).
+PusherClient customerRealtimeClient(CartBackend cart) => PusherClient(
+      host: AppConfig.reverbHost, port: AppConfig.reverbPort, key: AppConfig.reverbKey, scheme: AppConfig.reverbScheme,
+      authorize: (socketId, channel) async {
+        final answer = _map(await cart.request('POST', '/customer/broadcasting/auth', body: {'socket_id': socketId, 'channel_name': channel}));
+        final auth = answer['auth'];
+        return auth is String && auth.isNotEmpty ? auth : null;
+      },
+    );
 
 /// Orders come from the backend only when payments do: an order is what a backend payment becomes.
 bool get ordersFromApi => paymentsFromApi && (orderModeOverride ?? AppConfig.orderMode) == 'api';
@@ -138,7 +156,7 @@ Order orderFromApi(Map<String, dynamic> d, String customerId) {
         ? (status == OrderStatus.rejected || status == OrderStatus.cancelled ? PickupVerificationStatus.invalid : status == OrderStatus.pickedUp || status == OrderStatus.completed ? PickupVerificationStatus.verified : PickupVerificationStatus.notReady)
         : status == OrderStatus.readyForPickup ? PickupVerificationStatus.verificationAvailable : PickupVerificationStatus.ready,
     etaReadyAt: readyAt, rejectionReasonKey: rejection == null ? null : (_reason[rejection['reason']] ?? 'other'), cancellationReasonKey: d['cancellation'] is Map ? 'other' : null,
-    lastEventSequence: events.length, paymentAttemptId: '${payment['id'] ?? ''}', checkoutReference: '',
+    lastEventSequence: events.length, version: (d['version'] as num?)?.toInt(), paymentAttemptId: '${payment['id'] ?? ''}', checkoutReference: '',
     journey: journey == null ? null : JourneySnapshot(journeyId: '${journey['id'] ?? ''}', originName: '', destinationName: ''),
     orderNote: '${d['customer_note'] ?? ''}', events: events, createdAt: placedAt, updatedAt: _when(d['updated_at']) ?? placedAt,
   );
@@ -247,34 +265,72 @@ class ApiPickupVerificationRepository implements PickupVerificationRepository {
   }
 }
 
-/// Live updates by polling the backend (Module 31). Module 32 brings the event stream; until then the order is read
-/// again every few seconds while it is on its way and each new timeline line is delivered as an event — the state's
-/// reducer ignores what it has seen. Never invents an event, never advances anything.
+/// Live updates (Module 32): the private channel customer.order.{id} on Laravel Reverb first, polling as the fallback
+/// and as the resync. A notice carries the version and the event sequence; what is not newer than what the screen
+/// has is ignored, and a gap, a reconnection, a resume or a missing socket makes the order be read again — the only
+/// source of truth. Never invents an event, never advances anything. Without a realtime client (REALTIME_MODE=off,
+/// no key) it is the Module 31 poll.
 class ApiOrderTrackingService implements OrderTrackingService {
-  ApiOrderTrackingService(this.orders, {this.every = const Duration(seconds: 8)});
+  ApiOrderTrackingService(this.orders, {this.every = const Duration(seconds: 8), this.realtime, this.onTransport});
   final ApiOrderRepository orders;
   final Duration every;
+  final PusherClient? realtime;
+  final void Function(RealtimeTransport)? onTransport;
 
   @override
   void Function() subscribe(Order order, {required void Function(OrderEvent) onEvent, required void Function(TrackingConnection) onConnection}) {
     var known = order.lastEventSequence;
-    var stopped = false;
-    onConnection(TrackingConnection.live);
-    final timer = Timer.periodic(every, (_) async {
-      if (stopped) return;
+    var version = order.version ?? 0;
+    var stopped = false, inFlight = false;
+    Timer? poll;
+    final client = realtime;
+
+    Future<void> resync() async {
+      if (stopped || inFlight) return;
+      inFlight = true;
       try {
         final fresh = await orders.getByOrderNumber(order.orderNumber, order.customerId);
         if (stopped || fresh == null) return;
         for (final e in fresh.events) {
           if (e.sequence > known) { known = e.sequence; onEvent(e); }
         }
+        if ((fresh.version ?? 0) > version) version = fresh.version!;
         onConnection(TrackingConnection.live);
       } catch (_) {
         if (!stopped) onConnection(TrackingConnection.stale);
+      } finally {
+        inFlight = false;
       }
+    }
+    void startPolling() { poll ??= Timer.periodic(every, (_) => resync()); }
+    void stopPolling() { poll?.cancel(); poll = null; }
+
+    if (client == null) {
+      onConnection(TrackingConnection.live);
+      onTransport?.call(RealtimeTransport.off);
+      startPolling();
+      return () { stopped = true; stopPolling(); };
+    }
+    final unsubscribe = client.subscribe('customer.order.${order.publicId}', (event, data) {
+      if (stopped || event != 'order.updated') return;
+      final v = (data['version'] as num?)?.toInt() ?? 0;
+      final seq = (data['event_sequence'] as num?)?.toInt() ?? 0;
+      if (v <= version && seq <= known) return; // not newer than what the screen has
+      resync();
     });
-    return () { stopped = true; timer.cancel(); };
+    final transportSub = client.transportChanges.listen((t) {
+      if (stopped) return;
+      onTransport?.call(t);
+      if (t == RealtimeTransport.connected) { stopPolling(); resync(); }
+      else if (t == RealtimeTransport.disconnected || t == RealtimeTransport.reconnecting) { onConnection(TrackingConnection.stale); startPolling(); }
+    });
+    onTransport?.call(client.transport);
+    if (client.transport == RealtimeTransport.connected) { resync(); } else { startPolling(); }
+    return () { stopped = true; stopPolling(); transportSub.cancel(); unsubscribe(); };
   }
+
+  /// A resume or a network change: ask the backend now, and bring the socket back if it is away.
+  Future<Order?> resume(String orderNumber, String customerId) { realtime?.reconnectNow(); return refresh(orderNumber, customerId); }
 
   @override
   Future<Order?> refresh(String orderNumber, String customerId) => orders.getByOrderNumber(orderNumber, customerId);

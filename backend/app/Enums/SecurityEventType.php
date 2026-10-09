@@ -26,4 +26,9 @@ enum SecurityEventType: string
     case PhoneChangeRequested = 'PHONE_CHANGE_REQUESTED';
     case PhoneChanged = 'PHONE_CHANGED';
     case AccountDeletionRequested = 'ACCOUNT_DELETION_REQUESTED';
+    // Module 32: pickup verification
+    case PickupCredentialReissued = 'PICKUP_CREDENTIAL_REISSUED';
+    case PickupAttemptsExceeded = 'PICKUP_ATTEMPTS_EXCEEDED';
+    case PickupReplayAttempt = 'PICKUP_REPLAY_ATTEMPT';
+    case PickupLocationUnauthorized = 'PICKUP_LOCATION_UNAUTHORIZED';
 }

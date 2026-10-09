@@ -1,0 +1,889 @@
+{
+  "order_number": "FOTG-20261009-VJ6QSU",
+  "customer_order": {
+    "id": "e9224e1f-3959-40df-930f-278071850c71",
+    "order_number": "FOTG-20261009-VJ6QSU",
+    "status": "WAITING_FOR_RESTAURANT",
+    "payment_state": "PAID",
+    "refund_status": "NONE",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "branch_label": "Sector 62 · Noida",
+      "formatted_address": "Sector 62, Noida, Uttar Pradesh 201309, India",
+      "phone": null,
+      "timezone": "Asia/Kolkata",
+      "pickup_instructions": "Show your pickup code at the counter."
+    },
+    "item_count": 3,
+    "total": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-09T12:30:00+00:00",
+      "pickup_at_local": "2026-10-09T18:00:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-09T12:30:00+00:00",
+        "ends_at": "2026-10-09T12:45:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-09T11:27:24+00:00",
+    "updated_at": "2026-10-09T11:27:24+00:00",
+    "items": [
+      {
+        "id": "6beb726c-c325-4c78-997e-9cb809ffa183",
+        "item_id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+        "slug": "onion-rings",
+        "name": "Onion Rings",
+        "quantity": 2,
+        "unit_price": {
+          "amount": 14900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 29800,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": []
+      },
+      {
+        "id": "000f46f3-4c07-4e8b-ae64-125f617b525e",
+        "item_id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+        "slug": "masala-fries",
+        "name": "Masala Fries",
+        "quantity": 1,
+        "unit_price": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": [
+          {
+            "kind": "VARIANT",
+            "group": "Size",
+            "name": "Regular",
+            "price_adjustment": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "pricing": {
+      "currency": "INR",
+      "subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discount": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      }
+    },
+    "promotion": null,
+    "taxes": [],
+    "fees": [],
+    "payment": {
+      "required": true,
+      "id": "c374c1b3-16c7-4efc-9383-be02d2a3e971",
+      "provider": "fake",
+      "method": {
+        "type": "UPI",
+        "summary": {
+          "vpa": "su***@fake"
+        }
+      },
+      "verified_at": "2026-10-09T11:27:23+00:00"
+    },
+    "customer_note": null,
+    "journey": null,
+    "legal": [
+      {
+        "type": "TERMS",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      },
+      {
+        "type": "PRIVACY",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      },
+      {
+        "type": "REFUND",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      }
+    ],
+    "rejection": null,
+    "cancellation": null,
+    "pickup_credential": {
+      "public_id": "406fa55e-576f-4297-83b4-d7a48daf6972",
+      "code": "U5TXBM",
+      "qr_payload": "FOTG1.xQpPCfxI2x1jzh2GHg0Qx8hYuobbcJ9Hn1KzQ1bpw_A",
+      "status": "ACTIVE",
+      "expires_at": "2026-10-10T12:30:00+00:00",
+      "format_version": 1
+    },
+    "pickup_verification": {
+      "status": "NOT_YET",
+      "credential_status": "ACTIVE"
+    },
+    "timeline": [
+      {
+        "sequence": 1,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-1",
+        "at": "2026-10-09T11:27:24+00:00",
+        "type": "ORDER_CREATED",
+        "from": "CREATED",
+        "to": "WAITING_FOR_RESTAURANT",
+        "actor": "FOODONTHEGO",
+        "detail": {}
+      }
+    ],
+    "realtime": {
+      "enabled": true,
+      "channel": "customer.order.e9224e1f-3959-40df-930f-278071850c71",
+      "event": "order.updated",
+      "auth_endpoint": "/customer/broadcasting/auth",
+      "poll_seconds": 8,
+      "terminal": false
+    },
+    "next_action": "WAIT_FOR_RESTAURANT",
+    "times": {
+      "placed_at": "2026-10-09T11:27:24+00:00",
+      "accepted_at": null,
+      "rejected_at": null,
+      "preparing_at": null,
+      "ready_at": null,
+      "picked_up_at": null,
+      "completed_at": null,
+      "cancelled_at": null
+    },
+    "version": 1
+  },
+  "events_stream": {
+    "order": {
+      "id": "e9224e1f-3959-40df-930f-278071850c71",
+      "order_number": "FOTG-20261009-VJ6QSU",
+      "status": "ACCEPTED",
+      "version": 2,
+      "refund_status": "NONE",
+      "payment_state": "PAID",
+      "updated_at": "2026-10-09T11:27:52+00:00"
+    },
+    "events": [
+      {
+        "sequence": 2,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-2",
+        "at": "2026-10-09T11:27:52+00:00",
+        "type": "RESTAURANT_ACCEPTED",
+        "from": "WAITING_FOR_RESTAURANT",
+        "to": "ACCEPTED",
+        "actor": "RESTAURANT",
+        "detail": {}
+      }
+    ],
+    "cursor": {
+      "after_sequence": 1,
+      "last_sequence": 2,
+      "has_more": false
+    },
+    "realtime": {
+      "enabled": true,
+      "channel": "customer.order.e9224e1f-3959-40df-930f-278071850c71",
+      "event": "order.updated",
+      "auth_endpoint": "/customer/broadcasting/auth",
+      "poll_seconds": 8,
+      "terminal": false
+    }
+  },
+  "verification": {
+    "status": "VERIFIED",
+    "method": "QR",
+    "verified_at": "2026-10-09T11:28:03+00:00",
+    "verified_by": {
+      "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+      "name": "John Doe"
+    },
+    "credential_status": "CONSUMED",
+    "completed_at": "2026-10-09T11:28:03+00:00"
+  },
+  "completed_order": {
+    "id": "e9224e1f-3959-40df-930f-278071850c71",
+    "order_number": "FOTG-20261009-VJ6QSU",
+    "status": "COMPLETED",
+    "payment_state": "PAID",
+    "refund_status": "NONE",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "branch_label": "Sector 62 · Noida",
+      "formatted_address": "Sector 62, Noida, Uttar Pradesh 201309, India",
+      "phone": null,
+      "timezone": "Asia/Kolkata",
+      "pickup_instructions": "Show your pickup code at the counter."
+    },
+    "item_count": 3,
+    "total": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-09T12:30:00+00:00",
+      "pickup_at_local": "2026-10-09T18:00:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-09T12:30:00+00:00",
+        "ends_at": "2026-10-09T12:45:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-09T11:27:24+00:00",
+    "updated_at": "2026-10-09T11:28:03+00:00",
+    "items": [
+      {
+        "id": "6beb726c-c325-4c78-997e-9cb809ffa183",
+        "item_id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+        "slug": "onion-rings",
+        "name": "Onion Rings",
+        "quantity": 2,
+        "unit_price": {
+          "amount": 14900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 29800,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": []
+      },
+      {
+        "id": "000f46f3-4c07-4e8b-ae64-125f617b525e",
+        "item_id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+        "slug": "masala-fries",
+        "name": "Masala Fries",
+        "quantity": 1,
+        "unit_price": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": [
+          {
+            "kind": "VARIANT",
+            "group": "Size",
+            "name": "Regular",
+            "price_adjustment": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "pricing": {
+      "currency": "INR",
+      "subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discount": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      }
+    },
+    "promotion": null,
+    "taxes": [],
+    "fees": [],
+    "payment": {
+      "required": true,
+      "id": "c374c1b3-16c7-4efc-9383-be02d2a3e971",
+      "provider": "fake",
+      "method": {
+        "type": "UPI",
+        "summary": {
+          "vpa": "su***@fake"
+        }
+      },
+      "verified_at": "2026-10-09T11:27:23+00:00"
+    },
+    "customer_note": null,
+    "journey": null,
+    "legal": [
+      {
+        "type": "TERMS",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      },
+      {
+        "type": "PRIVACY",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      },
+      {
+        "type": "REFUND",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      }
+    ],
+    "rejection": null,
+    "cancellation": null,
+    "pickup_credential": null,
+    "pickup_verification": {
+      "status": "VERIFIED",
+      "method": "QR",
+      "verified_at": "2026-10-09T11:28:03+00:00",
+      "credential_status": "CONSUMED",
+      "completed_at": "2026-10-09T11:28:03+00:00"
+    },
+    "timeline": [
+      {
+        "sequence": 1,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-1",
+        "at": "2026-10-09T11:27:24+00:00",
+        "type": "ORDER_CREATED",
+        "from": "CREATED",
+        "to": "WAITING_FOR_RESTAURANT",
+        "actor": "FOODONTHEGO",
+        "detail": {}
+      },
+      {
+        "sequence": 2,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-2",
+        "at": "2026-10-09T11:27:52+00:00",
+        "type": "RESTAURANT_ACCEPTED",
+        "from": "WAITING_FOR_RESTAURANT",
+        "to": "ACCEPTED",
+        "actor": "RESTAURANT",
+        "detail": {}
+      },
+      {
+        "sequence": 3,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-3",
+        "at": "2026-10-09T11:27:53+00:00",
+        "type": "PREPARATION_STARTED",
+        "from": "ACCEPTED",
+        "to": "PREPARING",
+        "actor": "RESTAURANT",
+        "detail": {}
+      },
+      {
+        "sequence": 4,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-4",
+        "at": "2026-10-09T11:27:54+00:00",
+        "type": "READY_FOR_PICKUP",
+        "from": "PREPARING",
+        "to": "READY_FOR_PICKUP",
+        "actor": "RESTAURANT",
+        "detail": {}
+      },
+      {
+        "sequence": 5,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-5",
+        "at": "2026-10-09T11:28:03+00:00",
+        "type": "CUSTOMER_PICKED_UP",
+        "from": "READY_FOR_PICKUP",
+        "to": "PICKED_UP",
+        "actor": "RESTAURANT",
+        "detail": {
+          "method": "QR"
+        }
+      },
+      {
+        "sequence": 7,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-7",
+        "at": "2026-10-09T11:28:03+00:00",
+        "type": "ORDER_COMPLETED",
+        "from": "PICKED_UP",
+        "to": "COMPLETED",
+        "actor": "FOODONTHEGO",
+        "detail": {}
+      }
+    ],
+    "realtime": {
+      "enabled": true,
+      "channel": "customer.order.e9224e1f-3959-40df-930f-278071850c71",
+      "event": "order.updated",
+      "auth_endpoint": "/customer/broadcasting/auth",
+      "poll_seconds": 30,
+      "terminal": true
+    },
+    "next_action": "DONE",
+    "times": {
+      "placed_at": "2026-10-09T11:27:24+00:00",
+      "accepted_at": "2026-10-09T11:27:52+00:00",
+      "rejected_at": null,
+      "preparing_at": "2026-10-09T11:27:53+00:00",
+      "ready_at": "2026-10-09T11:27:54+00:00",
+      "picked_up_at": "2026-10-09T11:28:03+00:00",
+      "completed_at": "2026-10-09T11:28:03+00:00",
+      "cancelled_at": null
+    },
+    "version": 6
+  },
+  "manual_verification": {
+    "status": "VERIFIED",
+    "method": "MANUAL_CODE",
+    "verified_at": "2026-10-09T11:28:35+00:00",
+    "verified_by": {
+      "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+      "name": "John Doe"
+    },
+    "credential_status": "CONSUMED",
+    "completed_at": "2026-10-09T11:28:35+00:00"
+  },
+  "admin_detail": {
+    "id": "e9224e1f-3959-40df-930f-278071850c71",
+    "order_number": "FOTG-20261009-VJ6QSU",
+    "status": "COMPLETED",
+    "payment_state": "PAID",
+    "refund_status": "NONE",
+    "needs_attention": false,
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub",
+      "organization": "Riverside Hospitality Group"
+    },
+    "market": "india",
+    "customer": {
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "name": "Rahul Sharma",
+      "phone_masked": "+91******3210"
+    },
+    "payment_id": "c374c1b3-16c7-4efc-9383-be02d2a3e971",
+    "checkout_id": "f5f66979-7e77-4a40-83f9-fb368ed188a0",
+    "item_count": 3,
+    "total": {
+      "amount": 42700,
+      "currency": "INR"
+    },
+    "pickup": {
+      "mode": "SCHEDULED",
+      "method": "COUNTER",
+      "pickup_at": "2026-10-09T12:30:00+00:00",
+      "pickup_at_local": "2026-10-09T18:00:00+05:30",
+      "slot": {
+        "starts_at": "2026-10-09T12:30:00+00:00",
+        "ends_at": "2026-10-09T12:45:00+00:00"
+      },
+      "timezone": "Asia/Kolkata",
+      "estimated_prep_minutes": 12,
+      "traveler_arrival_at": null
+    },
+    "placed_at": "2026-10-09T11:27:24+00:00",
+    "updated_at": "2026-10-09T11:28:03+00:00",
+    "version": 6,
+    "items": [
+      {
+        "id": "6beb726c-c325-4c78-997e-9cb809ffa183",
+        "item_id": "d24cdf13-dd63-43e6-9818-6e776884d108",
+        "slug": "onion-rings",
+        "name": "Onion Rings",
+        "quantity": 2,
+        "unit_price": {
+          "amount": 14900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 29800,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": []
+      },
+      {
+        "id": "000f46f3-4c07-4e8b-ae64-125f617b525e",
+        "item_id": "d907ebae-e83c-484d-b495-4712b7c78b6f",
+        "slug": "masala-fries",
+        "name": "Masala Fries",
+        "quantity": 1,
+        "unit_price": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "line_subtotal": {
+          "amount": 12900,
+          "currency": "INR"
+        },
+        "special_instructions": null,
+        "options": [
+          {
+            "kind": "VARIANT",
+            "group": "Size",
+            "name": "Regular",
+            "price_adjustment": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "pricing": {
+      "currency": "INR",
+      "subtotal": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "discount": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "tax_included": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fee": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      }
+    },
+    "promotion": null,
+    "taxes": [],
+    "fees": [],
+    "payment": {
+      "id": "c374c1b3-16c7-4efc-9383-be02d2a3e971",
+      "mode": "FAKE",
+      "amount": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "provider": "fake",
+      "method_type": "UPI",
+      "verified_at": "2026-10-09T11:27:23+00:00",
+      "method_summary": {
+        "vpa": "su***@fake"
+      },
+      "provider_payment_reference": "fakepay_zuymrthrlnokxs"
+    },
+    "customer_note": null,
+    "rejection": null,
+    "cancellation": null,
+    "refunds": [],
+    "pickup_credential": {
+      "id": "406fa55e-576f-4297-83b4-d7a48daf6972",
+      "status": "CONSUMED",
+      "issued_at": "2026-10-09T11:27:24+00:00",
+      "expires_at": "2026-10-10T12:30:00+00:00",
+      "format_version": 1,
+      "failed_attempts": 0,
+      "locked_until": null
+    },
+    "pickup_credentials": [
+      {
+        "id": "406fa55e-576f-4297-83b4-d7a48daf6972",
+        "status": "CONSUMED",
+        "issued_at": "2026-10-09T11:27:24+00:00",
+        "revoked_at": null,
+        "revoke_reason": null,
+        "consumed_at": "2026-10-09T11:28:03+00:00",
+        "consumed_method": "QR"
+      }
+    ],
+    "pickup_verification": {
+      "status": "VERIFIED",
+      "method": "QR",
+      "verified_at": "2026-10-09T11:28:03+00:00",
+      "verified_by": {
+        "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+        "name": "John Doe"
+      },
+      "credential_status": "CONSUMED",
+      "completed_at": "2026-10-09T11:28:03+00:00"
+    },
+    "pickup_attempts": {
+      "total": 4,
+      "failed": 3,
+      "last": [
+        {
+          "at": "2026-10-09T11:28:07+00:00",
+          "method": "QR",
+          "result": "ALREADY_USED",
+          "staff": {
+            "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+            "name": "John Doe"
+          }
+        },
+        {
+          "at": "2026-10-09T11:28:06+00:00",
+          "method": "QR",
+          "result": "ALREADY_USED",
+          "staff": {
+            "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+            "name": "John Doe"
+          }
+        },
+        {
+          "at": "2026-10-09T11:28:03+00:00",
+          "method": "QR",
+          "result": "SUCCESS",
+          "staff": {
+            "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+            "name": "John Doe"
+          }
+        },
+        {
+          "at": "2026-10-09T11:27:57+00:00",
+          "method": "MANUAL_CODE",
+          "result": "INVALID_CREDENTIAL",
+          "staff": {
+            "id": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc",
+            "name": "John Doe"
+          }
+        }
+      ]
+    },
+    "journey": null,
+    "legal": [
+      {
+        "type": "TERMS",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      },
+      {
+        "type": "PRIVACY",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      },
+      {
+        "type": "REFUND",
+        "version": "draft-2026-09",
+        "accepted_at": "2026-10-09T11:27:20+00:00"
+      }
+    ],
+    "pricing_fingerprint": "b8411bc43e5ca0464371e60858efae608a108548493e499ceea0ab3b78fbae84",
+    "fulfillment": {
+      "id": "bb30dbfc-97bb-4d80-b166-2e14f349b0c9",
+      "checkout_id": "f5f66979-7e77-4a40-83f9-fb368ed188a0",
+      "payment_id": "c374c1b3-16c7-4efc-9383-be02d2a3e971",
+      "order_id": "e9224e1f-3959-40df-930f-278071850c71",
+      "order_number": "FOTG-20261009-VJ6QSU",
+      "trigger": "PAYMENT_VERIFIED",
+      "status": "SUCCEEDED",
+      "attempts": 1,
+      "last_error_code": null,
+      "last_error_detail": null,
+      "next_attempt_at": null,
+      "needs_attention": false,
+      "started_at": "2026-10-09T11:27:24+00:00",
+      "finished_at": "2026-10-09T11:27:24+00:00",
+      "created_at": "2026-10-09T11:27:24+00:00",
+      "updated_at": "2026-10-09T11:27:24+00:00"
+    },
+    "timeline": [
+      {
+        "sequence": 1,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-1",
+        "at": "2026-10-09T11:27:24+00:00",
+        "type": "ORDER_CREATED",
+        "from": "CREATED",
+        "to": "WAITING_FOR_RESTAURANT",
+        "actor": "SYSTEM",
+        "detail": {
+          "payment": "c374c1b3-16c7-4efc-9383-be02d2a3e971",
+          "trigger": "PAYMENT_VERIFIED"
+        }
+      },
+      {
+        "sequence": 2,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-2",
+        "at": "2026-10-09T11:27:52+00:00",
+        "type": "RESTAURANT_ACCEPTED",
+        "from": "WAITING_FOR_RESTAURANT",
+        "to": "ACCEPTED",
+        "actor": "RESTAURANT_USER",
+        "detail": {}
+      },
+      {
+        "sequence": 3,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-3",
+        "at": "2026-10-09T11:27:53+00:00",
+        "type": "PREPARATION_STARTED",
+        "from": "ACCEPTED",
+        "to": "PREPARING",
+        "actor": "RESTAURANT_USER",
+        "detail": {}
+      },
+      {
+        "sequence": 4,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-4",
+        "at": "2026-10-09T11:27:54+00:00",
+        "type": "READY_FOR_PICKUP",
+        "from": "PREPARING",
+        "to": "READY_FOR_PICKUP",
+        "actor": "RESTAURANT_USER",
+        "detail": {}
+      },
+      {
+        "sequence": 5,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-5",
+        "at": "2026-10-09T11:28:03+00:00",
+        "type": "CUSTOMER_PICKED_UP",
+        "from": "READY_FOR_PICKUP",
+        "to": "PICKED_UP",
+        "actor": "RESTAURANT_USER",
+        "detail": {
+          "method": "QR",
+          "credential": "406fa55e-576f-4297-83b4-d7a48daf6972",
+          "verified_by": "6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc"
+        }
+      },
+      {
+        "sequence": 6,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-6",
+        "at": "2026-10-09T11:28:03+00:00",
+        "type": "PICKUP_VERIFIED",
+        "from": null,
+        "to": null,
+        "actor": "RESTAURANT_USER",
+        "detail": {
+          "method": "QR",
+          "location": "0a000000-0000-4000-8000-0000000000a1",
+          "credential": "406fa55e-576f-4297-83b4-d7a48daf6972"
+        }
+      },
+      {
+        "sequence": 7,
+        "event_id": "e9224e1f-3959-40df-930f-278071850c71-7",
+        "at": "2026-10-09T11:28:03+00:00",
+        "type": "ORDER_COMPLETED",
+        "from": "PICKED_UP",
+        "to": "COMPLETED",
+        "actor": "SYSTEM",
+        "detail": {
+          "trigger": "AUTO_AFTER_PICKUP"
+        }
+      }
+    ],
+    "times": {
+      "placed_at": "2026-10-09T11:27:24+00:00",
+      "accepted_at": "2026-10-09T11:27:52+00:00",
+      "rejected_at": null,
+      "preparing_at": "2026-10-09T11:27:53+00:00",
+      "ready_at": "2026-10-09T11:27:54+00:00",
+      "picked_up_at": "2026-10-09T11:28:03+00:00",
+      "completed_at": "2026-10-09T11:28:03+00:00",
+      "cancelled_at": null
+    },
+    "actions": {
+      "cancel": false,
+      "refund": "NOT_IMPLEMENTED",
+      "mark_picked_up": "NOT_PROVIDED"
+    }
+  },
+  "admin_realtime": {
+    "realtime": {
+      "health": {
+        "status": "OPERATIONAL",
+        "driver": "reverb",
+        "checked_at": "2026-10-09T11:31:19+00:00",
+        "latency_ms": 7,
+        "detail": null
+      },
+      "transport": {
+        "preferred": "websocket (Laravel Reverb)",
+        "fallback": "REST resync + polling",
+        "sse": "NOT_IMPLEMENTED (optional by design)"
+      },
+      "allowed_origins": [
+        "localhost",
+        "127.0.0.1"
+      ],
+      "counters": {
+        "broadcast_sent": 116,
+        "broadcast_failed": 0,
+        "broadcast_avg_ms": 25,
+        "channel_auth_granted": 21,
+        "channel_auth_denied": 6,
+        "events_resync": 2
+      },
+      "poll_seconds": {
+        "active": 8,
+        "idle": 30
+      }
+    },
+    "pickup": {
+      "verified": 6,
+      "verified_qr": 4,
+      "verified_manual_code": 2,
+      "refused": 28,
+      "refused_invalid": 12,
+      "refused_not_ready": 2,
+      "refused_wrong_location": 0,
+      "replay": 6,
+      "rate_limited": 4,
+      "locked": 2,
+      "picked_up_not_completed": 0
+    },
+    "completion": {
+      "completed": 6,
+      "after_pickup": 6,
+      "by_sweep": 0,
+      "deferred": 0
+    },
+    "window_hours": 24,
+    "checked_at": "2026-10-09T11:31:19+00:00"
+  }
+}

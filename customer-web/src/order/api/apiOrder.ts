@@ -1,4 +1,5 @@
 import { ApiError, api } from '../../api/client'
+import { echoFor, watchTransport, type TransportState } from '../../realtime/echo'
 import type { Order, OrderEvent, OrderEventType, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRepository, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, CreateOrderInput } from '../repositories'
 import type { OrderTrackingService, TrackingListener } from '../tracking'
 
@@ -118,7 +119,7 @@ export function toOrder(d: OrderDto, customerId: string): Order {
     pickupVerificationStatus: d.pickup_credential === null ? (status === 'REJECTED' || status === 'CANCELLED' ? 'INVALID' : status === 'PICKED_UP' || status === 'COMPLETED' ? 'VERIFIED' : 'NOT_READY') : status === 'READY_FOR_PICKUP' ? 'VERIFICATION_AVAILABLE' : 'READY',
     etaReadyAt: readyAt ?? null, delayed: false, delayReasonKey: null,
     rejectionReasonKey: d.rejection ? REASON[d.rejection.reason] ?? 'other' : null, cancellationReasonKey: d.cancellation ? 'other' : null,
-    lastEventSequence: events.length, paymentAttemptId: d.payment.id ?? '', checkoutReference: '',
+    lastEventSequence: events.length, version: d.version, paymentAttemptId: d.payment.id ?? '', checkoutReference: '',
     journey: d.journey ? { journeyId: d.journey.id, originName: '', destinationName: '' } : null,
     orderNote: d.customer_note ?? '', events, createdAt: d.placed_at ?? new Date().toISOString(), updatedAt: d.updated_at ?? d.placed_at ?? new Date().toISOString(),
   }
@@ -215,24 +216,79 @@ export class ApiOrderTrackingService implements OrderTrackingService {
   private readonly intervalMs: number
   constructor(orders: ApiOrderRepository, intervalMs = 8000) { this.orders = orders; this.intervalMs = intervalMs }
 
+  /**
+   * Module 32: the private channel first (customer.order.{id} on Laravel Reverb), polling as the fallback and as the
+   * resync. A notice carries the version and the event sequence: what is not newer than what the screen has is
+   * ignored; a gap, a reconnection, a tab coming back or a socket that is not there makes the order be read again —
+   * the only source of truth. Nothing here ever advances an order by itself.
+   */
   subscribe(order: Order, listener: TrackingListener): () => void {
     let known = order.lastEventSequence
+    let version = order.version ?? 0
     let stopped = false
-    listener.onConnection('LIVE')
-    const tick = async () => {
-      if (stopped) return
+    let inFlight = false
+    let pollTimer: number | null = null
+    let unwatch: (() => void) | null = null
+    let channel: { stopListening: (e: string) => void } | null = null
+    const echo = echoFor('customer')
+
+    const deliver = (fresh: Order) => {
+      for (const e of fresh.events) if (e.sequence > known) { known = e.sequence; listener.onEvent(e) }
+      version = Math.max(version, fresh.version ?? 0)
+    }
+    const resync = async (why: 'poll' | 'gap' | 'resume' | 'reconnect') => {
+      if (stopped || inFlight) return
+      inFlight = true
       try {
         const fresh = await this.orders.getByOrderNumber(order.orderNumber, order.customerId)
         if (stopped || !fresh) return
-        for (const e of fresh.events) if (e.sequence > known) { known = e.sequence; listener.onEvent(e) }
+        deliver(fresh)
         listener.onConnection('LIVE')
-      } catch { if (!stopped) listener.onConnection('STALE') }
+        if (why === 'gap') listener.onTransport?.(echo ? 'CONNECTED' : 'FALLBACK_POLLING')
+      } catch { if (!stopped) listener.onConnection('STALE') } finally { inFlight = false }
     }
-    const timer = window.setInterval(() => { void tick() }, this.intervalMs)
-    return () => { stopped = true; window.clearInterval(timer) }
+    const startPolling = (why: TransportState) => {
+      if (pollTimer !== null || stopped) return
+      listener.onTransport?.(why)
+      pollTimer = window.setInterval(() => { void resync('poll') }, this.intervalMs)
+    }
+    const stopPolling = () => { if (pollTimer !== null) { window.clearInterval(pollTimer); pollTimer = null } }
+
+    if (echo) {
+      listener.onTransport?.('CONNECTING')
+      channel = echo.private(`customer.order.${order.publicId}`).listen('.order.updated', (notice: OrderUpdatedNotice) => {
+        if (stopped) return
+        // Older or already known: ignore. Exactly the next line: the order is still read (the notice is not the order)
+        // but only what is newer is delivered. A gap or a jump: the same read, and it fills the gap.
+        if ((notice.version ?? 0) <= version && (notice.event_sequence ?? 0) <= known) return
+        void resync((notice.event_sequence ?? 0) > known + 1 ? 'gap' : 'poll')
+      }) as unknown as { stopListening: (e: string) => void }
+      unwatch = watchTransport(echo, (t) => {
+        if (stopped) return
+        listener.onTransport?.(t)
+        if (t === 'CONNECTED') { stopPolling(); void resync('reconnect'); listener.onConnection('LIVE') }
+        else if (t === 'DISCONNECTED' || t === 'RECONNECTING') { listener.onConnection('STALE'); startPolling('FALLBACK_POLLING') }
+      })
+    } else {
+      listener.onConnection('LIVE')
+      startPolling('FALLBACK_POLLING')
+    }
+    // A tab that comes back, or the network: ask at once — the socket may have slept.
+    const wake = () => { if (document.visibilityState === 'visible') void resync('resume') }
+    document.addEventListener('visibilitychange', wake); window.addEventListener('online', wake); window.addEventListener('focus', wake)
+
+    return () => {
+      stopped = true
+      stopPolling(); unwatch?.()
+      document.removeEventListener('visibilitychange', wake); window.removeEventListener('online', wake); window.removeEventListener('focus', wake)
+      if (channel && echo) { try { echo.leave(`customer.order.${order.publicId}`) } catch { /* already gone */ } }
+    }
   }
 
   refresh(orderNumber: string, customerId: string): Promise<Order | null> {
     return this.orders.getByOrderNumber(orderNumber, customerId)
   }
 }
+
+/** The WebSocket notice (OpenAPI: OrderUpdatedBroadcast). A notice, not the order. */
+export type OrderUpdatedNotice = { schema_version: number; order_public_id: string; order_number: string; version: number; status: string; event_type: string; event_sequence: number | null; event_id: string | null; occurred_at: string; message_key?: string }

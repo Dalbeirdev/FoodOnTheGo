@@ -22,11 +22,18 @@ param(
   [ValidateSet('api', 'mock')][string]$PaymentMode = 'api',
   # api = orders are the local backend's (Module 31: created by the server from the verified payment; needs PaymentMode api); mock = the in-app development orders.
   [ValidateSet('api', 'mock')][string]$OrderMode = 'api',
+  # api = live order updates over WebSocket from the local Reverb server (Module 32; needs OrderMode api and the backend's reverb:start); off = poll only
+  [ValidateSet('api', 'off')][string]$RealtimeMode = 'api',
+  # The Reverb app key of the local backend (public to clients). Default: REVERB_APP_KEY from the git-ignored backend/.env.
+  [string]$ReverbKey = '',
+  [int]$ReverbPort = 8085,
   # Local test code shown on the OTP screen of LOCAL builds. Default: OTP_DEV_CODE from the git-ignored backend/.env.
   [string]$DevOtp = ''
 )
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 if (-not $ApiBaseUrl) { $ip = (Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -eq 'Dhcp' -and $_.IPAddress -notlike '169.*' } | Select-Object -First 1).IPAddress; if (-not $ip) { Write-Host 'Could not detect the LAN address; pass -ApiBaseUrl' -ForegroundColor Red; exit 1 }; $ApiBaseUrl = "http://${ip}:8001/api/v1" }
+if ($RealtimeMode -eq 'api' -and -not $ReverbKey) { $k = Select-String -Path (Join-Path $root 'backend\.env') -Pattern '^REVERB_APP_KEY=(.*)$'; if ($k) { $ReverbKey = $k.Matches[0].Groups[1].Value.Trim() } }
+$reverbHost = ($ApiBaseUrl -replace '^https?://', '') -replace ':.*$', ''
 if ($AuthMode -eq 'api' -and -not $DevOtp) { $m = Select-String -Path (Join-Path $root 'backend\.env') -Pattern '^OTP_DEV_CODE=(.*)$'; if ($m) { $DevOtp = $m.Matches[0].Groups[1].Value.Trim() } }
 $out = Join-Path $root 'docs\local-review\apk'; New-Item -ItemType Directory -Force $out | Out-Null
 $name = "FoodOnTheGo-local-review-v$Version-build$($Build.ToString('000')).apk"
@@ -34,7 +41,7 @@ $commit = try { (git -C $root rev-parse --short HEAD 2>$null) } catch { $null };
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm'
 
 Write-Host "Syncing mobile/ into WSL and building $name (API $ApiBaseUrl)…"
-$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=PAYMENT_MODE=$PaymentMode --dart-define=ORDER_MODE=$OrderMode --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
+$cmd = "export PATH=/root/fotg-tools/flutter/bin:`$PATH ANDROID_HOME=/root/fotg-tools/android-sdk; rsync -a --delete --exclude build --exclude .dart_tool --exclude .gradle /mnt/e/TechPio-Data/FoodOnTheGo/mobile/ /root/fotg/mobile/ && cd /root/fotg/mobile && flutter pub get >/dev/null && flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=PAYMENT_MODE=$PaymentMode --dart-define=ORDER_MODE=$OrderMode --dart-define=REALTIME_MODE=$RealtimeMode --dart-define=REVERB_HOST=$reverbHost --dart-define=REVERB_PORT=$ReverbPort --dart-define=REVERB_APP_KEY=$ReverbKey --dart-define=REVERB_SCHEME=http --dart-define=DEV_OTP=$DevOtp --dart-define=BUILD_LABEL=local-review-build$($Build.ToString('000')) --dart-define=GIT_COMMIT=$commit 2>&1 | tee /root/fotg/apk-build.log | tail -5 && cp build/app/outputs/flutter-apk/app-local-debug.apk /mnt/e/TechPio-Data/FoodOnTheGo/docs/local-review/apk/$name"
 wsl.exe -d Ubuntu -u root -e bash -lc $cmd
 $apk = Join-Path $out $name
 if (-not (Test-Path $apk)) { Write-Host 'APK not produced' -ForegroundColor Red; exit 1 }
@@ -53,7 +60,7 @@ $manifest = @"
 | Build timestamp | $stamp |
 | Size | $size MB |
 | SHA-256 | $sha |
-| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=PAYMENT_MODE=$PaymentMode --dart-define=ORDER_MODE=$OrderMode --dart-define=DEV_OTP=<local test code> |
+| Build command | flutter build apk --flavor local --debug --dart-define=APP_ENV=local --dart-define=API_BASE_URL=$ApiBaseUrl --dart-define=AUTH_MODE=$AuthMode --dart-define=MARKET_MODE=$MarketMode --dart-define=RESTAURANT_MODE=$RestaurantMode --dart-define=JOURNEY_MODE=$JourneyMode --dart-define=CART_MODE=$CartMode --dart-define=PICKUP_MODE=$PickupMode --dart-define=CHECKOUT_MODE=$CheckoutMode --dart-define=PAYMENT_MODE=$PaymentMode --dart-define=ORDER_MODE=$OrderMode --dart-define=REALTIME_MODE=$RealtimeMode --dart-define=REVERB_HOST=$reverbHost --dart-define=REVERB_PORT=$ReverbPort --dart-define=REVERB_APP_KEY=$ReverbKey --dart-define=REVERB_SCHEME=http --dart-define=DEV_OTP=<local test code> |
 | Authentication | $AuthMode (api = the PC's local backend must be running and reachable from the device) |
 | Market data | $MarketMode (api = market and coverage are read from the local backend at start-up) |
 | Restaurant data | $RestaurantMode (api = restaurants, hours, cuisines, pickup methods, availability and menus from the local backend; reviews are still development data) |
@@ -62,7 +69,8 @@ $manifest = @"
 | Pickup times | $PickupMode (api = ASAP, pickup slots, capacity state and the arrival-aware recommendation come from the local backend on its clock, in the restaurant's time zone; the choice is stored with the cart and checked again on every read. A chosen time is SELECTED, NOT RESERVED — the slot hold belongs to checkout / order creation) |
 | Checkout | $CheckoutMode (api = the checkout is the local backend's: final validation of the cart and the pickup time, one promotion, the configured tax and fee rules, the total, the legal documents to accept, the pickup-time hold and the payment preparation; mock = the in-app development checkout) |
 | Payments | $PaymentMode (api = the payment step is the local backend's: a payment attempt per try, the payment provider's own screen, verification on the server, recovery after a restart. The PROVIDER AND ITS MODE ARE THE BACKEND'S CONFIGURATION: Razorpay in TEST mode when test keys are configured there, otherwise the development provider, whose place on the phone is a development sheet — no real money moves in either. The verified payment becomes an ORDER on the server (Module 31); mock = the in-app development payment) |
-| Orders | $OrderMode (api = orders are the local backend's: created by the server from the verified payment (exactly once), read by order number, the restaurant's steps (accepted, preparing, ready) followed by polling until realtime tracking arrives (Module 32). NOT built yet: realtime updates, pickup code verification / picked-up, refunds, notifications; mock = the in-app development orders) |
+| Orders | $OrderMode (api = orders are the local backend's: created by the server from the verified payment (exactly once), read by order number; the restaurant's steps (accepted, preparing, ready), the verified pickup (PICKED_UP) and the completion arrive LIVE over the socket and by polling (Module 32). The pickup QR / code the app shows is the server's single-use credential — verified by the restaurant, never by the phone. NOT built yet: refunds, notifications; mock = the in-app development orders) |
+| Live updates | $RealtimeMode (api = WebSocket to the PC's Reverb server at ${reverbHost}:$ReverbPort with polling as the fallback and the resync; off = polling only. The key is public; no secret is in the app) |
 | Location permission | asked only when "Use my current location" is tapped while planning a journey (ACCESS_COARSE_LOCATION / ACCESS_FINE_LOCATION; no background location) |
 | Account data | $AuthMode (api = profile, favorites, saved journey places, payment-method references and notification preferences from the local backend — follows the sign-in mode; the notification inbox is still development data) |
 | Install (USB) | adb install -r $name |

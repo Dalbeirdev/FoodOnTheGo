@@ -65,11 +65,28 @@
         "--dart-define=CHECKOUT_MODE=api",
         "--dart-define=PAYMENT_MODE=api",
         "--dart-define=ORDER_MODE=api",
+        "--dart-define=REALTIME_MODE=api",
+        "--dart-define=REVERB_HOST=127.0.0.1",
+        "--dart-define=REVERB_PORT=8085",
+        "--dart-define=REVERB_APP_KEY=9fd209769eacc915278b",
+        "--dart-define=REVERB_SCHEME=http",
         "--dart-define=DEV_OTP=123456",
         "--dart-define=BUILD_LABEL=web-preview"
       ],
       "cwd": "mobile",
       "port": 5174
+    },
+    {
+      "name": "reverb",
+      "runtimeExecutable": "C:\\Users\\DalbeirSingh\\AppData\\Local\\Microsoft\\WinGet\\Packages\\PHP.PHP.8.3_Microsoft.Winget.Source_8wekyb3d8bbwe\\php.exe",
+      "runtimeArgs": [
+        "artisan",
+        "reverb:start",
+        "--host=127.0.0.1",
+        "--port=8085"
+      ],
+      "port": 8085,
+      "cwd": "backend"
     }
   ]
 }

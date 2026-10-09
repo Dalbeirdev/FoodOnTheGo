@@ -103,6 +103,35 @@ class OrderPerformanceTest extends TestCase
         $this->assertLessThanOrEqual(12, $manyQueries);
     }
 
+    /**
+     * Module 32: the cost of a pickup verification (QR and manual code), of the completion that follows, of the event
+     * stream read and of the channel authorization — queries counted, time measured, never a target.
+     */
+    public function test_verifying_a_pickup_and_completing_the_order_cost_a_fixed_number_of_queries(): void
+    {
+        $this->paidOrder('+919800000001', '13:00');   // warm-up, not measured
+        [, $headers, $order] = $this->readyOrder('+919800000002', '13:15');
+        $payload = $this->credentialOf($headers, $order['order_number'])['qr_payload'];
+        [$qrQueries, $qrMs, $qr] = $this->measure(fn () => $this->verifyQr($payload)->assertOk());
+        $this->assertSame('COMPLETED', $qr->json('order.status'));
+        [, $headers2, $order2] = $this->readyOrder('+919800000003', '13:30');
+        $code = $this->credentialOf($headers2, $order2['order_number'])['code'];
+        [$codeQueries, $codeMs, $manual] = $this->measure(fn () => $this->verifyCode($order2['order_number'], $code)->assertOk());
+        $this->assertSame('COMPLETED', $manual->json('order.status'));
+        [$streamQueries, $streamMs] = $this->measure(fn () => $this->customerEvents($headers, $order['order_number'], 2)->assertOk());
+        [$authQueries, $authMs] = $this->measure(fn () => $this->postJson('/api/v1/customer/broadcasting/auth', ['socket_id' => '1.1', 'channel_name' => 'private-customer.order.'.$order['id']], $this->using($headers))->assertOk());
+        [$replayQueries, $replayMs] = $this->measure(fn () => $this->verifyQr($payload)->assertStatus(409));
+        $this->report['pickup_verification'] = ['qr' => ['queries' => $qrQueries, 'ms' => $qrMs], 'manual_code' => ['queries' => $codeQueries, 'ms' => $codeMs], 'replay_refused' => ['queries' => $replayQueries, 'ms' => $replayMs], 'note' => 'verification + completion in the same request (two transactions), the attempt row and the metrics included'];
+        $this->report['event_stream_read'] = ['queries' => $streamQueries, 'ms' => $streamMs];
+        $this->report['channel_auth'] = ['queries' => $authQueries, 'ms' => $authMs];
+        // No per-line or per-attempt loops: both methods cost about the same and stay small; the stream and the auth are a handful of queries.
+        $this->assertLessThanOrEqual(60, $qrQueries);   // measured 49 on 2026-10-08: the two transactions, the attempt row, the metrics, the answer with the full order
+        $this->assertLessThanOrEqual($qrQueries + 15, $codeQueries);   // the manual path first finds the order within the caller's locations
+        $this->assertLessThanOrEqual(16, $streamQueries);   // measured 14: the session, the order with its relations, the lines after the cursor
+        $this->assertLessThanOrEqual(8, $authQueries);
+        $this->assertLessThanOrEqual(15, $replayQueries);
+    }
+
     public function test_every_lookup_of_the_order_domain_has_an_index(): void
     {
         $indexes = fn (string $table): array => collect(DB::select('select indexname from pg_indexes where schemaname = ? and tablename = ?', ['public', $table]))->pluck('indexname')->all();

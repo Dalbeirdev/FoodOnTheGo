@@ -4,6 +4,7 @@ import { formatLocalTime, formatMoney, zoneLabel } from '../../i18n/format'
 import { t } from '../../i18n/strings'
 import type { Order } from '../../order/repositories'
 import { formatLocalDate } from '../../pickup/time'
+import { useLocationOrdersLive } from '../../realtime/useLocationOrdersLive'
 import { useDashboard } from '../DashboardContext'
 import { BASE } from '../DashboardLayout'
 import { orderTabOf } from '../mock/mockDashboard'
@@ -63,6 +64,8 @@ export default function OrdersPage() {
   const [history, setHistory] = useState<{ orders: Order[]; nextCursor: string | null; total: number } | null>(null)
   const load = useCallback(async (silent = false) => { if (!silent) setState('loading'); try { const r = await d.repos.orders.list(rid, { tab, query, date }); setOrders(r.orders); setCounts(r.counts); setState('ready') } catch { setState('error') } }, [d.repos, rid, tab, query, date])
   useEffect(() => { void load() }, [load])
+  // Module 32: the location's live channel (and polling when it is away) re-reads the queue; a notice is never the order.
+  const live = useLocationOrdersLive(d.live ? d.location?.live?.locationId ?? null : null, () => { void load(true) }, { enabled: d.live })
   useEffect(() => { document.title = `${t('dash.nav.orders', undefined, locale)} · ${t('dash.brand', undefined, locale)}` }, [locale])
   useEffect(() => { if (tab !== 'completed' && tab !== 'cancelled') { setHistory(null); return } let on = true; d.repos.orders.history(rid, { query, status: tab === 'completed' ? 'completed' : 'all', limit: 8 }).then((h) => { if (on) setHistory(tab === 'cancelled' ? { ...h, orders: h.orders.filter((o) => orderTabOf(o.orderStatus) === 'cancelled') } : h) }).catch(() => {}); return () => { on = false } }, [d.repos, rid, tab, query])
   const more = async () => { if (!history?.nextCursor) return; const h = await d.repos.orders.history(rid, { query, status: tab === 'completed' ? 'completed' : 'all', cursor: history.nextCursor, limit: 8 }); setHistory({ ...h, orders: [...history.orders, ...(tab === 'cancelled' ? h.orders.filter((o) => orderTabOf(o.orderStatus) === 'cancelled') : h.orders)] }) }
@@ -71,6 +74,11 @@ export default function OrdersPage() {
   return (
     <div className="db-page" data-testid="db-orders">
       <PageHeader title={t('dash.orders.title', undefined, locale)} lead={t('dash.orders.lead', undefined, locale)} actions={d.can('pickup.verify') ? <Link to={`${BASE}/pickup-verification`} className="db-btn db-btn--outline"><Icon name="qr" size={18} /> {t('dash.nav.pickup', undefined, locale)}</Link> : undefined} />
+      {live.transport !== 'OFF' && (
+        <p className={`db-badge ${live.transport === 'CONNECTED' ? 'db-badge--green' : 'db-badge--amber'}`} style={{ alignSelf: 'flex-start' }} role="status" data-testid="orders-live" data-transport={live.transport}>
+          <Icon name={live.transport === 'CONNECTED' ? 'check' : 'info'} size={14} /> {t(`dash.orders.live.${live.transport}`, undefined, locale)}{live.newOrders > 0 && <> · <b>{t('dash.orders.live.new', { n: live.newOrders }, locale)}</b></>}
+        </p>
+      )}
       <Card>
         <Tabs tabs={tabs} value={tab} onChange={(v) => setParams({ tab: v })} label={t('dash.orders.tabs', undefined, locale)} />
         <div className="db-toolbar" style={{ marginTop: 14 }}>

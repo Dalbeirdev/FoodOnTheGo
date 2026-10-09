@@ -90,6 +90,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
     return Scaffold(
       appBar: BrandAppBar(title: S.t('track.title'), showCart: false),
       body: RefreshIndicator(onRefresh: tr.refresh, child: PageBody(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
+        // The transport line is shown only while the status itself is current: a socket that is still open over a cut network must not say "live" next to a stale banner.
+        if (tr.transport != RealtimeTransport.off && !done && conn != TrackingConnection.stale && conn != TrackingConnection.offline)
+          Padding(padding: const EdgeInsets.only(bottom: 6), child: Semantics(label: S.t('track.transport.${tr.transport.name}'), child: Text(S.t('track.transport.${tr.transport.name}'), key: const Key('trk-transport'), style: TextStyle(fontSize: 12, color: tr.transport == RealtimeTransport.connected ? Brand.green : Brand.amber, fontWeight: FontWeight.w600)))),
         if (conn == TrackingConnection.stale || conn == TrackingConnection.offline)
           Padding(padding: const EdgeInsets.only(bottom: 10), child: InfoBox(icon: conn == TrackingConnection.offline ? Icons.wifi_off : Icons.sync_problem, color: Brand.amber, bg: Brand.amberBg, child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, children: [Text(conn == TrackingConnection.offline ? S.t('track.conn.offline') : S.t('track.conn.stale'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6B4300))), if (tr.lastUpdated != null) Text(S.t('track.lastUpdated', {'time': DateFormat.jm().format(tr.lastUpdated!.toLocal())}), style: const TextStyle(fontSize: 12, color: Brand.grey)), TextButton(onPressed: tr.refresh, child: Text(S.t('track.action.refresh')))]))),
         // Header — current status + separate payment status + connection chip

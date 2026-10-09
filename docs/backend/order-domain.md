@@ -155,9 +155,11 @@ leaves the order standing (the public ids stay as references).
 ## Events, numbers, logs
 
 - `App\Events\Order\OrderEvent` after commit: `order.created`, `order.restaurant_accepted`, `order.preparing`,
-  `order.ready`, `order.restaurant_rejected`, `order.cancelled`, `order.refund_required` — the hooks for Module 32
-  (tracking), the notification module and the refund module. `RecordOrderEvent` writes one log line per event with
-  ids, states and codes only.
+  `order.ready`, `order.picked_up`, `order.completed`, `order.restaurant_rejected`, `order.cancelled`,
+  `order.refund_required`, `order.pickup_credential_reissued` — the hooks for the realtime layer (Module 32:
+  `BroadcastOrderUpdate`, see [`realtime-and-pickup.md`](realtime-and-pickup.md)), the notification module and the
+  refund module. `RecordOrderEvent` writes one log line per event with ids, states and codes only. Every timeline
+  line carries a per-order `sequence` (Module 32).
 - `OrderMetrics`: hourly counters (created, creation_failed, recovery_required, review_required, accepted, rejected,
   preparing, ready, cancelled, refund_required, zero_total), creation latency, and the live counts.
 - Logs never carry a customer's phone or name, an item name, a pickup code, a token or a provider secret.
@@ -166,16 +168,18 @@ leaves the order standing (the public ids stay as references).
 
 - **Customer Web** (`VITE_ORDER_MODE=api`, needs the payment on the backend): `ApiOrderRepository` maps the backend
   order onto the order model the confirmation, tracking, details and history pages already render; the payment page
-  waits for `fulfillment.order_number` and opens the confirmation; tracking polls the order every 8 s until the event
-  stream of Module 32. Zero-total checkouts call `POST /checkouts/{checkout}/fulfill`.
+  waits for `fulfillment.order_number` and opens the confirmation; tracking listens to the order's private channel
+  and polls as the fallback (Module 32). Zero-total checkouts call `POST /checkouts/{checkout}/fulfill`.
 - **Restaurant Dashboard**: `ApiRestaurantOrderRepository` — the queue, accept / reject / ready (the one "ready"
-  button takes the two backend steps ACCEPTED → PREPARING → READY_FOR_PICKUP in order). "Report delay" and pickup
-  verification are refused plainly (not on the backend yet).
+  button takes the two backend steps ACCEPTED → PREPARING → READY_FOR_PICKUP in order); the queue is live on the
+  location's channel; pickup verification (QR / manual code) is `POST /restaurant/pickup/verify` (Module 32).
+  "Report delay" is refused plainly (not on the backend yet).
 - **Platform Admin**: `ApiAdminOrderRepository` — orders, detail with the payment and refunds, exceptions from the
   order creation records; cancel and recover.
 - **Android** (`ORDER_MODE=api`): `ApiOrderRepository`, `ApiPickupVerificationRepository`, `ApiOrderTrackingService`
-  (polling); the payment screen waits for the order number and opens the confirmation; a restart re-reads the payment
-  and finds the same order — never a second one.
+  (the private channel over `lib/realtime/pusher_client.dart`, polling as the fallback — Module 32); the payment
+  screen waits for the order number and opens the confirmation; a restart re-reads the payment and finds the same
+  order — never a second one.
 
 ## Running locally
 
@@ -194,6 +198,6 @@ constraints, retention, no customer cancellation, admin cancel with audit, crede
 
 ## Not in this module
 
-Realtime tracking · secure pickup verification and PICKED_UP / COMPLETED · refund processing · notification delivery ·
-customer cancellation · delay reporting · settlements. Every one of them is named `NOT_IMPLEMENTED` where a client
-or an administrator would look for it.
+Refund processing · notification delivery · customer cancellation · delay reporting · settlements. Every one of them
+is named `NOT_IMPLEMENTED` where a client or an administrator would look for it. Realtime tracking, secure pickup
+verification and PICKED_UP / COMPLETED were Module 32 — see [`realtime-and-pickup.md`](realtime-and-pickup.md).
