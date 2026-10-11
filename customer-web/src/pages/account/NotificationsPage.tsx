@@ -4,7 +4,7 @@ import Header from '../../components/Header'
 import AccountSidebar from '../../components/AccountSidebar'
 import { EmptyState, ErrorState, LoadingState } from '../../components/AccountStates'
 import { useToast } from '../../components/Toast'
-import { useAccount, type Notification, type NotificationChannel, type NotificationKind, type NotificationMatrix, type NotificationPreferences } from '../../account/AccountContext'
+import { useAccount, useInboxRefreshOn, type Notification, type NotificationChannel, type NotificationKind, type NotificationMatrix, type NotificationPreferences } from '../../account/AccountContext'
 import './AccountPage.css'
 import './NotificationsPage.css'
 
@@ -30,6 +30,7 @@ const PREFS: Array<{ key: keyof Omit<NotificationPreferences, 'matrix'>; label: 
   { key: 'sms', label: 'SMS notifications', sub: 'Pickup codes and urgent updates', provider: 'SMS provider = NOT STARTED' },
 ]
 const CHANNEL_LABEL: Record<NotificationChannel, string> = { PUSH: 'Push', SMS: 'SMS', EMAIL: 'Email', IN_APP: 'In app' }
+const CHANNEL_STATUS_TEXT: Record<string, string> = { AVAILABLE: 'available', DEVELOPMENT: 'development provider on this machine (no real message leaves it)', PENDING: 'provider pending — nothing is sent yet', UNAVAILABLE: 'not available' }
 
 const ago = (iso: string) => {
   const m = Math.round((Date.now() - new Date(iso).getTime()) / 60_000)
@@ -82,6 +83,7 @@ function PreferenceMatrix({ matrix, saving, onToggle }: { matrix: NotificationMa
 export default function NotificationsPage() {
   const { notifications, notificationsAreDevelopmentData, unreadCount, markRead, markAllRead, notificationPrefs, updateNotificationPrefs } = useAccount()
   const toast = useToast()
+  useInboxRefreshOn('opened')   // Module 33: the inbox is read again each time the page opens (quietly — the list stays while it loads)
   const [tab, setTab] = useState<'all' | NotificationKind>('all')
   const [showPrefs, setShowPrefs] = useState(false)
   const [busyAll, setBusyAll] = useState(false)
@@ -112,7 +114,7 @@ export default function NotificationsPage() {
               <div><h1>Notifications</h1><p>Stay updated with your orders, offers and more</p></div>
               <div className="nt-head__actions">
                 <button type="button" className="ac-link-btn" aria-expanded={showPrefs} aria-controls="nt-prefs" onClick={() => setShowPrefs((v) => !v)}>Preferences</button>
-                {unreadCount > 0 && <button type="button" className="ac-link-btn" onClick={allRead} disabled={busyAll}>{busyAll ? 'Updating…' : 'Mark all as read'}</button>}
+                {unreadCount > 0 && <button type="button" className="ac-link-btn" data-testid="nt-read-all" onClick={allRead} disabled={busyAll}>{busyAll ? 'Updating…' : 'Mark all as read'}</button>}
               </div>
             </div>
 
@@ -132,11 +134,12 @@ export default function NotificationsPage() {
                     ))}
                   </ul>
                 )}
-                <p className="ac-note">{matrix ? 'Your choices are saved on your account now. Sending push, SMS and e-mail is connected in later modules (push tokens, SMS and e-mail providers = NOT STARTED).' : 'Delivery of push, SMS and email is connected in later modules; your choices are saved now.'}</p>
+                {matrix?.channelStatus && <ul className="nt-channel-status" data-testid="nt-channel-status">{(Object.entries(matrix.channelStatus) as Array<[NotificationChannel, string]>).map(([ch, st]) => <li key={ch} data-channel={ch} data-status={st}><b>{CHANNEL_LABEL[ch]}</b> {CHANNEL_STATUS_TEXT[st] ?? st}</li>)}</ul>}
+                <p className="ac-note">{matrix ? 'Your choices decide what the backend sends. In-app notices are always kept here; push goes to the Android app; e-mail needs a verified address (none is verified yet); SMS has no provider yet.' : 'Delivery of push, SMS and email is connected in later modules; your choices are saved now.'}</p>
               </section>
             )}
 
-            {notificationsAreDevelopmentData && <p className="ac-note ac-note--info">The notification list below is development data: notifications are delivered by a later module. Your preferences above are real.</p>}
+            {notificationsAreDevelopmentData && <p className="ac-note ac-note--info">The notification list below is development data (the mock). On the backend the list is your real inbox (Module 33).</p>}
 
             <div className="nt-tabs" role="tablist">
               {TABS.map((t) => {
@@ -151,7 +154,7 @@ export default function NotificationsPage() {
               <EmptyState icon={<ICON.bell size={32} />} title="You're all caught up" text={tab === 'all' ? 'No notifications yet.' : 'No notifications in this category.'} />
             )}
             {notifications.status === 'ready' && visible.length > 0 && (
-              <ul className="nt-list">
+              <ul className="nt-list" data-testid="nt-list">
                 {visible.map((n) => {
                   const Icon = ICON[n.icon]
                   const body = (
@@ -163,7 +166,7 @@ export default function NotificationsPage() {
                     </>
                   )
                   return (
-                    <li key={n.id} className={`nt ${n.read ? '' : 'is-unread'}`}>
+                    <li key={n.id} className={`nt ${n.read ? '' : 'is-unread'}`} data-testid="nt-item" data-type={n.type ?? ''} data-read={n.read ? 'true' : 'false'}>
                       {n.link
                         ? <Link to={n.link} onClick={() => { void read(n.id) }}>{body}</Link>
                         : <button type="button" onClick={() => { void read(n.id) }} aria-label={`${n.title}. ${n.read ? 'Read' : 'Mark as read'}`}>{body}</button>}

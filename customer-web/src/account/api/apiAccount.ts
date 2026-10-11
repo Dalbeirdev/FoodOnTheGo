@@ -21,12 +21,12 @@ import { ApiError, api } from '../../api/client'
 import { dataUrlToBlob } from '../../api/dataUrl'
 import { marketRepository } from '../../market/mock/mockMarket'
 import { apiRestaurants, legacyRestaurant, restaurantCuisines, toRestaurant, type PublicRestaurantDto } from '../../restaurants/api/restaurantData'
-import { MockNotificationRepository } from '../mock/mockRepositories'
 import {
   RepositoryError,
   type AccountSecurity, type Address, type AddressInput, type AddressKind, type AddressRepository, type CodeChallenge, type Coverage, type Favorite, type FavoriteRepository,
   type Gender, type Notification, type NotificationCellChange, type NotificationChannel, type NotificationMatrix, type NotificationPreferences, type NotificationPreferencesPatch,
   type NotificationRepository, type Option, type PaymentMethod, type PaymentMethodRepository, type Profile, type ProfilePatch, type ProfileRepository,
+  type NotificationAction, type NotificationKind,
 } from '../repositories'
 
 /* ------------------------------------------------------------------ wire formats (OpenAPI: CustomerProfile, FavoriteRestaurant, SavedLocation, PaymentMethodSummary, NotificationPreferences) */
@@ -54,7 +54,12 @@ export type NotificationPreferencesDto = {
   categories: Array<{ category: string; name: string; description: string; transactional: boolean; channels: Array<{ channel: NotificationChannel; enabled: boolean; locked: boolean; chosen: boolean }> }>
   channels: NotificationChannel[]
   marketing_consent: { granted_at: string | null; withdrawn_at: string | null }
+  channel_status?: Partial<Record<NotificationChannel, 'AVAILABLE' | 'DEVELOPMENT' | 'PENDING' | 'UNAVAILABLE'>>
 }
+/** Module 33: one in-app notification as the backend answers it. */
+export type NotificationDto = { id: string; category: string; type: string; priority: 'NORMAL' | 'HIGH'; transactional: boolean; title: string; body: string; action: { target: NotificationAction['target']; reference: string | null }; subject: { type: string | null; id: string | null; reference: string | null }; read: boolean; read_at: string | null; created_at: string | null }
+export type NotificationPageDto = { data: NotificationDto[]; meta: { current_page: number; per_page: number; total: number }; unread_count: number }
+
 type ChallengeDto = { challenge_id: string; phone_masked: string; expires_at: string; resend_available_at: string; attempts_allowed: number; server_time: string; delivery: 'live' | 'development'; purpose: string; change_id?: string }
 
 /* ------------------------------------------------------------------ errors */
@@ -250,6 +255,7 @@ export function toMatrix(d: NotificationPreferencesDto): NotificationMatrix {
     categories: d.categories.map((c) => ({ category: c.category, name: c.name, description: c.description, transactional: c.transactional, channels: c.channels.map((ch) => ({ ...ch })) })),
     channels: d.channels,
     marketingConsent: { grantedAt: d.marketing_consent.granted_at, withdrawnAt: d.marketing_consent.withdrawn_at },
+    channelStatus: d.channel_status,
   }
 }
 /** The matrix, plus the Module 04 switches derived from it (any cell on) for callers that still read them. */
@@ -276,15 +282,42 @@ export function cellsFor(patch: NotificationPreferencesPatch, matrix: Notificati
   return cells
 }
 
+/** The allow-listed action target → the route of this app (never a URL from the server). */
+export const notificationLink = (action: NotificationAction | undefined): string | undefined => {
+  if (!action) return undefined
+  const ref = action.reference ? encodeURIComponent(action.reference) : null
+  switch (action.target) {
+    case 'ORDER_TRACKING': return ref ? `/order-tracking/${ref}` : '/my-orders'
+    case 'ORDER_DETAIL': case 'PAYMENT_STATUS': return ref ? `/order/${ref}` : '/my-orders'
+    case 'ACCOUNT_SECURITY': return '/my-profile'
+    case 'PROMOTION': return '/restaurants'
+    default: return undefined
+  }
+}
+const KIND: Record<string, NotificationKind> = { ORDER_UPDATES: 'orders', PICKUP_UPDATES: 'orders', PAYMENT_UPDATES: 'orders', ACCOUNT_SECURITY: 'updates', PROMOTIONS: 'offers', PRODUCT_UPDATES: 'updates' }
+const ICON_OF: Record<string, Notification['icon']> = { ORDER_UPDATES: 'bag', PICKUP_UPDATES: 'bell', PAYMENT_UPDATES: 'tag', ACCOUNT_SECURITY: 'user', PROMOTIONS: 'percent', PRODUCT_UPDATES: 'store' }
+export const toNotification = (d: NotificationDto): Notification => ({
+  id: d.id, kind: KIND[d.category] ?? 'updates', icon: ICON_OF[d.category] ?? 'bell', title: d.title, text: d.body, at: d.created_at ?? new Date().toISOString(), read: d.read,
+  link: notificationLink(d.action), category: d.category, type: d.type, action: d.action,
+})
+
+/** The inbox on the backend (Module 33): the customer's own notifications, newest first; read is the only change a customer makes. */
 export class ApiNotificationRepository implements NotificationRepository {
-  /** The inbox is development data until notification delivery exists (a later module); preferences are real. */
-  readonly inboxIsDevelopmentData = true
-  private inbox = new MockNotificationRepository()
+  readonly inboxIsDevelopmentData = false
   private matrix: NotificationMatrix | null = null
 
-  list(userId: string): Promise<Notification[]> { return this.inbox.list(userId) }
-  markRead(userId: string, id: string): Promise<Notification[]> { return this.inbox.markRead(userId, id) }
-  markAllRead(userId: string): Promise<Notification[]> { return this.inbox.markAllRead(userId) }
+  async list(): Promise<Notification[]> {
+    try { return (await api<NotificationPageDto>('/customer/notifications?per_page=50')).data.map(toNotification) } catch (e) { throw toRepositoryError('notifications', e) }
+  }
+  async markRead(_userId: string, id: string): Promise<Notification[]> {
+    try { await api(`/customer/notifications/${encodeURIComponent(id)}/read`, { method: 'POST', body: {} }); return await this.list() } catch (e) { throw toRepositoryError('notifications', e) }
+  }
+  async markAllRead(): Promise<Notification[]> {
+    try { await api('/customer/notifications/read-all', { method: 'POST', body: {} }); return await this.list() } catch (e) { throw toRepositoryError('notifications', e) }
+  }
+  async unreadCount(): Promise<number> {
+    try { return (await api<{ unread_count: number }>('/customer/notifications/unread-count')).unread_count } catch (e) { throw toRepositoryError('notifications', e) }
+  }
 
   async getPreferences(): Promise<NotificationPreferences> {
     try { const p = toPreferences(await api<NotificationPreferencesDto>('/customer/notification-preferences')); this.matrix = p.matrix ?? null; return p } catch (e) { throw toRepositoryError('notifications', e) }

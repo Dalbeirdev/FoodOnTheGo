@@ -9,6 +9,7 @@ import '../core/theme.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
 import '../order/api_order.dart' show ordersFromApi;
+import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/order_state.dart';
 import '../widgets/common.dart';
@@ -30,6 +31,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   @override
   void initState() {
     super.initState();
+    // Module 33: the order just placed has its "Order placed" notice — read the inbox so the badge shows it.
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (!mounted) return; try { context.read<AccountState>().refreshNotifications(); } on ProviderNotFoundException { /* a tree without the account (tests) */ } });
   }
 
   // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the

@@ -10,6 +10,7 @@ import { readScenario, setScenario } from '../order/mock/mockTracking'
 import type { Order } from '../order/repositories'
 import { distanceMeters, pickupVisible, SCENARIOS, timelineFor, type TimelineStage, type TrackingScenario } from '../order/tracking'
 import { useOrderTracking, type TrackingDeps } from '../order/useOrderTracking'
+import { useInboxRefreshOn } from '../account/AccountContext'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
@@ -37,6 +38,8 @@ export default function OrderTrackingPage({ deps }: { deps?: TrackingDeps }) {
   const [scenario, setScenarioState] = useState<TrackingScenario>(() => readScenario())
   useEffect(() => { document.title = `${t('track.title', undefined, locale)} · FoodOnTheGo` }, [locale])
   const o = tr.order
+  // Module 33: a status change also means a new in-app notification — read the inbox again so the bell is right (the database decides).
+  useInboxRefreshOn(o?.orderStatus)
 
   return (
     <>

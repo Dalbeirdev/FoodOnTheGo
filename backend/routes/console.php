@@ -22,3 +22,7 @@ Schedule::command('checkouts:prune')->everyFiveMinutes();
 Schedule::command('payments:reconcile')->everyMinute()->withoutOverlapping();
 // Orders (Module 31): order creation that is due again, and verified payments that nobody turned into an order.
 Schedule::command('orders:recover')->everyMinute()->withoutOverlapping();
+
+// Module 33: stranded or lost notification deliveries are re-queued; retention runs nightly.
+Schedule::command('notifications:recover')->everyMinute()->withoutOverlapping();
+Schedule::command('notifications:prune')->daily();

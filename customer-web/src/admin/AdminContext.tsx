@@ -10,6 +10,7 @@ import { marketMode } from '../market/marketMode'
 import { marketRepository } from '../market/mock/mockMarket'
 import { ApiAdminAuditRepository } from './api/ApiAdminAuditRepository'
 import { ApiAdminMarketControlRepository } from './api/ApiAdminMarketControlRepository'
+import { ApiAdminNotificationRepository } from './api/ApiAdminNotificationRepository'
 import { ApiAdminOrderRepository } from './api/ApiAdminOrderRepository'
 import { orderMode } from '../order/orderMode'
 import { ApiAdminRestaurantRepository } from './api/ApiAdminRestaurantRepository'
@@ -65,8 +66,8 @@ export const detectEnvironment = (): Environment => { const e = (import.meta.env
  * settlements, reviews, support, analytics) are still the mock.
  */
 /** The admin sections that run on the backend: market control, administrator accounts, audit trail, security — and restaurants (Module 23). */
-export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', 'promotions', 'payments', ...(restaurantMode() === 'api' ? ['restaurants'] : []), ...(orderMode() === 'api' ? ['orders'] : [])] : [])
-const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, ...(restaurantMode() === 'api' ? { restaurants: new ApiAdminRestaurantRepository() } : {}), ...(orderMode() === 'api' ? { orders: new ApiAdminOrderRepository() } : {}), promotions: new ApiAdminPromotionRepository(), marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
+export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', 'promotions', 'payments', ...(restaurantMode() === 'api' ? ['restaurants'] : []), ...(orderMode() === 'api' ? ['orders', 'notifications'] : [])] : [])
+const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, ...(restaurantMode() === 'api' ? { restaurants: new ApiAdminRestaurantRepository() } : {}), ...(orderMode() === 'api' ? { orders: new ApiAdminOrderRepository(), notifications: new ApiAdminNotificationRepository() } : {}), promotions: new ApiAdminPromotionRepository(), marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {
   const repos = useMemo(() => given ?? defaultRepositories(), [given])

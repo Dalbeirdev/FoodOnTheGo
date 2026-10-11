@@ -125,7 +125,7 @@ class OrderPerformanceTest extends TestCase
         $this->report['event_stream_read'] = ['queries' => $streamQueries, 'ms' => $streamMs];
         $this->report['channel_auth'] = ['queries' => $authQueries, 'ms' => $authMs];
         // No per-line or per-attempt loops: both methods cost about the same and stay small; the stream and the auth are a handful of queries.
-        $this->assertLessThanOrEqual(60, $qrQueries);   // measured 49 on 2026-10-08: the two transactions, the attempt row, the metrics, the answer with the full order
+        $this->assertLessThanOrEqual(72, $qrQueries);   // measured 49 on 2026-10-08 (the two transactions, the attempt row, the metrics, the answer with the full order); 66 on 2026-10-09 with the Module 33 picked-up and completed in-app notices (two notifications + their delivery rows, written after the commits)
         $this->assertLessThanOrEqual($qrQueries + 15, $codeQueries);   // the manual path first finds the order within the caller's locations
         $this->assertLessThanOrEqual(16, $streamQueries);   // measured 14: the session, the order with its relations, the lines after the cursor
         $this->assertLessThanOrEqual(8, $authQueries);

@@ -47,7 +47,7 @@ export default function AdminApp() {
       <Route path="promotions" element={<RequireAdminPermission perm="promotions.view"><AdminPromotionsPage /></RequireAdminPermission>} />
       <Route path="support" element={<RequireAdminPermission perm="support.view"><AdminSupportPage /></RequireAdminPermission>} />
       <Route path="support/:id" element={<RequireAdminPermission perm="support.view"><AdminSupportCasePage /></RequireAdminPermission>} />
-      <Route path="notifications" element={<RequireAdminPermission perm="notifications.manage"><AdminNotificationsPage /></RequireAdminPermission>} />
+      <Route path="notifications" element={<RequireAdminPermission perm="notifications.view"><AdminNotificationsPage /></RequireAdminPermission>} />
       {/* Module 18A — Market Control Center (India-first launch configuration, global-ready) */}
       <Route path="markets" element={<RequireAdminPermission perm="markets.view"><MarketsOverviewPage /></RequireAdminPermission>} />
       <Route path="markets/registry" element={<RequireAdminPermission perm="markets.view"><AdminMarketsPage /></RequireAdminPermission>} />

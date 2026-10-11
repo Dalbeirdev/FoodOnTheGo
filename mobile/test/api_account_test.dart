@@ -290,11 +290,11 @@ void main() {
       expect(flatCells(before, before.copyWith(push: true), before.matrix!), isEmpty);
     });
 
-    test('reads the matrix and PATCHes cells; a locked cell is refused by the backend; the inbox stays development data', () async {
+    test('reads the matrix and PATCHes cells; a locked cell is refused by the backend; the inbox is the backend inbox (Module 33)', () async {
       final seen = Seen();
       var refuse = false;
       final repo = ApiNotificationRepository(client: client(seen, (r) => refuse ? _json(422, error('validation_failed', 'The submitted data is invalid.', {'preferences.0.enabled': ['Security notices on this channel cannot be switched off.']})) : _json(200, prefsDto())), devStore: MockAccountStore(store: MemoryStore(), latency: Duration.zero));
-      expect(repo.inboxIsDevelopmentData, isTrue);
+      expect(repo.inboxIsDevelopmentData, isFalse);
       expect((await repo.getPreferences('u')).promotions, isFalse);
       await repo.updateCells('u', const [NotificationCellChange('PROMOTIONS', 'EMAIL', true)]);
       expect(seen.body('PATCH', '/customer/notification-preferences'), {'preferences': [{'category': 'PROMOTIONS', 'channel': 'EMAIL', 'enabled': true}]});
@@ -304,14 +304,14 @@ void main() {
   });
 
   group('which implementation runs', () {
-    test('the backend bundle: real profile, favorites, places, payment references and preferences; development inbox', () {
+    test('the backend bundle: real profile, favorites, places, payment references, preferences and the inbox (Module 33)', () {
       final repos = apiAccountRepositories(client: client(Seen(), (_) => _json(200, {})), devStore: MemoryStore(), country: 'IN');
       expect(repos.profile, isA<ApiProfileRepository>());
       expect(repos.profile.updatesIdentity, isTrue);
       expect(repos.favorites, isA<ApiFavoriteRepository>());
       expect(repos.addresses, isA<ApiAddressRepository>());
       expect(repos.payments, isA<ApiPaymentMethodRepository>());
-      expect(repos.notifications.inboxIsDevelopmentData, isTrue);
+      expect(repos.notifications.inboxIsDevelopmentData, isFalse);
       final mock = AccountRepositories.mock(MockAccountStore(store: MemoryStore()));
       expect(mock.profile.updatesIdentity, isFalse);
       expect(mock.profile.security, isNull);

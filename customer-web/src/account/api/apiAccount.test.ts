@@ -234,10 +234,10 @@ describe('notification preferences', () => {
     expect(cellsFor({ promotions: true }, matrix).length).toBe(4)
   })
 
-  it('reads the matrix and PATCHes cells; the inbox stays development data', async () => {
+  it('reads the matrix and PATCHes cells; the inbox is the backend\'s (Module 33)', async () => {
     reply = () => ({ body: prefsDto() })
     const repo = new ApiNotificationRepository()
-    expect(repo.inboxIsDevelopmentData).toBe(true)
+    expect(repo.inboxIsDevelopmentData).toBe(false)
     expect((await repo.getPreferences()).promotions).toBe(false)
     await repo.updatePreferences('u', { cells: [{ category: 'PROMOTIONS', channel: 'EMAIL', enabled: true }] })
     expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ preferences: [{ category: 'PROMOTIONS', channel: 'EMAIL', enabled: true }] })
@@ -247,12 +247,27 @@ describe('notification preferences', () => {
   })
 })
 
+describe('the in-app inbox (Module 33)', () => {
+  it('lists the backend notifications newest first with an allow-listed link, marks one and all read, reads the unread count', async () => {
+    const row = { id: 'n-1', category: 'PICKUP_UPDATES', type: 'order.ready', priority: 'HIGH', transactional: true, title: 'Ready for pickup', body: 'Order FOTG-1 is ready at Burger Hub.', action: { target: 'ORDER_TRACKING', reference: 'FOTG-1' }, subject: { type: 'ORDER', id: 'o-1', reference: 'FOTG-1' }, read: false, read_at: null, created_at: '2026-10-09T10:00:00Z' }
+    reply = (method, path) => path.endsWith('/unread-count') ? { body: { unread_count: 1 } } : method === 'POST' ? { body: { marked: 1, unread_count: 0 } } : { body: { data: [row, { ...row, id: 'n-2', category: 'ACCOUNT_SECURITY', type: 'account.phone_changed', action: { target: 'ACCOUNT_SECURITY', reference: null }, read: true }], meta: { current_page: 1, per_page: 50, total: 2 }, unread_count: 1 } }
+    const repo = new ApiNotificationRepository()
+    const list = await repo.list()
+    expect(list.map((n) => [n.id, n.kind, n.icon, n.link, n.read])).toEqual([['n-1', 'orders', 'bell', '/order-tracking/FOTG-1', false], ['n-2', 'updates', 'user', '/my-profile', true]])
+    expect(await repo.unreadCount()).toBe(1)
+    await repo.markRead('u', 'n-1')
+    expect(calls.find((c) => c.method === 'POST')?.path).toBe('/customer/notifications/n-1/read')
+    await repo.markAllRead()
+    expect(calls.filter((c) => c.method === 'POST').pop()?.path).toBe('/customer/notifications/read-all')
+  })
+})
+
 describe('which implementation runs', () => {
   it('follows the sign-in mode: API sign-in → the backend account, mock sign-in → development data', () => {
     const api = selectAccountRepositories('api')
     expect(api.profile).toBeInstanceOf(ApiProfileRepository)
     expect(api.account.favorites).toBeInstanceOf(ApiFavoriteRepository)
-    expect(api.account.notifications.inboxIsDevelopmentData).toBe(true)
+    expect(api.account.notifications.inboxIsDevelopmentData).toBe(false)
     const mock = selectAccountRepositories('mock')
     expect(mock.profile).toBeInstanceOf(MockProfileRepository)
     expect(mock.account.favorites).toBeInstanceOf(MockFavoriteRepository)

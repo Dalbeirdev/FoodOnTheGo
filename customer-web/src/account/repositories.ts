@@ -140,12 +140,15 @@ export interface PaymentMethodRepository {
 /* ---------------- Notifications ---------------- */
 export type NotificationKind = 'orders' | 'offers' | 'updates'
 export type NotificationIcon = 'bag' | 'tag' | 'bell' | 'store' | 'percent' | 'user'
-export type Notification = { id: string; kind: NotificationKind; icon: NotificationIcon; title: string; text: string; at: string; read: boolean; link?: string }
+export type NotificationAction = { target: 'NONE' | 'ORDER_DETAIL' | 'ORDER_TRACKING' | 'PAYMENT_STATUS' | 'ACCOUNT_SECURITY' | 'PROMOTION'; reference: string | null }
+/** One in-app notification. API: the backend's logical notification (Module 33) — `link` is derived from the allow-listed action target, never from a stored URL. */
+export type Notification = { id: string; kind: NotificationKind; icon: NotificationIcon; title: string; text: string; at: string; read: boolean; link?: string; category?: string; type?: string; action?: NotificationAction }
 export type NotificationChannel = 'PUSH' | 'SMS' | 'EMAIL' | 'IN_APP'
 export type NotificationCell = { channel: NotificationChannel; enabled: boolean; locked: boolean; chosen: boolean }
 export type NotificationCategory = { category: string; name: string; description: string; transactional: boolean; channels: NotificationCell[] }
 /** API: the category × channel matrix the backend keeps; security notices stay on where a cell is locked. */
-export type NotificationMatrix = { categories: NotificationCategory[]; channels: NotificationChannel[]; marketingConsent: { grantedAt: string | null; withdrawnAt: string | null } }
+export type ChannelStatus = 'AVAILABLE' | 'DEVELOPMENT' | 'PENDING' | 'UNAVAILABLE'
+export type NotificationMatrix = { categories: NotificationCategory[]; channels: NotificationChannel[]; marketingConsent: { grantedAt: string | null; withdrawnAt: string | null }; channelStatus?: Partial<Record<NotificationChannel, ChannelStatus>> }
 export type NotificationPreferences = { push: boolean; orderUpdates: boolean; paymentUpdates: boolean; promotions: boolean; email: boolean; sms: boolean; matrix?: NotificationMatrix }
 export type NotificationCellChange = { category: string; channel: NotificationChannel; enabled: boolean }
 export type NotificationPreferencesPatch = Partial<Omit<NotificationPreferences, 'matrix'>> & { cells?: NotificationCellChange[] }
@@ -155,7 +158,9 @@ export interface NotificationRepository {
   markAllRead(userId: string): Promise<Notification[]>
   getPreferences(userId: string): Promise<NotificationPreferences>
   updatePreferences(userId: string, patch: NotificationPreferencesPatch): Promise<NotificationPreferences>
-  /** true when the inbox is development data (notification delivery is a later module). */
+  /** The server's unread count (API); the mock counts its list. */
+  unreadCount?(userId: string): Promise<number>
+  /** true when the inbox is development data (the mock); false on the backend (Module 33). */
   readonly inboxIsDevelopmentData?: boolean
 }
 

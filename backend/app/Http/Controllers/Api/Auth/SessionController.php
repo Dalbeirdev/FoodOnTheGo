@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Auth\Principal;
+use App\Enums\CustomerDeviceRevokeReason;
 use App\Enums\SecurityEventType;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Auth\PrincipalResource;
 use App\Http\Resources\Auth\SessionResource;
+use App\Models\Customer;
 use App\Services\Auth\SecurityEventRecorder;
 use App\Services\Auth\TokenIssuer;
+use App\Services\Notifications\CustomerDeviceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -34,6 +37,12 @@ class SessionController extends Controller
 
         $events->record(SecurityEventType::Logout, $principal, ['session' => $token->public_id ?? null]);
         $principal->tokens()->whereKey($token->getKey())->delete();
+        // Module 33: the app names its installation so its push binding ends with the session (a shared phone never
+        // keeps receiving this customer's orders). Optional: the web has no installation.
+        $installation = $request->input('installation_id');
+        if ($principal instanceof Customer && is_string($installation) && preg_match('/^[A-Za-z0-9_-]{8,64}$/', $installation) === 1) {
+            app(CustomerDeviceService::class)->revokeInstallation($principal, $installation, CustomerDeviceRevokeReason::Logout);
+        }
 
         return response()->json(null, 204);
     }
@@ -43,6 +52,9 @@ class SessionController extends Controller
         /** @var Principal $principal */
         $principal = $request->user();
         $revoked = $tokens->revokeAll($principal);
+        if ($principal instanceof Customer) {
+            app(CustomerDeviceService::class)->revokeAll($principal, CustomerDeviceRevokeReason::Logout);
+        }
 
         $events->record(SecurityEventType::SessionRevoked, $principal, ['scope' => 'all', 'sessions_revoked' => $revoked]);
 

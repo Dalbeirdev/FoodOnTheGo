@@ -436,6 +436,7 @@ NotificationPreferences preferencesFromApi(Map<String, dynamic> d) {
     channels: (d['channels'] as List<dynamic>).cast<String>(),
     consentGrantedAt: consent['granted_at'] as String?,
     consentWithdrawnAt: consent['withdrawn_at'] as String?,
+    channelStatus: {for (final e in ((d['channel_status'] as Map<String, dynamic>?) ?? const <String, dynamic>{}).entries) e.key: e.value.toString()},
   );
   return NotificationPreferences(
     push: matrix.isOn(channel: 'PUSH'),
@@ -468,22 +469,88 @@ List<NotificationCellChange> flatCells(NotificationPreferences before, Notificat
   return cells;
 }
 
+/// The allow-listed action target → the app's route (never a URL from the server).
+String? notificationRoute(String? target, String? reference) {
+  final ref = reference != null && RegExp(r'^FOTG-[0-9]{8}-[A-Z0-9]{6}$').hasMatch(reference) ? reference : null;
+  switch (target) {
+    case 'ORDER_TRACKING': return ref == null ? '/my-orders' : '/order-tracking/$ref';
+    case 'ORDER_DETAIL':
+    case 'PAYMENT_STATUS': return ref == null ? '/my-orders' : '/order/$ref';
+    case 'ACCOUNT_SECURITY': return '/my-profile';
+    case 'PROMOTION': return '/restaurants';
+    default: return null;
+  }
+}
+
+const _kindOf = {'ORDER_UPDATES': 'orders', 'PICKUP_UPDATES': 'orders', 'PAYMENT_UPDATES': 'orders', 'ACCOUNT_SECURITY': 'updates', 'PROMOTIONS': 'offers', 'PRODUCT_UPDATES': 'updates'};
+
+AppNotification notificationFromApi(Map<String, dynamic> d) {
+  final action = Map<String, dynamic>.from((d['action'] as Map?) ?? const {});
+  final subject = Map<String, dynamic>.from((d['subject'] as Map?) ?? const {});
+  final category = (d['category'] ?? '') as String;
+  return AppNotification(
+    id: d['id'] as String,
+    kind: _kindOf[category] ?? 'updates',
+    title: (d['title'] ?? '') as String,
+    text: (d['body'] ?? '') as String,
+    at: (d['created_at'] as String?) ?? DateTime.now().toUtc().toIso8601String(),
+    read: d['read'] == true,
+    route: notificationRoute(action['target'] as String?, action['reference'] as String?),
+    category: category,
+    type: d['type'] as String?,
+    target: action['target'] as String?,
+    reference: (action['reference'] ?? subject['reference']) as String?,
+    priority: d['priority'] as String?,
+  );
+}
+
+/// The inbox on the backend (Module 33): the customer's own notifications, newest first; read is the only change made here.
 class ApiNotificationRepository extends NotificationRepository {
-  ApiNotificationRepository({required ApiClient client, required MockAccountStore devStore}) : _api = client, _inbox = MockNotificationRepository(devStore);
+  ApiNotificationRepository({required ApiClient client, required MockAccountStore devStore}) : _api = client;
   final ApiClient _api;
-  final MockNotificationRepository _inbox;
   NotificationPreferences? _current;
 
-  /// The inbox is development data until notification delivery exists (a later module); preferences are real.
   @override
-  bool get inboxIsDevelopmentData => true;
+  bool get inboxIsDevelopmentData => false;
 
   @override
-  Future<List<AppNotification>> list(String userId) => _inbox.list(userId);
+  Future<List<AppNotification>> list(String userId) async {
+    try {
+      final page = await _api.get('/customer/notifications', query: {'per_page': '50'});
+      return [for (final n in _maps(page['data'])) notificationFromApi(n)];
+    } catch (e) {
+      throw toRepositoryException('notifications', e);
+    }
+  }
+
   @override
-  Future<List<AppNotification>> markRead(String userId, String id) => _inbox.markRead(userId, id);
+  Future<int> unreadCount(String userId) async {
+    try {
+      return ((await _api.get('/customer/notifications/unread-count'))['unread_count'] as num?)?.toInt() ?? 0;
+    } catch (e) {
+      throw toRepositoryException('notifications', e);
+    }
+  }
+
   @override
-  Future<List<AppNotification>> markAllRead(String userId) => _inbox.markAllRead(userId);
+  Future<List<AppNotification>> markRead(String userId, String id) async {
+    try {
+      await _api.post('/customer/notifications/$id/read', body: const {});
+      return await list(userId);
+    } catch (e) {
+      throw toRepositoryException('notifications', e);
+    }
+  }
+
+  @override
+  Future<List<AppNotification>> markAllRead(String userId) async {
+    try {
+      await _api.post('/customer/notifications/read-all', body: const {});
+      return await list(userId);
+    } catch (e) {
+      throw toRepositoryException('notifications', e);
+    }
+  }
 
   @override
   Future<NotificationPreferences> getPreferences(String userId) async {

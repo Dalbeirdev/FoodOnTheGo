@@ -15539,6 +15539,1301 @@
           }
         }
       }
+    },
+    "/customer/devices": {
+      "get": {
+        "summary": "My push devices (never the tokens)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Installation-Id",
+            "in": "header",
+            "required": false,
+            "description": "Marks which row is the calling installation",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerDeviceList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDeviceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/devices/current": {
+      "put": {
+        "summary": "Register or refresh the calling installation (sign-in, token refresh, permission change) — idempotent",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CustomerDeviceEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDeviceEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unbind the calling installation (sign-out) — the token stays on the phone",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnbindDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Unbound"
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/devices/{device}": {
+      "patch": {
+        "summary": "Update the token, locale, timezone, app version or permission state of my device",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "device",
+            "in": "path",
+            "required": true,
+            "description": "Device id (UUID) — the caller's own, or 404",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CustomerDeviceEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerDeviceEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke my device",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "device",
+            "in": "path",
+            "required": true,
+            "description": "Device id (UUID) — the caller's own, or 404",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Revoked"
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/notifications": {
+      "get": {
+        "summary": "My in-app notifications, newest first, with the unread count",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "unread",
+            "in": "query",
+            "required": false,
+            "description": "Only unread when true",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "One category",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORDER_UPDATES",
+                "PICKUP_UPDATES",
+                "PAYMENT_UPDATES",
+                "ACCOUNT_SECURITY",
+                "PROMOTIONS",
+                "PRODUCT_UPDATES"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerNotificationPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerNotificationPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/notifications/unread-count": {
+      "get": {
+        "summary": "My unread count (the database is the authority; a realtime notice only prompts a re-read)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "UnreadCount",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadCount"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/notifications/read-all": {
+      "post": {
+        "summary": "Mark all my notifications read (marks, never deletes)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NotificationReadAll",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationReadAll"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/notifications/{notification}/read": {
+      "post": {
+        "summary": "Mark one of my notifications read (idempotent: the first read wins)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification",
+            "in": "path",
+            "required": true,
+            "description": "Notification id (UUID) — the caller's own, or 404",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NotificationReadEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationReadEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notifications": {
+      "get": {
+        "summary": "Notification delivery diagnostics (admin.notifications.view, platform-wide): search by notification id, order number, customer id or delivery id; filter by category, type, delivery status / channel",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Notification id, order number, customer id or delivery id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "A delivery status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "QUEUED",
+                "SENDING",
+                "SENT",
+                "DELIVERED",
+                "FAILED",
+                "RETRY_SCHEDULED",
+                "CANCELLED",
+                "SKIPPED",
+                "INVALID_DESTINATION"
+              ]
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "description": "A channel",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PUSH",
+                "SMS",
+                "EMAIL",
+                "IN_APP"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "A category",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORDER_UPDATES",
+                "PICKUP_UPDATES",
+                "PAYMENT_UPDATES",
+                "ACCOUNT_SECURITY",
+                "PROMOTIONS",
+                "PRODUCT_UPDATES"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "description": "A registry type",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminNotificationPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNotificationPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notifications/templates": {
+      "get": {
+        "summary": "The registry: domain event → type → category → channels → rule → template version and locales",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NotificationRegistry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationRegistry"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notifications/deliveries": {
+      "get": {
+        "summary": "Deliveries needing attention (FAILED, INVALID_DESTINATION, RETRY_SCHEDULED, SENDING by default)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "A status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "QUEUED",
+                "SENDING",
+                "SENT",
+                "DELIVERED",
+                "FAILED",
+                "RETRY_SCHEDULED",
+                "CANCELLED",
+                "SKIPPED",
+                "INVALID_DESTINATION"
+              ]
+            }
+          },
+          {
+            "name": "channel",
+            "in": "query",
+            "required": false,
+            "description": "A channel",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PUSH",
+                "SMS",
+                "EMAIL",
+                "IN_APP"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminDeliveryPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDeliveryPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notifications/{notification}": {
+      "get": {
+        "summary": "One notification with every delivery and attempt (no token, no address, no phone)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notification",
+            "in": "path",
+            "required": true,
+            "description": "Notification id (UUID) — the caller's own, or 404",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminNotificationEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNotificationEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notifications/deliveries/{delivery}/retry": {
+      "post": {
+        "summary": "Send a FAILED delivery again (admin.notifications.manage, audited; only with a live destination; the history stays)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "delivery",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryDeliveryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminDeliveryEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDeliveryEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/notifications/test": {
+      "post": {
+        "summary": "Development / test environments only (admin.notifications.test, audited): one registry type to one customer's own devices. 404 where disabled.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestNotificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminNotificationEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminNotificationEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/notifications": {
+      "get": {
+        "summary": "Notification system health and counters (admin.system.view): providers probed, queue backlog, counters, devices, retention",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fresh",
+            "in": "query",
+            "required": false,
+            "description": "Probe the push provider now instead of the 10-second cache",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "NotificationSystem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSystem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -26490,6 +27785,7 @@
         "type": "object",
         "required": [
           "categories",
+          "channel_status",
           "channels",
           "marketing_consent"
         ],
@@ -26537,6 +27833,19 @@
               }
             },
             "description": "When any PROMOTIONS channel was first switched on / last switched off"
+          },
+          "channel_status": {
+            "type": "object",
+            "description": "channel → AVAILABLE | DEVELOPMENT | PENDING | UNAVAILABLE on this server (Module 33): a channel that is not AVAILABLE or DEVELOPMENT never sends",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "DEVELOPMENT",
+                "PENDING",
+                "UNAVAILABLE"
+              ]
+            }
           }
         },
         "description": "The category × channel matrix. Delivery itself is a later module; this is what the customer chose."
@@ -41017,6 +42326,1616 @@
             "description": "Staff accounts with five or more failed attempts in the last 24 hours"
           }
         }
+      },
+      "CustomerDevice": {
+        "type": "object",
+        "required": [
+          "id",
+          "platform",
+          "push_provider",
+          "active",
+          "revoked_at",
+          "revoke_reason",
+          "token_state",
+          "app_version",
+          "device_locale",
+          "timezone",
+          "notifications_permission_state",
+          "last_seen_at",
+          "token_updated_at",
+          "created_at",
+          "current"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ANDROID"
+            ]
+          },
+          "push_provider": {
+            "type": "string",
+            "enum": [
+              "FCM",
+              "FAKE"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "revoked_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "revoke_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "LOGOUT",
+              "REBOUND",
+              "TOKEN_REASSIGNED",
+              "INVALID_TOKEN",
+              "CUSTOMER",
+              "ADMIN",
+              "ACCOUNT_CLOSED",
+              "REPLACED",
+              null
+            ]
+          },
+          "token_state": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "INVALID",
+              "NONE"
+            ],
+            "description": "Whether the device can be targeted; the token itself never appears in any answer"
+          },
+          "app_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notifications_permission_state": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "GRANTED",
+              "DENIED"
+            ],
+            "description": "As the app last reported it (UX context, never a security input)"
+          },
+          "last_seen_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "token_updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "current": {
+            "type": "boolean",
+            "description": "True for the installation that made the call (X-Installation-Id header or the registration itself)"
+          }
+        },
+        "description": "An app installation bound to the signed-in customer for push delivery (Module 33). Possession of a push token authorises nothing."
+      },
+      "CustomerDeviceEnvelope": {
+        "type": "object",
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/CustomerDevice"
+          }
+        }
+      },
+      "CustomerDeviceList": {
+        "type": "object",
+        "required": [
+          "data",
+          "push"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerDevice"
+            }
+          },
+          "push": {
+            "type": "object",
+            "required": [
+              "driver",
+              "available"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "driver": {
+                "type": "string"
+              },
+              "available": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "RegisterDeviceRequest": {
+        "type": "object",
+        "required": [
+          "installation_id",
+          "platform",
+          "push_provider",
+          "push_token"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "installation_id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "A random identifier the app generates once per installation — never a hardware identifier"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ANDROID"
+            ]
+          },
+          "push_provider": {
+            "type": "string",
+            "enum": [
+              "FCM",
+              "FAKE"
+            ]
+          },
+          "push_token": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 4096,
+            "description": "The FCM registration token (sensitive: stored encrypted, never returned, never logged)"
+          },
+          "app_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notifications_permission_state": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "GRANTED",
+              "DENIED"
+            ]
+          }
+        },
+        "description": "The customer is the authenticated principal; a customer id is refused. Idempotent per installation."
+      },
+      "UpdateDeviceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "push_token": {
+            "type": "string"
+          },
+          "app_version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device_locale": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notifications_permission_state": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "GRANTED",
+              "DENIED"
+            ]
+          }
+        }
+      },
+      "UnbindDeviceRequest": {
+        "type": "object",
+        "required": [
+          "installation_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "installation_id": {
+            "type": "string"
+          }
+        }
+      },
+      "NotificationAction": {
+        "type": "object",
+        "required": [
+          "target",
+          "reference"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ORDER_DETAIL",
+              "ORDER_TRACKING",
+              "PAYMENT_STATUS",
+              "ACCOUNT_SECURITY",
+              "PROMOTION"
+            ],
+            "description": "An allow-listed screen, never a URL"
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The order number for order targets"
+          }
+        }
+      },
+      "NotificationSubject": {
+        "type": "object",
+        "required": [
+          "type",
+          "id",
+          "reference"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ORDER",
+              "PAYMENT",
+              "ACCOUNT",
+              null
+            ]
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CustomerNotification": {
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "type",
+          "priority",
+          "transactional",
+          "title",
+          "body",
+          "action",
+          "subject",
+          "read",
+          "read_at",
+          "created_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "ORDER_UPDATES",
+              "PICKUP_UPDATES",
+              "PAYMENT_UPDATES",
+              "ACCOUNT_SECURITY",
+              "PROMOTIONS",
+              "PRODUCT_UPDATES"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "description": "The registry type, e.g. order.ready"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "HIGH"
+            ]
+          },
+          "transactional": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "description": "The rendered, escaped snapshot the customer saw — never a pickup secret, a code, a phone or a payment detail"
+          },
+          "action": {
+            "$ref": "#/components/schemas/NotificationAction"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/NotificationSubject"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "read_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "One in-app notification (Module 33): the logical notification of a domain event for this customer. Business history stays in the order timeline; this record is bounded by retention."
+      },
+      "CustomerNotificationPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "unread_count"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerNotification"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          },
+          "unread_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "UnreadCount": {
+        "type": "object",
+        "required": [
+          "unread_count"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "unread_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "NotificationReadEnvelope": {
+        "type": "object",
+        "required": [
+          "notification",
+          "unread_count"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "notification": {
+            "$ref": "#/components/schemas/CustomerNotification"
+          },
+          "unread_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "NotificationReadAll": {
+        "type": "object",
+        "required": [
+          "marked",
+          "unread_count"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "marked": {
+            "type": "integer"
+          },
+          "unread_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "NotificationDeliveryAttempt": {
+        "type": "object",
+        "required": [
+          "number",
+          "result",
+          "provider_code",
+          "error_category",
+          "safe_error",
+          "latency_ms",
+          "payload_bytes",
+          "started_at",
+          "finished_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "number": {
+            "type": "integer"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "SENT",
+              "FAILED",
+              "RETRY",
+              "INVALID_DESTINATION"
+            ]
+          },
+          "provider_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error_category": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "TRANSIENT",
+              "PERMANENT",
+              "RATE_LIMITED",
+              "INVALID_DESTINATION",
+              "AUTH_CONFIGURATION",
+              "UNKNOWN",
+              null
+            ]
+          },
+          "safe_error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "payload_bytes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "One provider call — the normalised outcome, never the raw provider body or a token."
+      },
+      "NotificationDelivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "channel",
+          "provider",
+          "status",
+          "policy_result",
+          "attempt_count",
+          "next_retry_at",
+          "last_error",
+          "provider_message_reference",
+          "sent_at",
+          "delivered_at",
+          "failed_at",
+          "created_at",
+          "device",
+          "retryable"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PUSH",
+              "SMS",
+              "EMAIL",
+              "IN_APP"
+            ]
+          },
+          "provider": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "SENDING",
+              "SENT",
+              "DELIVERED",
+              "FAILED",
+              "RETRY_SCHEDULED",
+              "CANCELLED",
+              "SKIPPED",
+              "INVALID_DESTINATION"
+            ],
+            "description": "SENT = the provider accepted the message; DELIVERED only with a trustworthy receipt (no current provider gives one)"
+          },
+          "policy_result": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SEND",
+              "MANDATORY",
+              "SKIP_USER_PREFERENCE",
+              "SKIP_CHANNEL_DISABLED",
+              "SKIP_NO_DESTINATION",
+              "SKIP_CUSTOMER_STATUS",
+              "SKIP_OS_PERMISSION_DENIED",
+              "UNSUPPORTED",
+              null
+            ]
+          },
+          "attempt_count": {
+            "type": "integer"
+          },
+          "next_retry_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "last_error": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code",
+              "category"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "TRANSIENT",
+                  "PERMANENT",
+                  "RATE_LIMITED",
+                  "INVALID_DESTINATION",
+                  "AUTH_CONFIGURATION",
+                  "UNKNOWN",
+                  null
+                ]
+              }
+            }
+          },
+          "provider_message_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sent_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "delivered_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "failed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "device": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "platform",
+              "push_provider",
+              "active",
+              "revoked_at",
+              "revoke_reason",
+              "token_state"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "platform": {
+                "type": "string"
+              },
+              "push_provider": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "revoked_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "revoke_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "LOGOUT",
+                  "REBOUND",
+                  "TOKEN_REASSIGNED",
+                  "INVALID_TOKEN",
+                  "CUSTOMER",
+                  "ADMIN",
+                  "ACCOUNT_CLOSED",
+                  "REPLACED",
+                  null
+                ]
+              },
+              "token_state": {
+                "type": "string"
+              }
+            },
+            "description": "The target device of a push (summary, never the token)"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "FAILED with a live destination — the only state an administrator may send again"
+          },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDeliveryAttempt"
+            }
+          }
+        },
+        "description": "One delivery of a notification over one channel to one destination."
+      },
+      "AdminNotification": {
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "type",
+          "priority",
+          "transactional",
+          "title",
+          "body",
+          "action",
+          "subject",
+          "read",
+          "read_at",
+          "created_at",
+          "template",
+          "dedupe_key",
+          "expires_at",
+          "customer",
+          "delivery_summary"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "ORDER_UPDATES",
+              "PICKUP_UPDATES",
+              "PAYMENT_UPDATES",
+              "ACCOUNT_SECURITY",
+              "PROMOTIONS",
+              "PRODUCT_UPDATES"
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "HIGH"
+            ]
+          },
+          "transactional": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/NotificationAction"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/NotificationSubject"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "read_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "template": {
+            "type": "object",
+            "required": [
+              "key",
+              "version",
+              "locale"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              },
+              "locale": {
+                "type": "string"
+              }
+            }
+          },
+          "dedupe_key": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "customer": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "display_name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "display_name": {
+                "type": "string"
+              }
+            },
+            "description": "A safe reference: no phone, no e-mail"
+          },
+          "delivery_summary": {
+            "type": "object",
+            "description": "channel → status → count",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer"
+              }
+            }
+          },
+          "deliveries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDelivery"
+            }
+          }
+        }
+      },
+      "AdminNotificationPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminNotification"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "AdminNotificationEnvelope": {
+        "type": "object",
+        "required": [
+          "notification"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "notification": {
+            "$ref": "#/components/schemas/AdminNotification"
+          }
+        }
+      },
+      "AdminDeliveryEnvelope": {
+        "type": "object",
+        "required": [
+          "delivery"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "delivery": {
+            "$ref": "#/components/schemas/NotificationDelivery"
+          }
+        }
+      },
+      "AdminDeliveryRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "channel",
+          "provider",
+          "status",
+          "policy_result",
+          "attempt_count",
+          "next_retry_at",
+          "last_error",
+          "provider_message_reference",
+          "sent_at",
+          "delivered_at",
+          "failed_at",
+          "created_at",
+          "device",
+          "retryable",
+          "notification"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "PUSH",
+              "SMS",
+              "EMAIL",
+              "IN_APP"
+            ]
+          },
+          "provider": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "SENDING",
+              "SENT",
+              "DELIVERED",
+              "FAILED",
+              "RETRY_SCHEDULED",
+              "CANCELLED",
+              "SKIPPED",
+              "INVALID_DESTINATION"
+            ],
+            "description": "SENT = the provider accepted the message; DELIVERED only with a trustworthy receipt (no current provider gives one)"
+          },
+          "policy_result": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SEND",
+              "MANDATORY",
+              "SKIP_USER_PREFERENCE",
+              "SKIP_CHANNEL_DISABLED",
+              "SKIP_NO_DESTINATION",
+              "SKIP_CUSTOMER_STATUS",
+              "SKIP_OS_PERMISSION_DENIED",
+              "UNSUPPORTED",
+              null
+            ]
+          },
+          "attempt_count": {
+            "type": "integer"
+          },
+          "next_retry_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "last_error": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "code",
+              "category"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "TRANSIENT",
+                  "PERMANENT",
+                  "RATE_LIMITED",
+                  "INVALID_DESTINATION",
+                  "AUTH_CONFIGURATION",
+                  "UNKNOWN",
+                  null
+                ]
+              }
+            }
+          },
+          "provider_message_reference": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sent_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "delivered_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "failed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "device": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "platform",
+              "push_provider",
+              "active",
+              "revoked_at",
+              "revoke_reason",
+              "token_state"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "platform": {
+                "type": "string"
+              },
+              "push_provider": {
+                "type": "string"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "revoked_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "revoke_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "LOGOUT",
+                  "REBOUND",
+                  "TOKEN_REASSIGNED",
+                  "INVALID_TOKEN",
+                  "CUSTOMER",
+                  "ADMIN",
+                  "ACCOUNT_CLOSED",
+                  "REPLACED",
+                  null
+                ]
+              },
+              "token_state": {
+                "type": "string"
+              }
+            },
+            "description": "The target device of a push (summary, never the token)"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "FAILED with a live destination — the only state an administrator may send again"
+          },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDeliveryAttempt"
+            }
+          },
+          "notification": {
+            "type": "object",
+            "required": [
+              "id",
+              "type",
+              "title"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "type": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "One delivery of a notification over one channel to one destination."
+      },
+      "AdminDeliveryPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminDeliveryRow"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "RetryDeliveryRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 200,
+            "description": "Audited"
+          }
+        }
+      },
+      "NotificationTypeDescription": {
+        "type": "object",
+        "required": [
+          "type",
+          "category",
+          "subject",
+          "priority",
+          "target",
+          "transactional",
+          "channels",
+          "template_version",
+          "locales",
+          "events"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "ORDER_UPDATES",
+              "PICKUP_UPDATES",
+              "PAYMENT_UPDATES",
+              "ACCOUNT_SECURITY",
+              "PROMOTIONS",
+              "PRODUCT_UPDATES"
+            ]
+          },
+          "subject": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "HIGH"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "ORDER_DETAIL",
+              "ORDER_TRACKING",
+              "PAYMENT_STATUS",
+              "ACCOUNT_SECURITY",
+              "PROMOTION"
+            ]
+          },
+          "transactional": {
+            "type": "boolean"
+          },
+          "channels": {
+            "type": "object",
+            "description": "channel → mandatory | preference | off",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "mandatory",
+                "preference",
+                "off"
+              ]
+            }
+          },
+          "template_version": {
+            "type": "integer"
+          },
+          "locales": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The domain events that produce this type"
+          }
+        }
+      },
+      "NotificationRegistry": {
+        "type": "object",
+        "required": [
+          "types",
+          "default_locale",
+          "variables",
+          "android_channels"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationTypeDescription"
+            }
+          },
+          "default_locale": {
+            "type": "string"
+          },
+          "variables": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "android_channels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NotificationSystem": {
+        "type": "object",
+        "required": [
+          "status",
+          "push",
+          "email",
+          "sms",
+          "queue",
+          "counters",
+          "retention",
+          "checked_at",
+          "notes",
+          "devices",
+          "notifications"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPERATIONAL",
+              "DEGRADED",
+              "UNAVAILABLE",
+              "OFF"
+            ]
+          },
+          "push": {
+            "$ref": "#/components/schemas/NotificationProviderHealth"
+          },
+          "email": {
+            "$ref": "#/components/schemas/NotificationProviderHealth"
+          },
+          "sms": {
+            "$ref": "#/components/schemas/NotificationProviderHealth"
+          },
+          "queue": {
+            "type": "object",
+            "required": [
+              "queued",
+              "sending",
+              "retry_scheduled",
+              "stranded",
+              "overdue_retries",
+              "oldest_open_seconds",
+              "queue_name",
+              "paused_after_auth_failure"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "queued": {
+                "type": "integer"
+              },
+              "sending": {
+                "type": "integer"
+              },
+              "retry_scheduled": {
+                "type": "integer"
+              },
+              "stranded": {
+                "type": "integer"
+              },
+              "overdue_retries": {
+                "type": "integer"
+              },
+              "oldest_open_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "queue_name": {
+                "type": "string"
+              },
+              "paused_after_auth_failure": {
+                "type": "boolean"
+              }
+            }
+          },
+          "counters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          "retention": {
+            "type": "object"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "notes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "devices": {
+            "type": "object",
+            "required": [
+              "active",
+              "revoked_24h",
+              "invalid_token_24h"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "active": {
+                "type": "integer"
+              },
+              "revoked_24h": {
+                "type": "integer"
+              },
+              "invalid_token_24h": {
+                "type": "integer"
+              }
+            }
+          },
+          "notifications": {
+            "type": "object",
+            "required": [
+              "created_24h",
+              "read_24h",
+              "deliveries_by_status_24h"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "created_24h": {
+                "type": "integer"
+              },
+              "read_24h": {
+                "type": "integer"
+              },
+              "deliveries_by_status_24h": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "fake_push": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "last_messages"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "last_messages": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Local inspection of what the development provider received (never a token) — present only with the fake driver outside production"
+          }
+        },
+        "description": "Platform-wide: counts and provider health. SENT means the provider accepted the message, never that a customer read it."
+      },
+      "TestNotificationRequest": {
+        "type": "object",
+        "required": [
+          "customer_id",
+          "type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "type": {
+            "type": "string"
+          },
+          "device_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          }
+        },
+        "description": "Development / test environments only; audited; the customer's own devices; no free text."
+      },
+      "NotificationProviderHealth": {
+        "type": "object",
+        "required": [
+          "status",
+          "driver",
+          "detail",
+          "latency_ms"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPERATIONAL",
+              "DEGRADED",
+              "UNAVAILABLE",
+              "OFF"
+            ]
+          },
+          "driver": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "latency_ms": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "description": "A real probe (the fcm driver mints a token; fake / log providers say so) — never green because configured."
       }
     }
   }

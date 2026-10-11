@@ -12,6 +12,7 @@ import { PickupCode } from '../order/PickupCodeCard'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
+import { useInboxRefreshOn } from '../account/AccountContext'
 
 /**
  * Order confirmation (Module 13). Canonical route /order-confirmation/:orderNumber (public reference, never an internal id).
@@ -32,6 +33,8 @@ export default function OrderConfirmationPage({ deps }: { deps?: OrderConfirmati
   const oc = useOrderConfirmation(orderNumber, deps)
   const [showReceipt, setShowReceipt] = useState(false)
   useEffect(() => { document.title = `${t('oc.title', undefined, locale)} · FoodOnTheGo` }, [locale])
+  // Module 33: the order just placed has its "Order placed" notice — read the inbox so the bell shows it without a reload.
+  useInboxRefreshOn(oc.order ? `${oc.order.orderNumber}:${oc.order.orderStatus}` : null)
   if (oc.redirectTo) return <Navigate to={oc.redirectTo} replace />
 
   const o = oc.order

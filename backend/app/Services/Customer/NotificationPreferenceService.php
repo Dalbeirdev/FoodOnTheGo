@@ -51,6 +51,9 @@ final class NotificationPreferenceService
             'categories' => $categories,
             'channels' => array_values(config('customer.notifications.channels')),
             'marketing_consent' => ['granted_at' => $customer->promotions_consented_at?->toIso8601String(), 'withdrawn_at' => $customer->promotions_withdrawn_at?->toIso8601String()],
+            // Module 33: what each channel can do on this server today (the preference stays the customer's; a channel that is
+            // UNAVAILABLE or PENDING is shown as such and never sends).
+            'channel_status' => self::channelStatus(),
         ];
     }
 
@@ -106,5 +109,23 @@ final class NotificationPreferenceService
     private function promotionsEnabled(Customer $customer): bool
     {
         return CustomerNotificationPreference::query()->where('customer_id', $customer->getKey())->where('category', NotificationCategory::Promotions->value)->where('enabled', true)->exists();
+    }
+
+    /**
+     * @return array<string, string> channel => AVAILABLE | PENDING | UNAVAILABLE
+     */
+    public static function channelStatus(): array
+    {
+        $push = (string) config('notifications.channels.PUSH.driver', 'off');
+        $email = (string) config('notifications.channels.EMAIL.driver', 'off');
+        $sms = (string) config('notifications.channels.SMS.driver', 'off');
+        $mailer = (string) config('mail.default');
+
+        return [
+            'IN_APP' => 'AVAILABLE',
+            'PUSH' => $push === 'off' || $push === '' ? 'UNAVAILABLE' : ($push === 'fcm' ? 'AVAILABLE' : 'DEVELOPMENT'),
+            'EMAIL' => $email === 'off' || $email === '' ? 'UNAVAILABLE' : (in_array($mailer, ['log', 'array'], true) || $email === 'fake' ? 'PENDING' : 'AVAILABLE'),
+            'SMS' => $sms === 'off' || $sms === '' ? 'UNAVAILABLE' : 'DEVELOPMENT',
+        ];
     }
 }

@@ -1,0 +1,22 @@
+# Module 33 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply — 2026-10-09
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_13_100000_module33_notifications .. 34.16ms DONE
+
+
+
+ INFO Running migrations. 
+
+ 2026_10_13_100000_module33_notifications .. 75.38ms DONE
+
+
+## tables after re-apply
+
+ public.customer_devices .. 
+ Columns .. 18 
+ Size .. 64.00 KB 
+customer_devices,notification_deliveries,notification_delivery_attempts,notifications
+
+exit 0

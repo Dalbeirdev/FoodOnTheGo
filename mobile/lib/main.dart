@@ -46,6 +46,12 @@ import 'screens/order_tracking_screen.dart';
 import 'state/orders_history_state.dart';
 import 'screens/order_confirmation_screen.dart';
 import 'state/journey_state.dart';
+import 'auth/api_auth_repository.dart' show ApiAuthRepository;
+import 'core/app_config.dart';
+import 'data/api_client.dart';
+import 'notifications/device_registrar.dart';
+import 'notifications/push_notice.dart';
+import 'notifications/push_runtime.dart';
 
 /// With MARKET_MODE=api the market the app is served by (currency, locale, units, coverage) is loaded before the
 /// first screen, whatever route the app starts on — and with RESTAURANT_MODE=api the restaurants a customer may see
@@ -143,7 +149,14 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   // Payments on the backend (Module 30) go out as the checkout does: as the signed-in customer.
   late final PaymentBackendState? paymentBackend = paymentsFromApi && cartBackend != null ? PaymentBackendState(backend: PaymentBackend(cartBackend!)) : null;
   String? _checkoutOwner;
+  String? _deviceOwner;
   late final GoRouter router = buildRouter(auth);
+  // Module 33: push (Firebase when configured, the development token source otherwise) and this installation's binding to the
+  // signed-in customer. Started after the first frame; a notification problem never blocks the app or a sign-in.
+  PushRuntime? push;
+  DeviceRegistrar? devices;
+  bool _permissionAsked = false;
+  final messenger = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -154,11 +167,54 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
     if (journeysFromApi) journeyApi.onUnauthenticated = auth.expire;
     // Restore the session at app start so deep links to protected screens are guarded even when Splash is skipped.
     auth.restore();
+    auth.restore();
+    if (AppConfig.authMode == 'api' && AppConfig.pushMode != 'off') _startPush();
+  }
+
+  Future<void> _startPush() async {
+    final store = SecureKeyValueStore();
+    final client = ApiClient(tokenProvider: () => store.read(ApiAuthRepository.tokenKey), onUnauthenticated: auth.expire);
+    final runtime = await PushRuntime.start(installationId: () => DeviceRegistrar.installationIdFrom(store));
+    final source = runtime.source;
+    if (source == null || !mounted) return;
+    final registrar = DeviceRegistrar(api: client, store: store, source: source, appVersion: '${AppConfig.appVersion}+${AppConfig.buildNumber}', locale: 'en-IN', timezone: DateTime.now().timeZoneName);
+    registrar.listen(() => auth.isAuthenticated);
+    ApiAuthRepository.installationIdProvider = registrar.installationId;
+    runtime.foreground.listen(_onPushForeground);
+    runtime.opened.listen(_onPushOpened);
+    setState(() { push = runtime; devices = registrar; });
+    if (auth.isAuthenticated) _bindDevice();
+  }
+
+  // After a sign-in: the OS permission is asked once per app session, in context, then the installation is bound.
+  Future<void> _bindDevice() async {
+    final d = devices;
+    if (d == null) return;
+    if (!_permissionAsked) { _permissionAsked = true; await d.requestPermission(); } else { await d.bind(); }
+  }
+
+  void _onPushForeground(PushNotice n) {
+    account.refreshNotifications();
+    final route = n.route;
+    final here = router.routerDelegate.currentConfiguration.uri.path;
+    if (route != null && here == route) return; // the live screen already shows the change — no second alert
+    messenger.currentState?.showSnackBar(SnackBar(content: Text([n.title, n.body].whereType<String>().where((x) => x.isNotEmpty).join(' — ')), action: route == null ? null : SnackBarAction(label: 'View', onPressed: () => _open(route))));
+  }
+
+  void _onPushOpened(PushNotice n) { final route = n.route; if (route != null) _open(route); }
+
+  // Navigation only: the target screen signs the customer in first and the backend decides what this customer may see.
+  void _open(String route) {
+    if (auth.isAuthenticated) { router.go(route); return; }
+    auth.requireLoginFor(route);
+    router.go('/login');
   }
 
   // Signing in claims the cart built as a guest; signing out goes back to a guest cart.
   void _onAuth() {
     account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated);
+    // Module 33: the installation follows the session — bound on sign-in; the logout body unbinds it on the backend.
+    if (auth.isAuthenticated && auth.user?.id != _deviceOwner) { _deviceOwner = auth.user?.id; _bindDevice(); } else if (!auth.isAuthenticated) { _deviceOwner = null; }
     // Signing out, or another customer on this phone: nothing of the earlier checkout may be shown or paid.
     final owner = auth.user?.id;
     if (checkout.backendMode && _checkoutOwner != null && _checkoutOwner != owner) { checkout.reset(); paymentBackend?.reset(); }
@@ -175,6 +231,8 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   void dispose() {
     auth.removeListener(_onAuth);
     cart.removeListener(_onCart);
+    devices?.dispose();
+    push?.dispose();
     super.dispose();
   }
   @override
@@ -191,11 +249,13 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider.value(value: checkout),
           ChangeNotifierProvider(create: (_) => PaymentState()),
           if (paymentBackend != null) ChangeNotifierProvider<PaymentBackendState>.value(value: paymentBackend!),
+          Provider<DeviceRegistrar?>.value(value: devices),
+          Provider<PushRuntime?>.value(value: push),
           // Orders (Module 31): the backend's when the build says so (ORDER_MODE=api, with payments on the backend) — read as the signed-in customer.
           ChangeNotifierProvider(create: (_) => ordersFromApi && cartBackend != null ? OrderState(orders: ApiOrderRepository(cartBackend!), verifications: ApiPickupVerificationRepository(ApiOrderRepository(cartBackend!))) : OrderState()),
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
           ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); final api = os.orders; return TrackingState(orders: api, verifications: os.verifications, realtime: api is ApiOrderRepository && realtimeFromApi && cartBackend != null ? customerRealtimeClient(cartBackend!) : null); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],
-        child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, debugShowCheckedModeBanner: false, builder: (context, child) => CartMergePrompt(child: child ?? const SizedBox.shrink())),
+        child: MaterialApp.router(title: 'FoodOnTheGo', theme: Brand.theme(), routerConfig: router, scaffoldMessengerKey: messenger, debugShowCheckedModeBanner: false, builder: (context, child) => CartMergePrompt(child: child ?? const SizedBox.shrink())),
       );
 }

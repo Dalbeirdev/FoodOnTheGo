@@ -1,0 +1,105 @@
+# Module 33 — regression runs of the earlier suites against the REAL local backend after the notification module (customer-web on :5173, API on :8001, Laravel Reverb on :8085, one local queue worker per suite; every VITE_*_MODE=api incl. VITE_REALTIME_MODE=api).
+# Scripts: m22_auth_regression.js (Module 21 sign-in suite), m22_e2e.js (Module 22 market geography suite), m22_regression_m32.js (Module 19 full-site suite as Module 32 adapted it), m23_e2e.js (Module 23 restaurants), m24_e2e.js (menus), m25_e2e.js (account), m26_e2e.js (journeys), m27_e2e.js (cart), m28_e2e.js (pickup), m29_e2e_m30.js (checkout), m30_e2e.js (payments), m31_e2e.js (orders), m32_e2e.js (realtime + pickup verification).
+# CHANGES TO THE SCRIPTS FOR THIS MODULE: one — m25_e2e_m33.js is m25_e2e.js with two more clean-up statements (the notifications and the devices of the throwaway customers of the run are removed before those customers: the phone-change security notice of Module 33 references them, and the notification foreign key refuses the delete — see the notes). No step, no assertion changed. Every other suite runs UNCHANGED as Module 32 left it.
+#   EXPECTED MISSES (named below as such): restaurants C14 / D3 (Module 24 era) and A2b (Module 31); checkout G3 / G4 (Module 29 "no order routes"); payments A9 / A10 / H8 / I3 (Module 30 "a verified payment creates no order"); orders A6 / E6 (Module 31 NOT_IMPLEMENTED pickup verification) — all known since the Module 32 regression. The Module 32 suite (realtime) must pass in full.
+#   NOT RUN AGAIN: the Module 30 / 31 / 32 ANDROID preview suites (m30_flutter.js, m31_flutter.js, m32_flutter.js): their scenarios are superseded by the Module 33 preview suite (m33-android-preview-e2e.json), which signs in, binds the device, pays, reads the inbox, taps a notice, signs out and signs another customer in.
+# Before each suite the carts (and with them the pickup selections and checkouts) left in the LOCAL database by the previous suite are removed; the fixture cart (Asha) is never touched; the notifications and devices of the fixture customers that an earlier run of THIS module left are removed too.
+
+# RESULT PER SUITE (the latest run of each that produced a result; the history of every attempt is at the end)
+
+=== m22_auth_regression.js  [run 1] (run by name)  09:36:02Z  (carts removed before the run: 0)
+48/48 passed
+
+=== m22_e2e.js  [run 1] (run by name)  09:38:26Z  (carts removed before the run: 0)
+51/51 passed
+
+=== m22_regression_m32.js  [run 4] (run by name)  10:36:42Z  (carts removed before the run: 0)
+68/68 passed
+
+=== m23_e2e.js  [run 4] (run by name)  10:52:55Z  (carts removed before the run: 3)
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":0,"menu":0,"reviews":1,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+FAIL A2b the header says where the data of each section comes from: "Backend data" on Restaurants, "Mock data" on Orders (still development data) — Local
+98/101 passed
+
+=== m24_e2e.js  [run 2] (run by name)  10:04:31Z  (carts removed before the run: 0)
+48/48 passed
+
+=== m25_e2e_m33.js  [run 3] (run by name)  10:21:46Z  (carts removed before the run: 0)
+FAIL N2 the Preferences panel is the backend matrix: a switch per category × channel, security SMS / in-app switches disabled with "Always on", marketing in its own consent section, the inbox labelled development data
+62/63 passed
+
+=== m26_e2e.js  [run 4] (run by name)  10:58:58Z  (carts removed before the run: 0)
+63/63 passed
+
+=== m27_e2e.js  [run 4] (run by name)  11:02:58Z  (carts removed before the run: 0)
+76/76 passed
+
+=== m28_e2e.js  [run 3] (run by name)  10:31:35Z  (carts removed before the run: 0)
+69/69 passed
+
+=== m29_e2e_m30.js  [run 5] (run by name)  11:08:49Z  (carts removed before the run: 0)
+FAIL G3 A CHECKOUT CHARGES NOTHING — paying it is Module 30, whose routes exist beside it: no route of the API creates an order or a refund; there is no orders table — api/v1/admin/payments api/v1/admin/payments/{payment} api/v1/admin/payments/{payment}/reconcile api/v1/admin/system/checkout api/v1/admin/system/payments api/v1/checkouts api/v1/checkouts/{checkout} api/v1/checkouts/{checkout}/cancel api/v1/checkouts/{checkout}/confirm api/v1/checkouts/{checkout}/fulfill api/v1/checkouts/{checkout}/payment-attempts api/v1/checkouts/{checkout}/promotion api/v1/chec
+FAIL G4 the API has 238 routes under /api/v1 — 19 of them from Module 29 (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers) and 9 from Module 30 — 238
+75/77 passed
+
+=== m30_e2e.js  [run 5] (run by name)  11:13:56Z  (carts removed before the run: 0)
+FAIL A9 PAID IS NOT ORDERED: the page says "Payment verified — order creation is pending", stays on /payment, shows no order confirmation and no order number, and offers nothing to pay again — {"view":"VERIFIED","status":"VERIFIED","pending":true,"fulfillment":"ORDER_PENDING","url":"/payment","text":"SECURE PAYMENT Payment Complete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details. development payment p","submit":false,"retry":false}
+FAIL A10 DATABASE: the attempt is VERIFIED (proof checked, provider payment reference kept, verified_at set), its order state is ORDER_PENDING — and there is NO ORDER: no orders table exists yet; the checkout stays PAYMENT_PENDING with its hold — {"status":"VERIFIED","amount":42700,"currency":"INR","provider":"fake","mode":"FAKE","order":"fakeorder_u5bxu1i4v07do0","payment":"fakepay_zaa3dnkluxo6mk","fulfillment":"ORDER_PENDING","reason":"","client":"success","signed":true,"failures":0,"number":1,"fulfillmentReason":"","failure":"","verifiedAt":true}
+FAIL H8 ADMIN › SYSTEM shows the payment numbers of the backend: the provider in use (the development provider — "no money moves"), verified payments, "verified, no order yet", "need review" — and the note that orders and refunds are not built; the same report by API names no key and no secret — {"driver":"fake","mode":"FAKE","configured":"true","text":"6 Verified payments 6 Verified, no order yet 0 Verified, recovery required 1 Need review","note":"Events cover the last 24 hours. A verified payment becomes an order on the server (Orders). Refunds are not built yet: nothing can be refunded 
+FAIL I3 THE RESTAURANT PAUSES AFTER THE PROVIDER OPENED — AND THE CUSTOMER PAYS: the money is real, so the payment IS verified, and it is marked RECOVERY_REQUIRED (RESTAURANT_NOT_ACCEPTING): the page says the payment was received, that the order could not be confirmed yet and that the customer need not pay again — no order is invented — {"status":"VERIFIED","amount":42700,"currency":"INR","provider":"fake","mode":"FAKE","order":"fakeorder_z8rakw7ffvvnev","payment":"fakepay_sb37wmixvxyvge","fulfillment":"RECOVERY_REQUIRED","reason":"","client":"success","signed":true,"failures":0,"number":1,"fulfillmentReason":"RESTAURANT_NOT_ACCEPTING","failure":"","verifiedAt":true} SECURE PAYMENT Payment Complete your payment with the provider'
+59/63 passed
+
+=== m31_e2e.js  [run 5] (run by name)  11:20:44Z  (carts removed before the run: 0)
+FAIL A6 THE CUSTOMER'S ORDER (GET /customer/orders/{number}): the snapshot — restaurant, 2 × Onion Rings + Masala Fries with their options and prices, pricing, pickup, payment reference, legal references — plus the pickup code and QR payload, next_action WAIT_FOR_RESTAURANT, pickup_verification NOT_IMPLEMENTED, version 1 — {"id":"36c866d3-cc76-48b9-ba8e-2c935ac46725","order_number":"FOTG-20261011-7B6DR2","status":"WAITING_FOR_RESTAURANT","payment_state":"PAID","refund_status":"NONE","restaurant":{"id":"0a000000-0000-4000-8000-0000000000a1","slug":"burger-hub","name":"Burger Hub","branch_label":"Sector 62 · Noida","for
+FAIL E6 SYSTEM NUMBERS (GET /admin/system/orders): counts only — orders by state, verified payments without an order 0, refund required ≥ 1, realtime / pickup verification / refund processing NOT_IMPLEMENTED — {"checked_at":"2026-10-11T11:23:53+00:00","window_hours":24,"events":{"created":20,"creation_failed":0,"recovery_required":0,"review_required":0,"accepted":16,"rejected":1,"preparing":16,"ready":14,"cancelled":0,"refund_required":1,"zero_to
+51/53 passed
+
+=== m32_e2e.js  [run 5] (run by name)  11:24:05Z  (carts removed before the run: 0)
+48/48 passed
+
+# NOTES — every miss of the latest result per suite, with its cause, and why suites were run more than once; the history of every attempt is at the end.
+# LATEST RESULT PER SUITE: auth 48/48, market 51/51, site 68/68, restaurants 98/101, menus 48/48, account 62/63, journeys 63/63, cart 76/76, pickup 69/69, checkout 75/77, payments 59/63, orders 51/53, realtime 48/48 — 816/828. Every one of the 12 remaining misses is an expectation that a later module made obsolete (named below); none is a defect of the product as it stands.
+# - m23_e2e.js (restaurants) 98/101: C14 and D3 obsolete since Module 24, A2b since Module 31 (the same three as in every regression since). Run 1 also missed C13 ("Closed for staff training"): the fixture row is seeded as "+1 day" from the seeding day and was dated 2026-10-09 in the local database, so the public page rightly no longer listed it. LocalRestaurantFixtureSeeder was run again on the local database (it refreshes only its own dated rows) and run 4 passes C13. CF-461.
+# - m25_e2e_m33.js (account) 62/63: N2 expects the Notifications page to label the inbox as development data — Module 33 made the inbox the backend's, so the label is gone by design. Obsolete; the rest of the step's content (the matrix, the locked security cells, the consent section) is covered by the Module 33 suite (B3, D2).
+#   Run 2 (m25_e2e.js) also missed X2 — and that was a REAL finding of this regression: the header bell added by Module 33 pushed the header 38 px past a 390 px phone screen on every signed-in page. Fixed (BUG-241: the bell at the cart's size, tighter gaps, the logo gives up the remaining width); measured afterwards at 390 px on /addresses, /notifications, /profile and /favorites: no horizontal overflow; run 3 passes X2.
+#   In run 2 the suite's own clean-up was refused by the database ("notifications_customer_id_foreign"): the suite hard-deletes its two throwaway customers, and Module 33 had written the phone-change security notice for one of them. Because the clean-up is one transaction, nothing of it was applied and the fixture customer kept the name "Rahul Sharma E2E" until the next run. Customers are never hard-deleted by the product, so the foreign key stays RESTRICT; m25_e2e_m33.js removes the notifications and the devices of its throwaway customers first (two clean-up statements; no step and no assertion changed). BUG-242.
+# - m26_e2e.js (journeys) 63/63 and m27_e2e.js (cart) 76/76 in run 4. Run 2: journeys stopped at "no POST /journeys/plan response" (25 s) and cart at "fetch failed"; run 3: journeys 62/63 (X1) and cart 59/60 for one and the same reason — their two-process concurrency steps call a SECOND API process on port 8003, which had not been started for this session (the suites say so themselves: "the second API process (port 8003) is not running"). With that preview running, both pass completely. An operator omission, not a product or suite defect.
+# - m22_regression_m32.js (site) 68/68 in run 4. Run 1 was 67/68: the console audit (F6) caught Chromium's "net::ERR_NO_BUFFER_SPACE" for one resource of /admin/admin-users — a Windows socket-buffer condition of this machine after two hours of back-to-back suites (810 sockets in TIME_WAIT were counted shortly after; the same error was seen once in the Module 32 regression). Not reproducible: the next run of the unchanged suite, after a pause, is clean.
+# - m28_e2e.js (pickup) 69/69 in run 3. Run 2 was 65/69 (C1, C3, C4, C5): the Pizza Point capacity rows of LocalPickupFixtureSeeder are written for the seeding day and the next one and were two days old, so no slot was Full / Limited. The seeder was run again on the local database (it replaces only its own FIXTURE rows) and the capacity steps pass. CF-461.
+# - m29_e2e_m30.js (checkout) 75/77: G3 and G4 obsolete since Module 31 (order routes exist; the route count is 238 now). Expected.
+# - m30_e2e.js (payments) 59/63: A9, A10, I3 ("a verified payment creates NO order") obsolete since Module 31; H8 (the admin System › Payments note) changed in Module 31. Expected.
+# - m31_e2e.js (orders) 51/53: A6 and E6 are the Module 31 expectations that Module 32 made obsolete (pickup_verification NOT_IMPLEMENTED; "realtime / pickup verification NOT_IMPLEMENTED" in the system numbers) — CF-448. Expected.
+# - m32_e2e.js (realtime) 48/48, m24_e2e.js (menus) 48/48, m22_e2e.js (market) 51/51, m22_auth_regression.js (auth) 48/48: complete on the first run.
+# MACHINE STATE: mains power throughout (Win32_Battery.BatteryStatus = 2); one suite at a time; the Flutter web preview stopped during every run recorded here.
+# NOT RUN AGAIN: m30_flutter.js, m31_flutter.js and m32_flutter.js (the Module 30 / 31 / 32 Android preview suites): their scenarios are superseded by the Module 33 preview suite (m33-android-preview-e2e.json: sign in → device bound → pay → order → inbox → live tracking → tap → sign out → another customer).
+# Fixture state after the runs: see the "Fixture cart (Asha)" line of each run below.
+
+# HISTORY OF THE RUNS (times are UTC; every run on 2026-10-11, on mains, one suite at a time)
+# run 1: m22_auth_regression.js (run by name)  09:36:02Z  (carts removed before the run: 0) → 48/48 passed
+# run 1: m22_e2e.js (run by name)  09:38:26Z  (carts removed before the run: 0) → 51/51 passed
+# run 1: m22_regression_m32.js (run by name)  09:41:02Z  (carts removed before the run: 0) → 67/68 passed
+# run 1: m23_e2e.js (run by name)  09:57:33Z  (carts removed before the run: 3) → 97/101 passed
+# run 2: m24_e2e.js (run by name)  10:04:31Z  (carts removed before the run: 0) → 48/48 passed
+# run 2: m25_e2e.js (run by name)  10:06:21Z  (carts removed before the run: 1) → 61/63 passed
+# run 2: m26_e2e.js (run by name)  10:08:27Z  (carts removed before the run: 0) → 6/7 passed
+# run 2: m27_e2e.js (run by name)  10:09:12Z  (carts removed before the run: 0) → 59/60 passed
+# run 2: m28_e2e.js (run by name)  10:13:44Z  (carts removed before the run: 0) → 65/69 passed
+# run 3: m25_e2e_m33.js (run by name)  10:21:46Z  (carts removed before the run: 0) → 62/63 passed
+# run 3: m26_e2e.js (run by name)  10:23:48Z  (carts removed before the run: 0) → 62/63 passed
+# run 3: m27_e2e.js (run by name)  10:27:02Z  (carts removed before the run: 0) → 59/60 passed
+# run 3: m28_e2e.js (run by name)  10:31:35Z  (carts removed before the run: 0) → 69/69 passed
+# run 4: m22_regression_m32.js (run by name)  10:36:42Z  (carts removed before the run: 0) → 68/68 passed
+# run 4: m23_e2e.js (run by name)  10:52:55Z  (carts removed before the run: 3) → 98/101 passed
+# run 4: m26_e2e.js (run by name)  10:58:58Z  (carts removed before the run: 0) → 63/63 passed
+# run 4: m27_e2e.js (run by name)  11:02:58Z  (carts removed before the run: 0) → 76/76 passed
+# run 5: m29_e2e_m30.js (run by name)  11:08:49Z  (carts removed before the run: 0) → 75/77 passed
+# run 5: m30_e2e.js (run by name)  11:13:56Z  (carts removed before the run: 0) → 59/63 passed
+# run 5: m31_e2e.js (run by name)  11:20:44Z  (carts removed before the run: 0) → 51/53 passed
+# run 5: m32_e2e.js (run by name)  11:24:05Z  (carts removed before the run: 0) → 48/48 passed
+
+# run 1: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+# run 2: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+# run 3: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+# run 4: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+# run 5: Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.

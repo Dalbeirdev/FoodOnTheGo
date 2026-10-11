@@ -33,6 +33,9 @@ class ApiAuthRepository implements AuthRepository {
   /// Called when the backend rejects the stored session (expired / revoked), so the app can show sign-in once.
   void Function()? onSessionEnded;
 
+  /// Module 33: the installation id travels with the logout so the backend ends this phone's push binding in the same request.
+  static Future<String?> Function()? installationIdProvider;
+
   String? _challengePhone, _challengeId, _pendingToken;
 
   void _sessionEnded() {
@@ -186,7 +189,10 @@ class ApiAuthRepository implements AuthRepository {
   @override
   Future<void> logout() async {
     try {
-      if (await _store.read(tokenKey) != null) await _api.post('/auth/logout');
+      if (await _store.read(tokenKey) != null) {
+        final installation = await installationIdProvider?.call();
+        await _api.post('/auth/logout', body: installation == null ? null : {'installation_id': installation});
+      }
     } catch (_) {/* the local session ends either way */}
     await _store.write(tokenKey, null);
     _challengeId = null;

@@ -11,6 +11,7 @@ import '../core/theme.dart';
 import '../i18n/format.dart';
 import '../i18n/markets.dart';
 import '../i18n/strings.dart';
+import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
 import '../state/tracking_state.dart';
@@ -41,6 +42,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
   // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the
   // customer is known (and again for another customer), never twice for the same one.
   String? _loadedFor;
+  // Module 33: every status change is also a new in-app notification — the inbox is read again so the badge is right.
+  String? _lastStatus;
   void _loadWhenSignedIn(BuildContext context, String? customerId, void Function() load) {
     if (customerId == null || _loadedFor == customerId) return;
     _loadedFor = customerId;
@@ -52,6 +55,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
     final auth = context.watch<AuthState>();
     _loadWhenSignedIn(context, auth.user?.id, () => context.read<TrackingState>().load(widget.number, customerId: auth.user?.id));
     final o = tr.order;
+    if (o != null && o.orderStatus.name != _lastStatus) {
+      _lastStatus = o.orderStatus.name;
+      WidgetsBinding.instance.addPostFrameCallback((_) { if (!mounted) return; try { context.read<AccountState>().refreshNotifications(); } on ProviderNotFoundException { /* a tree without the account (tests) */ } });
+    }
     if (o == null) {
       Widget body;
       if (tr.connection == TrackingConnection.error) {

@@ -1,0 +1,22 @@
+{
+  "module": "M33",
+  "measured_at": "2026-10-11T11:33:04.600Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, one local queue worker (orders, payments, notifications), the DEVELOPMENT push provider. inbox_read = GET /customer/notifications over HTTP; admin_detail = GET /admin/notifications/{id}; live_notice_ms = from the restaurant accept to the accepted notice being readable in the inbox (event, notification, deliveries, queue). Measurements, not targets.",
+  "timings": {
+    "inbox_read": {
+      "n": 1,
+      "median_ms": 282,
+      "max_ms": 282
+    },
+    "admin_detail": {
+      "n": 1,
+      "median_ms": 277,
+      "max_ms": 277
+    },
+    "live_notice_ms": {
+      "n": 1,
+      "median_ms": 1242,
+      "max_ms": 1242
+    }
+  }
+}

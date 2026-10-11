@@ -150,14 +150,16 @@ class PaymentMethod {
   factory PaymentMethod.fromJson(Map<String, dynamic> j) => PaymentMethod(id: j['id'] as String, type: j['type'] as String, providerRef: j['providerRef'] as String?, brand: j['brand'] as String?, last4: j['last4'] as String?, expiry: j['expiry'] as String?, holder: j['holder'] as String?, handleMasked: j['handleMasked'] as String?, balance: j['balance'] as int?, isDefault: j['isDefault'] == true);
 }
 
+/// One in-app notification. API (Module 33): the backend's logical notification; `route` is derived from the allow-listed
+/// action target, never from a URL in the data.
 class AppNotification {
-  const AppNotification({required this.id, required this.kind, required this.title, required this.text, required this.at, required this.read, this.route});
+  const AppNotification({required this.id, required this.kind, required this.title, required this.text, required this.at, required this.read, this.route, this.category, this.type, this.target, this.reference, this.priority});
   final String id, kind, title, text, at;
   final bool read;
-  final String? route;
-  AppNotification copyWith({bool? read}) => AppNotification(id: id, kind: kind, title: title, text: text, at: at, read: read ?? this.read, route: route);
-  Map<String, dynamic> toJson() => {'id': id, 'kind': kind, 'title': title, 'text': text, 'at': at, 'read': read, 'route': route};
-  factory AppNotification.fromJson(Map<String, dynamic> j) => AppNotification(id: j['id'] as String, kind: j['kind'] as String, title: j['title'] as String, text: j['text'] as String, at: j['at'] as String, read: j['read'] == true, route: j['route'] as String?);
+  final String? route, category, type, target, reference, priority;
+  AppNotification copyWith({bool? read}) => AppNotification(id: id, kind: kind, title: title, text: text, at: at, read: read ?? this.read, route: route, category: category, type: type, target: target, reference: reference, priority: priority);
+  Map<String, dynamic> toJson() => {'id': id, 'kind': kind, 'title': title, 'text': text, 'at': at, 'read': read, 'route': route, 'category': category, 'type': type, 'target': target, 'reference': reference, 'priority': priority};
+  factory AppNotification.fromJson(Map<String, dynamic> j) => AppNotification(id: j['id'] as String, kind: j['kind'] as String, title: j['title'] as String, text: j['text'] as String, at: j['at'] as String, read: j['read'] == true, route: j['route'] as String?, category: j['category'] as String?, type: j['type'] as String?, target: j['target'] as String?, reference: j['reference'] as String?, priority: j['priority'] as String?);
 }
 
 /// One cell of the backend's category × channel matrix.
@@ -177,10 +179,13 @@ class NotificationCategoryPrefs {
 
 /// API: the matrix the backend keeps; security notices stay on where a cell is locked.
 class NotificationMatrix {
-  const NotificationMatrix({required this.categories, required this.channels, this.consentGrantedAt, this.consentWithdrawnAt});
+  const NotificationMatrix({required this.categories, required this.channels, this.consentGrantedAt, this.consentWithdrawnAt, this.channelStatus = const {}});
   final List<NotificationCategoryPrefs> categories;
   final List<String> channels;
   final String? consentGrantedAt, consentWithdrawnAt;
+
+  /// Module 33: channel → AVAILABLE | DEVELOPMENT | PENDING | UNAVAILABLE on the server (a channel that is not available never sends).
+  final Map<String, String> channelStatus;
   bool isOn({String? category, String? channel}) => categories.any((c) => (category == null || c.category == category) && c.channels.any((ch) => (channel == null || ch.channel == channel) && ch.enabled));
 }
 
@@ -236,6 +241,9 @@ abstract class PaymentMethodRepository {
 
 abstract class NotificationRepository {
   Future<List<AppNotification>> list(String userId);
+
+  /// The unread count — the server's on the backend, counted from the list otherwise.
+  Future<int> unreadCount(String userId) async => (await list(userId)).where((n) => !n.read).length;
   Future<List<AppNotification>> markRead(String userId, String id);
   Future<List<AppNotification>> markAllRead(String userId);
   Future<NotificationPreferences> getPreferences(String userId);

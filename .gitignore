@@ -39,3 +39,11 @@ docs/local-review/apk/*.apk
 Thumbs.db
 DineFlow-client-main/
 restaurant-ordering-saas-main/
+
+# Firebase (Module 33): the server service account and the client configuration files never enter the repository.
+# The backend reads FIREBASE_CREDENTIALS (an absolute path outside the repository); the Android app takes its client values from build defines.
+*service-account*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
+google-services.json
+GoogleService-Info.plist

@@ -66,6 +66,7 @@
         "--dart-define=PAYMENT_MODE=api",
         "--dart-define=ORDER_MODE=api",
         "--dart-define=REALTIME_MODE=api",
+        "--dart-define=PUSH_MODE=fake",
         "--dart-define=REVERB_HOST=127.0.0.1",
         "--dart-define=REVERB_PORT=8085",
         "--dart-define=REVERB_APP_KEY=9fd209769eacc915278b",

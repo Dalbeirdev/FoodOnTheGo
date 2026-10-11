@@ -51,13 +51,25 @@ class AppConfig {
   static const String reverbKey = String.fromEnvironment('REVERB_APP_KEY', defaultValue: '');
   static const String reverbScheme = String.fromEnvironment('REVERB_SCHEME', defaultValue: 'http');
 
+  /// Module 33: how this build receives push. fcm = Firebase Cloud Messaging (needs FIREBASE_* below; no google-services.json —
+  /// the options come from these defines); fake = a deterministic token for a machine without a Firebase project (the backend's
+  /// development provider); off = no push (the in-app inbox still works). Real FCM = PENDING FIREBASE CONFIGURATION.
+  static const String pushMode = String.fromEnvironment('PUSH_MODE', defaultValue: 'off');
+  /// Firebase CLIENT configuration (the Android app's, public by design — never the server's service account).
+  static const String firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY', defaultValue: '');
+  static const String firebaseAppId = String.fromEnvironment('FIREBASE_APP_ID', defaultValue: '');
+  static const String firebaseSenderId = String.fromEnvironment('FIREBASE_SENDER_ID', defaultValue: '');
+  static const String firebaseProjectId = String.fromEnvironment('FIREBASE_PROJECT_ID', defaultValue: '');
+  /// LOCAL ONLY: a word in the fake token the development provider reacts to (unregistered | transient | quota | authfail).
+  static const String pushFakeMarker = String.fromEnvironment('PUSH_FAKE_MARKER', defaultValue: '');
+
   /// LOCAL BUILDS ONLY: the backend's fixed test code, shown on the OTP screen so testers can sign in.
   /// Empty in staging / production builds.
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 36;
+  static const int buildNumber = 37;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';

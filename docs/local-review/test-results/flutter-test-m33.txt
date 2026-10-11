@@ -1,0 +1,12 @@
+# Module 33 — Android app checks (LOCAL, 2026-10-11): flutter analyze, flutter test (Flutter 3.47.5, Windows host). New in this module: test/notifications_test.dart, test/inbox_refresh_test.dart.
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 3.5s)
+exit 0
+
+== flutter test
+00:16 +534: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:16 +535: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:16 +535: All tests passed!
+exit 0

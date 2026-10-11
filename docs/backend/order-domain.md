@@ -3,7 +3,7 @@
 Everything here is **local-only**. The order domain runs on the development machine against PostgreSQL 18 with the
 DEVELOPMENT payment provider; nothing has touched production, no real customer money exists, and Razorpay's own
 window, API and webhooks are still PENDING PROVIDER CONFIGURATION (Module 30). Realtime tracking, secure pickup
-verification, refund processing and notification delivery are NOT built — they are Modules 32 and later, and every
+verification (Module 32) and notification delivery (Module 33, [`notifications.md`](notifications.md)) are built; refund processing is NOT — it is a later module, and every
 place that would show them says `NOT_IMPLEMENTED`.
 
 ## The rule

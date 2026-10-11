@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Auth\Principal;
 use App\Enums\SecurityEventType;
+use App\Events\SecurityEventRecorded;
 use App\Models\SecurityEvent;
 use App\Support\Logging\SensitiveDataRedactor;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ final class SecurityEventRecorder
     {
         $redactor = new SensitiveDataRedactor(config('logging.redact_keys', []));
 
-        return SecurityEvent::query()->create([
+        $event = SecurityEvent::query()->create([
             'event' => $type,
             'principal_type' => $principal?->principalType()->morphAlias(),
             'principal_id' => $principal?->getAuthIdentifier(),
@@ -36,5 +37,8 @@ final class SecurityEventRecorder
             'metadata' => $redactor->redact($metadata),
             'occurred_at' => now(),
         ]);
+        event(new SecurityEventRecorded($event, $principal));
+
+        return $event;
     }
 }

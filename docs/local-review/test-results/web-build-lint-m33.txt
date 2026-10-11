@@ -1,0 +1,37 @@
+# Module 33 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-11T11:29:24Z UTC, local machine
+# VITE_ORDER_MODE=api, VITE_REALTIME_MODE=api and the notification inbox from the local backend (every mode = api); unit tests always run the development mocks.
+
+## tsc --noEmit -p tsconfig.app.json
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/dashboard/DashboardLayout.tsx:135:21: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/dashboard/pages/AnalyticsPage.tsx:14:66: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/admin/pages/MarketAdminForms.tsx:51:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/pages/MarketAdminForms.tsx:62:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:18:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:19:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:20:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:68:40: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/dashboard/pages/MenuPage.tsx:122:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/CheckoutPage.tsx:42:34: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/MyProfilePage.tsx:74:63: warning react(globals): Cannot reassign variables declared outside of the component/hook help: Variable `pageLocale` is declared outside of the component/hook. Reassigning this value during render is a side effect which can cause unpredictable behavior. If this variable is used in rendering, use useState instead. Otherwise, update it in an effect
+src/pages/MyProfilePage.tsx:64:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+
+(oxlint exit 0; 0 errors; 123 warnings. The committed tree before Module 33 (HEAD 1773697, linted from a git archive with the same configuration) has 120. Three NEW warnings, all of kinds the code base already carries: react(only-export-components) twice on src/account/AccountContext.tsx (useOptionalAccount and useInboxRefreshOn exported beside useAccount) and react(set-state-in-effect) on src/admin/pages/NotificationsPage.tsx (the delivery list loads in an effect, the pattern of the other admin pages). None changes behaviour; not fixed in this module.)
+(vitest, the earlier runs of 2026-10-11 told honestly: 706/706 at the start of the day; then, with the Flutter web preview compiling beside it, three runs of 707/708 — twice src/checkout/api/apiCheckout.test.tsx, which read the checkout countdown in the same tick as the effect that sets it (a race in a Module 29 test, BUG-239; the assertion now waits for the element), and once src/admin/admin.test.tsx TEST 20 on its 5-second timeout under that load (CF-449: unit runs want a quiet machine; it passes alone and in the run below). The run below is the final one, after the last source change of the module (the header bell at phone width), with nothing else running: 708/708. New in this module: src/account/accountRefresh.test.tsx (2 tests).)
+
+## vitest run
+ Test Files  56 passed (56)
+      Tests  708 passed (708)
+   Duration  27.65s (tests 60%, environment 24%, transform 7%, import 4%, setup 4%)
+
+## vite build (npm run build)
+dist/assets/index-C1eNy5Ba.js         1,283.06 kB │ gzip: 356.55 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 372ms[39m

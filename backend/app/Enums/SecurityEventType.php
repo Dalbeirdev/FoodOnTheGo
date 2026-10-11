@@ -31,4 +31,5 @@ enum SecurityEventType: string
     case PickupAttemptsExceeded = 'PICKUP_ATTEMPTS_EXCEEDED';
     case PickupReplayAttempt = 'PICKUP_REPLAY_ATTEMPT';
     case PickupLocationUnauthorized = 'PICKUP_LOCATION_UNAUTHORIZED';
+    case DeviceRebound = 'DEVICE_REBOUND';
 }

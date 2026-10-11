@@ -196,3 +196,13 @@
 .adm-menu-count { border: 1px solid var(--db-border, #e5e7eb); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
 .adm-menu-count b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
 .adm-menu-category h3 { margin: 16px 0 8px; font-size: 1rem; }
+
+/* Module 33 — notification delivery detail (the drawer): a definition list and one block per delivery */
+.adm-dl { display: grid; grid-template-columns: minmax(96px, max-content) 1fr; gap: 6px 14px; margin: 0; font-size: 0.88rem; }
+.adm-dl dt { color: var(--db-muted); } .adm-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; } .adm-dl code { font-size: 0.8rem; }
+.adm-ntf-deliveries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.adm-ntf-deliveries > li { display: flex; flex-direction: column; gap: 4px; padding: 10px 2px; border-bottom: 1px solid var(--db-line); font-size: 0.88rem; min-width: 0; }
+.adm-ntf-deliveries > li:last-child { border-bottom: 0; }
+.adm-ntf-delivery__head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.adm-ntf-delivery__meta { margin: 0; overflow-wrap: anywhere; }
+.adm-ntf-deliveries details ul { margin: 4px 0 0; padding-inline-start: 18px; } .adm-ntf-deliveries details p { margin: 4px 0 0; }

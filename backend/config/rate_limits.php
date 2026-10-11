@@ -56,6 +56,12 @@ return [
     // is per sending address and only keeps a flood away — the signature decides what is accepted.
     'payment_read' => (int) env('RATE_LIMIT_PAYMENT_READ', 120),
     'payment_webhook' => (int) env('RATE_LIMIT_PAYMENT_WEBHOOK', 600),
+    // Notifications (Module 33), per signed-in customer: registering the installation happens at sign-in and on a token
+    // refresh; the inbox is read on every visit; the admin test send is a deliberate, audited action.
+    'device_register' => (int) env('RATE_LIMIT_DEVICE_REGISTER', 20),
+    'notifications_read' => (int) env('RATE_LIMIT_NOTIFICATIONS_READ', 120),
+    'notifications_write' => (int) env('RATE_LIMIT_NOTIFICATIONS_WRITE', 60),
+    'admin_notification_test' => (int) env('RATE_LIMIT_ADMIN_NOTIFICATION_TEST', 5),
     // Orders (Module 31). Reading is polled by a customer waiting for the order and by a restaurant's queue screen;
     // a step (accept, reject, ready) is a person's click.
     'order_read' => (int) env('RATE_LIMIT_ORDER_READ', 120),

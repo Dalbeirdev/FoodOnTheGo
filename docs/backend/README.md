@@ -1005,3 +1005,13 @@ event stream, the credential, the verification transaction, completion, the clie
   and moved the framework to 13.35). The payment and journey HTTP clients were re-tested on the downgraded client.
 - **Not built:** push / SMS / e-mail delivery (Module 33), refund execution, settlements, reviews (Module 34), an admin
   pickup override, offline restaurant verification, rotating QR.
+
+## 21. Notifications: delivery backend, customer devices, FCM (HTTP v1), the in-app inbox, preference enforcement, retries (Module 33)
+
+Built 2026-10-09 (local). A domain event (an order step, a security event) becomes one logical notification per customer and type
+(dedupe key), with one delivery per channel — and per device for push — queued after the commit; the policy reads the Module 25
+matrix, the platform channel configuration and the destinations; the development push provider answers locally (REAL FCM =
+PENDING FIREBASE CONFIGURATION), e-mail goes to the local mailer (REAL EMAIL PROVIDER = PENDING), SMS is off (REAL SMS PROVIDER =
+PENDING). Devices are bound to the signed-in customer per installation (encrypted token + hash; logout, rebinding, token reassignment
+and dead tokens end a binding). Retries use bounded exponential backoff; stranded deliveries are swept; retention prunes. Nothing here
+changes an order. Details: [`notifications.md`](notifications.md).

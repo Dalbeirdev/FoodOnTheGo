@@ -1,0 +1,264 @@
+{
+  "device": {
+    "id": "262e3351-8abb-46d1-a171-1b63e50fd17c",
+    "platform": "ANDROID",
+    "push_provider": "FAKE",
+    "active": true,
+    "revoked_at": null,
+    "revoke_reason": null,
+    "token_state": "ACTIVE",
+    "app_version": "0.1.0+37",
+    "device_locale": "en-IN",
+    "timezone": "Asia/Kolkata",
+    "notifications_permission_state": "GRANTED",
+    "last_seen_at": "2026-10-11T11:30:45+00:00",
+    "token_updated_at": "2026-10-11T11:30:45+00:00",
+    "created_at": "2026-10-11T11:30:45+00:00",
+    "current": true
+  },
+  "order_number": "FOTG-20261011-E4UDEG",
+  "customer_notification": {
+    "id": "be0ec811-a469-42f6-b98a-1e64f8b0deee",
+    "category": "ORDER_UPDATES",
+    "type": "order.created",
+    "priority": "NORMAL",
+    "transactional": true,
+    "title": "Order placed",
+    "body": "Your order FOTG-20261011-E4UDEG has reached Burger Hub. We will tell you as soon as they confirm it.",
+    "action": {
+      "target": "ORDER_DETAIL",
+      "reference": "FOTG-20261011-E4UDEG"
+    },
+    "subject": {
+      "type": "ORDER",
+      "id": "e780dee9-9790-4c66-9f49-861cb93bca28",
+      "reference": "FOTG-20261011-E4UDEG"
+    },
+    "read": false,
+    "read_at": null,
+    "created_at": "2026-10-11T11:31:00+00:00"
+  },
+  "admin_notification": {
+    "id": "be0ec811-a469-42f6-b98a-1e64f8b0deee",
+    "category": "ORDER_UPDATES",
+    "type": "order.created",
+    "priority": "NORMAL",
+    "transactional": true,
+    "title": "Order placed",
+    "body": "Your order FOTG-20261011-E4UDEG has reached Burger Hub. We will tell you as soon as they confirm it.",
+    "action": {
+      "target": "ORDER_DETAIL",
+      "reference": "FOTG-20261011-E4UDEG"
+    },
+    "subject": {
+      "type": "ORDER",
+      "id": "e780dee9-9790-4c66-9f49-861cb93bca28",
+      "reference": "FOTG-20261011-E4UDEG"
+    },
+    "read": false,
+    "read_at": null,
+    "created_at": "2026-10-11T11:31:00+00:00",
+    "template": {
+      "key": "order.created",
+      "version": 1,
+      "locale": "en-IN"
+    },
+    "dedupe_key": "order:e780dee9-9790-4c66-9f49-861cb93bca28:v1:order.created",
+    "expires_at": "2027-01-09T11:31:00+00:00",
+    "customer": {
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "display_name": "Rahul Sharma"
+    },
+    "delivery_summary": {
+      "IN_APP": {
+        "SENT": 1
+      },
+      "EMAIL": {
+        "SKIPPED": 1
+      },
+      "PUSH": {
+        "SENT": 1,
+        "INVALID_DESTINATION": 1
+      }
+    },
+    "deliveries": [
+      {
+        "id": "fe51c946-f202-4264-ae93-a9dd524722f8",
+        "channel": "IN_APP",
+        "provider": "database",
+        "status": "SENT",
+        "policy_result": "MANDATORY",
+        "attempt_count": 0,
+        "next_retry_at": null,
+        "last_error": null,
+        "provider_message_reference": null,
+        "sent_at": "2026-10-11T11:31:00+00:00",
+        "delivered_at": null,
+        "failed_at": null,
+        "created_at": "2026-10-11T11:31:00+00:00",
+        "device": null,
+        "retryable": false,
+        "attempts": []
+      },
+      {
+        "id": "aa828055-d5cd-4890-9ced-eea99bfe2092",
+        "channel": "EMAIL",
+        "provider": "none",
+        "status": "SKIPPED",
+        "policy_result": "SKIP_USER_PREFERENCE",
+        "attempt_count": 0,
+        "next_retry_at": null,
+        "last_error": null,
+        "provider_message_reference": null,
+        "sent_at": null,
+        "delivered_at": null,
+        "failed_at": null,
+        "created_at": "2026-10-11T11:31:00+00:00",
+        "device": null,
+        "retryable": false,
+        "attempts": []
+      },
+      {
+        "id": "4c667672-ed94-41bf-821d-22631d45d946",
+        "channel": "PUSH",
+        "provider": "fake",
+        "status": "SENT",
+        "policy_result": "SEND",
+        "attempt_count": 1,
+        "next_retry_at": null,
+        "last_error": null,
+        "provider_message_reference": "fake-e7d97ae1d4dcb462",
+        "sent_at": "2026-10-11T11:31:00+00:00",
+        "delivered_at": null,
+        "failed_at": null,
+        "created_at": "2026-10-11T11:31:00+00:00",
+        "device": {
+          "id": "262e3351-8abb-46d1-a171-1b63e50fd17c",
+          "platform": "ANDROID",
+          "push_provider": "FAKE",
+          "active": true,
+          "revoked_at": null,
+          "revoke_reason": null,
+          "token_state": "ACTIVE"
+        },
+        "retryable": false,
+        "attempts": [
+          {
+            "number": 1,
+            "result": "SENT",
+            "provider_code": null,
+            "error_category": null,
+            "safe_error": null,
+            "latency_ms": 3,
+            "payload_bytes": 596,
+            "started_at": "2026-10-11T11:31:00+00:00",
+            "finished_at": "2026-10-11T11:31:00+00:00"
+          }
+        ]
+      },
+      {
+        "id": "6374de67-bb82-46d9-87d4-3ac61a1d68dd",
+        "channel": "PUSH",
+        "provider": "fake",
+        "status": "INVALID_DESTINATION",
+        "policy_result": "SEND",
+        "attempt_count": 1,
+        "next_retry_at": null,
+        "last_error": {
+          "code": "UNREGISTERED",
+          "category": "INVALID_DESTINATION"
+        },
+        "provider_message_reference": null,
+        "sent_at": null,
+        "delivered_at": null,
+        "failed_at": "2026-10-11T11:31:00+00:00",
+        "created_at": "2026-10-11T11:31:00+00:00",
+        "device": {
+          "id": "b992841f-4f41-4356-814c-ecdfcf38d9ac",
+          "platform": "ANDROID",
+          "push_provider": "FAKE",
+          "active": false,
+          "revoked_at": "2026-10-11T11:31:00+00:00",
+          "revoke_reason": "INVALID_TOKEN",
+          "token_state": "INVALID"
+        },
+        "retryable": false,
+        "attempts": [
+          {
+            "number": 1,
+            "result": "INVALID_DESTINATION",
+            "provider_code": "UNREGISTERED",
+            "error_category": "INVALID_DESTINATION",
+            "safe_error": "The device token is no longer registered (simulated).",
+            "latency_ms": 1,
+            "payload_bytes": 596,
+            "started_at": "2026-10-11T11:31:00+00:00",
+            "finished_at": "2026-10-11T11:31:00+00:00"
+          }
+        ]
+      }
+    ]
+  },
+  "push_message": {
+    "delivery": "4c667672-ed94-41bf-821d-22631d45d946",
+    "at": "2026-10-11T11:31:00+00:00",
+    "message": {
+      "notification": {
+        "title": "Order placed",
+        "body": "Burger Hub is reviewing your order FOTG-20261011-E4UDEG."
+      },
+      "data": {
+        "type": "order.created",
+        "notification_id": "be0ec811-a469-42f6-b98a-1e64f8b0deee",
+        "category": "ORDER_UPDATES",
+        "target": "ORDER_DETAIL",
+        "reference": "FOTG-20261011-E4UDEG",
+        "subject_id": "e780dee9-9790-4c66-9f49-861cb93bca28",
+        "channel_id": "orders",
+        "created_at": "2026-10-11T11:31:00+00:00"
+      },
+      "android": {
+        "priority": "NORMAL",
+        "ttl": "3600s",
+        "collapse_key": "subject-cd5ce397ce4392b9c0179f8c",
+        "notification": {
+          "channel_id": "orders",
+          "tag": "subject-cd5ce397ce4392b9c0179f8c",
+          "visibility": "PRIVATE"
+        }
+      }
+    },
+    "bytes": 596
+  },
+  "ready_push_message": {
+    "delivery": "98852a34-a042-4ee9-ae82-59e787944268",
+    "at": "2026-10-11T11:31:38+00:00",
+    "message": {
+      "notification": {
+        "title": "Your order is ready",
+        "body": "Order FOTG-20261011-E4UDEG is ready for pickup at Burger Hub. Open the app to show your pickup code."
+      },
+      "data": {
+        "type": "order.ready",
+        "notification_id": "421d0e41-bd6f-43ca-9844-f4a2d67dae28",
+        "category": "PICKUP_UPDATES",
+        "target": "ORDER_TRACKING",
+        "reference": "FOTG-20261011-E4UDEG",
+        "subject_id": "e780dee9-9790-4c66-9f49-861cb93bca28",
+        "channel_id": "pickup",
+        "created_at": "2026-10-11T11:31:38+00:00"
+      },
+      "android": {
+        "priority": "HIGH",
+        "ttl": "3600s",
+        "collapse_key": "subject-cd5ce397ce4392b9c0179f8c",
+        "notification": {
+          "channel_id": "pickup",
+          "tag": "subject-cd5ce397ce4392b9c0179f8c",
+          "visibility": "PRIVATE"
+        }
+      }
+    },
+    "bytes": 646
+  }
+}

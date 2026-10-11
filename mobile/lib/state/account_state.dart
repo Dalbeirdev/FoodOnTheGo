@@ -91,6 +91,23 @@ class AccountState extends ChangeNotifier {
   Future<void> loadAddresses() => _load(addresses, repos.addresses.list);
   Future<void> loadPayments() => _load(payments, repos.payments.list);
   Future<void> loadNotifications() => _load(notifications, repos.notifications.list);
+
+  /// Module 33: a realtime order notice or a push arrived — read the inbox again (the database stays the authority).
+  /// A quiet read: the list on screen stays while it loads (no skeleton), and a failure keeps it — the next read corrects it.
+  Future<void> refreshNotifications() async {
+    final u = _user;
+    if (u == null) return;
+    if (notifications.status != LoadStatus.ready) return loadNotifications();
+    try {
+      final next = await repos.notifications.list(u.id);
+      if (_user?.id != u.id) return; // another customer signed in meanwhile: their list is not this one
+      notifications.data = next; notifications.error = null;
+      notifyListeners();
+    } catch (_) { /* keep the current list */ }
+  }
+
+  /// Module 33: what each channel can do on the server (from the preference matrix); empty for the development data.
+  Map<String, String> get channelStatus => preferences.data?.matrix?.channelStatus ?? const {};
   Future<void> loadPreferences() => _load(preferences, repos.notifications.getPreferences);
 
   Future<T> _mutate<T>(Resource<T> r, Future<T> Function(String uid) fn) async {

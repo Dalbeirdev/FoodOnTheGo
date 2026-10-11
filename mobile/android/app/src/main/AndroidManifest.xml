@@ -4,6 +4,8 @@
     <!-- Asked only when the customer taps "Use my current location" while planning a journey (Module 26). No background location. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- Module 33: Android 13+ asks the customer before any notification is shown; requested in context, never on the first frame. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- Cleartext (plain HTTP) is disabled here. The `local` flavor overrides this in
          src/local/AndroidManifest.xml so the developer PC can be reached over the LAN. -->

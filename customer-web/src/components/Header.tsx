@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { useSiteNavigation } from '../repositories'
 import { useAuth } from '../auth/AuthContext'
+import { useOptionalAccount } from '../account/AccountContext'
 import { useCart } from '../cart/CartContext'
 import { t } from '../i18n/strings'
 import './Header.css'
@@ -16,6 +17,7 @@ const UserIcon = ({ size = 22 }: { size?: number }) => (
 export default function Header() {
   const nav = useSiteNavigation()
   const { isAuthenticated, user } = useAuth()
+  const unreadCount = useOptionalAccount()?.unreadCount ?? 0
   const { count } = useCart()
   const cartLabel = count === 0 ? t('cart.badge.empty') : count === 1 ? t('cart.badge.one') : t('cart.badge', { count })
   const secondary = isAuthenticated ? nav.accountLink : nav.secondaryAction
@@ -64,6 +66,12 @@ export default function Header() {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 4h2l2.5 11h11L21 7H7" /><circle cx="9" cy="20" r="1.5" /><circle cx="17" cy="20" r="1.5" /></svg>
             {count > 0 && <span className="header__cart-badge" aria-hidden="true">{count > 99 ? '99+' : count}</span>}
           </Link>
+          {isAuthenticated && (
+            <Link to="/notifications" className="header__bell" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'} title="Notifications" data-testid="header-bell" data-unread={unreadCount}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2ZM10 20a2 2 0 0 0 4 0" /></svg>
+              {unreadCount > 0 && <span className="header__bell-badge" aria-hidden="true">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+            </Link>
+          )}
           <Link to={nav.accountLink.to} className="header__account" aria-label={user ? `${nav.accountLink.label}: ${user.name}` : nav.accountLink.label} title={user?.name ?? nav.accountLink.label}>
             <UserIcon />
           </Link>

@@ -1,0 +1,275 @@
+{
+  "module": "M31",
+  "suite": "Customer Web + Restaurant Dashboard + Platform Admin on the real local backend, DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — no money moves; Razorpay itself is NOT exercised",
+  "ran_at": "2026-10-11T11:24:05.258Z",
+  "passed": 51,
+  "failed": 2,
+  "total": 53,
+  "results": [
+    {
+      "name": "A1 THE PAYMENT PAGE WAITED FOR THE SERVER'S ORDER: after the development provider's success the browser was taken to /order-confirmation/FOTG-… — an order number the SERVER issued (FOTG-YYYYMMDD-XXXXXX, no 0/O/1/I)",
+      "pass": true,
+      "detail": "http://localhost:5173/order-confirmation/FOTG-20261011-7B6DR2"
+    },
+    {
+      "name": "A2 THE BROWSER CREATED NOTHING: no request of the run posted to an orders endpoint, and the only POSTs were the checkout confirm, the payment start and the provider report",
+      "pass": true,
+      "detail": "/auth/customer/otp/request /auth/customer/otp/verify /cart/claim /checkouts /checkouts/1f1f80f0-5a5d-4271-b40d-bbe58b7fd8a8/confirm /checkouts/1f1f80f0-5a5d-4271-b40d-bbe58b7fd8a8/payment-attempts /dev/payments/bd3b99ec-8a2b-4ad7-adb1-59049c06fe90/simulate /payments/bd3b99ec-8a2b-4ad7-adb1-59049c06fe90/complete"
+    },
+    {
+      "name": "A3 DATABASE: exactly one order for the checkout — WAITING_FOR_RESTAURANT, PAID, refund NONE, the checkout's total in INR, 3 items, the payment referenced, a pickup reservation of its own; the checkout and the cart are CONVERTED; the payment's fulfilment is ORDER_CREATED; the fulfilment record SUCCEEDED after 1 attempt",
+      "pass": true,
+      "detail": "{\"status\":\"WAITING_FOR_RESTAURANT\",\"paymentState\":\"PAID\",\"refund\":\"NONE\",\"total\":42700,\"currency\":\"INR\",\"payment\":\"bd3b99ec-8a2b-4ad7-adb1-59049c06fe90\",\"checkout\":\"1f1f80f0-5a5d-4271-b40d-bbe58b7fd8a8\",\"version\":1,\"reason\":\"\",\"items\":3,\"reserved\":true} CONVERTED CONVERTED {\"status\":\"VERIFIED\",\"fulfillment\":\"ORDER_CREATED\",\"reason\":\"\"} SUCCEEDED/PAYMENT_VERIFIED/1/-"
+    },
+    {
+      "name": "A4 THE HOLD BECAME THE ORDER'S RESERVATION: the same row is now source ORDER, ACTIVE, without an expiry — the pickup time was not moved",
+      "pass": true,
+      "detail": "ORDER/ACTIVE/no-expiry"
+    },
+    {
+      "name": "A5 THE PICKUP CREDENTIAL IS STORED SAFELY: the QR token only as a 64-character hash, the six-character code encrypted (not readable in the row), with a hash for lookup",
+      "pass": true,
+      "detail": "{\"status\":\"ACTIVE\",\"hashLength\":64,\"encrypted\":true,\"codeHash\":\"e61f90c3f7633f59e3500b91743aba13a7da1d7caecd60366f45be51621d817c\"}"
+    },
+    {
+      "name": "A6 THE CUSTOMER'S ORDER (GET /customer/orders/{number}): the snapshot — restaurant, 2 × Onion Rings + Masala Fries with their options and prices, pricing, pickup, payment reference, legal references — plus the pickup code and QR payload, next_action WAIT_FOR_RESTAURANT, pickup_verification NOT_IMPLEMENTED, version 1",
+      "pass": false,
+      "detail": "{\"id\":\"36c866d3-cc76-48b9-ba8e-2c935ac46725\",\"order_number\":\"FOTG-20261011-7B6DR2\",\"status\":\"WAITING_FOR_RESTAURANT\",\"payment_state\":\"PAID\",\"refund_status\":\"NONE\",\"restaurant\":{\"id\":\"0a000000-0000-4000-8000-0000000000a1\",\"slug\":\"burger-hub\",\"name\":\"Burger Hub\",\"branch_label\":\"Sector 62 · Noida\",\"for"
+    },
+    {
+      "name": "A7 NOTHING SECRET IN THE ORDER: no provider secret, signature, token hash, card number or internal note; the QR payload names neither the order nor the customer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A8 THE CONFIRMATION PAGE renders THE REAL ORDER: its number, \"Waiting for restaurant\", Paid, the total, the pickup code — and the development-order notice is gone",
+      "pass": true,
+      "detail": "ORDER CONFIRMED Order confirmed Burger Hub has your order. Show your pickup code at the counter when you arrive. ORDER NUMBER FOTG-20261011-7B6DR2 ORDER STATUS Waiting for restaurant PAYMENT STATUS Paid TOTAL ₹427.00 INR Track order View or"
+    },
+    {
+      "name": "axe (order confirmation): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A9 RELOADING THE CONFIRMATION creates nothing: still one order, the same number and pickup code, no second payment",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A10 OWNERSHIP: another customer gets 404 for the order (by number and by id), no session gets 401 — and the number itself opens nothing",
+      "pass": true,
+      "detail": "404 404 401"
+    },
+    {
+      "name": "A11 THE CUSTOMER'S LIST shows the order first with its number, state and total — summaries, never the snapshot",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A12 MY ORDERS (page) lists the real order with \"Waiting for restaurant\"",
+      "pass": true,
+      "detail": "ORDER HISTORY My orders Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder. Search orders All Ongoing Completed Cancelled Sort Newest first Oldest first "
+    },
+    {
+      "name": "A13 TRACKING (page) shows the real order waiting for the restaurant, with its pickup code",
+      "pass": true,
+      "detail": "{\"status\":\"Waiting for restaurant\",\"number\":\"FOTG-20261011-7B6DR2\",\"text\":\"Live updates on LIVE ORDER TRACKING Waiting for the restaurant Burger Hub has received your order and will confirm it shortly. Live updates Last updated 4:51 pm\"}"
+    },
+    {
+      "name": "B1 THE RESTAURANT QUEUE (API) lists the order with the customer's name and phone for THIS order, its items count, total, pickup time, version 1 and the allowed steps accept / reject — and no pickup credential, no payment method",
+      "pass": true,
+      "detail": "{\"id\":\"36c866d3-cc76-48b9-ba8e-2c935ac46725\",\"order_number\":\"FOTG-20261011-7B6DR2\",\"status\":\"WAITING_FOR_RESTAURANT\",\"payment_state\":\"PAID\",\"refund_status\":\"NONE\",\"location_id\":\"0a000000-0000-4000-8000-0000000000a1\",\"customer\":{\"name\":\"Rahul Sharma\",\"phone\":\"+919876543210\"},\"item_count\":3,\"total\":{\""
+    },
+    {
+      "name": "B2 THE DASHBOARD (page) shows the real order in the queue — no \"demo data\" banner on the orders section",
+      "pass": true,
+      "detail": "Orders Accept, prepare and hand over pickup orders for this location. Pickup Verification Live: new orders and changes appear as they happen New 1 Preparing 0 Ready 0 Completed 0 Cancelled 0 Search or"
+    },
+    {
+      "name": "axe (restaurant queue): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B3 ACCEPT (page) → the backend answers the order ACCEPTED, version 2, allowed step start_preparing; the request carried the version the screen showed",
+      "pass": true,
+      "detail": "{\"accStatus\":200,\"status\":\"ACCEPTED\",\"body\":\"{\\\"expected_version\\\":1}\"}"
+    },
+    {
+      "name": "B4 DATABASE: ACCEPTED, version 2, timeline ORDER_CREATED → RESTAURANT_ACCEPTED by a restaurant user; audited",
+      "pass": true,
+      "detail": "ORDER_CREATED/SYSTEM,RESTAURANT_ACCEPTED/RESTAURANT_USER"
+    },
+    {
+      "name": "B5 A STALE SCREEN IS REFUSED: rejecting with the version 1 it saw → 409 order_version_conflict naming the current version 2 and state ACCEPTED; accepting again → 200 with the order as it is (idempotent, no second event); \"ready\" from ACCEPTED → 409 order_invalid_transition",
+      "pass": true,
+      "detail": "409 200 409"
+    },
+    {
+      "name": "B6 THE CUSTOMER'S TRACKING PAGE follows (polling the real order): \"accepted\"",
+      "pass": true,
+      "detail": "Live updates on LIVE ORDER TRACKING Restaurant accepted your order Burger Hub accepted your order and will start preparing it. Live updates Last updated 4:52 pm"
+    },
+    {
+      "name": "B7 \"MARK READY\" (page) takes the two backend steps in order — start-preparing, then ready — and the backend answers READY_FOR_PICKUP, version 4",
+      "pass": true,
+      "detail": "start-preparing,ready READY_FOR_PICKUP"
+    },
+    {
+      "name": "B8 DATABASE: READY_FOR_PICKUP, ready_at set, the timeline tells the whole story",
+      "pass": true,
+      "detail": "ORDER_CREATED/SYSTEM,RESTAURANT_ACCEPTED/RESTAURANT_USER,PREPARATION_STARTED/RESTAURANT_USER,READY_FOR_PICKUP/RESTAURANT_USER"
+    },
+    {
+      "name": "B9 THE CUSTOMER sees READY FOR PICKUP with the pickup code to show at the counter — and there is no \"picked up\" step anywhere for the restaurant (Module 32)",
+      "pass": true,
+      "detail": "Live updates on LIVE ORDER TRACKING Ready for pickup Your order is waiting at Burger Hub. Show your pickup code at the counter. Live updates Last updated 4:52 p"
+    },
+    {
+      "name": "C1 A SECOND PAID ORDER exists for the same customer (a new checkout, a new payment, its own number)",
+      "pass": true,
+      "detail": "FOTG-20261011-W926QZ"
+    },
+    {
+      "name": "C2 REJECT (page) with a structured reason and an internal note → the backend answers REJECTED, PAID, refund REQUIRED; the request named ITEM_UNAVAILABLE and the note, nothing about money",
+      "pass": true,
+      "detail": "200 {\"expected_version\":1,\"reason\":\"ITEM_UNAVAILABLE\",\"note\":\"Onion rings finished for today\"}"
+    },
+    {
+      "name": "C3 DATABASE: REJECTED with the reason, the amount unchanged, refund REQUIRED, ONE refund record for the whole total (REQUIRED — nothing refunded here), the pickup reservation RELEASED, the credential REVOKED, the payment still VERIFIED / ORDER_CREATED (the money is never touched by the order)",
+      "pass": true,
+      "detail": "{\"status\":\"REJECTED\",\"paymentState\":\"PAID\",\"refund\":\"REQUIRED\",\"total\":42700,\"currency\":\"INR\",\"payment\":\"aef729d1-4772-4c46-a108-4669516d8b71\",\"checkout\":\"d5336071-7e7c-42fe-a2e7-7dca64a50171\",\"version\":2,\"reason\":\"ITEM_UNAVAILABLE\",\"items\":3,\"reserved\":true} REQUIRED/42700/INR/RESTAURANT_REJECTED:ITEM_UNAVAILABLE ORDER/RELEASED/no-expiry"
+    },
+    {
+      "name": "C4 THE CUSTOMER is told in neutral words — \"an item is no longer available\" — never the restaurant's note; refund REQUIRED, next_action AWAIT_REFUND, no pickup credential any more",
+      "pass": true,
+      "detail": "{\"reason\":\"ITEM_UNAVAILABLE\",\"message\":\"The restaurant could not accept your order: an item is no longer available.\"}"
+    },
+    {
+      "name": "C5 THE ORDER PAGE (customer) shows the rejection and the refund in progress",
+      "pass": true,
+      "detail": "ORDER DETAILS Burger Hub FOTG-20261011-W926QZ · placed Sun, 11 Oct · 4:52 pm IST Rejected Refund pending The restaurant could not accept this order. Reason: an item is unavailable. Reorder View receip"
+    },
+    {
+      "name": "C6 REJECTING AGAIN changes nothing: 200 with the order as it is, still one refund record",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D1 A ZERO-TOTAL CHECKOUT (FREEMEAL covers everything): READY, payment_required false, total 0",
+      "pass": true,
+      "detail": "{\"currency\":\"INR\",\"items_subtotal\":{\"amount\":12900,\"currency\":\"INR\"},\"discounts\":[{\"code\":\"FREEMEAL\",\"label\":\"TEST — 100 % off (a total of zero)\",\"amount\":{\"amount\":12900,\"currency\":\"INR\"}}],\"discount"
+    },
+    {
+      "name": "D2 NO FAKE PAYMENT IS INVENTED FOR IT (a payment start is refused), and POST /checkouts/{id}/fulfill creates the order: 201, PAYMENT_NOT_REQUIRED, refund NONE, total 0, no payment, FREEMEAL redeemed, a pickup credential of its own",
+      "pass": true,
+      "detail": "409 201 {\"order\":{\"id\":\"999938bd-0a37-4b21-9a79-a443169425e9\",\"order_number\":\"FOTG-20261011-B9BZW9\",\"status\":\"WAITING_FOR_RESTAURANT\",\"payment_state\":\"PAYMENT_NOT_REQUIRED\",\"refund_status\":\"NONE\",\"restaurant\""
+    },
+    {
+      "name": "D3 ASKED AGAIN: 200 with the same order — one order for the checkout; the fulfilment record says ZERO_TOTAL",
+      "pass": true,
+      "detail": "200 SUCCEEDED/ZERO_TOTAL/1/-"
+    },
+    {
+      "name": "D4 ITS CONFIRMATION PAGE renders: number, waiting for restaurant, total ₹0, pickup code",
+      "pass": true,
+      "detail": "ORDER CONFIRMED Order confirmed Burger Hub has your order. Show your pickup code at the counter when you arrive. ORDER NUMBER FOTG-20261011-B9BZW9 ORDER STATUS "
+    },
+    {
+      "name": "D5 A CHECKOUT THAT HAS TO BE PAID cannot be turned into an order by asking: 409 order_payment_required; saying \"paid\" / \"free\" is 422 — and no order exists",
+      "pass": true,
+      "detail": "409 422"
+    },
+    {
+      "name": "E1 ADMIN LIST (API) with filter[attention]: the rejected paid order needs attention (refund REQUIRED) — masked phone, payment and checkout linked, never a card or a note",
+      "pass": true,
+      "detail": "{\"id\":\"7483f684-806f-4d6a-91d3-1af5fbd14e48\",\"order_number\":\"FOTG-20261011-W926QZ\",\"status\":\"REJECTED\",\"payment_state\":\"PAID\",\"refund_status\":\"REQUIRED\",\"needs_attention\":true,\"restaurant\":{\"id\":\"0a000000-0000-4000-8000-0000000000a1\",\"name\":\"Burger Hub\",\"organization\":\"Riverside Hospitality Group\"},"
+    },
+    {
+      "name": "E2 THE ADMIN ORDERS PAGE shows the real orders",
+      "pass": true,
+      "detail": "Order Management Platform-wide order monitoring. Admins observe and annotate; status changes stay with restaurants, customers and the backend. All 3 Active 0 Preparing 0 Ready 0 Completed 0 Cancelled "
+    },
+    {
+      "name": "axe (admin orders): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 ADMIN DETAIL: the money state, the payment the order came from, the refund record (REQUIRED, processing NOT_IMPLEMENTED), the fulfilment record, the full timeline with the internal note, actions cancel=false (finished) / refund NOT_IMPLEMENTED",
+      "pass": true,
+      "detail": "{\"cancel\":false,\"refund\":\"NOT_IMPLEMENTED\",\"mark_picked_up\":\"NOT_PROVIDED\"} ORDER_CREATED,RESTAURANT_REJECTED,REFUND_REQUIRED"
+    },
+    {
+      "name": "E4 THE RECOVERY VIEW (GET /admin/order-fulfillments): every creation of this run SUCCEEDED, each names its order and payment; nothing needs attention",
+      "pass": true,
+      "detail": "{\"id\":\"7b347e64-a5e2-4f4f-91dc-2b995033bd02\",\"checkout_id\":\"1f1f80f0-5a5d-4271-b40d-bbe58b7fd8a8\",\"payment_id\":\"bd3b99ec-8a2b-4ad7-adb1-59049c06fe90\",\"order_id\":\"36c866d3-cc76-48b9-ba8e-2c935ac46725\",\"order_number\":\"FOTG-20261011-7B6DR2\",\"trigger\":\"PAYMENT_VERIFIED\",\"status\":\"SUCCEEDED\",\"attempts\":1,\"last_error_code\":null,\"last_error_detail\":null,\"next_attempt_at\":null,\"needs_attention\":false,\"sta"
+    },
+    {
+      "name": "E5 RECOVER on a checkout whose order exists → 409 order_already_exists (nothing created by hand); without a reason → 422",
+      "pass": true,
+      "detail": "409 422"
+    },
+    {
+      "name": "E6 SYSTEM NUMBERS (GET /admin/system/orders): counts only — orders by state, verified payments without an order 0, refund required ≥ 1, realtime / pickup verification / refund processing NOT_IMPLEMENTED",
+      "pass": false,
+      "detail": "{\"checked_at\":\"2026-10-11T11:23:53+00:00\",\"window_hours\":24,\"events\":{\"created\":20,\"creation_failed\":0,\"recovery_required\":0,\"review_required\":0,\"accepted\":16,\"rejected\":1,\"preparing\":16,\"ready\":14,\"cancelled\":0,\"refund_required\":1,\"zero_to"
+    },
+    {
+      "name": "E7 ADMIN CANCEL (admin.orders.override, a reason, audited): the READY order becomes CANCELLED, PAID, refund REQUIRED with a refund record; without a reason 422",
+      "pass": true,
+      "detail": "422 200 CANCELLED"
+    },
+    {
+      "name": "E8 THE CUSTOMER sees the cancellation, the refund required and AWAIT_REFUND; the restaurant can no longer touch it (409)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 ANOTHER RESTAURANT'S OWNER: the order does not exist for them (404 to read, 404 to act, 404 for Burger Hub's queue)",
+      "pass": true,
+      "detail": "404 404 404"
+    },
+    {
+      "name": "F2 A CUSTOMER cannot cancel or step an order (404 / 401); a restaurant request that names a status or an amount is refused (422)",
+      "pass": true,
+      "detail": "404 401 422"
+    },
+    {
+      "name": "F3 SUPPORT ADMIN (orders view + recover, no override): reads the order and the recovery view, cannot cancel (403)",
+      "pass": true,
+      "detail": "200 403 200"
+    },
+    {
+      "name": "F4 ORDER STAFF and MANAGER of Burger Hub read the queue (200); the queue of a location id that is not theirs is 404",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G1 NOTHING SECRET IN ANY ANSWER KEPT FROM THIS RUN: no provider secret, signature, token hash, card number, CVV; the pickup code appears only in the customer's own order",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G2 LOGS: 10 order lines were written in this run — ids, states, codes and triggers only: no phone number, no item name, no token, no pickup code, no internal note",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "G3 MEASURED on this machine through the local API (PHP built-in server, no OPcache): order read 334 ms, list 287 ms, restaurant queue 638 ms, restaurant order 351 ms, admin list 451 ms, admin detail 375 ms (medians)",
+      "pass": true,
+      "detail": "{\"order_read\":{\"n\":1,\"median_ms\":334,\"max_ms\":334},\"order_list\":{\"n\":1,\"median_ms\":287,\"max_ms\":287},\"restaurant_queue\":{\"n\":1,\"median_ms\":638,\"max_ms\":638},\"restaurant_step\":{\"n\":3,\"median_ms\":351,\"max_ms\":389},\"admin_list\":{\"n\":1,\"median_ms\":451,\"max_ms\":451},\"admin_detail\":{\"n\":1,\"median_ms\":375,\"max_ms\":375}}"
+    },
+    {
+      "name": "G4 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

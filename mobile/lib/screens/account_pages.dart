@@ -384,10 +384,19 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
+const _channelStatusText = {'AVAILABLE': 'available', 'DEVELOPMENT': 'development provider on this machine (no real message leaves it)', 'PENDING': 'provider pending — nothing is sent yet', 'UNAVAILABLE': 'not available'};
+
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String tab = 'all';
   bool showPrefs = false;
   String? savingCell;
+
+  // Module 33: the inbox is read again each time the screen opens (quietly — the list stays while it loads).
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) context.read<AccountState>().refreshNotifications(); });
+  }
 
   String _ago(String iso) {
     final m = DateTime.now().difference(DateTime.parse(iso)).inMinutes;
@@ -437,6 +446,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       const Divider(height: 20),
       const Text('Offers and news — only with your consent', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Brand.grey, letterSpacing: .4)),
       for (final c in marketing) category(c),
+      if (m.channelStatus.isNotEmpty) Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Semantics(label: 'Channel status', child: Wrap(spacing: 14, runSpacing: 4, children: [
+          for (final e in m.channelStatus.entries) Text('${_channelLabel[e.key] ?? e.key}: ${_channelStatusText[e.value] ?? e.value}', key: ValueKey('channel-status-${e.key}'), style: const TextStyle(fontSize: 11.5, color: Brand.grey)),
+        ])),
+      ),
       const SizedBox(height: 8),
       Text(
         'Security notices stay on by SMS and in the app — they protect your account and cannot be switched off. '
@@ -479,7 +494,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 14),
           ],
           if (account.notificationsAreDevelopmentData) ...[
-            const InfoBox(icon: Icons.info_outline, color: Brand.blue, bg: Brand.blueBg, child: Text('The notification list is development data: notifications are delivered by a later module. Your preferences are real.', style: TextStyle(fontSize: 12.5, color: Brand.navy))),
+            const InfoBox(icon: Icons.info_outline, color: Brand.blue, bg: Brand.blueBg, child: Text('The notification list is development data (the mock). On the backend the list is your real inbox (Module 33).', style: TextStyle(fontSize: 12.5, color: Brand.navy))),
             const SizedBox(height: 10),
           ],
           Row(children: [

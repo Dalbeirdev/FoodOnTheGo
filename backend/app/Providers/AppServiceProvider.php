@@ -7,6 +7,9 @@ use App\Auth\Principal;
 use App\Auth\Scope;
 use App\Contracts\Journey\PlacesProvider;
 use App\Contracts\Journey\RoutingProvider;
+use App\Contracts\Notifications\EmailNotificationProvider;
+use App\Contracts\Notifications\PushNotificationProvider;
+use App\Contracts\Notifications\SmsNotificationProvider;
 use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Sms\SmsProvider;
 use App\Enums\Permission;
@@ -29,6 +32,14 @@ use App\Models\RouteCorridor;
 use App\Models\ServiceArea;
 use App\Services\Journey\Providers\ProviderManager;
 use App\Services\Market\MarketContext;
+use App\Services\Notifications\NotificationMetrics;
+use App\Services\Notifications\NotificationRegistry;
+use App\Services\Notifications\NotificationTemplates;
+use App\Services\Notifications\Providers\FakeEmailProvider;
+use App\Services\Notifications\Providers\FakePushProvider;
+use App\Services\Notifications\Providers\FakeSmsProvider;
+use App\Services\Notifications\Providers\FcmHttpV1PushProvider;
+use App\Services\Notifications\Providers\MailEmailProvider;
 use App\Services\Payment\PaymentProviderManager;
 use App\Services\Pickup\DatabasePickupCapacityRepository;
 use App\Services\Pickup\PickupCapacityRepository;
@@ -65,6 +76,22 @@ class AppServiceProvider extends ServiceProvider
 
         // Pickup capacity (Module 28): PostgreSQL is the truth about how much of a slot is used.
         $this->app->bind(PickupCapacityRepository::class, DatabasePickupCapacityRepository::class);
+
+        // Notifications (Module 33): the configured provider per channel; the domain sees the interfaces only.
+        $this->app->singleton(NotificationRegistry::class);
+        $this->app->singleton(NotificationTemplates::class);
+        $this->app->singleton(NotificationMetrics::class);
+        $this->app->singleton(FakeEmailProvider::class);
+        $this->app->singleton(FakeSmsProvider::class);
+        $this->app->bind(PushNotificationProvider::class, fn () => match ((string) config('notifications.channels.PUSH.driver')) {
+            'fcm' => $this->app->make(FcmHttpV1PushProvider::class),
+            default => $this->app->make(FakePushProvider::class),
+        });
+        $this->app->bind(EmailNotificationProvider::class, fn () => match ((string) config('notifications.channels.EMAIL.driver')) {
+            'fake' => $this->app->make(FakeEmailProvider::class),
+            default => $this->app->make(MailEmailProvider::class),
+        });
+        $this->app->bind(SmsNotificationProvider::class, fn () => $this->app->make(FakeSmsProvider::class));
     }
 
     public function boot(): void
@@ -213,5 +240,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('order-write', fn (Request $request) => Limit::perMinute($perMinute('order_write'))->by('order-write:'.$actor($request)));
         RateLimiter::for('pickup-verify', fn (Request $request) => Limit::perMinute($perMinute('pickup_verify'))->by('pickup-verify:'.$actor($request)));
         RateLimiter::for('channel-auth', fn (Request $request) => Limit::perMinute($perMinute('channel_auth'))->by('channel-auth:'.$actor($request)));
+        RateLimiter::for('device-register', fn (Request $request) => Limit::perMinute($perMinute('device_register'))->by('device-register:'.$actor($request)));
+        RateLimiter::for('notifications-read', fn (Request $request) => Limit::perMinute($perMinute('notifications_read'))->by('notifications-read:'.$actor($request)));
+        RateLimiter::for('notifications-write', fn (Request $request) => Limit::perMinute($perMinute('notifications_write'))->by('notifications-write:'.$actor($request)));
+        RateLimiter::for('admin-notification-test', fn (Request $request) => Limit::perMinute($perMinute('admin_notification_test'))->by('admin-notification-test:'.$actor($request)));
     }
 }

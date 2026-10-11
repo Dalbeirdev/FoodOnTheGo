@@ -237,3 +237,17 @@
   .header__cart { width: 34px; height: 34px; }
   .header__actions .btn--primary { padding: 0 12px; }
 }
+
+/* ---- Module 33: the notification bell (signed-in customers), same size and badge as the cart ---- */
+.header__bell { position: relative; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; color: var(--navy, #1b1f2a); }
+.header__bell:hover { background: var(--bg); }
+.header__bell-badge { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #b91c1c; color: #fff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center; }
+
+/* On a phone the bell must not push the bar past the screen (BUG-241): the icon matches the cart, the gaps tighten, and the
+   logo — the only flexible element of the bar — gives up the remaining width instead of the page scrolling sideways. */
+@media (max-width: 480px) {
+  .header__bell { width: 34px; height: 34px; }
+  .header__actions { gap: 4px; flex-shrink: 0; }
+  .header__brand { flex: 0 1 auto; min-width: 0; }
+  .header__logo { width: auto; height: auto; max-height: 34px; max-width: 100%; }
+}

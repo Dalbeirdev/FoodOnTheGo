@@ -59,6 +59,8 @@ enum Permission: string
     case AdminMarketFeaturesManage = 'admin.market_features.manage';
     case AdminConfigurationManage = 'admin.configuration.manage';
     case AdminNotificationsManage = 'admin.notifications.manage';
+    case AdminNotificationsView = 'admin.notifications.view';
+    case AdminNotificationsTest = 'admin.notifications.test';
     case AdminUsersView = 'admin.users.view';
     case AdminUsersManage = 'admin.users.manage';
     case AdminRolesView = 'admin.roles.view';

@@ -447,7 +447,8 @@ describe('checkout page on the backend', () => {
     expect(screen.getByTestId('co-legal-draft')).toBeInTheDocument()
     expect(screen.getAllByTestId('co-legal-doc').map((n) => `${n.getAttribute('data-type')}@${n.getAttribute('data-version')}`)).toEqual(['TERMS@draft-2026-09', 'PRIVACY@draft-2026-09', 'REFUND@draft-2026-09'])
     expect(document.body.textContent).not.toMatch(/GST|VAT|delivery fee|tax invoice|development checkout|cash at pickup/i)
-    expect(screen.getByTestId('co-expires')).toHaveAttribute('data-seconds')
+    // The countdown is set by an effect after the checkout arrives: wait for it (reading it in the same tick was a race — BUG-239).
+    expect(await screen.findByTestId('co-expires')).toHaveAttribute('data-seconds')
   })
 
   it('charges nothing it was not told to: no tax line, no fee line, and says nothing is configured', async () => {

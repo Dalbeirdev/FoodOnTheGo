@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\FinancialRuleController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
+use App\Http\Controllers\Api\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Api\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Api\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Api\Admin\PickupMetricsController;
@@ -29,7 +30,9 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CartPickupController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\Customer\AccountController;
+use App\Http\Controllers\Api\Customer\DeviceController;
 use App\Http\Controllers\Api\Customer\FavoriteController;
+use App\Http\Controllers\Api\Customer\NotificationController as CustomerNotificationController;
 use App\Http\Controllers\Api\Customer\NotificationPreferenceController;
 use App\Http\Controllers\Api\Customer\PaymentMethodController;
 use App\Http\Controllers\Api\Customer\PhoneChangeController;
@@ -233,6 +236,24 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/notification-preferences', [NotificationPreferenceController::class, 'show'])->name('notification-preferences.show');
         Route::patch('/notification-preferences', [NotificationPreferenceController::class, 'update'])->name('notification-preferences.update');
 
+        // Module 33: push devices (the installation is bound to the signed-in customer; tokens never come back) and the
+        // in-app notification center (own records only; read state is the only thing a customer changes).
+        Route::middleware('throttle:device-register')->group(function (): void {
+            Route::put('/devices/current', [DeviceController::class, 'current'])->name('devices.current');
+            Route::delete('/devices/current', [DeviceController::class, 'destroyCurrent'])->name('devices.current.destroy');
+            Route::patch('/devices/{device}', [DeviceController::class, 'update'])->whereUuid('device')->name('devices.update');
+            Route::delete('/devices/{device}', [DeviceController::class, 'destroy'])->whereUuid('device')->name('devices.destroy');
+        });
+        Route::get('/devices', [DeviceController::class, 'index'])->middleware('throttle:notifications-read')->name('devices.index');
+        Route::middleware('throttle:notifications-read')->group(function (): void {
+            Route::get('/notifications', [CustomerNotificationController::class, 'index'])->name('notifications.index');
+            Route::get('/notifications/unread-count', [CustomerNotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+        });
+        Route::middleware('throttle:notifications-write')->group(function (): void {
+            Route::post('/notifications/read-all', [CustomerNotificationController::class, 'readAll'])->name('notifications.read-all');
+            Route::post('/notifications/{notification}/read', [CustomerNotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
+        });
+
         // Sensitive actions: a code to the account's own phone first (recent sign-ins are accepted as is).
         Route::post('/account/reauth', [AccountController::class, 'reauth'])->middleware('throttle:otp-request')->name('reauth.request');
         Route::post('/account/reauth/verify', [AccountController::class, 'verifyReauth'])->middleware('throttle:otp-verify')->name('reauth.verify');
@@ -412,6 +433,17 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         // Module 32: the realtime layer's health and counters, the pickup verification counters, and the attempts (security view).
         Route::get('/system/realtime', [RealtimeController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.realtime');
         Route::get('/pickup-attempts', [RealtimeController::class, 'pickupAttempts'])->middleware('can:'.Permission::AdminSystemView->value)->name('pickup-attempts.index');
+        // Module 33: notification delivery diagnostics (platform-wide view permission), the registry, a controlled resend,
+        // the system health, and a test send that exists only outside production.
+        Route::get('/system/notifications', [AdminNotificationController::class, 'system'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.notifications');
+        Route::middleware('can:'.Permission::AdminNotificationsView->value)->group(function (): void {
+            Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+            Route::get('/notifications/templates', [AdminNotificationController::class, 'templates'])->name('notifications.templates');
+            Route::get('/notifications/deliveries', [AdminNotificationController::class, 'deliveries'])->name('notifications.deliveries');
+            Route::get('/notifications/{notification}', [AdminNotificationController::class, 'show'])->whereUuid('notification')->name('notifications.show');
+        });
+        Route::post('/notifications/deliveries/{delivery}/retry', [AdminNotificationController::class, 'retry'])->whereUuid('delivery')->middleware(['can:'.Permission::AdminNotificationsManage->value, 'throttle:admin-sensitive'])->name('notifications.deliveries.retry');
+        Route::post('/notifications/test', [AdminNotificationController::class, 'test'])->middleware(['can:'.Permission::AdminNotificationsTest->value, 'throttle:admin-notification-test'])->name('notifications.test');
         Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::get('/order-fulfillments', [AdminOrderController::class, 'fulfillments'])->name('order-fulfillments.index');

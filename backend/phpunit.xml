@@ -28,6 +28,10 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="PUSH_DRIVER" value="fake"/>
+        <env name="EMAIL_NOTIFICATIONS_DRIVER" value="fake"/>
+        <env name="SMS_NOTIFICATIONS_DRIVER" value="fake"/>
+        <env name="FIREBASE_CREDENTIALS" value=""/>
         <!-- Module 32: the realtime signing driver in tests (no server runs; these are test values, not credentials) -->
         <env name="REVERB_APP_ID" value="100001"/>
         <env name="REVERB_APP_KEY" value="test-reverb-key"/>
