@@ -62,6 +62,11 @@ return [
     'notifications_read' => (int) env('RATE_LIMIT_NOTIFICATIONS_READ', 120),
     'notifications_write' => (int) env('RATE_LIMIT_NOTIFICATIONS_WRITE', 60),
     'admin_notification_test' => (int) env('RATE_LIMIT_ADMIN_NOTIFICATION_TEST', 5),
+
+    // Module 34 — reviews: reading (own, public, dashboard), writing (submit / edit / remove / respond), reporting.
+    'review_read' => (int) env('RATE_LIMIT_REVIEW_READ', 120),
+    'review_write' => (int) env('RATE_LIMIT_REVIEW_WRITE', 10),
+    'review_report' => (int) env('RATE_LIMIT_REVIEW_REPORT', 5),
     // Orders (Module 31). Reading is polled by a customer waiting for the order and by a restaurant's queue screen;
     // a step (accept, reject, ready) is a person's click.
     'order_read' => (int) env('RATE_LIMIT_ORDER_READ', 120),

@@ -2,7 +2,7 @@ import type { Restaurant, OpeningHours } from '../repositories/types'
 import type { MenuCategory, MenuItem, ModifierGroup, VariantGroup } from '../menu/repositories'
 import type { Order, OrderStatus } from '../order/repositories'
 import type { PickupSettings } from '../pickup/repositories'
-import type { Review } from '../review/repositories'
+import type { ReportReason, Review } from '../review/repositories'
 
 /**
  * Restaurant Dashboard (Module 17) — domain contracts. The dashboard shares the customer-side domain (Restaurant, menu,
@@ -13,7 +13,7 @@ export type Permission =
   | 'restaurant.profile.view' | 'restaurant.profile.edit' | 'hours.edit' | 'pickup.settings.edit'
   | 'menu.view' | 'menu.edit'
   | 'orders.view' | 'orders.update' | 'pickup.verify'
-  | 'reviews.view' | 'reviews.respond'
+  | 'reviews.view' | 'reviews.respond' | 'reviews.report'
   | 'staff.view' | 'staff.manage'
   | 'analytics.view' | 'notifications.view' | 'settings.manage'
 export type RoleId = 'owner' | 'manager' | 'order_staff' | 'menu_manager' | 'viewer'
@@ -168,9 +168,13 @@ export interface RestaurantStaffRepository {
   roles?(): Promise<Role[]>
 }
 export interface RestaurantReviewRepository {
-  summary(locationId: string): Promise<{ averageRating: number | null; reviewCount: number; distribution: Array<{ rating: number; count: number }> }>
+  /** `answered` comes from the backend when it counts over every published review, not only the loaded page. */
+  summary(locationId: string): Promise<{ averageRating: number | null; reviewCount: number; distribution: Array<{ rating: number; count: number }>; answered?: number }>
   list(locationId: string): Promise<Review[]>
+  /** Publishes the restaurant's one response, or edits it. The responder's name is decided by the backend when there is one. */
   respond(reviewId: string, text: string, responderName: string): Promise<Review>
+  /** Asks FoodOnTheGo to look at a review (Module 34). Reporting never hides or changes the review by itself. */
+  report?(reviewId: string, reason: ReportReason, explanation?: string): Promise<void>
 }
 export interface RestaurantAnalyticsRepository { summary(locationId: string, q: AnalyticsQuery): Promise<AnalyticsSummary>; overview(locationId: string): Promise<OverviewSnapshot> }
 export interface RestaurantNotificationRepository {

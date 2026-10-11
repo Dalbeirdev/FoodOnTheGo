@@ -57,6 +57,25 @@ class Customer extends Authenticatable implements Principal
         return $name !== '' ? $name : PhoneNumber::mask($this->phone_e164, $this->market?->phone_country_code);
     }
 
+    /**
+     * The only form of the customer's identity that PUBLIC content (a review) may carry: the first word of the name
+     * and the initial of the last one ("Rahul S."), in any script. Never the phone number, the e-mail address or the
+     * account id — and never the masked phone that displayName() falls back to.
+     */
+    public function publicDisplayName(): string
+    {
+        $words = preg_split('/\s+/u', trim((string) $this->name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if ($words === []) {
+            return 'FoodOnTheGo customer';
+        }
+        $first = mb_substr($words[0], 0, 40, 'UTF-8');
+        if (count($words) === 1) {
+            return $first;
+        }
+
+        return $first.' '.mb_strtoupper(mb_substr($words[count($words) - 1], 0, 1, 'UTF-8'), 'UTF-8').'.';
+    }
+
     public function assertVersion(int $expected): void
     {
         if ((int) $this->version !== $expected) {

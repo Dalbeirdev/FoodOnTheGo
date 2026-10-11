@@ -4,6 +4,7 @@ namespace App\Http\Resources\Order;
 
 use App\Enums\OrderFulfillmentStatus;
 use App\Enums\OrderStatus;
+use App\Http\Resources\Review\ReviewPresenter;
 use App\Models\Order;
 use App\Models\OrderEvent;
 use App\Models\OrderFeeLine;
@@ -32,7 +33,7 @@ use Carbon\CarbonImmutable;
  */
 final class OrderPresenter
 {
-    public function __construct(private readonly PickupCredentials $credentials) {}
+    public function __construct(private readonly PickupCredentials $credentials, private readonly ReviewPresenter $reviews) {}
 
     /* ------------------------------------------------------------------ customer */
 
@@ -54,6 +55,8 @@ final class OrderPresenter
             'item_count' => (int) $order->item_count,
             'total' => $order->total()->toArray(),
             'pickup' => $this->pickup($order),
+            // Module 34: what the customer may do about a review of this order (write one, see theirs, nothing).
+            'review' => $this->reviews->forOrder($order),
             'placed_at' => self::utc($order->placed_at),
             'updated_at' => self::utc($order->updated_at),
         ];

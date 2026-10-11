@@ -21,10 +21,12 @@ bool isReviewable(OrderStatus s) => completedStatuses.contains(s);
 bool hasRefund(OrderPaymentStatus p) => p == OrderPaymentStatus.refundPending || p == OrderPaymentStatus.partiallyRefunded || p == OrderPaymentStatus.refunded;
 
 class OrderSummary {
-  const OrderSummary({required this.publicId, required this.orderNumber, required this.restaurantName, required this.restaurantSlug, required this.restaurantTimezone, required this.createdAt, required this.pickupAt, required this.itemCount, required this.itemPreview, required this.currency, required this.totalMinor, required this.orderStatus, required this.paymentStatus, required this.reorderEligible});
+  const OrderSummary({required this.publicId, required this.orderNumber, required this.restaurantName, required this.restaurantSlug, required this.restaurantTimezone, required this.createdAt, required this.pickupAt, required this.itemCount, required this.itemPreview, required this.currency, required this.totalMinor, required this.orderStatus, required this.paymentStatus, required this.reorderEligible, this.review});
+  /// What the backend says about reviewing this order (Module 34). Null on development orders: the status alone decides there.
+  final OrderReviewInfo? review;
   final String publicId, orderNumber, restaurantName, restaurantSlug, restaurantTimezone, itemPreview, currency;
   final DateTime createdAt, pickupAt; final int itemCount, totalMinor; final OrderStatus orderStatus; final OrderPaymentStatus paymentStatus; final bool reorderEligible;
-  factory OrderSummary.of(Order o) => OrderSummary(publicId: o.publicId, orderNumber: o.orderNumber, restaurantName: o.restaurant.name, restaurantSlug: o.restaurant.slug, restaurantTimezone: o.restaurant.timezone, createdAt: o.createdAt, pickupAt: o.pickup.requestedAt, itemCount: o.itemCount, itemPreview: o.items.map((i) => '${i.itemName} × ${i.quantity}').join(' · '), currency: o.pricing.currency, totalMinor: o.pricing.totalMinor, orderStatus: o.orderStatus, paymentStatus: o.paymentStatus, reorderEligible: groupOf(o.orderStatus) != OrderGroup.ongoing && o.paymentStatus != OrderPaymentStatus.paymentPending);
+  factory OrderSummary.of(Order o) => OrderSummary(publicId: o.publicId, orderNumber: o.orderNumber, restaurantName: o.restaurant.name, restaurantSlug: o.restaurant.slug, restaurantTimezone: o.restaurant.timezone, createdAt: o.createdAt, pickupAt: o.pickup.requestedAt, itemCount: o.itemCount, itemPreview: o.items.map((i) => '${i.itemName} × ${i.quantity}').join(' · '), currency: o.pricing.currency, totalMinor: o.pricing.totalMinor, orderStatus: o.orderStatus, paymentStatus: o.paymentStatus, reorderEligible: groupOf(o.orderStatus) != OrderGroup.ongoing && o.paymentStatus != OrderPaymentStatus.paymentPending, review: o.review);
 }
 class OrderListQuery {
   const OrderListQuery({this.group = OrderGroup.all, this.query = '', this.sort = OrderSort.newest, this.cursor, this.limit = 5});

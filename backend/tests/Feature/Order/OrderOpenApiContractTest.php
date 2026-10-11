@@ -121,7 +121,8 @@ class OrderOpenApiContractTest extends TestCase
         $routes = collect(app('router')->getRoutes())->map(fn ($r) => [preg_replace('#^api/v1/#', '', $r->uri()), array_diff($r->methods(), ['HEAD'])])->filter(fn (array $r): bool => $mine($r[0]))
             ->flatMap(fn (array $r) => array_map(fn (string $m): string => $m.' /'.$r[0], $r[1]))->values()->all();
         $this->assertEqualsCanonicalizing($routes, $documented);
-        $this->assertCount(24, $routes);   // 15 (Module 31) + 9 (Module 32: events ×2, pickup credential ×2, verify, channel auth ×2, system realtime, pickup attempts)
+        $this->assertCount(26, $routes);   // + 2 (Module 34: GET / POST customer/orders/{order}/review)
+        // previously 24:   // 15 (Module 31) + 9 (Module 32: events ×2, pickup credential ×2, verify, channel auth ×2, system realtime, pickup attempts)
 
         // Who may call what.
         foreach (['/customer/orders', '/customer/orders/{order}', '/checkouts/{checkout}/fulfill', '/customer/orders/{order}/events', '/customer/orders/{order}/pickup-credential', '/customer/orders/{order}/pickup-credential/reissue', '/customer/broadcasting/auth'] as $path) {

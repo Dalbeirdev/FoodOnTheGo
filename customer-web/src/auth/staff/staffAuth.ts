@@ -107,7 +107,7 @@ export function staffAuth(context: StaffContext) {
 
 /* ---- backend permission codes → the permission keys the dashboards already use (display only) ---- */
 const ADMIN_RENAMES: Record<string, AdminPermission> = { 'users.view': 'admin_users.view', 'users.manage': 'admin_users.manage' }
-const ADMIN_KEYS = new Set<string>(['restaurants.view', 'restaurants.approve', 'restaurants.suspend', 'customers.view', 'customers.manage', 'orders.view', 'orders.override', 'payments.view', 'payments.reconcile', 'refunds.view', 'refunds.issue', 'settlements.view', 'reviews.view', 'reviews.moderate', 'promotions.view', 'promotions.manage', 'support.view', 'support.manage', 'markets.view', 'markets.manage', 'configuration.manage', 'cities.view', 'cities.manage', 'service_areas.view', 'service_areas.manage', 'market_configuration.view', 'market_configuration.manage', 'market_features.manage', 'notifications.view', 'notifications.manage', 'notifications.test', 'admin_users.view', 'admin_users.manage', 'audit.view', 'security.view', 'analytics.view', 'system.view', 'settings.manage'])
+const ADMIN_KEYS = new Set<string>(['restaurants.view', 'restaurants.approve', 'restaurants.suspend', 'customers.view', 'customers.manage', 'orders.view', 'orders.override', 'payments.view', 'payments.reconcile', 'refunds.view', 'refunds.issue', 'settlements.view', 'reviews.view', 'reviews.moderate', 'reviews.restore', 'reviews.reports.view', 'promotions.view', 'promotions.manage', 'support.view', 'support.manage', 'markets.view', 'markets.manage', 'configuration.manage', 'cities.view', 'cities.manage', 'service_areas.view', 'service_areas.manage', 'market_configuration.view', 'market_configuration.manage', 'market_features.manage', 'notifications.view', 'notifications.manage', 'notifications.test', 'admin_users.view', 'admin_users.manage', 'audit.view', 'security.view', 'analytics.view', 'system.view', 'settings.manage'])
 export function adminPermissionsFromApi(codes: string[]): AdminPermission[] {
   const out = new Set<AdminPermission>()
   for (const code of codes) {
@@ -124,7 +124,7 @@ export const adminRoleFromApi = (roles: StaffRole[]): AdminRoleId => ADMIN_ROLES
 const RESTAURANT_MAP: Record<string, RestaurantPermission> = {
   'restaurant.profile.view': 'restaurant.profile.view', 'restaurant.profile.manage': 'restaurant.profile.edit', 'restaurant.hours.manage': 'hours.edit', 'restaurant.pickup_settings.manage': 'pickup.settings.edit',
   'restaurant.menu.view': 'menu.view', 'restaurant.menu.manage': 'menu.edit', 'restaurant.orders.view': 'orders.view', 'restaurant.orders.update': 'orders.update', 'restaurant.pickup.verify': 'pickup.verify',
-  'restaurant.reviews.view': 'reviews.view', 'restaurant.reviews.respond': 'reviews.respond', 'restaurant.staff.view': 'staff.view', 'restaurant.staff.manage': 'staff.manage',
+  'restaurant.reviews.view': 'reviews.view', 'restaurant.reviews.respond': 'reviews.respond', 'restaurant.reviews.report': 'reviews.report', 'restaurant.staff.view': 'staff.view', 'restaurant.staff.manage': 'staff.manage',
   'restaurant.analytics.view': 'analytics.view', 'restaurant.notifications.view': 'notifications.view', 'restaurant.settings.manage': 'settings.manage',
 }
 export const restaurantPermissionsFromApi = (codes: string[]): RestaurantPermission[] => [...new Set(codes.map((c) => RESTAURANT_MAP[c]).filter((p): p is RestaurantPermission => !!p))]

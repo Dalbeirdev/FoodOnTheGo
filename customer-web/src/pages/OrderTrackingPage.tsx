@@ -182,7 +182,8 @@ function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: 
           <div className="pay-actions">
             <Link to={`/order/${o.orderNumber}`} className="btn btn--primary">{t('track.action.viewOrder', undefined, locale)}</Link>
             <Link to={`/order-confirmation/${o.orderNumber}`} className="btn btn--outline">{t('track.action.receipt', undefined, locale)}</Link>
-            <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="trk-review">{t('rv.entry.rate', undefined, locale)}</Link>
+            {(!o.review || o.review.state === 'ELIGIBLE') && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="trk-review">{t('rv.entry.rate', undefined, locale)}</Link>}
+            {o.review?.state === 'REVIEWED' && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="trk-review-view">{o.review.canEdit ? t('rv.entry.edit', undefined, locale) : t('rv.entry.view', undefined, locale)}</Link>}
             <Link to={`/restaurants/${o.restaurant.slug}`} className="btn btn--outline">{t('track.action.reorder', undefined, locale)}</Link>
           </div>
         </section>

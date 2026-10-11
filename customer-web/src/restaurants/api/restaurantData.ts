@@ -44,6 +44,8 @@ export type PublicRestaurantDto = {
   hours: { timezone: string; weekly: Array<{ day_of_week: number; periods: PeriodDto[] }>; special: Array<{ date: string; is_closed: boolean; periods: PeriodDto[]; note: string | null }> }
   pickup: { methods: Array<{ method: 'COUNTER' | 'CURBSIDE' | 'DRIVE_THROUGH'; instructions: string | null; requires_vehicle_info: boolean }>; asap: boolean; scheduled: boolean; default_prep_minutes: number | null; minimum_lead_minutes: number | null; instructions: string | null }
   availability: RestaurantAvailabilityDto
+  /** Module 34: the average of the location's published verified-order reviews (null = none yet) and their number. */
+  rating?: { average: number | null; count: number }
   distance_meters?: number
 }
 type PageDto = { data: PublicRestaurantDto[]; meta: { current_page: number; last_page: number; total: number } }
@@ -83,10 +85,12 @@ export function toRestaurant(d: PublicRestaurantDto): Restaurant {
     images,
     image: images[0] ?? '',
     fallback: legacy?.fallback ?? '🍽️',
-    // No reviews backend yet: development figures where the fixtures have them, otherwise none.
-    rating: legacy?.rating ?? 0,
-    reviewCount: legacy?.reviewCount ?? 0,
-    ratingIsSample: legacy !== null,
+    // Module 34: the backend's rating when it sends one (0 reviews = "New", never a made-up figure). An answer without the
+    // field (a backend older than the review module) keeps the development figures of the fixtures, marked as samples.
+    rating: d.rating ? d.rating.average ?? 0 : legacy?.rating ?? 0,
+    reviewCount: d.rating ? d.rating.count : legacy?.reviewCount ?? 0,
+    ratingIsSample: d.rating ? false : legacy !== null,
+    ratingSource: d.rating ? 'backend' : undefined,
     openingHours: {
       periods: d.hours.weekly.flatMap((day) => day.periods.map((p) => ({ day: day.day_of_week, open: p.opens_at, close: p.closes_at }))),
       special: d.hours.special.map((s) => ({ date: s.date, closed: s.is_closed, periods: s.periods.map((p) => ({ open: p.opens_at, close: p.closes_at })), note: s.note })),

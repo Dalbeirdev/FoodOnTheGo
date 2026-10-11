@@ -28,6 +28,7 @@ final readonly class DiscoveryFilters
         public ?string $query,
         public int $page,
         public int $pageSize,
+        public ?float $minRating = null,
     ) {}
 
     /**
@@ -50,6 +51,7 @@ final readonly class DiscoveryFilters
             isset($input['q']) && trim((string) $input['q']) !== '' ? mb_substr(trim((string) $input['q']), 0, 80) : null,
             max(1, (int) ($input['page']['number'] ?? 1)),
             max(1, min($policy['max_page_size'], (int) ($input['page']['size'] ?? $policy['page_size']))),
+            isset($input['min_rating']) ? round((float) $input['min_rating'], 2) : null,
         );
     }
 
@@ -75,6 +77,7 @@ final readonly class DiscoveryFilters
             'feature' => $this->features,
             'pickup_method' => $this->pickupMethod,
             'q' => $this->query,
+            'min_rating' => $this->minRating,
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Resources\Restaurant;
 use App\Http\Resources\Restaurant\Concerns\PresentsRestaurant;
 use App\Models\RestaurantLocation;
 use App\Services\Restaurant\RestaurantAvailabilityService;
+use App\Services\Review\RestaurantRatingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -54,6 +55,8 @@ class PublicRestaurantResource extends JsonResource
             'hours' => ['timezone' => $location->timezone, 'weekly' => $this->weeklyHours($location), 'special' => $this->specialHours($location, internal: false)],
             'pickup' => $this->pickupForCustomers($location),
             'availability' => app(RestaurantAvailabilityService::class)->evaluate($location)->forCustomers(),
+            // Module 34: the average of this LOCATION's published verified-order reviews and their number; null / 0 = no reviews yet.
+            'rating' => app(RestaurantRatingService::class)->brief($location->relationLoaded('ratingSummary') ? $location->ratingSummary : null),
             // Straight-line distance from the point the client sent. Route distance and detour belong to route discovery.
             $this->mergeWhen($distance !== null, fn (): array => ['distance_meters' => (int) round((float) $distance)]),
         ];

@@ -93,6 +93,7 @@ class PublicRestaurantApiTest extends TestCase
 
         $response->assertExactJson([
             'id' => $location->public_id,
+            'rating' => ['average' => null, 'count' => 0], // Module 34: no reviews yet is said as such
             'slug' => 'burger-hub',
             'name' => 'Burger Hub',
             'branch_label' => 'Sector 62',

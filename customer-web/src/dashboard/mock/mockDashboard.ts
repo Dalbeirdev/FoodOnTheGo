@@ -200,13 +200,19 @@ export class MockRestaurantStaffRepository implements RestaurantStaffRepository 
 
 /* ------------------------------------------------------------------ reviews */
 export class MockRestaurantReviewRepository implements RestaurantReviewRepository {
-  private all(rid: string) { return ssLoad<Review>(REVIEWS_KEY).filter((r) => r.restaurantId === rid && r.status !== 'HIDDEN' && r.status !== 'REJECTED').sort((a, b) => b.createdAt.localeCompare(a.createdAt)) }
+  private all(rid: string) { return ssLoad<Review>(REVIEWS_KEY).filter((r) => r.restaurantId === rid && r.status !== 'HIDDEN' && r.status !== 'REJECTED' && r.status !== 'REMOVED').sort((a, b) => b.createdAt.localeCompare(a.createdAt)) }
   async summary(rid: string) { await wait(); const list = this.all(rid); const distribution = [5, 4, 3, 2, 1].map((rating) => ({ rating, count: list.filter((r) => r.overallRating === rating).length })); return { averageRating: list.length ? list.reduce((a, r) => a + r.overallRating, 0) / list.length : null, reviewCount: list.length, distribution } }
   async list(rid: string) { await wait(); if (failing()) throw new Error('reviews_load_failed'); return this.all(rid) }
   async respond(reviewId: string, text: string, responderName: string) {
     await wait(); const list = ssLoad<Review>(REVIEWS_KEY); const i = list.findIndex((r) => r.reviewId === reviewId); if (i < 0) throw new Error('review_not_found')
     // The restaurant only adds a response — rating and customer text are never modified.
-    list[i] = { ...list[i], restaurantResponse: { text: text.trim(), respondedAt: new Date().toISOString(), responderName } }; ssSave(REVIEWS_KEY, list); return list[i]
+    list[i] = { ...list[i], restaurantResponse: { text: text.trim(), respondedAt: list[i].restaurantResponse?.respondedAt ?? new Date().toISOString(), responderName }, responseVersion: (list[i].responseVersion ?? 0) + 1 }; ssSave(REVIEWS_KEY, list); return list[i]
+  }
+  /** Development stand-in for a report: the review is marked as reported for this browser; nothing else changes. */
+  async report(reviewId: string) {
+    await wait(); const list = ssLoad<Review>(REVIEWS_KEY); const i = list.findIndex((r) => r.reviewId === reviewId); if (i < 0) throw new Error('review_not_found')
+    if (list[i].reported) throw new Error('You have already reported this review.')
+    list[i] = { ...list[i], reported: true }; ssSave(REVIEWS_KEY, list)
   }
 }
 

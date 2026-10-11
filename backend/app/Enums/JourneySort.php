@@ -13,6 +13,9 @@ enum JourneySort: string
     case RouteOrder = 'route_order';
     case NearestToRoute = 'nearest_to_route';
     case FastestPickup = 'fastest_pickup';
+    // Module 34: the average of the published reviews, then their number, then the smallest detour; restaurants
+    // without a review last. A plain average — no confidence weighting has been approved.
+    case HighestRated = 'highest_rated';
 
     /**
      * @return list<string>

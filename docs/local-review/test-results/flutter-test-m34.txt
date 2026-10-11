@@ -1,0 +1,76 @@
+# Module 34 — Android app checks (LOCAL, 2026-10-11): flutter analyze, flutter test (Flutter 3.47.5, Windows host). New in this module: test/api_review_test.dart (15), test/review_backend_screens_test.dart (9). Older tests updated with the reason beside them: test/api_journey_test.dart, test/journey_screens_api_test.dart, test/api_restaurants_test.dart (the rating sort / filter and the backend rating exist now).
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 4.2s)
+exit 0
+
+== flutter test
+00:15 +522: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Restaurants lays out at 1280×800
+00:15 +523: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Restaurant detail lays out at 1280×800
+00:15 +524: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item lays out at 1280×800
+00:15 +525: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Cart (empty) lays out at 1280×800
+00:15 +526: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: My orders lays out at 1280×800
+00:15 +527: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Profile lays out at 1280×800
+00:15 +528: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Plan a journey lays out at 1280×800
+00:15 +529: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Login (mobile number) lays out at 1280×800
+00:15 +530: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Verify OTP (no pending phone) lays out at 1280×800
+00:15 +531: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Account setup (no token) lays out at 1280×800
+00:15 +532: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Build info lays out at 1280×800
+00:15 +533: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Help & Support lays out at 1280×800
+00:15 +534: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Favorites (signed out guard) lays out at 1280×800
+00:15 +535: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Addresses lays out at 1280×800
+00:15 +536: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Payment methods lays out at 1280×800
+00:15 +537: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Notifications lays out at 1280×800
+00:15 +538: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home lays out at 360×640 with 1.3× text
+00:15 +539: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Restaurants lays out at 360×640 with 1.3× text
+00:15 +540: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Restaurant detail lays out at 360×640 with 1.3× text
+00:15 +541: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item lays out at 360×640 with 1.3× text
+00:15 +542: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Cart (empty) lays out at 360×640 with 1.3× text
+00:15 +543: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: My orders lays out at 360×640 with 1.3× text
+00:15 +544: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Profile lays out at 360×640 with 1.3× text
+00:15 +545: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Plan a journey lays out at 360×640 with 1.3× text
+00:15 +546: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Login (mobile number) lays out at 360×640 with 1.3× text
+00:16 +547: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Verify OTP (no pending phone) lays out at 360×640 with 1.3× text
+00:16 +548: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Account setup (no token) lays out at 360×640 with 1.3× text
+00:16 +549: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Build info lays out at 360×640 with 1.3× text
+00:16 +550: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Help & Support lays out at 360×640 with 1.3× text
+00:16 +551: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Favorites (signed out guard) lays out at 360×640 with 1.3× text
+00:16 +552: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Addresses lays out at 360×640 with 1.3× text
+00:16 +553: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Payment methods lays out at 360×640 with 1.3× text
+00:16 +554: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Notifications lays out at 360×640 with 1.3× text
+00:16 +555: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Cart with a combo shows the saving and totals
+00:16 +556: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item screen body is visible above its bottom bar
+00:16 +557: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Checkout (guest) redirects to login instead of rendering the review
+00:16 +558: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home with items shows the cart bar without hiding the page
+00:16 +559: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:16 +560: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:16 +560: All tests passed!
+
+== the Module 34 test files by name (flutter test test/api_review_test.dart test/review_backend_screens_test.dart)
+00:00 +0: loading test/api_review_test.dart
+00:00 +0: test/api_review_test.dart: reviews come from the backend only when orders do and the build says so
+00:00 +1: test/api_review_test.dart: mapping a review of the customer: content, state, what may be done and the restaurant's reply
+00:00 +2: test/api_review_test.dart: mapping the form policy is the backend's
+00:00 +3: test/api_review_test.dart: mapping a rating summary without reviews has no average — nothing is invented
+00:00 +4: test/api_review_test.dart: mapping a public review carries a display name, the rating, the words and the reply — nothing about the customer or the order
+00:00 +5: test/api_review_test.dart: mapping the order carries what may be done about its review
+00:00 +6: test/api_review_test.dart: mapping what is sent is ratings, tags, item feedback and text — nothing else
+00:00 +7: test/api_review_test.dart: ApiReview* on a stubbed backend one GET answers eligibility, my review and the form policy
+00:00 +8: test/api_review_test.dart: ApiReview* on a stubbed backend the backend's reasons reach the screen; a withdrawn review is "removed" and is not offered for editing
+00:00 +9: test/api_review_test.dart: ApiReview* on a stubbed backend submitting posts to the order with a submission token; the customer, the restaurant, a status and "verified" are never sent
+00:00 +10: test/api_review_test.dart: ApiReview* on a stubbed backend a refusal is told in the backend's words; a failure that is not a refusal is not
+00:00 +11: test/api_review_test.dart: ApiReview* on a stubbed backend an edit sends the version that was loaded; without one it asks first
+00:00 +12: test/api_review_test.dart: ApiReview* on a stubbed backend withdraw, my reviews, the public list with its query, and a report
+00:00 +13: test/api_review_test.dart: ApiReview* on a stubbed backend an order of the backend carries its review block into the order and its summary
+00:00 +14: test/api_review_test.dart: the REVIEW notification target opens the review of the order it names — a route of the app, never a URL from the server
+00:00 +15: test/review_backend_screens_test.dart: a refusal by the backend is shown in its own words and the answers are kept; a failure that is not a refusal stays generic
+00:01 +16: test/review_backend_screens_test.dart: what the customer wrote survives the text field scrolling off the screen and a failed submit: nothing is lost, nothing is sent twice
+00:01 +17: test/review_backend_screens_test.dart: my review shows the restaurant's reply; it can be withdrawn after a confirmation, and the order cannot be reviewed again
+00:01 +18: test/review_backend_screens_test.dart: a review the backend no longer lets the customer change offers neither edit nor remove
+00:01 +19: test/review_backend_screens_test.dart: My Reviews lists each review with its state, the reply and the way back; an empty list says how to start
+00:02 +20: test/review_backend_screens_test.dart: a restaurant without reviews says so — no stars, no average, no count is invented
+00:02 +21: test/review_backend_screens_test.dart: one review is "1 verified order review", not "reviews"
+00:02 +22: test/review_backend_screens_test.dart: the public reviews: the backend's average and distribution, pages, sort and star filter asked of the backend, text shown as text
+00:02 +23: test/review_backend_screens_test.dart: a signed-in customer reports a review with a reason; the backend's refusal is shown; the review stays
+00:02 +24: All tests passed!

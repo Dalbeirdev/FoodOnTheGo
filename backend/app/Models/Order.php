@@ -116,6 +116,12 @@ class Order extends Model
         return $this->hasMany(OrderRefund::class)->orderBy('id');
     }
 
+    /** The customer's review of this order (Module 34): at most one, ever. */
+    public function review(): HasOne
+    {
+        return $this->hasOne(RestaurantReview::class);
+    }
+
     public function fulfillment(): HasOne
     {
         return $this->hasOne(OrderFulfillment::class);

@@ -1,0 +1,40 @@
+# Module 34 — regression of the earlier browser suites on the REAL local backend, 2026-10-11 (India time 19:41–21:42)
+# NOTES — every miss of the latest result per suite, with its cause. The run log is m34-regression-runs.txt; the results are m34-regression-<suite>.json.
+# NO SUITE SCRIPT WAS CHANGED FOR THIS MODULE. An expectation that Module 34 (or an earlier module) made obsolete is a miss here and is named below.
+
+LATEST RESULT PER SUITE: auth 48/48, market 51/51, site 68/68, restaurants 97/101, menus 48/48, account 62/63, journeys 61/63, cart 76/76, pickup 69/69, checkout 75/77, payments 59/63, orders 51/53, realtime 48/48, notifications 40/41 — 853/869.
+The Module 33 regression (same thirteen suites, without the notification suite) was 816/828 with 12 misses; the same 12 are here again. Four misses are new.
+
+NEW WITH MODULE 34: 4 expectations that this module made obsolete on purpose — journeys D2b and D3 (a rating and a rating sort / filter now exist along a journey), restaurants D19b (17 permission rows, was 16), notifications G3 (14 notification types, was 11). No product defect was found by the regression.
+
+## New with Module 34 (4) — obsolete expectations, the product is as designed
+
+- m26_e2e.js (journeys) D2b — the step ends with "no rating is shown (no reviews backend)". Module 34 is the reviews backend: a restaurant along a journey now shows its real rating, or "New" when nobody has reviewed it. The other parts of the step (closed / open at arrival, no ready-by promise) are unchanged.
+- m26_e2e.js (journeys) D3 — the step expects 'no "Highest rated", no rating / price filter'. The backend now applies sort=highest_rated and min_rating on the real rating (ReviewRatingTest covers both), so the page offers "Rating" with 4.5 / 4.0 / 3.5 / 3.0 & above. The step's own output lists them. Price is still absent.
+- m23_e2e.js (restaurants) D19b — the step counts 16 permission rows in the staff page's role table. Module 34 added the permission restaurant.reviews.report, so the table (read from GET /restaurant/roles, as the step requires) has 17 rows.
+- m33_e2e.js (notifications) G3 — the step expects 11 notification types in the registry. Module 34 added review.response, review.published and review.moderated: 14.
+
+## Already obsolete before Module 34 (12) — the same misses as in m33-regression-runs.txt
+
+- m23_e2e.js (restaurants) C14, D3, A2b — C14 and D3 since Module 24 (menus on the backend; the "Demo data" list keeps changing as sections move to the backend — after Module 34 Reviews carries no label either), A2b since Module 31 (Orders is backend data).
+- m25_e2e_m33.js (account) N2 — expects the inbox labelled development data; Module 33 made the inbox the backend's.
+- m29_e2e_m30.js (checkout) G3, G4 — "no order routes" and the route count (264 now); obsolete since Module 31.
+- m30_e2e.js (payments) A9, A10, I3 — "a verified payment creates NO order"; obsolete since Module 31. H8 — the admin System › Payments note changed in Module 31.
+- m31_e2e.js (orders) A6, E6 — pickup verification / realtime NOT_IMPLEMENTED; obsolete since Module 32.
+
+## Complete
+
+m22_auth_regression.js (auth) 48/48, m22_e2e.js (market) 51/51, m22_regression_m32.js (the full site, including the Restaurant Dashboard and Platform Admin pages that Module 34 moved to the backend) 68/68, m24_e2e.js (menus) 48/48, m27_e2e.js (cart) 76/76, m28_e2e.js (pickup) 69/69, m32_e2e.js (realtime) 48/48.
+
+## Suites run more than once
+
+- m33_e2e.js (notifications): run 1 39/41, run 2 40/41. Run 1 also missed H1 ("a delivery left SENDING is … queued again (RETRY_SCHEDULED, STRANDED)"): the row read RETRY_SCHEDULED / PROVIDER_PAUSED. The command had found and queued the stranded delivery ("stranded 1, due 0, lost 0"); the queue worker of the suite picked it up before the suite read the row, and honoured the provider pause that the suite's own credential-failure step had caused. A race in the suite's reading, not a defect: the product did what it should in both orders. Run 2 of the unchanged suite passed the step. Recorded as BUG-251 (open, suite). The result file kept is run 2; run 1 is in the run log.
+- No other suite was run twice.
+
+## Procedure
+
+- Both dated fixture seeders (LocalRestaurantFixtureSeeder, LocalPickupFixtureSeeder) were run on the local database before the first suite (CF-461).
+- One suite at a time; mains power (Win32_Battery.BatteryStatus = 2); the Flutter web preview stopped during these runs; a second API process on :8003 for the suites that need one (journeys, cart, realtime).
+- The suites that create orders stop themselves outside their time window, so they ran first: pickup, checkout, payments, orders, realtime, notifications between 19:41 and 20:11 India time; the others after the Android preview suite, between 21:01 and 21:42.
+- Before each suite the carts left by the previous one are removed; the fixture cart (Asha) was the same before and after (2x45900, 1x14900, version 2).
+- NOT RUN AGAIN: the Android preview suites of Modules 30–33 (m30_flutter.js … m33_flutter.js). The Module 34 preview suite (m34-android-preview-e2e.json) signs in, pays, completes the order and reviews it on the same code; the Flutter unit suite ran in full.

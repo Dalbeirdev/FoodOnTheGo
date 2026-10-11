@@ -6,7 +6,7 @@ import { useAuth } from '../auth/AuthContext'
 import { t, useLocale } from '../i18n/strings'
 import type { Order, OrderRepository } from '../order/repositories'
 import { orderRepositories } from '../order/useOrderConfirmation'
-import { reviewRepositories } from '../review/mock/mockReview'
+import { reviewRepositories } from '../review/reviewRepositories'
 import type { ItemSentiment, Review, ReviewConfig, ReviewDraft, ReviewEligibility } from '../review/repositories'
 import type { ReviewDeps } from '../review/useReviewEntry'
 import { draftFromReview, emptyDraft, isValid, remainingChars, tagsForRating, validateReview } from '../review/reviewForm'
@@ -15,6 +15,7 @@ import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
 import './MyOrdersPage.css'
 import './ReviewPage.css'
+import '../review/RestaurantReviews.css'
 
 /**
  * Rate your experience (Module 16). Canonical /order/:orderNumber/review — the only review route. A review is tied to an
@@ -67,6 +68,9 @@ export default function ReviewPage({ deps }: { deps?: Partial<Deps> }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<ReviewDraft | null>(null)
   const [showErrors, setShowErrors] = useState(false)
+  // What the backend said when it refused (a closed edit window, a changed review, markup in the text): shown as it is.
+  const [errorText, setErrorText] = useState<string | null>(null)
+  const [removing, setRemoving] = useState<'idle' | 'confirm' | 'busy' | 'failed'>('idle')
   const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine)
   const [reload, setReload] = useState(0)
   const inFlight = useRef(false)
@@ -102,14 +106,30 @@ export default function ReviewPage({ deps }: { deps?: Partial<Deps> }) {
     setShowErrors(true)
     if (!isValid(draft, config)) return
     if (inFlight.current || offline) return // duplicate-click / offline guard (the mock is also idempotent per order)
-    inFlight.current = true; setView('submitting')
+    inFlight.current = true; setView('submitting'); setErrorText(null)
     try {
       const r = editing && review ? await reviews.updateReview(review.reviewId, order.customerId, draft) : await reviews.submitReview(order, draft)
       clearDraft(order.publicId); setReview(r); setDraft(null); setEditing(false); setView('submitted')
-    } catch { setView('error') }
+    } catch (e) { setErrorText(e instanceof Error && (e as { presentable?: boolean }).presentable ? e.message : null); setView('error') }
     finally { inFlight.current = false }
   }
-  const cancel = () => { if (order) clearDraft(order.publicId); setDraft(null); setShowErrors(false); setReload((n) => n + 1) }
+  const cancel = () => { if (order) clearDraft(order.publicId); setDraft(null); setShowErrors(false); setErrorText(null); setReload((n) => n + 1) }
+  /** Withdraw the review: it is no longer public or counted; the order cannot be reviewed again (the backend decides both). */
+  const remove = async () => {
+    if (!order || !review || removing === 'busy') return
+    setRemoving('busy')
+    try { await reviews.deleteReview(review.reviewId, order.customerId); clearDraft(order.publicId); setRemoving('idle'); setReview(null); setReload((n) => n + 1) } catch { setRemoving('failed') }
+  }
+  const live = review?.verifiedOrder !== undefined
+  const removeControls = review && review.canRemove !== false && live && (
+    removing === 'idle' || removing === 'failed'
+      ? <>{removing === 'failed' && <span className="rv-err" role="alert">{t('rv.remove.failed', undefined, locale)}</span>}<button type="button" className="btn btn--outline" onClick={() => setRemoving('confirm')} data-testid="rv-remove">{t('rv.remove', undefined, locale)}</button></>
+      : <span className="rv-remove-confirm" role="group" aria-label={t('rv.remove.title', undefined, locale)} data-testid="rv-remove-confirm">
+          <span>{t('rv.remove.text', undefined, locale)}</span>
+          <button type="button" className="btn btn--primary" disabled={removing === 'busy'} onClick={() => { void remove() }} data-testid="rv-remove-yes">{t('rv.remove.yes', undefined, locale)}</button>
+          <button type="button" className="btn btn--outline" disabled={removing === 'busy'} onClick={() => setRemoving('idle')}>{t('rv.action.cancel', undefined, locale)}</button>
+        </span>
+  )
   const errors = draft && config ? validateReview(draft, config) : {}
   const fav = order ? account.isFavorite(order.restaurant.id) : false
   const date = (iso: string) => new Date(iso).toLocaleDateString(locale, { dateStyle: 'medium' })
@@ -137,8 +157,14 @@ export default function ReviewPage({ deps }: { deps?: Partial<Deps> }) {
       {review.tags.length > 0 && <ul className="rv-taglist" aria-label={t('rv.tags.title', undefined, locale)}>{review.tags.map((k) => <li key={k} className="co-badge co-badge--muted">{t(`rv.tag.${k}`, undefined, locale)}</li>)}</ul>}
       {review.itemFeedback.some((f) => f.sentiment) && <ul className="rv-items-summary">{review.itemFeedback.filter((f) => f.sentiment).map((f) => <li key={f.lineId}><span dir="auto">{f.itemName}</span> — {t(`rv.item.${f.sentiment}`, undefined, locale)}</li>)}</ul>}
       {review.text && <blockquote className="rv-text" dir="auto" data-testid="rv-existing-text">{review.text}</blockquote>}
+      {review.restaurantResponse && (
+        <div className="rdr-response" data-testid="rv-response">
+          <p><b dir="auto">{t('rdr.responseFrom', { restaurant: review.restaurantResponse.responderName }, locale)}</b>{review.restaurantResponse.respondedAt && <> <time dateTime={review.restaurantResponse.respondedAt}>{date(review.restaurantResponse.respondedAt)}</time></>}</p>
+          <p dir="auto">{review.restaurantResponse.text}</p>
+        </div>
+      )}
       <p className="cart-muted rv-existing__meta">{t('rv.existing.meta', { date: date(review.updatedAt), status: t(`rv.status.${review.status}`, undefined, locale) }, locale)}</p>
-      <p className="cart-muted">{t('rv.existing.moderation', undefined, locale)}</p>
+      <p className="cart-muted" data-testid="rv-existing-note">{live ? t(`mr.statusNote.${review.status}`, undefined, locale) : t('rv.existing.moderation', undefined, locale)}</p>
     </section>
   )
 
@@ -160,10 +186,11 @@ export default function ReviewPage({ deps }: { deps?: Partial<Deps> }) {
                 <p className="cart-eyebrow">{t('rv.eyebrow', undefined, locale)}</p>
                 <h1 id="rv-title" ref={headingRef} tabIndex={-1}>{review ? t('rv.reviewed.title', undefined, locale) : t('rv.ineligible.title', undefined, locale)}</h1>
                 <p className="cart-muted"><span dir="auto">{order.restaurant.name}</span> · <span className="ocp-number">{order.orderNumber}</span></p>
-                {!review && <p className="cart-notice cart-notice--info" role="status" data-testid="rv-ineligible">{t(`rv.ineligible.${eligibility.reason}`, undefined, locale)}</p>}
+                {!review && <p className="cart-notice cart-notice--info" role="status" data-testid="rv-ineligible" data-reason={eligibility.reason}>{t(`rv.ineligible.${eligibility.reason}`, undefined, locale)}</p>}
                 {review && <p className="cart-muted">{t('rv.reviewed.text', undefined, locale)}</p>}
                 <div className="pay-actions">
                   {review && eligibility.canEdit && <button type="button" className="btn btn--primary" onClick={startEdit} data-testid="rv-edit">{t('rv.action.edit', undefined, locale)}</button>}
+                  {removeControls}
                   {!review && eligibility.reason === 'not_completed' && <Link to={`/order-tracking/${order.orderNumber}`} className="btn btn--primary">{t('oc.action.track', undefined, locale)}</Link>}
                   <Link to={`/order/${order.orderNumber}`} className="btn btn--outline">{t('oc.action.details', undefined, locale)}</Link>
                   <Link to="/my-orders" className="btn btn--outline">{t('oc.action.myOrders', undefined, locale)}</Link>
@@ -181,7 +208,7 @@ export default function ReviewPage({ deps }: { deps?: Partial<Deps> }) {
                 <p className="cart-muted"><span dir="auto">{order.restaurant.name}</span> · <span className="ocp-number">{order.orderNumber}</span> · {t('oc.items', { count: order.items.reduce((a, i) => a + i.quantity, 0) }, locale)}</p>
                 <p className="cart-muted">{t('rv.lead', undefined, locale)}</p>
                 {offline && <p className="cart-notice cart-notice--warn" role="status" data-testid="rv-offline">{t('rv.offline', undefined, locale)}</p>}
-                {view === 'error' && <p className="cart-notice cart-notice--error" role="alert" data-testid="rv-error">{t('rv.error.text', undefined, locale)}</p>}
+                {view === 'error' && <p className="cart-notice cart-notice--error" role="alert" data-testid="rv-error">{errorText ?? t('rv.error.text', undefined, locale)}</p>}
               </section>
               <section className="cart-card" aria-labelledby="rv-overall-title">
                 <h2 id="rv-overall-title">{t('rv.overall.title', undefined, locale)} <span className="rv-req">{t('rv.required', undefined, locale)}</span></h2>
@@ -239,9 +266,10 @@ export default function ReviewPage({ deps }: { deps?: Partial<Deps> }) {
               <section className="cart-card ocp-state ocp-state--ok rv-done" role="status" aria-live="polite" data-testid="rv-submitted">
                 <h1 className="ocp-state__title" ref={headingRef} tabIndex={-1}>{t('rv.done.title', undefined, locale)}</h1>
                 <p>{t('rv.done.text', { restaurant: order.restaurant.name }, locale)}</p>
-                <p className="cart-muted">{t('rv.done.note', undefined, locale)}</p>
+                <p className="cart-muted" data-testid="rv-done-note">{live ? t(`mr.statusNote.${review.status}`, undefined, locale) : t('rv.done.note', undefined, locale)}</p>
                 <div className="pay-actions">
-                  {eligibility && config?.editEnabled && <button type="button" className="btn btn--outline" onClick={startEdit} data-testid="rv-edit">{t('rv.action.edit', undefined, locale)}</button>}
+                  {eligibility && config?.editEnabled && review.canEdit !== false && <button type="button" className="btn btn--outline" onClick={startEdit} data-testid="rv-edit">{t('rv.action.edit', undefined, locale)}</button>}
+                  {removeControls}
                   <Link to={`/order/${order.orderNumber}`} className="btn btn--outline">{t('oc.action.details', undefined, locale)}</Link>
                 </div>
               </section>

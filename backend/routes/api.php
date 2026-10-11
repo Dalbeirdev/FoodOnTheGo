@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Admin\RealtimeController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
+use App\Http\Controllers\Api\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Api\Admin\SecurityEventController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
 use App\Http\Controllers\Api\Auth\CustomerProfileController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Api\Customer\PhoneChangeController;
 use App\Http\Controllers\Api\Customer\PickupCredentialController;
 use App\Http\Controllers\Api\Customer\ProfileController;
 use App\Http\Controllers\Api\Customer\RecentLocationController;
+use App\Http\Controllers\Api\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
 use App\Http\Controllers\Api\Dev\FakePaymentController;
 use App\Http\Controllers\Api\HealthController;
@@ -58,8 +60,10 @@ use App\Http\Controllers\Api\Restaurant\LocationController;
 use App\Http\Controllers\Api\Restaurant\MenuController;
 use App\Http\Controllers\Api\Restaurant\OrderController as RestaurantOrderController;
 use App\Http\Controllers\Api\Restaurant\PickupVerificationController;
+use App\Http\Controllers\Api\Restaurant\ReviewController as RestaurantStaffReviewController;
 use App\Http\Controllers\Api\Restaurant\StaffController;
 use App\Http\Controllers\Api\RestaurantController;
+use App\Http\Controllers\Api\RestaurantReviewController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -95,6 +99,8 @@ Route::pattern('feeRule', '[0-9a-fA-F-]{36}');
 // An order is named by its public id or its order number (FOTG-YYYYMMDD-XXXXXX). Neither one is authorization.
 Route::pattern('order', '[0-9a-fA-F-]{36}|[Ff][Oo][Tt][Gg]-[0-9]{8}-[A-Za-z0-9]{6}');
 Route::pattern('fulfillment', '[0-9a-fA-F-]{36}');
+Route::pattern('review', '[0-9a-fA-F-]{36}');
+Route::pattern('reviewCase', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -115,6 +121,11 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/restaurants/{restaurantSlug}/menu', [PublicMenuController::class, 'menu'])->name('restaurants.menu');
         Route::get('/restaurants/{restaurantSlug}/items/{itemSlug}', [PublicMenuController::class, 'item'])->name('restaurants.items.show');
         Route::post('/restaurants/{restaurantSlug}/items/{itemSlug}/price-quote', [PublicMenuController::class, 'priceQuote'])->name('restaurants.items.price-quote');
+    });
+    // Module 34: the PUBLISHED reviews of a visible restaurant and its rating summary — public, paged.
+    Route::middleware('throttle:review-read')->group(function (): void {
+        Route::get('/restaurants/{restaurantSlug}/reviews', [RestaurantReviewController::class, 'index'])->name('restaurants.reviews.index');
+        Route::get('/restaurants/{restaurantSlug}/reviews/summary', [RestaurantReviewController::class, 'summary'])->name('restaurants.reviews.summary');
     });
     // Journeys (Module 26): open to guests and customers. Places are searched within the market's country and resolved
     // server side; a journey is readable by its owner only (customer token, or the guest token issued when it was planned).
@@ -181,7 +192,12 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/{order}/events', [OrderEventsController::class, 'customer'])->name('events');
         Route::get('/{order}/pickup-credential', [PickupCredentialController::class, 'show'])->name('pickup-credential.show');
         Route::post('/{order}/pickup-credential/reissue', [PickupCredentialController::class, 'reissue'])->withoutMiddleware('throttle:order-read')->middleware(['throttle:order-write', 'idempotent:order.pickup-credential.reissue,optional'])->name('pickup-credential.reissue');
+        // Module 34: the review of a completed order — whether it can be written, and writing it (one per order, ever).
+        Route::get('/{order}/review', [CustomerReviewController::class, 'forOrder'])->withoutMiddleware('throttle:order-read')->middleware('throttle:review-read')->name('review.show');
+        Route::post('/{order}/review', [CustomerReviewController::class, 'store'])->withoutMiddleware('throttle:order-read')->middleware(['throttle:review-write', 'idempotent:review.submit,optional'])->name('review.store');
     });
+    // Module 34: reporting somebody else's published review (one report per account per review).
+    Route::post('/reviews/{review}/report', [CustomerReviewController::class, 'report'])->middleware(['auth:customer', 'active', 'throttle:review-report'])->name('reviews.report');
     // Module 32: private realtime channel authorization for the customer (the channel callbacks decide).
     Route::post('/customer/broadcasting/auth', [BroadcastingAuthController::class, 'authorize'])->middleware(['auth:customer', 'active', 'throttle:channel-auth'])->name('customer.broadcasting.auth');
 
@@ -252,6 +268,16 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::middleware('throttle:notifications-write')->group(function (): void {
             Route::post('/notifications/read-all', [CustomerNotificationController::class, 'readAll'])->name('notifications.read-all');
             Route::post('/notifications/{notification}/read', [CustomerNotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
+        });
+
+        // Module 34: the customer's own reviews — read, change inside the edit window, withdraw.
+        Route::middleware('throttle:review-read')->group(function (): void {
+            Route::get('/reviews', [CustomerReviewController::class, 'index'])->name('reviews.index');
+            Route::get('/reviews/{review}', [CustomerReviewController::class, 'show'])->name('reviews.show');
+        });
+        Route::middleware('throttle:review-write')->group(function (): void {
+            Route::patch('/reviews/{review}', [CustomerReviewController::class, 'update'])->name('reviews.update');
+            Route::delete('/reviews/{review}', [CustomerReviewController::class, 'destroy'])->name('reviews.destroy');
         });
 
         // Sensitive actions: a code to the account's own phone first (recent sign-ins are accepted as is).
@@ -374,6 +400,16 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::post('/pickup/verify', [PickupVerificationController::class, 'verify'])->middleware(['throttle:pickup-verify', 'idempotent:order.pickup.verify,optional'])->name('pickup.verify');
         Route::post('/broadcasting/auth', [BroadcastingAuthController::class, 'authorize'])->middleware('throttle:channel-auth')->name('broadcasting.auth');
 
+        // Module 34: the published reviews of a location the staff member may open (restaurant.reviews.view), the one
+        // official response (restaurant.reviews.respond) and reporting a review (restaurant.reviews.report).
+        Route::middleware('throttle:review-read')->group(function (): void {
+            Route::get('/reviews', [RestaurantStaffReviewController::class, 'index'])->name('reviews.index');
+            Route::get('/reviews/summary', [RestaurantStaffReviewController::class, 'summary'])->name('reviews.summary');
+            Route::get('/reviews/{review}', [RestaurantStaffReviewController::class, 'show'])->name('reviews.show');
+        });
+        Route::put('/reviews/{review}/response', [RestaurantStaffReviewController::class, 'respond'])->middleware('throttle:review-write')->name('reviews.response');
+        Route::post('/reviews/{review}/report', [RestaurantStaffReviewController::class, 'report'])->middleware('throttle:review-report')->name('reviews.report');
+
         Route::get('/organizations/{organization}/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
             Route::post('/organizations/{organization}/staff', [StaffController::class, 'store'])->name('staff.store');
@@ -433,6 +469,23 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         // Module 32: the realtime layer's health and counters, the pickup verification counters, and the attempts (security view).
         Route::get('/system/realtime', [RealtimeController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.realtime');
         Route::get('/pickup-attempts', [RealtimeController::class, 'pickupAttempts'])->middleware('can:'.Permission::AdminSystemView->value)->name('pickup-attempts.index');
+        // Module 34: review moderation. admin.reviews.view / moderate / restore / reports.view and the market scope are
+        // checked in the controller: a grant for one market never opens another market's reviews.
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::get('/reviews/{review}', [AdminReviewController::class, 'show'])->name('reviews.show');
+        Route::get('/review-cases', [AdminReviewController::class, 'cases'])->name('review-cases.index');
+        Route::middleware('throttle:admin-sensitive')->group(function (): void {
+            Route::post('/reviews/{review}/publish', [AdminReviewController::class, 'publish'])->name('reviews.publish');
+            Route::post('/reviews/{review}/hide', [AdminReviewController::class, 'hide'])->name('reviews.hide');
+            Route::post('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
+            Route::post('/reviews/{review}/restore', [AdminReviewController::class, 'restore'])->name('reviews.restore');
+            Route::post('/reviews/{review}/response/hide', [AdminReviewController::class, 'hideResponse'])->name('reviews.response.hide');
+            Route::post('/reviews/{review}/response/restore', [AdminReviewController::class, 'restoreResponse'])->name('reviews.response.restore');
+            Route::post('/review-cases/{reviewCase}/assign', [AdminReviewController::class, 'assignCase'])->name('review-cases.assign');
+            Route::post('/review-cases/{reviewCase}/escalate', [AdminReviewController::class, 'escalateCase'])->name('review-cases.escalate');
+            Route::post('/review-cases/{reviewCase}/resolve', [AdminReviewController::class, 'resolveCase'])->name('review-cases.resolve');
+        });
+
         // Module 33: notification delivery diagnostics (platform-wide view permission), the registry, a controlled resend,
         // the system health, and a test send that exists only outside production.
         Route::get('/system/notifications', [AdminNotificationController::class, 'system'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.notifications');

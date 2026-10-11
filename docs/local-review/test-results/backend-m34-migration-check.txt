@@ -1,0 +1,20 @@
+# Module 34 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply — 2026-10-11
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_14_100000_module34_reviews .. 48.13ms DONE
+
+
+## review tables after the rollback (expected: none)
+none
+
+
+ INFO Running migrations. 
+
+ 2026_10_14_100000_module34_reviews .. 114.10ms DONE
+
+
+## review tables after the re-apply
+restaurant_location_rating_summaries,restaurant_review_responses,restaurant_reviews,review_moderation_cases,review_reports,review_revisions
+DONE

@@ -1,0 +1,81 @@
+{
+  "module": "M34",
+  "suite": "Module 34 — Android app code (Flutter web preview, ORDER_MODE=api, REVIEW_MODE=api) on the real local backend: reviews, orders, DEVELOPMENT payment provider",
+  "note": "The same Dart code as the APK, run in the browser preview. Razorpay's Android screen cannot run in a browser and no Razorpay credentials exist on this machine: the provider's own screen is NOT exercised here. The real device is verified by the owner (USER DEVICE VERIFICATION = PENDING).",
+  "ran_at": "2026-10-11T16:20:01.940Z",
+  "passed": 14,
+  "failed": 0,
+  "total": 14,
+  "results": [
+    {
+      "name": "A0 the app signs in against the local backend (same Dart code as the APK, ORDER_MODE=api)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 A PAID ORDER EXISTS (paid in the app through the development provider; Module 31 path unchanged): FOTG-20261011-G9S9CV",
+      "pass": true,
+      "detail": "#/order-confirmation/FOTG-20261011-G9S9CV"
+    },
+    {
+      "name": "A2 BEFORE THE ORDER IS COMPLETED the review screen (Android code, REVIEW_MODE=api) asks the backend (GET /customer/orders/{order}/review → ORDER_NOT_COMPLETED) and offers no form — \"Reviews open once your order is picked up and completed\"",
+      "pass": true,
+      "detail": "{\"reason\":\"ORDER_NOT_COMPLETED\"}"
+    },
+    {
+      "name": "B1 MY ORDERS (Android code): the completed order carries review.state ELIGIBLE from the backend and the card offers \"Rate your experience\"",
+      "pass": true,
+      "detail": "{\"state\":\"ELIGIBLE\",\"reason\":\"ELIGIBLE\",\"window_ends_at\":\"2026-11-10T16:15:54+00:00\",\"review\":null}"
+    },
+    {
+      "name": "B2 NO SILENT OFFLINE QUEUE: with the network gone the submit fails visibly (the screen goes to its error state and offers \"Try again\"; the answers stay on screen); six seconds after the network is back the app has sent NOTHING by itself and the backend has no review",
+      "pass": true,
+      "detail": "{\"starred\":true,\"tagged\":true,\"typed\":true,\"errorView\":true,\"tryAgain\":true,\"sentByItself\":0,\"row\":\"none\"}"
+    },
+    {
+      "name": "B3 THE CUSTOMER SUBMITS (one tap, one POST /customer/orders/{order}/review): rating 4, the tag, the text with its emoji, a submission token — and no customer, restaurant, status or \"verified\" field; 201, PUBLISHED; the screen thanks the customer and says the review is public",
+      "pass": true,
+      "detail": "{\"status\":201,\"keys\":\"category_ratings,client_submission_id,comment,item_feedback,overall_rating,tags\",\"row\":\"PUBLISHED|4|Hot and quick, thank you. 👍\",\"summary\":\"1/4.0\"}"
+    },
+    {
+      "name": "C1 MY REVIEWS (Android code, GET /customer/reviews): the review with its state \"Published\", the restaurant's reply (\"Reply from Burger Hub\") and \"Edit review\" while the backend allows editing",
+      "pass": true,
+      "detail": "My Reviews | The reviews you wrote, where each one stands and what the restaurant replied. | Burger Hub FOTG-20261011-G9S9CV · Oct 11, 2026 Published 4 of 5 Hot and quick, thank you. 👍 Your review is public and counts in the restaurant's rating. Reply from Bu"
+    },
+    {
+      "name": "C2 THE NOTICE OF THE REPLY is in the app's inbox (Module 33) and a tap opens the review of that order — the route is the app's (REVIEW → /order/{number}/review), never a URL from the data",
+      "pass": true,
+      "detail": "{\"inbox\":true,\"tappedNotice\":true,\"screen\":\"Back | Rate your experience | YOUR FEEDBACK You have already reviewed this order Burger Hub · FOTG-20261011-G9S9CV · Items (3) One review pe\"}"
+    },
+    {
+      "name": "D1 THE RESTAURANT SCREEN (Android code, GET /restaurants/{slug}/reviews without a session header requirement): the backend's average 4.0 from 1 verified order review, the review by \"First L.\" with the reply — no sample figure, no \"placeholder\" text",
+      "pass": true,
+      "detail": "{\"call\":200,\"summary\":{\"average\":4,\"count\":1,\"distribution\":{\"1\":0,\"2\":0,\"3\":0,\"4\":1,\"5\":0},\"categories\":{\"food_quality\":{\"average\":null,\"count\":0},\"order_accuracy\":{\"average\":null,\"count\":0},\"preparation_time\":{\"average\":null,\"count\":0},\"pickup_experience\":{\"average\":null,\"count\":0}}},\"text\":\"Ratings & reviews\"}"
+    },
+    {
+      "name": "D2 THE RESTAURANT LIST uses the backend's rating: Burger Hub {average 4, count 1} is shown as 4.0 (1); the 13 restaurants nobody reviewed show \"New\" — no invented stars",
+      "pass": true,
+      "detail": "{\"rated\":{\"average\":4,\"count\":1},\"unrated\":13}"
+    },
+    {
+      "name": "E1 THE CUSTOMER WITHDRAWS THE REVIEW in the app (a confirmation first, then DELETE /customer/reviews/{review}): the backend marks it REMOVED, the rating is recalculated (no published review left), and the screen says the order cannot be reviewed again — no form, no edit",
+      "pass": true,
+      "detail": "{\"tapRemove\":true,\"tapYes\":true,\"status\":200,\"row\":\"REMOVED\",\"summary\":\"0/null\"}"
+    },
+    {
+      "name": "F1 no uncaught error in the Flutter web preview during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z0 CLEAN-UP OF THE REVIEWS: the review of this run and everything attached to it is removed; the rating summary of Burger Hub is rebuilt (0 published reviews)",
+      "pass": true,
+      "detail": "{\"leftReviews\":0,\"published\":\"0\"}"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, payment attempt, checkout and reservation of this run is removed",
+      "pass": true,
+      "detail": "{\"orders\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0}"
+    }
+  ]
+}

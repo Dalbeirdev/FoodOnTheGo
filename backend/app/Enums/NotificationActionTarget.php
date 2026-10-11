@@ -15,4 +15,6 @@ enum NotificationActionTarget: string
     case PaymentStatus = 'PAYMENT_STATUS';
     case AccountSecurity = 'ACCOUNT_SECURITY';
     case Promotion = 'PROMOTION';
+    // Module 34: the customer's own review of an order (the reference is the order number).
+    case Review = 'REVIEW';
 }

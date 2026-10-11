@@ -8,12 +8,16 @@ import '../order/order_models.dart';
 /// A review is always tied to an eligible order the customer owns; the restaurant is derived from the order. Review text is
 /// untrusted input (length-validated here; sanitized / moderated by the backend later). Submission state is separate from
 /// moderation state. Categories / tags / scale / limits are configuration data, never code constants in the UI.
-enum ReviewStatus { submitted, pendingModeration, published, hidden, rejected, flagged }
+enum ReviewStatus { submitted, pendingModeration, published, hidden, rejected, flagged, removed }
 enum TagSentiment { positive, neutral, negative }
 enum ItemSentiment { liked, disliked }
-enum EligibilityReason { ok, notCompleted, notOwner, windowExpired, alreadyReviewed, blocked, notFound }
-String reviewStatusKey(ReviewStatus s) => switch (s) { ReviewStatus.submitted => 'SUBMITTED', ReviewStatus.pendingModeration => 'PENDING_MODERATION', ReviewStatus.published => 'PUBLISHED', ReviewStatus.hidden => 'HIDDEN', ReviewStatus.rejected => 'REJECTED', ReviewStatus.flagged => 'FLAGGED' };
-String eligibilityKey(EligibilityReason r) => switch (r) { EligibilityReason.ok => 'ok', EligibilityReason.notCompleted => 'not_completed', EligibilityReason.notOwner => 'not_owner', EligibilityReason.windowExpired => 'window_expired', EligibilityReason.alreadyReviewed => 'already_reviewed', EligibilityReason.blocked => 'blocked', EligibilityReason.notFound => 'not_found' };
+enum EligibilityReason { ok, notCompleted, notOwner, windowExpired, alreadyReviewed, blocked, notFound, removed }
+/// How the public list of a restaurant's reviews is ordered (Module 34) — the names are the API's.
+enum PublicReviewSort { newest, oldest, highest, lowest }
+/// Why a review is reported: a controlled list (the backend's), never free text alone.
+const reportReasons = ['SPAM', 'HARASSMENT', 'PERSONAL_INFORMATION', 'OFFENSIVE_CONTENT', 'FAKE_REVIEW_CONCERN', 'OTHER'];
+String reviewStatusKey(ReviewStatus s) => switch (s) { ReviewStatus.submitted => 'SUBMITTED', ReviewStatus.pendingModeration => 'PENDING_MODERATION', ReviewStatus.published => 'PUBLISHED', ReviewStatus.hidden => 'HIDDEN', ReviewStatus.rejected => 'REJECTED', ReviewStatus.flagged => 'FLAGGED', ReviewStatus.removed => 'REMOVED' };
+String eligibilityKey(EligibilityReason r) => switch (r) { EligibilityReason.ok => 'ok', EligibilityReason.notCompleted => 'not_completed', EligibilityReason.notOwner => 'not_owner', EligibilityReason.windowExpired => 'window_expired', EligibilityReason.alreadyReviewed => 'already_reviewed', EligibilityReason.blocked => 'blocked', EligibilityReason.notFound => 'not_found', EligibilityReason.removed => 'removed' };
 
 class ReviewCategoryDef { const ReviewCategoryDef(this.key, {this.required = false}); final String key; final bool required; }
 class ReviewTagDef { const ReviewTagDef(this.key, this.sentiment); final String key; final TagSentiment sentiment; }
@@ -44,12 +48,19 @@ class ReviewDraft {
   Map<String, dynamic> toJson() => {'overallRating': overallRating, 'categoryRatings': categoryRatings, 'tags': tags, 'itemFeedback': itemFeedback.map((f) => f.toJson()).toList(), 'text': text, 'clientSubmissionId': clientSubmissionId};
   factory ReviewDraft.fromJson(Map<String, dynamic> j) => ReviewDraft(overallRating: j['overallRating'] as int?, categoryRatings: Map<String, int>.from(j['categoryRatings'] as Map), tags: List<String>.from(j['tags'] as List), itemFeedback: (j['itemFeedback'] as List).map((e) => ItemFeedback.fromJson(e as Map<String, dynamic>)).toList(), text: j['text'] as String, clientSubmissionId: j['clientSubmissionId'] as String);
 }
+/// The restaurant's public answer to a review (Module 34): its text, the restaurant's name and when — never the staff member.
+class ReviewResponse {
+  const ReviewResponse({required this.text, required this.restaurantName, this.respondedAt, this.edited = false});
+  final String text, restaurantName; final DateTime? respondedAt; final bool edited;
+}
 class Review {
-  const Review({required this.reviewId, required this.orderPublicId, required this.orderNumber, required this.restaurantId, required this.customerId, required this.overallRating, required this.categoryRatings, required this.tags, required this.itemFeedback, required this.text, required this.status, required this.version, this.moderationReason, this.moderatedAt, required this.createdAt, required this.updatedAt});
+  const Review({required this.reviewId, required this.orderPublicId, required this.orderNumber, required this.restaurantId, required this.customerId, required this.overallRating, required this.categoryRatings, required this.tags, required this.itemFeedback, required this.text, required this.status, required this.version, this.moderationReason, this.moderatedAt, required this.createdAt, required this.updatedAt, this.restaurantName, this.restaurantSlug, this.canEdit, this.canRemove, this.editsLeft, this.response});
+  /// Backend reviews (Module 34): what the server says about this review — never computed on the device. Null on development reviews.
+  final String? restaurantName, restaurantSlug; final bool? canEdit, canRemove; final int? editsLeft; final ReviewResponse? response;
   final String reviewId, orderPublicId, orderNumber, restaurantId, customerId, text; final int overallRating, version;
   final Map<String, int> categoryRatings; final List<String> tags; final List<ItemFeedback> itemFeedback; final ReviewStatus status;
   final String? moderationReason; final DateTime? moderatedAt; final DateTime createdAt, updatedAt;
-  Review copyWith({int? overallRating, Map<String, int>? categoryRatings, List<String>? tags, List<ItemFeedback>? itemFeedback, String? text, ReviewStatus? status, int? version, DateTime? updatedAt}) => Review(reviewId: reviewId, orderPublicId: orderPublicId, orderNumber: orderNumber, restaurantId: restaurantId, customerId: customerId, overallRating: overallRating ?? this.overallRating, categoryRatings: categoryRatings ?? this.categoryRatings, tags: tags ?? this.tags, itemFeedback: itemFeedback ?? this.itemFeedback, text: text ?? this.text, status: status ?? this.status, version: version ?? this.version, moderationReason: moderationReason, moderatedAt: moderatedAt, createdAt: createdAt, updatedAt: updatedAt ?? this.updatedAt);
+  Review copyWith({int? overallRating, Map<String, int>? categoryRatings, List<String>? tags, List<ItemFeedback>? itemFeedback, String? text, ReviewStatus? status, int? version, DateTime? updatedAt}) => Review(reviewId: reviewId, orderPublicId: orderPublicId, orderNumber: orderNumber, restaurantId: restaurantId, customerId: customerId, overallRating: overallRating ?? this.overallRating, categoryRatings: categoryRatings ?? this.categoryRatings, tags: tags ?? this.tags, itemFeedback: itemFeedback ?? this.itemFeedback, text: text ?? this.text, status: status ?? this.status, version: version ?? this.version, moderationReason: moderationReason, moderatedAt: moderatedAt, createdAt: createdAt, updatedAt: updatedAt ?? this.updatedAt, restaurantName: restaurantName, restaurantSlug: restaurantSlug, canEdit: canEdit, canRemove: canRemove, editsLeft: editsLeft, response: response);
   Map<String, dynamic> toJson() => {'reviewId': reviewId, 'orderPublicId': orderPublicId, 'orderNumber': orderNumber, 'restaurantId': restaurantId, 'customerId': customerId, 'overallRating': overallRating, 'categoryRatings': categoryRatings, 'tags': tags, 'itemFeedback': itemFeedback.map((f) => f.toJson()).toList(), 'text': text, 'status': status.name, 'version': version, 'moderationReason': moderationReason, 'moderatedAt': moderatedAt?.toIso8601String(), 'createdAt': createdAt.toIso8601String(), 'updatedAt': updatedAt.toIso8601String()};
   factory Review.fromJson(Map<String, dynamic> j) => Review(reviewId: j['reviewId'] as String, orderPublicId: j['orderPublicId'] as String, orderNumber: j['orderNumber'] as String, restaurantId: j['restaurantId'] as String, customerId: j['customerId'] as String, overallRating: j['overallRating'] as int, categoryRatings: Map<String, int>.from(j['categoryRatings'] as Map), tags: List<String>.from(j['tags'] as List), itemFeedback: (j['itemFeedback'] as List).map((e) => ItemFeedback.fromJson(e as Map<String, dynamic>)).toList(), text: j['text'] as String, status: ReviewStatus.values.byName(j['status'] as String), version: j['version'] as int, moderationReason: j['moderationReason'] as String?, moderatedAt: j['moderatedAt'] == null ? null : DateTime.parse(j['moderatedAt'] as String), createdAt: DateTime.parse(j['createdAt'] as String), updatedAt: DateTime.parse(j['updatedAt'] as String));
 }
@@ -63,6 +74,28 @@ class RestaurantReviewSummary {
   final String restaurantId; final double? averageRating; final int reviewCount; final Map<int, int> distribution; final String source;
 }
 
+/// The rating of a restaurant as the backend calculated it from PUBLISHED reviews. No reviews = no average.
+class RatingSummary {
+  const RatingSummary({this.average, required this.count, this.distribution = const {}});
+  final double? average; final int count; final Map<int, int> distribution;
+}
+/// A published review as anyone may read it: a display name, the rating, the words and the restaurant's answer. Nothing else.
+class PublicReview {
+  const PublicReview({required this.reviewId, required this.authorName, required this.overallRating, this.tags = const [], this.text = '', this.edited = false, this.createdAt, this.response});
+  final String reviewId, authorName, text; final int overallRating; final List<String> tags; final bool edited; final DateTime? createdAt; final ReviewResponse? response;
+}
+class PublicReviewPage {
+  const PublicReviewPage({required this.items, required this.total, required this.page, required this.pageSize, required this.summary});
+  final List<PublicReview> items; final int total, page, pageSize; final RatingSummary summary;
+}
+/// A review call that did not go through. [presentable]: the message is the backend's own sentence and may be shown as it is.
+class ReviewFailure implements Exception {
+  const ReviewFailure(this.message, {this.code = 'error', this.presentable = false});
+  final String message, code; final bool presentable;
+  @override
+  String toString() => message;
+}
+
 abstract class ReviewRepository {
   Future<Review?> getReviewForOrder(String orderPublicId, String customerId);
   /// Creates the single review for the order (idempotent per order); the restaurant comes from the order.
@@ -71,6 +104,12 @@ abstract class ReviewRepository {
   /// Customer deletion = remove from public view; the record is retained (audit / legal) — the backend decides.
   Future<void> deleteReview(String reviewId, String customerId);
   Future<RestaurantReviewSummary> getRestaurantReviewSummary(String restaurantId);
+  /// The customer's own reviews, newest first (Module 34).
+  Future<List<Review>> listMine(String customerId);
+  /// The PUBLISHED reviews of a restaurant with its rating summary (Module 34).
+  Future<PublicReviewPage> listPublic(String restaurantSlug, {int page = 1, int pageSize = 5, PublicReviewSort sort = PublicReviewSort.newest, int? rating});
+  /// Asks FoodOnTheGo to look at somebody else's review. Reporting never hides it by itself.
+  Future<void> reportReview(String reviewId, String reason, {String? explanation});
 }
 abstract class ReviewEligibilityService { Future<ReviewEligibility> check(Order order, String customerId, ReviewConfig config); }
 abstract class ReviewConfigProvider { Future<ReviewConfig> configFor(Order order); }
@@ -183,4 +222,11 @@ class MockReviewRepository implements ReviewRepository {
     final dist = <int, int>{}; for (final r in mine) { dist[r.overallRating] = (dist[r.overallRating] ?? 0) + 1; }
     return RestaurantReviewSummary(restaurantId: restaurantId, averageRating: mine.isEmpty ? null : mine.fold<int>(0, (a, r) => a + r.overallRating) / mine.length, reviewCount: mine.length, distribution: dist);
   }
+  @override
+  Future<List<Review>> listMine(String customerId) async { await _wait(); return (await _all()).where((r) => r.customerId == customerId && r.status != ReviewStatus.hidden).toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt)); }
+  /// Development: nothing on this device is a PUBLISHED review (publishing is the backend's decision), so the public list is empty.
+  @override
+  Future<PublicReviewPage> listPublic(String restaurantSlug, {int page = 1, int pageSize = 5, PublicReviewSort sort = PublicReviewSort.newest, int? rating}) async { await _wait(); return PublicReviewPage(items: const [], total: 0, page: page, pageSize: pageSize, summary: const RatingSummary(count: 0)); }
+  @override
+  Future<void> reportReview(String reviewId, String reason, {String? explanation}) async { await _wait(); }
 }

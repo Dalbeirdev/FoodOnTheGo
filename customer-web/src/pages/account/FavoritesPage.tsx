@@ -78,6 +78,7 @@ export default function FavoritesPage() {
                       <div className="fav-card__body">
                         <div className="fav-card__row"><Link to={`/restaurants/${r.slug}`}><h2>{r.name}</h2></Link><HeartIcon size={16} filled /></div>
                         {r.reviewCount > 0 && <p className="fav-card__rating"><StarIcon size={14} /> <b>{r.rating.toFixed(1)}</b> <span>({r.reviewCount}{r.ratingIsSample ? ', sample' : ''})</span></p>}
+                        {r.reviewCount === 0 && r.ratingSource === 'backend' && <p className="fav-card__rating"><span>New · No reviews yet</span></p>}
                         <p>{r.cuisines.slice(0, 2).join(' • ')}</p>
                         {(r.distance || r.detour) && <p className="fav-card__meta">{r.distance && <span><PinIcon size={13} /> {r.distance}</span>}{r.detour && <span><ClockIcon size={13} /> {r.detour} detour</span>}</p>}
                         <div className="fav-card__actions">

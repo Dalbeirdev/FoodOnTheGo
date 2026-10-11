@@ -204,10 +204,10 @@ Map<String, dynamic> toEndBody(JourneyLocation l) {
 
 /* ------------------------------------------------------------------ discovery along the journey */
 
-const _sorts = {SortKey.recommended: 'recommended', SortKey.lowestDetour: 'lowest_detour', SortKey.routeOrder: 'route_order', SortKey.nearestToRoute: 'nearest_to_route', SortKey.fastestPickup: 'fastest_pickup'};
+const _sorts = {SortKey.recommended: 'recommended', SortKey.lowestDetour: 'lowest_detour', SortKey.routeOrder: 'route_order', SortKey.nearestToRoute: 'nearest_to_route', SortKey.fastestPickup: 'fastest_pickup', SortKey.highestRated: 'highest_rated'};
 const _empty = {'NO_SERVICE_COVERAGE': EmptyReason.coverage, 'NO_RESTAURANTS_IN_CORRIDOR': EmptyReason.corridor, 'NO_REACHABLE_RESTAURANTS': EmptyReason.unreachable, 'FILTERS': EmptyReason.filters};
 
-/// The orderings the backend offers for a journey, in its order (no "Highest rated": there is no reviews backend).
+/// The orderings the backend offers for a journey, in its order ("Highest rated" since Module 34: by the real rating, unrated last).
 List<SortKey> journeySorts(Journey journey) {
   final byCode = {for (final e in _sorts.entries) e.value: e.key};
   final sorts = [for (final s in journey.search?.sorts ?? const <String>[]) ?byCode[s]];
@@ -236,8 +236,8 @@ RouteRestaurantResult toRouteResult(Map<String, dynamic> d) {
   final c = d['route_context'] as Map<String, dynamic>;
   final detour = c['detour'] as Map<String, dynamic>;
   return RouteRestaurantResult(
-    // No reviews backend exists yet: the sample ratings the development fixtures attach to known slugs are not shown
-    // or used along a backend journey.
+    // The rating is the one the backend sends with the result (Module 34); the sample ratings the development fixtures
+    // attach to known slugs are never shown or used along a backend journey.
     restaurant: ApiRestaurantRepository.toRestaurant(d['restaurant'] as Map<String, dynamic>, sampleRatings: false),
     availability: arrivalAvailability(c), distanceFromRouteM: (c['distance_to_route_meters'] as num).toInt(), detourDistanceM: (detour['distance_meters'] as num).toInt(), detourDurationMin: (detour['minutes'] as num).toInt(),
     estimatedArrival: DateTime.parse((c['arrival'] as Map<String, dynamic>)['estimated_at'] as String).toUtc(),
@@ -250,13 +250,14 @@ RouteRestaurantResult toRouteResult(Map<String, dynamic> d) {
 Map<String, String?> toDiscoveryQuery(Journey journey, DiscoveryQuery q) {
   final s = journey.search;
   int clamp(num v, int min, int max) => v.round().clamp(min, max);
-  final detour = q.filters['detourTime'], cuisine = q.filters['cuisine'];
+  final detour = q.filters['detourTime'], cuisine = q.filters['cuisine'], rating = q.filters['rating'];
   final search = q.search.trim();
   return {
     'sort': _sorts[q.sort] ?? 'recommended',
     'corridor_width_meters': q.corridorM == null ? null : '${clamp(q.corridorM!, s?.corridorMinM ?? 500, s?.corridorMaxM ?? 10000)}',
     'max_detour_minutes': detour is num ? '${clamp(detour, 1, s?.maxDetourMaxMin ?? 60)}' : null,
     'open_at_arrival': q.filters['openNow'] == true ? 'true' : null,
+    'min_rating': rating is num && rating >= 1 && rating <= 5 ? '$rating' : null,
     'cuisine': cuisine is List && cuisine.isNotEmpty ? cuisine.join(',') : null,
     'q': search.isEmpty ? null : (search.length > 80 ? search.substring(0, 80) : search),
     'page[number]': q.cursor != null && RegExp(r'^\d+$').hasMatch(q.cursor!) ? q.cursor : '1',
@@ -276,6 +277,8 @@ List<FilterDefinition> journeyFilterDefinitions(Journey journey) {
     if (options.isNotEmpty) FilterDefinition(id: 'cuisine', labelKey: 'filter.cuisine', kind: FilterKind.multi, options: options),
     const FilterDefinition(id: 'openNow', labelKey: 'filter.openAtArrival', kind: FilterKind.toggle),
     FilterDefinition(id: 'detourTime', labelKey: 'filter.detourTime', kind: FilterKind.max, unit: FilterUnit.minutes, min: 5, max: (journey.search?.maxDetourMaxMin ?? 60).toDouble(), step: 5, journeyOnly: true),
+    // Module 34: the minimum rating is applied by the backend on the real rating; an unrated restaurant never passes it.
+    const FilterDefinition(id: 'rating', labelKey: 'filter.rating', kind: FilterKind.min, unit: FilterUnit.rating, min: 3, max: 4.5, step: 0.5),
   ];
 }
 

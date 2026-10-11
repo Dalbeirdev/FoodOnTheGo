@@ -151,7 +151,7 @@ class DeliveryRetryAndAdminTest extends TestCase
         $this->assertSame('ACTIVE', $push['device']['token_state']);
         $this->assertStringNotContainsString('fake-token', json_encode($detail));
         $this->adminGet('/notifications/deliveries?status=FAILED')->assertOk()->assertJsonCount(1, 'data');
-        $this->adminGet('/notifications/templates')->assertOk()->assertJsonPath('default_locale', 'en-IN')->assertJsonCount(11, 'types');
+        $this->adminGet('/notifications/templates')->assertOk()->assertJsonPath('default_locale', 'en-IN')->assertJsonCount(14, 'types'); // 11 (Module 33) + review.response / review.published / review.moderated (Module 34)
 
         $this->adminPost('/notifications/deliveries/'.$push['id'].'/retry', ['reason' => 'provider recovered'])->assertForbidden();
         $this->adminFor([Permission::AdminNotificationsView, Permission::AdminNotificationsManage]);

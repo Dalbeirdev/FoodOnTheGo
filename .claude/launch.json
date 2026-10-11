@@ -65,6 +65,7 @@
         "--dart-define=CHECKOUT_MODE=api",
         "--dart-define=PAYMENT_MODE=api",
         "--dart-define=ORDER_MODE=api",
+        "--dart-define=REVIEW_MODE=api",
         "--dart-define=REALTIME_MODE=api",
         "--dart-define=PUSH_MODE=fake",
         "--dart-define=REVERB_HOST=127.0.0.1",

@@ -291,6 +291,8 @@ export const notificationLink = (action: NotificationAction | undefined): string
     case 'ORDER_DETAIL': case 'PAYMENT_STATUS': return ref ? `/order/${ref}` : '/my-orders'
     case 'ACCOUNT_SECURITY': return '/my-profile'
     case 'PROMOTION': return '/restaurants'
+    // Module 34: the customer's own review of that order (the reference is the order number).
+    case 'REVIEW': return ref ? `/order/${ref}/review` : '/my-reviews'
     default: return undefined
   }
 }

@@ -171,6 +171,12 @@ class RestaurantLocation extends Model
     /**
      * @return HasOne<RestaurantPickupSettings, $this>
      */
+    /** The published-review aggregate of this location (Module 34); absent until the first review. */
+    public function ratingSummary(): HasOne
+    {
+        return $this->hasOne(RestaurantLocationRatingSummary::class, 'location_id');
+    }
+
     public function pickupSettings(): HasOne
     {
         return $this->hasOne(RestaurantPickupSettings::class, 'location_id');

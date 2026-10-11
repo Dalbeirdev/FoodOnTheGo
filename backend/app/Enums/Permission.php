@@ -20,6 +20,7 @@ enum Permission: string
     case RestaurantPickupVerify = 'restaurant.pickup.verify';
     case RestaurantReviewsView = 'restaurant.reviews.view';
     case RestaurantReviewsRespond = 'restaurant.reviews.respond';
+    case RestaurantReviewsReport = 'restaurant.reviews.report';
     case RestaurantStaffView = 'restaurant.staff.view';
     case RestaurantStaffManage = 'restaurant.staff.manage';
     case RestaurantAnalyticsView = 'restaurant.analytics.view';
@@ -44,6 +45,8 @@ enum Permission: string
     case AdminSettlementsView = 'admin.settlements.view';
     case AdminReviewsView = 'admin.reviews.view';
     case AdminReviewsModerate = 'admin.reviews.moderate';
+    case AdminReviewsRestore = 'admin.reviews.restore';
+    case AdminReviewsReportsView = 'admin.reviews.reports.view';
     case AdminPromotionsView = 'admin.promotions.view';
     case AdminPromotionsManage = 'admin.promotions.manage';
     case AdminSupportView = 'admin.support.view';

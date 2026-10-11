@@ -1,6 +1,6 @@
 import { ApiError, api } from '../../api/client'
 import { echoFor, watchTransport, type TransportState } from '../../realtime/echo'
-import type { Order, OrderEvent, OrderEventType, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRepository, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, CreateOrderInput } from '../repositories'
+import type { Order, OrderEvent, OrderEventType, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRepository, OrderReviewInfo, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, CreateOrderInput } from '../repositories'
 import type { OrderTrackingService, TrackingListener } from '../tracking'
 
 /**
@@ -24,6 +24,8 @@ export type OrderSummaryDto = {
   id: string; order_number: string; status: BackendOrderStatus; payment_state: 'PAID' | 'PAYMENT_NOT_REQUIRED'; refund_status: BackendRefundStatus
   restaurant: { id: string | null; slug: string | null; name: string; branch_label: string | null }
   item_count: number; total: MoneyDto; pickup: PickupDto; placed_at: string | null; updated_at: string | null
+  /** Module 34: absent on answers of a backend older than the review module. */
+  review?: { state: 'ELIGIBLE' | 'REVIEWED' | 'REMOVED' | 'NOT_ELIGIBLE'; reason: string; window_ends_at: string | null; review: { id: string; overall_rating: number; status: string; can_edit: boolean } | null }
 }
 export type OrderDto = OrderSummaryDto & {
   restaurant: OrderSummaryDto['restaurant'] & { formatted_address: string | null; phone: string | null; timezone: string; pickup_instructions: string | null }
@@ -91,6 +93,9 @@ export function verificationFromApi(d: OrderDto): PickupVerification | null {
   return { reference: `pc-${d.id}`, orderPublicId: d.id, code: c.code, qrToken: c.qr_payload, status: c.status === 'ACTIVE' ? (d.status === 'READY_FOR_PICKUP' ? 'VERIFICATION_AVAILABLE' : 'READY') : c.status === 'CONSUMED' ? 'VERIFIED' : 'INVALID', activatedAt: d.placed_at, expiresAt: null }
 }
 
+export const toReviewInfo = (r: OrderSummaryDto['review']): OrderReviewInfo | undefined =>
+  r ? { state: r.state, reason: r.reason, windowEndsAt: r.window_ends_at, reviewId: r.review?.id ?? null, overallRating: r.review?.overall_rating ?? null, canEdit: r.review?.can_edit ?? false } : undefined
+
 export function toOrder(d: OrderDto, customerId: string): Order {
   const status = STATUS_FROM_API[d.status]
   const paymentStatus = paymentStatusFromApi(d.refund_status)
@@ -121,6 +126,7 @@ export function toOrder(d: OrderDto, customerId: string): Order {
     rejectionReasonKey: d.rejection ? REASON[d.rejection.reason] ?? 'other' : null, cancellationReasonKey: d.cancellation ? 'other' : null,
     lastEventSequence: events.length, version: d.version, paymentAttemptId: d.payment.id ?? '', checkoutReference: '',
     journey: d.journey ? { journeyId: d.journey.id, originName: '', destinationName: '' } : null,
+    review: toReviewInfo(d.review),
     orderNote: d.customer_note ?? '', events, createdAt: d.placed_at ?? new Date().toISOString(), updatedAt: d.updated_at ?? d.placed_at ?? new Date().toISOString(),
   }
 }
@@ -130,7 +136,7 @@ export function toSummary(d: OrderSummaryDto): OrderSummary {
   return {
     publicId: d.id, orderNumber: d.order_number, restaurantName: d.restaurant.name, restaurantSlug: d.restaurant.slug ?? '', restaurantImage: null, restaurantTimezone: d.pickup.timezone,
     createdAt: d.placed_at ?? '', pickupAt: d.pickup.pickup_at, itemCount: d.item_count, itemPreview: '', currency: d.total.currency, totalMinor: d.total.amount,
-    orderStatus: status, paymentStatus: paymentStatusFromApi(d.refund_status), reorderEligible: status === 'COMPLETED' || status === 'PICKED_UP',
+    orderStatus: status, paymentStatus: paymentStatusFromApi(d.refund_status), reorderEligible: status === 'COMPLETED' || status === 'PICKED_UP', review: toReviewInfo(d.review),
   }
 }
 

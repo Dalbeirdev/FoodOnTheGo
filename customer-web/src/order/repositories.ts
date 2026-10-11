@@ -87,6 +87,9 @@ export type OrderEvent = {
   note?: string
 }
 
+/** What the backend says the customer may do about a review of this order (Module 34). Absent on development orders. */
+export type OrderReviewInfo = { state: 'ELIGIBLE' | 'REVIEWED' | 'REMOVED' | 'NOT_ELIGIBLE'; reason: string; windowEndsAt: string | null; reviewId: string | null; overallRating: number | null; canEdit: boolean }
+
 export type Order = {
   /** Public, non-sequential id (ULID-like). */
   publicId: string
@@ -119,6 +122,8 @@ export type Order = {
   journey: JourneySnapshot
   orderNote: string
   events: OrderEvent[]
+  /** Module 34 (backend orders only). */
+  review?: OrderReviewInfo
   createdAt: string
   updatedAt: string
 }
@@ -182,6 +187,8 @@ export type OrderSummary = {
   orderStatus: OrderStatus
   paymentStatus: OrderPaymentStatus
   reorderEligible: boolean
+  /** Module 34 (backend orders only): write a review, view yours, or neither. */
+  review?: OrderReviewInfo
 }
 export type OrderGroup = 'all' | 'ongoing' | 'completed' | 'cancelled'
 export type OrderSort = 'newest' | 'oldest'

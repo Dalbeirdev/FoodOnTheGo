@@ -82,7 +82,7 @@ final class CustomerFavoriteService
         $names = RestaurantLocation::query()->withoutGlobalScope('coordinates')->whereIn('restaurant_locations.id', $ids)->get(['restaurant_locations.id', 'restaurant_locations.public_id', 'restaurant_locations.slug', 'restaurant_locations.name'])->keyBy('id');
 
         $visible = RestaurantLocation::query()->whereIn('restaurant_locations.id', $ids)->with([
-            'organization', 'market', 'city', 'region', 'cuisines', 'features', 'images', 'hours', 'pickupSettings', 'pickupMethods',
+            'organization', 'market', 'city', 'region', 'cuisines', 'features', 'images', 'hours', 'pickupSettings', 'pickupMethods', 'ratingSummary',
             'specialHours' => fn ($query) => $query->where('date', '>=', now()->subDays(2)->toDateString()),
             'specialHours.periods',
         ]);

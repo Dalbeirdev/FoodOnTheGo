@@ -83,7 +83,8 @@ class OrderPerformanceTest extends TestCase
         // Creation writes one row per line and option — that is the only part that grows; reading is constant.
         $this->assertLessThanOrEqual($small['create_queries'] + 2 * 11 + 4, $large['create_queries'], 'creation grows by at most the lines written');
         $this->assertSame($small['read_queries'], $large['read_queries'], 'reading an order is a fixed number of queries');
-        $this->assertLessThanOrEqual(12, $small['read_queries']);
+        // 13 since Module 34: the customer's order read also loads the order's review (one query, whatever the order's size).
+        $this->assertLessThanOrEqual(13, $small['read_queries']);
     }
 
     public function test_the_restaurant_queue_costs_the_same_queries_for_two_and_for_thirty_orders(): void

@@ -36,7 +36,7 @@ class RoleSeeder extends Seeder
             'OWNER' => ['Owner', P::for(PrincipalType::RestaurantUser)],
             'MANAGER' => ['Manager', array_values(array_filter(P::for(PrincipalType::RestaurantUser), fn (P $p): bool => $p !== P::RestaurantStaffManage))],
             'ORDER_STAFF' => ['Order staff', [...$view, P::RestaurantOrdersUpdate, P::RestaurantPickupVerify]],
-            'MENU_MANAGER' => ['Menu manager', [...$view, P::RestaurantMenuManage, P::RestaurantReviewsView]],
+            'MENU_MANAGER' => ['Menu manager', [...$view, P::RestaurantMenuManage, P::RestaurantReviewsView, P::RestaurantReviewsReport]],
             'VIEWER' => ['Viewer', [...$view, P::RestaurantReviewsView, P::RestaurantAnalyticsView]],
         ];
     }
@@ -54,13 +54,13 @@ class RoleSeeder extends Seeder
             'SUPER_ADMIN' => ['Super admin', P::for(PrincipalType::AdminUser)],
             'OPERATIONS_ADMIN' => ['Operations admin', [
                 P::AdminRestaurantsView, P::AdminRestaurantsSuspend, P::AdminCustomersView, P::AdminCustomersManage, P::AdminOrdersView, P::AdminOrdersOverride, P::AdminOrdersRecover,
-                P::AdminPaymentsView, P::AdminRefundsView, P::AdminSettlementsView, P::AdminReviewsView, P::AdminPromotionsView, P::AdminSupportView, P::AdminSupportManage,
+                P::AdminPaymentsView, P::AdminRefundsView, P::AdminSettlementsView, P::AdminReviewsView, P::AdminReviewsReportsView, P::AdminPromotionsView, P::AdminSupportView, P::AdminSupportManage,
                 ...$markets, P::AdminNotificationsView, P::AdminNotificationsManage, P::AdminNotificationsTest, P::AdminAuditView, P::AdminAnalyticsView, P::AdminSystemView,
             ]],
             'RESTAURANT_ONBOARDING' => ['Restaurant onboarding', [P::AdminRestaurantsView, P::AdminRestaurantsApprove, P::AdminRestaurantsManage, P::AdminOrdersView, P::AdminReviewsView, P::AdminSupportView, ...$markets, P::AdminAnalyticsView]],
             'SUPPORT_ADMIN' => ['Support admin', [P::AdminRestaurantsView, P::AdminCustomersView, P::AdminOrdersView, P::AdminOrdersRecover, P::AdminPaymentsView, P::AdminRefundsView, P::AdminReviewsView, P::AdminSupportView, P::AdminSupportManage, P::AdminNotificationsView, P::AdminNotificationsManage]],
             'FINANCE_ADMIN' => ['Finance admin', [P::AdminRestaurantsView, P::AdminOrdersView, P::AdminPaymentsView, P::AdminPaymentsReconcile, P::AdminRefundsView, P::AdminRefundsIssue, P::AdminSettlementsView, ...$markets, P::AdminAuditView, P::AdminAnalyticsView]],
-            'MODERATION_ADMIN' => ['Moderation admin', [P::AdminRestaurantsView, P::AdminCustomersView, P::AdminOrdersView, P::AdminReviewsView, P::AdminReviewsModerate, P::AdminSupportView, P::AdminAuditView]],
+            'MODERATION_ADMIN' => ['Moderation admin', [P::AdminRestaurantsView, P::AdminCustomersView, P::AdminOrdersView, P::AdminReviewsView, P::AdminReviewsModerate, P::AdminReviewsRestore, P::AdminReviewsReportsView, P::AdminSupportView, P::AdminAuditView]],
             'ANALYST' => ['Analyst', [P::AdminRestaurantsView, P::AdminOrdersView, P::AdminPaymentsView, P::AdminSettlementsView, P::AdminReviewsView, P::AdminPromotionsView, ...$markets, P::AdminNotificationsView, P::AdminAnalyticsView, P::AdminSystemView]],
         ];
     }

@@ -3190,9 +3190,20 @@
             }
           },
           {
+            "name": "filter[min_rating]",
+            "in": "query",
+            "required": false,
+            "description": "Only restaurants whose published-review average is at least this (1–5)",
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          {
             "name": "sort",
             "in": "query",
-            "description": "name or distance (needs lat,lng); prefix - for descending",
+            "description": "name, distance (needs lat,lng) or rating; prefix - for descending. -rating = the average of the published reviews, then their number, then the name; restaurants without a review last. No other weighting is applied.",
             "schema": {
               "type": "string"
             }
@@ -8579,7 +8590,7 @@
           {
             "name": "sort",
             "in": "query",
-            "description": "recommended (default: orderable at arrival, then open, then smallest detour, then route order), lowest_detour, route_order, nearest_to_route, fastest_pickup",
+            "description": "highest_rated (Module 34) = the average of the published reviews, then their number, then the smallest detour; restaurants without a review last",
             "schema": {
               "type": "string",
               "enum": [
@@ -8587,7 +8598,8 @@
                 "lowest_detour",
                 "route_order",
                 "nearest_to_route",
-                "fastest_pickup"
+                "fastest_pickup",
+                "highest_rated"
               ]
             }
           },
@@ -8661,6 +8673,17 @@
             "schema": {
               "type": "string",
               "maxLength": 80
+            }
+          },
+          {
+            "name": "min_rating",
+            "in": "query",
+            "required": false,
+            "description": "Only restaurants whose published-review average is at least this (1–5); read at request time, never from the cached candidate set",
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5
             }
           },
           {
@@ -16834,6 +16857,2619 @@
           }
         }
       }
+    },
+    "/customer/orders/{order}/review": {
+      "get": {
+        "summary": "Whether this order can be reviewed now (COMPLETED, the caller's own, no review yet, inside the window), the review if there is one, and the policy",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-YYYYMMDD-XXXXXX) or the order id — the caller's own order only",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderReviewState",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderReviewState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Review a completed order — one review per order, ever. The order decides the restaurant; a repeat of the same submission answers the existing review (200).",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-YYYYMMDD-XXXXXX) or the order id — the caller's own order only",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CustomerReviewCreated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerReviewCreated"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "The same submission again: the review that exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerReviewCreated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/reviews": {
+      "get": {
+        "summary": "My reviews, newest first (withdrawn ones are not listed)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size (default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerReviewPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerReviewPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/reviews/{review}": {
+      "get": {
+        "summary": "One of my reviews (404 for anybody else's)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Change my review inside the edit window (version required; the previous text and ratings are kept; the screening runs again; the rating is recalculated)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "CustomerReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Withdraw my review: not public and not counted any more; the record is kept and the order cannot be reviewed again",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CustomerReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews/{review}/report": {
+      "post": {
+        "summary": "Report somebody else's PUBLISHED review (one report per account per review; a report changes nothing by itself)",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ReviewReportReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewReportReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurants/{restaurantSlug}/reviews": {
+      "get": {
+        "summary": "The PUBLISHED reviews of a visible restaurant, paged, with its rating summary",
+        "security": [],
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "description": "The restaurant location's slug (unique within the market)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          },
+          {
+            "name": "rating",
+            "in": "query",
+            "required": false,
+            "description": "Only reviews with exactly this many stars",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "newest (default), oldest, highest, lowest",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "oldest",
+                "highest",
+                "lowest"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size (default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PublicReviewPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicReviewPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurants/{restaurantSlug}/reviews/summary": {
+      "get": {
+        "summary": "Average, count and star distribution of a visible restaurant's published reviews (\"no reviews yet\" = average null, count 0)",
+        "security": [],
+        "parameters": [
+          {
+            "name": "restaurantSlug",
+            "in": "path",
+            "required": true,
+            "description": "The restaurant location's slug (unique within the market)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/Country"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PublicReviewSummary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicReviewSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/reviews": {
+      "get": {
+        "summary": "Published reviews of one of my locations (restaurant.reviews.view) with the summary",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "description": "The location (public id) — one the caller may open",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "rating",
+            "in": "query",
+            "required": false,
+            "description": "Exactly this many stars",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          {
+            "name": "max_rating",
+            "in": "query",
+            "required": false,
+            "description": "At most this many stars",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          {
+            "name": "responded",
+            "in": "query",
+            "required": false,
+            "description": "true = answered, false = not answered yet",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "newest (default), oldest, highest, lowest",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "oldest",
+                "highest",
+                "lowest"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size (default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantReviewPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantReviewPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/reviews/summary": {
+      "get": {
+        "summary": "Rating summary of one of my locations (restaurant.reviews.view)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": true,
+            "description": "The location (public id) — one the caller may open",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantReviewSummaryEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantReviewSummaryEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/reviews/{review}": {
+      "get": {
+        "summary": "One published review of a location I may open (404 otherwise)",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RestaurantReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/reviews/{review}/response": {
+      "put": {
+        "summary": "Publish or edit the one official response (restaurant.reviews.respond at the review's location). Never changes the customer's review.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewResponseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "RestaurantReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The response was published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestaurantReviewEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/reviews/{review}/report": {
+      "post": {
+        "summary": "Report a review of one of my locations (restaurant.reviews.report); the review stays public until an administrator decides",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "ReviewReportReceipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewReportReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews": {
+      "get": {
+        "summary": "Reviews of the markets the caller holds admin.reviews.view for, newest first, with counts per status",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size (default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "A status, or all",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_MODERATION",
+                "PUBLISHED",
+                "HIDDEN",
+                "REJECTED",
+                "REMOVED",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "reported",
+            "in": "query",
+            "required": false,
+            "description": "true = with an open case",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false",
+                "1",
+                "0"
+              ]
+            }
+          },
+          {
+            "name": "rating",
+            "in": "query",
+            "required": false,
+            "description": "Stars",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          {
+            "name": "restaurant",
+            "in": "query",
+            "required": false,
+            "description": "A location (public id)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market (public id) inside the caller's scope",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Text of the review, the restaurant, the public name, an order number or a review id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminReviewPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}": {
+      "get": {
+        "summary": "One review with its cases, reports, previous versions, response and audit trail (admin.reviews.view in its market)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}/publish": {
+      "post": {
+        "summary": "Publish a review that is waiting (admin.reviews.moderate)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}/hide": {
+      "post": {
+        "summary": "Hide a published review — a reason is required and audited (admin.reviews.moderate). A low rating is not a reason.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}/reject": {
+      "post": {
+        "summary": "Reject a waiting or hidden review — a reason is required and audited (admin.reviews.moderate)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}/restore": {
+      "post": {
+        "summary": "Restore a hidden or rejected review — a reason is required and audited (admin.reviews.restore)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}/response/hide": {
+      "post": {
+        "summary": "Hide the restaurant's response (admin.reviews.moderate; reason required)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reviews/{review}/response/restore": {
+      "post": {
+        "summary": "Restore a hidden restaurant response (admin.reviews.restore; reason required)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "review",
+            "in": "path",
+            "required": true,
+            "description": "Review id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModerateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminReviewEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminReviewEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/review-cases": {
+      "get": {
+        "summary": "The moderation queue: what the screening flagged and what was reported (admin.reviews.reports.view), escalated first",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Page number (1-based)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Page size (default 10)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "open (default), OPEN, ESCALATED, RESOLVED, all",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "OPEN",
+                "ESCALATED",
+                "RESOLVED",
+                "all"
+              ]
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "description": "Where the case came from",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AUTOMATED",
+                "CUSTOMER_REPORT",
+                "RESTAURANT_REPORT",
+                "ADMIN"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReviewCasePage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCasePage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/review-cases/{reviewCase}/assign": {
+      "post": {
+        "summary": "Take a case (admin.reviews.moderate)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reviewCase",
+            "in": "path",
+            "required": true,
+            "description": "Moderation case id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReviewCaseEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCaseEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/review-cases/{reviewCase}/escalate": {
+      "post": {
+        "summary": "Escalate a case with a reason (admin.reviews.moderate)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reviewCase",
+            "in": "path",
+            "required": true,
+            "description": "Moderation case id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalateReviewCaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ReviewCaseEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCaseEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/review-cases/{reviewCase}/resolve": {
+      "post": {
+        "summary": "Close a case WITHOUT touching the review — \"no violation\" (admin.reviews.moderate)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reviewCase",
+            "in": "path",
+            "required": true,
+            "description": "Moderation case id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveReviewCaseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ReviewCaseEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewCaseEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -20770,7 +23406,8 @@
           "images",
           "hours",
           "pickup",
-          "availability"
+          "availability",
+          "rating"
         ],
         "additionalProperties": false,
         "properties": {
@@ -20995,6 +23632,9 @@
           "distance_meters": {
             "type": "integer",
             "description": "Straight line from ?lat=&lng= — present only when coordinates were sent. Not a route distance or a detour."
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRatingBrief"
           }
         },
         "description": "A restaurant location as customers see it. Only approved restaurants inside public coverage are ever returned. All text is plain text."
@@ -21411,6 +24051,9 @@
               "type": "string"
             },
             "description": "What the signed-in user may do at this location — for navigation only; the backend decides every action"
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRatingBrief"
           }
         },
         "description": "A location as its own staff see it. Never contains administrator notes or internal reasons."
@@ -23395,6 +26038,9 @@
                 }
               }
             }
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRatingBrief"
           }
         },
         "description": "A location as administrators see it, with what only the platform decides or knows"
@@ -26843,6 +29489,9 @@
           "distance_meters": {
             "type": "integer",
             "description": "Straight line from ?lat=&lng= — present only when coordinates were sent. Not a route distance or a detour."
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRatingBrief"
           }
         },
         "description": "A restaurant location as customers see it. Only approved restaurants inside public coverage are ever returned. All text is plain text."
@@ -29025,7 +31674,8 @@
                 "lowest_detour",
                 "route_order",
                 "nearest_to_route",
-                "fastest_pickup"
+                "fastest_pickup",
+                "highest_rated"
               ]
             }
           }
@@ -29423,7 +32073,8 @@
                   "corridor_min_meters",
                   "corridor_max_meters",
                   "max_detour_max_minutes",
-                  "candidate_cap"
+                  "candidate_cap",
+                  "min_rating"
                 ],
                 "additionalProperties": false,
                 "properties": {
@@ -29434,7 +32085,8 @@
                       "lowest_detour",
                       "route_order",
                       "nearest_to_route",
-                      "fastest_pickup"
+                      "fastest_pickup",
+                      "highest_rated"
                     ]
                   },
                   "corridor_width_meters": {
@@ -29487,6 +32139,12 @@
                   },
                   "candidate_cap": {
                     "type": "integer"
+                  },
+                  "min_rating": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
                   }
                 },
                 "description": "The search as applied"
@@ -38738,7 +41396,8 @@
           "total",
           "pickup",
           "placed_at",
-          "updated_at"
+          "updated_at",
+          "review"
         ],
         "additionalProperties": false,
         "properties": {
@@ -38838,6 +41497,9 @@
               "null"
             ],
             "description": "ISO 8601, UTC"
+          },
+          "review": {
+            "$ref": "#/components/schemas/OrderReviewBlock"
           }
         },
         "description": "One of the customer's orders, as the list shows it"
@@ -38873,7 +41535,8 @@
           "times",
           "total",
           "updated_at",
-          "version"
+          "version",
+          "review"
         ],
         "additionalProperties": false,
         "properties": {
@@ -39269,6 +41932,9 @@
           },
           "realtime": {
             "$ref": "#/components/schemas/OrderRealtimeHints"
+          },
+          "review": {
+            "$ref": "#/components/schemas/OrderReviewBlock"
           }
         },
         "description": "An order as its owner sees it: an immutable copy of what was confirmed and paid, plus where it stands. Nothing here can be changed by a customer request."
@@ -42629,7 +45295,8 @@
               "ORDER_TRACKING",
               "PAYMENT_STATUS",
               "ACCOUNT_SECURITY",
-              "PROMOTION"
+              "PROMOTION",
+              "REVIEW"
             ],
             "description": "An allow-listed screen, never a URL"
           },
@@ -42660,6 +45327,7 @@
               "ORDER",
               "PAYMENT",
               "ACCOUNT",
+              "REVIEW",
               null
             ]
           },
@@ -43644,7 +46312,8 @@
               "ORDER_TRACKING",
               "PAYMENT_STATUS",
               "ACCOUNT_SECURITY",
-              "PROMOTION"
+              "PROMOTION",
+              "REVIEW"
             ]
           },
           "transactional": {
@@ -43936,6 +46605,2141 @@
           }
         },
         "description": "A real probe (the fcm driver mints a token; fake / log providers say so) — never green because configured."
+      },
+      "ReviewItemFeedback": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "name",
+          "sentiment"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sentiment": {
+            "type": "string",
+            "enum": [
+              "liked",
+              "disliked"
+            ]
+          }
+        },
+        "description": "What the customer thought of one item of the reviewed order"
+      },
+      "ReviewRatingBrief": {
+        "type": "object",
+        "required": [
+          "average",
+          "count"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "average": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SUM of the published overall ratings / their COUNT, one decimal, rounded half up; null while there is no review (never 0, never an invented number)"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of PUBLISHED reviews of this location"
+          }
+        },
+        "description": "The rating of one restaurant LOCATION (Module 34). Ratings are never mixed across branches."
+      },
+      "ReviewRatingSummary": {
+        "type": "object",
+        "required": [
+          "average",
+          "count",
+          "distribution",
+          "categories"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "average": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer"
+          },
+          "distribution": {
+            "type": "object",
+            "required": [
+              "5",
+              "4",
+              "3",
+              "2",
+              "1"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "5": {
+                "type": "integer"
+              },
+              "4": {
+                "type": "integer"
+              },
+              "3": {
+                "type": "integer"
+              },
+              "2": {
+                "type": "integer"
+              },
+              "1": {
+                "type": "integer"
+              }
+            },
+            "description": "Published reviews per star"
+          },
+          "categories": {
+            "type": "object",
+            "description": "Per configured category: the average of the published reviews that rated it and how many did",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "average",
+                "count"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "average": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "description": "Average, count and star distribution of a location's PUBLISHED reviews. Hidden, rejected, removed and waiting reviews are not counted."
+      },
+      "ReviewPublicResponse": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "text",
+          "restaurant_name",
+          "responded_at",
+          "edited"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "restaurant_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "responded_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "edited": {
+            "type": "boolean"
+          }
+        },
+        "description": "The restaurant's published answer; never the staff member's name"
+      },
+      "ReviewConfig": {
+        "type": "object",
+        "required": [
+          "scale",
+          "title_max_length",
+          "comment_max_length",
+          "categories",
+          "tags",
+          "max_tags",
+          "item_feedback",
+          "images",
+          "submission_window_days",
+          "edit_window_hours",
+          "max_edits",
+          "policy_status"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "scale": {
+            "type": "object",
+            "required": [
+              "min",
+              "max"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "min": {
+                "type": "integer"
+              },
+              "max": {
+                "type": "integer"
+              }
+            }
+          },
+          "title_max_length": {
+            "type": "integer"
+          },
+          "comment_max_length": {
+            "type": "integer",
+            "description": "In Unicode characters"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "required",
+                "group"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "group": {
+                  "type": "string",
+                  "enum": [
+                    "food",
+                    "service",
+                    "pickup"
+                  ]
+                }
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "sentiment"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "sentiment": {
+                  "type": "string",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ]
+                }
+              }
+            }
+          },
+          "max_tags": {
+            "type": "integer"
+          },
+          "item_feedback": {
+            "type": "boolean"
+          },
+          "images": {
+            "type": "boolean",
+            "description": "Always false: review photos are not implemented"
+          },
+          "submission_window_days": {
+            "type": "integer"
+          },
+          "edit_window_hours": {
+            "type": "integer"
+          },
+          "max_edits": {
+            "type": "integer"
+          },
+          "policy_status": {
+            "type": "string",
+            "description": "The windows and limits are development defaults pending business approval"
+          }
+        },
+        "description": "The review policy a client needs to draw the form (config/reviews.php)"
+      },
+      "ReviewEligibility": {
+        "type": "object",
+        "required": [
+          "eligible",
+          "reason",
+          "window_ends_at",
+          "can_edit"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "eligible": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "ELIGIBLE",
+              "ORDER_NOT_COMPLETED",
+              "REVIEW_ALREADY_EXISTS",
+              "REVIEW_WINDOW_EXPIRED",
+              "ORDER_NOT_ELIGIBLE"
+            ],
+            "description": "ELIGIBLE or why not; another customer's order is 404, never a reason"
+          },
+          "window_ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "can_edit": {
+            "type": "boolean",
+            "description": "Whether the existing review may still be changed"
+          }
+        }
+      },
+      "ReviewOrderRef": {
+        "type": "object",
+        "required": [
+          "id",
+          "order_number"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ReviewRestaurantRef": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "branch_label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "branch_label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "CustomerReview": {
+        "type": "object",
+        "required": [
+          "id",
+          "order",
+          "restaurant",
+          "overall_rating",
+          "category_ratings",
+          "tags",
+          "title",
+          "comment",
+          "item_feedback",
+          "status",
+          "verified_order",
+          "version",
+          "can_edit",
+          "editable_until",
+          "edits_left",
+          "can_remove",
+          "response",
+          "submitted_at",
+          "published_at",
+          "edited_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "order": {
+            "$ref": "#/components/schemas/ReviewOrderRef"
+          },
+          "restaurant": {
+            "$ref": "#/components/schemas/ReviewRestaurantRef"
+          },
+          "overall_rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "category_ratings": {
+            "type": "object",
+            "description": "Optional category ratings: configured category code → whole stars",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Plain text in any language; rendered as text by every client"
+          },
+          "item_feedback": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewItemFeedback"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_MODERATION",
+              "PUBLISHED",
+              "HIDDEN",
+              "REJECTED",
+              "REMOVED"
+            ]
+          },
+          "verified_order": {
+            "type": "boolean",
+            "description": "Always true: a review exists only for a completed order of its author. Derived; never an input."
+          },
+          "version": {
+            "type": "integer",
+            "description": "Send it back to change the review"
+          },
+          "can_edit": {
+            "type": "boolean"
+          },
+          "editable_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "edits_left": {
+            "type": "integer"
+          },
+          "can_remove": {
+            "type": "boolean"
+          },
+          "response": {
+            "$ref": "#/components/schemas/ReviewPublicResponse"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "The customer's own review of one completed order (Module 34)"
+      },
+      "CustomerReviewEnvelope": {
+        "type": "object",
+        "required": [
+          "review"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "review": {
+            "$ref": "#/components/schemas/CustomerReview"
+          }
+        }
+      },
+      "CustomerReviewCreated": {
+        "type": "object",
+        "required": [
+          "review",
+          "created"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "review": {
+            "$ref": "#/components/schemas/CustomerReview"
+          },
+          "created": {
+            "type": "boolean",
+            "description": "false when this call repeated a submission that already exists (a retry)"
+          }
+        }
+      },
+      "CustomerReviewPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerReview"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "OrderReviewState": {
+        "type": "object",
+        "required": [
+          "eligibility",
+          "review",
+          "order",
+          "config"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "eligibility": {
+            "$ref": "#/components/schemas/ReviewEligibility"
+          },
+          "review": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The review if one exists (CustomerReview)"
+          },
+          "order": {
+            "type": "object",
+            "required": [
+              "id",
+              "order_number",
+              "status",
+              "completed_at",
+              "restaurant",
+              "items"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "order_number": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "completed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "restaurant": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "slug",
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "slug": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "quantity"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f-]{36}$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "config": {
+            "$ref": "#/components/schemas/ReviewConfig"
+          }
+        },
+        "description": "Whether the order can be reviewed now, the review if there is one, and the policy"
+      },
+      "SubmitReviewRequest": {
+        "type": "object",
+        "required": [
+          "overall_rating"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "overall_rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Whole stars; required"
+          },
+          "category_ratings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "item_feedback": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "item_id"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "item_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "sentiment": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "liked",
+                    "disliked",
+                    null
+                  ]
+                }
+              }
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "client_submission_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 8,
+            "maxLength": 64,
+            "description": "A token of the client for this submission: the same token again answers the same review"
+          }
+        },
+        "description": "Ratings, tags, item feedback and text ONLY. The customer, the restaurant, the status and \"verified\" are decided by the server from the order: any other field is refused (422)."
+      },
+      "UpdateReviewRequest": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "overall_rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Whole stars; required"
+          },
+          "category_ratings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "item_feedback": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "item_id"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "item_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "sentiment": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "liked",
+                    "disliked",
+                    null
+                  ]
+                }
+              }
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "description": "The version the client loaded (409 version_conflict when it is not the current one)"
+          }
+        },
+        "description": "Only the fields that are sent change"
+      },
+      "ReportReviewRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "SPAM",
+              "HARASSMENT",
+              "PERSONAL_INFORMATION",
+              "OFFENSIVE_CONTENT",
+              "FAKE_REVIEW_CONCERN",
+              "OTHER"
+            ]
+          },
+          "explanation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "description": "A report asks an administrator to look; it changes nothing by itself"
+      },
+      "ReviewReportReceipt": {
+        "type": "object",
+        "required": [
+          "report"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "report": {
+            "type": "object",
+            "required": [
+              "id",
+              "reason",
+              "received_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "SPAM",
+                  "HARASSMENT",
+                  "PERSONAL_INFORMATION",
+                  "OFFENSIVE_CONTENT",
+                  "FAKE_REVIEW_CONCERN",
+                  "OTHER"
+                ]
+              },
+              "received_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          }
+        }
+      },
+      "PublicReview": {
+        "type": "object",
+        "required": [
+          "id",
+          "author",
+          "overall_rating",
+          "category_ratings",
+          "tags",
+          "title",
+          "comment",
+          "verified_order",
+          "edited",
+          "response",
+          "submitted_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "author": {
+            "type": "object",
+            "required": [
+              "display_name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "display_name": {
+                "type": "string",
+                "description": "First name and the initial of the last one — the only thing of the customer that is public"
+              }
+            }
+          },
+          "overall_rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "category_ratings": {
+            "type": "object",
+            "description": "Optional category ratings: configured category code → whole stars",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Plain text in any language; rendered as text by every client"
+          },
+          "verified_order": {
+            "type": "boolean"
+          },
+          "edited": {
+            "type": "boolean"
+          },
+          "response": {
+            "$ref": "#/components/schemas/ReviewPublicResponse"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        },
+        "description": "A PUBLISHED review as anybody may read it. No phone, e-mail, account id, order number, journey, payment or pickup detail."
+      },
+      "PublicReviewPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "summary"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicReview"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ReviewRatingSummary"
+          }
+        }
+      },
+      "PublicReviewSummary": {
+        "type": "object",
+        "required": [
+          "restaurant",
+          "rating"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "id",
+              "slug",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "slug": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "rating": {
+            "$ref": "#/components/schemas/ReviewRatingSummary"
+          }
+        }
+      },
+      "RestaurantReviewResponse": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "id",
+          "text",
+          "status",
+          "responder_name",
+          "version",
+          "responded_at",
+          "edited_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "text": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PUBLISHED",
+              "HIDDEN"
+            ]
+          },
+          "responder_name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "responded_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "RestaurantReview": {
+        "type": "object",
+        "required": [
+          "id",
+          "location",
+          "order_number",
+          "author",
+          "overall_rating",
+          "category_ratings",
+          "tags",
+          "title",
+          "comment",
+          "item_feedback",
+          "status",
+          "verified_order",
+          "submitted_at",
+          "edited_at",
+          "response",
+          "can_respond",
+          "can_report",
+          "reported"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "location": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "order_number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "author": {
+            "type": "object",
+            "required": [
+              "display_name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "display_name": {
+                "type": "string"
+              }
+            }
+          },
+          "overall_rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "category_ratings": {
+            "type": "object",
+            "description": "Optional category ratings: configured category code → whole stars",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Plain text in any language; rendered as text by every client"
+          },
+          "item_feedback": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewItemFeedback"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_MODERATION",
+              "PUBLISHED",
+              "HIDDEN",
+              "REJECTED",
+              "REMOVED"
+            ]
+          },
+          "verified_order": {
+            "type": "boolean"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "response": {
+            "$ref": "#/components/schemas/RestaurantReviewResponse"
+          },
+          "can_respond": {
+            "type": "boolean"
+          },
+          "can_report": {
+            "type": "boolean"
+          },
+          "reported": {
+            "type": "boolean",
+            "description": "Whether the caller already reported this review"
+          }
+        },
+        "description": "A published review of one of the caller's locations. The restaurant can answer and report; it can never change or remove it."
+      },
+      "RestaurantReviewEnvelope": {
+        "type": "object",
+        "required": [
+          "review"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "review": {
+            "$ref": "#/components/schemas/RestaurantReview"
+          }
+        }
+      },
+      "RestaurantReviewSummary": {
+        "type": "object",
+        "required": [
+          "average",
+          "count",
+          "distribution",
+          "categories",
+          "answered",
+          "unanswered"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "average": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer"
+          },
+          "distribution": {
+            "type": "object",
+            "required": [
+              "5",
+              "4",
+              "3",
+              "2",
+              "1"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "5": {
+                "type": "integer"
+              },
+              "4": {
+                "type": "integer"
+              },
+              "3": {
+                "type": "integer"
+              },
+              "2": {
+                "type": "integer"
+              },
+              "1": {
+                "type": "integer"
+              }
+            }
+          },
+          "categories": {
+            "type": "object"
+          },
+          "answered": {
+            "type": "integer"
+          },
+          "unanswered": {
+            "type": "integer"
+          }
+        }
+      },
+      "RestaurantReviewPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "summary"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestaurantReview"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RestaurantReviewSummary"
+          }
+        }
+      },
+      "RestaurantReviewSummaryEnvelope": {
+        "type": "object",
+        "required": [
+          "location",
+          "summary"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "location": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "summary": {
+            "$ref": "#/components/schemas/RestaurantReviewSummary"
+          }
+        }
+      },
+      "ReviewResponseRequest": {
+        "type": "object",
+        "required": [
+          "response_text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "response_text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Plain text, at most 600 characters"
+          },
+          "expected_version": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "description": "The first call publishes the one official response; a later call edits it (the previous text is kept)"
+      },
+      "ReviewModerationCase": {
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "reason",
+          "status",
+          "reports",
+          "reported_by_type",
+          "assigned_to",
+          "resolution",
+          "resolution_note",
+          "version",
+          "created_at",
+          "resolved_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "AUTOMATED",
+              "CUSTOMER_REPORT",
+              "RESTAURANT_REPORT",
+              "ADMIN"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "ESCALATED",
+              "RESOLVED"
+            ]
+          },
+          "reports": {
+            "type": "integer"
+          },
+          "reported_by_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assigned_to": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "resolution": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "NO_VIOLATION",
+              "PUBLISHED",
+              "HIDDEN",
+              "REJECTED",
+              "RESTORED",
+              "RESPONSE_HIDDEN",
+              "WITHDRAWN",
+              null
+            ]
+          },
+          "resolution_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "report_list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "reporter_type",
+                "reason",
+                "explanation",
+                "at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "reporter_type": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string",
+                  "enum": [
+                    "SPAM",
+                    "HARASSMENT",
+                    "PERSONAL_INFORMATION",
+                    "OFFENSIVE_CONTENT",
+                    "FAKE_REVIEW_CONCERN",
+                    "OTHER"
+                  ]
+                },
+                "explanation": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                }
+              }
+            }
+          },
+          "review": {
+            "type": "object",
+            "description": "In the case list: the review the case is about (id, status, rating, text, restaurant, order number, version)"
+          }
+        },
+        "description": "One open question about one review: flagged by the automated screening (plain rules, not AI) or reported"
+      },
+      "AdminReview": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "version",
+          "flags",
+          "overall_rating",
+          "category_ratings",
+          "tags",
+          "title",
+          "comment",
+          "item_feedback",
+          "customer",
+          "order",
+          "restaurant",
+          "market",
+          "verified_order",
+          "reports",
+          "open_case",
+          "response",
+          "edit_count",
+          "submitted_at",
+          "published_at",
+          "edited_at",
+          "moderated_at",
+          "removed_at",
+          "removed_by"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING_MODERATION",
+              "PUBLISHED",
+              "HIDDEN",
+              "REJECTED",
+              "REMOVED"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNSAFE_LINK",
+                "PERSONAL_INFORMATION",
+                "SPAM_PATTERN",
+                "REPEATED_CONTENT"
+              ]
+            }
+          },
+          "overall_rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "category_ratings": {
+            "type": "object",
+            "description": "Optional category ratings: configured category code → whole stars",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Plain text in any language; rendered as text by every client"
+          },
+          "item_feedback": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewItemFeedback"
+            }
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id",
+              "display_name",
+              "public_name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "display_name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "public_name": {
+                "type": "string"
+              }
+            }
+          },
+          "order": {
+            "$ref": "#/components/schemas/ReviewOrderRef"
+          },
+          "restaurant": {
+            "$ref": "#/components/schemas/ReviewRestaurantRef"
+          },
+          "market": {
+            "type": "object",
+            "required": [
+              "id",
+              "country_code"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "country_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "verified_order": {
+            "type": "boolean"
+          },
+          "reports": {
+            "type": "integer"
+          },
+          "open_case": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "response": {
+            "$ref": "#/components/schemas/RestaurantReviewResponse"
+          },
+          "edit_count": {
+            "type": "integer"
+          },
+          "submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "moderated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "removed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "removed_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CUSTOMER",
+              "ADMIN",
+              null
+            ]
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewModerationCase"
+            }
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "subject",
+                "version",
+                "overall_rating",
+                "category_ratings",
+                "tags",
+                "title",
+                "text",
+                "status_before",
+                "actor_type",
+                "reason",
+                "at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "subject": {
+                  "type": "string",
+                  "enum": [
+                    "REVIEW",
+                    "RESPONSE"
+                  ]
+                },
+                "version": {
+                  "type": "integer"
+                },
+                "overall_rating": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "category_ratings": {
+                  "type": [
+                    "object",
+                    "null"
+                  ]
+                },
+                "tags": {
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "title": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "status_before": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "actor_type": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                }
+              }
+            }
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "action",
+                "actor_type",
+                "by",
+                "reason",
+                "changes"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "actor_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "by": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "changes": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "description": "A review as a moderator sees it; the detail adds the cases, the previous versions and the audit trail"
+      },
+      "AdminReviewEnvelope": {
+        "type": "object",
+        "required": [
+          "review"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "review": {
+            "$ref": "#/components/schemas/AdminReview"
+          }
+        }
+      },
+      "AdminReviewPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta",
+          "counts"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminReview"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          },
+          "counts": {
+            "type": "object",
+            "description": "Reviews per status within the caller's market scope, plus `all` and `reported` (an open case)",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "ReviewCasePage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewModerationCase"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "ReviewCaseEnvelope": {
+        "type": "object",
+        "required": [
+          "case"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "case": {
+            "$ref": "#/components/schemas/ReviewModerationCase"
+          }
+        }
+      },
+      "ModerateReviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Required to hide, reject or restore (3–300 characters); recorded and audited"
+          },
+          "expected_version": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "description": "A decision against the state the review is in: 409 review_state_conflict when another administrator already decided"
+      },
+      "ResolveReviewCaseRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "NO_VIOLATION"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "expected_version": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "description": "Closes a case without touching the review"
+      },
+      "EscalateReviewCaseRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "expected_version": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        }
+      },
+      "OrderReviewBlock": {
+        "type": "object",
+        "required": [
+          "state",
+          "reason",
+          "window_ends_at",
+          "review"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "ELIGIBLE",
+              "REVIEWED",
+              "REMOVED",
+              "NOT_ELIGIBLE"
+            ],
+            "description": "What the customer may do about a review of this order"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "ELIGIBLE",
+              "ORDER_NOT_COMPLETED",
+              "REVIEW_ALREADY_EXISTS",
+              "REVIEW_WINDOW_EXPIRED",
+              "ORDER_NOT_ELIGIBLE"
+            ]
+          },
+          "window_ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "review": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "overall_rating",
+              "status",
+              "can_edit"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "overall_rating": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING_MODERATION",
+                  "PUBLISHED",
+                  "HIDDEN",
+                  "REJECTED",
+                  "REMOVED"
+                ]
+              },
+              "can_edit": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "description": "Module 34: \"Write review\" only when ELIGIBLE; \"View your review\" when REVIEWED"
       }
     }
   }

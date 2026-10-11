@@ -4,7 +4,7 @@
  * fotg.mock.offline=1 → the page shows the offline state. Aggregates only cover reviews stored on this device.
  */
 import type { Order } from '../../order/repositories'
-import type { RestaurantReviewSummary, Review, ReviewConfig, ReviewConfigProvider, ReviewDraft, ReviewEligibility, ReviewEligibilityService, ReviewRepository } from '../repositories'
+import type { PublicReviewPage, PublicReviewQuery, ReportReason, RestaurantReviewSummary, Review, ReviewConfig, ReviewConfigProvider, ReviewDraft, ReviewEligibility, ReviewEligibilityService, ReviewRepository } from '../repositories'
 import { normalizeDraft, validateReview } from '../reviewForm'
 
 const KEY = 'fotg.reviews.v1'
@@ -102,6 +102,31 @@ export class MockReviewRepository implements ReviewRepository {
     const distribution: Record<number, number> = {}
     for (const r of mine) distribution[r.overallRating] = (distribution[r.overallRating] ?? 0) + 1
     return { restaurantId, averageRating: mine.length ? mine.reduce((a, r) => a + r.overallRating, 0) / mine.length : null, reviewCount: mine.length, distribution, source: 'mock_local' }
+  }
+  async listMine(customerId: string): Promise<Review[]> {
+    await wait()
+    return load().filter((r) => r.customerId === customerId && r.status !== 'HIDDEN' && r.status !== 'REMOVED').sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  }
+  /** Development data only: the reviews stored on this device for that restaurant, as if they were public. */
+  async listPublic(restaurantSlug: string, query: PublicReviewQuery = {}): Promise<PublicReviewPage> {
+    await wait()
+    const all = load().filter((r) => r.restaurantId === restaurantSlug && r.status !== 'HIDDEN' && r.status !== 'REJECTED' && r.status !== 'REMOVED' && (query.rating == null || r.overallRating === query.rating))
+    const sorted = [...all].sort((a, b) => query.sort === 'highest' ? b.overallRating - a.overallRating : query.sort === 'lowest' ? a.overallRating - b.overallRating : query.sort === 'oldest' ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt))
+    const page = query.page ?? 1; const pageSize = query.pageSize ?? 5
+    const s = await this.getRestaurantReviewSummary(restaurantSlug)
+    return {
+      items: sorted.slice((page - 1) * pageSize, page * pageSize).map((r) => ({ reviewId: r.reviewId, authorName: r.customerDisplayName ?? 'Customer', overallRating: r.overallRating, categoryRatings: r.categoryRatings, tags: r.tags, title: null, text: r.text, edited: r.version > 1, createdAt: r.createdAt,
+        response: r.restaurantResponse ? { text: r.restaurantResponse.text, respondedAt: r.restaurantResponse.respondedAt, restaurantName: r.restaurantResponse.responderName, edited: false } : null })),
+      total: sorted.length, page, pageSize, summary: { averageRating: s.averageRating, reviewCount: s.reviewCount, distribution: s.distribution, categories: {} },
+    }
+  }
+  async reportReview(reviewId: string, reason: ReportReason): Promise<void> {
+    await wait()
+    const key = 'fotg.review.reports.v1'
+    let list: Array<{ reviewId: string; reason: ReportReason }> = []
+    try { list = JSON.parse(sessionStorage.getItem(key) ?? '[]') } catch { /* ignore */ }
+    if (list.some((r) => r.reviewId === reviewId)) throw new Error('You have already reported this review.')
+    try { sessionStorage.setItem(key, JSON.stringify([...list, { reviewId, reason }])) } catch { /* ignore */ }
   }
 }
 

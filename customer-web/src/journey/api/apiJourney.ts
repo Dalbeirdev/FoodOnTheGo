@@ -244,7 +244,7 @@ export class ApiRouteRepository implements RouteRepository {
 }
 
 /* ------------------------------------------------------------------ discovery along the journey */
-const SORTS: Partial<Record<SortKey, string>> = { recommended: 'recommended', lowestDetour: 'lowest_detour', routeOrder: 'route_order', nearestToRoute: 'nearest_to_route', fastestPickup: 'fastest_pickup' }
+const SORTS: Partial<Record<SortKey, string>> = { recommended: 'recommended', lowestDetour: 'lowest_detour', routeOrder: 'route_order', nearestToRoute: 'nearest_to_route', fastestPickup: 'fastest_pickup', highestRated: 'highest_rated' }
 const EMPTY: Record<Exclude<EmptyReasonDto, null>, NonNullable<ResultPage['emptyReason']>> = { NO_SERVICE_COVERAGE: 'coverage', NO_RESTAURANTS_IN_CORRIDOR: 'corridor', NO_REACHABLE_RESTAURANTS: 'unreachable', FILTERS: 'filters' }
 
 /** The restaurant's state at the expected arrival, in the vocabulary of the cards. */
@@ -258,9 +258,9 @@ export function arrivalAvailability(c: RouteContextDto): Availability {
 export function toRouteResult(d: JourneyRestaurantDto): RouteRestaurantResult {
   const c = d.route_context
   return {
-    // No reviews backend exists yet: the sample ratings the development fixtures attach to known slugs are not shown or
-    // used along a backend journey (they are development figures, not customer reviews).
-    restaurant: { ...toRestaurant(d.restaurant), rating: 0, reviewCount: 0, ratingIsSample: false },
+    // Module 34: the backend's own rating of the location. Without it (an older backend) nothing is shown along a backend
+    // journey — the development fixtures' sample ratings are never used there.
+    restaurant: d.restaurant.rating ? toRestaurant(d.restaurant) : { ...toRestaurant(d.restaurant), rating: 0, reviewCount: 0, ratingIsSample: false },
     distanceFromRouteM: c.distance_to_route_meters, detourDistanceM: c.detour.distance_meters, detourDurationMin: c.detour.minutes,
     estimatedArrival: c.arrival.estimated_at,
     // When the food is ready is a pickup-slot question (a later module): nothing is promised here.
@@ -278,6 +278,7 @@ export function toDiscoveryQuery(journey: JourneyLike, q: DiscoveryQuery): Recor
     max_detour_minutes: typeof f.detourTime === 'number' ? clamp(f.detourTime, 1, s?.maxDetourMaxMin ?? 60) : undefined,
     open_at_arrival: f.openNow === true ? true : undefined,
     cuisine: Array.isArray(f.cuisine) && f.cuisine.length ? f.cuisine.join(',') : undefined,
+    min_rating: typeof f.rating === 'number' ? Math.max(1, Math.min(5, f.rating)) : undefined,
     q: q.search?.trim() ? q.search.trim().slice(0, 80) : undefined,
     'page[number]': q.cursor && /^\d+$/.test(q.cursor) ? Number(q.cursor) : 1,
     'page[size]': Math.min(q.limit ?? 6, 25),
@@ -290,6 +291,8 @@ export function journeyFilterDefinitions(journey: JourneyLike, cuisines: Array<{
     { id: 'cuisine', labelKey: 'filter.cuisine', kind: 'multi', options: cuisines.filter((c) => c.restaurants > 0).map((c) => ({ value: c.code, label: c.name })) },
     { id: 'openNow', labelKey: 'filter.openAtArrival', kind: 'toggle', default: false },
     { id: 'detourTime', labelKey: 'filter.detourTime', kind: 'max', unit: 'minutes', min: 5, max: journey.search?.maxDetourMaxMin ?? 60, step: 5, journeyOnly: true },
+    // Module 34: applied by the backend on the real averages — only offered when the backend can sort by rating at all.
+    ...(journey.search?.sorts?.includes('highest_rated') ? [{ id: 'rating', labelKey: 'filter.rating', kind: 'min', unit: 'rating', min: 3, max: 4.5, step: 0.5 } as FilterDefinition] : []),
   ]
 }
 

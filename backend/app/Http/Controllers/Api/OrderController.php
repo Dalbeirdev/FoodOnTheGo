@@ -29,7 +29,7 @@ class OrderController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $query = Order::query()->where('customer_id', $this->customer($request)->getKey());
+        $query = Order::query()->where('customer_id', $this->customer($request)->getKey())->with('review'); // the review block of each row, one query for the page
         $list = new ListQuery(
             $request,
             filterable: ['status', 'active'],

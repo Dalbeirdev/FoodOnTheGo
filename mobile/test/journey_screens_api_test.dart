@@ -305,7 +305,8 @@ void main() {
       expect(find.text('Open when I arrive'), findsWidgets);
       expect(find.text('Max detour time'), findsOneWidget);
       expect(find.text('Burgers'), findsOneWidget);
-      for (final gone in ['Rating', 'Price', 'Dietary options', 'Max pickup preparation', 'Distance from route', 'Open now', 'Sushi']) { expect(find.text(gone), findsNothing); }
+      for (final gone in ['Price', 'Dietary options', 'Max pickup preparation', 'Distance from route', 'Open now', 'Sushi']) { expect(find.text(gone), findsNothing); }
+      expect(find.text('Rating'), findsOneWidget); // Module 34: the backend filters on the real rating
       await tester.tap(find.text('Burgers'));
       await tester.pump(const Duration(milliseconds: 450));
       await tester.pumpAndSettle();

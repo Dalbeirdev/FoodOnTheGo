@@ -33,10 +33,10 @@ export const seedStaff = (): StaffMember[] => (fixtureScope() === 'global' ? STA
 
 /** Roles are permission bundles (starting examples; the backend / admin manage them later). */
 export const ROLES: Role[] = [
-  { id: 'owner', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'staff.view', 'staff.manage', 'analytics.view', 'notifications.view', 'settings.manage'] },
-  { id: 'manager', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'staff.view', 'analytics.view', 'notifications.view', 'settings.manage'] },
+  { id: 'owner', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'reviews.report', 'staff.view', 'staff.manage', 'analytics.view', 'notifications.view', 'settings.manage'] },
+  { id: 'manager', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'reviews.report', 'staff.view', 'analytics.view', 'notifications.view', 'settings.manage'] },
   { id: 'order_staff', permissions: ['restaurant.profile.view', 'menu.view', 'orders.view', 'orders.update', 'pickup.verify', 'notifications.view'] },
-  { id: 'menu_manager', permissions: ['restaurant.profile.view', 'menu.view', 'menu.edit', 'orders.view', 'reviews.view', 'notifications.view'] },
+  { id: 'menu_manager', permissions: ['restaurant.profile.view', 'menu.view', 'menu.edit', 'orders.view', 'reviews.view', 'reviews.report', 'notifications.view'] },
   { id: 'viewer', permissions: ['restaurant.profile.view', 'menu.view', 'orders.view', 'reviews.view', 'analytics.view', 'notifications.view'] },
 ]
 

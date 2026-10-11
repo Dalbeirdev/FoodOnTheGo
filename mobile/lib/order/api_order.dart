@@ -159,6 +159,7 @@ Order orderFromApi(Map<String, dynamic> d, String customerId) {
     lastEventSequence: events.length, version: (d['version'] as num?)?.toInt(), paymentAttemptId: '${payment['id'] ?? ''}', checkoutReference: '',
     journey: journey == null ? null : JourneySnapshot(journeyId: '${journey['id'] ?? ''}', originName: '', destinationName: ''),
     orderNote: '${d['customer_note'] ?? ''}', events: events, createdAt: placedAt, updatedAt: _when(d['updated_at']) ?? placedAt,
+    review: OrderReviewInfo.fromApi(d['review']),
   );
 }
 
@@ -171,7 +172,7 @@ OrderSummary summaryFromApi(Map<String, dynamic> d) {
     publicId: '${d['id']}', orderNumber: '${d['order_number']}', restaurantName: '${restaurant['name'] ?? ''}', restaurantSlug: '${restaurant['slug'] ?? ''}', restaurantTimezone: '${pickup['timezone'] ?? 'UTC'}',
     createdAt: _when(d['placed_at']) ?? DateTime.now().toUtc(), pickupAt: _when(pickup['pickup_at']) ?? DateTime.now().toUtc(), itemCount: (d['item_count'] as num?)?.toInt() ?? 0, itemPreview: '',
     currency: '${total['currency'] ?? ''}', totalMinor: _minor(total), orderStatus: status, paymentStatus: paymentStatusFromApi('${d['refund_status'] ?? 'NONE'}'),
-    reorderEligible: status == OrderStatus.completed || status == OrderStatus.pickedUp,
+    reorderEligible: status == OrderStatus.completed || status == OrderStatus.pickedUp, review: OrderReviewInfo.fromApi(d['review']),
   );
 }
 

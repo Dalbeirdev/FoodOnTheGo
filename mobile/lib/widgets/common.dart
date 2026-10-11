@@ -596,6 +596,7 @@ class AccountCard extends StatelessWidget {
     (Icons.credit_card, 'Payment Methods', '/payment-methods', 0),
     (Icons.notifications_none, 'Notifications', '/notifications', -1),
     (Icons.receipt_long_outlined, 'My Orders', '/my-orders', 0),
+    (Icons.rate_review_outlined, 'My Reviews', '/my-reviews', 0),
     (Icons.route_outlined, 'Plan a Journey', '/plan-journey', 0),
     (Icons.headset_mic_outlined, 'Help & Support', '/help', 0),
     (Icons.logout, 'Logout', '', 0),

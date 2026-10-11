@@ -43,8 +43,9 @@ export default function RestaurantCard({ result, units, selected, favorite, onFa
           <h3 lang={lang} dir="auto">{r.name}</h3>
           {r.reviewCount > 0
             ? <span className="rcard__rating"><StarIcon size={13} /> {r.rating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} <small>{t('card.reviews', { count: r.reviewCount.toLocaleString(locale) }, locale)}</small></span>
-            // Along a backend journey there are no review figures at all (no reviews backend yet): nothing is shown in their place.
-            : result.atArrival ? null : <span className="rcard__rating"><small>{t('card.noReviews', undefined, locale)}</small></span>}
+            // No published review yet: said as "New" — never a made-up figure (Module 34: also along a backend journey, where the
+            // rating is the backend's own; an answer without a rating field shows nothing).
+            : result.atArrival && r.ratingSource !== 'backend' ? null : <span className="rcard__rating"><small>{t('card.noReviews', undefined, locale)}</small></span>}
         </div>
         <p className="rcard__cuisine" dir="auto"><span>{r.cuisines.slice(0, 2).join(' · ')}</span><span className="rcard__price" aria-label={`price level ${r.priceLevel} of 4, ${r.currency}`}>{priceLevelLabel(r.priceLevel, r.currency, locale)}</span></p>
         {(nextChange || (!a.acceptingOrders && !closed)) && (

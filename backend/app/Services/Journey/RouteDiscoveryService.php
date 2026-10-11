@@ -69,6 +69,21 @@ final class RouteDiscoveryService
         }
 
         $candidates = array_values(array_filter($computed['candidates'], fn (array $c): bool => $c['detour_seconds'] <= $maxDetour * 60 && (! $filters->openAtArrival || $c['open_at_arrival'])));
+        if ($filters->sort === JourneySort::HighestRated || $filters->minRating !== null) {
+            // Ratings are read now, never from the cached candidate set: a review published a minute ago counts.
+            $ratings = DB::table('restaurant_location_rating_summaries')->whereIn('location_id', array_column($candidates, 'location_id'))->where('published_count', '>', 0)
+                ->get(['location_id', 'average_rating', 'published_count'])->keyBy('location_id');
+            foreach ($candidates as &$candidate) {
+                $row = $ratings[$candidate['location_id']] ?? null;
+                $candidate['rating_hundredths'] = $row === null ? null : (int) round(((float) $row->average_rating) * 100);
+                $candidate['rating_count'] = $row === null ? 0 : (int) $row->published_count;
+            }
+            unset($candidate);
+            if ($filters->minRating !== null) {
+                $floor = (int) round($filters->minRating * 100);
+                $candidates = array_values(array_filter($candidates, fn (array $c): bool => $c['rating_hundredths'] !== null && $c['rating_hundredths'] >= $floor));
+            }
+        }
         $this->sort($candidates, $filters->sort);
         $total = count($candidates);
         $pageRows = array_slice($candidates, ($filters->page - 1) * $filters->pageSize, $filters->pageSize);
@@ -509,6 +524,7 @@ final class RouteDiscoveryService
             JourneySort::RouteOrder => [$c['route_progress'], $c['detour_seconds'], $c['location_id']],
             JourneySort::NearestToRoute => [$c['distance_to_route_m'], $c['detour_seconds'], $c['location_id']],
             JourneySort::FastestPickup => [$c['prep_minutes'] ?? PHP_INT_MAX, $c['detour_seconds'], $c['location_id']],
+            JourneySort::HighestRated => [($c['rating_hundredths'] ?? null) === null ? 1 : 0, -($c['rating_hundredths'] ?? 0), -($c['rating_count'] ?? 0), $c['detour_seconds'], $c['location_id']],
         };
         usort($candidates, fn (array $a, array $b): int => $key($a) <=> $key($b));
     }
@@ -519,7 +535,7 @@ final class RouteDiscoveryService
     private function relations(): array
     {
         return [
-            'organization', 'market', 'city', 'region', 'cuisines', 'features', 'images', 'hours', 'pickupSettings', 'pickupMethods',
+            'organization', 'market', 'city', 'region', 'cuisines', 'features', 'images', 'hours', 'pickupSettings', 'pickupMethods', 'ratingSummary',
             'specialHours' => fn ($query) => $query->where('date', '>=', now()->subDays(2)->toDateString()),
             'specialHours.periods',
         ];

@@ -6,7 +6,8 @@ import type { Order } from '../order/repositories'
  * Review content is untrusted input: length-validated here, sanitized / escaped / moderated by the backend later.
  * Submission state (what the customer did) is separate from moderation state (what the platform decided).
  */
-export type ReviewStatus = 'SUBMITTED' | 'PENDING_MODERATION' | 'PUBLISHED' | 'HIDDEN' | 'REJECTED' | 'FLAGGED'
+/** Backend statuses (Module 34): PENDING_MODERATION, PUBLISHED, HIDDEN, REJECTED, REMOVED. SUBMITTED and FLAGGED exist only in the development data. */
+export type ReviewStatus = 'SUBMITTED' | 'PENDING_MODERATION' | 'PUBLISHED' | 'HIDDEN' | 'REJECTED' | 'FLAGGED' | 'REMOVED'
 export type SubmissionState = 'NOT_SUBMITTED' | 'DRAFT' | 'SUBMITTING' | 'SUBMITTED' | 'PENDING_MODERATION' | 'PUBLISHED' | 'ERROR' | 'OFFLINE'
 export type TagSentiment = 'positive' | 'neutral' | 'negative'
 export type ItemSentiment = 'liked' | 'disliked'
@@ -62,10 +63,26 @@ export type Review = {
   restaurantResponse?: { text: string; respondedAt: string; responderName: string } | null
   /** Display name policy is pending (CF-206); fixtures carry a first name + initial only. */
   customerDisplayName?: string | null
+  /** Backend reviews (Module 34): what the server says about this review — never computed by the client. */
+  title?: string | null
+  restaurantName?: string
+  restaurantSlug?: string
+  verifiedOrder?: boolean
+  canEdit?: boolean
+  canRemove?: boolean
+  editableUntil?: string | null
+  editsLeft?: number
+  publishedAt?: string | null
+  /** Restaurant Dashboard (Module 34): what the signed-in staff member may do with this review, and the state of the response. */
+  canRespond?: boolean
+  canReport?: boolean
+  reported?: boolean
+  responseVersion?: number
+  responseHidden?: boolean
   createdAt: string
   updatedAt: string
 }
-export type EligibilityReason = 'ok' | 'not_completed' | 'not_owner' | 'window_expired' | 'already_reviewed' | 'blocked' | 'not_found'
+export type EligibilityReason = 'ok' | 'not_completed' | 'not_owner' | 'window_expired' | 'already_reviewed' | 'blocked' | 'not_found' | 'removed'
 export type ReviewEligibility = {
   eligible: boolean
   reason: EligibilityReason
@@ -78,6 +95,27 @@ export type ReviewEligibility = {
 /** Aggregates are calculated server-side later; the mock aggregates only reviews stored on this device. */
 export type RestaurantReviewSummary = { restaurantId: string; averageRating: number | null; reviewCount: number; distribution: Record<number, number>; source: 'mock_local' | 'server' }
 
+/** A published review as anybody may read it (Module 34): a display name and nothing else of its author. */
+export type PublicReview = {
+  reviewId: string
+  authorName: string
+  overallRating: number
+  categoryRatings: Record<string, number>
+  tags: string[]
+  title: string | null
+  text: string
+  edited: boolean
+  createdAt: string
+  response: { text: string; respondedAt: string; restaurantName: string; edited: boolean } | null
+}
+/** The rating of one restaurant location: the average of its published reviews (null = no reviews yet), their number and the stars. */
+export type RatingSummary = { averageRating: number | null; reviewCount: number; distribution: Record<number, number>; categories: Record<string, { average: number | null; count: number }> }
+export type PublicReviewSort = 'newest' | 'oldest' | 'highest' | 'lowest'
+export type PublicReviewQuery = { page?: number; pageSize?: number; sort?: PublicReviewSort; rating?: number | null }
+export type PublicReviewPage = { items: PublicReview[]; total: number; page: number; pageSize: number; summary: RatingSummary }
+export const REPORT_REASONS = ['SPAM', 'HARASSMENT', 'PERSONAL_INFORMATION', 'OFFENSIVE_CONTENT', 'FAKE_REVIEW_CONCERN', 'OTHER'] as const
+export type ReportReason = (typeof REPORT_REASONS)[number]
+
 export interface ReviewRepository {
   getReviewForOrder(orderPublicId: string, customerId: string): Promise<Review | null>
   /** Creates the single review for the order (idempotent per order / clientSubmissionId); the restaurant comes from the order. */
@@ -86,6 +124,12 @@ export interface ReviewRepository {
   /** Customer deletion = remove from public view; the underlying record is retained (audit / legal) — backend decides. */
   deleteReview(reviewId: string, customerId: string): Promise<void>
   getRestaurantReviewSummary(restaurantId: string): Promise<RestaurantReviewSummary>
+  /** The signed-in customer's own reviews, newest first (Module 34). */
+  listMine(customerId: string): Promise<Review[]>
+  /** The PUBLISHED reviews of a restaurant with its rating summary — paged, never the whole list. */
+  listPublic(restaurantSlug: string, query?: PublicReviewQuery): Promise<PublicReviewPage>
+  /** Asks a moderator to look at somebody else's published review. A report changes nothing by itself. */
+  reportReview(reviewId: string, reason: ReportReason, explanation?: string): Promise<void>
 }
 export interface ReviewEligibilityService { check(order: Order, customerId: string, config: ReviewConfig): Promise<ReviewEligibility> }
 export interface ReviewConfigProvider { configFor(order: Order): Promise<ReviewConfig> }

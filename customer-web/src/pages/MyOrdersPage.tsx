@@ -137,7 +137,9 @@ function OrderCard({ o, locale }: { o: OrderSummary; locale: string }) {
         <Link to={`/order/${o.orderNumber}`} className="btn btn--outline">{t('oc.action.details', undefined, locale)}</Link>
         {o.reorderEligible && <Link to={`/order/${o.orderNumber}#reorder`} className="btn btn--outline">{t('od.action.reorder', undefined, locale)}</Link>}
         {g !== 'ongoing' && <Link to={`/order/${o.orderNumber}#receipt`} className="btn btn--outline">{t('track.action.receipt', undefined, locale)}</Link>}
-        {isReviewable(o.orderStatus) && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="mo-review">{t('rv.entry.rate', undefined, locale)}</Link>}
+        {/* Module 34: with a backend order the server says whether a review can be written or one exists — never both, never a guess from the status. */}
+        {(o.review ? o.review.state === 'ELIGIBLE' : isReviewable(o.orderStatus)) && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="mo-review">{t('rv.entry.rate', undefined, locale)}</Link>}
+        {o.review?.state === 'REVIEWED' && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="mo-review-view">{o.review.canEdit ? t('rv.entry.edit', undefined, locale) : t('rv.entry.view', undefined, locale)}</Link>}
         <Link to="/help" className="cart-link mo-card__help">{t('od.action.help', undefined, locale)}</Link>
       </div>
     </li>

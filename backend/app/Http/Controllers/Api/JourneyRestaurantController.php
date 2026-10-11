@@ -38,6 +38,7 @@ class JourneyRestaurantController extends Controller
             'feature' => ['sometimes', 'nullable', 'string', 'max:200', 'regex:/^[a-z0-9_,\s-]*$/'],
             'pickup_method' => ['sometimes', 'nullable', Rule::in(array_column(PickupMethod::cases(), 'value'))],
             'q' => ['sometimes', 'nullable', 'string', 'max:80'],
+            'min_rating' => ['sometimes', 'numeric', 'between:1,5'],
             'page' => ['sometimes', 'array:number,size'],
             'page.number' => ['sometimes', 'integer', 'min:1', 'max:1000'],
             'page.size' => ['sometimes', 'integer', 'between:1,'.$policy['max_page_size']],

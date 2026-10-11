@@ -30,6 +30,8 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   _View view = _View.loading; Order? order; ReviewConfig? config; ReviewEligibility? eligibility; Review? review; ReviewDraft? draft;
   bool editing = false, showErrors = false, inFlight = false;
+  /// The backend's own sentence for a refusal (Module 34), shown instead of the generic one. Null = generic.
+  String? failure;
   final textCtl = TextEditingController();
   final _scroll = ScrollController();
   final _formKey = GlobalKey();
@@ -66,13 +68,24 @@ class _ReviewScreenState extends State<ReviewScreen> {
     setState(() => showErrors = true);
     if (!validateReview(d, c).isEmpty) { _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut); return; }
     if (inFlight || _offline) return; // duplicate-tap / offline guard (the mock is also idempotent per order)
-    inFlight = true; setState(() => view = _View.submitting);
+    inFlight = true; setState(() { failure = null; view = _View.submitting; });
     final os = context.read<OrderState>();
     try {
       final r = editing && review != null ? await os.reviews.updateReview(review!.reviewId, o.customerId, d) : await os.reviews.submitReview(o, d);
       await _clearDraft();
       if (mounted) setState(() { review = r; draft = null; editing = false; view = _View.submitted; });
-    } catch (_) { if (mounted) setState(() => view = _View.error); }
+    } catch (e) { if (mounted) setState(() { failure = e is ReviewFailure && e.presentable ? e.message : null; view = _View.error; }); }
+    finally { inFlight = false; }
+  }
+  /// Withdraw the review (Module 34): the backend removes it from public view and from the rating; the order cannot be reviewed again.
+  Future<void> _remove() async {
+    final r = review; final o = order; if (r == null || o == null || inFlight) return;
+    final yes = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(title: Text(S.t('rv.remove.title')), content: Text(S.t('rv.remove.text')), actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.t('rv.action.cancel'))), TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(S.t('rv.remove.yes')))]));
+    if (yes != true || !mounted) return;
+    inFlight = true;
+    final os = context.read<OrderState>(); final messenger = ScaffoldMessenger.of(context);
+    try { await os.reviews.deleteReview(r.reviewId, o.customerId); await _clearDraft(); if (mounted) { setState(() { review = null; draft = null; editing = false; }); await _load(); } }
+    catch (e) { messenger.showSnackBar(SnackBar(content: Text(e is ReviewFailure && e.presentable ? e.message : S.t('rv.remove.failed')))); }
     finally { inFlight = false; }
   }
   Future<void> _cancel() async { await _clearDraft(); if (!mounted) return; setState(() { draft = null; showErrors = false; editing = false; }); _load(); }
@@ -95,7 +108,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       default:
         body = _form(o!, c!, draft!);
     }
-    return Scaffold(appBar: BrandAppBar(title: editing ? S.t('rv.edit.title') : S.t('rv.title'), showCart: false), body: body, resizeToAvoidBottomInset: true);
+    return Scaffold(appBar: BrandAppBar(title: editing ? S.t('rv.edit.title') : S.t('rv.title'), showCart: false), body: Semantics(identifier: 'rv-${view.name}${view == _View.ineligible && eligibility != null ? '-${eligibilityKey(eligibility!.reason)}' : ''}', container: true, explicitChildNodes: true, child: body), resizeToAvoidBottomInset: true);
   }
 
   Widget _head(Order o, {required String title, Widget? notice}) => Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -106,10 +119,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
       ])));
 
   Widget _ineligible(Order o, ReviewEligibility el) => PageBody(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
-        _head(o, title: review != null ? S.t('rv.reviewed.title') : S.t('rv.ineligible.title'), notice: review != null ? Text(S.t('rv.reviewed.text'), style: const TextStyle(color: Brand.grey, fontSize: 13)) : InfoBox(icon: Icons.info_outline, color: Brand.blue, bg: Brand.blueBg, child: Text(S.t('rv.ineligible.${eligibilityKey(el.reason)}'), style: const TextStyle(fontSize: 13, color: Color(0xFF1D4ED8))))),
+        _head(o, title: review != null ? S.t('rv.reviewed.title') : S.t(el.reason == EligibilityReason.removed ? 'rv.removed.title' : 'rv.ineligible.title'), notice: review != null ? Text(S.t('rv.reviewed.text'), style: const TextStyle(color: Brand.grey, fontSize: 13)) : InfoBox(icon: Icons.info_outline, color: Brand.blue, bg: Brand.blueBg, child: Text(S.t('rv.ineligible.${eligibilityKey(el.reason)}'), style: const TextStyle(fontSize: 13, color: Color(0xFF1D4ED8))))),
         const SizedBox(height: 10),
         Wrap(spacing: 10, runSpacing: 10, children: [
           if (review != null && el.canEdit) BrandButton(label: S.t('rv.action.edit'), expand: false, height: 44, onPressed: _startEdit),
+          if (review?.canRemove == true) OutlineButton(label: S.t('rv.remove'), expand: false, height: 44, color: const Color(0xFFB42318), onPressed: _remove),
           if (review == null && el.reason == EligibilityReason.notCompleted) BrandButton(label: S.t('oc.action.track'), expand: false, height: 44, onPressed: () => context.push('/order-tracking/${o.orderNumber}')),
           OutlineButton(label: S.t('oc.action.details'), expand: false, height: 44, onPressed: () => context.push('/order/${o.orderNumber}')),
           OutlineButton(label: S.t('oc.action.myOrders'), expand: false, height: 44, onPressed: () => context.go('/my-orders')),
@@ -121,9 +135,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
         Semantics(liveRegion: true, child: Card(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Brand.green, width: 1.5)), child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [const Icon(Icons.check_circle, color: Brand.green), const SizedBox(width: 8), Expanded(child: Semantics(header: true, child: Text(S.t('rv.done.title'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))))]),
           const SizedBox(height: 6), Text(S.t('rv.done.text', {'restaurant': o.restaurant.name}), style: const TextStyle(height: 1.4)),
-          Text(S.t('rv.done.note'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+          Text(review?.canEdit == null ? S.t('rv.done.note') : S.t('mr.statusNote.${reviewStatusKey(review!.status)}'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
           const SizedBox(height: 12),
-          Wrap(spacing: 10, runSpacing: 10, children: [if (c.editEnabled) OutlineButton(label: S.t('rv.action.edit'), expand: false, height: 44, onPressed: _startEdit), OutlineButton(label: S.t('oc.action.details'), expand: false, height: 44, onPressed: () => context.push('/order/${o.orderNumber}'))]),
+          Wrap(spacing: 10, runSpacing: 10, children: [if (review?.canEdit ?? c.editEnabled) OutlineButton(label: S.t('rv.action.edit'), expand: false, height: 44, onPressed: _startEdit), if (review?.canRemove == true) OutlineButton(label: S.t('rv.remove'), expand: false, height: 44, color: const Color(0xFFB42318), onPressed: _remove), OutlineButton(label: S.t('oc.action.details'), expand: false, height: 44, onPressed: () => context.push('/order/${o.orderNumber}'))]),
         ])))),
         const SizedBox(height: 12), _existing(review!, c), const SizedBox(height: 12), _actions(o),
       ]);
@@ -134,8 +148,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
         if (r.tags.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Wrap(spacing: 6, runSpacing: 6, children: [for (final k in r.tags) Chip(label: Text(S.t('rv.tag.$k')), visualDensity: VisualDensity.compact)])),
         for (final f in r.itemFeedback) if (f.sentiment != null) Text('${f.itemName} — ${S.t('rv.item.${f.sentiment!.name}')}', style: const TextStyle(fontSize: 13)),
         if (r.text.isNotEmpty) Container(margin: const EdgeInsets.only(top: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Brand.bg, borderRadius: BorderRadius.circular(10), border: const Border(left: BorderSide(color: Brand.orangeDeep, width: 4))), child: Text(r.text, style: const TextStyle(height: 1.4))),
+        if (r.response != null) Semantics(identifier: 'rv-response', container: true, child: Container(margin: const EdgeInsets.only(top: 10), padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Brand.bg, borderRadius: BorderRadius.circular(10), border: const Border(left: BorderSide(color: Brand.navy, width: 4))), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(S.t('rdr.responseFrom', {'restaurant': r.response!.restaurantName}), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)), const SizedBox(height: 4), Text(r.response!.text, style: const TextStyle(height: 1.4))]))),
         const SizedBox(height: 6), Text(S.t('rv.existing.meta', {'date': DateFormat.yMMMd('en_US').format(r.updatedAt.toLocal()), 'status': S.t('rv.status.${reviewStatusKey(r.status)}')}), style: const TextStyle(color: Brand.grey, fontSize: 12)),
-        Text(S.t('rv.existing.moderation'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+        Text(r.canEdit == null ? S.t('rv.existing.moderation') : S.t('mr.statusNote.${reviewStatusKey(r.status)}'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
       ]));
 
   Widget _actions(Order o) { final account = context.watch<AccountState>(); final fav = account.isFavorite(o.restaurant.id); return SectionCard(title: S.t('rv.next.title'), icon: Icons.explore_outlined, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -158,7 +173,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         _head(o, title: editing ? S.t('rv.edit.title') : S.t('rv.title'), notice: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(S.t('rv.lead'), style: const TextStyle(color: Brand.grey, fontSize: 13)),
           if (_offline) Padding(padding: const EdgeInsets.only(top: 8), child: InfoBox(icon: Icons.wifi_off, color: Brand.amber, bg: Brand.amberBg, child: Text(S.t('rv.offline'), style: const TextStyle(fontSize: 13, color: Color(0xFF6B4300))))),
-          if (view == _View.error) Padding(padding: const EdgeInsets.only(top: 8), child: Semantics(liveRegion: true, child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text(S.t('rv.error.text'), style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17)))))),
+          if (view == _View.error) Padding(padding: const EdgeInsets.only(top: 8), child: Semantics(liveRegion: true, child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text(failure ?? S.t('rv.error.text'), style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17)))))),
         ])),
         const SizedBox(height: 12),
         SectionCard(title: S.t('rv.overall.title'), icon: Icons.star_outline_rounded, trailing: Text(S.t('rv.required'), style: const TextStyle(color: Color(0xFFB42318), fontSize: 12, fontWeight: FontWeight.w700)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

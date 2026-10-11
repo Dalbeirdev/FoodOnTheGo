@@ -16,7 +16,8 @@ import { formatDistance, formatLocalTime, formatMinutes, formatMoney, localClock
 import { resolveUnitSystem } from '../i18n/markets'
 import { t, useLocale } from '../i18n/strings'
 import { mapProvider } from '../map/MapProvider'
-import { reviewRepositories } from '../review/mock/mockReview'
+import RestaurantReviews from '../review/RestaurantReviews'
+import { reviewRepositories, reviewsAreLive } from '../review/reviewRepositories'
 import type { RestaurantReviewSummary } from '../review/repositories'
 import './RestaurantDetailPage.css'
 
@@ -305,7 +306,8 @@ export default function RestaurantDetailPage() {
                     : <p className="rd-muted">{t('rd.info.contactNone', undefined, locale)}</p>}
                 </div>
                 <HoursCard r={r} locale={locale} today={today} />
-                <ReviewSummaryCard restaurantId={r.id} rating={r.rating} reviewCount={r.reviewCount} locale={locale} />
+                {/* Module 34: with the review backend, the real summary and the published reviews; the development card otherwise. */}
+                {reviewsAreLive() ? <RestaurantReviews slug={r.slug} locale={locale} /> : <ReviewSummaryCard restaurantId={r.id} rating={r.rating} reviewCount={r.reviewCount} locale={locale} />}
               </section>
             )}
 

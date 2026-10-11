@@ -29,6 +29,8 @@ import 'screens/home_screens.dart';
 import 'screens/my_orders_screen.dart';
 import 'screens/order_details_screen.dart';
 import 'screens/review_screen.dart';
+import 'screens/my_reviews_screen.dart';
+import 'review/api_review.dart';
 import 'auth/auth_repository.dart' show SecureKeyValueStore;
 import 'state/app_state.dart';
 import 'state/account_state.dart';
@@ -67,7 +69,7 @@ Future<void> main() async {
 }
 
 /// Screens that need an account. Everything else is available to guests.
-const protectedPrefixes = ['/my-orders', '/order/', '/my-profile', '/checkout', '/payment', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
+const protectedPrefixes = ['/my-orders', '/my-reviews', '/order/', '/my-profile', '/checkout', '/payment', '/order-confirmation', '/order-tracking', '/favorites', '/addresses', '/payment-methods', '/notifications'];
 
 GoRouter buildRouter(AuthState auth) => GoRouter(
   initialLocation: '/',
@@ -107,6 +109,7 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/order-tracking/:number', builder: (_, s) => OrderTrackingScreen(number: s.pathParameters['number']!)),
     GoRoute(path: '/order/:number', builder: (_, s) => OrderDetailsScreen(number: s.pathParameters['number']!, startReorder: s.uri.queryParameters['reorder'] == '1')),
     GoRoute(path: '/order/:number/review', builder: (_, s) => ReviewScreen(number: s.pathParameters['number']!, draftStore: SecureKeyValueStore())),
+    GoRoute(path: '/my-reviews', builder: (_, _) => const MyReviewsScreen()),
     GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
     GoRoute(path: '/favorites', builder: (_, _) => const FavoritesScreen()),
     GoRoute(path: '/addresses', builder: (_, _) => const AddressesScreen()),
@@ -252,7 +255,13 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           Provider<DeviceRegistrar?>.value(value: devices),
           Provider<PushRuntime?>.value(value: push),
           // Orders (Module 31): the backend's when the build says so (ORDER_MODE=api, with payments on the backend) — read as the signed-in customer.
-          ChangeNotifierProvider(create: (_) => ordersFromApi && cartBackend != null ? OrderState(orders: ApiOrderRepository(cartBackend!), verifications: ApiPickupVerificationRepository(ApiOrderRepository(cartBackend!))) : OrderState()),
+          // Reviews (Module 34): the backend's when the build says so (REVIEW_MODE=api) — eligibility, the review and the rating are the server's.
+          ChangeNotifierProvider(create: (_) {
+            if (!ordersFromApi || cartBackend == null) return OrderState();
+            final orders = ApiOrderRepository(cartBackend!);
+            final reviewApi = reviewsFromApi ? ReviewApi(cartBackend!.client) : null;
+            return OrderState(orders: orders, verifications: ApiPickupVerificationRepository(orders), reviews: reviewApi == null ? null : ApiReviewRepository(reviewApi), reviewEligibility: reviewApi == null ? null : ApiReviewEligibilityService(reviewApi), reviewConfig: reviewApi == null ? null : ApiReviewConfigProvider(reviewApi));
+          }),
           ChangeNotifierProxyProvider<OrderState, OrdersHistoryState>(create: (ctx) => OrdersHistoryState(orders: ctx.read<OrderState>().orders), update: (_, os, prev) => prev ?? OrdersHistoryState(orders: os.orders)),
           ChangeNotifierProxyProvider<OrderState, TrackingState>(create: (ctx) { final os = ctx.read<OrderState>(); final api = os.orders; return TrackingState(orders: api, verifications: os.verifications, realtime: api is ApiOrderRepository && realtimeFromApi && cartBackend != null ? customerRealtimeClient(cartBackend!) : null); }, update: (_, os, prev) => prev ?? TrackingState(orders: os.orders, verifications: os.verifications)),
         ],

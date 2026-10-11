@@ -447,8 +447,10 @@ class GlobalRestaurantCard extends StatelessWidget {
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Expanded(child: Text(r.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, height: 1.2))),
                 const SizedBox(width: 8),
-                // Along a backend journey there are no review figures at all (no reviews backend yet): nothing is shown in their place.
-                if (!arriving) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 15), Text(' ${r.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)), Text(' (${r.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
+                // The rating is the backend's (Module 34): the average of published verified-order reviews. A restaurant without
+                // reviews is "New" — never a number that nobody gave. Development fixtures keep their sample figures.
+                if (r.reviewCount > 0) Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(999)), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.star_rounded, color: Brand.star, size: 15), Text(' ${r.rating.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)), Text(' (${r.reviewCount})', style: const TextStyle(color: Brand.grey, fontSize: 11.5))])),
+                if (r.reviewCount == 0 && r.backendId != null && !r.ratingIsSample) Semantics(identifier: 'rcard-new-${r.slug}', child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: Brand.peach, borderRadius: BorderRadius.circular(999)), child: Text(S.t('rd.new'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Brand.orangeDeep)))),
               ]),
               const SizedBox(height: 4),
               Text('${r.cuisines.take(2).join(' · ')}  ·  ${priceLevelLabel(r.priceLevel, r.currency)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Brand.grey, fontSize: 13.5)),

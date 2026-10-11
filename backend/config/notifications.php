@@ -65,6 +65,10 @@ return [
         'order.cancelled' => ['category' => 'ORDER_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'ORDER_DETAIL', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
         'refund.pending' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
         'payment.recovery_required' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'HIGH', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
+        // Module 34 — reviews. The restaurant answered; a moderator published a review that was waiting; a review is not shown.
+        'review.response' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'off', 'SMS' => 'off']],
+        'review.published' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'off', 'EMAIL' => 'off', 'SMS' => 'off']],
+        'review.moderated' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'off', 'EMAIL' => 'off', 'SMS' => 'off']],
         'account.phone_changed' => ['category' => 'ACCOUNT_SECURITY', 'subject' => 'ACCOUNT', 'priority' => 'HIGH', 'target' => 'ACCOUNT_SECURITY', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'mandatory', 'EMAIL' => 'mandatory', 'SMS' => 'off']],
     ],
 

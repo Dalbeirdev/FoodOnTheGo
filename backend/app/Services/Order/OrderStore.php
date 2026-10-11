@@ -34,7 +34,7 @@ final class OrderStore
      */
     public function ownedBy(Customer $customer, string $reference): Order
     {
-        return $this->byReference(Order::query()->where('customer_id', $customer->getKey()), $reference)->with(self::relations())->first()
+        return $this->byReference(Order::query()->where('customer_id', $customer->getKey()), $reference)->with([...self::relations(), 'review'])->first()
             ?? throw ApiException::notFound('order_not_found', 'This order does not exist.');
     }
 

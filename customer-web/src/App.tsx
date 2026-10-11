@@ -36,6 +36,7 @@ import FavoritesPage from './pages/account/FavoritesPage'
 import AddressesPage from './pages/account/AddressesPage'
 import PaymentMethodsPage from './pages/account/PaymentMethodsPage'
 import NotificationsPage from './pages/account/NotificationsPage'
+import MyReviewsPage from './pages/account/MyReviewsPage'
 import HelpPage from './pages/account/HelpPage'
 import ForRestaurantsPage from './pages/ForRestaurantsPage'
 import LoginPage from './pages/auth/LoginPage'
@@ -100,6 +101,7 @@ export function AppShell() {
             <Route path="/addresses" element={<RequireAuth><AddressesPage /></RequireAuth>} />
             <Route path="/payment-methods" element={<RequireAuth><PaymentMethodsPage /></RequireAuth>} />
             <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+            <Route path="/my-reviews" element={<RequireAuth><MyReviewsPage /></RequireAuth>} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/for-restaurants" element={<ForRestaurantsPage />} />
             <Route path="/for-restaurants/register" element={<ComingSoonPage title="Restaurant Registration" text="Partner onboarding opens with the restaurant portal. We are not accepting registrations through the website yet." module="the Restaurant Portal module" backTo="/for-restaurants" backLabel="Back to For Restaurants" />} />

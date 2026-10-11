@@ -234,8 +234,8 @@ export class MockAdminSettlementRepository {
 /* ------------------------------------------------------------------ reviews (moderation) */
 const reviewMeta = () => lsLoad<Record<string, ReviewMeta>>(K.reviewMeta, {})
 const toAdminReview = (r: Review, meta: Record<string, ReviewMeta>): AdminReview => ({ review: r, restaurantName: restaurantById(r.restaurantId)?.name ?? r.restaurantId, reports: meta[r.reviewId]?.reports ?? 0, reportReasons: meta[r.reviewId]?.reportReasons ?? [], moderationHistory: meta[r.reviewId]?.history ?? [] })
-const REVIEW_TABS: Record<Exclude<ReviewModerationFilter['tab'], 'all'>, Review['status'][]> = { pending: ['SUBMITTED', 'PENDING_MODERATION'], flagged: ['FLAGGED'], published: ['PUBLISHED'], hidden: ['HIDDEN'], rejected: ['REJECTED'] }
-const MOD_RESULT: Record<ModerationAction, Review['status'] | null> = { publish: 'PUBLISHED', hide: 'HIDDEN', reject: 'REJECTED', restore: 'PUBLISHED', hide_response: null }
+const REVIEW_TABS: Record<Exclude<ReviewModerationFilter['tab'], 'all'>, Review['status'][]> = { pending: ['SUBMITTED', 'PENDING_MODERATION'], flagged: ['FLAGGED'], published: ['PUBLISHED'], hidden: ['HIDDEN'], rejected: ['REJECTED'], removed: ['REMOVED'] }
+const MOD_RESULT: Record<ModerationAction, Review['status'] | null> = { publish: 'PUBLISHED', hide: 'HIDDEN', reject: 'REJECTED', restore: 'PUBLISHED', hide_response: null, restore_response: null }
 export class MockAdminReviewRepository {
   async list(f: ReviewModerationFilter) {
     await wait(); if (failing()) throw new Error('admin_load_failed')

@@ -244,5 +244,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('notifications-read', fn (Request $request) => Limit::perMinute($perMinute('notifications_read'))->by('notifications-read:'.$actor($request)));
         RateLimiter::for('notifications-write', fn (Request $request) => Limit::perMinute($perMinute('notifications_write'))->by('notifications-write:'.$actor($request)));
         RateLimiter::for('admin-notification-test', fn (Request $request) => Limit::perMinute($perMinute('admin_notification_test'))->by('admin-notification-test:'.$actor($request)));
+        // Module 34 — reviews.
+        RateLimiter::for('review-read', fn (Request $request) => Limit::perMinute($perMinute('review_read'))->by('review-read:'.$actor($request)));
+        RateLimiter::for('review-write', fn (Request $request) => Limit::perMinute($perMinute('review_write'))->by('review-write:'.$actor($request)));
+        RateLimiter::for('review-report', fn (Request $request) => Limit::perMinute($perMinute('review_report'))->by('review-report:'.$actor($request)));
     }
 }

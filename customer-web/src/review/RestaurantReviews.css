@@ -1,0 +1,39 @@
+/* Module 34 — the public ratings and reviews of a restaurant (inside the restaurant details page). */
+.rd-reviews { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.rd-reviews h2 { margin-bottom: 0; }
+.rdr-summary { display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 16px 28px; align-items: center; }
+.rdr-average { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; }
+.rdr-average b { font-size: 34px; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rdr-average span { font-size: 15px; color: var(--muted); }
+.rdr-average small { flex-basis: 100%; font-size: 12.5px; color: var(--muted); }
+.rdr-bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; min-width: 0; }
+.rdr-bars li { display: grid; grid-template-columns: minmax(84px, max-content) 1fr minmax(24px, max-content); gap: 10px; align-items: center; font-size: 12.5px; color: var(--text); font-variant-numeric: tabular-nums; }
+.rdr-bar { height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.rdr-bar i { display: block; height: 100%; border-radius: 999px; background: #f59e0b; }
+.rdr-controls { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.rdr-controls label, .rdr-report label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.rdr-controls select, .rdr-report select, .rdr-report textarea { font: inherit; font-size: 14px; font-weight: 400; color: var(--ink); padding: 8px 10px; border: 1px solid var(--line, #e5e7eb); border-radius: 10px; background: #fff; max-width: 100%; }
+.rdr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.rdr-item { display: flex; flex-direction: column; gap: 6px; padding: 14px 0; border-top: 1px solid var(--line, #e5e7eb); min-width: 0; }
+.rdr-item__head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13.5px; }
+.rdr-item__head time, .rdr-item__head small { color: var(--muted); font-size: 12.5px; }
+.rdr-stars { color: #b45309; letter-spacing: 1px; font-size: 15px; }
+.rdr-item__title { font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.rdr-item__text { white-space: pre-line; overflow-wrap: anywhere; }
+.rdr-response { margin-left: 12px; padding: 10px 12px; border-left: 3px solid var(--orange, #f97316); background: var(--bg); border-radius: 0 10px 10px 0; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; }
+.rdr-response time, .rdr-response small { color: var(--muted); font-size: 12.5px; font-weight: 400; }
+.rdr-item__actions { font-size: 12.5px; }
+.rdr-report { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; background: var(--bg); }
+.rdr-report textarea { resize: vertical; }
+@media (max-width: 560px) {
+  .rdr-summary { grid-template-columns: 1fr; }
+  .rdr-response { margin-left: 0; }
+}
+
+/* My reviews (account) */
+.mr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.mr-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mr-item__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.mr-item__head h2 { margin: 0; font-size: 17px; overflow-wrap: anywhere; }
+.mr-item__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; color: var(--muted); }
+.mr-item__text { white-space: pre-line; overflow-wrap: anywhere; }

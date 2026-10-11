@@ -59,6 +59,16 @@ void main() {
       expect([r.rating, r.reviewCount, r.ratingIsSample, r.status, r.acceptingOrders, r.unavailableReason], [0, 0, false, RestaurantStatus.active, true, null]);
     });
 
+    test('the rating is the backend\'s when it sends one (Module 34): real figures, never a sample; no reviews = 0 / 0', () {
+      final rated = ApiRestaurantRepository.toRestaurant({...dto(slug: 'burger-hub'), 'rating': {'average': 4.3, 'count': 12}});
+      expect([rated.rating, rated.reviewCount, rated.ratingIsSample], [4.3, 12, false]);
+      final unrated = ApiRestaurantRepository.toRestaurant({...dto(slug: 'burger-hub'), 'rating': {'average': null, 'count': 0}});
+      expect([unrated.rating, unrated.reviewCount, unrated.ratingIsSample], [0, 0, false]);
+      // Along a journey as well: the figure sent with the result, not the fixture's.
+      final along = ApiRestaurantRepository.toRestaurant({...dto(slug: 'burger-hub'), 'rating': {'average': 3, 'count': 1}}, sampleRatings: false);
+      expect([along.rating, along.reviewCount, along.ratingIsSample], [3, 1, false]);
+    });
+
     test('a restaurant the development data knows keeps the id its sample menu uses; its rating is a sample figure', () {
       final r = ApiRestaurantRepository.toRestaurant(dto(slug: 'burger-hub'));
       expect(r.id, 'burger-hub'); expect(r.publicId, '0a000000-0000-4000-8000-0000000000a1'); expect(r.ratingIsSample, isTrue); expect(r.reviewCount, greaterThan(0));

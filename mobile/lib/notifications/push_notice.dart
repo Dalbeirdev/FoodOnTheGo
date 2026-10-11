@@ -7,7 +7,7 @@ class PushNotice {
   final String type, notificationId, target, category;
   final String? reference, title, body;
 
-  static const targets = {'ORDER_DETAIL', 'ORDER_TRACKING', 'PAYMENT_STATUS', 'ACCOUNT_SECURITY', 'PROMOTION', 'NONE'};
+  static const targets = {'ORDER_DETAIL', 'ORDER_TRACKING', 'PAYMENT_STATUS', 'REVIEW', 'ACCOUNT_SECURITY', 'PROMOTION', 'NONE'};
   static final _orderNumber = RegExp(r'^FOTG-[0-9]{8}-[A-Z0-9]{6}$');
 
   /// Null when the payload is not one of ours (an unknown target, an invalid reference).
@@ -15,7 +15,7 @@ class PushNotice {
     final target = (data['target'] ?? 'NONE').toString();
     if (!targets.contains(target)) return null;
     final reference = data['reference']?.toString();
-    final needsOrder = target == 'ORDER_DETAIL' || target == 'ORDER_TRACKING' || target == 'PAYMENT_STATUS';
+    final needsOrder = target == 'ORDER_DETAIL' || target == 'ORDER_TRACKING' || target == 'PAYMENT_STATUS' || target == 'REVIEW';
     if (needsOrder && (reference == null || !_orderNumber.hasMatch(reference))) return null;
     return PushNotice(
       type: (data['type'] ?? '').toString(),
@@ -38,6 +38,8 @@ class PushNotice {
       case 'ORDER_DETAIL':
       case 'PAYMENT_STATUS':
         return reference != null && _orderNumber.hasMatch(reference) ? '/order/$reference' : '/my-orders';
+      case 'REVIEW':
+        return reference != null && _orderNumber.hasMatch(reference) ? '/order/$reference/review' : '/my-reviews';
       case 'ACCOUNT_SECURITY':
         return '/my-profile';
       case 'PROMOTION':

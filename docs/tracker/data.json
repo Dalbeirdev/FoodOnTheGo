@@ -1,13 +1,13 @@
 {
  "project": "FoodOnTheGo",
- "phase": "Backend — Module 33 notification delivery built (local): domain events become one logical notification per customer with one delivery per channel and per device, sent by a queue worker through the development push provider (FCM HTTP v1 implemented, REAL FCM = PENDING FIREBASE CONFIGURATION), the local mailer (REAL EMAIL PROVIDER = PENDING) and no SMS (REAL SMS PROVIDER = PENDING); devices bound per installation; preferences enforced; retries, recovery and retention in place; the web inbox / bell / admin diagnostics and the Android inbox / device binding on it. MODULE 34 MAY START = YES (owner approval of Modules 24–33 pending)",
- "currentModule": "Module 33",
+ "phase": "Backend — Module 34 reviews built (local): one verified review per completed order, eligibility and status on the server, rule-based screening that only holds a review for a person, reports and moderation cases, moderation with reasons / versions / market scope / audit, one restaurant response per review, a location rating recalculated from published reviews, discovery on the real rating; Customer Web, Restaurant Dashboard, Platform Admin and Android on it. Policy windows are development defaults (PENDING BUSINESS APPROVAL). MODULE 35 MAY START = YES (owner approval of Modules 24–34 pending)",
+ "currentModule": "Module 34",
  "environment": "LOCAL DEVELOPMENT / TESTING",
  "production": "BLOCKED",
  "database": "PostgreSQL 18.6 + PostGIS 3.6.2",
  "cache": "Redis 5",
  "ios": "DEFERRED UNTIL WEB + ANDROID ARE COMPLETE",
- "backendPhase": "IN PROGRESS — foundation (M20), identity / RBAC (M21), market / geography (M22), restaurant core (M23), menus (M24), customer account (M25), journeys / routing (M26), cart (M27), pickup availability (M28), checkout (M29), payments (M30, Razorpay pending), orders (M31), realtime + pickup verification (M32) and notifications (M33, real providers pending) built locally; refund processing, reviews, settlements next.",
+ "backendPhase": "IN PROGRESS — foundation (M20), identity / RBAC (M21), market / geography (M22), restaurant core (M23), menus (M24), customer account (M25), journeys / routing (M26), cart (M27), pickup availability (M28), checkout (M29), payments (M30, Razorpay pending), orders (M31), realtime + pickup verification (M32) notifications (M33, real providers pending) and reviews / ratings / moderation (M34) built locally; refund processing (M35), settlements next.",
  "modules": [
   {
    "id": "M00",
@@ -254,6 +254,13 @@
    "started": "2026-10-09",
    "completed": "2026-10-11",
    "scope": "Owner spec 2026-10-09: the notification domain. A domain event (an order step of Module 31 / 32, a security event of Module 21 / 25) becomes ONE logical notification per customer and type (dedupe key) with one delivery per channel — and per device for push — written after the commit and sent by a queue worker; the policy reads the Module 25 preference matrix, the platform channel configuration, the customer status and the destinations; the development push provider answers locally (FCM HTTP v1 implemented with the official google/auth library, REAL FCM = PENDING FIREBASE CONFIGURATION); e-mail goes to the local mailer (REAL EMAIL PROVIDER = PENDING); SMS is off (REAL SMS PROVIDER = PENDING). Devices are bound per installation to the signed-in customer (encrypted token + hash; logout, rebinding, token reassignment and dead tokens end a binding). Retries use bounded exponential backoff with jitter; a credential failure pauses the provider; stranded deliveries are swept; retention prunes. The Customer Web inbox, header bell and preferences panel, the Platform Admin delivery diagnostics / registry / system card and the Android app (device binding, inbox, foreground / tap handling, native channels) are on the backend. Nothing here changes an order. STATUS: COMPLETE (local) — notification orchestration, devices, the in-app inbox, the development push path end to end, preference enforcement, retries and recovery complete locally; REAL FCM / E-MAIL / SMS = PENDING CONFIGURATION (no Firebase project, no mail transport, no SMS provider approved); iOS DEFERRED; campaigns and admin alerts NOT BUILT (not in scope); physical device push test PENDING (needs the Firebase project).. LOCAL only; production NOT touched; no real money; no real message left this machine. Owner approval of Modules 24–32 is still pending in words (CF-447); the Module 33 start condition (MODULE 33 MAY START = YES) was met. Laravel 13.35 / PostgreSQL 18 (spec: 12 / 16, CF-268). google/auth ^1.55 added (official Google library) — no community Firebase SDK."
+  },
+  {
+   "id": "M34",
+   "name": "Module 34 — Customer Reviews, Verified Order Ratings, Restaurant Reputation & Moderation Backend",
+   "started": "2026-10-11",
+   "completed": "2026-10-11",
+   "scope": "Owner spec 2026-10-11 (79 sections): the review domain on the backend. One review per COMPLETED order of the customer who placed it (UNIQUE order_id); customer, organization, location and market derived from the order, \"verified\" never accepted from a client; ReviewEligibilityService (ELIGIBLE / ORDER_NOT_COMPLETED / ORDER_NOT_OWNED / REVIEW_ALREADY_EXISTS / REVIEW_WINDOW_EXPIRED / ORDER_NOT_ELIGIBLE); statuses PENDING_MODERATION / PUBLISHED / HIDDEN / REJECTED / REMOVED; strict input (unknown fields 422), plain Unicode text, markup refused; a rule-based screening that only holds a review for a person; edits with version + revisions inside a window; soft withdrawal; reports (controlled reasons, one per reporter) and moderation cases; admin moderation (publish / hide / reject / restore, response hide / restore, cases) with reasons, version checks, market scope and audit; one restaurant response per review; location rating summary recalculated in-transaction; public reviews API; discovery sort / filter on the real rating; Customer Web, Restaurant Dashboard, Platform Admin and Android on it; Module 33 notifications reused. STATUS: COMPLETE (local) — review policy windows are DEVELOPMENT DEFAULTS (PENDING BUSINESS APPROVAL); advanced (AI) moderation PENDING; review photos, restaurant-side review notifications, a confidence-adjusted ranking and helpful votes NOT BUILT; iOS DEFERRED. LOCAL only; production NOT touched; no real money; no review is seeded or invented (a restaurant without reviews shows \"New\"). Owner approval of Modules 24–33 is still pending in words; the Module 34 start condition (MODULE 34 MAY START = YES) was met. Laravel 13.35 / PostgreSQL 18 (spec: 12 / 16, CF-268). backend/CLAUDE.md remote installers NOT run (CF-311)."
   }
  ],
  "requirements": [
@@ -51888,6 +51895,1414 @@
    "issue": "-",
    "carry": "CF-447",
    "notes": "Not stated by the owner in words; the owner chose to start Module 33 on MODULE 33 MAY START = YES"
+  },
+  {
+   "id": "M34-001",
+   "module": "M34",
+   "req": "M34-001 Previous Module Gate",
+   "platform": "DOCS",
+   "cat": "QA & gate",
+   "pri": "P0",
+   "status": "PENDING (owner)",
+   "impl": "N/A",
+   "test": "N/A",
+   "manual": "PENDING (owner)",
+   "evidence": "docs/project-progress.html (Module 33 row); MODULE 34 MAY START = YES in the Module 33 report",
+   "issue": "-",
+   "carry": "CF-473",
+   "notes": "The owner's approval of Module 33 (and 24–32) has not been stated in words; the owner sent the Module 34 specification on the gate MODULE 34 MAY START = YES"
+  },
+  {
+   "id": "M34-002",
+   "module": "M34",
+   "req": "M34-002 Review Domain Audit",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Review domain",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "scratchpad audit reports summarised in docs/backend/reviews.md; customer-web/src/review/api/apiReview.ts, src/review/reviewRepositories.ts, src/pages/ReviewPage.tsx, src/pages/account/MyReviewsPage.tsx, src/review/RestaurantReviews.tsx; mobile/lib/review/{api_review,review_models,restaurant_reviews}.dart, mobile/lib/screens/{review_screen,my_reviews_screen,my_orders_screen,order_tracking_screen,restaurant_detail_screen,restaurants_screen}.dart, mobile/lib/main.dart, mobile/lib/core/app_config.dart",
+   "issue": "-",
+   "carry": "-",
+   "notes": "Audited before building: the Module 16 customer review mocks (web + Android), the Module 17 dashboard review mock, the Module 18 admin moderation mock, the Module 31 / 32 order states, the Module 33 notification registry; no review table, route or rating existed on the backend"
+  },
+  {
+   "id": "M34-003",
+   "module": "M34",
+   "req": "M34-003 Review Data Model",
+   "platform": "BACKEND",
+   "cat": "Review domain",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); backend/database/migrations/2026_10_14_100000_module34_reviews.php; backend/app/Models/{RestaurantReview,ReviewRevision,ReviewModerationCase,ReviewReport,RestaurantReviewResponse,RestaurantLocationRatingSummary}.php; backend/app/Enums/Review*.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "six tables: restaurant_reviews, review_revisions, review_moderation_cases, review_reports, restaurant_review_responses, restaurant_location_rating_summaries; public UUIDs; money is not involved"
+  },
+  {
+   "id": "M34-004",
+   "module": "M34",
+   "req": "M34-004 Review Status Model",
+   "platform": "BACKEND",
+   "cat": "Review domain",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); backend/app/Enums/ReviewStatus.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "PENDING_MODERATION / PUBLISHED / HIDDEN / REJECTED / REMOVED with the allowed transitions in ReviewStatus::next(); REMOVED is final"
+  },
+  {
+   "id": "M34-005",
+   "module": "M34",
+   "req": "M34-005 Verified Order Relationship",
+   "platform": "BACKEND",
+   "cat": "Eligibility",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B1, B2; backend/app/Services/Review/ReviewService.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "customer, organization, location and market are copied from the order under its row lock; a body carrying customer_id / order_id / status / verified is refused 422 (unknown fields); every review is a verified order review because nothing else can be created"
+  },
+  {
+   "id": "M34-006",
+   "module": "M34",
+   "req": "M34-006 Unique Order Review Constraint",
+   "platform": "BACKEND",
+   "cat": "Review domain",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B3, G1; backend/database/migrations/2026_10_14_100000_module34_reviews.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "UNIQUE(order_id) + the order row lock; a withdrawn review still occupies the order"
+  },
+  {
+   "id": "M34-007",
+   "module": "M34",
+   "req": "M34-007 Review Eligibility Service",
+   "platform": "BACKEND",
+   "cat": "Eligibility",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step A1–A3; backend/app/Services/Review/ReviewEligibilityService.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "ELIGIBLE, ORDER_NOT_COMPLETED, ORDER_NOT_OWNED (answered 404 so existence is not disclosed), REVIEW_ALREADY_EXISTS, REVIEW_WINDOW_EXPIRED, ORDER_NOT_ELIGIBLE; checked at read time and again under the lock at write time"
+  },
+  {
+   "id": "M34-008",
+   "module": "M34",
+   "req": "M34-008 Review Window Policy",
+   "platform": "BACKEND",
+   "cat": "Eligibility",
+   "pri": "P1",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "PARTIAL",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); backend/config/reviews.php",
+   "issue": "-",
+   "carry": "CF-462",
+   "notes": "configurable (REVIEW_SUBMISSION_WINDOW_DAYS = 30, REVIEW_EDIT_WINDOW_HOURS = 72, REVIEW_MAX_EDITS = 3): DEVELOPMENT DEFAULTS from the approved Module 16 design — PENDING BUSINESS APPROVAL"
+  },
+  {
+   "id": "M34-009",
+   "module": "M34",
+   "req": "M34-009 Review Creation API",
+   "platform": "BACKEND",
+   "cat": "Customer API",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B1; backend/app/Http/Controllers/Api/Customer/ReviewController.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "GET / POST /customer/orders/{order}/review; 201 created, 200 for a replay of the same review"
+  },
+  {
+   "id": "M34-010",
+   "module": "M34",
+   "req": "M34-010 Review Validation",
+   "platform": "BACKEND",
+   "cat": "Validation & privacy",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B3, B4; backend/app/Services/Review/{ReviewText,ReviewContentScreen}.php; backend/app/Http/Support/StrictInput.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "StrictInput refuses unknown fields; rating 1–5 integer; categories / tags / items only from the configuration and the order; lengths in Unicode code points (comment 500, title 120)"
+  },
+  {
+   "id": "M34-011",
+   "module": "M34",
+   "req": "M34-011 Review Content Security",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Validation & privacy",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B4; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9) (markup shown as text, never run); docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "markup is refused (422), not rewritten; control characters removed, format characters kept (emoji survive); the clients render review text as text only"
+  },
+  {
+   "id": "M34-012",
+   "module": "M34",
+   "req": "M34-012 Review Privacy",
+   "platform": "BACKEND",
+   "cat": "Validation & privacy",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C1, E1, E3, I2, I4; backend/app/Http/Resources/Review/ReviewPresenter.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "public review = display name \"First L.\", rating, categories, tags, title, comment, verified_order, edited, date, the restaurant's reply — no phone, e-mail, account id, order number, journey, payment, pickup credential or private note; the exact key set is asserted"
+  },
+  {
+   "id": "M34-013",
+   "module": "M34",
+   "req": "M34-013 Review Edit API",
+   "platform": "BACKEND + WEB",
+   "cat": "Customer API",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step D1, D2; backend/app/Services/Review/ReviewService.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "PATCH /customer/reviews/{review} with the version, inside the edit window and budget; re-screened; rating recalculated"
+  },
+  {
+   "id": "M34-014",
+   "module": "M34",
+   "req": "M34-014 Review Revision History",
+   "platform": "BACKEND",
+   "cat": "Audit",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step D1; backend/app/Models/{RestaurantReview,ReviewRevision,ReviewModerationCase,ReviewReport,RestaurantReviewResponse,RestaurantLocationRatingSummary}.php; backend/app/Enums/Review*.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "review_revisions keeps the content before every customer edit, moderation decision and response edit (append-only)"
+  },
+  {
+   "id": "M34-015",
+   "module": "M34",
+   "req": "M34-015 Review Removal Policy",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Customer API",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step H1, H2; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step E1",
+   "issue": "-",
+   "carry": "-",
+   "notes": "soft withdrawal: status REMOVED, row and history kept, out of the public list and the rating at once, the order cannot be reviewed again, moderation cannot restore it"
+  },
+  {
+   "id": "M34-016",
+   "module": "M34",
+   "req": "M34-016 Review Moderation Workflow",
+   "platform": "BACKEND",
+   "cat": "Moderation",
+   "pri": "P0",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "PARTIAL",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step G2; backend/app/Services/Review/{ReviewText,ReviewContentScreen}.php; backend/app/Http/Support/StrictInput.php",
+   "issue": "-",
+   "carry": "CF-463",
+   "notes": "rule-based screening (link, contact details, spam phrases, repeated text) HOLDS a review for a person and never rejects; a low rating is never a flag. It is described everywhere as simple pattern matching — advanced (AI) moderation is PENDING and not claimed"
+  },
+  {
+   "id": "M34-017",
+   "module": "M34",
+   "req": "M34-017 Review Moderation Cases",
+   "platform": "BACKEND",
+   "cat": "Moderation",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F2, F4, G2; backend/app/Services/Review/ReviewModerationService.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "one OPEN case per review (partial unique index); source AUTOMATED / CUSTOMER_REPORT / RESTAURANT_REPORT / ADMIN; assign, escalate, resolve (NO_VIOLATION); a decision closes the open cases"
+  },
+  {
+   "id": "M34-018",
+   "module": "M34",
+   "req": "M34-018 Review Reporting",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Moderation",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F1, F2; backend/app/Services/Review/ReviewReportService.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "reasons SPAM / HARASSMENT / PERSONAL_INFORMATION / OFFENSIVE_CONTENT / FAKE_REVIEW_CONCERN / OTHER; one report per reporter per review; 20 per day; own review refused; a report hides nothing"
+  },
+  {
+   "id": "M34-019",
+   "module": "M34",
+   "req": "M34-019 Admin Moderation API",
+   "platform": "BACKEND",
+   "cat": "Admin",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F3–F6, G4; backend/app/Http/Controllers/Api/Admin/ReviewController.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "list with filters and counts, detail with cases / reports / revisions / audit history, publish, hide, reject, restore, response hide / restore, case assign / escalate / resolve — reasons required except publish"
+  },
+  {
+   "id": "M34-020",
+   "module": "M34",
+   "req": "M34-020 Admin Moderation RBAC",
+   "platform": "BACKEND",
+   "cat": "RBAC & scope",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F7; backend/app/Enums/Permission.php; backend/database/seeders/RoleSeeder.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "admin.reviews.view / moderate / restore / reports.view; market scope by AuthorizesMarketScope (a grant for one market never opens another) — proven by the backend tests; the local fixtures have India-scoped and global administrators only"
+  },
+  {
+   "id": "M34-021",
+   "module": "M34",
+   "req": "M34-021 Restaurant Review RBAC",
+   "platform": "BACKEND",
+   "cat": "RBAC & scope",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E7; backend/app/Http/Controllers/Api/Restaurant/ReviewController.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "restaurant.reviews.view / respond / report; only PUBLISHED reviews of locations in the member's ACTIVE membership; no route changes or removes a customer's review"
+  },
+  {
+   "id": "M34-022",
+   "module": "M34",
+   "req": "M34-022 Restaurant Response Model",
+   "platform": "BACKEND",
+   "cat": "Restaurant response",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); backend/app/Models/{RestaurantReview,ReviewRevision,ReviewModerationCase,ReviewReport,RestaurantReviewResponse,RestaurantLocationRatingSummary}.php; backend/app/Enums/Review*.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "restaurant_review_responses: UNIQUE(review_id), responder snapshot, status PUBLISHED / HIDDEN, version"
+  },
+  {
+   "id": "M34-023",
+   "module": "M34",
+   "req": "M34-023 Restaurant Response API",
+   "platform": "BACKEND + WEB",
+   "cat": "Restaurant response",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E2, E6; backend/app/Services/Review/RestaurantResponseService.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "PUT /restaurant/reviews/{review}/response: create once; an edit needs the version it read (409 response_exists without it — BUG-247); plain text ≤ 600; a HIDDEN response cannot be changed"
+  },
+  {
+   "id": "M34-024",
+   "module": "M34",
+   "req": "M34-024 Response Audit",
+   "platform": "BACKEND",
+   "cat": "Audit",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F3, F6",
+   "issue": "-",
+   "carry": "-",
+   "notes": "review.response_added / response_edited / response_hidden / response_restored in the audit trail; the previous text in review_revisions"
+  },
+  {
+   "id": "M34-025",
+   "module": "M34",
+   "req": "M34-025 Customer Reviews API",
+   "platform": "BACKEND + WEB",
+   "cat": "Customer API",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F5, G3; backend/app/Http/Controllers/Api/Customer/ReviewController.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "GET /customer/reviews and /customer/reviews/{review}: own reviews in every state with the restaurant's reply; 404 for anybody else's"
+  },
+  {
+   "id": "M34-026",
+   "module": "M34",
+   "req": "M34-026 Customer Review Status",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Customer API",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step A2, H1; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step B1; backend/app/Http/Resources/Order/OrderPresenter.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "the order (list and detail) carries review {state ELIGIBLE / REVIEWED / REMOVED / NOT_ELIGIBLE, reason, window_ends_at, review}; \"Write Review\" only when ELIGIBLE, \"View / Edit your review\" when REVIEWED"
+  },
+  {
+   "id": "M34-027",
+   "module": "M34",
+   "req": "M34-027 Public Reviews API",
+   "platform": "BACKEND",
+   "cat": "Customer API",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C1, C2; backend/app/Http/Controllers/Api/RestaurantReviewController.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "GET /restaurants/{slug}/reviews (published only, page / per_page ≤ 50, sort newest / oldest / highest / lowest, rating filter) and /reviews/summary"
+  },
+  {
+   "id": "M34-028",
+   "module": "M34",
+   "req": "M34-028 Restaurant Rating Service",
+   "platform": "BACKEND",
+   "cat": "Ratings",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B2, D1, F4, F6, G5, G6, H1; backend/app/Services/Review/RestaurantRatingService.php; backend/app/Console/Commands/RecalculateRatings.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "recalculated from the PUBLISHED reviews in the same transaction as submit / edit / publish / hide / reject / restore / withdraw, under an advisory lock per location; reviews:recalculate rebuilds"
+  },
+  {
+   "id": "M34-029",
+   "module": "M34",
+   "req": "M34-029 Average Rating",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Ratings",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C2, C5; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step D2; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "sum / count, one decimal, rounded half up with integers only; no reviews → average null — no division by zero and no client shows a figure (\"New\" / \"No reviews yet\"); nothing like 5.0 or 100 reviews is invented"
+  },
+  {
+   "id": "M34-030",
+   "module": "M34",
+   "req": "M34-030 Star Distribution",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Ratings",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C2, C4; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step D1",
+   "issue": "-",
+   "carry": "-",
+   "notes": "count per star 5 … 1 in the summary; shown as bars on the web and in the app"
+  },
+  {
+   "id": "M34-031",
+   "module": "M34",
+   "req": "M34-031 Category Ratings",
+   "platform": "BACKEND",
+   "cat": "Ratings",
+   "pri": "P2",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); backend/config/reviews.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "optional category ratings (food_quality, order_accuracy, preparation_time, pickup_experience) with their averages in the summary; grouped food / service / pickup in the configuration"
+  },
+  {
+   "id": "M34-032",
+   "module": "M34",
+   "req": "M34-032 Location Rating Scope",
+   "platform": "BACKEND",
+   "cat": "Ratings",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/backend/reviews.md",
+   "issue": "-",
+   "carry": "CF-469",
+   "notes": "the location rating is primary; no organization-level figure is exposed (no approved design shows one)"
+  },
+  {
+   "id": "M34-033",
+   "module": "M34",
+   "req": "M34-033 Rating Cache/Invalidation",
+   "platform": "BACKEND",
+   "cat": "Ratings",
+   "pri": "P2",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step G6",
+   "issue": "-",
+   "carry": "-",
+   "notes": "PostgreSQL is authoritative; no Redis cache is used for ratings (optional in the spec, not needed at this size): the summary row is the read model and it is rebuilt in the writing transaction"
+  },
+  {
+   "id": "M34-034",
+   "module": "M34",
+   "req": "M34-034 Restaurant Discovery Integration",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Discovery",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C3, C5; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step D2; backend/app/Http/Controllers/Api/RestaurantController.php; backend/app/Services/Journey/RouteDiscoveryService.php; backend/app/Enums/JourneySort.php; customer-web/src/restaurants/api/restaurantData.ts, src/components/RestaurantCard.tsx, src/journey/api/apiJourney.ts, src/discovery/useDiscovery.ts",
+   "issue": "-",
+   "carry": "-",
+   "notes": "restaurant payloads (list, detail, favorites, journey results) carry rating {average, count}; cards, list, map card, detail and favorites show it; ratings along a journey are read at request time"
+  },
+  {
+   "id": "M34-035",
+   "module": "M34",
+   "req": "M34-035 Rating Filter",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Discovery",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C3; docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "filter[min_rating] on /restaurants and min_rating (1–5) on journey restaurants; an unrated restaurant never passes it"
+  },
+  {
+   "id": "M34-036",
+   "module": "M34",
+   "req": "M34-036 Rating Sort",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Discovery",
+   "pri": "P1",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "PARTIAL",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C3; backend/config/reviews.php",
+   "issue": "-",
+   "carry": "CF-466",
+   "notes": "sort=-rating and sort=highest_rated: average, then count, then name; unrated last; deterministic. NO proprietary ranking formula: a confidence adjustment (for example a Bayesian average) is a business decision that has not been approved, so it is not enabled"
+  },
+  {
+   "id": "M34-037",
+   "module": "M34",
+   "req": "M34-037 Customer Web Review Form",
+   "platform": "WEB",
+   "cat": "Customer Web",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B1; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); customer-web/src/review/api/apiReview.ts, src/review/reviewRepositories.ts, src/pages/ReviewPage.tsx, src/pages/account/MyReviewsPage.tsx, src/review/RestaurantReviews.tsx",
+   "issue": "-",
+   "carry": "-",
+   "notes": "the Module 16 review page on the backend (VITE_REVIEW_MODE=api): the form policy, the eligibility and the result are the server's; the backend's refusal is shown in its own words"
+  },
+  {
+   "id": "M34-038",
+   "module": "M34",
+   "req": "M34-038 Customer Web Review List",
+   "platform": "WEB",
+   "cat": "Customer Web",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step C4, F5, G3; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "the restaurant page's reviews (average, count, distribution, list, sort, star filter, show more) on the Info tab where the approved design has the rating card; My Reviews at /my-reviews"
+  },
+  {
+   "id": "M34-039",
+   "module": "M34",
+   "req": "M34-039 Customer Web Review Editing",
+   "platform": "WEB",
+   "cat": "Customer Web",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step D1, H1; customer-web/src/review/api/apiReview.ts, src/review/reviewRepositories.ts, src/pages/ReviewPage.tsx, src/pages/account/MyReviewsPage.tsx, src/review/RestaurantReviews.tsx",
+   "issue": "-",
+   "carry": "-",
+   "notes": "edit with the loaded version; withdraw after a confirmation"
+  },
+  {
+   "id": "M34-040",
+   "module": "M34",
+   "req": "M34-040 Customer Web Reporting",
+   "platform": "WEB",
+   "cat": "Customer Web",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F1; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "report from the restaurant page with a reason from the list; a guest is asked to sign in; the refusal (already reported, own review) is shown"
+  },
+  {
+   "id": "M34-041",
+   "module": "M34",
+   "req": "M34-041 Android Review Form",
+   "platform": "ANDROID",
+   "cat": "Android",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "APK build038 built; USER DEVICE VERIFICATION = PENDING",
+   "evidence": "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9); docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step A2, B2, B3; mobile/lib/review/{api_review,review_models,restaurant_reviews}.dart, mobile/lib/screens/{review_screen,my_reviews_screen,my_orders_screen,order_tracking_screen,restaurant_detail_screen,restaurants_screen}.dart, mobile/lib/main.dart, mobile/lib/core/app_config.dart",
+   "issue": "-",
+   "carry": "CF-471",
+   "notes": "REVIEW_MODE=api: the same review screen on the backend; NOTHING is queued offline — a failed submit is visible and the app sends nothing by itself when the network returns"
+  },
+  {
+   "id": "M34-042",
+   "module": "M34",
+   "req": "M34-042 Android Review List",
+   "platform": "ANDROID",
+   "cat": "Android",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "APK build038 built; USER DEVICE VERIFICATION = PENDING",
+   "evidence": "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9); docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step C1, D1",
+   "issue": "-",
+   "carry": "CF-471",
+   "notes": "My Reviews screen (/my-reviews) and the restaurant's published reviews with the summary, sort, star filter and paging"
+  },
+  {
+   "id": "M34-043",
+   "module": "M34",
+   "req": "M34-043 Android Review Editing",
+   "platform": "ANDROID",
+   "cat": "Android",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "APK build038 built; USER DEVICE VERIFICATION = PENDING",
+   "evidence": "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9); docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step E1",
+   "issue": "-",
+   "carry": "CF-471",
+   "notes": "edit while the backend allows it; withdraw after a confirmation"
+  },
+  {
+   "id": "M34-044",
+   "module": "M34",
+   "req": "M34-044 Android Review Reporting",
+   "platform": "ANDROID",
+   "cat": "Android",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "APK build038 built; USER DEVICE VERIFICATION = PENDING",
+   "evidence": "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9) (a signed-in customer reports a review …)",
+   "issue": "-",
+   "carry": "CF-471",
+   "notes": "report sheet with the controlled reasons; covered by the widget tests, not by the preview e2e"
+  },
+  {
+   "id": "M34-045",
+   "module": "M34",
+   "req": "M34-045 Restaurant Dashboard Reviews",
+   "platform": "WEB",
+   "cat": "Restaurant Dashboard",
+   "pri": "P0",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "PARTIAL",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E1; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); customer-web/src/dashboard/api/apiReviews.ts, src/dashboard/pages/ReviewsPage.tsx, src/dashboard/api/apiDashboard.ts",
+   "issue": "-",
+   "carry": "CF-470",
+   "notes": "the Module 17 Reviews page on the backend: the published reviews of the selected location (the latest 50), no demo banner. Filter by location = the dashboard's location switcher; the rating filter is the existing \"3★ and below\" chip over the loaded list — a server-side rating filter and paging in the dashboard are not built"
+  },
+  {
+   "id": "M34-046",
+   "module": "M34",
+   "req": "M34-046 Restaurant Dashboard Responses",
+   "platform": "WEB",
+   "cat": "Restaurant Dashboard",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E2, E6, F2; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "respond, edit the response (version), report a review; per-review abilities come from the backend"
+  },
+  {
+   "id": "M34-047",
+   "module": "M34",
+   "req": "M34-047 Restaurant Dashboard Rating Summary",
+   "platform": "WEB",
+   "cat": "Restaurant Dashboard",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E1; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "average, count, answered and the star distribution from the backend summary"
+  },
+  {
+   "id": "M34-048",
+   "module": "M34",
+   "req": "M34-048 Restaurant Location Isolation",
+   "platform": "BACKEND",
+   "cat": "RBAC & scope",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E7",
+   "issue": "-",
+   "carry": "-",
+   "notes": "a member sees only locations of the ACTIVE membership (location-scoped members only theirs); another organization's review is 404"
+  },
+  {
+   "id": "M34-049",
+   "module": "M34",
+   "req": "M34-049 Admin Moderation Queue",
+   "platform": "BACKEND + WEB",
+   "cat": "Admin",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F3; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); customer-web/src/admin/api/ApiAdminReviewRepository.ts, src/admin/pages/ReviewsPage.tsx, src/admin/AdminContext.tsx",
+   "issue": "-",
+   "carry": "CF-468",
+   "notes": "the Module 18 Review Moderation page on the backend: queues All / Pending / Flagged (open cases) / Published / Hidden / Rejected / Withdrawn with counts; no mock note"
+  },
+  {
+   "id": "M34-050",
+   "module": "M34",
+   "req": "M34-050 Admin Review Detail",
+   "platform": "BACKEND + WEB",
+   "cat": "Admin",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F3, F6; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "detail drawer: customer and public name, market, order, edits, automated flags, cases with every report, the restaurant's response, the audit history"
+  },
+  {
+   "id": "M34-051",
+   "module": "M34",
+   "req": "M34-051 Admin Review Reports",
+   "platform": "BACKEND + WEB",
+   "cat": "Admin",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F3; docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5)",
+   "issue": "-",
+   "carry": "CF-468",
+   "notes": "each report with its reason, reporter type, explanation and time; case assign / escalate / close as \"no violation\""
+  },
+  {
+   "id": "M34-052",
+   "module": "M34",
+   "req": "M34-052 Admin Moderation Audit",
+   "platform": "BACKEND",
+   "cat": "Audit",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F6",
+   "issue": "-",
+   "carry": "-",
+   "notes": "every decision in the audit trail with the administrator, the reason and the change; shown as the moderation history"
+  },
+  {
+   "id": "M34-053",
+   "module": "M34",
+   "req": "M34-053 India Market Scope",
+   "platform": "BACKEND",
+   "cat": "Global readiness",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F7",
+   "issue": "-",
+   "carry": "-",
+   "notes": "India is the only active market; every review carries its market and every admin query is scoped by the administrator's market grants on the server"
+  },
+  {
+   "id": "M34-054",
+   "module": "M34",
+   "req": "M34-054 Localization Readiness",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Global readiness",
+   "pri": "P2",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B1; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step B3",
+   "issue": "-",
+   "carry": "-",
+   "notes": "Unicode text in any script, counted in code points; dir=\"auto\" on names and text; tags and categories are codes with client strings; notification templates per locale (en-IN today); English only on screen"
+  },
+  {
+   "id": "M34-055",
+   "module": "M34",
+   "req": "M34-055 Review Notification Events",
+   "platform": "BACKEND",
+   "cat": "Notifications",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E4, F5; backend/app/Services/Review/ReviewNotifier.php; backend/config/notifications.php; backend/resources/notifications/en-IN.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "Module 33 reused (no second engine): review.response, review.published, review.moderated as customer notifications with the REVIEW action target; the invitation is one line of order.completed (template v2); no reminder is ever sent"
+  },
+  {
+   "id": "M34-056",
+   "module": "M34",
+   "req": "M34-056 Restaurant Response Notification",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Notifications",
+   "pri": "P1",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "PARTIAL",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E4, E5; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step C2",
+   "issue": "-",
+   "carry": "CF-465",
+   "notes": "the customer is told about the restaurant's reply (in-app always, push by preference) and a tap opens the review. Restaurant-side notifications about new reviews are NOT built: the notification tables are customer notifications and no partner channel exists"
+  },
+  {
+   "id": "M34-057",
+   "module": "M34",
+   "req": "M34-057 Review Submission Rate Limits",
+   "platform": "BACKEND",
+   "cat": "Abuse controls",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8); backend/config/rate_limits.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "review-read 120 / min, review-write 10 / min, review-report 5 / min; reports 20 per day per account"
+  },
+  {
+   "id": "M34-058",
+   "module": "M34",
+   "req": "M34-058 Review Fraud Controls",
+   "platform": "BACKEND",
+   "cat": "Abuse controls",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/backend/reviews.md",
+   "issue": "-",
+   "carry": "-",
+   "notes": "one review per completed order of the customer who paid; repeated-text and spam screening; no review incentive of any kind exists (no discount, credit or reward for a review)"
+  },
+  {
+   "id": "M34-059",
+   "module": "M34",
+   "req": "M34-059 Review Concurrency",
+   "platform": "BACKEND",
+   "cat": "Concurrency",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest / ReviewRatingTest; docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step G1",
+   "issue": "-",
+   "carry": "-",
+   "notes": "two simultaneous submissions through two API processes → one review"
+  },
+  {
+   "id": "M34-060",
+   "module": "M34",
+   "req": "M34-060 Review Idempotency",
+   "platform": "BACKEND + WEB",
+   "cat": "Concurrency",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step B3",
+   "issue": "-",
+   "carry": "-",
+   "notes": "the same content or the same client_submission_id answers the same review (200); different content 409 review_already_exists"
+  },
+  {
+   "id": "M34-061",
+   "module": "M34",
+   "req": "M34-061 Review Edit Concurrency",
+   "platform": "BACKEND",
+   "cat": "Concurrency",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step D2, E6",
+   "issue": "-",
+   "carry": "-",
+   "notes": "optimistic version on the review and on the response; a stale edit is 409 version_conflict"
+  },
+  {
+   "id": "M34-062",
+   "module": "M34",
+   "req": "M34-062 Moderation Concurrency",
+   "platform": "BACKEND",
+   "cat": "Concurrency",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F5, G4",
+   "issue": "-",
+   "carry": "-",
+   "notes": "row lock + expected_version: two moderators deciding at once → one decision, one 409"
+  },
+  {
+   "id": "M34-063",
+   "module": "M34",
+   "req": "M34-063 Review Audit Events",
+   "platform": "BACKEND",
+   "cat": "Audit",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F6",
+   "issue": "-",
+   "carry": "-",
+   "notes": "15 review.* audit actions (created, edited, removed, reported, response_*, published, hidden, rejected, restored, case_*); review text is not copied into the audit trail"
+  },
+  {
+   "id": "M34-064",
+   "module": "M34",
+   "req": "M34-064 Database Indexes",
+   "platform": "BACKEND",
+   "cat": "Performance",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewPerformanceTest (1); backend/database/migrations/2026_10_14_100000_module34_reviews.php",
+   "issue": "-",
+   "carry": "-",
+   "notes": "indexes for the public list (location, status, published_at), the rating filter, the customer list, the admin queues, repeated-text lookup; partial unique index for the open case"
+  },
+  {
+   "id": "M34-065",
+   "module": "M34",
+   "req": "M34-065 Query Performance",
+   "platform": "BACKEND",
+   "cat": "Performance",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-performance.json (public_reviews_page_queries=7, public_summary_queries=3, my_reviews_queries=7, dashboard_reviews_queries=12, admin_reviews_queries=12, restaurant_list_sorted_by_rating_queries_two_rows=15; the public list is an index scan on (location_id, status, published_at)); docs/local-review/test-results/m34-web-timings.json (review_submit median 438 ms (n=1), public_list median 310 ms (n=1), admin_list median 937 ms (n=1))",
+   "issue": "-",
+   "carry": "-",
+   "notes": "bounded query counts for every list; the public list plan is an index scan"
+  },
+  {
+   "id": "M34-066",
+   "module": "M34",
+   "req": "M34-066 Eligibility Tests",
+   "platform": "BACKEND",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "completed / not completed / foreign / expired / duplicate / withdrawn"
+  },
+  {
+   "id": "M34-067",
+   "module": "M34",
+   "req": "M34-067 Rating Tests",
+   "platform": "BACKEND",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "average, half-up rounding, distribution, categories, publish / hide / restore / edit / withdraw consistency, discovery sort and filter"
+  },
+  {
+   "id": "M34-068",
+   "module": "M34",
+   "req": "M34-068 Moderation Tests",
+   "platform": "BACKEND",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "screening holds, reports, cases, decisions with reasons, market scope, concurrency"
+  },
+  {
+   "id": "M34-069",
+   "module": "M34",
+   "req": "M34-069 Security Tests",
+   "platform": "BACKEND",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "IDOR, forged fields, markup, privacy of the public payload, tenant isolation, permissions"
+  },
+  {
+   "id": "M34-070",
+   "module": "M34",
+   "req": "M34-070 Concurrency Tests",
+   "platform": "BACKEND",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step G1, G4",
+   "issue": "-",
+   "carry": "-",
+   "notes": "in-process tests plus two real API processes in the e2e"
+  },
+  {
+   "id": "M34-071",
+   "module": "M34",
+   "req": "M34-071 Customer Web Tests",
+   "platform": "WEB",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/",
+   "issue": "-",
+   "carry": "-",
+   "notes": "unit + e2e on the real backend"
+  },
+  {
+   "id": "M34-072",
+   "module": "M34",
+   "req": "M34-072 Android Tests",
+   "platform": "ANDROID",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "APK build038 built; USER DEVICE VERIFICATION = PENDING",
+   "evidence": "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean) test/api_review_test.dart (15), test/review_backend_screens_test.dart (9); docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-*",
+   "issue": "-",
+   "carry": "CF-471",
+   "notes": "unit + widget tests and the preview e2e; the physical device is the owner's"
+  },
+  {
+   "id": "M34-073",
+   "module": "M34",
+   "req": "M34-073 Restaurant Dashboard Tests",
+   "platform": "WEB",
+   "cat": "Tests",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E1–E7, F2",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-074",
+   "module": "M34",
+   "req": "M34-074 Admin Dashboard Tests",
+   "platform": "WEB",
+   "cat": "Tests",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step F3–F7, G4",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-075",
+   "module": "M34",
+   "req": "M34-075 Full Regression",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Tests",
+   "pri": "P0",
+   "status": "PARTIAL",
+   "impl": "PASS",
+   "test": "PARTIAL",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-regression-runs.txt + m34-regression-notes.txt + m34-regression-auth.json (48/48), m34-regression-market.json (51/51), m34-regression-site.json (68/68), m34-regression-restaurants.json (97/101), m34-regression-menus.json (48/48), m34-regression-account.json (62/63), m34-regression-journeys.json (61/63), m34-regression-cart.json (76/76), m34-regression-pickup.json (69/69), m34-regression-checkout.json (75/77), m34-regression-payments.json (59/63), m34-regression-orders.json (51/53), m34-regression-realtime.json (48/48), m34-regression-notifications.json (40/41); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run); docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK); docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean)",
+   "issue": "-",
+   "carry": "CF-474",
+   "notes": "full backend, web and Flutter unit suites; 853/869 over 14 earlier browser suites on the real backend — every miss is named with its cause in m34-regression-notes.txt"
+  },
+  {
+   "id": "M34-076",
+   "module": "M34",
+   "req": "M34-076 OpenAPI",
+   "platform": "BACKEND",
+   "cat": "QA & gate",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewOpenApiContractTest (2); backend/openapi/openapi.json (218 paths, 264 operations, 404 schemas)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "26 review routes documented; every answer of the contract test matches its schema"
+  },
+  {
+   "id": "M34-077",
+   "module": "M34",
+   "req": "M34-077 Architecture Documentation",
+   "platform": "DOCS",
+   "cat": "QA & gate",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/backend/reviews.md (domain, status model, eligibility, validation, screening, customer / public / restaurant / admin API, rating summary, discovery, concurrency, notifications, audit, clients, what is not built); docs/backend/README.md §22",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-078",
+   "module": "M34",
+   "req": "M34-078 Screenshots/Evidence",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "QA & gate",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-*; docs/local-review/test-results/m34-api-samples.json (live answers of the run: the customer's review, the public review and summary, the restaurant's view, the admin's view, the reply notice — no phone, token or pickup code)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "real evidence only: every number in the report is read from these files"
+  },
+  {
+   "id": "M34-079",
+   "module": "M34",
+   "req": "M34-079 Bug Register",
+   "platform": "DOCS",
+   "cat": "QA & gate",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/project-progress.html › Bugs (BUG-243 …)",
+   "issue": "-",
+   "carry": "-",
+   "notes": "every defect found while building and testing is recorded with how it was found"
+  },
+  {
+   "id": "M34-080",
+   "module": "M34",
+   "req": "M34-080 Module Closing Gate",
+   "platform": "DOCS",
+   "cat": "QA & gate",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/reports/module-34-completion-report.md",
+   "issue": "-",
+   "carry": "-",
+   "notes": "the 28-point gate of the spec is answered point by point in the report"
+  },
+  {
+   "id": "M34-081",
+   "module": "M34",
+   "req": "M34-081 An empty category-rating map must be stored as a JSON object — PHP encodes an empty array as a JSON list; the summary query (jsonb_each_text) refused it. The model stores {} and the query guards on jsonb_typeof (BUG-243)",
+   "platform": "BACKEND",
+   "cat": "Ratings",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "BUG-243; docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-082",
+   "module": "M34",
+   "req": "M34-082 Review text keeps Unicode format characters — stripping \\p{C} removed zero-width joiners and variation selectors and broke emoji; only control characters (\\p{Cc}) are removed (BUG-244)",
+   "platform": "BACKEND",
+   "cat": "Validation & privacy",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "BUG-244; docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-083",
+   "module": "M34",
+   "req": "M34-083 A second restaurant response must not overwrite the first — PUT …/response without a version replaced an existing response; two staff answering at once would have lost one answer. An edit now needs the version it read (409 response_exists); found by the web e2e (BUG-247)",
+   "platform": "BACKEND",
+   "cat": "Restaurant response",
+   "pri": "P0",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "BUG-247; docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7); docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step E6",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-084",
+   "module": "M34",
+   "req": "M34-084 The review submit carries no Idempotency-Key header — the web client reused one key with a changed body after a correction and got 409 from the idempotency layer; the backend's own replay rule (same content or same client_submission_id) is the mechanism (BUG-246)",
+   "platform": "WEB",
+   "cat": "Customer Web",
+   "pri": "P1",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "BUG-246; docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9)",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-085",
+   "module": "M34",
+   "req": "M34-085 Older expectations that this module changed are recorded, not edited away — five backend tests pinned shapes or counts that Module 34 extends (route counts, notification type count, the order read bound, the restaurant payload); each was updated with the reason beside it. Older browser suites were NOT changed: their obsolete expectations are named in m34-regression-notes.txt",
+   "platform": "BACKEND + WEB",
+   "cat": "Tests",
+   "pri": "P2",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run); docs/local-review/test-results/m34-regression-runs.txt + m34-regression-notes.txt + m34-regression-auth.json (48/48), m34-regression-market.json (51/51), m34-regression-site.json (68/68), m34-regression-restaurants.json (97/101), m34-regression-menus.json (48/48), m34-regression-account.json (62/63), m34-regression-journeys.json (61/63), m34-regression-cart.json (76/76), m34-regression-pickup.json (69/69), m34-regression-checkout.json (75/77), m34-regression-payments.json (59/63), m34-regression-orders.json (51/53), m34-regression-realtime.json (48/48), m34-regression-notifications.json (40/41)",
+   "issue": "-",
+   "carry": "CF-474",
+   "notes": ""
+  },
+  {
+   "id": "M34-086",
+   "module": "M34",
+   "req": "M34-086 Pickup verification is no longer labelled demo data in the live dashboard — the dashboard's \"development data\" banner still covered Pickup Verification although Module 32 put it on the backend; the banner now follows the order and review modes",
+   "platform": "WEB",
+   "cat": "Restaurant Dashboard",
+   "pri": "P2",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK) src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9); customer-web/src/dashboard/api/apiReviews.ts, src/dashboard/pages/ReviewsPage.tsx, src/dashboard/api/apiDashboard.ts",
+   "issue": "-",
+   "carry": "-",
+   "notes": ""
+  },
+  {
+   "id": "M34-087",
+   "module": "M34",
+   "req": "M34-087 No review is seeded — the local database has no demo reviews: ratings appear only from real completed orders, so every restaurant starts as \"New\". The e2e suites remove what they add",
+   "platform": "BACKEND + WEB + ANDROID",
+   "cat": "Ratings",
+   "pri": "P2",
+   "status": "COMPLETE",
+   "impl": "PASS",
+   "test": "PASS",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "evidence": "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/ step Z0; docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-* step Z0",
+   "issue": "-",
+   "carry": "CF-467",
+   "notes": "A demo data set, if the owner wants one for presentations, must be labelled as such"
+  },
+  {
+   "id": "M34-088",
+   "module": "M34",
+   "req": "M34-088 Module 33 approved — completion check of the spec: the owner's approval of Module 33 (and 24–32)",
+   "platform": "DOCS",
+   "cat": "QA & gate",
+   "pri": "P0",
+   "status": "PENDING (owner)",
+   "impl": "N/A",
+   "test": "N/A",
+   "manual": "PENDING (owner)",
+   "evidence": "CF-473",
+   "issue": "-",
+   "carry": "CF-473",
+   "notes": "Not stated by the owner in words; the owner chose to start Module 34 on MODULE 34 MAY START = YES"
   }
  ],
  "pages": [
@@ -51944,27 +53359,27 @@
    "resp": "PASS",
    "inter": "PASS",
    "mock": "NO — along a journey: restaurants, actual detours, arrival estimates and the state at arrival from the backend; general browsing from the backend (M23)",
-   "test": "unit + e2e PASS · M23 e2e 100/100 · M26 e2e 63/63",
+   "test": "unit + e2e PASS · M23 e2e 100/100 · M26 e2e 63/63 · M34 e2e 48/48 (C3, C5)",
    "manual": "VERIFIED",
    "backend": "REAL (GET /restaurants, /cuisines — M23; GET /journeys/{id}/restaurants — M26)",
    "prod": "NO",
-   "shot": "web-m26/02-restaurants-along-route",
-   "notes": "General discovery is location-scoped (country boundary + proximity rings); route-aware with a journey; list/map; data-driven filters; cursor pagination"
+   "shot": "web-m26/02-restaurants-along-route · web-m34/m34-05-restaurant-list-ratings.png",
+   "notes": "General discovery is location-scoped (country boundary + proximity rings); route-aware with a journey; list/map; data-driven filters; cursor pagination M34: cards show the backend's rating or \"New\"; rating sort and minimum-rating filter are the backend's (also along a journey)."
   },
   {
    "page": "Restaurant Details / Menu (Design A, Module 07)",
    "url": "/restaurants/:slug",
    "design": "APPROVED",
-   "impl": "IMPLEMENTED (M07; backend data M23, menu M24)",
+   "impl": "IMPLEMENTED (M07; backend data M23, menu M24) · Reviews on the backend M34",
    "resp": "PASS",
    "inter": "PASS",
    "mock": "NO for profile / hours / pickup / availability / menu (backend); ratings and reviews still development data",
-   "test": "unit 25 + e2e 32/32 PASS · M23 e2e 100/100 · M24 e2e 48/48 · M26 e2e 63/63",
+   "test": "unit 25 + e2e 32/32 PASS · M23 e2e 100/100 · M24 e2e 48/48 · M26 e2e 63/63 · M34 e2e 48/48 (C4, I1)",
    "manual": "VERIFIED (browser + owner tablet build011)",
    "backend": "REAL (GET /restaurants/{slug}, GET /restaurants/{slug}/menu) — M23 / M24; route figures from the journey's own search (M26)",
    "prod": "NO",
-   "shot": "web-m24/01-customer-menu",
-   "notes": "Canonical; legacy /restaurant/… redirects. Menu / Info / Photos tabs, dynamic categories, search + filters, availability states, hours in restaurant zone, route context, map shell, lightbox, SEO meta. M16: Ratings & reviews summary slot (development aggregate)."
+   "shot": "web-m24/01-customer-menu · web-m34/m34-04-restaurant-reviews.png",
+   "notes": "Canonical; legacy /restaurant/… redirects. Menu / Info / Photos tabs, dynamic categories, search + filters, availability states, hours in restaurant zone, route context, map shell, lightbox, SEO meta. M16: Ratings & reviews summary slot (development aggregate). M34: the Info tab shows the backend's rating (average, count, per star), the published reviews with sort, star filter and \"show more\", the restaurant's replies and \"report this review\"; \"New\" without reviews."
   },
   {
    "page": "Food Item / Customization",
@@ -52037,12 +53452,12 @@
    "resp": "PASS",
    "inter": "PASS",
    "mock": "NO with VITE_ORDER_MODE=api + VITE_REALTIME_MODE=api (the private channel over Laravel Reverb; polling as the fallback)",
-   "test": "M32 e2e 48/48 · M33 e2e 41/41 (C1)",
+   "test": "M32 e2e 48/48 · M33 e2e 41/41 (C1) · M34 e2e 48/48",
    "manual": "VERIFIED (browser + owner tablet build018)",
    "backend": "REAL (GET /customer/orders/{orderNumber}, polled) — M31; the event stream is Module 32",
    "prod": "NO",
    "shot": "web-m32/m32-01-tracking-connected.png, m32-05-tracking-completed.png, m32-07-tracking-resynced.png",
-   "notes": "Event-driven live tracking: status header (order / payment / connection separated), timeline, delay / rejected / cancelled / pending states, ready panel with the Module 13 code + QR, separate ETAs, restaurant + directions + distance, summary, support, completed actions; offline / stale / reconnect; deterministic scenarios with local-only dev controls. Module 31: follows the restaurant's accept / preparing / ready by polling the real order; the development scenario controls apply to the mock only. M32: accept / preparing / ready / picked up / completed arrive live; the transport line (connected / reconnecting / polling) apart from the status; the real QR when READY M33: a status change re-reads the inbox so the bell is right without a reload (BUG-234 fixed: the read happens once per status).",
+   "notes": "Event-driven live tracking: status header (order / payment / connection separated), timeline, delay / rejected / cancelled / pending states, ready panel with the Module 13 code + QR, separate ETAs, restaurant + directions + distance, summary, support, completed actions; offline / stale / reconnect; deterministic scenarios with local-only dev controls. Module 31: follows the restaurant's accept / preparing / ready by polling the real order; the development scenario controls apply to the mock only. M32: accept / preparing / ready / picked up / completed arrive live; the transport line (connected / reconnecting / polling) apart from the status; the real QR when READY M33: a status change re-reads the inbox so the bell is right without a reload (BUG-234 fixed: the read happens once per status). M34: the review button follows the order's review block.",
    "status": "VERIFIED"
   },
   {
@@ -52053,12 +53468,12 @@
    "resp": "PASS",
    "inter": "PASS",
    "mock": "NO with VITE_ORDER_MODE=api (GET /customer/orders summaries); the development orders otherwise",
-   "test": "M31 e2e 53/53 (A12)",
+   "test": "M31 e2e 53/53 (A12) · M34 e2e 48/48 (A2)",
    "manual": "VERIFIED (browser + owner tablet build019)",
    "backend": "REAL (GET /customer/orders) — M31",
    "prod": "NO",
-   "shot": "web-m31/m31-02-my-orders",
-   "notes": "Summaries only; groups / search / sort / cursor paging; state-dependent actions; dev seed (local). Module 31: the backend's summaries, newest first; groups map to the backend's active / finished filter."
+   "shot": "web-m31/m31-02-my-orders · web-m34/m34-01-my-orders-eligible.png",
+   "notes": "Summaries only; groups / search / sort / cursor paging; state-dependent actions; dev seed (local). Module 31: the backend's summaries, newest first; groups map to the backend's active / finished filter. M34: \"Rate your experience\" only when the backend says the order is ELIGIBLE; \"View / Edit review\" when it is REVIEWED."
   },
   {
    "page": "Order Details (Module 15)",
@@ -52427,16 +53842,16 @@
    "page": "Rate your experience (Module 16)",
    "url": "/order/:no/review",
    "design": "APPROVED (cart layout family)",
-   "impl": "IMPLEMENTED (M16)",
+   "impl": "IMPLEMENTED (M16) · ON THE BACKEND M34",
    "resp": "PASS",
    "inter": "PASS",
-   "mock": "YES",
-   "test": "unit 10 + e2e 38/38 PASS",
+   "mock": "NO with VITE_REVIEW_MODE=api (eligibility, the form policy, submit, edit, withdraw and the restaurant's reply come from the backend — M34); development data only in mock mode",
+   "test": "unit 10 + e2e 38/38 PASS · M34 e2e 48/48 · apiReview.test.ts",
    "manual": "VERIFIED (browser + owner tablet build020)",
-   "backend": "MOCK (MockReviewRepository + MockReviewEligibilityService + MockReviewConfigProvider)",
+   "backend": "REAL (GET|POST /customer/orders/{order}/review, PATCH|DELETE /customer/reviews/{review}) — M34",
    "prod": "NO",
-   "shot": "web-m16/06-review-submitted",
-   "notes": "Order-bound review; one per order; edit window; drafts kept on failure; post-pickup actions reuse M04 / M13 / M15."
+   "shot": "web-m16/06-review-submitted · web-m34/m34-02-review-form.png",
+   "notes": "Order-bound review; one per order; edit window; drafts kept on failure; post-pickup actions reuse M04 / M13 / M15. M34: the page asks the backend whether the order may be reviewed, shows the backend's refusal in its own words, edits with the loaded version, withdraws after a confirmation and shows the restaurant's reply."
   },
   {
    "page": "Dashboard · Overview",
@@ -52547,16 +53962,16 @@
    "page": "Dashboard · Reviews",
    "url": "/restaurant-dashboard/reviews",
    "design": "APPROVED (owner dashboard reference)",
-   "impl": "IMPLEMENTED (M17)",
+   "impl": "IMPLEMENTED (M17) · ON THE BACKEND M34",
    "resp": "PASS",
    "inter": "PASS",
-   "mock": "YES",
-   "test": "unit 18 + e2e 68/68 PASS",
+   "mock": "NO with VITE_REVIEW_MODE=api (the published reviews, the summary, the response and the report come from the backend — M34); development data only in mock mode (labelled)",
+   "test": "unit 18 + e2e 68/68 PASS · M34 e2e 48/48 · apiReviews.test.tsx",
    "manual": "VERIFIED (browser + owner review)",
-   "backend": "MOCK (dashboard repositories over shared customer stores)",
+   "backend": "REAL (GET /restaurant/reviews, /restaurant/reviews/summary, PUT …/response, POST …/report) — M34",
    "prod": "NO",
-   "shot": "web-m17/19-reviews",
-   "notes": "Restaurant Dashboard (responsive web, permission-gated)."
+   "shot": "web-m17/19-reviews · web-m34/m34-06-dashboard-reviews.png",
+   "notes": "Restaurant Dashboard (responsive web, permission-gated). M34: the selected location's published reviews (latest 50), average / count / answered / distribution from the backend, respond and edit the response, report a review. No route changes a customer's review."
   },
   {
    "page": "Dashboard · Staff",
@@ -52787,16 +54202,16 @@
    "page": "Admin · Reviews",
    "url": "/admin/reviews",
    "design": "APPROVED (owner admin reference)",
-   "impl": "IMPLEMENTED (M18)",
+   "impl": "IMPLEMENTED (M18) · ON THE BACKEND M34",
    "resp": "PASS",
    "inter": "PASS",
-   "mock": "YES",
-   "test": "unit 27 + e2e 125/125 PASS",
+   "mock": "NO with VITE_REVIEW_MODE=api (queues, counts, detail, decisions, cases — M34); development data only in mock mode (labelled)",
+   "test": "unit 27 + e2e 125/125 PASS · M34 e2e 48/48 · ApiAdminReviewRepository.test.tsx",
    "manual": "PENDING (owner browser review)",
-   "backend": "MOCK (admin repositories over shared stores)",
+   "backend": "REAL (GET /admin/reviews, /admin/reviews/{review}, POST publish|hide|reject|restore, response hide|restore, /admin/review-cases …) — M34",
    "prod": "NO",
-   "shot": "web-m18/21-reviews-queues",
-   "notes": "Platform Admin Dashboard (responsive web, permission-gated)."
+   "shot": "web-m18/21-reviews-queues · web-m34/m34-08-admin-review-detail.png",
+   "notes": "Platform Admin Dashboard (responsive web, permission-gated). M34: moderation inside the administrator's market scope; reasons and versions on every decision; reports, automated checks and the audit history in the detail; \"a low rating is not a violation\" on screen."
   },
   {
    "page": "Admin · Promotions",
@@ -53127,6 +54542,21 @@
    "prod": "NO",
    "shot": "web-m23/13-accept-invitation",
    "notes": "Public page; the token travels in the URL fragment and is removed from the address bar; a new account chooses its password here."
+  },
+  {
+   "page": "My Reviews (Module 34)",
+   "url": "/my-reviews",
+   "design": "Adapted from the approved account pages",
+   "impl": "IMPLEMENTED (M34)",
+   "resp": "PASS",
+   "inter": "PASS",
+   "mock": "NO with VITE_REVIEW_MODE=api; the development reviews of this browser in mock mode",
+   "test": "M34 e2e 48/48 (F5, G3) · restaurantReviews.test.tsx",
+   "manual": "Automated + local run by Claude on the real local backend; owner browser review PENDING",
+   "backend": "REAL (GET /customer/reviews) — M34",
+   "prod": "NO",
+   "shot": "web-m34/m34-11-my-reviews.png",
+   "notes": "The reviews the customer wrote, the state of each (published, being checked, not shown, removed), the restaurant's reply and the way back to the review."
   }
  ],
  "android": [
@@ -53667,6 +55097,21 @@
    "status": "COMPLETE (local) — USER DEVICE VERIFICATION = PENDING (build037); real push PENDING FIREBASE CONFIGURATION",
    "impl": "IMPLEMENTED (M33)",
    "shot": "android-preview/m33-01-notifications-inbox.png … m33-05-asha-signed-in.png"
+  },
+  {
+   "screen": "Reviews on the backend (M34) — review screen (eligibility, submit, edit, withdraw, the restaurant's reply; nothing queued offline), My Reviews, the order buttons from the order's review block, the restaurant's published reviews (summary, per star, sort, star filter, paging, report), real ratings and \"New\" in discovery, rating sort / filter along a journey, the REVIEW notification target",
+   "design": "Adapt from Web",
+   "ui": "IMPLEMENTED (M34)",
+   "nav": "PASS",
+   "resp": "PASS (preview 412×915)",
+   "mock": "NO with REVIEW_MODE=api (+ ORDER_MODE=api); the development reviews of the device in mock mode",
+   "test": "flutter test 560 (api_review_test 15, review_backend_screens_test 9); preview e2e 14/14",
+   "apk": "YES (build038)",
+   "manual": "PENDING USER DEVICE VERIFICATION (build038)",
+   "backend": "REAL (/customer/orders/{order}/review, /customer/reviews, /restaurants/{slug}/reviews, /reviews/{review}/report) — M34",
+   "status": "COMPLETE (local) — USER DEVICE VERIFICATION = PENDING (build038)",
+   "impl": "",
+   "shot": ""
   }
  ],
  "decisions": [
@@ -57767,6 +59212,174 @@
    "The web header bell shows the backend's unread count; the tracking page re-reads the inbox when the order status changes (the realtime notice of Module 32 is the trigger, the database the authority); the inbox link for a notice is computed from the allow-listed target, never from a URL in the data.",
    "Module 33",
    "M33-001"
+  ],
+  [
+   "2026-10-11",
+   "Only a COMPLETED order of the authenticated customer, with a valid location and no existing review, may be reviewed; the customer, the order, the organization and the location are derived on the server — never trusted from the request body.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "One review per order (UNIQUE order_id). \"Verified\" is derived, never accepted from customer input.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Review statuses: PENDING_MODERATION, PUBLISHED, HIDDEN, REJECTED, REMOVED; only published reviews are public and counted.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "A public review must not expose the customer's phone, e-mail, account id, journey origin or destination, exact route, payment details, pickup credential or private order notes.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Moderation is fair: negative ratings alone are not violations; basic keyword matching is not presented as reliable AI moderation.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "A restaurant may answer a review once (edits audited) and may report it; it cannot modify or delete a customer's review.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Ratings are real: no fabricated 5.0 stars or review counts; no division by zero; the location rating is primary.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "No proprietary ranking algorithm is invented; sorting by rating is deterministic.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Review notifications reuse the Module 33 engine; no repeated reminder spam; restaurant notifications are not stored as customer notifications.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Review submissions are never silently queued offline on Android.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "No review incentives.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Review images are optional and not built unless the approved design has them.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Review policy defaults — 30 days after completion to review, 72 hours and 3 edits to change, comment 500 / title 120 / response 600 code points, 6 tags — are configuration (config/reviews.php, REVIEW_* environment), taken from the approved Module 16 design and marked DEVELOPMENT DEFAULTS, PENDING BUSINESS APPROVAL.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "A clean review is PUBLISHED immediately; the rule-based screening (UNSAFE_LINK, PERSONAL_INFORMATION, SPAM_PATTERN, REPEATED_CONTENT) only HOLDS a review as PENDING_MODERATION and opens an AUTOMATED case — it never rejects and never looks at the rating.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "ORDER_NOT_OWNED is answered as 404 order_not_found: the existence of another customer's order is not disclosed.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Unknown request fields are refused (StrictInput, 422) instead of ignored, so customer_id / order_id / status / verified can never be mass-assigned; markup in text is refused, not rewritten.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Idempotency of a submit is the review itself: the same content or the same client_submission_id answers the existing review (200, created false); different content is 409 review_already_exists. No Idempotency-Key header is used for it.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "The public author is a snapshot \"First L.\" taken at submission (Customer::publicDisplayName()).",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "The rating summary is a table recalculated from the PUBLISHED reviews inside the writing transaction under pg_advisory_xact_lock per location; the average is shown to one decimal, rounded half up with integer arithmetic; PostgreSQL is authoritative and no Redis cache is used.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Sorting by rating: average, then number of published reviews, then name; unrated restaurants last; ranking.confidence_adjustment is false (a Bayesian or similar adjustment needs a business decision).",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Moderation decisions carry expected_version and a reason (publish may omit it); a decision closes the review's open cases with the matching resolution; REMOVED (withdrawn by the customer) is final and cannot be restored by moderation.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "One open moderation case per review (partial unique index): reports from customers and the restaurant add to it; one report per reporter per review; 20 reports per account per day.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "The restaurant's response: one row per review; an edit needs expected_version (409 response_exists without it), a HIDDEN response cannot be changed, the public response names the restaurant and never the staff member.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Notifications through Module 33: review.response (in-app mandatory, push by preference), review.published and review.moderated (in-app only), action target REVIEW with the order number; the invitation to review is one line of the order.completed notice (template v2) — there is no reminder.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "The reviews of a restaurant are shown on its Info tab (web and Android), where the approved Module 16 design has the rating card; the rating itself is on the header, the cards, the list, the map card and favorites.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Clients show \"New\" / \"No reviews yet\" for a restaurant without published reviews; the development sample ratings of the fixtures are used only by mock builds and are never mixed with backend ratings.",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Flat ?page=&per_page= pagination for the review lists (the public list is embedded in pages and apps as \"show more\").",
+   "Module 34",
+   "M34-001"
+  ],
+  [
+   "2026-10-11",
+   "Android: REVIEW_MODE=api needs ORDER_MODE=api; a failed submit is shown and the answers are kept on screen, and nothing is retried or queued by the app.",
+   "Module 34",
+   "M34-001"
   ]
  ],
  "carry": [
@@ -60022,9 +61635,9 @@
    "P1",
    "Owner",
    "Module 16",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: the review entry points (My Orders, tracking, order detail) follow the review block the backend sends with the order"
   ],
   [
    "CF-189",
@@ -60142,9 +61755,9 @@
    "P0",
    "Claude",
    "Backend Reviews",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: the review API exists on the backend and both clients use it (customer-web/src/review/api/apiReview.ts, mobile/lib/review/api_review.dart)"
   ],
   [
    "CF-199",
@@ -60154,9 +61767,9 @@
    "P0",
    "Claude",
    "Backend Reviews",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: ReviewEligibilityService decides on the server (owner, COMPLETED, window, one review per order); a suspended account is stopped by the account middleware — there is no separate review block list"
   ],
   [
    "CF-200",
@@ -60166,9 +61779,9 @@
    "P0",
    "Claude",
    "Backend Reviews",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: lengths in code points, markup refused (422), clients render text as text, rate limits, report limits, rule-based flags for links / contact details / spam / repeated text; AI moderation stays pending (CF-463)"
   ],
   [
    "CF-201",
@@ -60178,9 +61791,9 @@
    "P0",
    "Claude",
    "Backend Reviews",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: UNIQUE(order_id) + the order row lock; the same content or client_submission_id answers the same review"
   ],
   [
    "CF-202",
@@ -60190,9 +61803,9 @@
    "P0",
    "Claude",
    "Backend Reviews + Admin",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: PENDING_MODERATION / PUBLISHED / HIDDEN / REJECTED / REMOVED with reasons, moderated_at, cases and audit; customers never moderate"
   ],
   [
    "CF-203",
@@ -60204,7 +61817,7 @@
    "Policy",
    "DECISION PENDING",
    "2026-09-29",
-   "-"
+   "Module 34: built on development defaults — 72 hours and 3 edits, also after publication (every edit is re-screened and kept as a revision); withdrawal = REMOVED, the record retained. The policy itself is still the owner's decision (CF-462)"
   ],
   [
    "CF-204",
@@ -60214,9 +61827,9 @@
    "P1",
    "Claude",
    "Backend Reviews + Web/Android",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: average, count, distribution, the published reviews with sort (newest / oldest / highest / lowest), star filter and paging on the restaurant page (web + Android). \"Most helpful\" and helpful votes are not built (CF-469)"
   ],
   [
    "CF-205",
@@ -60226,9 +61839,9 @@
    "P0",
    "Claude",
    "Backend Reviews",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: the summary is calculated on the server from PUBLISHED reviews and shown to one decimal"
   ],
   [
    "CF-206",
@@ -60240,7 +61853,7 @@
    "Policy / Legal",
    "DECISION PENDING",
    "2026-09-29",
-   "-"
+   "Module 34: built with the public name \"First L.\" (a snapshot at submission) and the privacy rules of the spec enforced and tested; whether reviewers may choose to be anonymous is still a decision for the owner"
   ],
   [
    "CF-207",
@@ -60250,9 +61863,9 @@
    "P1",
    "Claude",
    "Restaurant Dashboard + Notifications",
-   "NOT STARTED",
+   "PARTIAL — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: the restaurant's response (dashboard) and the customer notices (restaurant responded, review published after a hold, review moderated) are built; a notice to the RESTAURANT about a new review is not (CF-465)"
   ],
   [
    "CF-208",
@@ -60262,9 +61875,9 @@
    "P1",
    "Claude",
    "Admin Dashboard",
-   "NOT STARTED",
+   "DONE — Module 34",
    "2026-09-29",
-   "-"
+   "Module 34: queues, reported reviews, hide / restore / reject / publish with a reason, audit history, search, restaurant and customer context, the report flow (customers and restaurants)"
   ],
   [
    "CF-209",
@@ -60276,7 +61889,7 @@
    "Product decision",
    "NOT STARTED",
    "2026-09-29",
-   "-"
+   "Module 34: review photos are not built (CF-464); the backend stores an optional title (up to 120 characters) but no client offers one"
   ],
   [
    "CF-210",
@@ -60480,7 +62093,7 @@
    "Backend",
    "PARTIAL",
    "2026-09-30",
-   "Admin API exists for: markets and geography, audit events, security events, administrator accounts and roles. Still mock: restaurants, customers, orders, payments, refunds, settlements, reviews, promotions, support, notifications, analytics, system, search"
+   "Admin API exists for: markets and geography, audit events, security events, administrator accounts and roles. Still mock: restaurants, customers, orders, payments, refunds, settlements, reviews, promotions, support, notifications, analytics, system, search · Module 34: review moderation is on the admin API too"
   ],
   [
    "CF-227",
@@ -60574,9 +62187,9 @@
    "P1",
    "Claude",
    "Backend",
-   "NOT STARTED",
+   "PARTIAL — Module 34",
    "2026-09-30",
-   "-"
+   "Module 34: reports, moderation cases (assign / escalate / close), response moderation and the customer notices are built on the server; automatic thresholds (hiding after N reports) and an appeal flow are not — a report never hides a review by itself"
   ],
   [
    "CF-235",
@@ -60984,7 +62597,7 @@
    "Owner decision",
    "DECISION PENDING",
    "2026-09-30",
-   "Module 29: raised again in the report (spec text Laravel 12 / PostgreSQL 16; in use 13.33 / 18) · Module 30: raised again in the report (spec text Laravel 12 / PostgreSQL 16; in use 13.33 / 18) · Module 31: raised again in the report (spec text Laravel 12 / PostgreSQL 16; in use 13.33 / 18) · Module 32: raised again (spec text Laravel 12 / PostgreSQL 16; in use 13.35 / 18 — Reverb moved the framework patch) · Module 33: raised again (spec text Laravel 12 / PostgreSQL 16; in use 13.35 / 18)"
+   "Module 29: raised again in the report (spec text Laravel 12 / PostgreSQL 16; in use 13.33 / 18) · Module 30: raised again in the report (spec text Laravel 12 / PostgreSQL 16; in use 13.33 / 18) · Module 31: raised again in the report (spec text Laravel 12 / PostgreSQL 16; in use 13.33 / 18) · Module 32: raised again (spec text Laravel 12 / PostgreSQL 16; in use 13.35 / 18 — Reverb moved the framework patch) · Module 33: raised again (spec text Laravel 12 / PostgreSQL 16; in use 13.35 / 18) · Module 34: raised again (spec text Laravel 12 / PostgreSQL 16; in use 13.35 / 18)"
   ],
   [
    "CF-269",
@@ -61500,7 +63113,7 @@
    "Owner",
    "DECISION PENDING",
    "2026-10-01",
-   "Module 29: not run again; raised again in the report · Module 30: not run again; raised again in the report · Module 31: not run again; raised again in the report · Module 32: not run again; raised again in the report · Module 33: not run again; raised again in the report"
+   "Module 29: not run again; raised again in the report · Module 30: not run again; raised again in the report · Module 31: not run again; raised again in the report · Module 32: not run again; raised again in the report · Module 33: not run again; raised again in the report · Module 34: not run again; raised again in the report"
   ],
   [
    "CF-312",
@@ -61654,9 +63267,9 @@
    "P1",
    "Claude",
    "Backend",
-   "OPEN",
+   "DONE — Module 34",
    "2026-10-03",
-   ""
+   "Module 34: reviews and ratings come from the backend; a restaurant without published reviews shows \"New\""
   ],
   [
    "CF-325",
@@ -63132,7 +64745,7 @@
    "A word",
    "PENDING (owner)",
    "Owner",
-   "Module 33: still pending; see CF-460"
+   "Module 33: still pending; see CF-460 · Module 34: still pending; see CF-473"
   ],
   [
    "CF-448",
@@ -63288,7 +64901,7 @@
    "A word",
    "PENDING (owner)",
    "Owner",
-   "-"
+   "Module 34: still pending; see CF-473"
   ],
   [
    "CF-461",
@@ -63300,6 +64913,174 @@
    "Before each regression",
    "OPEN",
    "Process note",
+   "Module 34: both seeders were run again before the regression (2026-10-11)"
+  ],
+  [
+   "CF-462",
+   "REVIEW POLICY = DEVELOPMENT DEFAULTS, PENDING BUSINESS APPROVAL: 30 days to review, 72 hours and 3 edits to change, the text lengths, the tag and category lists, the report limit (config/reviews.php, REVIEW_* environment). They are the approved Module 16 design; the owner confirms or changes them.",
+   "M34",
+   "Backend",
+   "P1",
+   "Owner",
+   "Business decision",
+   "PENDING (owner)",
+   "Policy",
+   "-"
+  ],
+  [
+   "CF-463",
+   "ADVANCED (AI) MODERATION = PENDING: only rule-based screening exists (links, contact details, spam phrases, repeated text) and it only holds a review for a person. No AI service is configured or claimed.",
+   "M34",
+   "Backend",
+   "P2",
+   "Owner",
+   "If wanted",
+   "OPEN",
+   "Later",
+   "-"
+  ],
+  [
+   "CF-464",
+   "REVIEW PHOTOS not built: not part of the approved design (config reviews.images = false). Needs a design, storage and image moderation.",
+   "M34",
+   "Backend + Web + Android",
+   "P3",
+   "Owner",
+   "Design decision",
+   "OPEN",
+   "Later",
+   "-"
+  ],
+  [
+   "CF-465",
+   "RESTAURANT-SIDE REVIEW NOTIFICATIONS not built: the Module 33 tables are customer notifications and no partner notification channel exists; the dashboard's Reviews page is where staff see new reviews. E-mail / SMS for review events are off.",
+   "M34",
+   "Backend",
+   "P2",
+   "Claude",
+   "Partner notifications",
+   "OPEN",
+   "Later module",
+   "-"
+  ],
+  [
+   "CF-466",
+   "RANKING: sort by rating is the plain average, then the count, then the name. A confidence adjustment (a restaurant with one 5-star review ranks above one with 200 reviews at 4.8) is a business decision — not enabled (config reviews.ranking.confidence_adjustment).",
+   "M34",
+   "Backend",
+   "P2",
+   "Owner",
+   "Business decision",
+   "PENDING (owner)",
+   "Policy",
+   "-"
+  ],
+  [
+   "CF-467",
+   "NO DEMO REVIEWS: the local database has no seeded reviews, so every restaurant shows \"New\" until a real completed order is reviewed. If the owner wants sample reviews for presentations they must be created as labelled demo data.",
+   "M34",
+   "QA",
+   "P3",
+   "Owner",
+   "If wanted",
+   "OPEN",
+   "Later",
+   "-"
+  ],
+  [
+   "CF-468",
+   "ADMIN CASE QUEUE: GET /admin/review-cases exists (admin.reviews.reports.view) but has no screen of its own — the \"Flagged\" queue and the review detail show the open cases and their reports. A dedicated case list (by assignee, by source) can be added if moderators need it.",
+   "M34",
+   "Web",
+   "P3",
+   "Claude",
+   "If wanted",
+   "OPEN",
+   "Later",
+   "-"
+  ],
+  [
+   "CF-469",
+   "NOT BUILT: an organization-level rating (the location rating is primary) and \"helpful\" votes on reviews.",
+   "M34",
+   "Backend + Web + Android",
+   "P3",
+   "Owner",
+   "If wanted",
+   "OPEN",
+   "Later",
+   "-"
+  ],
+  [
+   "CF-470",
+   "RESTAURANT DASHBOARD LIST: the Reviews page loads the latest 50 published reviews of the selected location and filters them in the browser (all / unanswered / 3★ and below). Server-side paging and a rating filter in the dashboard are not built; the page says so when a location has more than 50 reviews.",
+   "M34",
+   "Web",
+   "P2",
+   "Claude",
+   "When a location passes 50 reviews",
+   "OPEN",
+   "Later",
+   "-"
+  ],
+  [
+   "CF-471",
+   "APK build038 (REVIEW_MODE=api; API base URL = this PC's LAN address at build time — rebuild when the network changes): USER DEVICE VERIFICATION = PENDING — complete an order, rate it from My Orders, see it on the restaurant's Info tab and in My Reviews, withdraw it. Also: write a text, scroll the form up and down, switch the network off and submit, switch it on and submit — the text must still be there and one review must exist (BUG-250).",
+   "M34",
+   "Android",
+   "P1",
+   "Owner",
+   "Device test",
+   "PENDING (owner)",
+   "Device verification",
+   "-"
+  ],
+  [
+   "CF-472",
+   "Module 34 owner review: the review page and My Reviews (web), the restaurant page's reviews, the dashboard Reviews page, the admin Review Moderation page, the Android screens (screenshots web-m34, android-preview/m34-*).",
+   "M34",
+   "Web + Android",
+   "P1",
+   "Owner",
+   "Browser review",
+   "PENDING (owner)",
+   "Owner review",
+   "-"
+  ],
+  [
+   "CF-473",
+   "Owner approval of Module 34 (Modules 24 … 33 still await the owner's word — CF-351, CF-356, CF-364, CF-376, CF-399, CF-422, CF-437, CF-447, CF-460).",
+   "M34",
+   "Owner",
+   "P0",
+   "Owner",
+   "A word",
+   "PENDING (owner)",
+   "Owner",
+   "-"
+  ],
+  [
+   "CF-474",
+   "OLDER BROWSER SUITES AFTER MODULE 34: the earlier suites were run unchanged; the expectations Module 34 made obsolete (and the ones earlier modules already had) are named with their cause in docs/local-review/test-results/m34-regression-notes.txt. The suites themselves should be brought up to date in one pass when the owner wants them green again.",
+   "M34",
+   "QA",
+   "P3",
+   "Claude",
+   "Suite maintenance",
+   "OPEN",
+   "Process note",
+   "-"
+  ],
+  [
+   "CF-475",
+   "MARKET ISOLATION OF MODERATION is proven by the backend tests (a second market with its own administrator); the local fixtures have India-scoped and global administrators only, so the browser e2e shows the permission checks but not a second market.",
+   "M34",
+   "QA",
+   "P3",
+   "Claude",
+   "When a second market is seeded",
+   "OPEN",
+   "Later",
    "-"
   ]
  ],
@@ -66512,6 +68293,116 @@
    "Customers are never hard-deleted by the product, so the foreign key stays RESTRICT; the suite copy m25_e2e_m33.js removes the notifications and devices of its throwaway customers first (two clean-up statements, no step changed). The fixture state was restored by the next run of the suite.",
    "FIXED + VERIFIED",
    "m33-regression-runs.txt (the note on m25_e2e_m33.js); m33-regression-account.json",
+   "2026-10-11"
+  ],
+  [
+   "BUG-243",
+   "M34",
+   "BACKEND",
+   "The rating summary query failed for a review without category ratings (jsonb_each_text on a JSON list)",
+   "High",
+   "PHP encodes an empty array as []; PostgreSQL refuses jsonb_each_text on a list. The model stores an empty map as {} and the query guards on jsonb_typeof. Found by the first run of ReviewRatingTest.",
+   "FIXED + VERIFIED",
+   "ReviewRatingTest",
+   "2026-10-11"
+  ],
+  [
+   "BUG-244",
+   "M34",
+   "BACKEND",
+   "Review text lost zero-width joiners and variation selectors (emoji sequences broke)",
+   "Medium",
+   "The cleaner removed every \\p{C} character; only control characters (\\p{Cc}) are removed now, format characters stay. Found by the Unicode case of ReviewSecurityTest.",
+   "FIXED + VERIFIED",
+   "ReviewSecurityTest",
+   "2026-10-11"
+  ],
+  [
+   "BUG-245",
+   "M34",
+   "QA",
+   "The review OpenAPI contract test counted \"pickup-preview\" as a review route",
+   "Low",
+   "A defect of the test's route predicate (substring match); it now matches the path segments reviews / review / review-cases only.",
+   "FIXED + VERIFIED",
+   "ReviewOpenApiContractTest",
+   "2026-10-11"
+  ],
+  [
+   "BUG-246",
+   "M34",
+   "WEB",
+   "Correcting a review after a refused submit was answered 409 by the idempotency layer",
+   "Medium",
+   "The web client sent one Idempotency-Key per draft; a changed body under the same key is refused. The header was removed for the review submit — the backend's own replay rule (same content or the same client_submission_id) is the mechanism.",
+   "FIXED + VERIFIED",
+   "src/review/api/apiReview.test.ts",
+   "2026-10-11"
+  ],
+  [
+   "BUG-247",
+   "M34",
+   "BACKEND",
+   "A second restaurant response without a version overwrote the first one",
+   "High",
+   "PUT /restaurant/reviews/{review}/response treated a body without expected_version as an edit: two staff members answering the same review at the same time would have lost one answer silently. An edit now needs the version it read (409 response_exists); the same text again is a replay. Found by the web e2e (run 2, step E6); ReviewEditAndResponseTest now asserts the 409.",
+   "FIXED + VERIFIED",
+   "ReviewEditAndResponseTest; m34-web-e2e.json E6",
+   "2026-10-11"
+  ],
+  [
+   "BUG-248",
+   "M34",
+   "QA",
+   "The first runs of the Module 34 web suite missed for reasons of the suite: the stored average compared with two decimals, the reviews looked for outside the restaurant page's Info tab, and a page read before its data arrived",
+   "Low",
+   "Run 1: 11/14 (stopped at the Info tab); run 2: 46/48 (E5 timing, E6 = BUG-247); run 3: 48/48. The expectations were corrected to what the product shows; nothing in the product changed for them.",
+   "FIXED + VERIFIED",
+   "m34-web-e2e.json",
+   "2026-10-11"
+  ],
+  [
+   "BUG-250",
+   "M34",
+   "QA",
+   "The first runs of the Module 34 Android preview suite missed for reasons of the harness: its \"offline\" switch did not stop requests that the harness answers from Node, the reviews card was looked for before it had scrolled into view, and after the harness scrolled the review form the text field of the browser preview was empty",
+   "Low",
+   "Run 1 stopped at sign-in (the Flutter dev server was still compiling); run 2 7/14 (the \"offline\" submit went through, so everything after it was off); run 3 13/14; runs 4 and 5 12/14 (the typed text was gone from the submission once the harness had wheel-scrolled the form in the WEB PREVIEW); run 6 13/14; from run 7 on 14/14. Fixes are in the suite only: the network is cut in the harness, the error state is read from the screen's semantics identifier without scrolling, the Info tab is scrolled in small steps. That the APP keeps the text when the field scrolls off the screen and a submit fails is shown by a widget test added for it (review_backend_screens_test.dart); the device check of build038 should repeat it by hand (CF-471).",
+   "FIXED + VERIFIED",
+   "m34-android-preview-e2e.json; flutter-test-m34.txt",
+   "2026-10-11"
+  ],
+  [
+   "BUG-251",
+   "M33",
+   "QA",
+   "The Module 33 web suite reads a recovered delivery in the same instant the queue worker may already have picked it up (step H1): in the first regression run of 2026-10-11 the row read RETRY_SCHEDULED / PROVIDER_PAUSED instead of RETRY_SCHEDULED / STRANDED",
+   "Low",
+   "A race in the suite, not in the product: notifications:recover found the stranded delivery and queued it (\"stranded 1\"), and the worker then honoured the provider pause that the suite itself had caused two steps earlier. The second run of the unchanged suite passed the step. Recorded with both runs in m34-regression-notes.txt; the suite was not changed.",
+   "OPEN (suite race, product correct)",
+   "m34-regression-runs.txt; m34-regression-notes.txt",
+   "2026-10-11"
+  ],
+  [
+   "BUG-249",
+   "M32",
+   "WEB",
+   "The live Restaurant Dashboard still showed the \"development data\" banner on Pickup Verification",
+   "Low",
+   "DEMO_SECTIONS listed pickup-verification unconditionally although Module 32 put the scanner on the backend. The list follows the order mode now (and the review mode for Reviews).",
+   "FIXED + VERIFIED",
+   "src/dashboard/dashboard.test.tsx; m34-web-e2e.json E1",
+   "2026-10-11"
+  ],
+  [
+   "BUG-252",
+   "M34",
+   "WEB + ANDROID",
+   "The rating line of a restaurant with one review read \"from 1 verified order reviews\"",
+   "Low",
+   "Seen on the screenshots of both clients after the e2e runs. Both clients now say \"from 1 verified order review\" (a unit test and a widget test for the count 1). The screenshots web-m34/m34-04 and android-preview/m34-06 were taken before the fix and show the old wording; the e2e assertions match both wordings.",
+   "FIXED + VERIFIED",
+   "src/review/restaurantReviews.test.tsx; test/review_backend_screens_test.dart",
    "2026-10-11"
   ]
  ],
@@ -70045,6 +71936,146 @@
    "PASS",
    "docs/local-review/test-results/m33-secret-scan.txt",
    "2026-10-11"
+  ],
+  [
+   "TE-354",
+   "M34",
+   "BACKEND",
+   "ReviewEligibilityTest (7): completed / not completed / foreign (404) / expired window / duplicate and replay / withdrawn / the order's review block",
+   "feature",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEligibilityTest (7)",
+   "2026-10-11"
+  ],
+  [
+   "TE-355",
+   "M34",
+   "BACKEND",
+   "ReviewRatingTest (7): average and half-up rounding, distribution, categories, publish / hide / restore / edit / withdraw consistency, reviews:recalculate, discovery sort and filter on the real rating",
+   "feature",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewRatingTest (7)",
+   "2026-10-11"
+  ],
+  [
+   "TE-356",
+   "M34",
+   "BACKEND",
+   "ReviewSecurityTest (8): forged fields refused, markup refused, Unicode kept, the exact public key set, IDOR, tenant isolation, permissions, rate limits",
+   "feature",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewSecurityTest (8)",
+   "2026-10-11"
+  ],
+  [
+   "TE-357",
+   "M34",
+   "BACKEND",
+   "ReviewModerationTest (5) + ReviewEditAndResponseTest (7): screening holds, reports and cases, decisions with reasons and versions, market scope, edit window and revisions, one response per review (version, response_exists, hidden), notifications through Module 33",
+   "feature",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewModerationTest (5); docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewEditAndResponseTest (7)",
+   "2026-10-11"
+  ],
+  [
+   "TE-358",
+   "M34",
+   "BACKEND",
+   "ReviewOpenApiContractTest (2) + ReviewPerformanceTest (1): every answer matches its schema, 26 routes documented; public_reviews_page_queries 7, public_summary_queries 3, my_reviews_queries 7, dashboard_reviews_queries 12, admin_reviews_queries 12, restaurant_list_sorted_by_rating_queries_two_rows 15",
+   "contract + performance",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run) ReviewOpenApiContractTest (2); docs/local-review/test-results/m34-performance.json (public_reviews_page_queries=7, public_summary_queries=3, my_reviews_queries=7, dashboard_reviews_queries=12, admin_reviews_queries=12, restaurant_list_sorted_by_rating_queries_two_rows=15; the public list is an index scan on (location_id, status, published_at))",
+   "2026-10-11"
+  ],
+  [
+   "TE-359",
+   "M34",
+   "BACKEND",
+   "Full backend suite after Module 34: 1112/1112 tests, 48010 assertions",
+   "regression (unit + feature)",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run)",
+   "2026-10-11"
+  ],
+  [
+   "TE-360",
+   "M34",
+   "BACKEND",
+   "Routes (264, 26 new), migration rollback + re-apply on the test database, Pint, OpenAPI (218 paths / 404 schemas) contract",
+   "evidence",
+   "PASS",
+   "docs/local-review/test-results/backend-m34-routes.txt (264 routes, 26 new); docs/local-review/test-results/backend-m34-migration-check.txt (rollback + re-apply on the test database); backend/openapi/openapi.json (218 paths, 264 operations, 404 schemas)",
+   "2026-10-11"
+  ],
+  [
+   "TE-361",
+   "M34",
+   "WEB",
+   "Module 34 e2e against the REAL local backend (48/48): eligibility, the review page, forged and repeated submissions, the public review and its privacy, the rating in discovery, edit, the restaurant's response and its limits, reports, moderation (hide / restore with reasons, stale decisions, permissions), screening, two-process concurrency, withdrawal, 390 px, log privacy, axe",
+   "e2e",
+   "PASS",
+   "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/; docs/local-review/test-results/m34-web-timings.json (review_submit median 438 ms (n=1), public_list median 310 ms (n=1), admin_list median 937 ms (n=1))",
+   "2026-10-11"
+  ],
+  [
+   "TE-362",
+   "M34",
+   "WEB",
+   "Unit tests: review API mapping (7), restaurant reviews + My Reviews (6), dashboard reviews repository + page (8), admin moderation repository + page (9) — vitest 738/738; tsc, oxlint, vite build",
+   "unit",
+   "PASS",
+   "docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK)",
+   "2026-10-11"
+  ],
+  [
+   "TE-363",
+   "M34",
+   "WEB",
+   "Regression on the real local backend after Module 34: 853/869 over 14 suites (scripts unchanged; every miss named in m34-regression-notes.txt)",
+   "e2e (regression)",
+   "PARTIAL (853/869; 16 misses named)",
+   "docs/local-review/test-results/m34-regression-runs.txt + m34-regression-notes.txt + m34-regression-auth.json (48/48), m34-regression-market.json (51/51), m34-regression-site.json (68/68), m34-regression-restaurants.json (97/101), m34-regression-menus.json (48/48), m34-regression-account.json (62/63), m34-regression-journeys.json (61/63), m34-regression-cart.json (76/76), m34-regression-pickup.json (69/69), m34-regression-checkout.json (75/77), m34-regression-payments.json (59/63), m34-regression-orders.json (51/53), m34-regression-realtime.json (48/48), m34-regression-notifications.json (40/41)",
+   "2026-10-11"
+  ],
+  [
+   "TE-364",
+   "M34",
+   "ANDROID",
+   "Flutter unit + widget tests (560; new test/api_review_test.dart 15, test/review_backend_screens_test.dart 9) + analyzer",
+   "unit",
+   "PASS",
+   "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean)",
+   "2026-10-11"
+  ],
+  [
+   "TE-365",
+   "M34",
+   "ANDROID",
+   "Android preview e2e (14/14): eligibility before completion, My Orders CTA, no offline queue, submit, My Reviews with the reply, the reply notice opens the review, the restaurant's public reviews, real ratings in the list, withdrawal",
+   "e2e (preview)",
+   "PASS",
+   "docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-*",
+   "2026-10-11"
+  ],
+  [
+   "TE-366",
+   "M34",
+   "ANDROID",
+   "APK build038 (local flavor, REVIEW_MODE=api) built with manifest + SHA-256; USER DEVICE VERIFICATION = PENDING",
+   "build",
+   "PASS",
+   "APK build038 built; USER DEVICE VERIFICATION = PENDING",
+   "2026-10-11"
+  ],
+  [
+   "TE-367",
+   "M34",
+   "BACKEND + WEB + ANDROID",
+   "Secret leak audit: provider secrets and credentials by value and shape in what would be committed, the bundle, the sources, the evidence and the log",
+   "security audit",
+   "PASS",
+   "docs/local-review/test-results/m34-secret-scan.txt",
+   "2026-10-11"
   ]
  ],
  "artifacts": [
@@ -71527,6 +73558,78 @@
    "backend/openapi/openapi.json (195 paths, 367 schemas)",
    "Contract",
    "YES"
+  ],
+  [
+   "Module 34 backend test run, routes, migration check and live API answers",
+   "M34",
+   "BACKEND",
+   "docs/local-review/test-results/backend-m34-phpunit.txt (1112 tests, 48010 assertions, 0 failed in the final run); docs/local-review/test-results/backend-m34-routes.txt (264 routes, 26 new); docs/local-review/test-results/backend-m34-migration-check.txt (rollback + re-apply on the test database); docs/local-review/test-results/m34-api-samples.json (live answers of the run: the customer's review, the public review and summary, the restaurant's view, the admin's view, the reply notice — no phone, token or pickup code)",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Module 34 query counts and timings",
+   "M34",
+   "BACKEND",
+   "docs/local-review/test-results/m34-performance.json (public_reviews_page_queries=7, public_summary_queries=3, my_reviews_queries=7, dashboard_reviews_queries=12, admin_reviews_queries=12, restaurant_list_sorted_by_rating_queries_two_rows=15; the public list is an index scan on (location_id, status, published_at)); docs/local-review/test-results/m34-web-timings.json (review_submit median 438 ms (n=1), public_list median 310 ms (n=1), admin_list median 937 ms (n=1))",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Module 34 web e2e result and screenshots (review form, submitted, restaurant reviews, list ratings, dashboard reviews, review with reply, admin detail / restored, My Reviews, removed, 390 px)",
+   "M34",
+   "WEB",
+   "docs/local-review/test-results/m34-web-e2e.json (48/48 against the real local backend: Customer Web, Restaurant Dashboard, Platform Admin; two API processes for the concurrency steps); docs/local-review/screenshots/web-m34/",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Module 34 web unit / lint / build summary",
+   "M34",
+   "WEB",
+   "docs/local-review/test-results/web-build-lint-m34.txt (vitest 738/738, tsc 0 errors, oxlint 0 errors, vite build OK)",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Module 34 regression runs and notes",
+   "M34",
+   "WEB",
+   "docs/local-review/test-results/m34-regression-runs.txt + m34-regression-notes.txt + m34-regression-auth.json (48/48), m34-regression-market.json (51/51), m34-regression-site.json (68/68), m34-regression-restaurants.json (97/101), m34-regression-menus.json (48/48), m34-regression-account.json (62/63), m34-regression-journeys.json (61/63), m34-regression-cart.json (76/76), m34-regression-pickup.json (69/69), m34-regression-checkout.json (75/77), m34-regression-payments.json (59/63), m34-regression-orders.json (51/53), m34-regression-realtime.json (48/48), m34-regression-notifications.json (40/41)",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Module 34 Flutter tests and Android preview e2e + screenshots",
+   "M34",
+   "ANDROID",
+   "docs/local-review/test-results/flutter-test-m34.txt (560 tests, analyzer clean); docs/local-review/test-results/m34-android-preview-e2e.json (14/14, Flutter web preview of the Android code on the real local backend, REVIEW_MODE=api — not a device test); docs/local-review/screenshots/android-preview/m34-*",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Module 34 secret leak audit",
+   "M34",
+   "BACKEND + WEB + ANDROID",
+   "docs/local-review/test-results/m34-secret-scan.txt",
+   "Evidence",
+   "YES"
+  ],
+  [
+   "Reviews documentation, README §22",
+   "M34",
+   "DOCS",
+   "docs/backend/reviews.md (domain, status model, eligibility, validation, screening, customer / public / restaurant / admin API, rating summary, discovery, concurrency, notifications, audit, clients, what is not built); docs/backend/README.md §22",
+   "Documentation",
+   "YES"
+  ],
+  [
+   "OpenAPI document with the review APIs (218 paths, 404 schemas)",
+   "M34",
+   "BACKEND",
+   "backend/openapi/openapi.json (218 paths, 264 operations, 404 schemas)",
+   "Contract",
+   "YES"
   ]
  ],
  "apks": [
@@ -72010,6 +74113,19 @@
    "NO",
    "PENDING",
    "PENDING"
+  ],
+  [
+   "FoodOnTheGo-local-review-v0.1.0-build038.apk",
+   "0.1.0",
+   "38 (local/debug)",
+   "LOCAL (built in WSL Ubuntu, BUG-009 workaround)",
+   "Everything of build037 AND reviews from the PC backend (REVIEW_MODE=api): rate a completed order, edit and withdraw, My Reviews, the restaurant's reply, the published reviews and the real rating of a restaurant (\"New\" without reviews), report a review, rating sort and filter along a journey. Nothing is queued offline. PUSH_MODE=fake (REAL FCM = PENDING FIREBASE CONFIGURATION). API base URL = the PC's LAN address at build time.",
+   "3bfcbfd + Module 34 working tree (committed as the Module 34 commit)",
+   "2026-10-11",
+   "C585368834D7B66D8D62EF2D94856F1C6EB12F92894F816E0E82367AA20BD323",
+   "NO",
+   "PENDING",
+   "PENDING"
   ]
  ],
  "pendingAssets": {
@@ -72206,6 +74322,10 @@
    "COMPLETE (local, development providers) — REAL FCM / E-MAIL / SMS = PENDING CONFIGURATION; campaigns, admin alerts, iOS, web push NOT BUILT"
   ],
   [
+   "Reviews as built (Module 34) — ReviewEligibilityService → ReviewService (submit under the order lock, edit with version + revision, soft withdrawal) → ReviewContentScreen (rules that hold, never reject) → RestaurantRatingService (summary recalculated in the transaction under an advisory lock per location) → ReviewReportService / ReviewModerationService (one open case per review, decisions with reason + version, market scope, audit) → RestaurantResponseService (one response per review) → ReviewNotifier (Module 33 notifications); public, customer, restaurant and admin APIs; discovery sort / filter on the real rating; Customer Web, Restaurant Dashboard, Platform Admin and Android on it",
+   "COMPLETE (local) — policy windows PENDING BUSINESS APPROVAL; AI moderation, review photos, restaurant-side review notifications, confidence-adjusted ranking NOT BUILT"
+  ],
+  [
    "Order tracking — state machine, persisted sequenced events, restaurant updates (RBAC), real-time transport + polling, ETA engines, pickup verification, notifications (frontend mocked in M14; CF-172–CF-183)",
    "NOT STARTED"
   ],
@@ -72341,6 +74461,10 @@
   ],
   [
    "Notifications schema as built (Module 33): customer_devices (public_id, customer, platform, installation_id, push_provider, push_token encrypted, push_token_hash, app_version, device_locale, timezone, notifications_permission_state, last_seen_at, token_updated_at, revoked_at, revoke_reason; one ACTIVE per installation / per token); notifications (public_id, customer, category, event_type, template_key + version, subject, dedupe_key unique, locale, priority, transactional, title, body, action_target + reference, data, read_at, expires_at); notification_deliveries (public_id, notification, channel, customer_device, provider, provider_message_reference, status, policy_result, attempt_count, next_retry_at, sending_started_at, last_error_code / category, sent_at, delivered_at, failed_at; one per channel / per device); notification_delivery_attempts (delivery, attempt_number unique, started / finished, result, provider_code, error_category, safe_error, latency_ms, payload_bytes)",
+   "COMPLETE (local)"
+  ],
+  [
+   "Reviews schema as built (Module 34): restaurant_reviews (public_id, order_id UNIQUE, customer / organization / location / market from the order, overall_rating 1–5, category_ratings / tags / item_feedback JSONB, title, comment, comment_hash, author_display_name, status, flags, version, edit_count, submitted / published / edited / moderated / removed timestamps, removed_by), review_revisions (append-only content before each change), review_moderation_cases (one open per review — partial unique index; source, status, report_count, assignee, resolution, version), review_reports (UNIQUE review + reporter), restaurant_review_responses (UNIQUE review_id; status, version), restaurant_location_rating_summaries (published_count, rating_sum, average_rating, count per star, category sums)",
    "COMPLETE (local)"
   ],
   [
@@ -72792,6 +74916,22 @@
   [
    "Provider credentials (M33): the Firebase service account is a git-ignored file path on the server (FIREBASE_CREDENTIALS), never in React, the Android bundle or an answer; the health probe reports UNAVAILABLE / PENDING FIREBASE CONFIGURATION without it; a credential failure pauses the provider instead of retrying in a storm",
    "COMPLETE (local) — real credentials PENDING"
+  ],
+  [
+   "Review ownership (M34): a review is created only for a COMPLETED order of the authenticated customer; customer, organization, location and market are derived from the order under its lock; unknown request fields are refused (422), so no owner, status or \"verified\" can be sent; another customer's order or review answers 404",
+   "COMPLETE (local)"
+  ],
+  [
+   "Review privacy (M34): the public payload is a display name (\"First L.\"), the rating, the text and the restaurant's reply — never a phone, e-mail, account id, order number, journey, payment detail, pickup credential or private note (exact key set asserted); the restaurant sees published reviews of its own locations only and never the customer's contact details; review text is not written to the log or the audit trail",
+   "COMPLETE (local)"
+  ],
+  [
+   "Review content safety (M34): plain Unicode text only — markup is refused, never rewritten; lengths in code points; clients render review text as text (no innerHTML); rate limits on read / write / report; one report per reporter per review",
+   "COMPLETE (local)"
+  ],
+  [
+   "Moderation integrity (M34): admin.reviews.view / moderate / restore / reports.view enforced on the server inside the administrator's market scope; hide / reject / restore need a written reason; decisions carry the version they were taken on; every decision is audited; a restaurant has no route that changes, hides or removes a customer's review",
+   "COMPLETE (local)"
   ]
  ],
  "globalReadiness": [
@@ -72932,8 +75072,8 @@
   ],
   [
    "Reviews & ratings",
-   "IMPLEMENTED — configurable scale / categories / tags per market (JP / FR examples), Unicode text with code-point limits, locale-aware review dates, RTL-safe layout, localized statuses",
-   "Backend review API + aggregation (CF-198, CF-205)"
+   "IMPLEMENTED (backend + clients, M34) — every review carries its market; moderation is scoped by market grants on the server; text is Unicode in any script (code-point limits, dir=\"auto\"); tags and categories are codes with client strings; notification templates per locale with a fallback (en-IN today); the policy windows are configuration per deployment",
+   "Per-market review policy (windows, required categories) if markets differ (CF-462); translations (CF-072); iOS"
   ],
   [
    "Restaurant Dashboard",
@@ -75742,6 +77882,128 @@
      "GET /api/v1/admin/system/notifications",
      "Providers probed (push / e-mail / SMS), queue backlog, counters (24 h), devices, retention; ?fresh=1 probes now (admin.system.view)",
      "api"
+    ]
+   ]
+  },
+  {
+   "id": "m34-endpoints",
+   "headers": [
+    "Endpoint",
+    "What it does",
+    "Rate limit"
+   ],
+   "title": "Module 34 — Review endpoint inventory",
+   "note": "Source of truth: backend/routes/api.php and backend/openapi/openapi.json (218 paths). Everything is local; nothing has touched production.",
+   "rows": [
+    [
+     "GET /api/v1/customer/orders/{order}/review",
+     "Eligibility + my review + the form policy for one of my orders (404 for anybody else's)",
+     "review-read 120 / min"
+    ],
+    [
+     "POST /api/v1/customer/orders/{order}/review",
+     "Write the one review of a COMPLETED order (201; the same review again 200; different content 409)",
+     "review-write 10 / min"
+    ],
+    [
+     "GET /api/v1/customer/reviews",
+     "My reviews in every state, with the restaurant's reply",
+     "review-read 120 / min"
+    ],
+    [
+     "GET /api/v1/customer/reviews/{review}",
+     "One of my reviews",
+     "review-read 120 / min"
+    ],
+    [
+     "PATCH /api/v1/customer/reviews/{review}",
+     "Change my review (version; inside the edit window and budget; re-screened)",
+     "review-write 10 / min"
+    ],
+    [
+     "DELETE /api/v1/customer/reviews/{review}",
+     "Withdraw my review (soft; final)",
+     "review-write 10 / min"
+    ],
+    [
+     "POST /api/v1/reviews/{review}/report",
+     "Report somebody else's published review with a reason from the list (once per review)",
+     "review-report 5 / min"
+    ],
+    [
+     "GET /api/v1/restaurants/{slug}/reviews",
+     "Published reviews of a restaurant + its rating summary (public; page, per_page ≤ 50, sort, rating)",
+     "review-read 120 / min"
+    ],
+    [
+     "GET /api/v1/restaurants/{slug}/reviews/summary",
+     "The rating summary alone (public)",
+     "review-read 120 / min"
+    ],
+    [
+     "GET /api/v1/restaurant/reviews?location=",
+     "Published reviews of one of my locations + summary + answered / unanswered (restaurant.reviews.view)",
+     "review-read 120 / min"
+    ],
+    [
+     "GET /api/v1/restaurant/reviews/summary?location=",
+     "The summary of one of my locations",
+     "review-read 120 / min"
+    ],
+    [
+     "GET /api/v1/restaurant/reviews/{review}",
+     "One published review of my locations",
+     "review-read 120 / min"
+    ],
+    [
+     "PUT /api/v1/restaurant/reviews/{review}/response",
+     "Publish the one response or edit it with expected_version (restaurant.reviews.respond)",
+     "review-write 10 / min"
+    ],
+    [
+     "POST /api/v1/restaurant/reviews/{review}/report",
+     "Report a review of my locations (restaurant.reviews.report)",
+     "review-report 5 / min"
+    ],
+    [
+     "GET /api/v1/admin/reviews",
+     "Moderation list with filters and counts, inside my market scope (admin.reviews.view)",
+     "api"
+    ],
+    [
+     "GET /api/v1/admin/reviews/{review}",
+     "Detail: cases with reports, revisions, audit history",
+     "api"
+    ],
+    [
+     "POST /api/v1/admin/reviews/{review}/publish | hide | reject",
+     "Decide (admin.reviews.moderate); reason required for hide / reject; expected_version",
+     "admin-sensitive"
+    ],
+    [
+     "POST /api/v1/admin/reviews/{review}/restore",
+     "Bring back a hidden or rejected review (admin.reviews.restore); reason required",
+     "admin-sensitive"
+    ],
+    [
+     "POST /api/v1/admin/reviews/{review}/response/hide | restore",
+     "Hide or restore the restaurant's response; reason required",
+     "admin-sensitive"
+    ],
+    [
+     "GET /api/v1/admin/review-cases",
+     "The moderation cases (open by default), by source (admin.reviews.reports.view)",
+     "api"
+    ],
+    [
+     "POST /api/v1/admin/review-cases/{case}/assign | escalate | resolve",
+     "Take, escalate or close a case as NO_VIOLATION (admin.reviews.moderate)",
+     "admin-sensitive"
+    ],
+    [
+     "GET /api/v1/restaurants?sort=-rating&filter[min_rating]= · GET /api/v1/journeys/{journey}/restaurants?sort=highest_rated&min_rating=",
+     "Discovery on the real rating (Module 23 / 26 endpoints, extended)",
+     "as before"
     ]
    ]
   }

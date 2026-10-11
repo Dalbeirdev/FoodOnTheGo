@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Order } from '../order/repositories'
-import { reviewRepositories } from './mock/mockReview'
+import { reviewRepositories } from './reviewRepositories'
 import type { Review, ReviewConfigProvider, ReviewEligibility, ReviewEligibilityService, ReviewRepository } from './repositories'
 
 export type ReviewDeps = { reviews: ReviewRepository; eligibility: ReviewEligibilityService; config: ReviewConfigProvider }

@@ -150,6 +150,8 @@ export type Restaurant = {
   unavailableReason?: UnavailableReason | null
   /** True when rating / review count are development figures (no reviews backend yet). */
   ratingIsSample?: boolean
+  /** Module 34: set when rating / reviewCount are the backend's (the published verified-order reviews of this location). */
+  ratingSource?: 'backend'
   /** @deprecated Module 01 display strings kept for Cart / Checkout / Item pages until Module 07 makes them journey-aware. */
   distance: string
   time: string

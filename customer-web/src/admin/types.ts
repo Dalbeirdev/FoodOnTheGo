@@ -16,7 +16,7 @@ export type AdminPermission =
   | 'customers.view' | 'customers.manage'
   | 'orders.view' | 'orders.override'
   | 'payments.view' | 'payments.reconcile' | 'refunds.view' | 'refunds.issue' | 'settlements.view'
-  | 'reviews.view' | 'reviews.moderate'
+  | 'reviews.view' | 'reviews.moderate' | 'reviews.restore' | 'reviews.reports.view'
   | 'promotions.view' | 'promotions.manage'
   | 'support.view' | 'support.manage'
   | 'markets.view' | 'markets.manage' | 'configuration.manage'
@@ -94,9 +94,19 @@ export type SettlementStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED' | 'O
 export type Settlement = { id: string; restaurantId: string; restaurantName: string; period: string; grossMinor: number; refundsMinor: number; feesMinor: number; adjustmentsMinor: number; netMinor: number; currency: string; status: SettlementStatus; orders: number }
 
 /* ---------------- reviews ---------------- */
-export type ReviewModerationFilter = { tab: 'all' | 'pending' | 'flagged' | 'published' | 'hidden' | 'rejected'; query?: string; page?: number; pageSize?: number }
-export type AdminReview = { review: Review; restaurantName: string; reports: number; reportReasons: string[]; moderationHistory: Array<{ at: string; by: string; action: string; reason: string | null }> }
-export type ModerationAction = 'publish' | 'hide' | 'reject' | 'restore' | 'hide_response'
+export type ReviewModerationFilter = { tab: 'all' | 'pending' | 'flagged' | 'published' | 'hidden' | 'rejected' | 'removed'; query?: string; page?: number; pageSize?: number }
+/** A moderation case of the backend (Module 34): what an automated check flagged, or what people reported about one review. */
+export type AdminReviewCase = {
+  id: string; source: 'AUTOMATED' | 'CUSTOMER_REPORT' | 'RESTAURANT_REPORT' | 'ADMIN'; reason: string | null; status: 'OPEN' | 'ESCALATED' | 'RESOLVED'; reports: number; assignedTo: string | null
+  resolution: string | null; resolutionNote: string | null; version: number; createdAt: string | null; resolvedAt: string | null
+  reportList: Array<{ reporterType: string; reason: string; explanation: string | null; at: string | null }>
+}
+export type AdminReview = {
+  review: Review; restaurantName: string; reports: number; reportReasons: string[]; moderationHistory: Array<{ at: string; by: string; action: string; reason: string | null }>
+  /** Present when the review comes from the backend: what only the server knows about it. */
+  backend?: { detail: boolean; marketCode: string | null; flags: string[]; responseStatus: 'PUBLISHED' | 'HIDDEN' | null; publicName: string | null; editCount: number; removedBy: string | null; cases: AdminReviewCase[] }
+}
+export type ModerationAction = 'publish' | 'hide' | 'reject' | 'restore' | 'hide_response' | 'restore_response'
 
 /* ---------------- promotions ---------------- */
 export type PromotionType = 'fixed' | 'percentage'
@@ -217,7 +227,7 @@ export interface AdminOrderRepository { list(f: AdminOrderFilter): Promise<Page<
 export interface AdminPaymentRepository { list(f: { query?: string; status?: PaymentState | 'all'; currency?: string; page?: number; pageSize?: number }): Promise<Page<AdminPayment>>; get(reference: string): Promise<AdminPayment | null> }
 export interface AdminRefundRepository { list(f: { tab: 'all' | RefundStatus; query?: string; page?: number; pageSize?: number }): Promise<Page<AdminRefund>>; get(reference: string): Promise<AdminRefund | null> }
 export interface AdminSettlementRepository { list(f: { status?: SettlementStatus | 'all'; currency?: string; page?: number; pageSize?: number }): Promise<Page<Settlement>>; totalsByCurrency(): Promise<Array<{ currency: string; netMinor: number; count: number }>> }
-export interface AdminReviewRepository { list(f: ReviewModerationFilter): Promise<Page<AdminReview> & { counts: Record<ReviewModerationFilter['tab'], number> }>; moderate(reviewId: string, action: ModerationAction, actor: string, reason: string): Promise<AdminReview> }
+export interface AdminReviewRepository { list(f: ReviewModerationFilter): Promise<Page<AdminReview> & { counts: Record<ReviewModerationFilter['tab'], number> }>; moderate(reviewId: string, action: ModerationAction, actor: string, reason: string): Promise<AdminReview>; /** Backend only: the review with its cases, reports and audit history. */ get?(reviewId: string): Promise<AdminReview>; /** Backend only: take, escalate or close (no violation) a moderation case. */ caseAction?(caseId: string, action: 'assign' | 'escalate' | 'resolve', reason: string, version: number): Promise<void> }
 export interface AdminPromotionRepository { list(f: { query?: string; status?: PromotionStatus | 'all'; page?: number; pageSize?: number }): Promise<Page<Promotion>>; save(p: Omit<Promotion, 'id' | 'usedCount' | 'createdAt'> & { id?: string }, actor: string, reason?: string): Promise<Promotion>; setStatus(id: string, status: PromotionStatus, actor: string, reason: string): Promise<Promotion> }
 export interface AdminSupportRepository { list(f: SupportFilter): Promise<Page<SupportCase> & { counts: Record<SupportFilter['tab'], number> }>; get(id: string): Promise<SupportCase | null>; assign(id: string, assignee: string | null, actor: string): Promise<SupportCase>; setStatus(id: string, status: SupportStatus, actor: string): Promise<SupportCase>; addMessage(id: string, actor: string, text: string, internal: boolean): Promise<SupportCase>; setPriority(id: string, priority: SupportPriority, actor: string): Promise<SupportCase> }
 /* Module 33: delivery diagnostics from the backend (never a token, an address or a phone). */

@@ -1,0 +1,9 @@
+{
+    "public_reviews_page_queries": 7,
+    "public_summary_queries": 3,
+    "my_reviews_queries": 7,
+    "dashboard_reviews_queries": 12,
+    "admin_reviews_queries": 12,
+    "restaurant_list_sorted_by_rating_queries_two_rows": 15,
+    "public_reviews_plan": "Limit  (cost=0.14..8.16 rows=1 width=1212)   ->  Index Scan Backward using restaurant_reviews_location_id_status_published_at_index on restaurant_reviews  (cost=0.14..8.16 rows=1 width=1212)         Index Cond: ((location_id = '21569'::bigint) AND ((status)::text = 'PUBLISHED'::text))"
+}

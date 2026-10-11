@@ -14,7 +14,7 @@ class AppConfig {
   static const String marketMode = String.fromEnvironment('MARKET_MODE', defaultValue: 'mock');
 
   /// 'api' = restaurants, opening hours, cuisines, pickup methods and availability come from the backend (Module 23);
-  /// 'mock' = bundled fixtures (default, used by tests). Menus follow this mode too (Module 24); carts, orders and reviews are development data in both.
+  /// 'mock' = bundled fixtures (default, used by tests). Menus follow this mode too (Module 24). Carts, orders and reviews have their own modes.
   static const String restaurantMode = String.fromEnvironment('RESTAURANT_MODE', defaultValue: 'mock');
 
   /// 'api' = places, journey planning, the route and the restaurants along it come from the backend (Module 26: the
@@ -43,6 +43,9 @@ class AppConfig {
   /// number, tracked by polling until Module 32); 'mock' = the development orders in the app (default, used by tests).
   /// Needs PAYMENT_MODE=api.
   static const String orderMode = String.fromEnvironment('ORDER_MODE', defaultValue: 'mock');
+  /// Module 34: api = reviews, ratings and the restaurant's replies come from the backend (needs ORDER_MODE=api: a review is
+  /// about a backend order); mock = the development reviews kept on this device (default, used by tests).
+  static const String reviewMode = String.fromEnvironment('REVIEW_MODE', defaultValue: 'mock');
   /// Module 32: api = live order updates over WebSocket (Laravel Reverb; needs ORDER_MODE=api); off = poll only.
   static const String realtimeMode = String.fromEnvironment('REALTIME_MODE', defaultValue: 'off');
   static const String reverbHost = String.fromEnvironment('REVERB_HOST', defaultValue: '10.0.2.2');
@@ -69,7 +72,7 @@ class AppConfig {
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 37;
+  static const int buildNumber = 38;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -80,12 +83,13 @@ class AppConfig {
         'API base URL': apiBaseUrl,
         'Authentication': authMode == 'api' ? 'Backend (phone + OTP)' : 'Development mock',
         'Market data': marketMode == 'api' ? 'Backend (PostGIS coverage)' : 'Development fixtures',
-        'Restaurants': restaurantMode == 'api' ? 'Backend, menus included (orders and reviews still development data)' : 'Development fixtures',
+        'Restaurants': restaurantMode == 'api' ? 'Backend, menus included' : 'Development fixtures',
         'Journeys': journeyMode == 'api' ? 'Backend (places, route, detours and arrival times from the routing provider)' : 'Development providers in the app',
         'Cart': cartMode == 'api' ? 'Backend (priced and validated by the server)' : 'Development cart on this device',
         'Checkout': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' ? 'Backend (final validation, promotion, configured taxes and fees, total, pickup-time hold)' : 'Development checkout in the app',
         'Payments': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' ? 'Backend (payment attempts verified by the server with the payment provider; the provider and its mode are set on the server)' : 'Development payment in the app — no money moves',
         'Orders': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' && orderMode == 'api' ? 'Backend (created by the server from the verified payment; order number, pickup code and status are the server\'s; tracking by polling until realtime arrives)' : 'Development orders on this device',
+        'Reviews': cartMode == 'api' && pickupMode == 'api' && checkoutMode == 'api' && paymentMode == 'api' && orderMode == 'api' && reviewMode == 'api' ? 'Backend (one review per completed order; eligibility, moderation and the rating are the server\'s)' : 'Development reviews on this device',
         'Live updates': realtimeMode == 'api' && orderMode == 'api' && reverbKey.isNotEmpty ? 'WebSocket (Laravel Reverb at $reverbHost:$reverbPort) with polling as the fallback' : 'Polling only (REALTIME_MODE=off or no key)',
         'Pickup times': cartMode == 'api' && pickupMode == 'api' ? 'Backend (ASAP, slots and capacity on the server clock; a chosen time is selected, not reserved)' : 'Development slot engine in the app',
         'Account': authMode == 'api' ? 'Backend (profile, favorites, saved places, payment references, notification preferences)' : 'Development data',

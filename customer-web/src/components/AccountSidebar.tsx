@@ -15,6 +15,7 @@ const CardIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><rect x="3" y="5"
 const BellIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4l2-2ZM10 20a2 2 0 0 0 4 0" /></svg>)
 const RouteIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><circle cx="6" cy="18" r="2.5" /><circle cx="18" cy="6" r="2.5" /><path d="M8.5 18H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.5" /></svg>)
 const HeadsetIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M4 13v-2a8 8 0 0 1 16 0v2" /><rect x="3" y="13" width="4" height="6" rx="1.5" /><rect x="17" y="13" width="4" height="6" rx="1.5" /><path d="M19 19a3 3 0 0 1-3 2h-2" /></svg>)
+const ReviewIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="m12 3 2.7 5.6 6.1.8-4.5 4.3 1.1 6.1L12 16.9l-5.4 2.9 1.1-6.1L3.2 9.4l6.1-.8z" /></svg>)
 const LogoutIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" /></svg>)
 
 const NAV: Array<{ to: string; label: string; icon: (p: P) => ReactElement; badge?: number }> = [
@@ -24,6 +25,7 @@ const NAV: Array<{ to: string; label: string; icon: (p: P) => ReactElement; badg
   { to: '/payment-methods', label: 'Payment Methods', icon: CardIcon },
   { to: '/notifications', label: 'Notifications', icon: BellIcon },
   { to: '/my-orders', label: 'My Orders', icon: OrdersIcon },
+  { to: '/my-reviews', label: 'My Reviews', icon: ReviewIcon },
   { to: '/plan-journey', label: 'Plan a Journey', icon: RouteIcon },
   { to: '/help', label: 'Help & Support', icon: HeadsetIcon },
 ]

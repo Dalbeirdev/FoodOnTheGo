@@ -1,0 +1,204 @@
+{
+  "order_b": "FOTG-20261011-CQ6GYZ",
+  "order_number": "FOTG-20261011-5FFEW4",
+  "customer_review": {
+    "id": "3ab24ff6-db38-480e-a708-4026d7e848aa",
+    "order": {
+      "id": "88210a89-7a95-4cd9-96c5-4980c6612b2c",
+      "order_number": "FOTG-20261011-5FFEW4"
+    },
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "branch_label": "Sector 62 · Noida"
+    },
+    "overall_rating": 4,
+    "category_ratings": {},
+    "tags": [
+      "great_food"
+    ],
+    "title": null,
+    "comment": "Fresh, hot and quick. धन्यवाद 🙏 — would stop here again.",
+    "item_feedback": [],
+    "status": "PUBLISHED",
+    "verified_order": true,
+    "version": 1,
+    "can_edit": true,
+    "editable_until": "2026-10-14T14:07:34+00:00",
+    "edits_left": 3,
+    "can_remove": true,
+    "response": null,
+    "submitted_at": "2026-10-11T14:07:34+00:00",
+    "published_at": "2026-10-11T14:07:34+00:00",
+    "edited_at": null
+  },
+  "public_review": {
+    "id": "3ab24ff6-db38-480e-a708-4026d7e848aa",
+    "author": {
+      "display_name": "Rahul S."
+    },
+    "overall_rating": 4,
+    "category_ratings": [],
+    "tags": [
+      "great_food"
+    ],
+    "title": null,
+    "comment": "Fresh, hot and quick. धन्यवाद 🙏 — would stop here again.",
+    "verified_order": true,
+    "edited": false,
+    "response": null,
+    "submitted_at": "2026-10-11T14:07:34+00:00"
+  },
+  "public_summary": {
+    "average": 4,
+    "count": 1,
+    "distribution": {
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 1,
+      "5": 0
+    },
+    "categories": {
+      "food_quality": {
+        "average": null,
+        "count": 0
+      },
+      "order_accuracy": {
+        "average": null,
+        "count": 0
+      },
+      "preparation_time": {
+        "average": null,
+        "count": 0
+      },
+      "pickup_experience": {
+        "average": null,
+        "count": 0
+      }
+    }
+  },
+  "restaurant_review": {
+    "id": "3ab24ff6-db38-480e-a708-4026d7e848aa",
+    "location": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "order_number": "FOTG-20261011-5FFEW4",
+    "author": {
+      "display_name": "Rahul S."
+    },
+    "overall_rating": 2,
+    "category_ratings": {},
+    "tags": [
+      "great_food"
+    ],
+    "title": null,
+    "comment": "Fresh, hot and quick. धन्यवाद 🙏 — would stop here again.",
+    "item_feedback": [],
+    "status": "PUBLISHED",
+    "verified_order": true,
+    "submitted_at": "2026-10-11T14:07:34+00:00",
+    "edited_at": "2026-10-11T14:07:57+00:00",
+    "response": {
+      "id": "4ad0fd0e-2a52-4472-9b9b-475b407fae89",
+      "text": "Thank you for stopping by — we are sorry the visit fell short and would like to do better next time.",
+      "status": "PUBLISHED",
+      "responder_name": "John Doe",
+      "version": 1,
+      "responded_at": "2026-10-11T14:08:11+00:00",
+      "edited_at": null
+    },
+    "can_respond": true,
+    "can_report": true,
+    "reported": false
+  },
+  "review_notification": {
+    "id": "0e59ae35-ae6d-437f-b604-0592ea00f5cd",
+    "category": "ORDER_UPDATES",
+    "type": "review.response",
+    "priority": "NORMAL",
+    "transactional": true,
+    "title": "Burger Hub replied to your review",
+    "body": "The restaurant has replied to your review of order FOTG-20261011-5FFEW4.",
+    "action": {
+      "target": "REVIEW",
+      "reference": "FOTG-20261011-5FFEW4"
+    },
+    "subject": {
+      "type": "REVIEW",
+      "id": "3ab24ff6-db38-480e-a708-4026d7e848aa",
+      "reference": "FOTG-20261011-5FFEW4"
+    },
+    "read": false,
+    "read_at": null,
+    "created_at": "2026-10-11T14:08:11+00:00"
+  },
+  "admin_review": {
+    "id": "3ab24ff6-db38-480e-a708-4026d7e848aa",
+    "status": "PUBLISHED",
+    "version": 2,
+    "flags": [],
+    "overall_rating": 2,
+    "category_ratings": [],
+    "tags": [
+      "great_food"
+    ],
+    "title": null,
+    "comment": "Fresh, hot and quick. धन्यवाद 🙏 — would stop here again.",
+    "item_feedback": [],
+    "customer": {
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "display_name": "Rahul Sharma",
+      "public_name": "Rahul S."
+    },
+    "order": {
+      "id": "88210a89-7a95-4cd9-96c5-4980c6612b2c",
+      "order_number": "FOTG-20261011-5FFEW4"
+    },
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "slug": "burger-hub",
+      "name": "Burger Hub",
+      "branch_label": "Sector 62 · Noida"
+    },
+    "market": {
+      "id": "95cce416-d165-496c-8431-9e8082dd2545",
+      "country_code": "IN"
+    },
+    "verified_order": true,
+    "reports": 2,
+    "open_case": {
+      "id": "f5bb17f3-8494-4a13-9570-6283105c4cda",
+      "source": "CUSTOMER_REPORT",
+      "reason": "HARASSMENT",
+      "status": "OPEN",
+      "reports": 2,
+      "reported_by_type": "customer",
+      "assigned_to": null,
+      "resolution": null,
+      "resolution_note": null,
+      "version": 1,
+      "created_at": "2026-10-11T14:08:43+00:00",
+      "resolved_at": null
+    },
+    "response": {
+      "id": "4ad0fd0e-2a52-4472-9b9b-475b407fae89",
+      "text": "Thank you for stopping by — we would like to do better next time.",
+      "status": "PUBLISHED",
+      "responder_name": "John Doe",
+      "version": 2,
+      "responded_at": "2026-10-11T14:08:11+00:00",
+      "edited_at": "2026-10-11T14:08:23+00:00"
+    },
+    "edit_count": 1,
+    "submitted_at": "2026-10-11T14:07:34+00:00",
+    "published_at": "2026-10-11T14:07:34+00:00",
+    "edited_at": "2026-10-11T14:07:57+00:00",
+    "moderated_at": null,
+    "removed_at": null,
+    "removed_by": null
+  },
+  "summary_before_run": "0/0/null"
+}

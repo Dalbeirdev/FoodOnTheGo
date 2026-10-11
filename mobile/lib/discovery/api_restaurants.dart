@@ -49,9 +49,9 @@ class ApiRestaurantRepository {
 
   /// The public API's restaurant onto the app model. The id stays the one the development menus and carts use for
   /// the same slug (the backend id is [GlobalRestaurant.backendId]); a restaurant the fixtures do not know keeps its
-  /// slug as id and has no development menu. Ratings are development figures where the fixtures have them.
-  /// [sampleRatings] false: no development rating is attached (results along a backend journey show no rating at all —
-  /// there is no reviews backend yet).
+  /// slug as id and has no development menu. The rating is the backend's (Module 34: the average and count of PUBLISHED
+  /// verified-order reviews; no reviews = 0 / 0, shown as "New"). Only a payload without a rating — an older backend —
+  /// falls back to the development figure of a known fixture, marked as a sample; [sampleRatings] false forbids that too.
   static GlobalRestaurant toRestaurant(Map<String, dynamic> d, {bool sampleRatings = true}) {
     final legacy = globalRestaurants.where((r) => r.slug == d['slug']).firstOrNull;
     final address = d['address'] as Map<String, dynamic>;
@@ -67,6 +67,7 @@ class ApiRestaurantRepository {
       for (final g in images['gallery'] as List<dynamic>) ?_absolute((g as Map<String, dynamic>)['url'] as String?),
     }.toList();
     final level = d['price_level'] as int?;
+    final rated = d['rating'] is Map ? (d['rating'] as Map).cast<String, dynamic>() : null;
     OpeningPeriod period(int day, Map<String, dynamic> p) => OpeningPeriod(day, p['opens_at'] as String, p['closes_at'] as String);
     return GlobalRestaurant(
       id: legacy?.id ?? d['slug'] as String,
@@ -82,9 +83,9 @@ class ApiRestaurantRepository {
       cuisines: [for (final c in d['cuisines'] as List<dynamic>) (c as Map<String, dynamic>)['name'] as String],
       categories: [for (final c in (d['cuisines'] as List<dynamic>).take(1)) (c as Map<String, dynamic>)['name'] as String],
       images: photos.isNotEmpty ? photos : legacy?.images ?? const [],
-      rating: sampleRatings ? legacy?.rating ?? 0 : 0,
-      reviewCount: sampleRatings ? legacy?.reviewCount ?? 0 : 0,
-      ratingIsSample: sampleRatings && legacy != null,
+      rating: rated != null ? (rated['average'] as num?)?.toDouble() ?? 0 : sampleRatings ? legacy?.rating ?? 0 : 0,
+      reviewCount: rated != null ? (rated['count'] as num?)?.toInt() ?? 0 : sampleRatings ? legacy?.reviewCount ?? 0 : 0,
+      ratingIsSample: rated == null && sampleRatings && legacy != null,
       openingHours: OpeningHours(
         periods: [for (final day in hours['weekly'] as List<dynamic>) for (final p in (day as Map<String, dynamic>)['periods'] as List<dynamic>) period(day['day_of_week'] as int, p as Map<String, dynamic>)],
         special: [

@@ -73,10 +73,12 @@ void main() {
       final j = toJourney(journeyDto());
       expect(toDiscoveryQuery(j, const DiscoveryQuery())..removeWhere((_, v) => v == null), {'sort': 'recommended', 'page[number]': '1', 'page[size]': '6'});
       final q = toDiscoveryQuery(j, const DiscoveryQuery(sort: SortKey.routeOrder, corridorM: 25000, search: '  burger  ', cursor: '3', limit: 99, filters: {'detourTime': 90.0, 'openNow': true, 'cuisine': ['pizza', 'burgers'], 'rating': 4.5, 'price': ['2'], 'dietary': ['Vegan']}));
-      expect(q..removeWhere((_, v) => v == null), {'sort': 'route_order', 'corridor_width_meters': '10000', 'max_detour_minutes': '60', 'open_at_arrival': 'true', 'cuisine': 'pizza,burgers', 'q': 'burger', 'page[number]': '3', 'page[size]': '25'});
+      expect(q..removeWhere((_, v) => v == null), {'sort': 'route_order', 'corridor_width_meters': '10000', 'max_detour_minutes': '60', 'open_at_arrival': 'true', 'min_rating': '4.5', 'cuisine': 'pizza,burgers', 'q': 'burger', 'page[number]': '3', 'page[size]': '25'});
       expect(toDiscoveryQuery(j, const DiscoveryQuery(corridorM: 100))['corridor_width_meters'], '500');
-      // "Highest rated" is not an ordering of a journey search (no reviews backend): it falls back to the default.
-      expect(toDiscoveryQuery(j, const DiscoveryQuery(sort: SortKey.highestRated))['sort'], 'recommended');
+      // Module 34: "Highest rated" is an ordering of the backend (by the real rating); a minimum rating outside 1–5 is never sent.
+      expect(toDiscoveryQuery(j, const DiscoveryQuery(sort: SortKey.highestRated))['sort'], 'highest_rated');
+      expect(toDiscoveryQuery(j, const DiscoveryQuery(filters: {'rating': 9}))['min_rating'], isNull);
+      expect(toDiscoveryQuery(j, const DiscoveryQuery(filters: {'rating': 3.5}))['min_rating'], '3.5');
       expect(journeySorts(j), [SortKey.recommended, SortKey.lowestDetour, SortKey.routeOrder, SortKey.nearestToRoute, SortKey.fastestPickup]);
     });
   });
@@ -327,11 +329,13 @@ void main() {
       final (b, ds, _) = await bound();
       expect([ds.backend, ds.status, ds.items.map((x) => x.restaurant.slug).toList(), ds.searchMeta?.providerMode], [true, DiscoveryStatus.ready, ['burger-hub', 'pizza-point'], 'development']);
       expect(ds.sorts, [SortKey.recommended, SortKey.lowestDetour, SortKey.routeOrder, SortKey.nearestToRoute, SortKey.fastestPickup]);
-      // Cuisine options are taxonomy CODES of cuisines a listed restaurant has (no "Sushi"); no rating, price or dietary control.
+      // Cuisine options are taxonomy CODES of cuisines a listed restaurant has (no "Sushi"); no price or dietary control. The
+      // minimum rating is a backend filter since Module 34.
       expect(ds.definitions.map((d) => [d.id, d.labelKey, d.options.map((o) => '${o.value}=${o.label}').toList()]), [
         ['cuisine', 'filter.cuisine', ['pizza=Pizza', 'burgers=Burgers']],
         ['openNow', 'filter.openAtArrival', <String>[]],
         ['detourTime', 'filter.detourTime', <String>[]],
+        ['rating', 'filter.rating', <String>[]],
       ]);
       expect([ds.corridorM, ds.corridorBounds], [3000, (500, 10000, 500)]);
       // The corridor is the journey's own until the customer moves it.

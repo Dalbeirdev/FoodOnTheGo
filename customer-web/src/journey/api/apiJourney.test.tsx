@@ -150,10 +150,10 @@ describe('mapping — the journey API onto the page model', () => {
 
   it('the discovery query sends only what the API applies, inside the journey bounds', () => {
     const journey = toJourney(journeyDto())
-    expect(toDiscoveryQuery(journey, {})).toEqual({ sort: 'recommended', corridor_width_meters: undefined, max_detour_minutes: undefined, open_at_arrival: undefined, cuisine: undefined, q: undefined, 'page[number]': 1, 'page[size]': 6 })
+    expect(toDiscoveryQuery(journey, {})).toEqual({ sort: 'recommended', corridor_width_meters: undefined, max_detour_minutes: undefined, open_at_arrival: undefined, cuisine: undefined, min_rating: undefined, q: undefined, 'page[number]': 1, 'page[size]': 6 })
     expect(toDiscoveryQuery(journey, { sort: 'routeOrder', corridorM: 25_000, search: '  dhaba ', cursor: '3', limit: 99, filters: { cuisine: ['punjabi', 'north_indian'], openNow: true, detourTime: 90, rating: 4, price: ['2'], dietary: ['Vegan'] } }))
-      .toEqual({ sort: 'route_order', corridor_width_meters: 10000, max_detour_minutes: 60, open_at_arrival: true, cuisine: 'punjabi,north_indian', q: 'dhaba', 'page[number]': 3, 'page[size]': 25 })
-    expect(toDiscoveryQuery(journey, { sort: 'highestRated', corridorM: 100 }).sort).toBe('recommended') // no reviews backend: not a backend ordering
+      .toEqual({ sort: 'route_order', corridor_width_meters: 10000, max_detour_minutes: 60, open_at_arrival: true, cuisine: 'punjabi,north_indian', min_rating: 4, q: 'dhaba', 'page[number]': 3, 'page[size]': 25 }) // Module 34: the minimum rating is applied by the backend on its own averages
+    expect(toDiscoveryQuery(journey, { sort: 'highestRated', corridorM: 100 }).sort).toBe('highest_rated') // Module 34: the backend orders by its own ratings
     expect(toDiscoveryQuery(journey, { corridorM: 100 }).corridor_width_meters).toBe(500)
     const defs = journeyFilterDefinitions(journey, [{ code: 'burgers', name: 'Burgers', restaurants: 3 }, { code: 'sushi', name: 'Sushi', restaurants: 0 }])
     expect(defs.map((d) => d.id)).toEqual(['cuisine', 'openNow', 'detourTime'])

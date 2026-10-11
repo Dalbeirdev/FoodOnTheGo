@@ -140,7 +140,7 @@ export interface PaymentMethodRepository {
 /* ---------------- Notifications ---------------- */
 export type NotificationKind = 'orders' | 'offers' | 'updates'
 export type NotificationIcon = 'bag' | 'tag' | 'bell' | 'store' | 'percent' | 'user'
-export type NotificationAction = { target: 'NONE' | 'ORDER_DETAIL' | 'ORDER_TRACKING' | 'PAYMENT_STATUS' | 'ACCOUNT_SECURITY' | 'PROMOTION'; reference: string | null }
+export type NotificationAction = { target: 'NONE' | 'ORDER_DETAIL' | 'ORDER_TRACKING' | 'PAYMENT_STATUS' | 'ACCOUNT_SECURITY' | 'PROMOTION' | 'REVIEW'; reference: string | null }
 /** One in-app notification. API: the backend's logical notification (Module 33) — `link` is derived from the allow-listed action target, never from a stored URL. */
 export type Notification = { id: string; kind: NotificationKind; icon: NotificationIcon; title: string; text: string; at: string; read: boolean; link?: string; category?: string; type?: string; action?: NotificationAction }
 export type NotificationChannel = 'PUSH' | 'SMS' | 'EMAIL' | 'IN_APP'

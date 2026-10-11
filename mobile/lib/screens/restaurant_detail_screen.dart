@@ -18,6 +18,8 @@ import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
 import '../state/journey_state.dart';
 import '../review/review_models.dart';
+import '../review/api_review.dart';
+import '../review/restaurant_reviews.dart';
 import '../state/order_state.dart';
 import '../widgets/common.dart';
 import 'restaurants_screen.dart' show DiscoveryMapShell;
@@ -199,7 +201,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
         Padding(padding: const EdgeInsets.only(top: 8), child: Text(S.t('rd.info.hoursZone', {'zone': rest.timezone}), style: const TextStyle(color: Brand.grey, fontSize: 11.5))),
       ])),
       const SizedBox(height: 12),
-      _ReviewSummaryCard(restaurant: rest),
+      reviewsFromApi ? RestaurantReviews(slug: rest.slug) : _ReviewSummaryCard(restaurant: rest),
       const SizedBox(height: 12),
       SectionCard(title: S.t('rd.info.contact'), icon: Icons.call_outlined, child: rest.phone == null && rest.website == null && rest.email == null
           ? Text(S.t('rd.info.contactNone'), style: const TextStyle(color: Brand.grey, fontSize: 13))

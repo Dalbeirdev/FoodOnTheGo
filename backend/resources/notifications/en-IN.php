@@ -41,8 +41,9 @@ return [
         'in_app' => ['title' => 'Picked up', 'body' => 'Order :order was handed over at :restaurant. Enjoy your meal.'],
     ],
     'order.completed' => [
-        'version' => 1,
-        'in_app' => ['title' => 'Order completed', 'body' => 'Order :order at :restaurant is complete. Your receipt is in the order.'],
+        // v2 (Module 34): the completion notice carries the review invitation — one notice, no separate reminder.
+        'version' => 2,
+        'in_app' => ['title' => 'Order completed', 'body' => 'Order :order at :restaurant is complete. Your receipt is in the order, and you can rate your experience there.'],
         'email' => ['subject' => 'Your FoodOnTheGo order :order is complete', 'body' => 'Order :order at :restaurant is complete. The receipt is available in the app.'],
     ],
     'order.cancelled' => [
@@ -62,6 +63,19 @@ return [
         'push' => ['title' => 'Payment received', 'body' => 'We received your payment and are finalising order :order. No need to pay again.'],
         'in_app' => ['title' => 'Payment received, finalising your order', 'body' => 'We received your payment for order :order and are finalising it. You do not need to pay again; we will update you here.'],
         'email' => ['subject' => 'Payment received for your FoodOnTheGo order :order', 'body' => 'We received your payment for order :order and are finalising it. You do not need to pay again.'],
+    ],
+    'review.response' => [
+        'version' => 1,
+        'push' => ['title' => ':restaurant replied to your review', 'body' => 'Open the app to read the reply to your review of order :order.'],
+        'in_app' => ['title' => ':restaurant replied to your review', 'body' => 'The restaurant has replied to your review of order :order.'],
+    ],
+    'review.published' => [
+        'version' => 1,
+        'in_app' => ['title' => 'Your review is published', 'body' => 'Your review of :restaurant for order :order is now public. Thank you for sharing it.'],
+    ],
+    'review.moderated' => [
+        'version' => 1,
+        'in_app' => ['title' => 'Your review is not shown', 'body' => 'Your review of :restaurant for order :order is not shown publicly because it does not meet the review guidelines. Contact support if you think this is a mistake.'],
     ],
     'account.phone_changed' => [
         'version' => 1,

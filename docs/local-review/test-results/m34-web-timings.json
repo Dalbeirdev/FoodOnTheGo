@@ -1,0 +1,22 @@
+{
+  "module": "M34",
+  "measured_at": "2026-10-11T14:09:48.820Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, one local queue worker. review_submit = the POST from the review page until its answer; public_list = GET /restaurants/{slug}/reviews; admin_list = GET /admin/reviews?reported=true. Measurements, not targets.",
+  "timings": {
+    "review_submit": {
+      "n": 1,
+      "median_ms": 438,
+      "max_ms": 438
+    },
+    "public_list": {
+      "n": 1,
+      "median_ms": 310,
+      "max_ms": 310
+    },
+    "admin_list": {
+      "n": 1,
+      "median_ms": 937,
+      "max_ms": 937
+    }
+  }
+}

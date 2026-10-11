@@ -1015,3 +1015,18 @@ PENDING FIREBASE CONFIGURATION), e-mail goes to the local mailer (REAL EMAIL PRO
 PENDING). Devices are bound to the signed-in customer per installation (encrypted token + hash; logout, rebinding, token reassignment
 and dead tokens end a binding). Retries use bounded exponential backoff; stranded deliveries are swept; retention prunes. Nothing here
 changes an order. Details: [`notifications.md`](notifications.md).
+
+## 22. Reviews: verified order ratings, restaurant reputation, moderation (Module 34)
+
+Built 2026-10-11 (local). One review per COMPLETED order of the customer who placed it (`UNIQUE(order_id)`); the customer, the
+organization, the location and the market come from the order, never from the request, and "verified" cannot be sent. Eligibility
+(`ELIGIBLE`, `ORDER_NOT_COMPLETED`, `ORDER_NOT_OWNED`, `REVIEW_ALREADY_EXISTS`, `REVIEW_WINDOW_EXPIRED`, `ORDER_NOT_ELIGIBLE`) is
+decided on the server; the windows (30 days to review, 72 hours / 3 edits) are DEVELOPMENT DEFAULTS, PENDING BUSINESS APPROVAL.
+A rule-based screening (links, contact details, spam phrases, repeated text — not AI moderation) holds a review for a person and
+never rejects one; a low rating is never a flag. Moderators publish / hide / reject / restore with a reason and a version check,
+inside their market scope; every decision is audited. A restaurant answers once per review and may report a review, and has no way
+to change or remove one. The rating of a location is recalculated from PUBLISHED reviews in the same transaction as the change
+(advisory lock per location; no reviews = no average, shown as "New"); discovery sorts and filters by it deterministically, with no
+ranking formula. Notifications reuse Module 33 (`review.response`, `review.published`, `review.moderated`; the invitation is one
+line of `order.completed`, no reminder). Not built: review photos, AI moderation, a confidence-adjusted ranking, restaurant-side
+review notifications, helpful votes. Details: [`reviews.md`](reviews.md).

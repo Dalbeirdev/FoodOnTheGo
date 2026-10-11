@@ -8,7 +8,7 @@ export type DiscoveryStatus = 'idle' | 'loading' | 'updating' | 'loadingMore' | 
 
 /** Development (browser) journeys rank by sample ratings too; a backend journey offers only what the API can order by. */
 const MOCK_SORTS: SortKey[] = ['recommended', 'lowestDetour', 'nearestToRoute', 'highestRated', 'fastestPickup']
-const API_SORTS: Record<string, SortKey> = { recommended: 'recommended', lowest_detour: 'lowestDetour', route_order: 'routeOrder', nearest_to_route: 'nearestToRoute', fastest_pickup: 'fastestPickup' }
+const API_SORTS: Record<string, SortKey> = { recommended: 'recommended', lowest_detour: 'lowestDetour', route_order: 'routeOrder', nearest_to_route: 'nearestToRoute', fastest_pickup: 'fastestPickup', highest_rated: 'highestRated' }
 
 /**
  * Discovery state for /restaurants: debounced search, data-driven filters, sort, corridor width,

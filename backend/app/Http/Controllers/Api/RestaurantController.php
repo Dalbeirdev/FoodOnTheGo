@@ -44,7 +44,9 @@ class RestaurantController extends Controller
      * Filters: filter[city] (slug), filter[region] (code), filter[service_area] (slug), filter[cuisine] (codes,
      * any of), filter[feature] (codes, all of), filter[open_now]=true, filter[price_level].
      * ?q= searches names and cuisines. ?lat=&lng= adds the straight-line distance, sorts by it and allows
-     * ?radius_meters=. Sort: name, distance.
+     * ?radius_meters=. Sort: name, distance, rating (use -rating: highest first — the average of the published reviews,
+     * then their number, then the name; restaurants without a review come last; no other weighting is applied).
+     * filter[min_rating] (1–5) keeps restaurants whose average is at least that.
      */
     public function index(Request $request): AnonymousResourceCollection
     {
@@ -81,10 +83,18 @@ class RestaurantController extends Controller
                     ->whereColumn('lc.location_id', 'restaurant_locations.id')->where('c.name', 'ilike', $like)));
         }
 
+        // Module 34: the rating of each row for sorting (0 stands for "no review yet", so those rows end up last).
+        $query->selectRaw('coalesce((select rs.average_rating from restaurant_location_rating_summaries rs where rs.location_id = restaurant_locations.id and rs.published_count > 0), 0) as rating')
+            ->selectRaw('coalesce((select rs.published_count from restaurant_location_rating_summaries rs where rs.location_id = restaurant_locations.id), 0) as review_count');
+        if (in_array('-rating', array_map('trim', explode(',', (string) $request->query('sort', ''))), true)) {
+            // One documented order, decided here and not by the client: average, then number of reviews, then name.
+            $query->orderByDesc('rating')->orderByDesc('review_count')->orderBy('restaurant_locations.name');
+        }
+
         $list = new ListQuery(
             $request,
-            filterable: ['price_level'],
-            sortable: $near ? ['name', 'distance'] : ['name'],
+            filterable: ['price_level', 'min_rating'],
+            sortable: $near ? ['name', 'distance', 'rating'] : ['name', 'rating'],
             defaultSort: $near ? 'distance' : 'name',
             handlers: $this->filters($market, $now),
         );
@@ -157,7 +167,7 @@ class RestaurantController extends Controller
     private function relations(): array
     {
         return [
-            'organization', 'market', 'city', 'region', 'cuisines', 'features', 'images', 'hours', 'pickupSettings', 'pickupMethods',
+            'organization', 'market', 'city', 'region', 'cuisines', 'features', 'images', 'hours', 'pickupSettings', 'pickupMethods', 'ratingSummary',
             'specialHours' => fn ($query) => $query->where('date', '>=', now()->subDays(2)->toDateString()),
             'specialHours.periods',
         ];
@@ -186,6 +196,13 @@ class RestaurantController extends Controller
                     $query->whereExists(fn ($feature) => $feature->selectRaw('1')->from('restaurant_location_features as ff')->join('restaurant_features as f', 'f.id', '=', 'ff.feature_id')
                         ->whereColumn('ff.location_id', 'restaurant_locations.id')->where('f.code', $code));
                 }
+            },
+            'min_rating' => function (Builder $query, string $value): void {
+                if (! is_numeric($value) || (float) $value < 1 || (float) $value > 5) {
+                    throw ValidationException::withMessages(['filter.min_rating' => ['Use a number from 1 to 5.']]);
+                }
+                $query->whereExists(fn ($summary) => $summary->selectRaw('1')->from('restaurant_location_rating_summaries as fr')
+                    ->whereColumn('fr.location_id', 'restaurant_locations.id')->where('fr.published_count', '>', 0)->where('fr.average_rating', '>=', round((float) $value, 2)));
             },
             'open_now' => function (Builder $query, string $value) use ($now): void {
                 if (! in_array($value, ['true', '1', 'false', '0'], true)) {

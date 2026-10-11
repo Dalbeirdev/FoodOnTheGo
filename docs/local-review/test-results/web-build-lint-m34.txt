@@ -1,0 +1,34 @@
+# Module 34 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-11T16:33:08Z UTC, local machine
+# Every mode = api in the local build (incl. VITE_REVIEW_MODE=api); unit tests always run the development mocks or scripted repositories.
+# New test files of this module: src/review/api/apiReview.test.ts (7), src/review/restaurantReviews.test.tsx (6), src/dashboard/api/apiReviews.test.tsx (8), src/admin/api/ApiAdminReviewRepository.test.tsx (9).
+
+## tsc --noEmit -p tsconfig.app.json
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/dashboard/pages/MenuPage.tsx:19:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:20:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:68:40: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/dashboard/pages/MenuPage.tsx:122:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/PaymentPage.tsx:117:20: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/pages/PaymentPage.tsx:78:67: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+(oxlint exit 0; 0 errors; 123 warnings. The committed tree before Module 34 (HEAD 3bfcbfd) has 123 as well: no new warning. The three below are of a kind the code base already carries — setState in a loading effect — in files this module touched.)
+warnings per file changed or added by this module:
+src/dashboard/pages/ReviewsPage.tsx:22:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with
+src/pages/ReviewPage.tsx:81:20: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external s
+src/review/useReviewEntry.ts:15:34: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with extern
+
+## vitest run
+ Test Files  60 passed (60)
+      Tests  738 passed (738)
+   Duration  29.51s (tests 59%, environment 24%, transform 8%, import 5%, setup 4%)
+
+## vite build (npm run build)
+dist/assets/index-BvGC1JNv.js         1,312.66 kB │ gzip: 364.90 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 556ms[39m

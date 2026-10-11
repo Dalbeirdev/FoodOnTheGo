@@ -476,6 +476,7 @@ String? notificationRoute(String? target, String? reference) {
     case 'ORDER_TRACKING': return ref == null ? '/my-orders' : '/order-tracking/$ref';
     case 'ORDER_DETAIL':
     case 'PAYMENT_STATUS': return ref == null ? '/my-orders' : '/order/$ref';
+    case 'REVIEW': return ref == null ? '/my-reviews' : '/order/$ref/review';
     case 'ACCOUNT_SECURITY': return '/my-profile';
     case 'PROMOTION': return '/restaurants';
     default: return null;
