@@ -3,9 +3,14 @@
 namespace App\Services\Payment\Providers;
 
 use App\Contracts\Payment\PaymentProvider;
+use App\Enums\DisputeStatus;
 use App\Enums\ProviderPaymentState;
+use App\Enums\ProviderRefundState;
 use App\Exceptions\ProviderException;
+use App\Exceptions\ProviderRefundRejected;
+use App\Services\Payment\Data\ProviderDispute;
 use App\Services\Payment\Data\ProviderPayment;
+use App\Services\Payment\Data\ProviderRefund;
 use App\Services\Payment\Data\ProviderRefundRequest;
 use App\Services\Payment\Data\ProviderSession;
 use App\Services\Payment\Data\ProviderSessionRequest;
@@ -26,6 +31,18 @@ use InvalidArgumentException;
  *   payments   GET  /v1/orders/{id}/payments, GET /v1/payments/{id}
  *   proof      hex HMAC-SHA256(order_id + "|" + payment_id, key secret) — with OUR order id, never the returned one
  *   webhook    header X-Razorpay-Signature = hex HMAC-SHA256(raw body, webhook secret); X-Razorpay-Event-Id is unique per event
+ *
+ * Refunds and disputes, as documented by Razorpay on 2026-10-11 (docs/backend/refunds.md lists the pages):
+ *
+ *   refund     POST /v1/payments/{id}/refund   amount in currency subunits, speed, receipt (unique — "duplicate receipt" is
+ *                                              refused), notes; header X-Refund-Idempotency (the same key + body = the same refund)
+ *   lookups    GET  /v1/payments/{id}/refunds/{refund_id}, GET /v1/payments/{id}/refunds
+ *   statuses   pending (accepted, with the bank) · processed (completed) · failed
+ *   events     refund.created / refund.processed / refund.failed; payment.dispute.created / under_review /
+ *              action_required / won / lost / closed
+ *   dispute    GET  /v1/disputes/{id}          open · under_review · won · lost · closed; amount_deducted once lost
+ *
+ * NOT EXERCISED against Razorpay: there is no Razorpay account on this machine. The shapes are the documented ones.
  *
  * Nothing of Razorpay's vocabulary leaves this class: states become ProviderPaymentState, methods become the
  * application's method types, and of a payment only safe fields are kept (never an e-mail, a phone number, a full
@@ -48,7 +65,20 @@ final class RazorpayPaymentProvider implements PaymentProvider
         'payment.captured' => ProviderWebhook::PAYMENT_CAPTURED,
         'payment.failed' => ProviderWebhook::PAYMENT_FAILED,
         'order.paid' => ProviderWebhook::ORDER_PAID,
+        // Module 35 (the events documented on 2026-10-11). "refund.speed_changed" changes nothing here and is not handled.
+        'refund.created' => ProviderWebhook::REFUND_CREATED,
+        'refund.processed' => ProviderWebhook::REFUND_PROCESSED,
+        'refund.failed' => ProviderWebhook::REFUND_FAILED,
+        'payment.dispute.created' => ProviderWebhook::DISPUTE_CREATED,
+        'payment.dispute.under_review' => ProviderWebhook::DISPUTE_UPDATED,
+        'payment.dispute.action_required' => ProviderWebhook::DISPUTE_UPDATED,
+        'payment.dispute.won' => ProviderWebhook::DISPUTE_WON,
+        'payment.dispute.lost' => ProviderWebhook::DISPUTE_LOST,
+        'payment.dispute.closed' => ProviderWebhook::DISPUTE_CLOSED,
     ];
+
+    /** The provider's idempotency header for refunds: the same key with the same body is the same refund. */
+    private const REFUND_IDEMPOTENCY_HEADER = 'X-Refund-Idempotency';
 
     /**
      * @param  array{key_id?: ?string, key_secret?: ?string, webhook_secret?: ?string, mode?: ?string, base_url?: ?string, timeout?: int|string|null, allow_live?: bool, capture?: array<string, mixed>, methods?: ?array<int, string>}  $config
@@ -191,6 +221,8 @@ final class RazorpayPaymentProvider implements PaymentProvider
         }
         $payment = $event['payload']['payment']['entity'] ?? null;
         $order = $event['payload']['order']['entity'] ?? null;
+        $refund = $event['payload']['refund']['entity'] ?? null;
+        $dispute = $event['payload']['dispute']['entity'] ?? null;
         $mapped = is_array($payment) && is_string($payment['id'] ?? null) ? self::mapPayment($payment) : null;
         $eventId = trim((string) ($headers[self::EVENT_ID_HEADER] ?? ''));
 
@@ -201,6 +233,9 @@ final class RazorpayPaymentProvider implements PaymentProvider
             orderReference: self::reference(is_array($order) ? ($order['id'] ?? null) : null) ?? $mapped?->orderReference,
             payment: $mapped,
             createdAt: is_int($event['created_at'] ?? null) ? CarbonImmutable::createFromTimestampUTC($event['created_at']) : null,
+            // Module 35: of a refund / dispute event only the refund's and the dispute's own safe fields are read.
+            refund: is_array($refund) && is_string($refund['id'] ?? null) ? self::mapRefund($refund) : null,
+            dispute: is_array($dispute) && is_string($dispute['id'] ?? null) ? self::mapDispute($dispute, $event['event']) : null,
         );
     }
 
@@ -211,26 +246,97 @@ final class RazorpayPaymentProvider implements PaymentProvider
         return is_array($methods) && $methods !== [] ? array_values(array_map('strval', $methods)) : null;
     }
 
-    public function refund(ProviderRefundRequest $request): array
+    /* ------------------------------------------------------------------ refunds and disputes (Module 35) */
+
+    public function createRefund(ProviderRefundRequest $request): ProviderRefund
     {
         self::assertReference($request->paymentReference, 'pay_');
+        $body = [
+            'amount' => self::providerAmount($request->amount),
+            // "normal": back to the method that paid, through the bank's own refund rails. No instant refund is asked for.
+            'speed' => 'normal',
+            'receipt' => $request->receipt,
+        ];
+        if ($request->notes !== []) {
+            $body['notes'] = (object) array_slice(array_map(fn (string $v): string => mb_substr($v, 0, 256), $request->notes), 0, 15, true);
+        }
         try {
-            $response = $this->request()->post("/payments/{$request->paymentReference}/refund", [
-                'amount' => self::providerAmount($request->amount),
-                'speed' => 'normal',
-                'receipt' => $request->receipt,
-            ]);
+            $response = $this->request()->withHeaders([self::REFUND_IDEMPOTENCY_HEADER => $request->key()])->post("/payments/{$request->paymentReference}/refund", $body);
         } catch (ConnectionException $e) {
+            // The request may have arrived. Whether the refund exists is not known.
             throw ProviderException::timeout(self::NAME, $e);
         }
-        $refund = $this->answered($response);
+        if ($response->serverError()) {
+            throw ProviderException::timeout(self::NAME); // the provider may have created it before it failed to answer
+        }
+        if ($response->status() === 409) {
+            // The same idempotency key is still being worked on (or was used with another body): nothing is concluded.
+            throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::IDEMPOTENCY_CONFLICT);
+        }
+        if ($response->status() === 400) {
+            throw new ProviderRefundRejected(self::NAME, self::refundRefusal((string) $response->json('error.description')));
+        }
+        $refund = self::mapRefund($this->answered($response));
+        if ($refund->paymentReference !== $request->paymentReference) {
+            throw ProviderException::unavailable(self::NAME, 'a refund answer for another payment');
+        }
 
-        return [
-            'reference' => (string) ($refund['id'] ?? ''),
-            'status' => strtoupper((string) ($refund['status'] ?? 'UNKNOWN')),
-            'amount_minor' => (int) ($refund['amount'] ?? 0),
-            'currency' => strtoupper((string) ($refund['currency'] ?? $request->amount->currency)),
-        ];
+        return $refund;
+    }
+
+    public function refund(string $paymentReference, string $refundReference): ProviderRefund
+    {
+        self::assertReference($paymentReference, 'pay_');
+        self::assertReference($refundReference, 'rfnd_');
+        $response = $this->send(fn () => $this->request()->get("/payments/{$paymentReference}/refunds/{$refundReference}"));
+        if (in_array($response->status(), [400, 404], true)) {
+            throw ProviderException::notFound(self::NAME);
+        }
+
+        return self::mapRefund($this->answered($response));
+    }
+
+    public function refundsOfPayment(string $paymentReference): array
+    {
+        self::assertReference($paymentReference, 'pay_');
+        $response = $this->answered($this->send(fn () => $this->request()->get("/payments/{$paymentReference}/refunds", ['count' => 100])));
+
+        return array_values(array_map(fn (array $r): ProviderRefund => self::mapRefund($r), array_filter((array) ($response['items'] ?? []), 'is_array')));
+    }
+
+    public function dispute(string $disputeReference): ProviderDispute
+    {
+        self::assertReference($disputeReference, 'disp_');
+        $response = $this->send(fn () => $this->request()->get("/disputes/{$disputeReference}"));
+        if (in_array($response->status(), [400, 404], true)) {
+            throw ProviderException::notFound(self::NAME);
+        }
+
+        return self::mapDispute($this->answered($response));
+    }
+
+    /**
+     * Why the provider refused a refund, as one of our own words. The provider's sentence is read here and goes no
+     * further (the documented sentences of 2026-10-11; an unknown one is simply REJECTED).
+     */
+    public static function refundRefusal(string $description): string
+    {
+        $d = strtolower($description);
+
+        return match (true) {
+            str_contains($d, 'duplicate receipt') => ProviderRefundRejected::DUPLICATE_RECEIPT,
+            str_contains($d, 'fully refunded') => ProviderRefundRejected::ALREADY_REFUNDED,
+            str_contains($d, 'greater than') || str_contains($d, 'more than') || str_contains($d, 'exceed') => ProviderRefundRejected::AMOUNT_EXCEEDS_AVAILABLE,
+            str_contains($d, 'balance') => ProviderRefundRejected::INSUFFICIENT_BALANCE,
+            str_contains($d, 'dispute') => ProviderRefundRejected::DISPUTE_BLOCK,
+            str_contains($d, 'in progress') => ProviderRefundRejected::OPERATION_IN_PROGRESS,
+            str_contains($d, 'partial') => ProviderRefundRejected::PARTIAL_NOT_SUPPORTED,
+            str_contains($d, 'captured') => ProviderRefundRejected::PAYMENT_NOT_CAPTURED,
+            str_contains($d, 'months') || str_contains($d, 'older') => ProviderRefundRejected::PAYMENT_TOO_OLD,
+            str_contains($d, 'not supported') || str_contains($d, 'does not support') => ProviderRefundRejected::METHOD_NOT_SUPPORTED,
+            str_contains($d, 'not enabled') || str_contains($d, 'disabled') || str_contains($d, 'not allowed') => ProviderRefundRejected::REFUNDS_DISABLED,
+            default => ProviderRefundRejected::REJECTED,
+        };
     }
 
     /**
@@ -407,6 +513,73 @@ final class RazorpayPaymentProvider implements PaymentProvider
         [$name, $handle] = explode('@', $vpa, 2);
 
         return mb_substr($name, 0, 2).'***@'.mb_substr($handle, 0, 24);
+    }
+
+    /**
+     * @param  array<string, mixed>  $r
+     */
+    private static function mapRefund(array $r): ProviderRefund
+    {
+        $reference = self::reference($r['id'] ?? null);
+        $payment = self::reference($r['payment_id'] ?? null);
+        $currency = strtoupper((string) ($r['currency'] ?? ''));
+        if ($reference === null || ! str_starts_with($reference, 'rfnd_') || $payment === null || ! is_int($r['amount'] ?? null) || preg_match('/\A[A-Z]{3}\z/', $currency) !== 1) {
+            throw ProviderException::unavailable(self::NAME, 'a refund answer that cannot be read');
+        }
+        $status = strtolower((string) ($r['status'] ?? ''));
+        $acquirer = is_array($r['acquirer_data'] ?? null) ? $r['acquirer_data'] : [];
+
+        return new ProviderRefund(
+            reference: $reference,
+            paymentReference: $payment,
+            state: match ($status) {
+                // "pending": accepted and with the bank. "processed": completed. "failed": the provider could not make it.
+                'pending', 'created' => ProviderRefundState::Pending,
+                'processed' => ProviderRefundState::Processed,
+                'failed' => ProviderRefundState::Failed,
+                default => ProviderRefundState::Unknown,
+            },
+            providerStatus: mb_substr($status, 0, 24),
+            amount: new Money($r['amount'], $currency),
+            receipt: self::text($r['receipt'] ?? null, 40),
+            traceReference: self::text($acquirer['arn'] ?? $acquirer['rrn'] ?? $acquirer['utr'] ?? null),
+            createdAt: is_int($r['created_at'] ?? null) ? CarbonImmutable::createFromTimestampUTC($r['created_at']) : null,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $d
+     */
+    private static function mapDispute(array $d, ?string $event = null): ProviderDispute
+    {
+        $reference = self::reference($d['id'] ?? null);
+        $payment = self::reference($d['payment_id'] ?? null);
+        $currency = strtoupper((string) ($d['currency'] ?? ''));
+        if ($reference === null || ! str_starts_with($reference, 'disp_') || $payment === null || ! is_int($d['amount'] ?? null) || preg_match('/\A[A-Z]{3}\z/', $currency) !== 1) {
+            throw ProviderException::unavailable(self::NAME, 'a dispute answer that cannot be read');
+        }
+        $word = strtolower((string) ($d['status'] ?? ''));
+        $status = match ($word) {
+            'open' => $event === 'payment.dispute.action_required' ? DisputeStatus::ActionRequired : DisputeStatus::Open,
+            'under_review' => DisputeStatus::UnderReview,
+            'won' => DisputeStatus::Won,
+            'lost' => DisputeStatus::Lost,
+            'closed' => DisputeStatus::Closed,
+            default => DisputeStatus::Unknown,
+        };
+
+        return new ProviderDispute(
+            reference: $reference,
+            paymentReference: $payment,
+            status: $status,
+            providerStatus: mb_substr($word, 0, 24),
+            amount: new Money($d['amount'], $currency),
+            amountDeductedMinor: is_int($d['amount_deducted'] ?? null) ? max(0, $d['amount_deducted']) : 0,
+            phase: self::text($d['phase'] ?? null, 24),
+            reasonCode: self::text($d['reason_code'] ?? null),
+            respondBy: is_int($d['respond_by'] ?? null) ? CarbonImmutable::createFromTimestampUTC($d['respond_by']) : null,
+            createdAt: is_int($d['created_at'] ?? null) ? CarbonImmutable::createFromTimestampUTC($d['created_at']) : null,
+        );
     }
 
     private static function text(mixed $value, int $max = 64): ?string

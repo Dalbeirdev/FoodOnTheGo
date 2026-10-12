@@ -61,7 +61,8 @@ final class BroadcastOrderUpdate
             'ready_at' => $order->ready_at?->toIso8601String(),
             'occurred_at' => ($line?->occurred_at ?? $order->updated_at ?? now())->toIso8601String(),
         ];
-        $customer = $base + ['message_key' => self::MESSAGE_KEYS[$order->status->value] ?? 'order.updated'];
+        // The customer's channel gets the customer's word for the refund status (never FAILED / REVIEW_REQUIRED).
+        $customer = array_replace($base, ['refund_status' => $order->refund_status->forCustomer()]) + ['message_key' => self::MESSAGE_KEYS[$order->status->value] ?? 'order.updated'];
         $restaurant = $base + [
             'item_count' => (int) $order->item_count,
             'pickup_slot_starts_at' => $order->pickup_slot_starts_at?->toIso8601String(),

@@ -15,7 +15,9 @@ export function groupOf(status: OrderStatus): Exclude<OrderGroup, 'all'> {
 }
 export const isTrackable = (s: OrderStatus) => ONGOING.has(s) && s !== 'PAYMENT_PENDING'
 export const isReviewable = (s: OrderStatus) => COMPLETED.has(s)
-export const hasRefund = (p: OrderPaymentStatus) => p === 'REFUND_PENDING' || p === 'PARTIALLY_REFUNDED' || p === 'REFUNDED'
+export const hasRefund = (p: OrderPaymentStatus) => p === 'REFUND_PENDING' || p === 'REFUND_PROCESSING' || p === 'PARTIALLY_REFUNDED' || p === 'REFUNDED' || p === 'REFUND_UNDER_REVIEW'
+/** A refund is owed, on its way or being looked at: the state can still change, so the page keeps asking. */
+export const refundOpen = (p: OrderPaymentStatus) => p === 'REFUND_PENDING' || p === 'REFUND_PROCESSING' || p === 'REFUND_UNDER_REVIEW'
 
 const norm = (s: string) => s.normalize('NFKD').toLowerCase()
 export function matchesQuery(o: OrderSummary, q: string): boolean {

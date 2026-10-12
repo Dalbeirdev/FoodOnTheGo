@@ -4,7 +4,10 @@ import type { Page } from '../types'
 /**
  * Payments for administrators, from the backend (Module 30): the real payment attempts with their timelines and the
  * provider's events. There is one action — "ask the provider again" — and it changes only what the provider
- * confirms; nothing here can mark a payment as paid, edit an amount or issue a refund.
+ * confirms; nothing here can mark a payment as paid or edit an amount.
+ *
+ * Module 35: a payment's refunds are listed with it (the payment itself stays what it was — a refunded payment is still
+ * VERIFIED), and for a payment that never became an order a refund can be ASKED for; that request lives in the refund domain.
  */
 export type BackendPaymentStatus = 'CREATED' | 'PROVIDER_READY' | 'PROCESSING' | 'PENDING' | 'AUTHORIZED' | 'VERIFIED' | 'FAILED' | 'CANCELLED' | 'EXPIRED' | 'UNKNOWN' | 'REVIEW_REQUIRED'
 export type BackendFulfillment = 'NOT_APPLICABLE' | 'ORDER_PENDING' | 'RECOVERY_REQUIRED' | 'ORDER_CREATED'
@@ -27,7 +30,10 @@ type DetailDto = RowDto & {
   reconciliation: { runs: number; last_at: string | null; next_at: string | null }
   timeline: Array<{ at: string | null; type: string; source: string; from: string | null; to: string | null; detail: Record<string, unknown> }>
   webhook_events: Array<{ id: string; type: string; normalized_type: string | null; received_at: string | null; processed_at: string | null; processing_status: string; outcome: string | null; deliveries: number; failure_reason: string | null }>
-  actions: { mark_paid: false; refund: 'NOT_IMPLEMENTED' }
+  actions: { mark_paid: false; refund: boolean | 'NOT_IMPLEMENTED'; mark_refunded?: 'NOT_PROVIDED' }
+  refunds?: Array<{ id: string; reference: string; type: 'FULL' | 'PARTIAL'; amount: { amount: number; currency: string }; reason: string; status: string; requested_at: string | null; completed_at: string | null }>
+  refund_balance?: { paid: { amount: number }; refunded: { amount: number }; in_flight: { amount: number }; charged_back: { amount: number }; available: { amount: number } }
+  disputes?: Array<{ id: string; status: string; open: boolean; amount: { amount: number; currency: string }; reason_code: string | null; respond_by_at: string | null }>
 }
 type ListDto = { data: RowDto[]; meta: { total: number; current_page: number; per_page: number } }
 
@@ -48,6 +54,11 @@ export type BackendPaymentDetail = BackendPayment & {
   reconciliation: { runs: number; lastAt: string | null; nextAt: string | null }
   timeline: Array<{ at: string | null; type: string; source: string; from: string | null; to: string | null }>
   webhookEvents: Array<{ id: string; type: string; receivedAt: string | null; processingStatus: string; outcome: string | null; deliveries: number }>
+  /** Module 35: the refunds of this payment, what it can still give back, its disputes, and whether a refund of it can be asked for here. */
+  refunds: Array<{ id: string; reference: string; type: 'FULL' | 'PARTIAL'; amountMinor: number; currency: string; reason: string; status: string }>
+  refundBalance: { paidMinor: number; refundedMinor: number; inFlightMinor: number; availableMinor: number } | null
+  disputes: Array<{ id: string; status: string; open: boolean; amountMinor: number; currency: string }>
+  canRequestRefund: boolean
 }
 export type PaymentFilter = { query?: string; status?: BackendPaymentStatus | 'all'; method?: string; attention?: boolean; page?: number; pageSize?: number }
 
@@ -70,6 +81,11 @@ const detail = (d: DetailDto): BackendPaymentDetail => ({
   reconciliation: { runs: d.reconciliation.runs, lastAt: d.reconciliation.last_at, nextAt: d.reconciliation.next_at },
   timeline: d.timeline.map((e) => ({ at: e.at, type: e.type, source: e.source, from: e.from, to: e.to })),
   webhookEvents: d.webhook_events.map((e) => ({ id: e.id, type: e.type, receivedAt: e.received_at, processingStatus: e.processing_status, outcome: e.outcome, deliveries: e.deliveries })),
+  refunds: (d.refunds ?? []).map((r) => ({ id: r.id, reference: r.reference, type: r.type, amountMinor: r.amount.amount, currency: r.amount.currency, reason: r.reason, status: r.status })),
+  refundBalance: d.refund_balance ? { paidMinor: d.refund_balance.paid.amount, refundedMinor: d.refund_balance.refunded.amount, inFlightMinor: d.refund_balance.in_flight.amount, availableMinor: d.refund_balance.available.amount } : null,
+  disputes: (d.disputes ?? []).map((x) => ({ id: x.id, status: x.status, open: x.open, amountMinor: x.amount.amount, currency: x.amount.currency })),
+  // Only "true" from the backend offers the request: a payment that became an order is refunded through the order.
+  canRequestRefund: d.actions.refund === true,
 })
 
 const A = { context: 'admin' as const }

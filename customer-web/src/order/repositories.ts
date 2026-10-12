@@ -10,7 +10,13 @@
  *  - Reloading a confirmation never creates another order, payment or pickup code.
  */
 export type OrderStatus = 'PAYMENT_PENDING' | 'CONFIRMED' | 'AWAITING_RESTAURANT_ACCEPTANCE' | 'ACCEPTED' | 'PREPARING' | 'READY_FOR_PICKUP' | 'PICKUP_VERIFICATION' | 'PICKED_UP' | 'COMPLETED' | 'CANCELLED' | 'REJECTED' | 'REFUND_PENDING' | 'REFUNDED'
-export type OrderPaymentStatus = 'PAYMENT_PENDING' | 'PAID' | 'FAILED' | 'REFUND_PENDING' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
+/**
+ * How the money of an order stands, for display. The refund values follow the backend's derived refund status (Module 35):
+ * REFUND_PENDING = a refund is owed and not approved yet; REFUND_PROCESSING = approved or with the payment provider, not
+ * confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider; REFUND_UNDER_REVIEW = FoodOnTheGo is looking at it.
+ * A refund never turns the payment into FAILED.
+ */
+export type OrderPaymentStatus = 'PAYMENT_PENDING' | 'PAID' | 'FAILED' | 'REFUND_PENDING' | 'REFUND_PROCESSING' | 'PARTIALLY_REFUNDED' | 'REFUNDED' | 'REFUND_UNDER_REVIEW'
 export type PickupVerificationStatus = 'NOT_READY' | 'READY' | 'VERIFICATION_AVAILABLE' | 'VERIFIED' | 'ALREADY_USED' | 'INVALID' | 'EXPIRED'
 
 export type OrderOptionSnapshot = { groupName: string; optionName: string; priceAdjustmentMinor: number }
@@ -90,6 +96,17 @@ export type OrderEvent = {
 /** What the backend says the customer may do about a review of this order (Module 34). Absent on development orders. */
 export type OrderReviewInfo = { state: 'ELIGIBLE' | 'REVIEWED' | 'REMOVED' | 'NOT_ELIGIBLE'; reason: string; windowEndsAt: string | null; reviewId: string | null; overallRating: number | null; canEdit: boolean }
 
+/** One refund of an order as the customer may see it (Module 35). No provider reference, no approval detail. */
+export type OrderRefundStatus = 'REQUIRED' | 'PROCESSING' | 'REFUNDED' | 'UNDER_REVIEW'
+export type OrderRefund = { id: string; reference: string; type: 'FULL' | 'PARTIAL'; amountMinor: number; currency: string; status: OrderRefundStatus; reasonLabel: string; requestedAt: string | null; completedAt: string | null }
+/** refundedMinor = confirmed by the payment provider — nothing else counts as refunded; pendingMinor = owed or on its way. */
+export type OrderRefunds = { refundedMinor: number; pendingMinor: number; items: OrderRefund[] }
+/** Whether the customer may cancel the order themselves. The policy is the backend's (and not approved yet). */
+export type OrderCancellationInfo = { enabled: boolean; canCancel: boolean; reason: string | null }
+/** What cancelling would mean, as the backend decides it — shown before the customer confirms. */
+export type CancellationQuote = { enabled: boolean; canCancel: boolean; reason: string | null; message: string; financialEffect: 'FULL_REFUND' | 'NO_REFUND' | 'MANUAL_REVIEW' | 'NO_PAYMENT' | null; refundableMinor: number | null; currency: string; reasons: string[]; version: number }
+export type CancelOrderInput = { reasonCode: string; note: string | null; expectedVersion: number | null }
+
 export type Order = {
   /** Public, non-sequential id (ULID-like). */
   publicId: string
@@ -124,6 +141,12 @@ export type Order = {
   events: OrderEvent[]
   /** Module 34 (backend orders only). */
   review?: OrderReviewInfo
+  /** Module 35 (backend orders only): the order's refunds, whether the customer may cancel, and what a cancellation means for the money. */
+  refunds?: OrderRefunds
+  /** Module 35 (the restaurant's view of a backend order): whether money is going back and how much. No refund ids, no provider, no controls. */
+  restaurantRefund?: { status: string; amountMinor: number; refundedMinor: number; currency: string } | null
+  cancellation?: OrderCancellationInfo
+  cancellationMessage?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -205,6 +228,10 @@ export interface OrderRepository {
   listForCustomer(customerId: string): Promise<Order[]>
   /** Applies tracking events in sequence order (duplicates and stale sequences are ignored) and persists the result. */
   applyEvents(orderNumber: string, events: OrderEvent[]): Promise<Order | null>
+  /** Module 35 (backend only): what cancelling this order would mean. Absent on the development repository. */
+  cancellationQuote?(orderNumber: string): Promise<CancellationQuote | null>
+  /** Module 35 (backend only): the customer cancels their own order; refused unless the backend's policy allows it. */
+  cancel?(orderNumber: string, input: CancelOrderInput): Promise<Order | null>
 }
 export interface PickupVerificationRepository {
   getForOrder(order: Order): Promise<PickupVerification | null>

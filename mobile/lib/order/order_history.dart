@@ -18,7 +18,9 @@ const completedStatuses = {OrderStatus.pickedUp, OrderStatus.completed};
 OrderGroup groupOf(OrderStatus s) => ongoingStatuses.contains(s) ? OrderGroup.ongoing : completedStatuses.contains(s) ? OrderGroup.completed : OrderGroup.cancelled;
 bool isTrackable(OrderStatus s) => ongoingStatuses.contains(s) && s != OrderStatus.paymentPending;
 bool isReviewable(OrderStatus s) => completedStatuses.contains(s);
-bool hasRefund(OrderPaymentStatus p) => p == OrderPaymentStatus.refundPending || p == OrderPaymentStatus.partiallyRefunded || p == OrderPaymentStatus.refunded;
+bool hasRefund(OrderPaymentStatus p) => p == OrderPaymentStatus.refundPending || p == OrderPaymentStatus.refundProcessing || p == OrderPaymentStatus.partiallyRefunded || p == OrderPaymentStatus.refunded || p == OrderPaymentStatus.refundUnderReview;
+/// A refund is owed, on its way or being looked at: the state can still change, so the screens keep asking (Module 35).
+bool refundOpen(OrderPaymentStatus p) => p == OrderPaymentStatus.refundPending || p == OrderPaymentStatus.refundProcessing || p == OrderPaymentStatus.refundUnderReview;
 
 class OrderSummary {
   const OrderSummary({required this.publicId, required this.orderNumber, required this.restaurantName, required this.restaurantSlug, required this.restaurantTimezone, required this.createdAt, required this.pickupAt, required this.itemCount, required this.itemPreview, required this.currency, required this.totalMinor, required this.orderStatus, required this.paymentStatus, required this.reorderEligible, this.review});

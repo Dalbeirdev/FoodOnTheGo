@@ -32,8 +32,9 @@ use Illuminate\Support\Str;
  *
  * Reading needs admin.payments.view (for a market, or for all). The one thing an administrator can DO is ask the
  * provider again (admin.payments.reconcile, with a reason, audited) — and that changes only what the provider
- * confirms. There is no "mark as paid", no way to edit a status, an amount or a provider reference, and no refund
- * action: refunds belong to a later module.
+ * confirms. There is no "mark as paid" and no way to edit a status, an amount or a provider reference. Refunds are
+ * their own domain (Module 35, RefundController): a payment's refunds are listed here, and its state is never
+ * changed by one — a refunded payment is still VERIFIED.
  */
 class PaymentController extends Controller
 {
@@ -108,7 +109,7 @@ class PaymentController extends Controller
         $after = $this->reconciliation->reconcile($attempt, PaymentAttemptEvent::SOURCE_ADMIN, [], (int) $admin->getAuthIdentifier());
         $this->audit->record('payment.reconciled', $after, $admin, ['status' => ['from' => $before, 'to' => $after->status->value]], (string) $input['reason'], $after->market_id);
 
-        return response()->json(['payment' => $this->presenter->detailForAdmin($after->load(['customer', 'location', 'market', 'checkout', 'events', 'webhookEvents']))]);
+        return response()->json(['payment' => $this->presenter->detailForAdmin($after->load(['customer', 'location', 'market', 'checkout', 'events', 'webhookEvents', 'refunds', 'refundBalance', 'disputes']))]);
     }
 
     public function metrics(PaymentMetrics $metrics, PaymentProviderManager $providers): JsonResponse
@@ -118,7 +119,7 @@ class PaymentController extends Controller
 
     private function find(string $payment, Permission $permission): PaymentAttempt
     {
-        $attempt = PaymentAttempt::query()->with(['customer', 'location', 'market', 'checkout', 'events', 'webhookEvents'])->where('public_id', $payment)->first()
+        $attempt = PaymentAttempt::query()->with(['customer', 'location', 'market', 'checkout', 'events', 'webhookEvents', 'refunds', 'refundBalance', 'disputes'])->where('public_id', $payment)->first()
             ?? throw ApiException::notFound('payment_not_found', 'This payment does not exist.');
         $this->authorizeFor($permission, $attempt->market);
 

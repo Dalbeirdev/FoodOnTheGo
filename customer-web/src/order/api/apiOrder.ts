@@ -1,6 +1,6 @@
 import { ApiError, api } from '../../api/client'
 import { echoFor, watchTransport, type TransportState } from '../../realtime/echo'
-import type { Order, OrderEvent, OrderEventType, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRepository, OrderReviewInfo, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, CreateOrderInput } from '../repositories'
+import type { CancelOrderInput, CancellationQuote, Order, OrderEvent, OrderEventType, OrderListQuery, OrderPage, OrderPaymentStatus, OrderRefunds, OrderRepository, OrderReviewInfo, OrderStatus, OrderSummary, PickupVerification, PickupVerificationRepository, CreateOrderInput } from '../repositories'
 import type { OrderTrackingService, TrackingListener } from '../tracking'
 
 /**
@@ -12,11 +12,20 @@ import type { OrderTrackingService, TrackingListener } from '../tracking'
  *
  * The statuses of the shared model are a superset of the backend's: WAITING_FOR_RESTAURANT is shown as
  * AWAITING_RESTAURANT_ACCEPTANCE; refund states come from the order's refund_status, kept apart from its status.
+ *
+ * Module 35: refund_status is DERIVED by the backend from the order's refunds, and the order carries the refunds
+ * themselves (amount, status, reference). Nothing here infers a refund from a rejection or a cancellation, and the
+ * browser never decides whether an order may be cancelled or what a cancellation does to the money.
  */
 
 type MoneyDto = { amount: number; currency: string }
 export type BackendOrderStatus = 'WAITING_FOR_RESTAURANT' | 'ACCEPTED' | 'PREPARING' | 'READY_FOR_PICKUP' | 'PICKED_UP' | 'COMPLETED' | 'REJECTED' | 'CANCELLED'
-export type BackendRefundStatus = 'NONE' | 'REQUIRED' | 'PENDING' | 'PARTIAL' | 'REFUNDED' | 'FAILED'
+/** PENDING and PARTIAL are the names of a backend older than Module 35; they are still read. */
+/** A customer is given UNDER_REVIEW; FAILED / REVIEW_REQUIRED are the internal words the restaurant and the administrator read. */
+export type BackendRefundStatus = 'NONE' | 'REQUIRED' | 'PROCESSING' | 'PARTIALLY_REFUNDED' | 'REFUNDED' | 'UNDER_REVIEW' | 'FAILED' | 'REVIEW_REQUIRED' | 'PENDING' | 'PARTIAL'
+export type RefundDto = { id: string; reference: string; type: 'FULL' | 'PARTIAL'; amount: MoneyDto; status: 'REQUIRED' | 'PROCESSING' | 'REFUNDED' | 'UNDER_REVIEW'; reason: { code: string; label: string }; requested_at: string | null; completed_at: string | null }
+export type OrderRefundsDto = { status: BackendRefundStatus; paid: MoneyDto; refunded: MoneyDto; pending: MoneyDto; items: RefundDto[]; timing_note: string | null }
+export type CancellationQuoteDto = { enabled: boolean; policy_status: string; policy_version: string; can_cancel: boolean; reason: string | null; message: string; financial_effect: CancellationQuote['financialEffect']; refundable_amount: MoneyDto | null; reasons: string[]; order: { id: string; order_number: string; status: string; version: number } }
 type ItemDto = { id: string; item_id: string | null; slug: string | null; name: string; quantity: number; unit_price: MoneyDto; line_subtotal: MoneyDto; special_instructions: string | null; options: Array<{ kind: 'VARIANT' | 'MODIFIER'; group: string; name: string; price_adjustment: MoneyDto }> }
 type PickupDto = { mode: 'ASAP' | 'SCHEDULED'; method: string; pickup_at: string; pickup_at_local: string | null; slot: { starts_at: string | null; ends_at: string | null }; timezone: string; estimated_prep_minutes: number | null; traveler_arrival_at: string | null }
 type TimelineDto = { at: string | null; type: string; from: string | null; to: string | null; actor: string; detail: Record<string, unknown> }
@@ -38,7 +47,10 @@ export type OrderDto = OrderSummaryDto & {
   customer_note: string | null
   journey: { id: string; estimated_arrival_at: string | null; detour: unknown } | null
   rejection: { reason: string; message: string } | null
-  cancellation: { message: string } | null
+  cancellation: { by?: string; message: string } | null
+  /** Module 35: absent on answers of a backend older than the refund module. Null for an order that was never paid for. */
+  refund?: OrderRefundsDto | null
+  customer_cancellation?: { enabled: boolean; can_cancel: boolean; reason: string | null }
   pickup_credential: { code: string; qr_payload: string; status: string } | null
   timeline: TimelineDto[]
   next_action: string
@@ -51,14 +63,39 @@ export const STATUS_FROM_API: Record<BackendOrderStatus, OrderStatus> = {
   WAITING_FOR_RESTAURANT: 'AWAITING_RESTAURANT_ACCEPTANCE', ACCEPTED: 'ACCEPTED', PREPARING: 'PREPARING', READY_FOR_PICKUP: 'READY_FOR_PICKUP',
   PICKED_UP: 'PICKED_UP', COMPLETED: 'COMPLETED', REJECTED: 'REJECTED', CANCELLED: 'CANCELLED',
 }
-export function paymentStatusFromApi(refund: BackendRefundStatus): OrderPaymentStatus {
-  return refund === 'REQUIRED' || refund === 'PENDING' || refund === 'FAILED' ? 'REFUND_PENDING' : refund === 'PARTIAL' ? 'PARTIALLY_REFUNDED' : refund === 'REFUNDED' ? 'REFUNDED' : 'PAID'
+/**
+ * The order's derived refund status as the pages show it. A refund that failed or needs a person is "under review" —
+ * never "payment failed", and never "refunded". A value this build does not know is not turned into a refund state.
+ */
+export function paymentStatusFromApi(refund: BackendRefundStatus | string): OrderPaymentStatus {
+  switch (refund) {
+    case 'REQUIRED': return 'REFUND_PENDING'
+    case 'PROCESSING': case 'PENDING': return 'REFUND_PROCESSING'
+    case 'PARTIALLY_REFUNDED': case 'PARTIAL': return 'PARTIALLY_REFUNDED'
+    case 'REFUNDED': return 'REFUNDED'
+    case 'UNDER_REVIEW': case 'FAILED': case 'REVIEW_REQUIRED': return 'REFUND_UNDER_REVIEW'
+    default: return 'PAID'
+  }
 }
+export function refundsFromApi(r: OrderRefundsDto | null | undefined): OrderRefunds | undefined {
+  if (!r) return undefined
+  return {
+    refundedMinor: r.refunded.amount, pendingMinor: r.pending.amount,
+    items: r.items.map((x) => ({ id: x.id, reference: x.reference, type: x.type, amountMinor: x.amount.amount, currency: x.amount.currency, status: x.status, reasonLabel: x.reason.label, requestedAt: x.requested_at, completedAt: x.completed_at })),
+  }
+}
+export const quoteFromApi = (q: CancellationQuoteDto): CancellationQuote => ({
+  enabled: q.enabled, canCancel: q.can_cancel, reason: q.reason, message: q.message, financialEffect: q.financial_effect,
+  refundableMinor: q.refundable_amount?.amount ?? null, currency: q.refundable_amount?.currency ?? '', reasons: q.reasons, version: q.order.version,
+})
 const REASON: Record<string, string> = { ITEM_UNAVAILABLE: 'item_unavailable', KITCHEN_CAPACITY: 'capacity', CLOSING: 'restaurant_unavailable', TECHNICAL_ISSUE: 'other', OTHER: 'other' }
 const EVENT: Record<string, OrderEventType> = {
   ORDER_CREATED: 'ORDER_CREATED', WAITING_FOR_RESTAURANT: 'SENT_TO_RESTAURANT', RESTAURANT_ACCEPTED: 'RESTAURANT_ACCEPTED', RESTAURANT_REJECTED: 'RESTAURANT_REJECTED',
   PREPARATION_STARTED: 'PREPARING', READY_FOR_PICKUP: 'READY_FOR_PICKUP', CUSTOMER_PICKED_UP: 'PICKED_UP', ORDER_COMPLETED: 'COMPLETED', ORDER_CANCELLED: 'CANCELLED', REFUND_REQUIRED: 'REFUND_UPDATED',
+  // Module 35: what the customer is told about a refund changed. The line carries the order's derived refund status after it.
+  REFUND_PROCESSING: 'REFUND_UPDATED', REFUND_COMPLETED: 'REFUND_UPDATED', REFUND_UNDER_REVIEW: 'REFUND_UPDATED', REFUND_CLOSED: 'REFUND_UPDATED',
 }
+const REFUND_LINE_DEFAULT: Record<string, BackendRefundStatus> = { REFUND_REQUIRED: 'REQUIRED', REFUND_PROCESSING: 'PROCESSING', REFUND_COMPLETED: 'REFUNDED', REFUND_UNDER_REVIEW: 'UNDER_REVIEW', REFUND_CLOSED: 'NONE' }
 const METHOD_LABEL: Record<string, string> = { COUNTER: 'Counter pickup', CURBSIDE: 'Curbside pickup', DRIVE_THROUGH: 'Drive-through', LOCKER: 'Locker pickup' }
 const PAY_LABEL: Record<string, string> = { UPI: 'UPI', CARD: 'Card', NET_BANKING: 'Net banking', WALLET: 'Wallet', EMI: 'EMI', PAY_LATER: 'Pay later' }
 
@@ -77,7 +114,8 @@ export function eventsFromApi(d: OrderDto): OrderEvent[] {
     out.push({
       eventId: `${d.id}-${seq + 1}`, sequence: ++seq, type,
       status: type === 'REFUND_UPDATED' ? null : to ? STATUS_FROM_API[to] ?? null : null,
-      paymentStatus: type === 'REFUND_UPDATED' ? 'REFUND_PENDING' : null,
+      // The status the backend derived after this line (a backend older than Module 35 sends none: the line's own meaning is used).
+      paymentStatus: type === 'REFUND_UPDATED' ? paymentStatusFromApi(typeof line.detail?.refund_status === 'string' ? (line.detail.refund_status as string) : REFUND_LINE_DEFAULT[line.type] ?? 'REQUIRED') : null,
       at: line.at ?? d.placed_at ?? new Date().toISOString(),
       actor: line.actor === 'RESTAURANT' ? 'restaurant' : line.actor === 'YOU' ? 'customer' : 'system',
       reasonKey: type === 'RESTAURANT_REJECTED' || type === 'CANCELLED' ? reason ?? 'other' : null,
@@ -116,7 +154,8 @@ export function toOrder(d: OrderDto, customerId: string): Order {
     payment: {
       status: paymentStatus, methodType: method?.type.toLowerCase() ?? (d.payment.required ? 'unknown' : 'none'), methodLabel: method ? PAY_LABEL[method.type] ?? method.type : d.payment.required ? '—' : 'No payment required',
       providerDisplayName: d.payment.provider === 'razorpay' ? 'Razorpay' : d.payment.provider === 'fake' ? 'Development payment provider' : d.payment.provider ?? '—',
-      reference: d.payment.id ?? '—', paidAmountMinor: d.payment.required ? d.pricing.total.amount : 0, refundedAmountMinor: d.refund_status === 'REFUNDED' ? d.pricing.total.amount : null, currency: d.pricing.currency,
+      reference: d.payment.id ?? '—', paidAmountMinor: d.payment.required ? d.pricing.total.amount : 0, // What the payment provider confirmed — from the refund domain, never assumed from the order's state.
+      refundedAmountMinor: d.refund ? (d.refund.refunded.amount > 0 || d.refund.items.length > 0 ? d.refund.refunded.amount : null) : d.refund_status === 'REFUNDED' ? d.pricing.total.amount : null, currency: d.pricing.currency,
       maskedDetails: method && typeof method.summary.last4 === 'string' ? `•••• ${method.summary.last4}` : method && typeof method.summary.vpa === 'string' ? method.summary.vpa : null,
     },
     pickup: { mode: d.pickup.mode === 'ASAP' ? 'asap' : 'scheduled', requestedAt: d.pickup.pickup_at, estimatedReadyTime: readyAt ?? d.pickup.pickup_at, restaurantTimezone: d.pickup.timezone, methodType: d.pickup.method.toLowerCase(), methodLabel: METHOD_LABEL[d.pickup.method] ?? d.pickup.method, instructions: d.restaurant.pickup_instructions, estimatedCustomerArrival: d.pickup.traveler_arrival_at ?? d.journey?.estimated_arrival_at ?? null },
@@ -127,6 +166,9 @@ export function toOrder(d: OrderDto, customerId: string): Order {
     lastEventSequence: events.length, version: d.version, paymentAttemptId: d.payment.id ?? '', checkoutReference: '',
     journey: d.journey ? { journeyId: d.journey.id, originName: '', destinationName: '' } : null,
     review: toReviewInfo(d.review),
+    refunds: refundsFromApi(d.refund),
+    cancellation: d.customer_cancellation ? { enabled: d.customer_cancellation.enabled, canCancel: d.customer_cancellation.can_cancel, reason: d.customer_cancellation.reason } : undefined,
+    cancellationMessage: d.cancellation?.message ?? null,
     orderNote: d.customer_note ?? '', events, createdAt: d.placed_at ?? new Date().toISOString(), updatedAt: d.updated_at ?? d.placed_at ?? new Date().toISOString(),
   }
 }
@@ -198,6 +240,27 @@ export class ApiOrderRepository implements OrderRepository {
   async applyEvents(orderNumber: string, _events: OrderEvent[]): Promise<Order | null> {
     return this.getByOrderNumber(orderNumber, '')
   }
+
+  /** Module 35: what cancelling would mean — the backend's answer, never worked out here. */
+  async cancellationQuote(orderNumber: string): Promise<CancellationQuote | null> {
+    try {
+      const { cancellation } = await api<{ cancellation: CancellationQuoteDto }>(`/customer/orders/${encodeURIComponent(orderNumber)}/cancellation`)
+      return quoteFromApi(cancellation)
+    } catch (e) {
+      if (e instanceof ApiError && e.kind === 'not_found') return null
+      throw e
+    }
+  }
+
+  /** Module 35: a reason and nothing else — no amount, no effect, no status. The backend refuses what its policy does not allow. */
+  async cancel(orderNumber: string, input: CancelOrderInput): Promise<Order | null> {
+    const body: Record<string, unknown> = { reason_code: input.reasonCode }
+    if (input.note) body.note = input.note
+    if (input.expectedVersion !== null) body.expected_version = input.expectedVersion
+    const { order } = await api<{ order: OrderDto }>(`/customer/orders/${encodeURIComponent(orderNumber)}/cancel`, { method: 'POST', body })
+    seen.set(order.order_number, order); seen.set(order.id, order)
+    return toOrder(order, '')
+  }
 }
 
 export class ApiPickupVerificationRepository implements PickupVerificationRepository {
@@ -241,6 +304,8 @@ export class ApiOrderTrackingService implements OrderTrackingService {
     const deliver = (fresh: Order) => {
       for (const e of fresh.events) if (e.sequence > known) { known = e.sequence; listener.onEvent(e) }
       version = Math.max(version, fresh.version ?? 0)
+      // Module 35: the refunds and their amounts are not in the events — the order that was just read carries them.
+      listener.onOrder?.(fresh)
     }
     const resync = async (why: 'poll' | 'gap' | 'resume' | 'reconnect') => {
       if (stopped || inFlight) return

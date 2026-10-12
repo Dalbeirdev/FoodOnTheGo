@@ -64,6 +64,11 @@ return [
         'order.completed' => ['category' => 'ORDER_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'ORDER_DETAIL', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'off', 'EMAIL' => 'preference', 'SMS' => 'off']],
         'order.cancelled' => ['category' => 'ORDER_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'ORDER_DETAIL', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
         'refund.pending' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
+        // Module 35 — refunds. "initiated": the provider has it and has not confirmed it. "completed": only on the provider's
+        // confirmation. "attention": it failed or needs a person — once per refund.
+        'refund.initiated' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
+        'refund.completed' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
+        'refund.attention' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'NORMAL', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'off', 'SMS' => 'off']],
         'payment.recovery_required' => ['category' => 'PAYMENT_UPDATES', 'subject' => 'ORDER', 'priority' => 'HIGH', 'target' => 'PAYMENT_STATUS', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'preference', 'SMS' => 'off']],
         // Module 34 — reviews. The restaurant answered; a moderator published a review that was waiting; a review is not shown.
         'review.response' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'off', 'SMS' => 'off']],

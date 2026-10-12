@@ -11,6 +11,7 @@ import '../core/theme.dart';
 import '../i18n/format.dart';
 import '../i18n/markets.dart';
 import '../i18n/strings.dart';
+import '../order/refund_widgets.dart';
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
@@ -38,6 +39,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
   void didChangeAppLifecycleState(AppLifecycleState s) { if (s == AppLifecycleState.resumed && mounted) context.read<TrackingState>().refresh(); }
 
   String _k(OrderStatus s) => orderStatusKey(s);
+
+  // Module 35: the cancel action exists only when the backend says this customer may cancel this order now. What it
+  // means for the money is the backend's quote, shown in the dialog before the customer confirms.
+  Future<void> _cancel(Order o) async {
+    final tr = context.read<TrackingState>(); final repo = tr.cancellations;
+    if (repo == null) return;
+    final after = await showCancelOrderDialog(context, order: o, orders: repo);
+    if (after != null && mounted) await tr.refresh();
+  }
 
   // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the
   // customer is known (and again for another customer), never twice for the same one.
@@ -111,8 +121,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
           ]),
           if (o.delayed && s == OrderStatus.preparing) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.schedule, color: Brand.amber, bg: Brand.amberBg, child: Text('${S.t('track.delay.text')} ${o.delayReasonKey != null ? S.t('track.reason.${o.delayReasonKey}') : ''}${o.etaReadyAt != null ? '\n${S.t('track.delay.newEta', {'time': time(o.etaReadyAt!)})}' : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF6B4300))))),
           if (s == OrderStatus.rejected) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('track.rejected.text')} ${o.rejectionReasonKey != null ? S.t('track.reason.${o.rejectionReasonKey}') : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
-          if (s == OrderStatus.cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.block, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('track.cancelled.text')} ${o.cancellationReasonKey != null ? S.t('track.reason.${o.cancellationReasonKey}') : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
-          if (exceptional && o.paymentStatus != OrderPaymentStatus.paid) Padding(padding: const EdgeInsets.only(top: 6), child: Text(S.t('track.refund.note', {'status': S.t('oc.pay.${paymentStatusKey(o.paymentStatus)}')}), style: const TextStyle(color: Brand.grey, fontSize: 12.5))),
+          if (s == OrderStatus.cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.block, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('track.cancelled.text')} ${o.cancellationMessage ?? (o.cancellationReasonKey != null ? S.t('track.reason.${o.cancellationReasonKey}') : '')}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
+          if (exceptional && o.paymentStatus != OrderPaymentStatus.paid) Padding(padding: const EdgeInsets.only(top: 6), child: Semantics(identifier: 'trk-refund-${paymentStatusKey(o.paymentStatus)}', container: true, child: Text(S.t(o.refunds != null ? 'track.refund.state.${paymentStatusKey(o.paymentStatus)}' : 'track.refund.note', {'status': S.t('oc.pay.${paymentStatusKey(o.paymentStatus)}')}), style: const TextStyle(color: Brand.grey, fontSize: 12.5)))),
           if (s == OrderStatus.paymentPending) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.hourglass_top, color: Brand.amber, bg: Brand.amberBg, child: Wrap(children: [Text(S.t('track.paymentPending.text'), style: const TextStyle(fontSize: 13, color: Color(0xFF6B4300))), TextButton(onPressed: () => context.push('/payment'), child: Text(S.t('oc.action.checkStatus')))]))),
           const Divider(height: 20),
           SummaryRow(S.t('oc.orderNumber'), o.orderNumber, bold: true),
@@ -176,12 +186,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
           const SizedBox(height: 8),
           Wrap(spacing: 10, runSpacing: 10, children: [OutlineButton(label: S.t('oc.action.details'), expand: false, height: 44, onPressed: () => context.push('/order/${o.orderNumber}')), OutlineButton(label: S.t('track.action.receipt'), expand: false, height: 44, onPressed: () => context.push('/order-confirmation/${o.orderNumber}'))]),
         ])),
+        // Module 35: the order's refunds as the backend has them.
+        if (o.refunds != null && o.refunds!.items.isNotEmpty) ...[const SizedBox(height: 12), RefundCard(order: o)],
         const SizedBox(height: 12),
         SectionCard(title: S.t('oc.help'), icon: Icons.help_outline, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(S.t('track.help.text'), style: const TextStyle(color: Brand.grey, fontSize: 13)),
           const SizedBox(height: 10),
-          Wrap(spacing: 10, runSpacing: 10, children: [OutlineButton(label: S.t('oc.action.help'), expand: false, height: 44, onPressed: () => context.push('/help')), OutlineButton(label: S.t('oc.action.cancellationPolicy'), expand: false, height: 44, onPressed: () => context.push('/legal/refund-policy')), OutlineButton(label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: null)]),
-          const SizedBox(height: 6), Text(S.t('track.cancel.pending'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
+          Wrap(spacing: 10, runSpacing: 10, children: [OutlineButton(label: S.t('oc.action.help'), expand: false, height: 44, onPressed: () => context.push('/help')), OutlineButton(label: S.t('oc.action.cancellationPolicy'), expand: false, height: 44, onPressed: () => context.push('/legal/refund-policy')), if (o.cancellation == null) OutlineButton(label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: null), if (o.cancellation?.canCancel == true) Semantics(identifier: 'trk-cancel', container: true, child: OutlineButton(key: const Key('trk-cancel'), label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: () => _cancel(o)))]),
+          // Development orders have no cancellation policy at all; a backend order says whether it can be cancelled in the app.
+          if (o.cancellation == null) ...[const SizedBox(height: 6), Text(S.t('track.cancel.pending'), style: const TextStyle(color: Brand.grey, fontSize: 12))],
+          if (o.cancellation != null && !o.cancellation!.canCancel && !exceptional && !done) ...[const SizedBox(height: 6), Semantics(identifier: 'trk-cancel-unavailable', container: true, child: Text(S.t(o.cancellation!.enabled ? 'track.cancel.notNow' : 'track.cancel.unavailable'), key: const Key('trk-cancel-unavailable'), style: const TextStyle(color: Brand.grey, fontSize: 12)))],
         ])),
         if (AppConfig.isLocal) ...[
           const SizedBox(height: 12),

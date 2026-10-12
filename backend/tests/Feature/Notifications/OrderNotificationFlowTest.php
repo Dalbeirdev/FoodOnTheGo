@@ -98,7 +98,9 @@ class OrderNotificationFlowTest extends TestCase
         $this->step($order['order_number'], 'reject', ['reason' => 'CLOSING'])->assertOk();
         $rejected = $this->notificationOf($customer, 'order.rejected');
         $this->assertNotNull($rejected);
-        $this->assertStringContainsString('refund is being processed', $rejected->body);
+        // Module 35: a refund is OWED at this moment — nothing was sent to the provider yet, so the notice no longer says "is being processed".
+        $this->assertStringContainsString('A refund is due for your payment; we are arranging it.', $rejected->body);
+        $this->assertStringNotContainsString('being processed', $rejected->body);
         $this->assertStringNotContainsString('refund completed', strtolower($rejected->body));
         $this->assertSame('HIGH', $rejected->priority);
         $refund = $this->notificationOf($customer, 'refund.pending');

@@ -117,8 +117,10 @@ final class OrderMetrics
             'realtime_tracking' => 'IMPLEMENTED',
             'pickup_verification' => 'IMPLEMENTED',
             'order_completion' => 'IMPLEMENTED',
-            'refund_processing' => 'NOT_IMPLEMENTED',
-            'notification_delivery' => 'NOT_IMPLEMENTED',
+            // Refunds (Module 35) are their own domain; their numbers are at /admin/system/refunds.
+            'refund_processing' => 'IMPLEMENTED',
+            // Notifications (Module 33) are their own domain; their numbers are at /admin/system/notifications.
+            'notification_delivery' => 'IMPLEMENTED',
         ];
     }
 }

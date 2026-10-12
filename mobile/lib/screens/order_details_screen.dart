@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +10,7 @@ import '../i18n/format.dart';
 import '../i18n/strings.dart';
 import '../order/order_history.dart';
 import '../order/order_tracking.dart';
+import '../order/refund_widgets.dart';
 import '../review/review_models.dart';
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
@@ -31,6 +34,29 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   void initState() { super.initState(); }
+  @override
+  void dispose() { _refundTimer?.cancel(); super.dispose(); }
+  // Module 35: while a refund of this order is owed, on its way or being looked at, its state can change at any moment —
+  // the order is read again every few seconds until the refund is settled, so the screen never keeps saying
+  // "processing" after the backend said "refunded". Nothing is computed here.
+  Timer? _refundTimer; bool _rereading = false;
+  void _followRefund() {
+    final o = order;
+    if (o == null || o.refunds == null || !refundOpen(o.paymentStatus)) { _refundTimer?.cancel(); _refundTimer = null; return; }
+    _refundTimer ??= Timer.periodic(refundRereadEvery, (_) => _reread());
+  }
+  Future<void> _reread() async {
+    if (_rereading || !mounted) return;
+    _rereading = true;
+    final orders = context.read<OrderState>().orders; final customerId = context.read<AuthState>().user?.id ?? '';
+    try {
+      final fresh = await orders.getByOrderNumber(widget.number, customerId);
+      final cur = order;
+      if (mounted && fresh != null && cur != null && (fresh.moneySignature != cur.moneySignature || fresh.orderStatus != cur.orderStatus)) setState(() => order = fresh);
+    } catch (_) { /* keep what is shown; the next tick asks again */ }
+    _rereading = false;
+    if (mounted) _followRefund();
+  }
   // Module 31: with the backend the session is restored asynchronously; a cold start on this route loads once the
   // customer is known (and again for another customer), never twice for the same one.
   String? _loadedFor;
@@ -49,6 +75,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       Receipt? r; try { r = await os.receipts.getReceipt(o, auth.user?.name); } catch (_) {}
       if (!mounted) return;
       setState(() { order = o; receipt = r; state = 'ready'; });
+      _followRefund();
       if (widget.startReorder && _canReorder(o)) _check();
       if (isReviewable(o.orderStatus)) { try { final c = await os.reviewConfig.configFor(o); final el = await os.reviewEligibility.check(o, auth.user?.id ?? '', c); if (mounted) setState(() => reviewEntry = el); } catch (_) {} }
     } catch (_) { if (mounted) setState(() => state = 'error'); }
@@ -103,7 +130,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           Text('${o.orderNumber} · ${S.t('od.placed', {'date': DateFormat.MMMEd('en_US').format(toZone(o.createdAt, tz)), 'time': time(o.createdAt)})}', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
           const SizedBox(height: 8),
           Wrap(spacing: 6, runSpacing: 6, children: [_pill('${S.t('oc.orderStatus')}: ${S.t('oc.status.${orderStatusKey(s)}')}', closed), _pill('${S.t('oc.paymentStatus')}: ${S.t('oc.pay.${paymentStatusKey(o.paymentStatus)}')}', false)]),
-          if (s == OrderStatus.cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.block, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('od.cancelled', {'at': closedAt == null ? '' : '${DateFormat.MMMEd('en_US').format(toZone(closedAt, tz))} · ${time(closedAt)}'})} ${o.cancellationReasonKey != null ? S.t('track.reason.${o.cancellationReasonKey}') : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
+          if (s == OrderStatus.cancelled) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.block, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('od.cancelled', {'at': closedAt == null ? '' : '${DateFormat.MMMEd('en_US').format(toZone(closedAt, tz))} · ${time(closedAt)}'})} ${o.cancellationMessage ?? (o.cancellationReasonKey != null ? S.t('track.reason.${o.cancellationReasonKey}') : '')}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
           if (s == OrderStatus.rejected) Padding(padding: const EdgeInsets.only(top: 10), child: InfoBox(icon: Icons.error_outline, color: Brand.red, bg: const Color(0xFFFDECEC), child: Text('${S.t('od.rejected')} ${o.rejectionReasonKey != null ? S.t('track.reason.${o.rejectionReasonKey}') : ''}', style: const TextStyle(fontSize: 13, color: Color(0xFF9A1D17))))),
           if (isReviewable(s) && reviewEntry != null) Padding(padding: const EdgeInsets.only(top: 10), child: reviewEntry!.eligible
               ? BrandButton(icon: Icons.star_outline_rounded, label: S.t('rv.entry.rate'), expand: false, height: 44, onPressed: () => context.push('/order/${o.orderNumber}/review').then((_) => _load()))
@@ -129,9 +156,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           SummaryRow(S.t('oc.paymentStatus'), S.t('oc.pay.${paymentStatusKey(o.payment.status)}')),
           SummaryRow(S.t('oc.payment.method'), '${o.payment.methodLabel}${o.payment.maskedDetails != null ? ' · ${o.payment.maskedDetails}' : ''}'),
           SummaryRow(S.t('oc.payment.reference'), o.payment.reference), SummaryRow(S.t('oc.payment.paid'), money(o.payment.paidAmountMinor), bold: true),
-          if (hasRefund(o.paymentStatus)) ...[SummaryRow(S.t('od.refund.amount'), refunded == null ? S.t('od.refund.pendingAmount') : money(refunded)), if (remaining != null && remaining > 0) SummaryRow(S.t('od.refund.remaining'), money(remaining)), Text(S.t('od.refund.note'), style: const TextStyle(color: Brand.grey, fontSize: 12))],
+          if (hasRefund(o.paymentStatus) && o.refunds == null) ...[SummaryRow(S.t('od.refund.amount'), refunded == null ? S.t('od.refund.pendingAmount') : money(refunded)), if (remaining != null && remaining > 0) SummaryRow(S.t('od.refund.remaining'), money(remaining)), Text(S.t('od.refund.note'), style: const TextStyle(color: Brand.grey, fontSize: 12))],
           Text(S.t('oc.payment.safe'), style: const TextStyle(color: Brand.grey, fontSize: 12)),
         ])),
+        // Module 35: the order's refunds as the backend has them — each one, what is confirmed, what is still owed.
+        if (o.refunds != null && o.refunds!.items.isNotEmpty) ...[const SizedBox(height: 12), RefundCard(order: o)],
         const SizedBox(height: 12),
         SectionCard(title: S.t('od.timeline'), icon: Icons.timeline, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (var i = 0; i < stages.length; i++) _stage(stages[i], i == stages.length - 1, time, tz)])),
         const SizedBox(height: 12),

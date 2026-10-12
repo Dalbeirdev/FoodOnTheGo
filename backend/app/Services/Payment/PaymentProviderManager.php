@@ -64,24 +64,26 @@ final class PaymentProviderManager
      * @template T
      *
      * @param  Closure(): T  $call
+     * @param  string  $capability  what the provider's health is counted under: "payment", or "refund" (Module 35) so that
+     *                              failing refund calls do not hide behind healthy payment calls
      * @return T
      *
      * @throws ProviderException
      */
-    public function call(PaymentProvider $provider, string $operation, Closure $call, bool $safeToRepeat = false): mixed
+    public function call(PaymentProvider $provider, string $operation, Closure $call, bool $safeToRepeat = false, string $capability = 'payment'): mixed
     {
         $attempts = $safeToRepeat ? max(1, (int) config('payments.providers.retry.attempts')) : 1;
         for ($attempt = 1; ; $attempt++) {
             $started = hrtime(true);
             try {
                 $result = $call();
-                $this->metrics->record($provider->name(), 'payment.'.$operation, 'ok', self::elapsedMs($started));
+                $this->metrics->record($provider->name(), $capability.'.'.$operation, 'ok', self::elapsedMs($started));
 
                 return $result;
             } catch (ProviderException $e) {
-                $this->metrics->record($provider->name(), 'payment.'.$operation, $e->failure->metric(), self::elapsedMs($started));
+                $this->metrics->record($provider->name(), $capability.'.'.$operation, $e->failure->metric(), self::elapsedMs($started));
                 $again = $e->failure->transient() && $attempt < $attempts;
-                Log::info('payment.provider_failed', [
+                Log::info($capability.'.provider_failed', [
                     'request_id' => Context::get('request_id'), 'provider' => $provider->name(), 'operation' => $operation,
                     'failure' => $e->failure->value, 'attempt' => $attempt, 'will_retry' => $again,
                 ]);

@@ -12,6 +12,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentFulfillmentStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PickupSelectionStatus;
+use App\Enums\RefundStatus;
 use App\Enums\RestaurantStatus;
 use App\Events\Order\OrderEvent;
 use App\Exceptions\ApiException;
@@ -29,6 +30,7 @@ use App\Models\PaymentAttemptEvent;
 use App\Models\PickupSlotReservation;
 use App\Models\Promotion;
 use App\Models\PromotionReservation;
+use App\Models\Refund;
 use App\Services\Checkout\PickupSlotHoldService;
 use App\Services\Payment\PaymentStateMachine;
 use App\Services\Pickup\PickupCapacityRepository;
@@ -66,6 +68,9 @@ final class OrderFulfillmentService
     public const ORDER_PAYMENT_NOT_VERIFIED = 'ORDER_PAYMENT_NOT_VERIFIED';
 
     public const ORDER_PAYMENT_MISMATCH = 'ORDER_PAYMENT_MISMATCH';
+
+    /** Module 35: a refund of the payment is asked for, on its way or done. */
+    public const ORDER_PAYMENT_REFUNDED = 'ORDER_PAYMENT_REFUNDED';
 
     public const ORDER_CHECKOUT_INVALID = 'ORDER_CHECKOUT_INVALID';
 
@@ -170,6 +175,7 @@ final class OrderFulfillmentService
             self::ORDER_MARKET_UNAVAILABLE => 'Ordering is paused in this area right now.',
             self::ORDER_CHECKOUT_INVALID => 'This checkout can no longer become an order. Please review your order again.',
             self::ORDER_PAYMENT_NOT_VERIFIED, self::ORDER_PAYMENT_MISMATCH => 'This payment could not be matched to the order.',
+            self::ORDER_PAYMENT_REFUNDED => 'This payment is being refunded, so it cannot become an order.',
             default => 'Your order could not be created right now. Nothing was charged twice — please try again in a moment.',
         };
     }
@@ -277,6 +283,10 @@ final class OrderFulfillmentService
             }
             if ((string) $attempt->checkout_public_id !== (string) $session->public_id) {
                 return self::ORDER_CHECKOUT_INVALID;
+            }
+            // Module 35: a payment whose money is going back (or went back) does not become an order any more.
+            if (Refund::query()->where('payment_attempt_id', $attempt->getKey())->whereNotIn('status', [RefundStatus::Cancelled->value, RefundStatus::Failed->value])->exists()) {
+                return self::ORDER_PAYMENT_REFUNDED;
             }
             if ((int) $attempt->amount_minor !== (int) $session->total_minor || (string) $attempt->currency !== (string) $session->currency || ! (bool) $session->payment_required) {
                 return self::ORDER_PAYMENT_MISMATCH;

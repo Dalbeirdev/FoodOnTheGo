@@ -275,9 +275,13 @@ class CheckoutOpenApiContractTest extends TestCase
         $this->assertSame(['IMPLEMENTED'], $schemas['CheckoutMetrics']['properties']['slot_hold']['enum']);
         $this->assertSame(['FIXED_AMOUNT', 'PERCENTAGE'], $schemas['AdminPromotion']['properties']['type']['enum']);
         // Payments exist since Module 30 and orders since Module 31 (created on the server from the verified payment).
-        // No path of the API refunds or settles anything yet.
+        // Refunds exist since Module 35 — as administrator routes only (never under a checkout or a customer path).
+        // No path of the API settles anything yet.
         foreach (array_keys($paths) as $path) {
-            $this->assertDoesNotMatchRegularExpression('#/(refunds|settlements)(/|$)#', $path);
+            $this->assertDoesNotMatchRegularExpression('#/settlements(/|$)#', $path);
+            if (preg_match('#/refunds(/|$)#', $path) === 1) {
+                $this->assertMatchesRegularExpression('#^/(admin|dev)/#', $path, 'a refund route is an administrator route');
+            }
         }
         $this->assertArrayHasKey('/customer/orders/{order}', $paths);
         // Every monetary field of the checkout is Money (integer minor units + currency) or an integer; no float anywhere.

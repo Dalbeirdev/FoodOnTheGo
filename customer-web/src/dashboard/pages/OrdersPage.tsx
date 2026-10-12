@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { formatLocalTime, formatMoney, zoneLabel } from '../../i18n/format'
 import { t } from '../../i18n/strings'
@@ -113,12 +113,23 @@ export function OrderDetailsDrawer({ onChanged }: { onChanged: () => void }) {
       {state === 'ready' && order && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} data-testid="order-details">
           <div className="db-status-strip"><StatusBadge status={order.orderStatus} locale={locale} /><Pill tone={order.paymentStatus === 'PAID' ? 'green' : 'amber'}>{t('dash.orders.payment', undefined, locale)}: {t(`oc.pay.${order.paymentStatus}`, undefined, locale)}</Pill>{order.delayed && <Pill tone="amber">{t('dash.orders.delayed', undefined, locale)}</Pill>}<Pill tone="muted">{t('dash.orders.pickupVerification', undefined, locale)}: {t(`oc.code.state.${order.pickupVerificationStatus}`, undefined, locale)}</Pill></div>
+          {/* Module 35: after a paid order is rejected or cancelled — what happens to the money. Information only: the restaurant has no refund controls. */}
+          {order.restaurantRefund && order.restaurantRefund.status !== 'NONE' && (
+            <div className="db-card db-card--warn" role="status" data-testid="order-refund" data-status={order.restaurantRefund.status} style={{ padding: 12 }}>
+              <b data-testid="order-refund-status">{t(`dash.orders.refund.${order.restaurantRefund.status}`, undefined, locale)}</b>
+              <p className="db-muted" style={{ margin: '4px 0 0', fontSize: '0.85rem' }}>
+                {t('dash.orders.refund.amount', undefined, locale)}: <span data-testid="order-refund-amount">{formatMoney(order.restaurantRefund.amountMinor, order.restaurantRefund.currency, locale)}</span>
+                {' · '}{t('dash.orders.refund.refunded', undefined, locale)}: <span data-testid="order-refund-refunded">{formatMoney(order.restaurantRefund.refundedMinor, order.restaurantRefund.currency, locale)}</span>
+              </p>
+              <p className="db-muted" style={{ margin: '4px 0 0', fontSize: '0.8rem' }}>{t('dash.orders.refund.note', undefined, locale)}</p>
+            </div>
+          )}
           <div className="db-form-row">
             <div><p className="db-muted" style={{ margin: 0, fontSize: '0.8rem' }}>{t('dash.orders.col.customer', undefined, locale)}</p><b dir="auto">{order.customerDisplayName ?? t('dash.orders.customerAnon', undefined, locale)}</b><p className="db-muted" style={{ margin: '2px 0 0', fontSize: '0.78rem' }}>{t('dash.orders.privacyNote', undefined, locale)}</p></div>
             <div><p className="db-muted" style={{ margin: 0, fontSize: '0.8rem' }}>{t('dash.orders.pickupTime', undefined, locale)}</p><b>{formatLocalDate(order.pickup.requestedAt, tz, locale)} · {formatLocalTime(order.pickup.requestedAt, tz, locale)} {zoneLabel(order.pickup.requestedAt, tz, locale)}</b><p className="db-muted" style={{ margin: '2px 0 0', fontSize: '0.78rem' }}>{order.pickup.methodLabel} · {tz}</p></div>
           </div>
           <Card title={t('dash.orders.col.items', undefined, locale)}>
-            <ul className="db-list">{order.items.map((i) => <li key={i.lineId}><span style={{ flex: 1 }}><b dir="auto">{i.quantity}× {i.itemName}</b>{[...i.variants, ...i.modifiers].map((o) => <><br /><small className="db-muted" key={o.groupName + o.optionName} dir="auto">{o.groupName}: {o.optionName}{o.priceAdjustmentMinor ? ` (+${money(o.priceAdjustmentMinor)})` : ''}</small></>)}{i.specialInstructions && <><br /><small className="db-order-card__note" dir="auto">“{i.specialInstructions}”</small></>}</span><b>{money(i.lineTotalMinor)}</b></li>)}</ul>
+            <ul className="db-list">{order.items.map((i) => <li key={i.lineId}><span style={{ flex: 1 }}><b dir="auto">{i.quantity}× {i.itemName}</b>{[...i.variants, ...i.modifiers].map((o) => <Fragment key={o.groupName + o.optionName}><br /><small className="db-muted" dir="auto">{o.groupName}: {o.optionName}{o.priceAdjustmentMinor ? ` (+${money(o.priceAdjustmentMinor)})` : ''}</small></Fragment>)}{i.specialInstructions && <><br /><small className="db-order-card__note" dir="auto">“{i.specialInstructions}”</small></>}</span><b>{money(i.lineTotalMinor)}</b></li>)}</ul>
             {order.orderNote && <p className="db-order-card__note" dir="auto"><Icon name="info" size={14} /> {t('dash.orders.orderNote', undefined, locale)}: {order.orderNote}</p>}
             <div className="db-settings-row" style={{ borderTop: '1px solid var(--db-line)', borderBottom: 0 }}><p>{t('dash.orders.subtotal', undefined, locale)}</p><b>{money(order.pricing.subtotalMinor)}</b></div>
             {order.pricing.discountMinor > 0 && <div className="db-settings-row" style={{ borderBottom: 0 }}><p>{t('dash.orders.discount', undefined, locale)}</p><b>−{money(order.pricing.discountMinor)}</b></div>}

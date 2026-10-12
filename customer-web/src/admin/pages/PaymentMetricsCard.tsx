@@ -26,7 +26,7 @@ export type PaymentMetricsDto = {
   latency_ms: { verification_avg: number | null; webhook_processing_avg: number | null }
   webhook_events: { received: number; processed: number; ignored: number; failed: number }
   order_creation: 'IMPLEMENTED' | 'NOT_IMPLEMENTED'
-  refunds: 'NOT_IMPLEMENTED'
+  refunds: 'IMPLEMENTED' | 'NOT_IMPLEMENTED'
 }
 
 const loadPaymentMetrics = () => api<PaymentMetricsDto>('/admin/system/payments', { context: 'admin' })

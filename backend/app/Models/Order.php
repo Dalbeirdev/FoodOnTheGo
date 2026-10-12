@@ -113,7 +113,7 @@ class Order extends Model
 
     public function refunds(): HasMany
     {
-        return $this->hasMany(OrderRefund::class)->orderBy('id');
+        return $this->hasMany(Refund::class)->orderBy('id');
     }
 
     /** The customer's review of this order (Module 34): at most one, ever. */

@@ -2,7 +2,7 @@
 
 /*
 | Notification templates — locale en-IN (the market default and the fallback). Variables are the allow-listed
-| placeholders only (:restaurant, :order, :pickup_time, :reason); every value is treated as untrusted text and escaped per
+| placeholders only (:restaurant, :order, :pickup_time, :refund_line, :refund_amount); every value is treated as untrusted text and escaped per
 | output (plain text for push / in-app / SMS, HTML-escaped in the e-mail). `version` is kept on the notification so support
 | knows which wording a customer saw. Nothing here ever carries a pickup secret, a code, a phone number or a payment detail.
 */
@@ -52,11 +52,30 @@ return [
         'in_app' => ['title' => 'Order cancelled', 'body' => 'Your order :order at :restaurant was cancelled. :refund_line'],
         'email' => ['subject' => 'Your FoodOnTheGo order :order was cancelled', 'body' => 'Your order :order at :restaurant was cancelled. :refund_line'],
     ],
+    // Module 35: a refund is OWED and is being arranged — nothing has been sent to the bank yet, so nothing here says
+    // "on its way" or "done" (version 2; version 1 said "is being processed").
     'refund.pending' => [
+        'version' => 2,
+        'push' => ['title' => 'Refund due', 'body' => 'A refund is due for order :order. We are arranging it.'],
+        'in_app' => ['title' => 'Refund due', 'body' => 'A refund is due for order :order. We are arranging it and will update you here at every step.'],
+        'email' => ['subject' => 'Refund for your FoodOnTheGo order :order', 'body' => 'A refund is due for order :order. We are arranging it; you will see every step in the app.'],
+    ],
+    'refund.initiated' => [
         'version' => 1,
-        'push' => ['title' => 'Refund on its way', 'body' => 'A refund for order :order is being processed.'],
-        'in_app' => ['title' => 'Refund being processed', 'body' => 'A refund for order :order is being processed. We will update you here when it is done.'],
-        'email' => ['subject' => 'Refund for your FoodOnTheGo order :order', 'body' => 'A refund for order :order is being processed. You will see the update in the app.'],
+        'push' => ['title' => 'Refund initiated', 'body' => 'Your refund of :refund_amount for order :order has been sent to your payment provider.'],
+        'in_app' => ['title' => 'Refund initiated', 'body' => 'Your refund of :refund_amount for order :order has been sent to your payment provider and goes back to the method you paid with. We will tell you here when the provider confirms it.'],
+        'email' => ['subject' => 'Refund initiated for your FoodOnTheGo order :order', 'body' => 'Your refund of :refund_amount for order :order has been sent to your payment provider and goes back to the method you paid with. We will tell you when the provider confirms it.'],
+    ],
+    'refund.completed' => [
+        'version' => 1,
+        'push' => ['title' => 'Refund completed', 'body' => 'Your refund of :refund_amount for order :order was completed by the payment provider.'],
+        'in_app' => ['title' => 'Refund completed', 'body' => 'Your refund of :refund_amount for order :order was completed by the payment provider. When it shows on your statement depends on your bank.'],
+        'email' => ['subject' => 'Refund completed for your FoodOnTheGo order :order', 'body' => 'Your refund of :refund_amount for order :order was completed by the payment provider. When it shows on your statement depends on your bank.'],
+    ],
+    'refund.attention' => [
+        'version' => 1,
+        'push' => ['title' => 'Refund update', 'body' => 'Your refund for order :order is taking longer than expected. Our team is on it.'],
+        'in_app' => ['title' => 'Your refund is taking longer', 'body' => 'Your refund for order :order is taking longer than expected. Our team is looking into it — you do not need to do anything, and you will not be charged again.'],
     ],
     'payment.recovery_required' => [
         'version' => 1,
@@ -86,7 +105,9 @@ return [
 
     // Shared fragments
     'fragments' => [
-        'refund_line.pending' => 'Your payment will be refunded; the refund is being processed.',
+        'refund_line.pending' => 'A refund is due for your payment; we are arranging it.',
+        'refund_line.refunded' => 'Your payment has been refunded.',
+        'refund_line.review' => 'We will review the payment for this order and update you here.',
         'refund_line.none' => 'Nothing was charged.',
         'refund_line.not_required' => 'No payment was due.',
         'pickup_time.unknown' => 'as planned',

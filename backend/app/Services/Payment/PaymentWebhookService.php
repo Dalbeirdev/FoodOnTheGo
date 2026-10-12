@@ -7,6 +7,8 @@ use App\Jobs\Payment\ProcessPaymentWebhookEvent;
 use App\Models\PaymentAttemptEvent as Line;
 use App\Models\PaymentWebhookEvent;
 use App\Services\Payment\Data\ProviderWebhook;
+use App\Services\Refund\DisputeService;
+use App\Services\Refund\RefundReconciliationService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +28,10 @@ use Throwable;
  *
  * Nothing of a webhook is trusted before its signature is, and the raw payload is never stored — only its hash and
  * the fields needed to reconcile and to support a customer.
+ *
+ * Module 35: refund and dispute events come through this same door — the same signature check over the raw body,
+ * the same once-only storage, the same queue. A refund event is handed to the refund reconciliation, a dispute
+ * event to the dispute foundation; neither one sets a state by itself.
  */
 final class PaymentWebhookService
 {
@@ -44,6 +50,8 @@ final class PaymentWebhookService
         private readonly PaymentAttemptStore $attempts,
         private readonly PaymentStateMachine $machine,
         private readonly PaymentReconciliationService $reconciliation,
+        private readonly RefundReconciliationService $refunds,
+        private readonly DisputeService $disputes,
     ) {}
 
     /**
@@ -107,6 +115,15 @@ final class PaymentWebhookService
         }
         $event->forceFill(['processing_attempts' => (int) $event->processing_attempts + 1])->save();
         try {
+            $kind = (string) $event->normalized_type;
+            if (str_starts_with($kind, 'REFUND_') || str_starts_with($kind, 'DISPUTE_')) {
+                $done = str_starts_with($kind, 'REFUND_') ? $this->refunds->fromWebhook($event) : $this->disputes->fromWebhook($event);
+                if ($done['refund_id'] !== null) {
+                    $event->forceFill(['refund_id' => $done['refund_id']]);
+                }
+
+                return $this->finish($event, $done['status'], $done['outcome'], $done['payment_attempt_id']);
+            }
             $attempt = $this->attempts->byProviderReferences((string) $event->provider, $event->provider_order_reference, $event->provider_payment_reference);
             if ($attempt === null) {
                 // A genuine event about something that is not a payment attempt here (another integration of the same account).
@@ -160,8 +177,15 @@ final class PaymentWebhookService
                 'normalized_type' => $event->normalizedType,
                 'payload_hash' => $hash,
                 'provider_order_reference' => $event->orderReference,
-                'provider_payment_reference' => $event->payment?->reference,
-                'summary' => $event->payment === null ? null : ['payment' => PaymentWebhookSummary::of($event->payment)],
+                'provider_payment_reference' => $event->payment?->reference ?? $event->refund?->paymentReference ?? $event->dispute?->paymentReference,
+                'provider_refund_reference' => $event->refund?->reference,
+                'provider_dispute_reference' => $event->dispute?->reference,
+                // Safe fields only, per kind: never the payload, never anything about the customer.
+                'summary' => array_filter([
+                    'payment' => $event->payment === null ? null : PaymentWebhookSummary::of($event->payment),
+                    'refund' => $event->refund?->summary(),
+                    'dispute' => $event->dispute?->summary(),
+                ]) ?: null,
                 'processing_status' => $event->handled() ? PaymentWebhookEvent::RECEIVED : PaymentWebhookEvent::IGNORED,
                 'outcome' => $event->handled() ? null : 'EVENT_NOT_HANDLED',
                 'provider_created_at' => $event->createdAt,

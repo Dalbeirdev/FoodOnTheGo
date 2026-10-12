@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { ApiOrderRepository, ApiOrderTrackingService } from './api/apiOrder'
 import { MockOrderTrackingService } from './mock/mockTracking'
+import { refundOpen } from './history'
 import { orderMode } from './orderMode'
 import type { Order, OrderEvent, OrderRepository, PickupVerification, PickupVerificationRepository } from './repositories'
 import { reduceOrder, TERMINAL_ORDER, type OrderTrackingService, type TrackingConnection, type TransportState } from './tracking'
@@ -43,6 +44,15 @@ export function useOrderTracking(orderNumber: string, deps: TrackingDeps = {}) {
     if (TERMINAL_ORDER.has(r.order.orderStatus)) setConnection('COMPLETED')
   }, [])
 
+  // Module 35: what the events do not carry — the refunds, their amounts, whether the order may be cancelled — is taken
+  // from the order the tracking service just read again. The order's status still changes only through its events.
+  const applyFresh = useCallback((fresh: Order) => {
+    const cur = orderRef.current; if (!cur || offline.current) return
+    const next: Order = { ...cur, paymentStatus: fresh.paymentStatus, payment: fresh.payment, refunds: fresh.refunds, cancellation: fresh.cancellation, cancellationMessage: fresh.cancellationMessage, version: fresh.version }
+    if (JSON.stringify([cur.paymentStatus, cur.payment, cur.refunds, cur.cancellation]) === JSON.stringify([next.paymentStatus, next.payment, next.refunds, next.cancellation])) return
+    orderRef.current = next; setOrder(next); setLastUpdated(new Date().toISOString())
+  }, [])
+
   useEffect(() => {
     let on = true; let unsubscribe: (() => void) | null = null
     setConnection('LOADING'); setLoadError(null)
@@ -54,16 +64,20 @@ export function useOrderTracking(orderNumber: string, deps: TrackingDeps = {}) {
         if (!o) { setLoadError('not_found'); setConnection('ERROR'); return }
         orderRef.current = o; setOrder(o); setLastUpdated(new Date().toISOString())
         // Subscribe before any further fetch so no live event (or dev step) can be lost in between.
+        // A finished order is not followed — unless a refund of it is still open (backend orders): that can change.
+        const followRefund = TERMINAL_ORDER.has(o.orderStatus) && refundOpen(o.paymentStatus) && tracking instanceof ApiOrderTrackingService && !offline.current
         if (TERMINAL_ORDER.has(o.orderStatus)) setConnection('COMPLETED')
+        if (followRefund) unsubscribe = tracking.subscribe(o, { onEvent: applyEvent, onConnection: () => { /* a finished order stays COMPLETED */ }, onOrder: applyFresh })
+        else if (TERMINAL_ORDER.has(o.orderStatus)) { /* nothing more can happen */ }
         else if (offline.current) setConnection('OFFLINE')
-        else unsubscribe = tracking.subscribe(o, { onEvent: applyEvent, onConnection: (c) => { if (!offline.current && !TERMINAL_ORDER.has(orderRef.current?.orderStatus ?? 'CONFIRMED')) setConnection(c) }, onTransport: (t) => { if (on) setTransport(t) } })
+        else unsubscribe = tracking.subscribe(o, { onEvent: applyEvent, onConnection: (c) => { if (!offline.current && !TERMINAL_ORDER.has(orderRef.current?.orderStatus ?? 'CONFIRMED')) setConnection(c) }, onOrder: applyFresh, onTransport: (t) => { if (on) setTransport(t) } })
         const pv = await verifications.getForOrder(o).catch(() => null)
         if (!on) return
         setVerification(pv)
       } catch { if (on) { setLoadError('load_failed'); setConnection('ERROR') } }
     })()
     return () => { on = false; unsubscribe?.() }
-  }, [orderNumber, customerId, tick, orders, verifications, tracking, applyEvent])
+  }, [orderNumber, customerId, tick, orders, verifications, tracking, applyEvent, applyFresh])
 
   // Browser connectivity → OFFLINE / back to LIVE via a refresh (TEST 10 / 11).
   useEffect(() => {

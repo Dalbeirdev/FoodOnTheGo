@@ -111,7 +111,8 @@ final class PaymentMetrics
             ],
             // Orders (Module 31) are created from verified payments; the order numbers are at /admin/system/orders.
             'order_creation' => 'IMPLEMENTED',
-            'refunds' => 'NOT_IMPLEMENTED',
+            // Refunds (Module 35) are their own domain; their numbers are at /admin/system/refunds.
+            'refunds' => 'IMPLEMENTED',
         ];
     }
 }

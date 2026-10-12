@@ -5,9 +5,12 @@ import { formatDistance, formatLocalTime, formatMoney, zoneLabel } from '../i18n
 import { resolveUnitSystem } from '../i18n/markets'
 import { t, useLocale } from '../i18n/strings'
 import { formatLocalDate } from '../pickup/time'
+import CancelOrderDialog from '../order/CancelOrderDialog'
 import { PickupCode } from '../order/PickupCodeCard'
+import RefundList from '../order/RefundList'
+import { orderRepositories } from '../order/useOrderConfirmation'
 import { readScenario, setScenario } from '../order/mock/mockTracking'
-import type { Order } from '../order/repositories'
+import type { Order, OrderRepository } from '../order/repositories'
 import { distanceMeters, pickupVisible, SCENARIOS, timelineFor, type TimelineStage, type TrackingScenario } from '../order/tracking'
 import { useOrderTracking, type TrackingDeps } from '../order/useOrderTracking'
 import { useInboxRefreshOn } from '../account/AccountContext'
@@ -61,7 +64,7 @@ export default function OrderTrackingPage({ deps }: { deps?: TrackingDeps }) {
                 </div>
               </section>
             )}
-            {o && <Tracking order={o} tr={tr} locale={locale} unitPreference={unitPreference} />}
+            {o && <Tracking order={o} tr={tr} locale={locale} unitPreference={unitPreference} orders={deps?.orders ?? orderRepositories.orders} />}
             {DEV && o && (
               <section className="cart-card pay-dev" aria-labelledby="trk-dev">
                 <h2 id="trk-dev">{t('pay.dev.title', undefined, locale)}</h2>
@@ -84,7 +87,7 @@ export default function OrderTrackingPage({ deps }: { deps?: TrackingDeps }) {
   )
 }
 
-function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: ReturnType<typeof useOrderTracking>; locale: string; unitPreference: 'metric' | 'imperial' | 'auto' }) {
+function Tracking({ order: o, tr, locale, unitPreference, orders }: { order: Order; tr: ReturnType<typeof useOrderTracking>; locale: string; unitPreference: 'metric' | 'imperial' | 'auto'; orders: OrderRepository }) {
   const tz = o.pickup.restaurantTimezone
   const time = (iso: string) => `${formatLocalTime(iso, tz, locale)} ${zoneLabel(iso, tz, locale)}`
   const money = (m: number) => formatMoney(m, o.pricing.currency, locale)
@@ -94,6 +97,8 @@ function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: 
   const ready = s === 'READY_FOR_PICKUP' || s === 'PICKUP_VERIFICATION'
   const done = s === 'PICKED_UP' || s === 'COMPLETED'
   const showCode = pickupVisible(o) && !done
+  // Module 35: the cancel action exists only when the backend says this customer may cancel this order now.
+  const [cancelling, setCancelling] = useState(false)
   const units = resolveUnitSystem(unitPreference, o.restaurant.countryCode)
   const dist = o.journey?.originLat != null && o.journey?.originLng != null && o.restaurant.lat != null && o.restaurant.lng != null ? distanceMeters(o.journey.originLat, o.journey.originLng, o.restaurant.lat, o.restaurant.lng) : null
   const arrival = o.pickup.estimatedCustomerArrival ?? null
@@ -129,8 +134,8 @@ function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: 
             <p className="trk-head__lead">{t(`track.status.${s}.text`, { restaurant: o.restaurant.name }, locale)}</p>
             {o.delayed && s === 'PREPARING' && <p className="cart-notice cart-notice--warn" role="status" data-testid="trk-delay"><ClockIcon /> {t('track.delay.text', undefined, locale)} {o.delayReasonKey && <span>{t(`track.reason.${o.delayReasonKey}`, undefined, locale)}</span>} {o.etaReadyAt && <b>{t('track.delay.newEta', { time: time(o.etaReadyAt) }, locale)}</b>}</p>}
             {s === 'REJECTED' && <p className="cart-notice cart-notice--error" role="alert">{t('track.rejected.text', undefined, locale)} {o.rejectionReasonKey && t(`track.reason.${o.rejectionReasonKey}`, undefined, locale)}</p>}
-            {s === 'CANCELLED' && <p className="cart-notice cart-notice--error" role="alert">{t('track.cancelled.text', undefined, locale)} {o.cancellationReasonKey && t(`track.reason.${o.cancellationReasonKey}`, undefined, locale)}</p>}
-            {(s === 'REJECTED' || s === 'CANCELLED') && o.paymentStatus !== 'PAID' && <p className="cart-muted">{t('track.refund.note', { status: t(`oc.pay.${o.paymentStatus}`, undefined, locale) }, locale)}</p>}
+            {s === 'CANCELLED' && <p className="cart-notice cart-notice--error" role="alert">{t('track.cancelled.text', undefined, locale)} {o.cancellationMessage ?? (o.cancellationReasonKey && t(`track.reason.${o.cancellationReasonKey}`, undefined, locale))}</p>}
+            {(s === 'REJECTED' || s === 'CANCELLED') && o.paymentStatus !== 'PAID' && <p className="cart-muted" data-testid="trk-refund-note">{t(o.refunds ? `track.refund.state.${o.paymentStatus}` : 'track.refund.note', { status: t(`oc.pay.${o.paymentStatus}`, undefined, locale) }, locale)}</p>}
             {s === 'PAYMENT_PENDING' && <p className="cart-notice cart-notice--warn" role="status">{t('track.paymentPending.text', undefined, locale)} <Link to="/payment" className="cart-link">{t('oc.action.checkStatus', undefined, locale)}</Link></p>}
           </div>
           <div className="trk-live" data-testid="trk-live">
@@ -218,16 +223,22 @@ function Tracking({ order: o, tr, locale, unitPreference }: { order: Order; tr: 
         </div>
       </section>
 
+      <RefundList order={o} locale={locale} />
+
       <section className="cart-card" aria-labelledby="trk-help">
         <h2 id="trk-help">{t('oc.help', undefined, locale)}</h2>
         <p className="cart-muted">{t('track.help.text', undefined, locale)}</p>
         <div className="pay-actions">
           <Link to="/help" className="btn btn--outline">{t('oc.action.help', undefined, locale)}</Link>
           <Link to="/refund-policy" className="btn btn--outline">{t('oc.action.cancellationPolicy', undefined, locale)}</Link>
-          <button type="button" className="btn btn--outline" disabled aria-describedby="trk-cancel-note">{t('track.action.cancel', undefined, locale)}</button>
+          {/* Backend orders: a real action when the policy allows it, nothing when it does not. Development orders keep the placeholder. */}
+          {o.cancellation === undefined && <button type="button" className="btn btn--outline" disabled aria-describedby="trk-cancel-note">{t('track.action.cancel', undefined, locale)}</button>}
+          {o.cancellation?.canCancel && <button type="button" className="btn btn--outline" onClick={() => setCancelling(true)} data-testid="trk-cancel">{t('track.action.cancel', undefined, locale)}</button>}
         </div>
-        <p id="trk-cancel-note" className="cart-muted">{t('track.cancel.pending', undefined, locale)}</p>
+        {o.cancellation === undefined && <p id="trk-cancel-note" className="cart-muted">{t('track.cancel.pending', undefined, locale)}</p>}
+        {o.cancellation && !o.cancellation.canCancel && !exceptional && !done && <p className="cart-muted" data-testid="trk-cancel-unavailable">{t(o.cancellation.enabled ? 'track.cancel.notNow' : 'track.cancel.unavailable', undefined, locale)}</p>}
       </section>
+      {cancelling && <CancelOrderDialog order={o} orders={orders} locale={locale} onClose={() => setCancelling(false)} onCancelled={() => { setCancelling(false); void tr.refresh() }} />}
     </>
   )
 }

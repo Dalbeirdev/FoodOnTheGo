@@ -21,10 +21,12 @@ type RowDto = {
 type DetailDto = RowDto & {
   items: OrderDto['items']; pricing: OrderDto['pricing']; promotion: { code: string; name: string | null; type: string | null } | null; taxes: OrderDto['taxes']; fees: OrderDto['fees']
   payment: { id: string; provider: string; mode: string; provider_payment_reference: string | null; method_type: string | null; method_summary: Record<string, string | boolean | null>; amount: MoneyDto; verified_at: string | null } | null
-  customer_note: string | null; rejection: { reason: string; note: string | null } | null; cancellation: { reason: string | null } | null
-  refunds: Array<{ id: string; amount: MoneyDto; reason: string; status: 'REQUIRED' | 'PENDING' | 'PROCESSED' | 'FAILED'; requested_by: { type: string; id: string | null }; requested_at: string | null; processing: 'NOT_IMPLEMENTED' }>
+  customer_note: string | null; rejection: { reason: string; note: string | null } | null; cancellation: { reason: string | null; by?: string | null; reason_code?: string | null } | null
+  // Module 35: the refund domain's records of the order, and what its payment can still give back.
+  refunds: Array<{ id: string; reference: string; type: 'FULL' | 'PARTIAL'; amount: MoneyDto; reason: string; status: string; provider_refund_reference: string | null; requested_by: { type: string; id: string | null }; requested_at: string | null; completed_at: string | null }>
+  refund_balance?: { paid: MoneyDto; refunded: MoneyDto; in_flight: MoneyDto; charged_back: MoneyDto; available: MoneyDto } | null
   pickup_credential: { status: string; issued_at: string | null } | null; journey: unknown; legal: unknown[]; pricing_fingerprint: string | null
-  fulfillment: FulfillmentDto | null; timeline: OrderDto['timeline']; times: OrderDto['times']; actions: { cancel: boolean; refund: 'NOT_IMPLEMENTED'; mark_picked_up?: 'NOT_PROVIDED' }
+  fulfillment: FulfillmentDto | null; timeline: OrderDto['timeline']; times: OrderDto['times']; actions: { cancel: boolean; refund: boolean | 'NOT_IMPLEMENTED'; mark_picked_up?: 'NOT_PROVIDED'; mark_refunded?: 'NOT_PROVIDED' }
   pickup_verification?: { status: 'NOT_YET' | 'AVAILABLE' | 'VERIFIED' | 'NOT_POSSIBLE'; method?: 'QR' | 'MANUAL_CODE' | null; verified_at?: string | null; verified_by?: { id: string; name: string } | null; credential_status?: string | null; completed_at?: string | null }
   pickup_attempts?: { total: number; failed: number; last: Array<{ at: string | null; method: string; result: string; staff: { id: string; name: string } | null }> }
   pickup_credentials?: Array<{ id: string; status: string; issued_at: string | null; revoked_at: string | null; revoke_reason: string | null; consumed_at: string | null; consumed_method: string | null }>
@@ -68,7 +70,7 @@ function shared(d: RowDto | DetailDto): Order {
   return order
 }
 
-const exceptionsOf = (d: RowDto | DetailDto): OrderException[] => (d.needs_attention ? [{ orderNumber: d.order_number, kind: 'refund_overdue', detectedAt: d.updated_at ?? d.placed_at ?? new Date().toISOString(), detail: `Refund ${d.refund_status.toLowerCase()} — the refund module processes it` }] : [])
+const exceptionsOf = (d: RowDto | DetailDto): OrderException[] => (d.needs_attention ? [{ orderNumber: d.order_number, kind: 'refund_overdue', detectedAt: d.updated_at ?? d.placed_at ?? new Date().toISOString(), detail: `Refund ${d.refund_status.toLowerCase().replace(/_/g, ' ')} — see the refund record` }] : [])
 const toAdminOrder = (d: RowDto | DetailDto): AdminOrder => ({ order: shared(d), market: d.market ?? '', exceptions: exceptionsOf(d), supportCaseIds: [], adminNotes: [] })
 
 /** The payment as the order recorded it, in the admin page's payment shape: a reference and its state, never a secret. */
@@ -77,15 +79,26 @@ function paymentOf(d: DetailDto): AdminPayment | null {
   if (!p) return null
   return {
     reference: p.id, providerReference: p.provider_payment_reference, orderNumber: d.order_number, restaurantId: d.restaurant.id ?? '', restaurantName: d.restaurant.name, customerRef: d.customer.id ?? '',
-    provider: p.provider, methodCategory: p.method_type ?? '—', amountMinor: p.amount.amount, currency: p.amount.currency, status: d.refund_status === 'REFUNDED' ? 'REFUNDED' : d.refund_status === 'PARTIAL' ? 'PARTIALLY_REFUNDED' : d.refund_status === 'REQUIRED' || d.refund_status === 'PENDING' || d.refund_status === 'FAILED' ? 'REFUND_PENDING' : 'CAPTURED',
+    provider: p.provider, methodCategory: p.method_type ?? '—', amountMinor: p.amount.amount, currency: p.amount.currency, status: d.refund_status === 'REFUNDED' ? 'REFUNDED' : d.refund_status === 'PARTIALLY_REFUNDED' || d.refund_status === 'PARTIAL' ? 'PARTIALLY_REFUNDED' : d.refund_status === 'NONE' ? 'CAPTURED' : 'REFUND_PENDING',
     createdAt: p.verified_at ?? d.placed_at ?? '', events: [{ at: p.verified_at ?? d.placed_at ?? '', type: 'VERIFIED', detail: `${p.provider} (${p.mode})` }],
     reconciliation: { expectedMinor: d.pricing.total.amount, providerStatus: 'captured', platformStatus: 'CAPTURED', mismatch: p.amount.amount !== d.pricing.total.amount },
   }
 }
+/**
+ * The order's refunds as the backend's refund domain has them (Module 35). "Refunded" is only what the provider confirmed
+ * (status REFUNDED); the older five-word status is kept for the development pages, the backend's own word travels beside it.
+ */
+const OLD_STATUS: Record<string, AdminRefund['status']> = { REQUIRED: 'PENDING', REQUESTED: 'PENDING', APPROVED: 'PROCESSING', SUBMITTING: 'PROCESSING', SUBMISSION_UNKNOWN: 'PROCESSING', PROCESSING: 'PROCESSING', REFUNDED: 'COMPLETED', FAILED: 'FAILED', REVIEW_REQUIRED: 'FAILED', CANCELLED: 'FAILED' }
 const refundsOf = (d: DetailDto): AdminRefund[] => d.refunds.map((r) => ({
-  reference: r.id, orderNumber: d.order_number, paymentReference: d.payment?.id ?? '', restaurantName: d.restaurant.name, requestedMinor: r.amount.amount, refundedMinor: r.status === 'PROCESSED' ? r.amount.amount : 0, currency: r.amount.currency,
-  reason: r.reason, status: r.status === 'REQUIRED' ? 'PENDING' : r.status === 'PROCESSED' ? 'COMPLETED' : r.status === 'FAILED' ? 'FAILED' : 'PROCESSING', createdAt: r.requested_at ?? '', processedAt: null, kind: 'full',
+  backendId: r.id, backendStatus: r.status, reasonCode: r.reason,
+  reference: r.reference ?? r.id, orderNumber: d.order_number, paymentReference: d.payment?.id ?? '', restaurantName: d.restaurant.name, requestedMinor: r.amount.amount, refundedMinor: r.status === 'REFUNDED' ? r.amount.amount : 0, currency: r.amount.currency,
+  reason: r.reason, status: OLD_STATUS[r.status] ?? 'PROCESSING', createdAt: r.requested_at ?? '', processedAt: r.completed_at ?? null, kind: r.type === 'PARTIAL' ? 'partial' : 'full',
 }))
+const refundExtras = (d: DetailDto): Pick<AdminOrder, 'refundBalance' | 'canRequestRefund'> => ({
+  refundBalance: d.refund_balance ? { paidMinor: d.refund_balance.paid.amount, refundedMinor: d.refund_balance.refunded.amount, inFlightMinor: d.refund_balance.in_flight.amount, chargedBackMinor: d.refund_balance.charged_back.amount, availableMinor: d.refund_balance.available.amount } : null,
+  // A refund can be ASKED for when the backend says so AND something is left. Approving and sending it are other permissions.
+  canRequestRefund: d.actions.refund === true && (d.refund_balance?.available.amount ?? 0) > 0,
+})
 
 export class ApiAdminOrderRepository implements AdminOrderRepository {
   async list(f: AdminOrderFilter): Promise<Page<AdminOrder> & { counts: Record<AdminOrderFilter['tab'], number> }> {
@@ -108,7 +121,7 @@ export class ApiAdminOrderRepository implements AdminOrderRepository {
     try {
       const { order } = await api<{ order: DetailDto }>(`/admin/orders/${encodeURIComponent(orderNumber)}`, { context: 'admin' })
       const pv = order.pickup_verification
-      return { ...toAdminOrder(order), payment: paymentOf(order), refunds: refundsOf(order), supportCases: [], pickupVerification: pv ? { status: pv.status, method: pv.method ?? null, verifiedAt: pv.verified_at ?? null, verifiedBy: pv.verified_by ?? null, credentialStatus: pv.credential_status ?? null, completedAt: pv.completed_at ?? null, attempts: order.pickup_attempts ?? { total: 0, failed: 0, last: [] }, credentials: (order.pickup_credentials ?? []).map((c) => ({ id: c.id, status: c.status, issuedAt: c.issued_at, revokedAt: c.revoked_at, revokeReason: c.revoke_reason, consumedAt: c.consumed_at, consumedMethod: c.consumed_method })) } : undefined }
+      return { ...toAdminOrder(order), ...refundExtras(order), payment: paymentOf(order), refunds: refundsOf(order), supportCases: [], pickupVerification: pv ? { status: pv.status, method: pv.method ?? null, verifiedAt: pv.verified_at ?? null, verifiedBy: pv.verified_by ?? null, credentialStatus: pv.credential_status ?? null, completedAt: pv.completed_at ?? null, attempts: order.pickup_attempts ?? { total: 0, failed: 0, last: [] }, credentials: (order.pickup_credentials ?? []).map((c) => ({ id: c.id, status: c.status, issuedAt: c.issued_at, revokedAt: c.revoked_at, revokeReason: c.revoke_reason, consumedAt: c.consumed_at, consumedMethod: c.consumed_method })) } : undefined }
     } catch (e) {
       if (e instanceof ApiError && e.kind === 'not_found') return null
       throw e
@@ -139,6 +152,6 @@ export class ApiAdminOrderRepository implements AdminOrderRepository {
 
   async cancel(orderNumber: string, reason: string): Promise<AdminOrder & { payment: AdminPayment | null; refunds: AdminRefund[]; supportCases: SupportCase[] }> {
     const { order } = await api<{ order: DetailDto }>(`/admin/orders/${encodeURIComponent(orderNumber)}/cancel`, { context: 'admin', method: 'POST', body: { reason } })
-    return { ...toAdminOrder(order), payment: paymentOf(order), refunds: refundsOf(order), supportCases: [] }
+    return { ...toAdminOrder(order), ...refundExtras(order), payment: paymentOf(order), refunds: refundsOf(order), supportCases: [] }
   }
 }

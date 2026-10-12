@@ -1,0 +1,4 @@
+.od-refunds { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.od-refunds__item { padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.od-refunds__item p { margin: 4px 0 0; }
+.od-refunds__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }

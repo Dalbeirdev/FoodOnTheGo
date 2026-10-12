@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../api/client'
 import { Card, Drawer } from '../../dashboard/components/ui'
 import { t } from '../../i18n/strings'
 import { useAdmin } from '../AdminContext'
+import { BASE } from '../AdminLayout'
 import { ApiAdminPaymentRepository, type BackendPayment, type BackendPaymentDetail, type BackendPaymentStatus } from '../api/ApiAdminPaymentRepository'
+import { ApiAdminRefundRepository } from '../api/ApiAdminRefundRepository'
 import { Badge, DataTable, Details, DevNote, ReasonDialog, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import { PaymentMetricsCard } from './PaymentMetricsCard'
 import { Cell, fmtDateTime, money, useLoad, usePageTitle } from './shared'
@@ -13,7 +16,8 @@ import { Cell, fmtDateTime, money, useLoad, usePageTitle } from './shared'
  *
  * An administrator can read (admin.payments.view) and, with admin.payments.reconcile, ask the provider again about a
  * payment, with a reason. That is all: there is no "mark as paid", nothing here edits an amount, a status or a
- * provider reference, and refunds are not built yet — the page says so instead of offering a button that would lie.
+ * provider reference. Module 35: the payment's refunds are listed with links to the refund records, and a refund of a
+ * payment that never became an order can be asked for (admin.refunds.create) — a request, never a status.
  */
 const STATUSES: BackendPaymentStatus[] = ['CREATED', 'PROVIDER_READY', 'PROCESSING', 'PENDING', 'AUTHORIZED', 'VERIFIED', 'FAILED', 'CANCELLED', 'EXPIRED', 'UNKNOWN', 'REVIEW_REQUIRED']
 const METHODS = ['UPI', 'CARD', 'NET_BANKING', 'WALLET']
@@ -26,6 +30,15 @@ export function BackendPaymentsPage({ repository }: { repository?: ApiAdminPayme
   const [s, set] = useUrlState(DEFAULTS)
   const [open, setOpen] = useState<BackendPaymentDetail | null>(null)
   const [asking, setAsking] = useState(false); const [busy, setBusy] = useState(false); const [failed, setFailed] = useState<string | null>(null)
+  // Module 35: asking for the refund of a payment that never became an order — a request in the refund domain.
+  const [refunding, setRefunding] = useState(false); const navigate = useNavigate()
+  const requestRefund = async (note: string) => {
+    if (!open) return
+    setBusy(true); setFailed(null)
+    try { const created = await new ApiAdminRefundRepository().requestForPayment(open.id, note, `payment-refund-${open.id}`); setRefunding(false); navigate(`${BASE}/refunds?open=${encodeURIComponent(created.id)}`) }
+    catch (e) { setFailed(e instanceof ApiError && e.message ? e.message : t('adm.refund.actionFailed', undefined, locale)); setRefunding(false) }
+    finally { setBusy(false) }
+  }
   const filter = useMemo(() => ({ query: s.q, status: s.status as BackendPaymentStatus | 'all', method: s.method, attention: s.attention === '1', page: Number(s.page) || 1, pageSize: 10 }), [s])
   const { data, state, reload } = useLoad(() => repo.list(filter), [repo, filter])
   const canReconcile = a.can('payments.reconcile')
@@ -89,16 +102,26 @@ export function BackendPaymentsPage({ repository }: { repository?: ApiAdminPayme
               ))}</ul>
             )}
           </Card>
+          {/* Module 35: the refunds of this payment. The payment stays what it was — a refunded payment is still VERIFIED. */}
+          <Card title={t('adm.order.refunds', undefined, locale)}>
+            {open.disputes.some((d) => d.open) && <p className="db-error" role="alert" data-testid="payment-dispute-open">{t('adm.refund.disputeOpen', undefined, locale)}</p>}
+            {open.refunds.length === 0 ? <p className="db-muted" data-testid="payment-refunds-empty">{t('adm.order.noRefunds', undefined, locale)}</p> : (
+              <ul className="db-list" data-testid="payment-refunds">{open.refunds.map((r) => <li key={r.id} data-status={r.status}><Link to={`${BASE}/refunds?open=${encodeURIComponent(r.id)}`} className="db-link">{r.reference}</Link> · {money(r.amountMinor, r.currency, locale)} <Badge tone={r.status === 'REFUNDED' ? 'green' : r.status === 'FAILED' || r.status === 'REVIEW_REQUIRED' ? 'red' : r.status === 'CANCELLED' ? 'muted' : 'amber'} dot>{t(`adm.refund.status.${r.status}`, undefined, locale)}</Badge></li>)}</ul>
+            )}
+            {open.refundBalance && open.refunds.length > 0 && <p className="db-muted" data-testid="payment-refund-balance">{t('adm.refund.balance.line', { refunded: money(open.refundBalance.refundedMinor, open.currency, locale), inFlight: money(open.refundBalance.inFlightMinor, open.currency, locale), available: money(open.refundBalance.availableMinor, open.currency, locale) }, locale)}</p>}
+            {open.canRequestRefund && a.can('refunds.create') && <button type="button" className="btn btn--outline" data-testid="payment-request-refund" disabled={busy} onClick={() => setRefunding(true)}>{t('adm.refund.requestPayment', undefined, locale)}</button>}
+          </Card>
           <Card title={t('adm.pay.actions', undefined, locale)}>
             <div className="db-actions">
               {canReconcile ? <button type="button" className="btn btn--outline" data-testid="payment-reconcile" disabled={busy} onClick={() => setAsking(true)}>{t('adm.pay.reconcile', undefined, locale)}</button> : <p className="db-muted" data-testid="payment-reconcile-denied">{t('adm.pay.reconcile.noPermission', undefined, locale)}</p>}
             </div>
             <p className="db-muted" data-testid="payment-no-mark-paid">{t('adm.pay.noMarkPaid', undefined, locale)}</p>
-            <p className="db-muted" data-testid="payment-refund-future">{t('adm.pay.refundFuture', undefined, locale)}</p>
+            <p className="db-muted" data-testid="payment-refund-note">{t('adm.pay.refundNote', undefined, locale)}</p>
             {failed && <p className="db-error" role="alert" data-testid="payment-error">{failed}</p>}
           </Card>
         </div>}
       </Drawer>
+      <ReasonDialog open={refunding} title={t('adm.refund.requestPayment', undefined, locale)} text={t('adm.refund.requestPayment.text', undefined, locale)} confirmLabel={t('adm.refund.request.confirm', undefined, locale)} onConfirm={(reason) => requestRefund(reason)} onCancel={() => setRefunding(false)} locale={locale} danger={false} busy={busy} testId="payment-refund-dialog" />
       <ReasonDialog open={asking} title={t('adm.pay.reconcile', undefined, locale)} text={t('adm.pay.reconcile.text', undefined, locale)} confirmLabel={t('adm.pay.reconcile.confirm', undefined, locale)} onConfirm={(reason) => reconcile(reason)} onCancel={() => setAsking(false)} locale={locale} danger={false} busy={busy} testId="payment-reconcile-dialog" />
     </div>
   )

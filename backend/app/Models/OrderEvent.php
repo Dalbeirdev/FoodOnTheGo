@@ -43,6 +43,15 @@ class OrderEvent extends Model
 
     public const REFUND_REQUIRED = 'REFUND_REQUIRED';
 
+    // Module 35: what the customer is told about a refund of the order changed.
+    public const REFUND_PROCESSING = 'REFUND_PROCESSING';
+
+    public const REFUND_COMPLETED = 'REFUND_COMPLETED';
+
+    public const REFUND_UNDER_REVIEW = 'REFUND_UNDER_REVIEW';
+
+    public const REFUND_CLOSED = 'REFUND_CLOSED';
+
     public const RECOVERY_REQUIRED = 'RECOVERY_REQUIRED';
 
     public const STEP_REFUSED = 'STEP_REFUSED';

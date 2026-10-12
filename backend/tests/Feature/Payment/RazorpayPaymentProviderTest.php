@@ -5,7 +5,6 @@ namespace Tests\Feature\Payment;
 use App\Enums\ProviderFailure;
 use App\Enums\ProviderPaymentState;
 use App\Exceptions\ProviderException;
-use App\Services\Payment\Data\ProviderRefundRequest;
 use App\Services\Payment\Data\ProviderSessionRequest;
 use App\Services\Payment\Data\ProviderWebhook;
 use App\Services\Payment\Providers\RazorpayPaymentProvider;
@@ -319,15 +318,8 @@ class RazorpayPaymentProviderTest extends TestCase
         $this->assertSame(['UPI', 'CARD'], $this->provider(['methods' => ['UPI', 'CARD']])->configuredMethods());
     }
 
-    public function test_the_refund_contract_asks_for_the_documented_refund(): void
-    {
-        Http::fake(['api.razorpay.com/v1/payments/pay_QxUnitTest00001/refund' => Http::response(['id' => 'rfnd_QxUnit0001', 'entity' => 'refund', 'amount' => 50000, 'currency' => 'INR', 'payment_id' => 'pay_QxUnitTest00001', 'status' => 'pending'])]);
-
-        $refund = $this->provider()->refund(new ProviderRefundRequest('pay_QxUnitTest00001', new Money(50000, 'INR'), 'rf_unit_0001'));
-
-        $this->assertSame(['reference' => 'rfnd_QxUnit0001', 'status' => 'PENDING', 'amount_minor' => 50000, 'currency' => 'INR'], $refund);
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && $request->data() === ['amount' => 50000, 'speed' => 'normal', 'receipt' => 'rf_unit_0001']);
-    }
+    // The refund side of the adapter (Module 35: createRefund with the idempotency key, the lookups, the refusals, the refund and
+    // dispute webhooks) is tested in tests/Feature/Refund/PaymentRefundAndAdapterTest.php.
 
     private function assertFailure(ProviderFailure $expected, \Closure $call): void
     {

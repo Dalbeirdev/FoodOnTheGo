@@ -1,0 +1,119 @@
+# Module 35 — regression runs of the earlier suites against the REAL local backend after the refund module (customer-web on :5173, API on :8001 and a second API process on :8003, Laravel Reverb on :8085, one local queue worker per suite; every VITE_*_MODE=api).
+# Scripts: the ten suites that create no order, unchanged (m22_auth_regression.js, m22_e2e.js, m22_regression_m32.js, m23_e2e.js, m24_e2e.js, m25_e2e_m33.js, m26_e2e.js, m27_e2e.js, m28_e2e.js, m29_e2e_m30.js), the payment suite unchanged (m30_e2e.js), and the four order-creating suites as *_m35.js VARIANTS (m31_e2e_m35.js, m32_e2e_m35.js, m33_e2e_m35.js, m34_e2e_m35.js): Module 35 replaced the Module 31 table order_refunds, which each of them deletes from in its clean-up — a variant differs from its original by that ONE clean-up statement (it removes the refund records, their attempts and events, the payment refund balance and the disputes instead) and by its read helper answering a marker when a step reads the removed table (two steps of the Module 31 suite do), so that such a step is a recorded miss and not the end of the suite. NO STEP AND NO EXPECTATION WAS CHANGED: an expectation that Module 35 made obsolete is recorded as a miss and explained in m35-regression-notes.txt.
+# Before each suite the carts (and with them the pickup selections and checkouts) left in the LOCAL database by the previous suite are removed; the fixture cart (Asha) is never touched. One suite at a time; the Flutter web preview is stopped during these runs.
+# The suites that create orders stop themselves outside their time window (payments / orders / realtime / notifications / reviews: 10:00–20:40 India time; checkout: until 21:20; pickup: until 22:00), so those ran first.
+
+=== m30_e2e.js (run by name)  06:04:13Z  (carts removed before the run: 0)
+FAIL A9 PAID IS NOT ORDERED: the page says "Payment verified — order creation is pending", stays on /payment, shows no order confirmation and no order number, and offers nothing to pay again — {"view":"VERIFIED","status":"VERIFIED","pending":true,"fulfillment":"ORDER_PENDING","url":"/payment","text":"SECURE PAYMENT Payment Complete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details. development payment p","submit":false,"retry":false}
+FAIL A10 DATABASE: the attempt is VERIFIED (proof checked, provider payment reference kept, verified_at set), its order state is ORDER_PENDING — and there is NO ORDER: no orders table exists yet; the checkout stays PAYMENT_PENDING with its hold — {"status":"VERIFIED","amount":42700,"currency":"INR","provider":"fake","mode":"FAKE","order":"fakeorder_khcyu91ctcdayl","payment":"fakepay_i2arec9nrjma88","fulfillment":"ORDER_PENDING","reason":"","client":"success","signed":true,"failures":0,"number":1,"fulfillmentReason":"","failure":"","verifiedAt":true}
+FAIL H3 ADMIN API: the payment is in the "needs attention" list with its state, amount and currency, the customer's phone MASKED; its detail has the provider references, the timeline, the provider's events and says what cannot be done (mark_paid false, refund NOT_IMPLEMENTED) — no secret, no proof, no full phone number — {"id":"4310178e-9338-4c00-9c36-8a3d3e10d3a5","support_reference":"PAY-4310178E93","checkout_id":"6f22673e-bb0b-4e76-9a64-40d13866f429","attempt_number":1,"status":"REVIEW_REQUIRED","status_reason":"PAYMENT_AMOUNT_MISMATCH","fulfillment_status":"NOT_APPLICABLE"
+FAIL H6 THE DETAIL: why it needs a person (PAYMENT_AMOUNT_MISMATCH, "do not ask the customer to pay again"), the provider references, the timeline — and NO button to mark it paid, capture or refund; the page says a payment cannot be marked as paid by hand and that refunds are not available yet — {"status":"REVIEW_REQUIRED","attention":true,"refs":"fakeorder_4h8afhpooh4kfq / —","events":5,"noMark":true,"refund":false,"buttons":["Ask the provider again"],"text":"This payment needs a person: automatic checking could not settle it, or what the provider reports does not match (PAYMENT_AMOUNT_MISMATCH). Do not ask the customer to pay again. STATUS Review required"}
+FAIL H8 ADMIN › SYSTEM shows the payment numbers of the backend: the provider in use (the development provider — "no money moves"), verified payments, "verified, no order yet", "need review" — and the note that orders and refunds are not built; the same report by API names no key and no secret — {"driver":"fake","mode":"FAKE","configured":"true","text":"6 Verified payments 6 Verified, no order yet 0 Verified, recovery required 1 Need review","note":"Events cover the last 24 hours. A verified payment becomes an order on the server (Orders). Refunds are not built yet: nothing can be refunded 
+FAIL I3 THE RESTAURANT PAUSES AFTER THE PROVIDER OPENED — AND THE CUSTOMER PAYS: the money is real, so the payment IS verified, and it is marked RECOVERY_REQUIRED (RESTAURANT_NOT_ACCEPTING): the page says the payment was received, that the order could not be confirmed yet and that the customer need not pay again — no order is invented — {"status":"VERIFIED","amount":42700,"currency":"INR","provider":"fake","mode":"FAKE","order":"fakeorder_fu8e2kmyakk51a","payment":"fakepay_8fcjred5i9wcwb","fulfillment":"RECOVERY_REQUIRED","reason":"","client":"success","signed":true,"failures":0,"number":1,"fulfillmentReason":"RESTAURANT_NOT_ACCEPTING","failure":"","verifiedAt":true} SECURE PAYMENT Payment Complete your payment with the provider'
+57/63 passed
+=== exit 1
+
+=== m31_e2e_m35.js (run by name)  06:11:07Z  (carts removed before the run: 0)
+FAIL A6 THE CUSTOMER'S ORDER (GET /customer/orders/{number}): the snapshot — restaurant, 2 × Onion Rings + Masala Fries with their options and prices, pricing, pickup, payment reference, legal references — plus the pickup code and QR payload, next_action WAIT_FOR_RESTAURANT, pickup_verification NOT_IMPLEMENTED, version 1 — {"id":"1ec5aa56-a840-43a2-89fc-1c144791829a","order_number":"FOTG-20261012-QJ2GRV","status":"WAITING_FOR_RESTAURANT","payment_state":"PAID","refund_status":"NONE","restaurant":{"id":"0a000000-0000-4000-8000-0000000000a1","slug":"burger-hub","name":"Burger Hub","branch_label":"Sector 62 · Noida","for
+FAIL C3 DATABASE: REJECTED with the reason, the amount unchanged, refund REQUIRED, ONE refund record for the whole total (REQUIRED — nothing refunded here), the pickup reservation RELEASED, the credential REVOKED, the payment still VERIFIED / ORDER_CREATED (the money is never touched by the order) — {"status":"REJECTED","paymentState":"PAID","refund":"REQUIRED","total":42700,"currency":"INR","payment":"c470fe87-a127-4487-a61c-037c431817db","checkout":"974526b1-db6a-4dac-b907-f0634f9d87d9","version":2,"reason":"ITEM_UNAVAILABLE","items":3,"reserved":true} TABLE order_refunds WAS REPLACED BY MODULE 35 ORDER/RELEASED/no-expiry
+FAIL C6 REJECTING AGAIN changes nothing: 200 with the order as it is, still one refund record
+FAIL E3 ADMIN DETAIL: the money state, the payment the order came from, the refund record (REQUIRED, processing NOT_IMPLEMENTED), the fulfilment record, the full timeline with the internal note, actions cancel=false (finished) / refund NOT_IMPLEMENTED — {"cancel":false,"refund":true,"mark_picked_up":"NOT_PROVIDED","mark_refunded":"NOT_PROVIDED"} ORDER_CREATED,RESTAURANT_REJECTED,REFUND_REQUIRED
+FAIL E6 SYSTEM NUMBERS (GET /admin/system/orders): counts only — orders by state, verified payments without an order 0, refund required ≥ 1, realtime / pickup verification / refund processing NOT_IMPLEMENTED — {"checked_at":"2026-10-12T06:14:08+00:00","window_hours":24,"events":{"created":18,"creation_failed":0,"recovery_required":0,"review_required":0,"accepted":3,"rejected":12,"preparing":3,"ready":3,"cancelled":2,"refund_required":14,"zero_tot
+FAIL F2 A CUSTOMER cannot cancel or step an order (404 / 401); a restaurant request that names a status or an amount is refused (422) — 422 401 422
+47/53 passed
+=== exit 1
+
+=== m32_e2e_m35.js (run by name)  06:14:21Z  (carts removed before the run: 0)
+FAIL G6 /admin/system/orders now says realtime_tracking, pickup_verification and order_completion IMPLEMENTED; refund_processing and notification_delivery NOT_IMPLEMENTED — {"verified":5,"verified_qr":2,"verified_manual_code":3,"refused":14,"refused_invalid":6,"refused_not_ready":1,"refused_wrong_location":0,"replay":3,"rate_limited":2,"locked":1,"picked_up_not_completed":0}
+47/48 passed
+=== exit 1
+
+=== m33_e2e_m35.js (run by name)  06:19:11Z  (carts removed before the run: 0)
+FAIL G3 THE REGISTRY TAB shows the backend's mapping (11 types: order.created … account.phone_changed) with category, domain events, channel rules, priority, template version and locales; the API says the same — 17
+40/41 passed
+=== exit 1
+
+# Result: m30_e2e.js 57/63, m31_e2e_m35.js 47/53, m32_e2e_m35.js 47/48, m33_e2e_m35.js 40/41 (191/205).
+#   miss in m30_e2e.js: A9 PAID IS NOT ORDERED: the page says "Payment verified — order creation is pending", stays on /payment, shows no order confirmation and no order number, and offers nothing to pay again
+#   miss in m30_e2e.js: A10 DATABASE: the attempt is VERIFIED (proof checked, provider payment reference kept, verified_at set), its order state is ORDER_PENDING — and there is NO ORDER: no orders table exists yet; the checkout stays PAYMENT_PENDING with its hold
+#   miss in m30_e2e.js: H3 ADMIN API: the payment is in the "needs attention" list with its state, amount and currency, the customer's phone MASKED; its detail has the provider references, the timeline, the provider's events and says what cannot be done (mark_paid false, refund NOT_IMPLEMENTED) — no secret, no proof, no full phone number
+#   miss in m30_e2e.js: H6 THE DETAIL: why it needs a person (PAYMENT_AMOUNT_MISMATCH, "do not ask the customer to pay again"), the provider references, the timeline — and NO button to mark it paid, capture or refund; the page says a payment cannot be marked as paid by hand and that refunds are not available yet
+#   miss in m30_e2e.js: H8 ADMIN › SYSTEM shows the payment numbers of the backend: the provider in use (the development provider — "no money moves"), verified payments, "verified, no order yet", "need review" — and the note that orders and refunds are not built; the same report by API names no key and no secret
+#   miss in m30_e2e.js: I3 THE RESTAURANT PAUSES AFTER THE PROVIDER OPENED — AND THE CUSTOMER PAYS: the money is real, so the payment IS verified, and it is marked RECOVERY_REQUIRED (RESTAURANT_NOT_ACCEPTING): the page says the payment was received, that the order could not be confirmed yet and that the customer need not pay again — no order is invented
+#   miss in m31_e2e_m35.js: A6 THE CUSTOMER'S ORDER (GET /customer/orders/{number}): the snapshot — restaurant, 2 × Onion Rings + Masala Fries with their options and prices, pricing, pickup, payment reference, legal references — plus the pickup code and QR payload, next_action WAIT_FOR_RESTAURANT, pickup_verification NOT_IMPLEMENTED, version 1
+#   miss in m31_e2e_m35.js: C3 DATABASE: REJECTED with the reason, the amount unchanged, refund REQUIRED, ONE refund record for the whole total (REQUIRED — nothing refunded here), the pickup reservation RELEASED, the credential REVOKED, the payment still VERIFIED / ORDER_CREATED (the money is never touched by the order)
+#   miss in m31_e2e_m35.js: C6 REJECTING AGAIN changes nothing: 200 with the order as it is, still one refund record
+#   miss in m31_e2e_m35.js: E3 ADMIN DETAIL: the money state, the payment the order came from, the refund record (REQUIRED, processing NOT_IMPLEMENTED), the fulfilment record, the full timeline with the internal note, actions cancel=false (finished) / refund NOT_IMPLEMENTED
+#   miss in m31_e2e_m35.js: E6 SYSTEM NUMBERS (GET /admin/system/orders): counts only — orders by state, verified payments without an order 0, refund required ≥ 1, realtime / pickup verification / refund processing NOT_IMPLEMENTED
+#   miss in m31_e2e_m35.js: F2 A CUSTOMER cannot cancel or step an order (404 / 401); a restaurant request that names a status or an amount is refused (422)
+#   miss in m32_e2e_m35.js: G6 /admin/system/orders now says realtime_tracking, pickup_verification and order_completion IMPLEMENTED; refund_processing and notification_delivery NOT_IMPLEMENTED
+#   miss in m33_e2e_m35.js: G3 THE REGISTRY TAB shows the backend's mapping (11 types: order.created … account.phone_changed) with category, domain events, channel rules, priority, template version and locales; the API says the same
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+=== m28_e2e.js (run by name)  06:22:19Z  (carts removed before the run: 0)
+69/69 passed
+=== exit 0
+
+=== m29_e2e_m30.js (run by name)  06:26:44Z  (carts removed before the run: 0)
+FAIL G3 A CHECKOUT CHARGES NOTHING — paying it is Module 30, whose routes exist beside it: no route of the API creates an order or a refund; there is no orders table — api/v1/admin/payments api/v1/admin/payments/{payment} api/v1/admin/payments/{payment}/reconcile api/v1/admin/payments/{payment}/refunds api/v1/admin/system/checkout api/v1/admin/system/payments api/v1/checkouts api/v1/checkouts/{checkout} api/v1/checkouts/{checkout}/cancel api/v1/checkouts/{checkout}/confirm api/v1/checkouts/{checkout}/fulfill api/v1/checkouts/{checkout}/payment-attempts api/v1/ch
+FAIL G4 the API has 281 routes under /api/v1 — 19 of them from Module 29 (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers) and 9 from Module 30 — 281
+75/77 passed
+=== exit 1
+
+=== m34_e2e_m35.js (run by name)  06:31:58Z  (carts removed before the run: 0)
+48/48 passed
+=== exit 0
+
+# Result: m28_e2e.js 69/69, m29_e2e_m30.js 75/77, m34_e2e_m35.js 48/48 (192/194).
+#   miss in m29_e2e_m30.js: G3 A CHECKOUT CHARGES NOTHING — paying it is Module 30, whose routes exist beside it: no route of the API creates an order or a refund; there is no orders table
+#   miss in m29_e2e_m30.js: G4 the API has 281 routes under /api/v1 — 19 of them from Module 29 (6 customer checkout, 12 admin promotion / tax / fee, 1 admin numbers) and 9 from Module 30
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+=== m22_auth_regression.js (run by name)  06:35:57Z  (carts removed before the run: 0)
+48/48 passed
+=== exit 0
+
+=== m22_e2e.js (run by name)  06:38:22Z  (carts removed before the run: 0)
+51/51 passed
+=== exit 0
+
+=== m22_regression_m32.js (run by name)  06:40:58Z  (carts removed before the run: 0)
+68/68 passed
+=== exit 0
+
+# Result: m22_auth_regression.js 48/48, m22_e2e.js 51/51, m22_regression_m32.js 68/68 (167/167).
+# Carts removed after the last suite: 3. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.
+=== m23_e2e.js (run by name)  06:57:43Z  (carts removed before the run: 0)
+FAIL C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+FAIL D3 sections that are still development data carry a "Demo data" label; the backend sections do not — {"overview":1,"orders":0,"menu":0,"reviews":0,"analytics":1,"profile":0,"hours":0,"pickup-settings":0,"staff":0}
+FAIL D19b the roles and what each role may do are read from the backend (GET /restaurant/roles), not from a copy in the page
+FAIL A2b the header says where the data of each section comes from: "Backend data" on Restaurants, "Mock data" on Orders (still development data) — Local
+97/101 passed
+=== exit 1
+
+=== m24_e2e.js (run by name)  07:03:56Z  (carts removed before the run: 0)
+48/48 passed
+=== exit 0
+
+=== m25_e2e_m33.js (run by name)  07:05:37Z  (carts removed before the run: 1)
+FAIL N2 the Preferences panel is the backend matrix: a switch per category × channel, security SMS / in-app switches disabled with "Always on", marketing in its own consent section, the inbox labelled development data
+62/63 passed
+=== exit 0
+
+=== m26_e2e.js (run by name)  07:07:48Z  (carts removed before the run: 0)
+FAIL D2b a temporarily closed restaurant is shown as such, open ones as "Open when you arrive"; no rating is shown (no reviews backend) and no ready-by promise
+FAIL D3 the page says where the figures come from ("development routing model — synthetic roads, not real road data"), offers the backend's corridor bounds (0.5–10 km) and only orderings / filters the API applies (no "Highest rated", no rating / price filter) — ["Cuisine","North Indian","Punjabi","Biryani","Chinese","Pizza","Burgers","Open when I arrive","Max detour time","Rating","","4.5 & above","","4.0 & above","","3.5 & above","","3.0 & above"]
+61/63 passed
+=== exit 0
+
+=== m27_e2e.js (run by name)  07:12:13Z  (carts removed before the run: 0)
+76/76 passed
+=== exit 0
+
+# Result: m23_e2e.js 97/101, m24_e2e.js 48/48, m25_e2e_m33.js 62/63, m26_e2e.js 61/63, m27_e2e.js 76/76 (344/351).
+#   miss in m23_e2e.js: C14 a backend restaurant without development menu data shows "menu unavailable" instead of a made-up menu
+#   miss in m23_e2e.js: D3 sections that are still development data carry a "Demo data" label; the backend sections do not
+#   miss in m23_e2e.js: D19b the roles and what each role may do are read from the backend (GET /restaurant/roles), not from a copy in the page
+#   miss in m23_e2e.js: A2b the header says where the data of each section comes from: "Backend data" on Restaurants, "Mock data" on Orders (still development data)
+#   miss in m25_e2e_m33.js: N2 the Preferences panel is the backend matrix: a switch per category × channel, security SMS / in-app switches disabled with "Always on", marketing in its own consent section, the inbox labelled development data
+#   miss in m26_e2e.js: D2b a temporarily closed restaurant is shown as such, open ones as "Open when you arrive"; no rating is shown (no reviews backend) and no ready-by promise
+#   miss in m26_e2e.js: D3 the page says where the figures come from ("development routing model — synthetic roads, not real road data"), offers the backend's corridor bounds (0.5–10 km) and only orderings / filters the API applies (no "Highest rated", no rating / price filter)
+# Carts removed after the last suite: 0. Fixture cart (Asha) before: 2x45900,1x14900 v2 — after: 2x45900,1x14900 v2.

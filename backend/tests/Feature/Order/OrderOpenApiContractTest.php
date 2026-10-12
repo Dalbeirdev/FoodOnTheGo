@@ -121,7 +121,7 @@ class OrderOpenApiContractTest extends TestCase
         $routes = collect(app('router')->getRoutes())->map(fn ($r) => [preg_replace('#^api/v1/#', '', $r->uri()), array_diff($r->methods(), ['HEAD'])])->filter(fn (array $r): bool => $mine($r[0]))
             ->flatMap(fn (array $r) => array_map(fn (string $m): string => $m.' /'.$r[0], $r[1]))->values()->all();
         $this->assertEqualsCanonicalizing($routes, $documented);
-        $this->assertCount(26, $routes);   // + 2 (Module 34: GET / POST customer/orders/{order}/review)
+        $this->assertCount(29, $routes);   // + 2 (Module 34: GET / POST customer/orders/{order}/review) + 3 (Module 35: the customer's cancellation quote and cancel, admin/orders/{order}/refunds)
         // previously 24:   // 15 (Module 31) + 9 (Module 32: events ×2, pickup credential ×2, verify, channel auth ×2, system realtime, pickup attempts)
 
         // Who may call what.
@@ -158,14 +158,17 @@ class OrderOpenApiContractTest extends TestCase
         // The documented states are the states of the code; what does not exist is said so.
         $visible = array_values(array_filter(array_map(fn (OrderStatus $s): string => $s->value, OrderStatus::cases()), fn (string $s): bool => $s !== 'CREATED'));
         $this->assertSame($visible, $schemas['Order']['properties']['status']['enum']);
-        $this->assertSame(array_map(fn (OrderRefundStatus $s): string => $s->value, OrderRefundStatus::cases()), $schemas['Order']['properties']['refund_status']['enum']);
+        // Module 35: the customer's order carries the customer's words for the refund status (UNDER_REVIEW instead of FAILED / REVIEW_REQUIRED).
+        $this->assertSame(array_values(array_unique(array_map(fn (OrderRefundStatus $s): string => $s->forCustomer(), OrderRefundStatus::cases()))), $schemas['Order']['properties']['refund_status']['enum']);
         $this->assertSame(array_map(fn (OrderRejectionReason $s): string => $s->value, OrderRejectionReason::cases()), $schemas['OrderRejectRequest']['properties']['reason']['enum']);
         $this->assertSame(array_map(fn (OrderFulfillmentStatus $s): string => $s->value, OrderFulfillmentStatus::cases()), $schemas['OrderFulfillment']['properties']['status']['enum']);
         $this->assertSame(['accept', 'reject', 'start_preparing', 'ready', 'verify_pickup'], $schemas['RestaurantOrderSummary']['properties']['allowed_actions']['items']['enum']);   // Module 32: READY → the pickup is verified
         $this->assertSame('#/components/schemas/OrderPickupVerification', $schemas['Order']['properties']['pickup_verification']['$ref']);   // Module 32: a real state, not a marker
         $this->assertSame(['NOT_YET', 'AVAILABLE', 'VERIFIED', 'NOT_POSSIBLE'], $schemas['OrderPickupVerification']['properties']['status']['enum']);
-        $this->assertSame(['NOT_IMPLEMENTED'], $schemas['AdminOrderDetail']['properties']['actions']['properties']['refund']['enum']);
-        $this->assertSame(['NOT_IMPLEMENTED'], $schemas['OrderMetrics']['properties']['refund_processing']['enum']);
+        // Module 35: a refund can be ASKED for from an order (a boolean); nobody can mark one as refunded; refund processing exists.
+        $this->assertSame('boolean', $schemas['AdminOrderDetail']['properties']['actions']['properties']['refund']['type']);
+        $this->assertSame(['NOT_PROVIDED'], $schemas['AdminOrderDetail']['properties']['actions']['properties']['mark_refunded']['enum']);
+        $this->assertSame(['IMPLEMENTED'], $schemas['OrderMetrics']['properties']['refund_processing']['enum']);
         $this->assertSame('^FOTG-[0-9]{8}-[A-HJ-NP-Z2-9]{6}$', $schemas['Order']['properties']['order_number']['pattern']);
         // Money is integer minor units everywhere; the restaurant's order has no credential and no payment method.
         $numbers = [];

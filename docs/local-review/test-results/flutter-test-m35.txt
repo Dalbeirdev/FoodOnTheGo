@@ -1,0 +1,22 @@
+# Module 35 — Android app checks (LOCAL, 2026-10-12): flutter analyze, flutter test (Flutter 3.47.5, Windows host). New in this module: test/api_refund_test.dart (14), test/refund_screens_test.dart (7). No older test had to change.
+
+== flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 4.1s)
+exit 0
+
+== flutter test (the last lines of the run; 581 tests)
+00:18 +570: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Build info lays out at 360×640 with 1.3× text
+00:18 +571: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Help & Support lays out at 360×640 with 1.3× text
+00:18 +572: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Favorites (signed out guard) lays out at 360×640 with 1.3× text
+00:18 +573: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Addresses lays out at 360×640 with 1.3× text
+00:18 +574: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Payment methods lays out at 360×640 with 1.3× text
+00:18 +575: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Notifications lays out at 360×640 with 1.3× text
+00:18 +576: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Cart with a combo shows the saving and totals
+00:18 +577: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Item screen body is visible above its bottom bar
+00:18 +578: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Checkout (guest) redirects to login instead of rendering the review
+00:18 +579: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home with items shows the cart bar without hiding the page
+00:18 +580: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: Home shows hero copy and restaurant cards
+00:18 +581: E:/TechPio-Data/FoodOnTheGo/mobile/test/screens_test.dart: (tearDownAll)
+00:18 +581: All tests passed!
+exit 0

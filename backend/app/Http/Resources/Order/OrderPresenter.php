@@ -3,7 +3,10 @@
 namespace App\Http\Resources\Order;
 
 use App\Enums\OrderFulfillmentStatus;
+use App\Enums\OrderPaymentState;
+use App\Enums\OrderRefundStatus;
 use App\Enums\OrderStatus;
+use App\Http\Resources\Refund\RefundPresenter;
 use App\Http\Resources\Review\ReviewPresenter;
 use App\Models\Order;
 use App\Models\OrderEvent;
@@ -13,8 +16,8 @@ use App\Models\OrderItem;
 use App\Models\OrderItemOption;
 use App\Models\OrderPickupCredential;
 use App\Models\OrderPickupVerificationAttempt;
-use App\Models\OrderRefund;
 use App\Models\OrderTaxLine;
+use App\Models\PaymentRefundBalance;
 use App\Services\Order\PickupCredentials;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
@@ -33,7 +36,7 @@ use Carbon\CarbonImmutable;
  */
 final class OrderPresenter
 {
-    public function __construct(private readonly PickupCredentials $credentials, private readonly ReviewPresenter $reviews) {}
+    public function __construct(private readonly PickupCredentials $credentials, private readonly ReviewPresenter $reviews, private readonly RefundPresenter $refunds) {}
 
     /* ------------------------------------------------------------------ customer */
 
@@ -50,7 +53,8 @@ final class OrderPresenter
             'order_number' => (string) $order->order_number,
             'status' => $order->status->value,
             'payment_state' => $order->payment_state->value,
-            'refund_status' => $order->refund_status->value,
+            // The customer's word (Module 35): FAILED / REVIEW_REQUIRED are UNDER_REVIEW for a customer.
+            'refund_status' => $order->refund_status->forCustomer(),
             'restaurant' => ['id' => $restaurant['location_id'] ?? null, 'slug' => $restaurant['slug'] ?? null, 'name' => (string) ($restaurant['name'] ?? ''), 'branch_label' => $restaurant['branch_label'] ?? null],
             'item_count' => (int) $order->item_count,
             'total' => $order->total()->toArray(),
@@ -98,7 +102,11 @@ final class OrderPresenter
             'journey' => $snapshot['journey'] ?? null,
             'legal' => array_values((array) ($snapshot['legal'] ?? [])),
             'rejection' => $order->rejection_reason === null ? null : ['reason' => $order->rejection_reason->value, 'message' => $order->rejection_reason->customerMessage()],
-            'cancellation' => $order->status === OrderStatus::Cancelled ? ['message' => 'This order was cancelled. If you paid, the amount will be refunded.'] : null,
+            'cancellation' => $order->status === OrderStatus::Cancelled ? ['by' => self::publicActor((string) ($order->cancelled_by_type ?? OrderEvent::ACTOR_ADMIN)), 'message' => self::cancellationMessage($order)] : null,
+            // Module 35: the order's refunds as the refund domain has them — each one, what is confirmed, what is still owed.
+            'refund' => $this->refunds->forCustomerOrder($order),
+            // Whether the customer may cancel this order themselves. The policy is the server's (and not approved yet).
+            'customer_cancellation' => self::customerCancellation($order),
             // The credential the customer shows at pickup: present only while there is something to pick up.
             'pickup_credential' => $order->status->isActive() ? $this->credentials->present($order->pickupCredential) : null,
             'pickup_verification' => $this->pickupVerification($order),
@@ -153,7 +161,9 @@ final class OrderPresenter
             'fees' => $order->feeLines->map(fn (OrderFeeLine $f): array => $this->feeLine($f, (string) $order->currency))->all(),
             'customer_note' => $order->customer_note,
             'rejection' => $order->rejection_reason === null ? null : ['reason' => $order->rejection_reason->value, 'note' => $order->rejection_note],
-            'cancellation' => $order->status === OrderStatus::Cancelled ? ['reason' => $order->cancellation_reason] : null,
+            'cancellation' => $order->status === OrderStatus::Cancelled ? ['reason' => $order->cancellation_reason, 'by' => $order->cancelled_by_type, 'reason_code' => $order->cancellation_reason_code] : null,
+            // Module 35: whether money is going back, and how much. The restaurant has no refund controls.
+            'refund' => $this->refunds->forRestaurantOrder($order),
             'journey' => $snapshot['journey'] === null || ! isset($snapshot['journey']) ? null : ['estimated_arrival_at' => $snapshot['journey']['estimated_arrival_at'] ?? null],
             'pickup_verification' => $this->pickupVerification($order, true),
             'timeline' => $order->events->map(fn (OrderEvent $e): array => $this->eventLine($order, $e, true))->values()->all(),
@@ -179,7 +189,7 @@ final class OrderPresenter
             'status' => $order->status->value,
             'payment_state' => $order->payment_state->value,
             'refund_status' => $order->refund_status->value,
-            'needs_attention' => $order->refund_status->value === 'REQUIRED' || $order->refund_status->value === 'FAILED',
+            'needs_attention' => $order->refund_status->needsAttention(),
             'restaurant' => ['id' => $restaurant['location_id'] ?? null, 'name' => (string) ($restaurant['name'] ?? ''), 'organization' => $restaurant['organization_name'] ?? null],
             'market' => $order->market?->slug,
             'customer' => ['id' => $customer['id'] ?? null, 'phone_masked' => self::maskPhone($customer['phone'] ?? null)],
@@ -212,11 +222,10 @@ final class OrderPresenter
             'payment' => $snapshot['payment'] ?? null,
             'customer_note' => $order->customer_note,
             'rejection' => $order->rejection_reason === null ? null : ['reason' => $order->rejection_reason->value, 'note' => $order->rejection_note],
-            'cancellation' => $order->status === OrderStatus::Cancelled ? ['reason' => $order->cancellation_reason] : null,
-            'refunds' => $order->refunds->map(fn (OrderRefund $r): array => [
-                'id' => (string) $r->public_id, 'amount' => (new Money((int) $r->amount_minor, (string) $r->currency))->toArray(), 'reason' => (string) $r->reason, 'status' => (string) $r->status,
-                'requested_by' => ['type' => (string) $r->requested_by_type, 'id' => $r->requested_by_public_id], 'requested_at' => self::utc($r->requested_at), 'processing' => 'NOT_IMPLEMENTED',
-            ])->all(),
+            'cancellation' => $order->status === OrderStatus::Cancelled ? ['reason' => $order->cancellation_reason, 'by' => $order->cancelled_by_type, 'reason_code' => $order->cancellation_reason_code] : null,
+            // Module 35: the order's refunds (the refund domain's records) and what its payment can still give back.
+            'refunds' => $this->refunds->listForAdmin($order->refunds),
+            'refund_balance' => $order->payment_attempt_id === null ? null : RefundPresenter::balance(PaymentRefundBalance::query()->whereKey($order->payment_attempt_id)->first(), (string) $order->currency, (int) $order->total_minor),
             'pickup_credential' => $order->pickupCredential === null ? null : ['id' => (string) $order->pickupCredential->public_id, 'status' => $order->pickupCredential->status->value, 'issued_at' => self::utc($order->pickupCredential->issued_at ?? $order->pickupCredential->created_at), 'expires_at' => self::utc($order->pickupCredential->expires_at), 'format_version' => (int) $order->pickupCredential->format_version, 'failed_attempts' => (int) $order->pickupCredential->failed_attempts, 'locked_until' => self::utc($order->pickupCredential->locked_until)],
             'pickup_credentials' => $order->pickupCredentials->map(fn (OrderPickupCredential $c): array => ['id' => (string) $c->public_id, 'status' => $c->status->value, 'issued_at' => self::utc($c->issued_at ?? $c->created_at), 'revoked_at' => self::utc($c->revoked_at), 'revoke_reason' => $c->revoke_reason, 'consumed_at' => self::utc($c->consumed_at), 'consumed_method' => $c->consumed_method])->values()->all(),
             'pickup_verification' => $this->pickupVerification($order, true),
@@ -227,7 +236,9 @@ final class OrderPresenter
             'fulfillment' => $order->fulfillment === null ? null : $this->fulfillment($order->fulfillment),
             'timeline' => $order->events->map(fn (OrderEvent $e): array => $this->eventLine($order, $e, true))->values()->all(),
             'times' => $this->times($order),
-            'actions' => ['cancel' => ! $order->status->isTerminal(), 'refund' => 'NOT_IMPLEMENTED', 'mark_picked_up' => 'NOT_PROVIDED'],
+            // "refund": a refund can be ASKED for (a paid order that is over) — it is approved and executed in the refund
+            // screens, with their own permissions. Nobody can set a refund's status: there is no "mark refunded".
+            'actions' => ['cancel' => ! $order->status->isTerminal() && $order->status !== OrderStatus::PickedUp, 'refund' => $order->payment_state === OrderPaymentState::Paid && ($order->status->isTerminal() || $order->status === OrderStatus::PickedUp), 'mark_picked_up' => 'NOT_PROVIDED', 'mark_refunded' => 'NOT_PROVIDED'],
         ]);
     }
 
@@ -413,7 +424,10 @@ final class OrderPresenter
         $detail = (array) ($e->detail ?? []);
         if (! $internal) {
             // The customer's timeline carries states and public reasons — never a staff note, a trigger or an id.
-            $detail = array_intersect_key($detail, array_flip(['reason', 'message', 'amount_minor', 'currency', 'method']));
+            $detail = array_intersect_key($detail, array_flip(['reason', 'message', 'amount_minor', 'currency', 'method', 'refund_status']));
+            if (isset($detail['refund_status'])) {
+                $detail['refund_status'] = (OrderRefundStatus::tryFrom((string) $detail['refund_status']) ?? OrderRefundStatus::ReviewRequired)->forCustomer();
+            }
         }
 
         return [
@@ -450,8 +464,41 @@ final class OrderPresenter
             OrderStatus::Accepted, OrderStatus::Preparing => 'TRACK',
             OrderStatus::ReadyForPickup => 'GO_TO_PICKUP',
             OrderStatus::PickedUp, OrderStatus::Completed => 'DONE',
-            OrderStatus::Rejected, OrderStatus::Cancelled => $order->refund_status->value === 'NONE' ? 'ORDER_AGAIN' : 'AWAIT_REFUND',
+            OrderStatus::Rejected, OrderStatus::Cancelled => $order->refund_status->isOpen() ? 'AWAIT_REFUND' : 'ORDER_AGAIN',
         };
+    }
+
+    /**
+     * What a cancelled order tells its customer about the money — from the order's refund status, never a promise.
+     */
+    private static function cancellationMessage(Order $order): string
+    {
+        return match (true) {
+            $order->payment_state !== OrderPaymentState::Paid => 'This order was cancelled. Nothing was charged.',
+            $order->refund_status === OrderRefundStatus::Refunded => 'This order was cancelled and your payment was refunded.',
+            $order->refund_status === OrderRefundStatus::None => 'This order was cancelled. We will review the payment for it and update you here.',
+            default => 'This order was cancelled. A refund is due — its status is shown with this order.',
+        };
+    }
+
+    /**
+     * @return array{enabled: bool, can_cancel: bool, reason: string|null}
+     */
+    public static function customerCancellation(Order $order): array
+    {
+        $enabled = (bool) config('refunds.customer_cancellation.enabled');
+        $allowed = in_array($order->status->value, (array) config('refunds.customer_cancellation.allowed_statuses'), true);
+
+        return [
+            'enabled' => $enabled,
+            'can_cancel' => $enabled && $allowed,
+            'reason' => match (true) {
+                ! $enabled => 'CUSTOMER_CANCELLATION_DISABLED',
+                $order->status->isTerminal() || $order->status === OrderStatus::PickedUp => 'ORDER_ALREADY_CLOSED',
+                ! $allowed => 'ORDER_STATE_NOT_CANCELLABLE',
+                default => null,
+            },
+        ];
     }
 
     private static function publicActor(string $actor): string

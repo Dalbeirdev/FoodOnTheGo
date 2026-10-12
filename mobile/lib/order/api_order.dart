@@ -47,7 +47,10 @@ const _status = <String, OrderStatus>{
 const _event = <String, OrderEventType>{
   'ORDER_CREATED': OrderEventType.orderCreated, 'WAITING_FOR_RESTAURANT': OrderEventType.sentToRestaurant, 'RESTAURANT_ACCEPTED': OrderEventType.restaurantAccepted, 'RESTAURANT_REJECTED': OrderEventType.restaurantRejected,
   'PREPARATION_STARTED': OrderEventType.preparing, 'READY_FOR_PICKUP': OrderEventType.readyForPickup, 'CUSTOMER_PICKED_UP': OrderEventType.pickedUp, 'ORDER_COMPLETED': OrderEventType.completed, 'ORDER_CANCELLED': OrderEventType.cancelled, 'REFUND_REQUIRED': OrderEventType.refundUpdated,
+  // Module 35: what the customer is told about a refund changed. The line carries the order's derived refund status after it.
+  'REFUND_PROCESSING': OrderEventType.refundUpdated, 'REFUND_COMPLETED': OrderEventType.refundUpdated, 'REFUND_UNDER_REVIEW': OrderEventType.refundUpdated, 'REFUND_CLOSED': OrderEventType.refundUpdated,
 };
+const _refundLineDefault = <String, String>{'REFUND_REQUIRED': 'REQUIRED', 'REFUND_PROCESSING': 'PROCESSING', 'REFUND_COMPLETED': 'REFUNDED', 'REFUND_UNDER_REVIEW': 'UNDER_REVIEW', 'REFUND_CLOSED': 'NONE'};
 const _reason = <String, String>{'ITEM_UNAVAILABLE': 'item_unavailable', 'KITCHEN_CAPACITY': 'capacity', 'CLOSING': 'restaurant_unavailable', 'TECHNICAL_ISSUE': 'other', 'OTHER': 'other'};
 const _methodLabel = <String, String>{'COUNTER': 'Counter pickup', 'CURBSIDE': 'Curbside pickup', 'DRIVE_THROUGH': 'Drive-through', 'LOCKER': 'Locker pickup'};
 const _payLabel = <String, String>{'UPI': 'UPI', 'CARD': 'Card', 'NET_BANKING': 'Net banking', 'WALLET': 'Wallet', 'EMI': 'EMI', 'PAY_LATER': 'Pay later'};
@@ -57,12 +60,43 @@ List<Map<String, dynamic>> _list(Object? v) => v is List ? [for (final e in v) _
 int _minor(Object? money) => (_map(money)['amount'] as num?)?.toInt() ?? 0;
 DateTime? _when(Object? v) => v is String && v.isNotEmpty ? DateTime.tryParse(v)?.toUtc() : null;
 
+/// The order's refund status as the backend derived it (Module 35) on the screens' money state. A refund that failed or
+/// needs a person is "under review" — never "payment failed", and never "refunded" before the provider confirmed it.
 OrderPaymentStatus paymentStatusFromApi(String refund) => switch (refund) {
-      'REQUIRED' || 'PENDING' || 'FAILED' => OrderPaymentStatus.refundPending,
-      'PARTIAL' => OrderPaymentStatus.partiallyRefunded,
+      'REQUIRED' => OrderPaymentStatus.refundPending,
+      'PROCESSING' || 'PENDING' => OrderPaymentStatus.refundProcessing,
+      'PARTIALLY_REFUNDED' || 'PARTIAL' => OrderPaymentStatus.partiallyRefunded,
       'REFUNDED' => OrderPaymentStatus.refunded,
+      // A customer is given UNDER_REVIEW; the internal words are mapped the same way should they ever arrive.
+      'UNDER_REVIEW' || 'FAILED' || 'REVIEW_REQUIRED' => OrderPaymentStatus.refundUnderReview,
       _ => OrderPaymentStatus.paid,
     };
+
+/// The order's refund block (null for an order nothing was paid for, and from a backend older than Module 35).
+OrderRefunds? refundsFromApi(Object? v) {
+  if (v is! Map) return null;
+  final r = _map(v);
+  return OrderRefunds(
+    refundedMinor: _minor(r['refunded']), pendingMinor: _minor(r['pending']),
+    items: [
+      for (final x in _list(r['items']))
+        OrderRefund(
+          id: '${x['id']}', reference: '${x['reference'] ?? ''}', type: '${x['type'] ?? 'FULL'}', amountMinor: _minor(x['amount']), currency: '${_map(x['amount'])['currency'] ?? ''}',
+          status: '${x['status'] ?? 'UNDER_REVIEW'}', reasonLabel: '${_map(x['reason'])['label'] ?? ''}', requestedAt: _when(x['requested_at']), completedAt: _when(x['completed_at']),
+        ),
+    ],
+  );
+}
+
+/// What cancelling would mean — the backend's quote, word for word.
+CancellationQuote quoteFromApi(Map<String, dynamic> q) {
+  final refundable = q['refundable_amount'] is Map ? _map(q['refundable_amount']) : null;
+  return CancellationQuote(
+    enabled: q['enabled'] == true, canCancel: q['can_cancel'] == true, reason: q['reason'] as String?, message: '${q['message'] ?? ''}', financialEffect: q['financial_effect'] as String?,
+    refundableMinor: (refundable?['amount'] as num?)?.toInt(), currency: '${refundable?['currency'] ?? ''}', reasons: [for (final r in (q['reasons'] is List ? q['reasons'] as List : const [])) '$r'],
+    version: (_map(q['order'])['version'] as num?)?.toInt(),
+  );
+}
 
 /// The backend's timeline as the screens' event stream: one event per line, numbered in order.
 List<OrderEvent> eventsFromApi(Map<String, dynamic> d) {
@@ -82,7 +116,8 @@ List<OrderEvent> eventsFromApi(Map<String, dynamic> d) {
     out.add(OrderEvent(
       eventId: '${d['id']}-${seq + 1}', sequence: ++seq, type: type,
       status: type == OrderEventType.refundUpdated ? null : _status[line['to']],
-      paymentStatus: type == OrderEventType.refundUpdated ? OrderPaymentStatus.refundPending : null,
+      // The status the backend derived after this line (a backend older than Module 35 sends none: the line's own meaning is used).
+      paymentStatus: type == OrderEventType.refundUpdated ? paymentStatusFromApi(detail['refund_status'] is String ? '${detail['refund_status']}' : (_refundLineDefault[line['type']] ?? 'REQUIRED')) : null,
       at: _when(line['at']) ?? _when(d['placed_at']) ?? DateTime.now().toUtc(), actor: actor,
       reasonKey: type == OrderEventType.restaurantRejected || type == OrderEventType.cancelled ? (reason ?? 'other') : null,
     ));
@@ -107,6 +142,8 @@ Order orderFromApi(Map<String, dynamic> d, String customerId) {
   final status = _status['${d['status']}'] ?? OrderStatus.awaitingRestaurantAcceptance;
   final refund = '${d['refund_status'] ?? 'NONE'}';
   final paymentStatus = paymentStatusFromApi(refund);
+  final refunds = refundsFromApi(d['refund']);
+  final mayCancel = d['customer_cancellation'] is Map ? _map(d['customer_cancellation']) : null;
   final restaurant = _map(d['restaurant']);
   final pickup = _map(d['pickup']);
   final pricing = _map(d['pricing']);
@@ -148,7 +185,8 @@ Order orderFromApi(Map<String, dynamic> d, String customerId) {
       status: paymentStatus, methodType: (method?['type'] as String?)?.toLowerCase() ?? (required ? 'unknown' : 'none'), methodLabel: method == null ? (required ? '—' : 'No payment required') : (_payLabel[method['type']] ?? '${method['type']}'),
       providerDisplayName: switch (payment['provider']) { 'razorpay' => 'Razorpay', 'fake' => 'Development payment provider', final p? => '$p', _ => '—' },
       reference: '${payment['id'] ?? '—'}', paidAmountMinor: required ? _minor(pricing['total'] ?? d['total']) : 0, currency: currency,
-      maskedDetails: summary['last4'] is String ? '•••• ${summary['last4']}' : summary['vpa'] as String?, refundedAmountMinor: refund == 'REFUNDED' ? _minor(pricing['total'] ?? d['total']) : null,
+      maskedDetails: summary['last4'] is String ? '•••• ${summary['last4']}' : summary['vpa'] as String?, // Module 35: what the payment provider confirmed, from the refund records; a backend without them is read as before.
+      refundedAmountMinor: refunds != null ? (refunds.refundedMinor > 0 ? refunds.refundedMinor : null) : (refund == 'REFUNDED' ? _minor(pricing['total'] ?? d['total']) : null),
     ),
     pickup: PickupSnapshot(mode: pickup['mode'] == 'ASAP' ? 'asap' : 'scheduled', requestedAt: pickupAt, estimatedReadyTime: readyAt, restaurantTimezone: '${pickup['timezone'] ?? 'UTC'}', methodType: method0.toLowerCase(), methodLabel: _methodLabel[method0] ?? method0, instructions: restaurant['pickup_instructions'] as String?, estimatedCustomerArrival: _when(pickup['traveler_arrival_at']) ?? _when(journey?['estimated_arrival_at'])),
     pickupCodeReference: credential ? 'pc-${d['id']}' : '',
@@ -160,6 +198,9 @@ Order orderFromApi(Map<String, dynamic> d, String customerId) {
     journey: journey == null ? null : JourneySnapshot(journeyId: '${journey['id'] ?? ''}', originName: '', destinationName: ''),
     orderNote: '${d['customer_note'] ?? ''}', events: events, createdAt: placedAt, updatedAt: _when(d['updated_at']) ?? placedAt,
     review: OrderReviewInfo.fromApi(d['review']),
+    refunds: refunds,
+    cancellation: mayCancel == null ? null : OrderCancellationInfo(enabled: mayCancel['enabled'] == true, canCancel: mayCancel['can_cancel'] == true, reason: mayCancel['reason'] as String?),
+    cancellationMessage: d['cancellation'] is Map ? _map(d['cancellation'])['message'] as String? : null,
   );
 }
 
@@ -179,7 +220,7 @@ OrderSummary summaryFromApi(Map<String, dynamic> d) {
 /// The screens keep the last orders read, so a verification lookup needs no second request.
 final Map<String, Map<String, dynamic>> _seen = {};
 
-class ApiOrderRepository implements OrderRepository {
+class ApiOrderRepository implements OrderRepository, OrderCancellationRepository {
   ApiOrderRepository(this.cart);
   final CartBackend cart;
 
@@ -246,6 +287,28 @@ class ApiOrderRepository implements OrderRepository {
     return OrderPage(items: items, nextCursor: current < last ? '${current + 1}' : null, total: (meta['total'] as num?)?.toInt() ?? items.length);
   }
 
+  /// Module 35: what cancelling this order would mean — whether it is possible at all and what happens to the money.
+  @override
+  Future<CancellationQuote?> cancellationQuote(String orderNumber) async {
+    try {
+      final answer = _map(await cart.request('GET', '/customer/orders/$orderNumber/cancellation'));
+      return quoteFromApi(_map(answer['cancellation']));
+    } on ApiException catch (e) {
+      if (e.kind == ApiErrorKind.notFound) return null;
+      rethrow;
+    }
+  }
+
+  /// Module 35: a reason and nothing else — no amount, no effect, no status. The backend refuses what its policy does not allow.
+  @override
+  Future<Order?> cancel(String orderNumber, {required String reasonCode, String? note, int? expectedVersion}) async {
+    final answer = _map(await cart.request('POST', '/customer/orders/$orderNumber/cancel', body: {'reason_code': reasonCode, if (note != null && note.isNotEmpty) 'note': note, 'expected_version': ?expectedVersion}));
+    final d = _map(answer['order']);
+    if (d.isEmpty) return null;
+    _seen['${d['order_number']}'] = d; _seen['${d['id']}'] = d;
+    return orderFromApi(d, '');
+  }
+
   /// Events are the backend's: nothing is applied locally — the order is read again instead.
   @override
   Future<Order?> applyEvents(String orderNumber, List<OrderEvent> events) => getByOrderNumber(orderNumber, '');
@@ -272,11 +335,14 @@ class ApiPickupVerificationRepository implements PickupVerificationRepository {
 /// source of truth. Never invents an event, never advances anything. Without a realtime client (REALTIME_MODE=off,
 /// no key) it is the Module 31 poll.
 class ApiOrderTrackingService implements OrderTrackingService {
-  ApiOrderTrackingService(this.orders, {this.every = const Duration(seconds: 8), this.realtime, this.onTransport});
+  ApiOrderTrackingService(this.orders, {this.every = const Duration(seconds: 8), this.realtime, this.onTransport, this.onOrder});
   final ApiOrderRepository orders;
   final Duration every;
   final PusherClient? realtime;
   final void Function(RealtimeTransport)? onTransport;
+  /// Module 35: every order read again is handed over after its new events — the refunds, their amounts and whether the
+  /// order may be cancelled are not in the events.
+  void Function(Order)? onOrder;
 
   @override
   void Function() subscribe(Order order, {required void Function(OrderEvent) onEvent, required void Function(TrackingConnection) onConnection}) {
@@ -296,6 +362,7 @@ class ApiOrderTrackingService implements OrderTrackingService {
           if (e.sequence > known) { known = e.sequence; onEvent(e); }
         }
         if ((fresh.version ?? 0) > version) version = fresh.version!;
+        onOrder?.call(fresh);
         onConnection(TrackingConnection.live);
       } catch (_) {
         if (!stopped) onConnection(TrackingConnection.stale);

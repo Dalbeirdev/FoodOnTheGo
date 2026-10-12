@@ -10,7 +10,9 @@ import 'order_tracking.dart' show reduceOrder;
 /// Public references only (publicId, orderNumber); order and payment status are separate; pickup code and QR token
 /// are opaque development values whose presence proves nothing — the server validates pickup later.
 enum OrderStatus { paymentPending, confirmed, awaitingRestaurantAcceptance, accepted, preparing, readyForPickup, pickupVerification, pickedUp, completed, cancelled, rejected, refundPending, refunded }
-enum OrderPaymentStatus { paymentPending, paid, failed, refundPending, partiallyRefunded, refunded }
+/// Module 35 appended refundProcessing (with the payment provider, not completed) and refundUnderReview (failed or needs a person —
+/// never shown as "payment failed"). Appended, so stored development orders keep reading.
+enum OrderPaymentStatus { paymentPending, paid, failed, refundPending, partiallyRefunded, refunded, refundProcessing, refundUnderReview }
 enum PickupVerificationStatus { notReady, ready, verificationAvailable, verified, alreadyUsed, invalid, expired }
 
 String _snake(String camel) => camel.replaceAllMapped(RegExp(r'[A-Z]'), (m) => '_${m[0]}').toUpperCase();
@@ -101,8 +103,49 @@ class OrderReviewInfo {
   }
 }
 
+/// One refund of an order as the backend's refund domain shows it to the customer (Module 35). The status is one of
+/// REQUIRED, PROCESSING, REFUNDED (confirmed by the payment provider) or UNDER_REVIEW — never a provider's own word.
+class OrderRefund {
+  const OrderRefund({required this.id, required this.reference, required this.type, required this.amountMinor, required this.currency, required this.status, required this.reasonLabel, this.requestedAt, this.completedAt});
+  final String id, reference, type, currency, status, reasonLabel;
+  final int amountMinor;
+  final DateTime? requestedAt, completedAt;
+}
+
+/// The refunds of an order: what the provider confirmed, what is still owed or on its way, and each refund.
+class OrderRefunds {
+  const OrderRefunds({required this.refundedMinor, required this.pendingMinor, required this.items});
+  final int refundedMinor, pendingMinor;
+  final List<OrderRefund> items;
+  String get signature => '$refundedMinor/$pendingMinor/${items.map((x) => '${x.id}:${x.status}:${x.amountMinor}').join(',')}';
+}
+
+/// Whether the customer may cancel this order in the app now — the backend's answer, never the app's (Module 35).
+class OrderCancellationInfo {
+  const OrderCancellationInfo({required this.enabled, required this.canCancel, this.reason});
+  final bool enabled, canCancel;
+  final String? reason;
+}
+
+/// What cancelling would mean, as the backend decides it: shown to the customer before they confirm.
+class CancellationQuote {
+  const CancellationQuote({required this.enabled, required this.canCancel, this.reason, required this.message, this.financialEffect, this.refundableMinor, required this.currency, required this.reasons, this.version});
+  final bool enabled, canCancel;
+  final String? reason, financialEffect; // FULL_REFUND | NO_REFUND | MANUAL_REVIEW | NO_PAYMENT
+  final String message, currency;
+  final int? refundableMinor, version;
+  final List<String> reasons;
+}
+
+/// Cancelling an order exists only on the backend (Module 35): the development orders have no such thing.
+abstract class OrderCancellationRepository {
+  Future<CancellationQuote?> cancellationQuote(String orderNumber);
+  /// A reason and nothing else — no amount, no effect, no status. The backend refuses what its policy does not allow.
+  Future<Order?> cancel(String orderNumber, {required String reasonCode, String? note, int? expectedVersion});
+}
+
 class Order {
-  const Order({required this.publicId, required this.orderNumber, required this.customerId, required this.restaurant, required this.items, required this.pricing, required this.orderStatus, required this.paymentStatus, required this.payment, required this.pickup, required this.pickupCodeReference, this.pickupVerificationStatus = PickupVerificationStatus.notReady, this.etaReadyAt, this.delayed = false, this.delayReasonKey, this.rejectionReasonKey, this.cancellationReasonKey, this.lastEventSequence = 0, this.version, required this.paymentAttemptId, required this.checkoutReference, this.journey, required this.orderNote, required this.events, required this.createdAt, required this.updatedAt, this.review});
+  const Order({required this.publicId, required this.orderNumber, required this.customerId, required this.restaurant, required this.items, required this.pricing, required this.orderStatus, required this.paymentStatus, required this.payment, required this.pickup, required this.pickupCodeReference, this.pickupVerificationStatus = PickupVerificationStatus.notReady, this.etaReadyAt, this.delayed = false, this.delayReasonKey, this.rejectionReasonKey, this.cancellationReasonKey, this.lastEventSequence = 0, this.version, required this.paymentAttemptId, required this.checkoutReference, this.journey, required this.orderNote, required this.events, required this.createdAt, required this.updatedAt, this.review, this.refunds, this.cancellation, this.cancellationMessage});
   final String publicId, orderNumber, customerId, pickupCodeReference, paymentAttemptId, checkoutReference, orderNote;
   final PickupVerificationStatus pickupVerificationStatus;
   /// Food-ready ETA (restaurant / backend estimate) — distinct from pickup.estimatedCustomerArrival.
@@ -124,12 +167,25 @@ class Order {
   final DateTime createdAt, updatedAt;
   /// What the backend says about reviewing this order (Module 34). Null on development orders.
   final OrderReviewInfo? review;
+  /// Module 35 (backend orders only; null on development orders and never stored on the device): the order's refunds,
+  /// whether the customer may cancel it now, and — for a cancelled order — the backend's sentence about who cancelled it.
+  final OrderRefunds? refunds;
+  final OrderCancellationInfo? cancellation;
+  final String? cancellationMessage;
   int get itemCount => items.fold(0, (a, i) => a + i.quantity);
   Order copyWith({OrderStatus? orderStatus, OrderPaymentStatus? paymentStatus, DateTime? etaReadyAt, bool? delayed, String? delayReasonKey, String? rejectionReasonKey, String? cancellationReasonKey, int? lastEventSequence, PickupVerificationStatus? pickupVerificationStatus, List<OrderEvent>? events, DateTime? updatedAt, int? refundedAmountMinor}) => Order(
         publicId: publicId, orderNumber: orderNumber, customerId: customerId, restaurant: restaurant, items: items, pricing: pricing, orderStatus: orderStatus ?? this.orderStatus, paymentStatus: paymentStatus ?? this.paymentStatus,
         payment: paymentStatus == null && refundedAmountMinor == null ? payment : OrderPaymentSummary(status: paymentStatus ?? payment.status, methodType: payment.methodType, methodLabel: payment.methodLabel, providerDisplayName: payment.providerDisplayName, reference: payment.reference, paidAmountMinor: payment.paidAmountMinor, currency: payment.currency, maskedDetails: payment.maskedDetails, refundedAmountMinor: refundedAmountMinor ?? payment.refundedAmountMinor),
         pickup: pickup, pickupCodeReference: pickupCodeReference, pickupVerificationStatus: pickupVerificationStatus ?? this.pickupVerificationStatus, etaReadyAt: etaReadyAt ?? this.etaReadyAt, delayed: delayed ?? this.delayed, delayReasonKey: delayReasonKey ?? this.delayReasonKey, rejectionReasonKey: rejectionReasonKey ?? this.rejectionReasonKey, cancellationReasonKey: cancellationReasonKey ?? this.cancellationReasonKey, lastEventSequence: lastEventSequence ?? this.lastEventSequence, version: version,
-        paymentAttemptId: paymentAttemptId, checkoutReference: checkoutReference, journey: journey, orderNote: orderNote, events: events ?? this.events, createdAt: createdAt, updatedAt: updatedAt ?? this.updatedAt, review: review);
+        paymentAttemptId: paymentAttemptId, checkoutReference: checkoutReference, journey: journey, orderNote: orderNote, events: events ?? this.events, createdAt: createdAt, updatedAt: updatedAt ?? this.updatedAt, review: review, refunds: refunds, cancellation: cancellation, cancellationMessage: cancellationMessage);
+  /// Module 35: what the events do not carry — the money state, the refunds, whether the order may be cancelled — taken from
+  /// the order the backend just answered. The order's status, its events and its pickup state are not touched.
+  Order withMoneyOf(Order fresh) => Order(
+        publicId: publicId, orderNumber: orderNumber, customerId: customerId, restaurant: restaurant, items: items, pricing: pricing, orderStatus: orderStatus, paymentStatus: fresh.paymentStatus, payment: fresh.payment,
+        pickup: pickup, pickupCodeReference: pickupCodeReference, pickupVerificationStatus: pickupVerificationStatus, etaReadyAt: etaReadyAt, delayed: delayed, delayReasonKey: delayReasonKey, rejectionReasonKey: rejectionReasonKey, cancellationReasonKey: cancellationReasonKey, lastEventSequence: lastEventSequence, version: fresh.version ?? version,
+        paymentAttemptId: paymentAttemptId, checkoutReference: checkoutReference, journey: journey, orderNote: orderNote, events: events, createdAt: createdAt, updatedAt: updatedAt, review: review, refunds: fresh.refunds, cancellation: fresh.cancellation, cancellationMessage: fresh.cancellationMessage);
+  /// Everything [withMoneyOf] can change, as one comparable value.
+  String get moneySignature => [paymentStatus.name, payment.refundedAmountMinor, refunds?.signature, cancellation?.enabled, cancellation?.canCancel, cancellationMessage].join('|');
   Map<String, dynamic> toJson() => {'publicId': publicId, 'orderNumber': orderNumber, 'customerId': customerId, 'restaurant': restaurant.toJson(), 'items': items.map((i) => i.toJson()).toList(), 'pricing': pricing.toJson(), 'orderStatus': orderStatus.name, 'paymentStatus': paymentStatus.name, 'payment': payment.toJson(), 'pickup': pickup.toJson(), 'pickupCodeReference': pickupCodeReference, 'pickupVerificationStatus': pickupVerificationStatus.name, 'etaReadyAt': etaReadyAt?.toIso8601String(), 'delayed': delayed, 'delayReasonKey': delayReasonKey, 'rejectionReasonKey': rejectionReasonKey, 'cancellationReasonKey': cancellationReasonKey, 'lastEventSequence': lastEventSequence, 'paymentAttemptId': paymentAttemptId, 'checkoutReference': checkoutReference, 'journey': journey?.toJson(), 'orderNote': orderNote, 'events': events.map((e) => e.toJson()).toList(), 'createdAt': createdAt.toIso8601String(), 'updatedAt': updatedAt.toIso8601String()};
   factory Order.fromJson(Map<String, dynamic> j) => Order(publicId: j['publicId'] as String, orderNumber: j['orderNumber'] as String, customerId: j['customerId'] as String, restaurant: RestaurantSnapshot.fromJson(j['restaurant'] as Map<String, dynamic>), items: [for (final i in j['items'] as List) OrderItemSnapshot.fromJson(i as Map<String, dynamic>)], pricing: OrderPricing.fromJson(j['pricing'] as Map<String, dynamic>), orderStatus: OrderStatus.values.byName(j['orderStatus'] as String), paymentStatus: OrderPaymentStatus.values.byName(j['paymentStatus'] as String), payment: OrderPaymentSummary.fromJson(j['payment'] as Map<String, dynamic>), pickup: PickupSnapshot.fromJson(j['pickup'] as Map<String, dynamic>), pickupCodeReference: j['pickupCodeReference'] as String, pickupVerificationStatus: PickupVerificationStatus.values.where((x) => x.name == j['pickupVerificationStatus']).firstOrNull ?? PickupVerificationStatus.notReady, etaReadyAt: j['etaReadyAt'] == null ? null : DateTime.parse(j['etaReadyAt'] as String).toUtc(), delayed: (j['delayed'] as bool?) ?? false, delayReasonKey: j['delayReasonKey'] as String?, rejectionReasonKey: j['rejectionReasonKey'] as String?, cancellationReasonKey: j['cancellationReasonKey'] as String?, lastEventSequence: (j['lastEventSequence'] as int?) ?? 0, paymentAttemptId: j['paymentAttemptId'] as String, checkoutReference: j['checkoutReference'] as String, journey: j['journey'] == null ? null : JourneySnapshot.fromJson(j['journey'] as Map<String, dynamic>), orderNote: (j['orderNote'] as String?) ?? '', events: [for (final e in (j['events'] as List?) ?? []) OrderEvent.fromJson(e as Map<String, dynamic>)], createdAt: DateTime.parse(j['createdAt'] as String), updatedAt: DateTime.parse(j['updatedAt'] as String));
 }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../checkout/checkout_models.dart' show ConnectivityService, MockConnectivityService;
+import '../order/order_history.dart' show refundOpen;
 import '../order/order_models.dart';
 import '../order/api_order.dart' show ApiOrderRepository, ApiOrderTrackingService;
 import '../order/order_tracking.dart';
@@ -23,6 +24,9 @@ class TrackingState extends ChangeNotifier {
     final st = store ?? SecureKeyValueStore();
     // Module 32: on the backend the tracker listens to the private channel (when a client is given) and polls otherwise.
     service = tracking ?? (orders is ApiOrderRepository ? ApiOrderTrackingService(orders, realtime: realtime, onTransport: setTransport) : MockOrderTrackingService(orders, st));
+    // Module 35: the refunds and the cancellation answer of every order read again (they are not in the events).
+    final s = service;
+    if (s is ApiOrderTrackingService) s.onOrder ??= _fresh;
   }
   final OrderRepository _orders; final PickupVerificationRepository _verifications;
   late final OrderTrackingService service;
@@ -49,7 +53,11 @@ class TrackingState extends ChangeNotifier {
       if (o == null) { loadError = 'not_found'; connection = TrackingConnection.error; notifyListeners(); return; }
       order = o; lastUpdated = DateTime.now();
       // Subscribe before any further fetch so no live event (or dev step) can be lost in between.
-      if (terminalOrderStatuses.contains(o.orderStatus)) { connection = TrackingConnection.completed; }
+      // A finished order is not followed — unless a refund of it is still open (backend orders): that can change.
+      final over = terminalOrderStatuses.contains(o.orderStatus);
+      if (over) connection = TrackingConnection.completed;
+      if (over && refundOpen(o.paymentStatus) && service is ApiOrderTrackingService && connectivity.isOnline) { _unsub = service.subscribe(o, onEvent: _apply, onConnection: (_) { /* a finished order stays completed */ }); }
+      else if (over) { /* nothing more can happen */ }
       else if (!connectivity.isOnline) { connection = TrackingConnection.offline; }
       else { _unsub = service.subscribe(o, onEvent: _apply, onConnection: (c) { if (connectivity.isOnline && !terminalOrderStatuses.contains(order?.orderStatus ?? OrderStatus.confirmed)) { connection = c; notifyListeners(); } }); }
       notifyListeners();
@@ -67,6 +75,18 @@ class TrackingState extends ChangeNotifier {
     if (terminalOrderStatuses.contains(r.order.orderStatus)) connection = TrackingConnection.completed;
     notifyListeners();
   }
+
+  /// Module 35: what the events do not carry — the refunds, their amounts, whether the order may be cancelled — is taken
+  /// from the order the tracking service just read again. The order's status still changes only through its events.
+  void _fresh(Order fresh) {
+    final cur = order; if (cur == null || !connectivity.isOnline || cur.orderNumber != fresh.orderNumber) return;
+    if (cur.moneySignature != fresh.moneySignature) { order = cur.withMoneyOf(fresh); lastUpdated = DateTime.now(); notifyListeners(); }
+    // A finished order whose refund is settled has nothing left to follow.
+    if (terminalOrderStatuses.contains(cur.orderStatus) && !refundOpen(fresh.paymentStatus)) { _unsub?.call(); _unsub = null; }
+  }
+
+  /// Cancelling exists only on the backend's orders (Module 35); null with the development orders.
+  OrderCancellationRepository? get cancellations { final Object o = _orders; return o is OrderCancellationRepository ? o : null; }
 
   /// Manual / polling / resume refresh — idempotent.
   Future<void> refresh() async {

@@ -1,0 +1,50 @@
+# Module 35 — regression of the earlier browser suites on the REAL local backend, 2026-10-12 (India time 11:34–12:50)
+# NOTES — every miss of the latest result per suite, with its cause. The run log is m35-regression-runs.txt; the results are m35-regression-<suite>.json.
+# NO STEP AND NO EXPECTATION OF ANY SUITE WAS CHANGED FOR THIS MODULE. Four suites ran as *_m35 variants — see "The four variants" below. An expectation that Module 35 (or an earlier module) made obsolete is a miss here and is named below.
+# Defects of Module 35 found by the regression: none. (The two product findings of this module's own new suite — BUG-256, BUG-257 — were fixed before the regression ran.)
+
+LATEST RESULT PER SUITE: auth 48/48, market 51/51, site 68/68, restaurants 97/101, menus 48/48, account 62/63, journeys 61/63, cart 76/76, pickup 69/69, checkout 75/77, payments 57/63, orders 47/53, realtime 47/48, notifications 40/41, reviews 48/48 — 894/917.
+The Module 34 regression (the same suites without the review suite) was 853/869 with 16 misses; the same 16 are here again. Seven misses are new, all of them expectations that Module 35 made obsolete on purpose.
+
+## New with Module 35 (7) — obsolete expectations, the product is as designed
+
+- m30_e2e.js (payments) H3 — the step ends with "(mark_paid false, refund NOT_IMPLEMENTED)". The payment detail no longer says refunds are not implemented: it carries the payment's refunds, its refund balance and its disputes, and the action it offers is a refund REQUEST (which moves no money). "mark_paid false" is unchanged, and there is no "mark refunded".
+- m30_e2e.js (payments) H6 — the step ends with "the page says … that refunds are not available yet". The page now says that a refund never changes the payment and that refunds are approved and sent in Refund Management. The rest of the step holds (why it needs a person, the provider references, the timeline, no button to mark it paid or to capture).
+- m31_e2e_m35.js (orders) C3 — the step reads the refund record from the table order_refunds ("ONE refund record for the whole total (REQUIRED …)"). Module 35 replaced that table by refunds; the read answers the variant's marker "TABLE order_refunds WAS REPLACED BY MODULE 35", so the comparison misses. Everything else the step checks is in its output and unchanged: REJECTED with the reason, the amount unchanged, refund REQUIRED, the reservation RELEASED, the payment still VERIFIED. The record itself is asserted by the Module 35 suite (m35-web-e2e.json, A1: one refund, REQUIRED, the whole total).
+- m31_e2e_m35.js (orders) C6 — "REJECTING AGAIN changes nothing … still one refund record" counts the rows of order_refunds; same cause as C3. The Module 35 backend test "the same refund-required condition reported twice makes one refund" and m35 A1 cover it on the new table.
+- m31_e2e_m35.js (orders) E3 — the step expects "the refund record (REQUIRED, processing NOT_IMPLEMENTED) … actions … refund NOT_IMPLEMENTED". The admin order detail now lists the order's refunds with their real states and says refund: true for a paid order that is over (a refund can be asked for). The step's own output shows it: {"cancel":false,"refund":true,"mark_picked_up":"NOT_PROVIDED","mark_refunded":"NOT_PROVIDED"}.
+- m31_e2e_m35.js (orders) F2 — "A CUSTOMER cannot cancel … an order (404 / 401)" expected 404 because no customer cancel route existed. The route exists now (POST /customer/orders/{order}/cancel): the suite's request has no reason and is answered 422; with a reason it is answered 409 order_cancellation_not_allowed, because customer cancellation is DISABLED pending policy approval (m35-web-e2e.json, E1). The customer still cannot cancel. The other two parts of the step are unchanged (401, 422).
+- m32_e2e_m35.js (realtime) G6 — the step expects "/admin/system/orders … refund_processing and notification_delivery NOT_IMPLEMENTED". Refund processing is implemented (Module 35) and the flag says so. The same answer still carried notification_delivery NOT_IMPLEMENTED when this suite ran — a stale flag since Module 33; it was corrected to IMPLEMENTED after the regression (the full backend suite was run again afterwards).
+
+## Already obsolete before Module 35 (16) — the same misses as in m34-regression-notes.txt
+
+- m23_e2e.js (restaurants) C14, D3, A2b — C14 and D3 since Module 24 (menus on the backend; the "Demo data" list keeps changing as sections move to the backend), A2b since Module 31 (Orders is backend data). D19b since Module 34 (17 permission rows, was 16).
+- m25_e2e_m33.js (account) N2 — expects the inbox labelled development data; Module 33 made the inbox the backend's.
+- m26_e2e.js (journeys) D2b, D3 — a rating and a rating sort / filter exist along a journey since Module 34.
+- m29_e2e_m30.js (checkout) G3, G4 — "no order routes" and the route count (281 now; Module 35 added 17); obsolete since Module 31.
+- m30_e2e.js (payments) A9, A10, I3 — "a verified payment creates NO order"; obsolete since Module 31. H8 — the admin System › Payments note changed in Module 31 (and now also no longer says refunds are not built).
+- m31_e2e_m35.js (orders) A6, E6 — pickup verification / realtime NOT_IMPLEMENTED; obsolete since Module 32 (E6 names refund processing NOT_IMPLEMENTED too, which is obsolete with Module 35).
+- m33_e2e_m35.js (notifications) G3 — the step expects 11 notification types; Module 34 made it 14 and Module 35 added refund.initiated, refund.completed and refund.attention: 17.
+
+## Complete
+
+m22_auth_regression.js (auth) 48/48, m22_e2e.js (market) 51/51, m22_regression_m32.js (the full site, including the Restaurant Dashboard and the Platform Admin with the Refunds page now on the backend) 68/68, m24_e2e.js (menus) 48/48, m27_e2e.js (cart) 76/76, m28_e2e.js (pickup) 69/69, m34_e2e_m35.js (reviews) 48/48.
+
+## The four variants (m31_e2e_m35.js, m32_e2e_m35.js, m33_e2e_m35.js, m34_e2e_m35.js)
+
+Module 35 replaced the Module 31 table order_refunds by refunds (with refund_attempts, refund_events, payment_refund_balances and payment_disputes). Each of the four order-creating suites deletes from order_refunds in the clean-up it runs BEFORE its first step, so unchanged it stops there with a database error and reports nothing. A variant is a copy of its suite with exactly two differences, both outside the steps:
+1. the clean-up statement removes the refund records of the run's orders instead (their attempts and events, the refunds, the payment's refund balance and disputes) — without it the suites could not remove the orders and payments they create;
+2. the read helper answers the marker text "TABLE order_refunds WAS REPLACED BY MODULE 35" when a step reads the removed table (two steps of the Module 31 suite do — C3 and C6 above), so that such a step is a recorded miss and not the end of the suite.
+The originals (m31_e2e.js … m34_e2e.js) are untouched. How the variants are made is in the session's regress_build.py. The earlier Android preview suites (m31_flutter.js … m34_flutter.js) have the same clean-up statement; they were not run again (see below).
+
+## Suites run more than once
+
+- None. Every suite ran once.
+
+## Procedure
+
+- Both dated fixture seeders (LocalRestaurantFixtureSeeder, LocalPickupFixtureSeeder) were run on the local database before the first suite (CF-461).
+- One suite at a time; mains power (Win32_Battery.BatteryStatus = 2 — the laptop had been on battery until 10:33 and nothing timing-sensitive was run before that); the Flutter web preview stopped during these runs; a second API process on :8003 for the suites that need one (journeys, cart, realtime, reviews).
+- The suites that create orders stop themselves outside their time window, so they ran first: payments, orders, realtime, notifications, pickup, checkout, reviews between 11:34 and 12:05 India time; the others between 12:05 and 12:50.
+- Before each suite the carts left by the previous one are removed; the fixture cart (Asha) was the same before and after (2x45900, 1x14900, version 2).
+- NOT RUN AGAIN: the Android preview suites of Modules 30–34 (m30_flutter.js … m34_flutter.js). The Module 35 preview suite (m35-android-preview-e2e.json, 17/17) signs in, pays twice, and follows two refunds on the same code; the Flutter unit suite ran in full (581).

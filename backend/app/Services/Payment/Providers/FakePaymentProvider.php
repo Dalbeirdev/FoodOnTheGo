@@ -3,10 +3,15 @@
 namespace App\Services\Payment\Providers;
 
 use App\Contracts\Payment\PaymentProvider;
+use App\Enums\DisputeStatus;
 use App\Enums\ProviderFailure;
 use App\Enums\ProviderPaymentState;
+use App\Enums\ProviderRefundState;
 use App\Exceptions\ProviderException;
+use App\Exceptions\ProviderRefundRejected;
+use App\Services\Payment\Data\ProviderDispute;
 use App\Services\Payment\Data\ProviderPayment;
+use App\Services\Payment\Data\ProviderRefund;
 use App\Services\Payment\Data\ProviderRefundRequest;
 use App\Services\Payment\Data\ProviderSession;
 use App\Services\Payment\Data\ProviderSessionRequest;
@@ -50,7 +55,18 @@ final class FakePaymentProvider implements PaymentProvider
         'payment.captured' => ProviderWebhook::PAYMENT_CAPTURED,
         'payment.failed' => ProviderWebhook::PAYMENT_FAILED,
         'order.paid' => ProviderWebhook::ORDER_PAID,
+        'refund.created' => ProviderWebhook::REFUND_CREATED,
+        'refund.processed' => ProviderWebhook::REFUND_PROCESSED,
+        'refund.failed' => ProviderWebhook::REFUND_FAILED,
+        'payment.dispute.created' => ProviderWebhook::DISPUTE_CREATED,
+        'payment.dispute.under_review' => ProviderWebhook::DISPUTE_UPDATED,
+        'payment.dispute.action_required' => ProviderWebhook::DISPUTE_UPDATED,
+        'payment.dispute.won' => ProviderWebhook::DISPUTE_WON,
+        'payment.dispute.lost' => ProviderWebhook::DISPUTE_LOST,
+        'payment.dispute.closed' => ProviderWebhook::DISPUTE_CLOSED,
     ];
+
+    private const OPERATIONS = ['create_session', 'find_session', 'payments', 'payment', 'create_refund', 'refund', 'refunds', 'dispute'];
 
     public function name(): string
     {
@@ -140,6 +156,8 @@ final class FakePaymentProvider implements PaymentProvider
             throw new InvalidArgumentException('not a provider event');
         }
         $payment = is_array($event['payment'] ?? null) ? self::fromRecord($event['payment']) : null;
+        $refund = is_array($event['refund'] ?? null) ? ProviderRefund::fromSummary($event['refund']) : null;
+        $dispute = is_array($event['dispute'] ?? null) ? ProviderDispute::fromSummary($event['dispute']) : null;
         $eventId = trim((string) ($headers[self::EVENT_ID_HEADER] ?? ''));
 
         return new ProviderWebhook(
@@ -149,6 +167,8 @@ final class FakePaymentProvider implements PaymentProvider
             orderReference: is_string($event['order'] ?? null) ? $event['order'] : $payment?->orderReference,
             payment: $payment,
             createdAt: is_int($event['created_at'] ?? null) ? CarbonImmutable::createFromTimestampUTC($event['created_at']) : null,
+            refund: $refund,
+            dispute: $dispute,
         );
     }
 
@@ -157,14 +177,107 @@ final class FakePaymentProvider implements PaymentProvider
         return ['UPI', 'CARD', 'NET_BANKING', 'WALLET'];
     }
 
-    public function refund(ProviderRefundRequest $request): array
+    /* ------------------------------------------------------------------ refunds and disputes (Module 35) */
+
+    /**
+     * Behaves as the documented provider does: the idempotency key returns the refund it already made, a second
+     * receipt is refused, only a captured payment can be refunded, never more than what is left of it, and not
+     * while a dispute is open. What the refund becomes (processed at once, pending, failed) is scripted; the
+     * default is "pending", so a local run shows the wait for the provider's confirmation.
+     */
+    public function createRefund(ProviderRefundRequest $request): ProviderRefund
     {
+        $failure = $this->scripted('create_refund');
+        $lost = $failure === ProviderFailure::Timeout && $this->flag('create_refund_lost');
+        if ($failure !== null && ! $lost) {
+            throw new ProviderException($failure, self::NAME);
+        }
+        if (is_string($reason = Cache::pull(self::PREFIX.'refund_reject'))) {
+            throw new ProviderRefundRejected(self::NAME, $reason);
+        }
+        $known = Cache::get(self::PREFIX.'refund_key:'.$request->key());
+        if (is_string($known) && ($existing = $this->readRefund($known)) !== null) {
+            if (! $existing->amount->equals($request->amount) || $existing->paymentReference !== $request->paymentReference) {
+                throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::IDEMPOTENCY_CONFLICT);
+            }
+
+            return $existing; // the same key and the same request: the same refund
+        }
+        if (is_string(Cache::get(self::PREFIX.'refund_receipt:'.$request->receipt))) {
+            throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::DUPLICATE_RECEIPT);
+        }
         $payment = $this->read($request->paymentReference) ?? throw ProviderException::notFound(self::NAME);
         if (! $payment->captured()) {
-            throw ProviderException::rejected(self::NAME, 'only a captured payment can be refunded');
+            throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::PAYMENT_NOT_CAPTURED);
+        }
+        if ($payment->amount->currency !== $request->amount->currency || $request->amount->amount < 1) {
+            throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::REJECTED);
+        }
+        foreach ($this->disputesOf($request->paymentReference) as $dispute) {
+            if ($dispute->status->isOpen()) {
+                throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::DISPUTE_BLOCK);
+            }
+        }
+        $taken = array_sum(array_map(fn (ProviderRefund $r): int => $r->state === ProviderRefundState::Failed ? 0 : $r->amount->amount, $this->refundsOfPayment($request->paymentReference, false)));
+        if ($taken >= $payment->amount->amount) {
+            throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::ALREADY_REFUNDED);
+        }
+        if ($taken + $request->amount->amount > $payment->amount->amount) {
+            throw new ProviderRefundRejected(self::NAME, ProviderRefundRejected::AMOUNT_EXCEEDS_AVAILABLE);
+        }
+        $outcome = Cache::get(self::PREFIX.'refund_outcome');
+        $state = match (is_string($outcome) ? $outcome : (string) config('payments.fake.refund_outcome', 'pending')) {
+            'processed' => ProviderRefundState::Processed,
+            'failed' => ProviderRefundState::Failed,
+            default => ProviderRefundState::Pending,
+        };
+        $record = [
+            'reference' => 'fakerfnd_'.Str::lower(Str::random(14)),
+            'payment' => $request->paymentReference,
+            'state' => $state->value,
+            'provider_status' => strtolower($state->value),
+            'amount_minor' => $request->amount->amount,
+            'currency' => $request->amount->currency,
+            'receipt' => $request->receipt,
+            'trace' => $state === ProviderRefundState::Processed ? 'FAKEARN'.random_int(100000, 999999) : null,
+            'created_at' => now()->utc()->getTimestamp(),
+        ];
+        Cache::put(self::PREFIX.'refund:'.$record['reference'], $record, self::TTL);
+        Cache::put(self::PREFIX.'refund_key:'.$request->key(), $record['reference'], self::TTL);
+        Cache::put(self::PREFIX.'refund_receipt:'.$request->receipt, $record['reference'], self::TTL);
+        $list = Cache::get(self::PREFIX.'refunds_of:'.$request->paymentReference);
+        Cache::put(self::PREFIX.'refunds_of:'.$request->paymentReference, [...(is_array($list) ? $list : []), $record['reference']], self::TTL);
+        if ($lost) {
+            throw ProviderException::timeout(self::NAME); // created — and the caller is told nothing
         }
 
-        return ['reference' => 'fakerfnd_'.Str::lower(Str::random(14)), 'status' => 'PROCESSED', 'amount_minor' => $request->amount->amount, 'currency' => $request->amount->currency];
+        return ProviderRefund::fromSummary($record);
+    }
+
+    public function refund(string $paymentReference, string $refundReference): ProviderRefund
+    {
+        $this->failIfScripted('refund');
+        $refund = $this->readRefund($refundReference);
+
+        return $refund !== null && $refund->paymentReference === $paymentReference ? $refund : throw ProviderException::notFound(self::NAME);
+    }
+
+    public function refundsOfPayment(string $paymentReference, bool $scriptable = true): array
+    {
+        if ($scriptable) {
+            $this->failIfScripted('refunds');
+        }
+        $list = Cache::get(self::PREFIX.'refunds_of:'.$paymentReference);
+
+        return array_values(array_filter(array_map(fn (string $ref): ?ProviderRefund => $this->readRefund($ref), is_array($list) ? $list : [])));
+    }
+
+    public function dispute(string $disputeReference): ProviderDispute
+    {
+        $this->failIfScripted('dispute');
+        $record = Cache::get(self::PREFIX.'dispute:'.$disputeReference);
+
+        return is_array($record) ? ProviderDispute::fromSummary($record) : throw ProviderException::notFound(self::NAME);
     }
 
     /* ------------------------------------------------------------------ the provider's side */
@@ -271,8 +384,140 @@ final class FakePaymentProvider implements PaymentProvider
     }
 
     /**
-     * The next calls of an operation fail the way a provider can: create_session, find_session, payments, payment.
-     * With $lostAnswer a create_session times out AFTER the order was created.
+     * What the next refunds become when they are created: 'processed' (at once), 'pending' (the provider confirms
+     * later — settleRefund) or 'failed'. Null returns to the configured default.
+     *
+     * @param  'processed'|'pending'|'failed'|null  $outcome
+     */
+    public function refundsBecome(?string $outcome): void
+    {
+        $outcome === null ? Cache::forget(self::PREFIX.'refund_outcome') : Cache::put(self::PREFIX.'refund_outcome', $outcome, self::TTL);
+    }
+
+    /** The next refund request is refused with this reason (a ProviderRefundRejected constant). */
+    public function rejectNextRefund(string $reason): void
+    {
+        Cache::put(self::PREFIX.'refund_reject', $reason, self::TTL);
+    }
+
+    /**
+     * Later, the provider (the bank) finishes a pending refund — or fails it.
+     *
+     * @param  'processed'|'failed'|'pending'  $outcome
+     */
+    public function settleRefund(string $refundReference, string $outcome): ProviderRefund
+    {
+        $record = Cache::get(self::PREFIX.'refund:'.$refundReference);
+        if (! is_array($record)) {
+            throw ProviderException::notFound(self::NAME);
+        }
+        $state = match ($outcome) {
+            'processed' => ProviderRefundState::Processed,
+            'failed' => ProviderRefundState::Failed,
+            'pending' => ProviderRefundState::Pending,
+            default => throw new InvalidArgumentException("unknown outcome {$outcome}"),
+        };
+        $record['state'] = $state->value;
+        $record['provider_status'] = strtolower($state->value);
+        $record['trace'] = $state === ProviderRefundState::Processed ? ($record['trace'] ?? 'FAKEARN'.random_int(100000, 999999)) : null;
+        Cache::put(self::PREFIX.'refund:'.$refundReference, $record, self::TTL);
+
+        return ProviderRefund::fromSummary($record);
+    }
+
+    /** The provider's refund for one of our receipts, when it made one (tests and the development simulator). */
+    public function refundByReceipt(string $receipt): ?ProviderRefund
+    {
+        $reference = Cache::get(self::PREFIX.'refund_receipt:'.$receipt);
+
+        return is_string($reference) ? $this->readRefund($reference) : null;
+    }
+
+    /**
+     * A refund webhook as the provider would send it (refund.created / refund.processed / refund.failed).
+     *
+     * @return array{0: string, 1: array<string, string>}
+     */
+    public function refundWebhook(string $type, ProviderRefund $refund, ?string $eventId = null): array
+    {
+        $payment = $this->read($refund->paymentReference);
+
+        return $this->signed([
+            'object' => 'event',
+            'type' => $type,
+            'order' => $payment?->orderReference,
+            'payment' => $payment === null ? null : self::toRecord($payment),
+            'refund' => $refund->summary(),
+            'created_at' => now()->utc()->getTimestamp(),
+        ], $eventId);
+    }
+
+    /**
+     * A customer disputes a payment with their bank: the provider opens a dispute.
+     */
+    public function openDispute(string $paymentReference, ?int $amountMinor = null, string $reasonCode = 'goods_not_received', string $phase = 'chargeback'): ProviderDispute
+    {
+        $payment = $this->read($paymentReference) ?? throw ProviderException::notFound(self::NAME);
+        $record = [
+            'reference' => 'fakedisp_'.Str::lower(Str::random(14)),
+            'payment' => $paymentReference,
+            'status' => DisputeStatus::Open->value,
+            'provider_status' => 'open',
+            'amount_minor' => $amountMinor ?? $payment->amount->amount,
+            'currency' => $payment->amount->currency,
+            'amount_deducted_minor' => 0,
+            'phase' => $phase,
+            'reason_code' => $reasonCode,
+            'respond_by' => now()->utc()->addDays(7)->getTimestamp(),
+            'created_at' => now()->utc()->getTimestamp(),
+        ];
+        Cache::put(self::PREFIX.'dispute:'.$record['reference'], $record, self::TTL);
+        $list = Cache::get(self::PREFIX.'disputes_of:'.$paymentReference);
+        Cache::put(self::PREFIX.'disputes_of:'.$paymentReference, [...(is_array($list) ? $list : []), $record['reference']], self::TTL);
+
+        return ProviderDispute::fromSummary($record);
+    }
+
+    /**
+     * The dispute moves on at the provider. A lost dispute takes its amount from the merchant.
+     */
+    public function settleDispute(string $disputeReference, DisputeStatus $status): ProviderDispute
+    {
+        $record = Cache::get(self::PREFIX.'dispute:'.$disputeReference);
+        if (! is_array($record)) {
+            throw ProviderException::notFound(self::NAME);
+        }
+        $record['status'] = $status->value;
+        $record['provider_status'] = strtolower($status->value);
+        $record['amount_deducted_minor'] = $status === DisputeStatus::Lost ? (int) $record['amount_minor'] : 0;
+        Cache::put(self::PREFIX.'dispute:'.$disputeReference, $record, self::TTL);
+
+        return ProviderDispute::fromSummary($record);
+    }
+
+    /**
+     * A dispute webhook as the provider would send it (payment.dispute.created / under_review / won / lost / closed).
+     *
+     * @return array{0: string, 1: array<string, string>}
+     */
+    public function disputeWebhook(string $type, ProviderDispute $dispute, ?string $eventId = null, ?int $createdAt = null): array
+    {
+        $payment = $this->read($dispute->paymentReference);
+
+        return $this->signed([
+            'object' => 'event',
+            'type' => $type,
+            'order' => $payment?->orderReference,
+            'payment' => $payment === null ? null : self::toRecord($payment),
+            'dispute' => $dispute->summary(),
+            'created_at' => $createdAt ?? now()->utc()->getTimestamp(),
+        ], $eventId);
+    }
+
+    /**
+     * The next calls of an operation fail the way a provider can: create_session, find_session, payments, payment,
+     * create_refund, refund, refunds, dispute. With $lostAnswer a create_session / create_refund times out AFTER the
+     * order / the refund was created.
      */
     public function failNext(string $operation, ProviderFailure $failure, int $times = 1, bool $lostAnswer = false): void
     {
@@ -284,10 +529,49 @@ final class FakePaymentProvider implements PaymentProvider
 
     public function recover(): void
     {
-        foreach (['create_session', 'find_session', 'payments', 'payment'] as $operation) {
+        foreach (self::OPERATIONS as $operation) {
             Cache::forget(self::PREFIX.'fail:'.$operation);
             Cache::forget(self::PREFIX.'flag:'.$operation.'_lost');
         }
+        Cache::forget(self::PREFIX.'refund_reject');
+    }
+
+    /**
+     * @param  array<string, mixed>  $event
+     * @return array{0: string, 1: array<string, string>}
+     */
+    private function signed(array $event, ?string $eventId): array
+    {
+        $body = json_encode($event, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+        return [$body, [
+            self::SIGNATURE_HEADER => hash_hmac('sha256', $body, self::WEBHOOK_KEY),
+            self::EVENT_ID_HEADER => $eventId ?? 'fakeevt_'.Str::lower(Str::random(16)),
+        ]];
+    }
+
+    private function readRefund(string $refundReference): ?ProviderRefund
+    {
+        $record = Cache::get(self::PREFIX.'refund:'.$refundReference);
+
+        return is_array($record) ? ProviderRefund::fromSummary($record) : null;
+    }
+
+    /**
+     * @return list<ProviderDispute>
+     */
+    private function disputesOf(string $paymentReference): array
+    {
+        $list = Cache::get(self::PREFIX.'disputes_of:'.$paymentReference);
+        $out = [];
+        foreach (is_array($list) ? $list : [] as $reference) {
+            $record = Cache::get(self::PREFIX.'dispute:'.$reference);
+            if (is_array($record)) {
+                $out[] = ProviderDispute::fromSummary($record);
+            }
+        }
+
+        return $out;
     }
 
     /* ------------------------------------------------------------------ internals */

@@ -25,8 +25,10 @@ type RowDto = {
 }
 type DetailDto = RowDto & {
   items: OrderDto['items']; pricing: OrderDto['pricing']; promotion: { code: string } | null; taxes: OrderDto['taxes']; fees: OrderDto['fees']; customer_note: string | null
-  rejection: { reason: string; note: string | null } | null; cancellation: { reason: string | null } | null; journey: { estimated_arrival_at: string | null } | null
+  rejection: { reason: string; note: string | null } | null; cancellation: { reason: string | null; by?: string | null; reason_code?: string | null } | null; journey: { estimated_arrival_at: string | null } | null
   timeline: OrderDto['timeline']; times: OrderDto['times']
+  /** Module 35: whether money is going back for the order. The restaurant has no refund controls (controls: NOT_PROVIDED). */
+  refund?: { status: string; amount: MoneyDto; refunded: MoneyDto; controls: 'NOT_PROVIDED' } | null
 }
 type PageDto = { data: RowDto[]; meta: { total: number; current_page: number; last_page: number }; counts: { waiting_for_restaurant: number; accepted: number; preparing: number; ready_for_pickup: number } }
 
@@ -77,6 +79,8 @@ export class ApiRestaurantOrderRepository implements RestaurantOrderRepository {
     const order = toOrder(dto, '')
     order.customerDisplayName = d.customer.name || null
     order.orderNote = detail.customer_note ?? ''
+    // The refund state as the backend's refund domain derived it — shown, never acted on, from the dashboard.
+    order.restaurantRefund = detail.refund ? { status: detail.refund.status, amountMinor: detail.refund.amount.amount, refundedMinor: detail.refund.refunded.amount, currency: detail.refund.amount.currency } : null
     this.versions.set(d.order_number, d.version)
     return order
   }

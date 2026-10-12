@@ -69,7 +69,8 @@ export function timelineFor(o: Order): TimelineStage[] {
 // ---------------------------------------------------------------------------------------------------------
 export type TransportState = 'CONNECTING' | 'CONNECTED' | 'RECONNECTING' | 'DISCONNECTED' | 'FALLBACK_POLLING' | 'OFF'
 /** `onTransport` (Module 32) tells how the events reach the screen — a socket, a reconnection, polling — apart from whether the status is current. */
-export type TrackingListener = { onEvent: (e: OrderEvent) => void; onConnection: (c: 'LIVE' | 'STALE') => void; onTransport?: (t: TransportState) => void }
+/** onOrder (Module 35): the order as it was just read again — what events do not carry (the refunds, their amounts) comes from it. */
+export type TrackingListener = { onEvent: (e: OrderEvent) => void; onConnection: (c: 'LIVE' | 'STALE') => void; onTransport?: (t: TransportState) => void; onOrder?: (fresh: Order) => void }
 export interface OrderTrackingService {
   /** Starts delivering events for the order; returns an unsubscribe function. */
   subscribe(order: Order, listener: TrackingListener): () => void

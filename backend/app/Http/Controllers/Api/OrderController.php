@@ -8,12 +8,15 @@ use App\Http\Resources\Order\OrderPresenter;
 use App\Http\Support\ListQuery;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Services\Order\OrderCancellationPolicy;
 use App\Services\Order\OrderFulfillmentService;
 use App\Services\Order\OrderStore;
+use App\Services\Order\OrderWorkflowService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Validation\Rule;
 
 /**
  * A customer's own orders (Module 31). Identity is the token: no request names a customer, and an order that is
@@ -65,6 +68,35 @@ class OrderController extends Controller
         $order = $this->orders->ownedBy($this->customer($request), (string) $result->order->public_id);
 
         return response()->json(['order' => $this->presenter->forCustomer($order)], $result->order->wasRecentlyCreated ? 201 : 200);
+    }
+
+    /**
+     * What cancelling this order would mean, as the server decides it: whether it is possible at all and what happens to
+     * the money. Shown to the customer before they confirm; nothing is computed on the device.
+     */
+    public function cancellation(Request $request, string $order, OrderCancellationPolicy $policy): JsonResponse
+    {
+        return response()->json(['cancellation' => $policy->quote($this->orders->ownedBy($this->customer($request), $order))]);
+    }
+
+    /**
+     * The customer cancels their own order. Refused (409 order_cancellation_not_allowed) while no cancellation policy
+     * is approved, and for a state the policy does not allow. The customer names a reason — never an amount: what
+     * happens to the money is the policy's answer.
+     */
+    public function cancel(Request $request, string $order, OrderWorkflowService $workflow): JsonResponse
+    {
+        $customer = $this->customer($request);
+        $found = $this->orders->ownedBy($customer, $order);
+        $input = $request->validate([
+            'reason_code' => ['required', 'string', Rule::in((array) config('refunds.customer_cancellation.reasons'))],
+            'note' => ['nullable', 'string', 'max:200'],
+            'expected_version' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            ...array_fill_keys(['refund_amount', 'refund_amount_minor', 'amount', 'amount_minor', 'currency', 'refund', 'refund_status', 'status', 'payment_state', 'financial_effect', 'customer_id'], ['prohibited']),
+        ], ['prohibited' => 'The :attribute field is decided by the server and cannot be sent.']);
+        $workflow->cancelByCustomer($found, $customer, (string) $input['reason_code'], $input['note'] ?? null, isset($input['expected_version']) ? (int) $input['expected_version'] : null);
+
+        return response()->json(['order' => $this->presenter->forCustomer($this->orders->ownedBy($customer, $order))]);
     }
 
     private function customer(Request $request): Customer

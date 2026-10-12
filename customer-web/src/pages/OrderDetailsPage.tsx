@@ -6,7 +6,8 @@ import { useAuth } from '../auth/AuthContext'
 import { useCart, type AddItemInput } from '../cart/CartContext'
 import { formatLocalTime, formatMoney, zoneLabel } from '../i18n/format'
 import { t, useLocale } from '../i18n/strings'
-import { hasRefund, isReviewable, isTrackable } from '../order/history'
+import { hasRefund, isReviewable, isTrackable, refundOpen } from '../order/history'
+import RefundList from '../order/RefundList'
 import { MockOrderRepository, MockReceiptRepository, MockReorderService } from '../order/mock/index'
 import type { ReorderPlan, ReorderService } from '../order/mock/mockReorder'
 import type { Order, OrderItemSnapshot, OrderPricing, OrderRepository, Receipt, ReceiptRepository } from '../order/repositories'
@@ -59,6 +60,22 @@ export default function OrderDetailsPage({ deps }: { deps?: Deps }) {
     })()
     return () => { on = false }
   }, [orderNumber, customerId, orders, receipts, tick, auth.user?.name])
+  // Module 35: while a refund of this order is owed, on its way or being looked at, its state can change at any moment
+  // (an approval, the provider's confirmation). The order is read again quietly — every few seconds and when the tab comes
+  // back — so the page never keeps saying "processing" after the backend said "refunded". Nothing is computed here.
+  const open = order !== null && refundOpen(order.paymentStatus)
+  useEffect(() => {
+    if (!open || !customerId) return
+    let on = true
+    const again = async () => {
+      if (document.visibilityState !== 'visible') return
+      try { const o = await orders.getByOrderNumber(orderNumber, customerId); if (on && o) setOrder(o) } catch { /* the last known state stays on screen */ }
+    }
+    const timer = window.setInterval(() => { void again() }, 8000)
+    const wake = () => { void again() }
+    document.addEventListener('visibilitychange', wake); window.addEventListener('focus', wake)
+    return () => { on = false; window.clearInterval(timer); document.removeEventListener('visibilitychange', wake); window.removeEventListener('focus', wake) }
+  }, [open, customerId, orders, orderNumber])
 
   return (
     <>
@@ -100,7 +117,7 @@ function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reord
           <div><h1 id="od-title">{o.restaurant.name}</h1><p className="cart-muted mo-card__meta"><span className="ocp-number" data-testid="od-number">{o.orderNumber}</span> · {t('od.placed', { date: formatLocalDate(o.createdAt, tz, locale), time: time(o.createdAt) }, locale)}</p></div>
           <div className="mo-card__badges"><span className={`co-badge ${closed ? 'co-badge--bad' : 'co-badge--ok'}`} data-testid="od-order-status">{t(`oc.status.${s}`, undefined, locale)}</span><span className={`co-badge ${o.paymentStatus === 'PAID' ? 'co-badge--ok' : 'co-badge--muted'}`} data-testid="od-payment-status">{t(`oc.pay.${o.paymentStatus}`, undefined, locale)}</span></div>
         </div>
-        {s === 'CANCELLED' && <p className="cart-notice cart-notice--error" role="status" data-testid="od-closed">{t('od.cancelled', { at: closedAt ? `${formatLocalDate(closedAt, tz, locale)} · ${time(closedAt)}` : '' }, locale)} {o.cancellationReasonKey && t(`track.reason.${o.cancellationReasonKey}`, undefined, locale)}</p>}
+        {s === 'CANCELLED' && <p className="cart-notice cart-notice--error" role="status" data-testid="od-closed">{t('od.cancelled', { at: closedAt ? `${formatLocalDate(closedAt, tz, locale)} · ${time(closedAt)}` : '' }, locale)} {o.cancellationMessage ?? (o.cancellationReasonKey && t(`track.reason.${o.cancellationReasonKey}`, undefined, locale))}</p>}
         {s === 'REJECTED' && <p className="cart-notice cart-notice--error" role="status" data-testid="od-closed">{t('od.rejected', undefined, locale)} {o.rejectionReasonKey && t(`track.reason.${o.rejectionReasonKey}`, undefined, locale)}</p>}
         {s === 'PAYMENT_PENDING' && <p className="cart-notice cart-notice--warn" role="status">{t('track.paymentPending.text', undefined, locale)} <Link to="/payment" className="cart-link">{t('oc.action.checkStatus', undefined, locale)}</Link></p>}
         <div className="pay-actions">
@@ -148,16 +165,19 @@ function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reord
           <div><dt>{t('oc.payment.method', undefined, locale)}</dt><dd>{o.payment.methodLabel}{o.payment.maskedDetails ? ` · ${o.payment.maskedDetails}` : ''}<small>{t('pay.provider', { provider: o.payment.providerDisplayName }, locale)}</small></dd></div>
           <div><dt>{t('oc.payment.reference', undefined, locale)}</dt><dd><code className="pay-ref">{o.payment.reference}</code></dd></div>
           <div><dt>{t('oc.payment.paid', undefined, locale)}</dt><dd><b>{money(o.payment.paidAmountMinor)}</b></dd></div>
-          {hasRefund(o.paymentStatus) && (
+          {hasRefund(o.paymentStatus) && !o.refunds && (
             <>
               <div><dt>{t('od.refund.amount', undefined, locale)}</dt><dd data-testid="od-refunded">{refunded != null ? money(refunded) : t('od.refund.pendingAmount', undefined, locale)}</dd></div>
               {remaining != null && remaining > 0 && <div><dt>{t('od.refund.remaining', undefined, locale)}</dt><dd data-testid="od-remaining">{money(remaining)}</dd></div>}
             </>
           )}
         </dl>
-        {hasRefund(o.paymentStatus) && <p className="cart-muted">{t('od.refund.note', undefined, locale)}</p>}
+        {hasRefund(o.paymentStatus) && !o.refunds && <p className="cart-muted">{t('od.refund.note', undefined, locale)}</p>}
         <p className="cart-muted">{t('oc.payment.safe', undefined, locale)}</p>
       </section>
+
+      {/* Module 35: the order's refunds as the backend has them — each one, what is confirmed, what is still owed. */}
+      <RefundList order={o} locale={locale} />
 
       <section className="cart-card" aria-labelledby="od-timeline">
         <h2 id="od-timeline">{t('od.timeline', undefined, locale)}</h2>

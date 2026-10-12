@@ -147,7 +147,9 @@ class AdminPaymentApiTest extends TestCase
         $this->assertSame(['PROCESSING', 'VERIFIED'], [$detail['timeline'][4]['from'], $detail['timeline'][4]['to']]);
         $this->assertSame([['payment.captured', 'PAYMENT_CAPTURED', 'PROCESSED', 'VERIFIED', 1]], array_map(fn (array $e): array => [$e['type'], $e['normalized_type'], $e['processing_status'], $e['outcome'], $e['deliveries']], $detail['webhook_events']));
         // What cannot be done is said plainly.
-        $this->assertSame(['mark_paid' => false, 'refund' => 'NOT_IMPLEMENTED'], $detail['actions']);
+        // Module 35: this payment became an order, so it is refunded through the order — not here; nothing marks a refund as refunded.
+        $this->assertSame(['mark_paid' => false, 'refund' => false, 'mark_refunded' => 'NOT_PROVIDED'], $detail['actions']);
+        $this->assertSame([], $detail['refunds']);
         $json = json_encode($detail);
         foreach (['signature":"', 'secret', 'fake-provider', 'key_id', '+919876543210', 'payload'] as $absent) {
             $this->assertStringNotContainsString($absent, $json);
@@ -184,7 +186,8 @@ class AdminPaymentApiTest extends TestCase
     public function test_a_permission_held_for_one_market_covers_that_markets_payments_only(): void
     {
         $payments = $this->threePayments();
-        $elsewhere = Market::factory()->create(['slug' => 'elsewhere', 'status' => 'ACTIVE']);
+        // A fixed country code: the factory's random two letters could be "IN" (one run in 676) and collide with the India market.
+        $elsewhere = Market::factory()->create(['country_code' => 'AE', 'slug' => 'elsewhere', 'status' => 'ACTIVE']);
 
         $this->actingAsPrincipal($this->adminWith([Permission::AdminPaymentsView], $this->market));
         $this->getJson('/api/v1/admin/payments')->assertOk()->assertJsonPath('meta.total', 3);
@@ -242,7 +245,9 @@ class AdminPaymentApiTest extends TestCase
             $this->postJson($url.'/'.$action, ['reason' => 'Manual correction'])->assertNotFound();
         }
         $routes = collect(Route::getRoutes()->getRoutes())->map(fn ($r): string => implode('|', $r->methods()).' '.$r->uri())->filter(fn (string $r): bool => str_contains($r, 'admin/payments'))->values()->all();
-        $this->assertSame(['GET|HEAD api/v1/admin/payments', 'GET|HEAD api/v1/admin/payments/{payment}', 'POST api/v1/admin/payments/{payment}/reconcile'], $routes);
+        // Module 35 adds ONE route under a payment: asking for the refund of a payment that never became an order (admin.refunds.create).
+        // It creates a refund REQUEST; it cannot change the payment.
+        $this->assertSame(['GET|HEAD api/v1/admin/payments', 'GET|HEAD api/v1/admin/payments/{payment}', 'POST api/v1/admin/payments/{payment}/reconcile', 'POST api/v1/admin/payments/{payment}/refunds'], $routes);
 
         $attempt = $this->attempt($payment['id']);
         $this->assertSame(['PROVIDER_READY', null, 50000], [$attempt->status->value, $attempt->verified_at, $attempt->amount_minor]);
@@ -286,7 +291,7 @@ class AdminPaymentApiTest extends TestCase
         $this->assertSame([3, 3, 1, 1], [$numbers['events']['attempt_created'], $numbers['events']['provider_ready'], $numbers['events']['verified'], $numbers['events']['cancelled']]);
         $this->assertEquals(['verified_of_settled' => 0.5, 'failed_of_settled' => 0], $numbers['rates']);   // a cancellation is not a failure
         $this->assertSame(['CARD' => 1], $numbers['verified_by_method']);
-        $this->assertSame(['IMPLEMENTED', 'NOT_IMPLEMENTED'], [$numbers['order_creation'], $numbers['refunds']]);
+        $this->assertSame(['IMPLEMENTED', 'IMPLEMENTED'], [$numbers['order_creation'], $numbers['refunds']]);   // Module 35: refunds are their own domain (/admin/system/refunds)
         $json = json_encode($numbers);
         foreach (['ShouldNeverShow', 'should-never-show', 'fake-provider', '+91', 'fakepay_', 'fakeorder_', 'pa_'] as $absent) {
             $this->assertStringNotContainsString($absent, $json);

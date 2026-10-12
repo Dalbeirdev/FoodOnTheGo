@@ -7,6 +7,7 @@ use App\Enums\OrderFulfillmentStatus;
 use App\Enums\OrderRefundStatus;
 use App\Enums\OrderStatus;
 use App\Enums\Permission;
+use App\Enums\RefundReason;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Api\Admin\Concerns\AuthorizesMarketScope;
 use App\Http\Controllers\Controller;
@@ -29,6 +30,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 /**
  * Orders for administrators (Module 31): the records, their money state, the payment each one came from — and the
@@ -75,7 +77,7 @@ class OrderController extends Controller
                 'payment_state' => fn (Builder $q, string $v) => $q->where('payment_state', strtoupper($v)),
                 'refund_status' => fn (Builder $q, string $v) => $q->where('refund_status', OrderRefundStatus::tryFrom(strtoupper($v))?->value ?? '-'),
                 'restaurant' => fn (Builder $q, string $v) => $q->whereIn('location_id', DB::table('restaurant_locations')->where('public_id', Str::isUuid($v) ? $v : null)->select('id')),
-                'attention' => fn (Builder $q, string $v) => in_array($v, ['1', 'true'], true) ? $q->whereIn('refund_status', [OrderRefundStatus::Required->value, OrderRefundStatus::Failed->value]) : $q,
+                'attention' => fn (Builder $q, string $v) => in_array($v, ['1', 'true'], true) ? $q->whereIn('refund_status', [OrderRefundStatus::Required->value, OrderRefundStatus::Failed->value, OrderRefundStatus::ReviewRequired->value]) : $q,
                 'from' => fn (Builder $q, string $v) => $q->where('placed_at', '>=', self::day($v)),
                 'to' => fn (Builder $q, string $v) => $q->where('placed_at', '<', self::day($v)->addDay()),
             ],
@@ -140,11 +142,13 @@ class OrderController extends Controller
         $found = $this->find($order, Permission::AdminOrdersOverride);
         $input = $request->validate([
             'reason' => ['required', 'string', 'min:3', 'max:500'],
-            ...array_fill_keys(['status', 'refund_status', 'payment_state', 'amount', 'total', 'items', 'refund'], ['prohibited']),
+            // Module 35: why, in a controlled word (the default is an administrative cancellation). It names the refund's reason.
+            'reason_code' => ['sometimes', 'string', Rule::in(array_map(fn (RefundReason $r): string => $r->value, RefundReason::forCancellations()))],
+            ...array_fill_keys(['status', 'refund_status', 'payment_state', 'amount', 'amount_minor', 'refund_amount', 'total', 'items', 'refund'], ['prohibited']),
         ], ['prohibited' => 'The :attribute field cannot be set by hand.']);
         /** @var AdminUser $admin */
         $admin = $request->user();
-        $after = $this->workflow->cancel($found, $admin, (string) $input['reason']);
+        $after = $this->workflow->cancel($found, $admin, (string) $input['reason'], null, RefundReason::from((string) ($input['reason_code'] ?? RefundReason::AdminCancellation->value)));
 
         return response()->json(['order' => $this->presenter->detailForAdmin($after->load(['fulfillment', 'market']))]);
     }

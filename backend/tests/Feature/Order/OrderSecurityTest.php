@@ -6,8 +6,8 @@ use App\Enums\Permission;
 use App\Models\AuditEvent;
 use App\Models\Market;
 use App\Models\Order;
-use App\Models\OrderRefund;
 use App\Models\PickupSlotReservation;
+use App\Models\Refund;
 use App\Services\Order\OrderNumbers;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,7 +79,10 @@ class OrderSecurityTest extends TestCase
             $this->assertContains($name, $indexes);
         }
         $this->assertContains('order_pickup_credentials_one_active_per_order', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_pickup_credentials']))->pluck('indexname')->all());
-        $this->assertContains('order_refunds_one_open_per_order', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_refunds']))->pluck('indexname')->all());
+        // Module 35: the refund domain's table. One refund per closing condition of an order (request_key), one provider refund per record.
+        $refundIndexes = collect(DB::select('select indexname from pg_indexes where tablename = ?', ['refunds']))->pluck('indexname')->all();
+        $this->assertContains('refunds_request_key_unique', $refundIndexes);
+        $this->assertContains('refunds_provider_reference_unique', $refundIndexes);
         $this->assertContains('order_fulfillments_checkout_public_id_unique', collect(DB::select('select indexname from pg_indexes where tablename = ?', ['order_fulfillments']))->pluck('indexname')->all());
     }
 
@@ -114,9 +117,11 @@ class OrderSecurityTest extends TestCase
         $n = $order['order_number'];
 
         // Nothing a customer can send changes an order.
-        foreach (['/api/v1/customer/orders/'.$n.'/cancel', '/api/v1/customer/orders/'.$n.'/accept', '/api/v1/orders/'.$n.'/cancel'] as $url) {
+        foreach (['/api/v1/customer/orders/'.$n.'/accept', '/api/v1/orders/'.$n.'/cancel'] as $url) {
             $this->postJson($url, [], $this->using($headers))->assertNotFound();
         }
+        // Module 35: the cancellation route exists and refuses — customer cancellation is disabled until a policy is approved.
+        $this->postJson('/api/v1/customer/orders/'.$n.'/cancel', ['reason_code' => 'CHANGED_MIND'], $this->using($headers))->assertStatus(409)->assertJsonPath('error.code', 'order_cancellation_not_allowed');
         $this->patchJson('/api/v1/customer/orders/'.$n, ['status' => 'CANCELLED'], $this->using($headers))->assertStatus(405);
         $this->deleteJson('/api/v1/customer/orders/'.$n, [], $this->using($headers))->assertStatus(405);
         $this->assertSame('WAITING_FOR_RESTAURANT', $this->orderModel($n)->status->value);
@@ -128,20 +133,22 @@ class OrderSecurityTest extends TestCase
         $this->adminPost('/orders/'.$n.'/cancel', ['reason' => 'Support request', 'status' => 'COMPLETED'])->assertStatus(422);
         $this->patchJson('/api/v1/admin/orders/'.$n, ['status' => 'COMPLETED'])->assertStatus(405);
         $cancelled = $this->adminPost('/orders/'.$n.'/cancel', ['reason' => 'Support request: customer cannot travel'])->assertOk()->json('order');
-        $this->assertSame(['CANCELLED', 'PAID', 'REQUIRED', ['cancel' => false, 'refund' => 'NOT_IMPLEMENTED', 'mark_picked_up' => 'NOT_PROVIDED']], [$cancelled['status'], $cancelled['payment_state'], $cancelled['refund_status'], $cancelled['actions']]);
-        $this->assertSame(['reason' => 'Support request: customer cannot travel'], $cancelled['cancellation']);
+        $this->assertSame(['CANCELLED', 'PAID', 'REQUIRED', ['cancel' => false, 'refund' => true, 'mark_picked_up' => 'NOT_PROVIDED', 'mark_refunded' => 'NOT_PROVIDED']], [$cancelled['status'], $cancelled['payment_state'], $cancelled['refund_status'], $cancelled['actions']]);
+        // Module 35: who ended the order and the controlled reason are kept; the refund is a record of the refund domain.
+        $this->assertSame(['reason' => 'Support request: customer cannot travel', 'by' => 'ADMIN', 'reason_code' => 'ADMIN_CANCELLATION'], $cancelled['cancellation']);
         $this->assertCount(1, $cancelled['refunds']);
-        $this->assertSame(['REQUIRED', 'ADMIN_CANCELLED', 'NOT_IMPLEMENTED'], [$cancelled['refunds'][0]['status'], $cancelled['refunds'][0]['reason'], $cancelled['refunds'][0]['processing']]);
+        $this->assertSame(['REQUIRED', 'ADMIN_CANCELLATION', 'FULL'], [$cancelled['refunds'][0]['status'], $cancelled['refunds'][0]['reason'], $cancelled['refunds'][0]['type']]);
         $this->assertSame('RELEASED', PickupSlotReservation::query()->where('reference', $order['id'])->sole()->status);
         $audit = AuditEvent::query()->where('action', 'order.cancelled')->sole();
         $this->assertSame([(string) $admin->public_id, 'Support request: customer cannot travel'], [(string) $audit->actor_public_id, $audit->reason]);
         // A finished order cannot be cancelled again, and a second cancel does not add a refund.
         $this->adminPost('/orders/'.$n.'/cancel', ['reason' => 'again'])->assertOk()->assertJsonPath('order.status', 'CANCELLED');
-        $this->assertSame(1, OrderRefund::query()->count());
+        $this->assertSame(1, Refund::query()->count());
         // The customer sees the cancellation and the refund it requires; the restaurant sees it closed.
         $mine = $this->showOrder($headers, $n)->assertOk()->json('order');
         $this->assertSame(['CANCELLED', 'REQUIRED', 'AWAIT_REFUND', null], [$mine['status'], $mine['refund_status'], $mine['next_action'], $mine['pickup_credential']]);
-        $this->assertSame('This order was cancelled. If you paid, the amount will be refunded.', $mine['cancellation']['message']);
+        // Module 35: the sentence follows the order's refund status (a refund is due — not "will be refunded"), and says who cancelled.
+        $this->assertSame(['by' => 'FOODONTHEGO', 'message' => 'This order was cancelled. A refund is due — its status is shown with this order.'], $mine['cancellation']);
         $this->orderStaff();
         $this->step($n, 'accept')->assertStatus(409)->assertJsonPath('error.code', 'order_invalid_transition');
 
@@ -149,7 +156,7 @@ class OrderSecurityTest extends TestCase
         $this->asActor($this->adminWith([Permission::AdminOrdersView]));
         $this->adminGet('/orders/'.$n)->assertOk();
         $this->adminPost('/orders/'.$n.'/cancel', ['reason' => 'x'])->assertForbidden();
-        $other = Market::factory()->create(['slug' => 'elsewhere', 'status' => 'ACTIVE']);
+        $other = Market::factory()->create(['country_code' => 'AE', 'slug' => 'elsewhere', 'status' => 'ACTIVE']);   // a fixed code: the factory's random two letters could be "IN"
         $this->asActor($this->adminWith([Permission::AdminOrdersView, Permission::AdminOrdersOverride], $other));
         $this->adminGet('/orders/'.$n)->assertForbidden();
         $this->assertSame([], $this->adminGet('/orders')->assertOk()->json('data'));

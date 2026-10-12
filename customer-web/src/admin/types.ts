@@ -15,7 +15,7 @@ export type AdminPermission =
   | 'restaurants.view' | 'restaurants.approve' | 'restaurants.suspend'
   | 'customers.view' | 'customers.manage'
   | 'orders.view' | 'orders.override'
-  | 'payments.view' | 'payments.reconcile' | 'refunds.view' | 'refunds.issue' | 'settlements.view'
+  | 'payments.view' | 'payments.reconcile' | 'refunds.view' | 'refunds.create' | 'refunds.approve' | 'refunds.issue' | 'refunds.reconcile' | 'disputes.view' | 'settlements.view'
   | 'reviews.view' | 'reviews.moderate' | 'reviews.restore' | 'reviews.reports.view'
   | 'promotions.view' | 'promotions.manage'
   | 'support.view' | 'support.manage'
@@ -82,14 +82,17 @@ export type CustomerFilter = { query?: string; status?: CustomerStatus | 'all'; 
 export type OrderExceptionKind = 'payment_without_confirmation' | 'restaurant_no_response' | 'pickup_verification_issue' | 'refund_overdue' | 'status_mismatch'
 export type OrderException = { orderNumber: string; kind: OrderExceptionKind; detectedAt: string; detail: string }
 export type AdminOrderFilter = { tab: 'all' | 'active' | 'preparing' | 'ready' | 'completed' | 'cancelled' | 'rejected' | 'exception'; query?: string; market?: string; date?: 'today' | '7d' | 'all'; page?: number; pageSize?: number }
-export type AdminOrder = { order: Order; market: string; exceptions: OrderException[]; supportCaseIds: string[]; adminNotes: Array<{ at: string; by: string; text: string }>; pickupVerification?: AdminPickupVerification }
+/** Backend only (Module 35): what the order's payment can still give back, and whether a refund can be ASKED for now. */
+export type AdminRefundBalance = { paidMinor: number; refundedMinor: number; inFlightMinor: number; chargedBackMinor: number; availableMinor: number }
+export type AdminOrder = { order: Order; market: string; exceptions: OrderException[]; supportCaseIds: string[]; refundBalance?: AdminRefundBalance | null; canRequestRefund?: boolean; adminNotes: Array<{ at: string; by: string; text: string }>; pickupVerification?: AdminPickupVerification }
 /** Module 32: how the pickup was verified (the backend's audit). Never the secret or the code. */
 export type AdminPickupVerification = { status: 'NOT_YET' | 'AVAILABLE' | 'VERIFIED' | 'NOT_POSSIBLE'; method: 'QR' | 'MANUAL_CODE' | null; verifiedAt: string | null; verifiedBy: { id: string; name: string } | null; credentialStatus: string | null; completedAt: string | null; attempts: { total: number; failed: number; last: Array<{ at: string | null; method: string; result: string; staff: { id: string; name: string } | null }> }; credentials: Array<{ id: string; status: string; issuedAt: string | null; revokedAt: string | null; revokeReason: string | null; consumedAt: string | null; consumedMethod: string | null }> }
 export type PaymentState = 'CREATED' | 'PENDING' | 'AUTHORIZED' | 'CAPTURED' | 'FAILED' | 'CANCELLED' | 'REFUND_PENDING' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
 export type PaymentEvent = { at: string; type: string; detail: string }
 export type AdminPayment = { reference: string; providerReference: string | null; orderNumber: string; restaurantId: string; restaurantName: string; customerRef: string; provider: string; methodCategory: string; amountMinor: number; currency: string; status: PaymentState; createdAt: string; events: PaymentEvent[]; reconciliation: { expectedMinor: number; providerStatus: string; platformStatus: PaymentState; mismatch: boolean } }
 export type RefundStatus = 'PENDING' | 'PROCESSING' | 'PARTIAL' | 'COMPLETED' | 'FAILED'
-export type AdminRefund = { reference: string; orderNumber: string; paymentReference: string; restaurantName: string; requestedMinor: number; refundedMinor: number; currency: string; reason: string; status: RefundStatus; createdAt: string; processedAt: string | null; kind: 'full' | 'partial' }
+/** backendId / backendStatus / reasonCode (Module 35): present on refunds read from the backend's refund domain. */
+export type AdminRefund = { backendId?: string; backendStatus?: string; reasonCode?: string; reference: string; orderNumber: string; paymentReference: string; restaurantName: string; requestedMinor: number; refundedMinor: number; currency: string; reason: string; status: RefundStatus; createdAt: string; processedAt: string | null; kind: 'full' | 'partial' }
 export type SettlementStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'FAILED' | 'ON_HOLD'
 export type Settlement = { id: string; restaurantId: string; restaurantName: string; period: string; grossMinor: number; refundsMinor: number; feesMinor: number; adjustmentsMinor: number; netMinor: number; currency: string; status: SettlementStatus; orders: number }
 

@@ -6,12 +6,14 @@ use App\Enums\CheckoutStatus;
 use App\Enums\PaymentFulfillmentStatus;
 use App\Enums\PaymentNextAction;
 use App\Enums\PaymentStatus;
+use App\Http\Resources\Refund\RefundPresenter;
 use App\Models\Customer;
 use App\Models\PaymentAttempt;
 use App\Models\PaymentAttemptEvent;
 use App\Models\PaymentWebhookEvent;
 use App\Services\Payment\PaymentAttemptStore;
 use App\Services\Payment\PaymentProviderManager;
+use App\Services\Refund\RefundEligibilityService;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 
@@ -28,6 +30,8 @@ final class PaymentPresenter
     public function __construct(
         private readonly PaymentProviderManager $providers,
         private readonly PaymentAttemptStore $attempts,
+        private readonly RefundPresenter $refunds,
+        private readonly RefundEligibilityService $refundEligibility,
     ) {}
 
     /**
@@ -139,7 +143,13 @@ final class PaymentPresenter
                 'id' => (string) $e->public_id, 'type' => (string) $e->event_type, 'normalized_type' => $e->normalized_type, 'received_at' => self::utc($e->received_at), 'processed_at' => self::utc($e->processed_at),
                 'processing_status' => (string) $e->processing_status, 'outcome' => $e->outcome, 'deliveries' => (int) $e->deliveries, 'failure_reason' => $e->failure_reason,
             ])->all(),
-            'actions' => ['mark_paid' => false, 'refund' => 'NOT_IMPLEMENTED'],
+            // Module 35: the refunds of this payment and what it can still give back. The payment itself stays what it was.
+            'refunds' => $this->refunds->listForAdmin($attempt->refunds),
+            'refund_balance' => RefundPresenter::balance($attempt->refundBalance, (string) $attempt->currency, $attempt->status === PaymentStatus::Verified || $attempt->status_reason === 'DUPLICATE_PAYMENT' ? (int) $attempt->amount_minor : 0),
+            'disputes' => $this->refunds->disputesOf($attempt),
+            // "refund": a refund of THIS PAYMENT can be asked for — only for a payment that never became an order (an order
+            // is refunded through the order). Nothing here sets a status: no "mark paid", no "mark refunded".
+            'actions' => ['mark_paid' => false, 'refund' => $this->refundEligibility->forPayment($attempt)[0]->eligible, 'mark_refunded' => 'NOT_PROVIDED'],
         ];
     }
 

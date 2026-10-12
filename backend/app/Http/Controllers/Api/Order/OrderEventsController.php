@@ -61,7 +61,7 @@ class OrderEventsController extends Controller
         $rows = $rows->take(self::LIMIT);
 
         return response()->json([
-            'order' => ['id' => (string) $order->public_id, 'order_number' => (string) $order->order_number, 'status' => $order->status->value, 'version' => (int) $order->version, 'refund_status' => $order->refund_status->value, 'payment_state' => $order->payment_state->value, 'updated_at' => $order->updated_at?->toIso8601String()],
+            'order' => ['id' => (string) $order->public_id, 'order_number' => (string) $order->order_number, 'status' => $order->status->value, 'version' => (int) $order->version, 'refund_status' => $internal ? $order->refund_status->value : $order->refund_status->forCustomer(), 'payment_state' => $order->payment_state->value, 'updated_at' => $order->updated_at?->toIso8601String()],
             'events' => $rows->map(fn (OrderEvent $e): array => $this->presenter->eventLine($order, $e, $internal))->values()->all(),
             'cursor' => ['after_sequence' => $after, 'last_sequence' => $rows->last()?->sequence ?? $after, 'has_more' => $more],
             'realtime' => $this->presenter->realtimeHints($order, $internal),

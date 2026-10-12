@@ -210,7 +210,7 @@ export class MockAdminOrderRepository {
 }
 
 /* ------------------------------------------------------------------ payments / refunds / settlements */
-const PAY_STATE: Record<Order['paymentStatus'], PaymentState> = { PAYMENT_PENDING: 'PENDING', PAID: 'CAPTURED', FAILED: 'FAILED', REFUND_PENDING: 'REFUND_PENDING', PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED', REFUNDED: 'REFUNDED' }
+const PAY_STATE: Record<Order['paymentStatus'], PaymentState> = { PAYMENT_PENDING: 'PENDING', PAID: 'CAPTURED', FAILED: 'FAILED', REFUND_PENDING: 'REFUND_PENDING', REFUND_PROCESSING: 'REFUND_PENDING', REFUND_UNDER_REVIEW: 'REFUND_PENDING', PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED', REFUNDED: 'REFUNDED' }
 const paymentsAll = (): AdminPayment[] => {
   const now = new Date(); const custs = customers()
   const ids = scopedRestaurantIds()

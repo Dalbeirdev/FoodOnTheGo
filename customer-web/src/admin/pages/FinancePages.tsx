@@ -7,6 +7,7 @@ import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, Select, Stat, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminPayment, AdminRefund, PaymentState, RefundStatus, Settlement, SettlementStatus } from '../types'
 import { BackendPaymentsPage } from './BackendPaymentsPage'
+import { BackendRefundsPage } from './BackendRefundsPage'
 import { MarketScopeChip, Cell, StatusPill, fmtDateTime, money, useLoad, usePageTitle } from './shared'
 
 const CURRENCIES = ['INR', 'USD', 'GBP', 'JPY', 'EUR', 'AED']
@@ -63,7 +64,14 @@ function DevelopmentPaymentsPage() {
 
 const R_TABS: Array<'all' | RefundStatus> = ['all', 'PENDING', 'PROCESSING', 'PARTIAL', 'COMPLETED', 'FAILED']
 const R_DEFAULTS = { tab: 'all', q: '', page: '1' }
+/**
+ * Module 35: with the order backend the Refunds page is the backend's refund domain — the real records, their queues and
+ * the actions the backend offers. Without it the development rows below stay, read-only as before.
+ */
 export function RefundsPage() {
+  return adminBackendSections().includes('refunds') ? <BackendRefundsPage /> : <DevelopmentRefundsPage />
+}
+function DevelopmentRefundsPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.refunds')
   const [s, set] = useUrlState(R_DEFAULTS); const [open, setOpen] = useState<AdminRefund | null>(null)
   const filter = useMemo(() => ({ tab: (R_TABS.includes(s.tab as RefundStatus) ? s.tab : 'all') as 'all' | RefundStatus, query: s.q, page: Number(s.page) || 1, pageSize: 10 }), [s])

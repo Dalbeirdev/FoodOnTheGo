@@ -35,6 +35,9 @@ final readonly class OrderEvent
 
     public const REFUND_REQUIRED = 'order.refund_required';
 
+    /** Module 35: the order's derived refund status, or what the customer is told about one of its refunds, changed. */
+    public const REFUND_UPDATED = 'order.refund_updated';
+
     public const RECOVERY_REQUIRED = 'order.recovery_required';
 
     public const FULFILLMENT_FAILED = 'order.fulfillment_failed';

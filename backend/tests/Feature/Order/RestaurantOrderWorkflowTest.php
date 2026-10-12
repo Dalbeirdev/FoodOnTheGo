@@ -5,8 +5,8 @@ namespace Tests\Feature\Order;
 use App\Enums\Permission;
 use App\Events\Order\OrderEvent;
 use App\Models\AuditEvent;
-use App\Models\OrderRefund;
 use App\Models\PickupSlotReservation;
+use App\Models\Refund;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\BuildsOrders;
@@ -160,8 +160,9 @@ class RestaurantOrderWorkflowTest extends TestCase
         $this->assertSame('REFUND_REQUIRED', $mine['timeline'][2]['type']);
 
         // The refund record: the whole amount, REQUIRED, for the refund module; the payment itself untouched.
-        $refund = OrderRefund::query()->sole();
-        $this->assertSame([50000, 'INR', 'REQUIRED', 'RESTAURANT_REJECTED:ITEM_UNAVAILABLE', 'RESTAURANT_USER'], [(int) $refund->amount_minor, $refund->currency, $refund->status, $refund->reason, $refund->requested_by_type]);
+        // Module 35: the refund domain's record (it replaced the Module 31 foundation row).
+        $refund = Refund::query()->sole();
+        $this->assertSame([50000, 'INR', 'REQUIRED', 'RESTAURANT_REJECTED', 'ITEM_UNAVAILABLE', 'RESTAURANT_USER'], [(int) $refund->requested_amount_minor, $refund->currency, $refund->status->value, $refund->reason_code->value, $refund->reason_detail, $refund->requested_by_type]);
         $this->assertSame('VERIFIED', $this->attempt($payment['id'])->status->value);
         $this->assertSame('ORDER_CREATED', $this->attempt($payment['id'])->fulfillment_status->value);
         // The pickup place is given back and the credential revoked.
@@ -169,7 +170,7 @@ class RestaurantOrderWorkflowTest extends TestCase
         $this->assertSame('REVOKED', $this->orderModel($n)->pickupCredential->status->value);
         // Rejecting again: already rejected — no second refund record, no second event.
         $this->step($n, 'reject', ['reason' => 'OTHER'])->assertOk()->assertJsonPath('order.status', 'REJECTED');
-        $this->assertSame(1, OrderRefund::query()->count());
+        $this->assertSame(1, Refund::query()->count());
         Event::assertDispatchedTimes(OrderEvent::class, 3);   // created, rejected, refund required
         Event::assertDispatched(OrderEvent::class, fn (OrderEvent $e): bool => $e->type === OrderEvent::REFUND_REQUIRED && $e->detail['amount_minor'] === 50000);
         $this->assertSame('Out of buns until 3pm', AuditEvent::query()->where('action', 'order.rejected')->sole()->reason);
@@ -182,7 +183,7 @@ class RestaurantOrderWorkflowTest extends TestCase
 
         $rejected = $this->step($order['order_number'], 'reject', ['reason' => 'KITCHEN_CAPACITY'])->assertOk()->json('order');
         $this->assertSame(['REJECTED', 'PAYMENT_NOT_REQUIRED', 'NONE'], [$rejected['status'], $rejected['payment_state'], $rejected['refund_status']]);
-        $this->assertSame(0, OrderRefund::query()->count());
+        $this->assertSame(0, Refund::query()->count());
         $this->assertSame('ORDER_AGAIN', $this->showOrder($customer, $order['order_number'])->json('order.next_action'));
     }
 
@@ -246,8 +247,10 @@ class RestaurantOrderWorkflowTest extends TestCase
         $this->showOrder($rahul, 'not-an-order')->assertNotFound();
         $this->app['auth']->forgetGuards();
         $this->getJson('/api/v1/customer/orders/'.$first['order_number'])->assertUnauthorized();
-        // There is no way for a customer to change an order.
-        $this->postJson('/api/v1/customer/orders/'.$first['order_number'].'/cancel', [], $this->using($rahul))->assertNotFound();
+        // There is no way for a customer to change an order. Module 35: the cancellation route exists and refuses —
+        // customer cancellation is disabled until a policy is approved.
+        $this->postJson('/api/v1/customer/orders/'.$first['order_number'].'/cancel', ['reason_code' => 'CHANGED_MIND'], $this->using($rahul))->assertStatus(409)->assertJsonPath('error.code', 'order_cancellation_not_allowed');
+        $this->assertSame($first['status'], $this->showOrder($rahul, $first['order_number'])->json('order.status'));
         $this->patchJson('/api/v1/customer/orders/'.$first['order_number'], ['status' => 'CANCELLED'], $this->using($rahul))->assertStatus(405);
     }
 }

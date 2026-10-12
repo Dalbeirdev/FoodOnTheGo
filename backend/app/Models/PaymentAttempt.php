@@ -76,6 +76,24 @@ class PaymentAttempt extends Model
         return $this->hasOne(Order::class);
     }
 
+    /**
+     * Refunds of this payment (Module 35). The payment itself stays what it was: VERIFIED.
+     */
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(Refund::class)->orderBy('id');
+    }
+
+    public function refundBalance(): HasOne
+    {
+        return $this->hasOne(PaymentRefundBalance::class, 'payment_attempt_id');
+    }
+
+    public function disputes(): HasMany
+    {
+        return $this->hasMany(PaymentDispute::class)->orderBy('id');
+    }
+
     public function webhookEvents(): HasMany
     {
         return $this->hasMany(PaymentWebhookEvent::class)->orderBy('id');

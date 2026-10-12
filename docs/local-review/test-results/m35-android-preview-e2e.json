@@ -1,0 +1,96 @@
+{
+  "module": "M35",
+  "suite": "Module 35 — Android app code (Flutter web preview, ORDER_MODE=api) on the real local backend: refunds (due, processing, refunded, under review), cancellation not offered, orders, DEVELOPMENT payment provider",
+  "note": "The same Dart code as the APK, run in the browser preview. Razorpay's Android screen cannot run in a browser and no Razorpay credentials exist on this machine: the provider's own screen is NOT exercised here. The real device is verified by the owner (USER DEVICE VERIFICATION = PENDING).",
+  "ran_at": "2026-10-12T06:01:31.135Z",
+  "passed": 17,
+  "failed": 0,
+  "total": 17,
+  "results": [
+    {
+      "name": "A0 the app signs in against the local backend (same Dart code as the APK, ORDER_MODE=api)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 A PAID ORDER EXISTS (paid in the app through the development provider; Module 31 path unchanged): FOTG-20261012-TQ6UG7",
+      "pass": true,
+      "detail": "#/order-confirmation/FOTG-20261012-TQ6UG7"
+    },
+    {
+      "name": "A2 THE RESTAURANT REJECTS IT: the backend opens exactly one refund, REQUIRED for the whole payment — rejected is not refunded",
+      "pass": true,
+      "detail": "{\"row\":{\"status\":\"REJECTED\",\"paymentState\":\"PAID\",\"refund\":\"REQUIRED\",\"total\":42700,\"version\":2},\"refund\":{\"id\":\"6d67963a-1f65-45a3-86de-64ad4cbddde2\",\"status\":\"REQUIRED\",\"amount\":42700,\"generation\":0}}"
+    },
+    {
+      "name": "B1 ORDER DETAILS (Android code, ORDER_MODE=api) reads the refund from the backend (GET /customer/orders/{number} → refund_status REQUIRED with its refund block) and shows it as DUE: \"Refund due\", \"Refunded so far\", \"Still to be refunded\", the RFD- reference, \"Payment status: Refund pending\" — the development refund block is not shown and nothing says \"failed\"",
+      "pass": true,
+      "detail": "not met: none | Order details | Burger Hub\nFOTG-20261012-TQ6UG7 · placed Mon, Oct 12 · 11:26 AM GMT+5:30\nOrder status: Rejected\nPayment status: Refund pending\nThe restaurant could not accept this order. Reason: an item is unavailable. | Restaurant\nSector 62, Noida, Uttar Pradesh 201309, India | Save restaurant | View restaurant | Pickup details\nPickup date\nMon, Oct 12\nPickup time\n12:30 PM GMT+5:30"
+    },
+    {
+      "name": "C1 AN ADMINISTRATOR APPROVES AND SENDS THE REFUND; THE OPEN SCREEN FOLLOWS IT WITHOUT BEING TOUCHED: it read the order again by itself and now shows \"Processing\" — on its way, not completed (\"Payment status: Refund processing\")",
+      "pass": true,
+      "detail": "{\"approve\":200,\"execute\":200,\"processing\":\"PROCESSING\",\"saw\":true,\"reads\":1}"
+    },
+    {
+      "name": "C2 THE PROVIDER'S WEBHOOK COMPLETES THE REFUND AND THE SCREEN SHOWS IT BY ITSELF: \"Refunded\", \"Completed by the payment provider.\", \"Payment status: Refunded\" — the order is still \"Rejected\"; no number of days is promised",
+      "pass": true,
+      "detail": "{\"sim\":200,\"done\":\"REFUNDED\",\"saw\":true} Order details | Burger Hub\nFOTG-20261012-TQ6UG7 · placed Mon, Oct 12 · 11:26 AM GMT+5:30\nOrder status: Rejected\nPayment status: Refunded\nThe restaurant could not accept this order. Reason: an item is "
+    },
+    {
+      "name": "C3 A SETTLED REFUND IS NOT ASKED ABOUT AGAIN: in the next 20 seconds the screen made no further request for the order",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "C4 TRACKING of the rejected order (Android code) says what happened to the money in the backend's state — \"Your payment has been refunded.\" — shows the refund, and offers no cancel action",
+      "pass": true,
+      "detail": "Track order | LIVE ORDER TRACKING\nOrder could not be accepted\nBurger Hub was unable to accept this order.\nFinal status\nLast updated 11:28 AM India Standard Time\nNothing further will be prepared. If you were charged, the refund status is sho"
+    },
+    {
+      "name": "C5 THE IN-APP INBOX (Module 33, Android code) carries one notice per real step: \"Refund due\", \"Refund initiated\", \"Refund completed\"",
+      "pass": true,
+      "detail": "refund.completed,refund.initiated,refund.pending Notifications | Notification preferences | Cart | MY ACCOUNT\nNotifications\nStay updated with your orders, offers and more | All | Orders | Offers | Updates | Ma"
+    },
+    {
+      "name": "D1 TRACKING of a waiting order (Android code): the backend says customer cancellation is disabled (customer_cancellation.enabled false / can_cancel false), so the app shows no cancel button and says plainly \"Orders cannot be cancelled in the app yet\" — it never asked for a quote and never tried to cancel",
+      "pass": true,
+      "detail": "not met: none | {\"block\":{\"enabled\":false,\"can_cancel\":false,\"reason\":\"CUSTOMER_CANCELLATION_DISABLED\"},\"cancelCalls\":0} | Development controls\nLocal builds only. Scenarios are deterministic scripts; the next step advances automatically every few seconds or on demand.\nScenario\nIgnored events — duplicate: 0, stale: 0 | normal | delay | rejected | cancelled | paymentPending | ready | pickedUp | comp"
+    },
+    {
+      "name": "E1 A REFUND THE PROVIDER FAILED (Android code): the screen reads \"Under review\" and \"you do not need to do anything, and you will not be charged again\" with \"Payment status: Refund under review\" — the word \"failed\" does not appear and nothing says \"Refunded\"",
+      "pass": true,
+      "detail": "not met: none | {\"sim\":200,\"failed\":\"FAILED\"} Order details | Burger Hub\nFOTG-20261012-W8ANRQ · placed Mon, Oct 12 · 11:29 AM GMT+5:30\nOrder status: Rejected\nPayment status: Refund under review\nThe restaurant could not accept this order. Reason: the restaurant is at capacity. | Restaurant\nSector 62, Noida, Uttar Pradesh 201309, India | Save restaurant | View restaurant | Pickup details\nPickup date"
+    },
+    {
+      "name": "E2 AN OPEN \"UNDER REVIEW\" REFUND KEEPS BEING FOLLOWED: after the administrator's retry and the provider's confirmation the same open screen shows \"Refunded\" by itself",
+      "pass": true,
+      "detail": "{\"retried\":200,\"done2\":\"REFUNDED\",\"saw\":true,\"reads\":1}"
+    },
+    {
+      "name": "E3 MY ORDERS (Android code) shows both orders as Rejected with the payment state \"Refunded\" from the backend",
+      "pass": true,
+      "detail": "My orders | Ongoing, completed and cancelled orders. Tap an order for the full snapshot, receipt or a reorder.\nSort\nShowing 2 of 2 | Search by order number or restaurant | All | Ongoing | Completed | Cancelled | Newest first | Burger Hub, F"
+    },
+    {
+      "name": "E4 THE APP NEVER SENT ANYTHING ABOUT A REFUND: no request other than reading the order went to a refund or cancellation route",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "F1 no uncaught error in the Flutter web preview during the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z0 CLEAN-UP OF THE REFUNDS: every refund, attempt, event and payment balance of this run is removed",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, payment attempt, checkout and reservation of this run is removed",
+      "pass": true,
+      "detail": "{\"orders\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0}"
+    }
+  ]
+}

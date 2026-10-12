@@ -77,9 +77,12 @@ final class NotifyOnOrderEvent
         }
 
         $refundLine = match (true) {
-            $order->refund_status instanceof OrderRefundStatus && in_array($order->refund_status, [OrderRefundStatus::Required, OrderRefundStatus::Pending, OrderRefundStatus::Partial], true) => $this->templates->fragment('refund_line.pending', $locale),
+            // Module 35: the line follows the order's refund status as the refund domain derived it — never a guess.
             $order->payment_state === OrderPaymentState::PaymentNotRequired => $this->templates->fragment('refund_line.not_required', $locale),
-            $order->payment_state === OrderPaymentState::Paid => $this->templates->fragment('refund_line.pending', $locale),
+            $order->refund_status === OrderRefundStatus::Refunded => $this->templates->fragment('refund_line.refunded', $locale),
+            $order->refund_status !== OrderRefundStatus::None => $this->templates->fragment('refund_line.pending', $locale),
+            // Paid, ended, and no refund is owed yet: a person decides (or the approved policy says none is due).
+            $order->payment_state === OrderPaymentState::Paid => $this->templates->fragment('refund_line.review', $locale),
             default => $this->templates->fragment('refund_line.none', $locale),
         };
 

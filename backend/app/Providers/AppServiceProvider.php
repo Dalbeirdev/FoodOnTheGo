@@ -238,6 +238,9 @@ class AppServiceProvider extends ServiceProvider
         // Orders (Module 31): customers, restaurant staff and administrators are each limited by their own identity.
         RateLimiter::for('order-read', fn (Request $request) => Limit::perMinute($perMinute('order_read'))->by('order-read:'.$actor($request)));
         RateLimiter::for('order-write', fn (Request $request) => Limit::perMinute($perMinute('order_write'))->by('order-write:'.$actor($request)));
+        // Module 35.
+        RateLimiter::for('order-cancel', fn (Request $request) => Limit::perMinute($perMinute('order_cancel'))->by('order-cancel:'.$actor($request)));
+        RateLimiter::for('refund-action', fn (Request $request) => Limit::perMinute($perMinute('refund_action'))->by('refund-action:'.$actor($request)));
         RateLimiter::for('pickup-verify', fn (Request $request) => Limit::perMinute($perMinute('pickup_verify'))->by('pickup-verify:'.$actor($request)));
         RateLimiter::for('channel-auth', fn (Request $request) => Limit::perMinute($perMinute('channel_auth'))->by('channel-auth:'.$actor($request)));
         RateLimiter::for('device-register', fn (Request $request) => Limit::perMinute($perMinute('device_register'))->by('device-register:'.$actor($request)));

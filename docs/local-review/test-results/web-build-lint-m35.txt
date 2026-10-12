@@ -1,0 +1,51 @@
+# Module 35 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-12T06:02:04Z UTC, local machine
+# Unit tests always run the development mocks or scripted answers in the API's shape; no payment provider is called.
+# New test files of this module: src/order/api/apiOrder.test.tsx (7), src/admin/api/ApiAdminRefundRepository.test.tsx (11), src/dashboard/api/apiOrders.test.tsx (2);
+# changed: src/admin/pages/BackendPaymentsPage.test.tsx (15, one new). Run on mains power (an earlier run of the same day on battery timed out in four older tests and is not evidence).
+
+## tsc -b --noEmit
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/dashboard/components/ui.tsx:103:108: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/dashboard/components/ui.tsx:118:111: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/dashboard/DashboardLayout.tsx:18:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/DashboardLayout.tsx:35:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/DashboardLayout.tsx:136:21: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/CheckoutPage.tsx:42:34: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+(oxlint exit 0; 0 errors; 130 warnings.)
+warnings in files changed or added by this module:
+src/admin/components/RefundRequestDialog.tsx:15:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/components/RefundRequestDialog.tsx:17:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/components/RefundRequestDialog.tsx:34:111: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, su
+src/admin/components/RefundRequestDialog.tsx:37:5: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external sy
+src/order/useOrderTracking.ts:58:5: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling 
+src/dashboard/pages/OrdersPage.tsx:66:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Ca
+src/dashboard/pages/OrdersPage.tsx:70:71: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Ca
+src/dashboard/pages/OrdersPage.tsx:106:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. C
+src/admin/pages/BackendRefundsPage.tsx:46:61: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems
+src/pages/OrderDetailsPage.tsx:50:20: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Callin
+src/pages/OrderDetailsPage.tsx:225:67: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calli
+src/pages/OrderDetailsPage.tsx:240:31: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calli
+src/admin/AdminContext.tsx:62:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/AdminContext.tsx:72:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/AdminContext.tsx:105:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/AdminContext.tsx:98:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling se
+src/admin/pages/OrdersPage.tsx:56:69: warning react(purity): Cannot call impure function during render help: `Math.random` is an impure function. Calling an impure function can produce unstable results that update unpred
+src/admin/pages/OrdersPage.tsx:56:112: warning react(purity): Cannot call impure function during render help: `Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredic
+(end of list)
+
+## vitest run
+ Test Files  63 passed (63)
+      Tests  759 passed (759)
+   Duration  28.72s (tests 60%, environment 24%, transform 7%, import 5%, setup 4%)
+
+## vite build (npm run build)
+dist/assets/index-CTcPP4u0.js         1,334.63 kB │ gzip: 370.37 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 364ms[39m

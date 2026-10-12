@@ -1030,3 +1030,30 @@ to change or remove one. The rating of a location is recalculated from PUBLISHED
 ranking formula. Notifications reuse Module 33 (`review.response`, `review.published`, `review.moderated`; the invitation is one
 line of `order.completed`, no reminder). Not built: review photos, AI moderation, a confidence-adjusted ranking, restaurant-side
 review notifications, helpful votes. Details: [`reviews.md`](reviews.md).
+
+## 23. Refunds: cancellation financial workflows, provider refund execution, refund webhooks and reconciliation, the dispute foundation (Module 35)
+
+Built 2026-10-11 / 12 (local). A refund is a record of its own (`refunds`, replacing the Module 31 `order_refunds` foundation) with a
+state machine — `REQUIRED → REQUESTED → APPROVED → SUBMITTING → PROCESSING → REFUNDED`, with `SUBMISSION_UNKNOWN`, `FAILED`,
+`CANCELLED` and `REVIEW_REQUIRED` beside it — and **only the payment provider's own record completes one**: there is no
+"mark refunded" action anywhere. What a payment can still give back is one locked row per payment (`payment_refund_balances`:
+paid, reserved, refunded, charged back; `CHECK reserved + refunded <= paid`), so concurrent requests, a retry and a late webhook can
+never refund more than was paid; amounts are integer minor units derived by the server, never taken from a client. A restaurant
+rejecting a paid order, an administrator cancelling one and a payment that never became an order each open a refund; whether it is
+approved without a person is policy (`REFUND_AUTO_APPROVE_REASONS`, empty = **AUTO-REFUND POLICY PENDING BUSINESS APPROVAL**).
+Asking, approving, sending and reconciling are separate permissions (`admin.refunds.create / approve / issue / reconcile`,
+`admin.disputes.view`); every action needs the version it read and is audited. Submission is one queued job per refund with the
+receipt as the provider idempotency key (`rf-{refund}-{generation}`): an answer that never came is `SUBMISSION_UNKNOWN`, looked up
+at the provider before anything is sent again. Verified, deduplicated refund webhooks and a scheduled sweep (`refunds:reconcile`,
+every minute, bounded backoff) converge on the provider's state; a refund seen at the provider that FoodOnTheGo did not make, a
+mismatch of amount or currency and a failure after completion go to a person (`REVIEW_REQUIRED`), never to a guess. The order's
+status never changes because of a refund; the order carries a derived `refund_status` (`NONE / REQUIRED / PROCESSING /
+PARTIALLY_REFUNDED / REFUNDED / FAILED / REVIEW_REQUIRED`), and the customer is told "refund due", "processing", "refunded" or
+"under review" — never "payment failed", never a number of days. **Customer cancellation is built and DISABLED**
+(`ORDER_CUSTOMER_CANCELLATION_ENABLED=false`, pending business / legal approval): the customer names a reason, never an amount, and
+what happens to the money is the policy's answer. Disputes (chargebacks) are recorded from verified provider events, block new
+refunds while open and are read-only. Notifications reuse Module 33 (`refund.pending`, `refund.initiated`, `refund.completed`,
+`refund.attention`). **Razorpay refunds are implemented against the published API and tested with a faked HTTP layer only — no
+Razorpay test credentials exist on this machine, so RAZORPAY TEST REFUNDS = PENDING PROVIDER VERIFICATION; no live money, no live
+mode.** Not built: settlements, payouts, commission and funding-source accounting (Module 36), tax credit notes, promotion
+restoration, the dispute workflow, recording refunds made outside FoodOnTheGo. Details: [`refunds.md`](refunds.md).

@@ -5,6 +5,7 @@ use App\Enums\PrincipalType;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\CartMetricsController;
+use App\Http\Controllers\Api\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Api\Admin\FinancialRuleController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\Admin\PickupMetricsController;
 use App\Http\Controllers\Api\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
 use App\Http\Controllers\Api\Admin\RealtimeController;
+use App\Http\Controllers\Api\Admin\RefundController as AdminRefundController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
@@ -43,6 +45,7 @@ use App\Http\Controllers\Api\Customer\RecentLocationController;
 use App\Http\Controllers\Api\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
 use App\Http\Controllers\Api\Dev\FakePaymentController;
+use App\Http\Controllers\Api\Dev\FakeRefundController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\JourneyController;
 use App\Http\Controllers\Api\JourneyRestaurantController;
@@ -92,6 +95,8 @@ Route::pattern('journey', '[0-9a-fA-F-]{36}');
 Route::pattern('line', '[0-9a-fA-F-]{36}');
 Route::pattern('checkout', '[0-9a-fA-F-]{36}');
 Route::pattern('payment', '[0-9a-fA-F-]{36}');
+Route::pattern('refund', '[0-9a-fA-F-]{36}');
+Route::pattern('dispute', '[0-9a-fA-F-]{36}');
 Route::pattern('paymentProvider', '[a-z][a-z0-9_]{1,23}');
 Route::pattern('promotion', '[0-9a-fA-F-]{36}');
 Route::pattern('taxRule', '[0-9a-fA-F-]{36}');
@@ -192,6 +197,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/{order}/events', [OrderEventsController::class, 'customer'])->name('events');
         Route::get('/{order}/pickup-credential', [PickupCredentialController::class, 'show'])->name('pickup-credential.show');
         Route::post('/{order}/pickup-credential/reissue', [PickupCredentialController::class, 'reissue'])->withoutMiddleware('throttle:order-read')->middleware(['throttle:order-write', 'idempotent:order.pickup-credential.reissue,optional'])->name('pickup-credential.reissue');
+        // Module 35: what cancelling would mean (decided here, shown before the customer confirms) and the cancellation
+        // itself — refused while no cancellation policy is approved (CUSTOMER CANCELLATION = DISABLED).
+        Route::get('/{order}/cancellation', [OrderController::class, 'cancellation'])->name('cancellation.show');
+        Route::post('/{order}/cancel', [OrderController::class, 'cancel'])->withoutMiddleware('throttle:order-read')->middleware(['throttle:order-cancel', 'idempotent:order.cancel,optional'])->name('cancel');
         // Module 34: the review of a completed order — whether it can be written, and writing it (one per order, ever).
         Route::get('/{order}/review', [CustomerReviewController::class, 'forOrder'])->withoutMiddleware('throttle:order-read')->middleware('throttle:review-read')->name('review.show');
         Route::post('/{order}/review', [CustomerReviewController::class, 'store'])->withoutMiddleware('throttle:order-read')->middleware(['throttle:review-write', 'idempotent:review.submit,optional'])->name('review.store');
@@ -218,6 +227,12 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     if ((bool) config('payments.providers.allow_fake')) {
         Route::post('/dev/payments/{payment}/simulate', [FakePaymentController::class, 'simulate'])
             ->middleware(['auth:customer', 'active', 'throttle:payment-read'])->name('dev.payments.simulate');
+        // Module 35: the fake provider's side of a refund and of a dispute — it settles the FAKE PROVIDER's record and sends
+        // its signed webhooks; it cannot set a refund's status. For an administrator who may issue refunds.
+        Route::middleware(['auth:admin', 'active', 'throttle:refund-action'])->group(function (): void {
+            Route::post('/dev/refunds/{refund}/simulate', [FakeRefundController::class, 'simulate'])->name('dev.refunds.simulate');
+            Route::post('/dev/payments/{payment}/dispute', [FakeRefundController::class, 'dispute'])->name('dev.payments.dispute');
+        });
     }
 
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
@@ -466,6 +481,14 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         // Orders (Module 31): the records and the paid checkouts that did not become one. Permissions (per market)
         // are checked in the controller; the numbers are platform-wide.
         Route::get('/system/orders', [AdminOrderController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.orders');
+        // Refunds (Module 35): the refund records, their queues and the disputes a provider reported. Permissions (per
+        // market) are checked in the controllers; the numbers are platform-wide.
+        Route::get('/system/refunds', [AdminRefundController::class, 'metrics'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.refunds');
+        Route::get('/refunds', [AdminRefundController::class, 'index'])->name('refunds.index');
+        Route::get('/refunds/queues', [AdminRefundController::class, 'queues'])->name('refunds.queues');
+        Route::get('/refunds/{refund}', [AdminRefundController::class, 'show'])->name('refunds.show');
+        Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
+        Route::get('/disputes/{dispute}', [AdminDisputeController::class, 'show'])->name('disputes.show');
         // Module 32: the realtime layer's health and counters, the pickup verification counters, and the attempts (security view).
         Route::get('/system/realtime', [RealtimeController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.realtime');
         Route::get('/pickup-attempts', [RealtimeController::class, 'pickupAttempts'])->middleware('can:'.Permission::AdminSystemView->value)->name('pickup-attempts.index');
@@ -536,6 +559,18 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             // neither one edits an order by hand or touches money.
             Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
             Route::post('/order-fulfillments/{fulfillment}/recover', [AdminOrderController::class, 'recover'])->name('order-fulfillments.recover');
+            // Refunds (Module 35): ask (admin.refunds.create), approve / turn down (admin.refunds.approve), send to the
+            // provider / try again (admin.refunds.issue), ask the provider again (admin.refunds.reconcile). Each with its
+            // own permission per market, audited. No route sets a refund's status: there is no "mark as refunded".
+            Route::middleware('throttle:refund-action')->group(function (): void {
+                Route::post('/orders/{order}/refunds', [AdminRefundController::class, 'storeForOrder'])->middleware('idempotent:refund.create,optional')->name('orders.refunds.store');
+                Route::post('/payments/{payment}/refunds', [AdminRefundController::class, 'storeForPayment'])->middleware('idempotent:refund.create,optional')->name('payments.refunds.store');
+                Route::post('/refunds/{refund}/approve', [AdminRefundController::class, 'approve'])->name('refunds.approve');
+                Route::post('/refunds/{refund}/reject', [AdminRefundController::class, 'reject'])->name('refunds.reject');
+                Route::post('/refunds/{refund}/execute', [AdminRefundController::class, 'execute'])->name('refunds.execute');
+                Route::post('/refunds/{refund}/retry', [AdminRefundController::class, 'retry'])->name('refunds.retry');
+                Route::post('/refunds/{refund}/reconcile', [AdminRefundController::class, 'reconcile'])->name('refunds.reconcile');
+            });
             Route::post('/markets/{market}/tax-rules', [FinancialRuleController::class, 'storeTaxRule'])->name('tax-rules.store');
             Route::patch('/tax-rules/{taxRule}', [FinancialRuleController::class, 'updateTaxRule'])->name('tax-rules.update');
             Route::post('/tax-rules/{taxRule}/status', [FinancialRuleController::class, 'taxRuleStatus'])->name('tax-rules.status');

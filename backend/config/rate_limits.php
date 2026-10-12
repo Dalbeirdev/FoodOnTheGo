@@ -71,6 +71,9 @@ return [
     // a step (accept, reject, ready) is a person's click.
     'order_read' => (int) env('RATE_LIMIT_ORDER_READ', 120),
     'order_write' => (int) env('RATE_LIMIT_ORDER_WRITE', 60),
+    // Module 35: a customer's cancellation requests, and an administrator's refund actions (each one may reach the provider).
+    'order_cancel' => (int) env('RATE_LIMIT_ORDER_CANCEL', 6),
+    'refund_action' => (int) env('RATE_LIMIT_REFUND_ACTION', 30),
     // Module 32: pickup verifications per staff member and minute (the service adds a per-location and a per-credential
     // limit of its own) and realtime channel authorizations per principal and minute.
     'pickup_verify' => (int) env('RATE_LIMIT_PICKUP_VERIFY', 30),

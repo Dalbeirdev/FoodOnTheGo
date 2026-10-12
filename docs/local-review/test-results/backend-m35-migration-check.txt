@@ -1,0 +1,26 @@
+# Module 35 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply — 2026-10-12
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_15_100000_module35_refunds .. 292.12ms DONE
+
+
+## refund tables after the rollback (expected: only order_refunds — the Module 31 table is restored)
+order_refunds
+
+## Module 35 columns after the rollback (expected: all false)
+{"orders.cancelled_by_type":false,"orders.cancellation_reason_code":false,"payment_webhook_events.refund_id":false,"payment_webhook_events.provider_dispute_reference":false}
+
+
+ INFO Running migrations. 
+
+ 2026_10_15_100000_module35_refunds .. 303.11ms DONE
+
+
+## refund tables after the re-apply (expected: the five Module 35 tables, no order_refunds)
+refunds,payment_refund_balances,refund_attempts,refund_events,payment_disputes
+
+## Module 35 columns after the re-apply (expected: all true)
+{"orders.cancelled_by_type":true,"orders.cancellation_reason_code":true,"payment_webhook_events.refund_id":true,"payment_webhook_events.provider_dispute_reference":true}
+DONE

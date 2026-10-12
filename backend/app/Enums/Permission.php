@@ -41,7 +41,16 @@ enum Permission: string
     /** Ask the provider again about a payment. It changes nothing a provider does not confirm; there is no "mark as paid". */
     case AdminPaymentsReconcile = 'admin.payments.reconcile';
     case AdminRefundsView = 'admin.refunds.view';
+    /** Ask for a refund (Module 35). A request moves no money: it has to be approved and executed. */
+    case AdminRefundsCreate = 'admin.refunds.create';
+    /** Approve or turn down a refund. Who asked is not who approved. */
+    case AdminRefundsApprove = 'admin.refunds.approve';
+    /** Send an approved refund to the provider, or try a failed one again — the only actions that reach the provider. */
     case AdminRefundsIssue = 'admin.refunds.issue';
+    /** Ask the provider again about a refund. It changes nothing a provider does not confirm; there is no "mark as refunded". */
+    case AdminRefundsReconcile = 'admin.refunds.reconcile';
+    /** Read the disputes / chargebacks a provider reported (Module 35 foundation). Nothing can be done to them here. */
+    case AdminDisputesView = 'admin.disputes.view';
     case AdminSettlementsView = 'admin.settlements.view';
     case AdminReviewsView = 'admin.reviews.view';
     case AdminReviewsModerate = 'admin.reviews.moderate';

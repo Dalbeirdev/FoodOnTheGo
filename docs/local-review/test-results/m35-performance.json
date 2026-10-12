@@ -1,0 +1,24 @@
+{
+    "note": "Measured in the test environment on this machine against the FAKE provider (in-process, cache-backed). Not a benchmark; not Razorpay latency.",
+    "admin_refund_list_queries": {
+        "page_of_1": 3,
+        "page_of_4": 3
+    },
+    "admin_refund_list_ms": 4.5,
+    "admin_refund_queues_queries": 1,
+    "admin_refund_detail_queries": 10,
+    "admin_refund_detail_ms": 20,
+    "eligibility_queries": 4,
+    "eligibility_ms": 2.5,
+    "refund_request_creation_queries": 25,
+    "refund_request_creation_ms": 22.5,
+    "approve_queries": 37,
+    "approve_ms": 30.1,
+    "execute_with_fake_provider_queries": 63,
+    "execute_with_fake_provider_ms": 47.2,
+    "refund_webhook_accept_and_process_queries": 42,
+    "refund_webhook_accept_and_process_ms": 39.4,
+    "manual_reconcile_queries": 45,
+    "manual_reconcile_ms": 28.2,
+    "due_refunds_sweep_plan": "Limit  (cost=3.06..3.07 rows=1 width=4469)   ->  Sort  (cost=3.06..3.07 rows=1 width=4469)         Sort Key: next_action_at         ->  Seq Scan on refunds  (cost=0.00..3.05 rows=1 width=4469)               Filter: (((status)::text = 'PROCESSING'::text) AND (next_action_at <= now()))"
+}

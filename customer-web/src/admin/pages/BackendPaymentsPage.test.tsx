@@ -136,10 +136,46 @@ describe('BackendPaymentsPage', () => {
     expect(events[2]).toHaveTextContent(/Device reported.*customer device/); expect(events[3]).toHaveTextContent(/Verified → Verified.*provider/)
     expect(within(drawer).getByTestId('payment-webhooks')).toHaveTextContent(/payment\.captured.*PROCESSED → VERIFIED.*delivered 2 times/)
     expect(within(drawer).getByTestId('payment-no-mark-paid')).toHaveTextContent(/cannot be marked as paid by hand/i)
-    expect(within(drawer).getByTestId('payment-refund-future')).toHaveTextContent(/not available yet/i)
+    // Module 35: refunds exist — as records of their own. The payment is never changed by one, and this payment (which the
+    // backend does not offer a refund request for) shows no refund control at all.
+    expect(within(drawer).getByTestId('payment-refund-note')).toHaveTextContent(/a refunded payment is still verified/i)
+    expect(within(drawer).getByTestId('payment-refunds-empty')).toBeInTheDocument()
     const buttons = within(drawer).getAllByRole('button').map((b) => b.textContent ?? '')
     expect(buttons.filter((b) => /paid|refund|capture|success/i.test(b))).toEqual([])
     expect(document.body.textContent).not.toMatch(/key_secret|webhook_secret|rzp_(test|live)_|razorpay_signature/i)
+  })
+
+  it('lists the refunds of a payment and, for a payment without an order, asks for a refund with a note and nothing else (Module 35)', async () => {
+    const user = userEvent.setup()
+    const refund = { id: '0e000000-0000-4000-8000-000000000001', reference: 'RFD-0E00000000', type: 'FULL', amount: { amount: 50000, currency: 'INR' }, reason: 'PAYMENT_ORDER_FAILURE', status: 'PROCESSING', requested_at: null, completed_at: null }
+    const balance = (refunded: number, inFlight: number, available: number) => ({ paid: { amount: 50000 }, refunded: { amount: refunded }, in_flight: { amount: inFlight }, charged_back: { amount: 0 }, available: { amount: available } })
+    // A verified payment whose order cannot be made: the backend offers the request.
+    respond = (c) => (c.method === 'POST' && c.path.endsWith('/refunds')
+      ? { status: 201, body: { refund: { id: refund.id, reference: refund.reference } } }
+      : c.path.startsWith('/admin/payments/') ? { body: { payment: { ...DETAIL, fulfillment_status: 'RECOVERY_REQUIRED', refunds: [], refund_balance: balance(0, 0, 50000), disputes: [], actions: { mark_paid: false, refund: true, mark_refunded: 'NOT_PROVIDED' } } } } : backend(c))
+    const view = mount()
+    await user.click(await screen.findByText('PAY-0D2C6A558A'))
+    const drawer = await screen.findByTestId('payment-drawer')
+    await user.click(within(drawer).getByTestId('payment-request-refund'))
+    const dialog = await screen.findByTestId('payment-refund-dialog')
+    expect(dialog).toHaveTextContent('It moves no money until it is approved and sent')
+    await user.type(within(dialog).getByRole('textbox'), 'Restaurant closed for the day')
+    await user.click(within(dialog).getByTestId('reason-confirm'))
+    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.path.endsWith('/refunds'))).toBe(true))
+    expect(calls.find((c) => c.method === 'POST' && c.path.endsWith('/refunds'))?.body).toEqual({ note: 'Restaurant closed for the day' })   // no amount, no type, no reason code
+    view.unmount()
+
+    // Afterwards: the refund is listed with its state and a link to its record; the payment itself is still VERIFIED.
+    respond = (c) => (c.path.startsWith('/admin/payments/') ? { body: { payment: { ...DETAIL, refunds: [refund], refund_balance: balance(0, 50000, 0), disputes: [], actions: { mark_paid: false, refund: false, mark_refunded: 'NOT_PROVIDED' } } } } : backend(c))
+    mount()
+    await user.click(await screen.findByText('PAY-0D2C6A558A'))
+    const again = await screen.findByTestId('payment-drawer')
+    expect(again).toHaveAttribute('data-status', 'VERIFIED')
+    const item = within(within(again).getByTestId('payment-refunds')).getByRole('listitem')
+    expect(item).toHaveAttribute('data-status', 'PROCESSING'); expect(item).toHaveTextContent('RFD-0E00000000'); expect(item).toHaveTextContent('Processing')
+    expect(within(item).getByRole('link')).toHaveAttribute('href', '/admin/refunds?open=0e000000-0000-4000-8000-000000000001')
+    expect(within(again).getByTestId('payment-refund-balance')).toHaveTextContent('still refundable ₹0.00')
+    expect(within(again).queryByTestId('payment-request-refund')).toBeNull()
   })
 
   it('a payment that needs a person says why', async () => {

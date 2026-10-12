@@ -3,7 +3,10 @@
 namespace App\Contracts\Payment;
 
 use App\Exceptions\ProviderException;
+use App\Exceptions\ProviderRefundRejected;
+use App\Services\Payment\Data\ProviderDispute;
 use App\Services\Payment\Data\ProviderPayment;
+use App\Services\Payment\Data\ProviderRefund;
 use App\Services\Payment\Data\ProviderRefundRequest;
 use App\Services\Payment\Data\ProviderSession;
 use App\Services\Payment\Data\ProviderSessionRequest;
@@ -98,13 +101,39 @@ interface PaymentProvider
      */
     public function configuredMethods(): ?array;
 
+    /* ------------------------------------------------------------------ refunds and disputes (Module 35) */
+
     /**
-     * Returns money of a captured payment. A contract for the refund domain of a later module; no business flow
-     * calls it yet.
+     * Asks the provider to return money of a captured payment — exactly this amount, to the method that paid.
+     * The request's receipt / idempotency key makes it safe to send the SAME request again; it is never safe to
+     * send a different one while the outcome of the first is not known.
      *
-     * @return array{reference: string, status: string, amount_minor: int, currency: string}
+     * @throws ProviderRefundRejected the provider refused it (a normalized reason)
+     * @throws ProviderException Timeout / Unavailable = it is NOT known whether the refund was created;
+     *                           RateLimited / Misconfigured = it was certainly not created
+     */
+    public function createRefund(ProviderRefundRequest $request): ProviderRefund;
+
+    /**
+     * One refund of a payment, as the provider has it now.
+     *
+     * @throws ProviderException NotFound when the provider has no such refund on this payment
+     */
+    public function refund(string $paymentReference, string $refundReference): ProviderRefund;
+
+    /**
+     * Every refund the provider has for a payment — how an unanswered creation is found by its receipt.
+     *
+     * @return list<ProviderRefund>
      *
      * @throws ProviderException
      */
-    public function refund(ProviderRefundRequest $request): array;
+    public function refundsOfPayment(string $paymentReference): array;
+
+    /**
+     * A dispute / chargeback as the provider has it now.
+     *
+     * @throws ProviderException NotFound when the provider has no such dispute
+     */
+    public function dispute(string $disputeReference): ProviderDispute;
 }

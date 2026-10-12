@@ -72,7 +72,7 @@ class AppConfig {
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
   static const String appVersion = '0.1.0';
-  static const int buildNumber = 38;
+  static const int buildNumber = 39;
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';

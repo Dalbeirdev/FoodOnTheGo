@@ -329,14 +329,17 @@ class CheckoutPaymentPreparationTest extends TestCase
 
         // Since Module 30 a confirmed checkout has exactly one payment route: a payment attempt for its total.
         $this->assertSame(['POST api/v1/checkouts/{checkout}/payment-attempts'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts') && str_contains($r, 'pay'))->values()->all());
-        // Refunds, captures and settlements belong to later modules: nothing of them exists. Orders exist since Module 31 —
+        // Captures and settlements belong to later modules: nothing of them exists. Orders exist since Module 31 —
         // created by the server from the verified payment; the one order route under /checkouts is for a ZERO total.
-        foreach (['refunds', 'capture', 'settlements', 'payment-intents'] as $segment) {
+        foreach (['capture', 'settlements', 'payment-intents'] as $segment) {
             $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, $segment))->values()->all(), $segment);
         }
+        // Refunds exist since Module 35 — administrator routes (and the development simulator), never a checkout's or a customer's.
+        $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, 'refunds') && ! str_contains($r, 'api/v1/admin/') && ! str_contains($r, 'api/v1/dev/'))->values()->all(), 'refunds');
         $this->assertSame(['POST api/v1/checkouts/{checkout}/fulfill'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts/') && str_contains($r, 'fulfill'))->values()->all());
-        // 21 = 15 (Module 31) + 4 (Module 32) + 2 (Module 34: GET / POST customer/orders/{order}/review — a review, never an order or a refund)
-        $this->assertCount(21, $routes->filter(fn (string $r): bool => str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill')));   // 15 (Module 31) + 4 (Module 32: the event streams and the pickup credential routes)
+        // 24 = 15 (Module 31) + 4 (Module 32) + 2 (Module 34: GET / POST customer/orders/{order}/review — a review, never an order or a refund)
+        //      + 3 (Module 35: GET customer/orders/{order}/cancellation, POST customer/orders/{order}/cancel, POST admin/orders/{order}/refunds)
+        $this->assertCount(24, $routes->filter(fn (string $r): bool => str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill')));   // 15 (Module 31) + 4 (Module 32: the event streams and the pickup credential routes)
         $ready = $this->confirmCheckout($this->asha, $this->checkout)->assertOk()->json('checkout');
         foreach (['/pay', '/payment', '/payments', '/order', '/capture', '/refund'] as $suffix) {
             $this->postJson('/api/v1/checkouts/'.$ready['id'].$suffix, [], $this->using($this->asha))->assertNotFound();
@@ -344,8 +347,10 @@ class CheckoutPaymentPreparationTest extends TestCase
         foreach (['payment_intents', 'settlements'] as $table) {
             $this->assertFalse(DB::getSchemaBuilder()->hasTable($table), $table);
         }
-        // Orders exist since Module 31; their refund records are a foundation only (nothing is refunded).
+        // Orders exist since Module 31. Module 35 replaced the order_refunds foundation with the refund domain's own table:
+        // confirming a checkout creates no refund.
         $this->assertTrue(DB::getSchemaBuilder()->hasTable('orders'));
-        $this->assertSame(0, DB::table('order_refunds')->count());
+        $this->assertFalse(DB::getSchemaBuilder()->hasTable('order_refunds'));
+        $this->assertSame(0, DB::table('refunds')->count());
     }
 }

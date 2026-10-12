@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ApiError } from '../../api/client'
 import { formatLocalTime } from '../../i18n/format'
 import { t } from '../../i18n/strings'
 import { Card, ErrorState, Icon, Skeleton, StatusBadge, Tabs, ToastLine, useToastMessage } from '../../dashboard/components/ui'
 import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
+import { ApiAdminRefundRepository, type RefundRequestInput } from '../api/ApiAdminRefundRepository'
 import { Badge, DataTable, Details, DevNote, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
+import { RefundRequestDialog } from '../components/RefundRequestDialog'
 import type { AdminOrder, AdminOrderFilter } from '../types'
 import { MarketScopeChip, Cell, KNOWN_MARKET_CODES, StatusPill, fmtDateTime, marketOptions, money, useLoad, usePageTitle } from './shared'
 
@@ -48,6 +51,15 @@ export function OrderDetailsPage() {
   const a = useAdmin(); const locale = a.locale; const { orderNumber = '' } = useParams(); usePageTitle('adm.nav.orders')
   const { data: o, state, reload, refresh } = useLoad(() => a.repos.orders.get(orderNumber), [a.repos, orderNumber])
   const [note, setNote] = useState(''); const [busy, setBusy] = useState(false); const { msg, toast } = useToastMessage()
+  // Module 35: asking for a refund of this order. The key makes a double click one request.
+  const [asking, setAsking] = useState(false); const [askBusy, setAskBusy] = useState(false); const [askError, setAskError] = useState<string | null>(null); const navigate = useNavigate()
+  const requestKey = useMemo(() => `refund-request-${orderNumber}-${Math.random().toString(36).slice(2, 12)}-${Date.now().toString(36)}`, [orderNumber, asking]) // eslint-disable-line react-hooks/exhaustive-deps
+  const requestRefund = async (input: RefundRequestInput) => {
+    setAskBusy(true); setAskError(null)
+    try { const created = await new ApiAdminRefundRepository().requestForOrder(orderNumber, input, requestKey); setAsking(false); navigate(`${BASE}/refunds?open=${encodeURIComponent(created.id)}`) }
+    catch (e) { setAskError(e instanceof ApiError && e.message ? e.message : t('adm.refund.actionFailed', undefined, locale)); await refresh() }
+    finally { setAskBusy(false) }
+  }
   if (state === 'loading') return <div className="db-page"><Skeleton rows={6} /></div>
   if (state === 'error') return <div className="db-page"><ErrorState title={t('adm.error.loadTitle', undefined, locale)} onRetry={() => { void reload() }} locale={locale} /></div>
   if (!o) return <div className="db-page"><ErrorState title={t('adm.order.notFound', undefined, locale)} locale={locale} /><Link to={`${BASE}/orders`} className="db-link">← {t('adm.nav.orders', undefined, locale)}</Link></div>
@@ -75,7 +87,10 @@ export function OrderDetailsPage() {
           <Card title={t('adm.order.payment', undefined, locale)}>
             {!o.payment ? <p className="db-muted">{t('adm.order.noPayment', undefined, locale)}</p> : <Details rows={[[t('adm.payments.col.reference', undefined, locale), <Link key="p" to={`${BASE}/payments?q=${encodeURIComponent(o.payment.reference)}`} className="db-link">{o.payment.reference}</Link>], [t('adm.payments.col.status', undefined, locale), <StatusPill key="s" status={o.payment.status} prefix="adm.payState" dot />], [t('adm.payments.col.method', undefined, locale), t(`adm.payment.method.${o.payment.methodCategory}`, undefined, locale)], [t('adm.payments.col.amount', undefined, locale), money(o.payment.amountMinor, o.payment.currency, locale)], [t('adm.payments.col.provider', undefined, locale), o.payment.provider]]} />}
             <h3 className="db-card__title" style={{ fontSize: '0.95rem', marginTop: 14 }}>{t('adm.order.refunds', undefined, locale)}</h3>
-            {o.refunds.length === 0 ? <p className="db-muted">{t('adm.order.noRefunds', undefined, locale)}</p> : <ul className="db-list">{o.refunds.map((r) => <li key={r.reference}><Link to={`${BASE}/refunds?q=${encodeURIComponent(r.reference)}`} className="db-link">{r.reference}</Link> · {money(r.requestedMinor, r.currency, locale)} <StatusPill status={r.status} prefix="adm.refundStatus" /></li>)}</ul>}
+            {o.refunds.length === 0 ? <p className="db-muted" data-testid="order-no-refunds">{t('adm.order.noRefunds', undefined, locale)}</p> : <ul className="db-list" data-testid="order-refunds">{o.refunds.map((r) => <li key={r.backendId ?? r.reference} data-status={r.backendStatus ?? r.status}><Link to={r.backendId ? `${BASE}/refunds?open=${encodeURIComponent(r.backendId)}` : `${BASE}/refunds?q=${encodeURIComponent(r.reference)}`} className="db-link">{r.reference}</Link> · {money(r.requestedMinor, r.currency, locale)} {r.backendStatus ? <Badge tone={r.backendStatus === 'REFUNDED' ? 'green' : r.backendStatus === 'FAILED' || r.backendStatus === 'REVIEW_REQUIRED' || r.backendStatus === 'SUBMISSION_UNKNOWN' ? 'red' : r.backendStatus === 'CANCELLED' ? 'muted' : 'amber'} dot>{t(`adm.refund.status.${r.backendStatus}`, undefined, locale)}</Badge> : <StatusPill status={r.status} prefix="adm.refundStatus" dot />}</li>)}</ul>}
+            {/* Module 35 (backend orders): what the payment can still give back, and asking for a refund — a request that moves no money. */}
+            {o.refundBalance && <p className="db-muted" data-testid="order-refund-balance">{t('adm.refund.balance.line', { refunded: money(o.refundBalance.refundedMinor, cur, locale), inFlight: money(o.refundBalance.inFlightMinor, cur, locale), available: money(o.refundBalance.availableMinor, cur, locale) }, locale)}</p>}
+            {o.canRequestRefund && a.can('refunds.create') && <button type="button" className="btn btn--outline" data-testid="order-request-refund" onClick={() => { setAskError(null); setAsking(true) }}>{t('adm.refund.request', undefined, locale)}</button>}
           </Card>
           {o.pickupVerification && (
             <Card title={t('adm.order.pickupVerification', undefined, locale)}>
@@ -101,6 +116,7 @@ export function OrderDetailsPage() {
         </div>
       </div>
       <DevNote>{t('adm.order.overrideNote', undefined, locale)}</DevNote>
+      <RefundRequestDialog open={asking} orderNumber={order.orderNumber} currency={cur} availableMinor={o.refundBalance?.availableMinor ?? null} locale={locale} busy={askBusy} error={askError} onConfirm={requestRefund} onCancel={() => setAsking(false)} />
       <ToastLine msg={msg} />
     </div>
   )

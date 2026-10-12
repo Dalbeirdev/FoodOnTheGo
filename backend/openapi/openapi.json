@@ -14358,7 +14358,7 @@
     },
     "/admin/orders/{order}/cancel": {
       "post": {
-        "summary": "Ends an order that is still on its way (admin.orders.override; with a reason; audited as order.cancelled). A PAID order becomes REFUND REQUIRED — nothing is refunded here. The pickup place is given back and the credential revoked. Customers cannot cancel their own orders in this module; a finished order (COMPLETED, REJECTED, CANCELLED) cannot be cancelled (409 order_invalid_transition). An administrator who holds the permission for some markets only sees and acts on those markets' orders.",
+        "summary": "Ends an order that is still on its way (admin.orders.override; with a reason; audited as order.cancelled). Module 35: a PAID order gets ONE refund (REQUIRED, for what is left of its payment) — nothing is refunded here; who ended the order and the reason code are kept on it. The pickup place is given back and the credential revoked. Customers cannot cancel their own orders in this module; a finished order (COMPLETED, REJECTED, CANCELLED) cannot be cancelled (409 order_invalid_transition). An administrator who holds the permission for some markets only sees and acts on those markets' orders.",
         "security": [
           {
             "admin": []
@@ -19439,6 +19439,1738 @@
             }
           },
           "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/orders/{order}/cancellation": {
+      "get": {
+        "summary": "What cancelling my order would mean (Module 35): whether it is possible and the financial effect, decided by the server. While no cancellation policy is approved: enabled = false, can_cancel = false.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-YYYYMMDD-XXXXXX) or the order id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OrderCancellationQuoteEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderCancellationQuoteEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/orders/{order}/cancel": {
+      "post": {
+        "summary": "Cancel my own order — ONLY when a cancellation policy is enabled and allows the order's current state (checked under the order's lock). CUSTOMER CANCELLATION = DISABLED by default: 409 order_cancellation_not_allowed (details.reason CUSTOMER_CANCELLATION_DISABLED / ORDER_STATE_NOT_CANCELLABLE). The order becomes CANCELLED; what happens to the payment is the policy's answer: a refund REQUIRED (FULL_REFUND), a refund request a person decides (MANUAL_REVIEW) or none (NO_REFUND). The pickup place is given back and the credential revoked. Asked twice, the order is cancelled once.",
+        "security": [
+          {
+            "customer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-YYYYMMDD-XXXXXX) or the order id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCancelOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OrderEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds": {
+      "get": {
+        "summary": "The refunds of the markets the caller holds admin.refunds.view for (Module 35), newest first, with filters, queues and a search by exact safe references",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "An exact reference: a refund id, its RFD- reference, an order number, a payment id or PAY- reference, or the provider's refund reference",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "A refund state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REQUIRED",
+                "REQUESTED",
+                "APPROVED",
+                "SUBMITTING",
+                "SUBMISSION_UNKNOWN",
+                "PROCESSING",
+                "REFUNDED",
+                "FAILED",
+                "CANCELLED",
+                "REVIEW_REQUIRED"
+              ]
+            }
+          },
+          {
+            "name": "filter[queue]",
+            "in": "query",
+            "required": false,
+            "description": "An operational queue",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "required",
+                "awaiting_approval",
+                "approved",
+                "processing",
+                "failed",
+                "review_required",
+                "completed",
+                "cancelled"
+              ]
+            }
+          },
+          {
+            "name": "filter[type]",
+            "in": "query",
+            "required": false,
+            "description": "FULL or PARTIAL",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FULL",
+                "PARTIAL"
+              ]
+            }
+          },
+          {
+            "name": "filter[reason]",
+            "in": "query",
+            "required": false,
+            "description": "A reason code",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RESTAURANT_REJECTED",
+                "ORDER_CANNOT_BE_FULFILLED",
+                "CUSTOMER_CANCELLATION",
+                "RESTAURANT_CANCELLATION",
+                "ADMIN_CANCELLATION",
+                "DUPLICATE_PAYMENT",
+                "PAYMENT_ORDER_FAILURE",
+                "ITEM_UNAVAILABLE",
+                "PICKUP_CAPACITY_FAILURE",
+                "ADMIN_FINANCIAL_CORRECTION",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "filter[provider]",
+            "in": "query",
+            "required": false,
+            "description": "The provider's name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[restaurant]",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "filter[market]",
+            "in": "query",
+            "required": false,
+            "description": "A market slug",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[review]",
+            "in": "query",
+            "required": false,
+            "description": "1 = everything a person has to look at (REVIEW_REQUIRED, FAILED, SUBMISSION_UNKNOWN)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[from]",
+            "in": "query",
+            "required": false,
+            "description": "Requested on or after this day (YYYY-MM-DD, UTC)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[to]",
+            "in": "query",
+            "required": false,
+            "description": "Requested on or before this day",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "requested_at, completed_at, requested_amount_minor or status; \"-\" for descending (default -requested_at)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminRefundPage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/queues": {
+      "get": {
+        "summary": "How many refunds wait in each operational queue — Required, Awaiting approval, Approved, Processing, Failed, Review required, Completed (admin.refunds.view)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RefundQueues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundQueues"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/{refund}": {
+      "get": {
+        "summary": "One refund with its payment balance, the provider's references, every provider attempt, its timeline, the provider events and the audit trail (admin.refunds.view in its market). No secret exists here to show.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/refunds": {
+      "get": {
+        "summary": "Counts and states of the refund domain (admin.system.view): refunds per state, the queues, the provider's refund health, disputes, the policy switches. Not settlement figures.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "RefundMetrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefundMetrics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/orders/{order}/refunds": {
+      "post": {
+        "summary": "Ask for a refund of an order that is over (admin.refunds.create in its market): everything that is left of its payment (FULL) or a part (PARTIAL). A REQUEST — it is REQUESTED and moves no money until it is approved and executed. The amount is checked on the server against the payment's balance at this moment; the order keeps its status. An active order is ended first (409 refund_order_active). Errors: 409 refund_not_eligible (nothing was charged) / refund_payment_not_verified / refund_order_active / refund_dispute_conflict / refund_already_processing / refund_already_completed / refund_amount_exceeds_available; 422 refund_amount_invalid / refund_currency_mismatch / validation_failed.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "order",
+            "in": "path",
+            "required": true,
+            "description": "The order number (FOTG-YYYYMMDD-XXXXXX) or the order id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundRequestForOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/payments/{payment}/refunds": {
+      "post": {
+        "summary": "Ask for the refund of a payment that never became an order (admin.refunds.create): a verified payment whose order cannot be made, or a second payment for a checkout already paid. Always the whole payment. Once such a refund exists the payment can no longer become an order.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyOptional"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundRequestForPayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/{refund}/approve": {
+      "post": {
+        "summary": "Approve a refund for the amount it was asked for (admin.refunds.approve). Who asked is not who approved; with four eyes switched on the same administrator is refused (403 refund_not_authorized). Not possible while a dispute is open on the payment. Errors: 404 refund_not_found; 409 refund_invalid_transition / refund_version_conflict / refund_not_approved / refund_already_processing / refund_already_completed / refund_submission_unknown / refund_review_required / refund_failed / refund_dispute_conflict / refund_amount_exceeds_available; 422 validation_failed (any field that would set a status, an amount, a currency, a payment or a provider reference is refused); 429.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/{refund}/reject": {
+      "post": {
+        "summary": "Turn a refund down, or close one that will not be made — with a reason (admin.refunds.approve). Only while nothing of it can be with the provider: a refund that was sent cannot be cancelled here. Errors: 404 refund_not_found; 409 refund_invalid_transition / refund_version_conflict / refund_not_approved / refund_already_processing / refund_already_completed / refund_submission_unknown / refund_review_required / refund_failed / refund_dispute_conflict / refund_amount_exceeds_available; 422 validation_failed (any field that would set a status, an amount, a currency, a payment or a provider reference is refused); 429.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/{refund}/execute": {
+      "post": {
+        "summary": "Send an APPROVED refund to the provider (admin.refunds.issue) — the approved amount, to the method that paid. A second click finds it on its way and changes nothing. What it becomes is the provider's answer: REFUNDED, PROCESSING, FAILED — or SUBMISSION_UNKNOWN when no answer came (looked up, never sent again blindly). Errors: 404 refund_not_found; 409 refund_invalid_transition / refund_version_conflict / refund_not_approved / refund_already_processing / refund_already_completed / refund_submission_unknown / refund_review_required / refund_failed / refund_dispute_conflict / refund_amount_exceeds_available; 422 validation_failed (any field that would set a status, an amount, a currency, a payment or a provider reference is refused); 429.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/{refund}/retry": {
+      "post": {
+        "summary": "Try again what can safely be tried again (admin.refunds.issue; with a reason): a refund the provider failed in a way a new attempt may fix (a NEW provider refund), or one whose submission was never answered (the provider is asked first; only when it holds nothing is the SAME request sent again). Errors: 404 refund_not_found; 409 refund_invalid_transition / refund_version_conflict / refund_not_approved / refund_already_processing / refund_already_completed / refund_submission_unknown / refund_review_required / refund_failed / refund_dispute_conflict / refund_amount_exceeds_available; 422 validation_failed (any field that would set a status, an amount, a currency, a payment or a provider reference is refused); 429.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/refunds/{refund}/reconcile": {
+      "post": {
+        "summary": "Ask the provider again about a refund (admin.refunds.reconcile; with a reason). It changes only what the provider confirms — there is no \"mark as refunded\". Errors: 404 refund_not_found; 409 refund_invalid_transition / refund_version_conflict / refund_not_approved / refund_already_processing / refund_already_completed / refund_submission_unknown / refund_review_required / refund_failed / refund_dispute_conflict / refund_amount_exceeds_available; 422 validation_failed (any field that would set a status, an amount, a currency, a payment or a provider reference is refused); 429.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminRefundDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "AdminRefundEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRefundEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/disputes": {
+      "get": {
+        "summary": "The disputes / chargebacks providers reported, for the markets the caller holds admin.disputes.view for. READ ONLY. While a dispute is open, no refund of that payment is approved or sent.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "An exact reference: a dispute id, the provider's dispute reference, an order number or a payment id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[status]",
+            "in": "query",
+            "required": false,
+            "description": "A dispute state",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "ACTION_REQUIRED",
+                "UNDER_REVIEW",
+                "WON",
+                "LOST",
+                "CLOSED",
+                "UNKNOWN"
+              ]
+            }
+          },
+          {
+            "name": "filter[open]",
+            "in": "query",
+            "required": false,
+            "description": "1 = not decided yet, 0 = decided",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter[provider]",
+            "in": "query",
+            "required": false,
+            "description": "The provider's name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "description": "created_at, respond_by_at or amount_minor; \"-\" for descending",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page[number]",
+            "in": "query",
+            "required": false,
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page[size]",
+            "in": "query",
+            "required": false,
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminDisputePage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDisputePage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/disputes/{dispute}": {
+      "get": {
+        "summary": "One dispute (admin.disputes.view in its market)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dispute",
+            "in": "path",
+            "required": true,
+            "description": "Dispute id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AdminDisputeEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminDisputeEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/refunds/{refund}/simulate": {
+      "post": {
+        "summary": "DEVELOPMENT ONLY — not registered where fake providers are not allowed (never in production). The FAKE provider's side of a refund / a dispute, for an administrator who may issue refunds (admin.refunds.issue). NO MONEY MOVES. It changes only the fake provider's own record, scripts its next answer, or sends its signed webhook through the real webhook path. It cannot set a refund's status: whether a refund becomes REFUNDED is still decided by the refund domain from the provider's record (409 refund_not_with_provider when the fake provider holds nothing to settle).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "refund",
+            "in": "path",
+            "required": true,
+            "description": "Refund id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FakeRefundSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FakeRefundSimulation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FakeRefundSimulation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/payments/{payment}/dispute": {
+      "post": {
+        "summary": "DEVELOPMENT ONLY — not registered where fake providers are not allowed (never in production). The FAKE provider's side of a refund / a dispute, for an administrator who may issue refunds (admin.refunds.issue). NO MONEY MOVES. It changes only the fake provider's own record, scripts its next answer, or sends its signed webhook through the real webhook path. Opens a dispute on a payment at the fake provider, or moves one on, and delivers the provider's signed event.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "payment",
+            "in": "path",
+            "required": true,
+            "description": "Payment attempt id (opaque UUID)",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FakeDisputeSimulationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FakeRefundSimulation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FakeRefundSimulation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
             "description": "Error envelope",
             "content": {
               "application/json": {
@@ -40076,7 +41808,10 @@
           "reconciliation",
           "timeline",
           "webhook_events",
-          "actions"
+          "actions",
+          "refunds",
+          "refund_balance",
+          "disputes"
         ],
         "additionalProperties": false,
         "properties": {
@@ -40578,7 +42313,8 @@
             "type": "object",
             "required": [
               "mark_paid",
-              "refund"
+              "refund",
+              "mark_refunded"
             ],
             "additionalProperties": false,
             "properties": {
@@ -40590,12 +42326,31 @@
                 "description": "There is no way to mark a payment as paid"
               },
               "refund": {
+                "type": "boolean",
+                "description": "A refund of THIS PAYMENT can be asked for — only for a payment that never became an order (an order is refunded through the order)"
+              },
+              "mark_refunded": {
                 "type": "string",
                 "enum": [
-                  "NOT_IMPLEMENTED"
-                ],
-                "description": "Refunds belong to a later module"
+                  "NOT_PROVIDED"
+                ]
               }
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminOrderRefund"
+            },
+            "description": "The refunds of this payment. A refund never changes the payment: it stays VERIFIED."
+          },
+          "refund_balance": {
+            "$ref": "#/components/schemas/RefundBalance"
+          },
+          "disputes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DisputeBrief"
             }
           }
         }
@@ -40933,8 +42688,9 @@
           "refunds": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
-            ]
+              "IMPLEMENTED"
+            ],
+            "description": "Refunds are their own domain (Module 35): /admin/system/refunds"
           }
         },
         "description": "Counts and states only: no payment of anybody, no key, no secret."
@@ -41310,7 +43066,7 @@
           },
           "type": {
             "type": "string",
-            "description": "One of: ORDER_CREATED, WAITING_FOR_RESTAURANT, RESTAURANT_ACCEPTED, RESTAURANT_REJECTED, PREPARATION_STARTED, READY_FOR_PICKUP, CUSTOMER_PICKED_UP, PICKUP_VERIFIED, ORDER_COMPLETED, ORDER_CANCELLED, REFUND_REQUIRED, RECOVERY_REQUIRED, STEP_REFUSED, PICKUP_CREDENTIAL_REISSUED - a client ignores a type it does not know and reads the order instead"
+            "description": "One of: ORDER_CREATED, WAITING_FOR_RESTAURANT, RESTAURANT_ACCEPTED, RESTAURANT_REJECTED, PREPARATION_STARTED, READY_FOR_PICKUP, CUSTOMER_PICKED_UP, PICKUP_VERIFIED, ORDER_COMPLETED, ORDER_CANCELLED, REFUND_REQUIRED, REFUND_PROCESSING, REFUND_COMPLETED, REFUND_UNDER_REVIEW, REFUND_CLOSED, RECOVERY_REQUIRED, STEP_REFUSED, PICKUP_CREDENTIAL_REISSUED - a client ignores a type it does not know and reads the order instead"
           },
           "from": {
             "type": [
@@ -41435,11 +43191,12 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "UNDER_REVIEW"
+            ],
+            "description": "The order's derived refund status in the CUSTOMER's words (Module 35): REQUIRED = a refund is due and has not been sent to the provider yet; PROCESSING = with the provider, not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider; UNDER_REVIEW = FoodOnTheGo is looking at it (the internal states FAILED and REVIEW_REQUIRED are never sent to a customer). The order's own status and its payment state are never changed by a refund."
           },
           "restaurant": {
             "type": "object",
@@ -41536,7 +43293,9 @@
           "total",
           "updated_at",
           "version",
-          "review"
+          "review",
+          "refund",
+          "customer_cancellation"
         ],
         "additionalProperties": false,
         "properties": {
@@ -41574,11 +43333,12 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "UNDER_REVIEW"
+            ],
+            "description": "The order's derived refund status in the CUSTOMER's words (Module 35): REQUIRED = a refund is due and has not been sent to the provider yet; PROCESSING = with the provider, not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider; UNDER_REVIEW = FoodOnTheGo is looking at it (the internal states FAILED and REVIEW_REQUIRED are never sent to a customer). The order's own status and its payment state are never changed by a refund."
           },
           "restaurant": {
             "type": "object",
@@ -41841,12 +43601,22 @@
               "null"
             ],
             "required": [
+              "by",
               "message"
             ],
             "additionalProperties": false,
             "properties": {
+              "by": {
+                "type": "string",
+                "enum": [
+                  "YOU",
+                  "RESTAURANT",
+                  "FOODONTHEGO"
+                ]
+              },
               "message": {
-                "type": "string"
+                "type": "string",
+                "description": "What the cancellation means for the money, from the order's refund status — never a promise"
               }
             }
           },
@@ -41935,6 +43705,40 @@
           },
           "review": {
             "$ref": "#/components/schemas/OrderReviewBlock"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/CustomerOrderRefunds"
+          },
+          "customer_cancellation": {
+            "type": "object",
+            "required": [
+              "enabled",
+              "can_cancel",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "false: CUSTOMER CANCELLATION = DISABLED, PENDING BUSINESS / LEGAL APPROVAL"
+              },
+              "can_cancel": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "CUSTOMER_CANCELLATION_DISABLED",
+                  "ORDER_ALREADY_CLOSED",
+                  "ORDER_STATE_NOT_CANCELLABLE",
+                  null
+                ]
+              }
+            },
+            "description": "Whether the customer may cancel this order themselves. The policy is the server's; clients show a cancel action only when can_cancel is true."
           }
         },
         "description": "An order as its owner sees it: an immutable copy of what was confirmed and paid, plus where it stands. Nothing here can be changed by a customer request."
@@ -42045,11 +43849,13 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ],
+            "description": "DERIVED from the order's refunds (Module 35): REQUIRED = a refund is owed and the provider does not have it yet (not approved, approved, or about to be sent); PROCESSING = with the provider (or possibly with it: an unanswered submission), not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider for a part / all of what was paid; FAILED / REVIEW_REQUIRED = a person at FoodOnTheGo is looking at it. The order's own status and its payment state are never changed by a refund."
           },
           "location_id": {
             "type": "string"
@@ -42146,7 +43952,8 @@
           "times",
           "total",
           "updated_at",
-          "version"
+          "version",
+          "refund"
         ],
         "additionalProperties": false,
         "properties": {
@@ -42184,11 +43991,13 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ],
+            "description": "DERIVED from the order's refunds (Module 35): REQUIRED = a refund is owed and the provider does not have it yet (not approved, approved, or about to be sent); PROCESSING = with the provider (or possibly with it: an unanswered submission), not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider for a part / all of what was paid; FAILED / REVIEW_REQUIRED = a person at FoodOnTheGo is looking at it. The order's own status and its payment state are never changed by a refund."
           },
           "location_id": {
             "type": "string"
@@ -42331,11 +44140,32 @@
               "null"
             ],
             "required": [
-              "reason"
+              "reason",
+              "by",
+              "reason_code"
             ],
             "additionalProperties": false,
             "properties": {
               "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "by": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "CUSTOMER",
+                  "RESTAURANT_USER",
+                  "ADMIN",
+                  "SYSTEM",
+                  null
+                ]
+              },
+              "reason_code": {
                 "type": [
                   "string",
                   "null"
@@ -42377,6 +44207,9 @@
           },
           "realtime": {
             "$ref": "#/components/schemas/OrderRealtimeHints"
+          },
+          "refund": {
+            "$ref": "#/components/schemas/RestaurantOrderRefund"
           }
         },
         "description": "An order as the restaurant works it. No pickup credential (the restaurant verifies it, Module 32), no payment method, no promotion economics."
@@ -42552,15 +44385,17 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ],
+            "description": "DERIVED from the order's refunds (Module 35): REQUIRED = a refund is owed and the provider does not have it yet (not approved, approved, or about to be sent); PROCESSING = with the provider (or possibly with it: an unanswered submission), not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider for a part / all of what was paid; FAILED / REVIEW_REQUIRED = a person at FoodOnTheGo is looking at it. The order's own status and its payment state are never changed by a refund."
           },
           "needs_attention": {
             "type": "boolean",
-            "description": "Money owed to a customer (refund REQUIRED or FAILED)"
+            "description": "Money owed to a customer that a person has to act on (refund REQUIRED, FAILED or REVIEW_REQUIRED)"
           },
           "restaurant": {
             "type": "object",
@@ -42663,12 +44498,15 @@
         "type": "object",
         "required": [
           "id",
+          "reference",
+          "type",
           "amount",
           "reason",
           "status",
+          "provider_refund_reference",
           "requested_by",
           "requested_at",
-          "processing"
+          "completed_at"
         ],
         "additionalProperties": false,
         "properties": {
@@ -42676,19 +44514,42 @@
             "type": "string",
             "pattern": "^[0-9a-f-]{36}$"
           },
+          "reference": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "PARTIAL"
+            ]
+          },
           "amount": {
             "$ref": "#/components/schemas/Money"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "description": "Reason code, with its detail after a colon"
           },
           "status": {
             "type": "string",
             "enum": [
               "REQUIRED",
-              "PENDING",
-              "PROCESSED",
-              "FAILED"
+              "REQUESTED",
+              "APPROVED",
+              "SUBMITTING",
+              "SUBMISSION_UNKNOWN",
+              "PROCESSING",
+              "REFUNDED",
+              "FAILED",
+              "CANCELLED",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "provider_refund_reference": {
+            "type": [
+              "string",
+              "null"
             ]
           },
           "requested_by": {
@@ -42717,14 +44578,15 @@
             ],
             "description": "ISO 8601, UTC"
           },
-          "processing": {
-            "type": "string",
-            "enum": [
-              "NOT_IMPLEMENTED"
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
             ],
-            "description": "The refund module processes it; nothing is refunded here"
+            "description": "ISO 8601, UTC"
           }
-        }
+        },
+        "description": "A refund of the order / the payment, in short (Module 35). The whole record is at /admin/refunds/{id}."
       },
       "OrderFulfillment": {
         "type": "object",
@@ -42905,7 +44767,8 @@
           "times",
           "total",
           "updated_at",
-          "version"
+          "version",
+          "refund_balance"
         ],
         "additionalProperties": false,
         "properties": {
@@ -42943,15 +44806,17 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ],
+            "description": "DERIVED from the order's refunds (Module 35): REQUIRED = a refund is owed and the provider does not have it yet (not approved, approved, or about to be sent); PROCESSING = with the provider (or possibly with it: an unanswered submission), not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider for a part / all of what was paid; FAILED / REVIEW_REQUIRED = a person at FoodOnTheGo is looking at it. The order's own status and its payment state are never changed by a refund."
           },
           "needs_attention": {
             "type": "boolean",
-            "description": "Money owed to a customer (refund REQUIRED or FAILED)"
+            "description": "Money owed to a customer that a person has to act on (refund REQUIRED, FAILED or REVIEW_REQUIRED)"
           },
           "restaurant": {
             "type": "object",
@@ -43152,11 +45017,32 @@
               "null"
             ],
             "required": [
-              "reason"
+              "reason",
+              "by",
+              "reason_code"
             ],
             "additionalProperties": false,
             "properties": {
               "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "by": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "CUSTOMER",
+                  "RESTAURANT_USER",
+                  "ADMIN",
+                  "SYSTEM",
+                  null
+                ]
+              },
+              "reason_code": {
                 "type": [
                   "string",
                   "null"
@@ -43403,7 +45289,8 @@
             "required": [
               "cancel",
               "refund",
-              "mark_picked_up"
+              "mark_picked_up",
+              "mark_refunded"
             ],
             "additionalProperties": false,
             "properties": {
@@ -43411,17 +45298,21 @@
                 "type": "boolean"
               },
               "refund": {
-                "type": "string",
-                "enum": [
-                  "NOT_IMPLEMENTED"
-                ]
+                "type": "boolean",
+                "description": "A refund can be ASKED for (a paid order that is over). Approving and sending it happen in the refund endpoints, with their own permissions."
               },
               "mark_picked_up": {
                 "type": "string",
                 "enum": [
                   "NOT_PROVIDED"
+                ]
+              },
+              "mark_refunded": {
+                "type": "string",
+                "enum": [
+                  "NOT_PROVIDED"
                 ],
-                "description": "There is no administrative \"mark picked up\": a pickup is verified at the restaurant with the customer's credential"
+                "description": "There is no way to mark a refund as refunded"
               }
             }
           },
@@ -43579,6 +45470,42 @@
               }
             },
             "description": "The verification attempts on this order (the last ten): the audit of the pickup"
+          },
+          "refund_balance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "paid",
+              "refunded",
+              "in_flight",
+              "charged_back",
+              "available"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "paid": {
+                "$ref": "#/components/schemas/Money"
+              },
+              "refunded": {
+                "$ref": "#/components/schemas/Money",
+                "description": "Confirmed by the provider"
+              },
+              "in_flight": {
+                "$ref": "#/components/schemas/Money",
+                "description": "Held by refunds that are asked for, approved, on their way or not understood yet"
+              },
+              "charged_back": {
+                "$ref": "#/components/schemas/Money",
+                "description": "Taken by lost disputes"
+              },
+              "available": {
+                "$ref": "#/components/schemas/Money",
+                "description": "paid − refunded − in_flight − charged_back: the most a new refund may ask for. Recalculated on the server at every action."
+              }
+            },
+            "description": "Null for an order that was never paid for"
           }
         }
       },
@@ -43686,6 +45613,18 @@
             "minLength": 3,
             "maxLength": 500,
             "description": "Why — written to the audit log"
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "ADMIN_CANCELLATION",
+              "RESTAURANT_CANCELLATION",
+              "CUSTOMER_CANCELLATION",
+              "ORDER_CANNOT_BE_FULFILLED",
+              "ITEM_UNAVAILABLE",
+              "PICKUP_CAPACITY_FAILURE"
+            ],
+            "description": "Why, in a controlled word (default ADMIN_CANCELLATION). It names the refund's reason."
           }
         },
         "description": "Nothing else can be sent: no status, refund state, amount or item."
@@ -43814,8 +45753,9 @@
           "refund_processing": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
-            ]
+              "IMPLEMENTED"
+            ],
+            "description": "Refunds are their own domain (Module 35): /admin/system/refunds"
           },
           "order_completion": {
             "type": "string",
@@ -43826,8 +45766,9 @@
           "notification_delivery": {
             "type": "string",
             "enum": [
-              "NOT_IMPLEMENTED"
-            ]
+              "IMPLEMENTED"
+            ],
+            "description": "Notifications are their own domain (Module 33): /admin/system/notifications"
           },
           "realtime": {
             "type": "object",
@@ -44174,7 +46115,8 @@
               "order.completed",
               "order.cancelled",
               "order.refund_required",
-              "order.pickup_credential_reissued"
+              "order.pickup_credential_reissued",
+              "order.refund_updated"
             ]
           },
           "event_sequence": {
@@ -44201,11 +46143,14 @@
             "enum": [
               "NONE",
               "REQUIRED",
-              "PENDING",
-              "PARTIAL",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
               "REFUNDED",
-              "FAILED"
-            ]
+              "FAILED",
+              "REVIEW_REQUIRED",
+              "UNDER_REVIEW"
+            ],
+            "description": "The order's derived refund status. A customer (the customer's channel, the customer's event stream) is given UNDER_REVIEW instead of FAILED / REVIEW_REQUIRED."
           },
           "pickup_at": {
             "type": [
@@ -44307,11 +46252,14 @@
                 "enum": [
                   "NONE",
                   "REQUIRED",
-                  "PENDING",
-                  "PARTIAL",
+                  "PROCESSING",
+                  "PARTIALLY_REFUNDED",
                   "REFUNDED",
-                  "FAILED"
-                ]
+                  "FAILED",
+                  "REVIEW_REQUIRED",
+                  "UNDER_REVIEW"
+                ],
+                "description": "The order's derived refund status. A customer (the customer's channel, the customer's event stream) is given UNDER_REVIEW instead of FAILED / REVIEW_REQUIRED."
               },
               "payment_state": {
                 "type": "string",
@@ -48740,6 +50688,2403 @@
           }
         },
         "description": "Module 34: \"Write review\" only when ELIGIBLE; \"View your review\" when REVIEWED"
+      },
+      "CustomerRefund": {
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "type",
+          "amount",
+          "status",
+          "reason",
+          "requested_at",
+          "completed_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "reference": {
+            "type": "string",
+            "pattern": "^RFD-[0-9A-F]{10}$",
+            "description": "A short reference to read to support. It opens nothing."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "PARTIAL"
+            ]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUIRED",
+              "PROCESSING",
+              "REFUNDED",
+              "UNDER_REVIEW"
+            ],
+            "description": "REQUIRED = owed and not with the payment provider yet (also when it is approved); PROCESSING = with the payment provider, NOT confirmed; REFUNDED = confirmed by the provider; UNDER_REVIEW = FoodOnTheGo is looking at it (the customer does nothing and is not charged again)"
+          },
+          "reason": {
+            "type": "object",
+            "required": [
+              "code",
+              "label"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "RESTAURANT_REJECTED",
+                  "ORDER_CANNOT_BE_FULFILLED",
+                  "CUSTOMER_CANCELLATION",
+                  "RESTAURANT_CANCELLATION",
+                  "ADMIN_CANCELLATION",
+                  "DUPLICATE_PAYMENT",
+                  "PAYMENT_ORDER_FAILURE",
+                  "ITEM_UNAVAILABLE",
+                  "PICKUP_CAPACITY_FAILURE",
+                  "ADMIN_FINANCIAL_CORRECTION",
+                  "OTHER"
+                ]
+              },
+              "label": {
+                "type": "string",
+                "description": "Neutral words for the customer; never an internal note"
+              }
+            }
+          },
+          "requested_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Only when REFUNDED"
+          }
+        },
+        "description": "One refund of the customer's own order. No provider reference, no approval detail, no failure reason. A request nobody approved and a cancelled one are not listed."
+      },
+      "CustomerOrderRefunds": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "status",
+          "paid",
+          "refunded",
+          "pending",
+          "items",
+          "timing_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
+              "REFUNDED",
+              "UNDER_REVIEW"
+            ],
+            "description": "The order's derived refund status in the CUSTOMER's words (Module 35): REQUIRED = a refund is due and has not been sent to the provider yet; PROCESSING = with the provider, not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider; UNDER_REVIEW = FoodOnTheGo is looking at it (the internal states FAILED and REVIEW_REQUIRED are never sent to a customer). The order's own status and its payment state are never changed by a refund."
+          },
+          "paid": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "refunded": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Confirmed by the payment provider — nothing else counts as refunded"
+          },
+          "pending": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Owed or on its way, not confirmed yet"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomerRefund"
+            }
+          },
+          "timing_note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Always null: no number of days is promised — when a refund shows on a statement depends on the customer's bank"
+          }
+        },
+        "description": "The refunds of a paid order as the refund domain has them. Null for an order that was never paid for (nothing can be refunded)."
+      },
+      "OrderCancellationQuote": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "policy_status",
+          "policy_version",
+          "can_cancel",
+          "reason",
+          "message",
+          "financial_effect",
+          "refundable_amount",
+          "reasons",
+          "order"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "policy_status": {
+            "type": "string",
+            "enum": [
+              "CONFIGURED",
+              "PENDING_BUSINESS_APPROVAL"
+            ]
+          },
+          "policy_version": {
+            "type": "string"
+          },
+          "can_cancel": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CUSTOMER_CANCELLATION_DISABLED",
+              "ORDER_ALREADY_CLOSED",
+              "ORDER_STATE_NOT_CANCELLABLE",
+              null
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "financial_effect": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "FULL_REFUND",
+              "NO_REFUND",
+              "MANUAL_REVIEW",
+              "NO_PAYMENT",
+              null
+            ],
+            "description": "What cancelling does to the money — decided by the configured policy, never by the client. Null when the order cannot be cancelled."
+          },
+          "refundable_amount": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "amount",
+              "currency"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "description": "Minor units"
+              },
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              }
+            },
+            "description": "For FULL_REFUND: what is left of the payment at this moment"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CHANGED_MIND",
+                "ORDERED_BY_MISTAKE",
+                "PICKUP_TIME_NO_LONGER_WORKS",
+                "OTHER"
+              ]
+            }
+          },
+          "order": {
+            "type": "object",
+            "required": [
+              "id",
+              "order_number",
+              "status",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "order_number": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "description": "What cancelling this order would mean, as the server decides it. Shown to the customer before they confirm."
+      },
+      "OrderCancellationQuoteEnvelope": {
+        "type": "object",
+        "required": [
+          "cancellation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "cancellation": {
+            "$ref": "#/components/schemas/OrderCancellationQuote"
+          }
+        }
+      },
+      "CustomerCancelOrderRequest": {
+        "type": "object",
+        "required": [
+          "reason_code"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "CHANGED_MIND",
+              "ORDERED_BY_MISTAKE",
+              "PICKUP_TIME_NO_LONGER_WORKS",
+              "OTHER"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "expected_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "The order version the client saw (409 order_version_conflict when the order moved meanwhile)"
+          }
+        },
+        "description": "A reason ONLY. No refund amount, currency, financial effect or status can be sent: the policy decides what happens to the money."
+      },
+      "RestaurantOrderRefund": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "status",
+          "amount",
+          "refunded",
+          "controls"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "REQUIRED",
+              "PROCESSING",
+              "PARTIALLY_REFUNDED",
+              "REFUNDED",
+              "FAILED",
+              "REVIEW_REQUIRED"
+            ],
+            "description": "DERIVED from the order's refunds (Module 35): REQUIRED = a refund is owed and the provider does not have it yet (not approved, approved, or about to be sent); PROCESSING = with the provider (or possibly with it: an unanswered submission), not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider for a part / all of what was paid; FAILED / REVIEW_REQUIRED = a person at FoodOnTheGo is looking at it. The order's own status and its payment state are never changed by a refund."
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Owed, on its way or refunded for this order"
+          },
+          "refunded": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Confirmed by the payment provider"
+          },
+          "controls": {
+            "type": "string",
+            "enum": [
+              "NOT_PROVIDED"
+            ],
+            "description": "A restaurant has no refund controls: rejecting a paid order starts the refund workflow by itself"
+          }
+        },
+        "description": "Whether money is going back for an order. No refund ids, no provider. Null for an order that was never paid for."
+      },
+      "RefundBalance": {
+        "type": "object",
+        "required": [
+          "paid",
+          "refunded",
+          "in_flight",
+          "charged_back",
+          "available"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "paid": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "refunded": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Confirmed by the provider"
+          },
+          "in_flight": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Held by refunds that are asked for, approved, on their way or not understood yet"
+          },
+          "charged_back": {
+            "$ref": "#/components/schemas/Money",
+            "description": "Taken by lost disputes"
+          },
+          "available": {
+            "$ref": "#/components/schemas/Money",
+            "description": "paid − refunded − in_flight − charged_back: the most a new refund may ask for. Recalculated on the server at every action."
+          }
+        },
+        "description": "What one payment can still give back. The database refuses in_flight + refunded > paid."
+      },
+      "DisputeBrief": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "open",
+          "amount",
+          "reason_code",
+          "respond_by_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "ACTION_REQUIRED",
+              "UNDER_REVIEW",
+              "WON",
+              "LOST",
+              "CLOSED",
+              "UNKNOWN"
+            ]
+          },
+          "open": {
+            "type": "boolean"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "reason_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "respond_by_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          }
+        }
+      },
+      "AdminRefund": {
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "type",
+          "status",
+          "needs_review",
+          "awaits_approval",
+          "amount",
+          "approved_amount",
+          "currency",
+          "reason",
+          "provider",
+          "provider_mode",
+          "order",
+          "payment",
+          "customer",
+          "restaurant",
+          "market",
+          "requested_by",
+          "policy",
+          "requested_at",
+          "completed_at",
+          "updated_at",
+          "version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "PARTIAL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUIRED",
+              "REQUESTED",
+              "APPROVED",
+              "SUBMITTING",
+              "SUBMISSION_UNKNOWN",
+              "PROCESSING",
+              "REFUNDED",
+              "FAILED",
+              "CANCELLED",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "needs_review": {
+            "type": "boolean",
+            "description": "REVIEW_REQUIRED, FAILED or SUBMISSION_UNKNOWN"
+          },
+          "awaits_approval": {
+            "type": "boolean"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The amount asked for"
+          },
+          "approved_amount": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "amount",
+              "currency"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "description": "Minor units"
+              },
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "reason": {
+            "type": "object",
+            "required": [
+              "code",
+              "detail"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "RESTAURANT_REJECTED",
+                  "ORDER_CANNOT_BE_FULFILLED",
+                  "CUSTOMER_CANCELLATION",
+                  "RESTAURANT_CANCELLATION",
+                  "ADMIN_CANCELLATION",
+                  "DUPLICATE_PAYMENT",
+                  "PAYMENT_ORDER_FAILURE",
+                  "ITEM_UNAVAILABLE",
+                  "PICKUP_CAPACITY_FAILURE",
+                  "ADMIN_FINANCIAL_CORRECTION",
+                  "OTHER"
+                ]
+              },
+              "detail": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "provider": {
+            "type": "string"
+          },
+          "provider_mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "TEST",
+              "LIVE",
+              "FAKE",
+              null
+            ]
+          },
+          "order": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "number"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "number": {
+                "type": "string"
+              }
+            }
+          },
+          "payment": {
+            "type": "object",
+            "required": [
+              "id",
+              "reference"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "reference": {
+                "type": "string"
+              }
+            }
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              }
+            },
+            "description": "A reference only: the refund screens are not a customer directory"
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requested_by": {
+            "type": "object",
+            "required": [
+              "type",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "SYSTEM",
+                  "CUSTOMER",
+                  "RESTAURANT_USER",
+                  "ADMIN"
+                ]
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "policy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "decision",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "AUTO_APPROVE",
+                  "MANUAL_REVIEW",
+                  "NOT_ELIGIBLE"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "requested_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "description": "A refund in the administrators' list (Module 35)"
+      },
+      "AdminRefundDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "type",
+          "status",
+          "needs_review",
+          "awaits_approval",
+          "amount",
+          "approved_amount",
+          "currency",
+          "reason",
+          "provider",
+          "provider_mode",
+          "order",
+          "payment",
+          "customer",
+          "restaurant",
+          "market",
+          "requested_by",
+          "policy",
+          "requested_at",
+          "completed_at",
+          "updated_at",
+          "version",
+          "note",
+          "approval",
+          "closed",
+          "failure",
+          "review_reason",
+          "provider_detail",
+          "submission",
+          "reconciliation",
+          "balance",
+          "times",
+          "attempts",
+          "timeline",
+          "webhook_events",
+          "audit",
+          "disputes",
+          "actions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "PARTIAL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUIRED",
+              "REQUESTED",
+              "APPROVED",
+              "SUBMITTING",
+              "SUBMISSION_UNKNOWN",
+              "PROCESSING",
+              "REFUNDED",
+              "FAILED",
+              "CANCELLED",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "needs_review": {
+            "type": "boolean",
+            "description": "REVIEW_REQUIRED, FAILED or SUBMISSION_UNKNOWN"
+          },
+          "awaits_approval": {
+            "type": "boolean"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money",
+            "description": "The amount asked for"
+          },
+          "approved_amount": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "amount",
+              "currency"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "description": "Minor units"
+              },
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              }
+            }
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "reason": {
+            "type": "object",
+            "required": [
+              "code",
+              "detail"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "RESTAURANT_REJECTED",
+                  "ORDER_CANNOT_BE_FULFILLED",
+                  "CUSTOMER_CANCELLATION",
+                  "RESTAURANT_CANCELLATION",
+                  "ADMIN_CANCELLATION",
+                  "DUPLICATE_PAYMENT",
+                  "PAYMENT_ORDER_FAILURE",
+                  "ITEM_UNAVAILABLE",
+                  "PICKUP_CAPACITY_FAILURE",
+                  "ADMIN_FINANCIAL_CORRECTION",
+                  "OTHER"
+                ]
+              },
+              "detail": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "provider": {
+            "type": "string"
+          },
+          "provider_mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "TEST",
+              "LIVE",
+              "FAKE",
+              null
+            ]
+          },
+          "order": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "id",
+              "number",
+              "status",
+              "refund_status",
+              "total"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "number": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "refund_status": {
+                "type": "string",
+                "enum": [
+                  "NONE",
+                  "REQUIRED",
+                  "PROCESSING",
+                  "PARTIALLY_REFUNDED",
+                  "REFUNDED",
+                  "FAILED",
+                  "REVIEW_REQUIRED"
+                ],
+                "description": "DERIVED from the order's refunds (Module 35): REQUIRED = a refund is owed and the provider does not have it yet (not approved, approved, or about to be sent); PROCESSING = with the provider (or possibly with it: an unanswered submission), not confirmed; PARTIALLY_REFUNDED / REFUNDED = confirmed by the provider for a part / all of what was paid; FAILED / REVIEW_REQUIRED = a person at FoodOnTheGo is looking at it. The order's own status and its payment state are never changed by a refund."
+              },
+              "total": {
+                "$ref": "#/components/schemas/Money"
+              }
+            }
+          },
+          "payment": {
+            "type": "object",
+            "required": [
+              "id",
+              "reference",
+              "status",
+              "amount",
+              "method_type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "reference": {
+                "type": "string"
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Stays VERIFIED after a refund"
+              },
+              "amount": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "amount",
+                  "currency"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "description": "Minor units"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  }
+                }
+              },
+              "method_type": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "customer": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f-]{36}$"
+              }
+            },
+            "description": "A reference only: the refund screens are not a customer directory"
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requested_by": {
+            "type": "object",
+            "required": [
+              "type",
+              "id"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "SYSTEM",
+                  "CUSTOMER",
+                  "RESTAURANT_USER",
+                  "ADMIN"
+                ]
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "policy": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "decision",
+              "reason"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "AUTO_APPROVE",
+                  "MANUAL_REVIEW",
+                  "NOT_ELIGIBLE"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "requested_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "approval": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "mode",
+              "by",
+              "at",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "AUTO",
+                  "MANUAL"
+                ]
+              },
+              "by": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              },
+              "at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "Who approved it — never the same field as who asked"
+          },
+          "closed": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "by",
+              "at",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "by": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "id",
+                  "name"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f-]{36}$"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
+              },
+              "at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "failure": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "category",
+              "code",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "FoodOnTheGo's own sentence — never the provider's"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          },
+          "review_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider_detail": {
+            "type": "object",
+            "required": [
+              "name",
+              "mode",
+              "payment_reference",
+              "refund_reference",
+              "status",
+              "receipt",
+              "trace_reference"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "mode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "payment_reference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "refund_reference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The provider's own status word"
+              },
+              "receipt": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Our reference of the provider refund = its idempotency key"
+              },
+              "trace_reference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "description": "References and states only. No key, no secret, no payload."
+          },
+          "submission": {
+            "type": "object",
+            "required": [
+              "generation",
+              "attempts",
+              "unknown_resubmits",
+              "submitted_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "generation": {
+                "type": "integer"
+              },
+              "attempts": {
+                "type": "integer"
+              },
+              "unknown_resubmits": {
+                "type": "integer"
+              },
+              "submitted_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "reconciliation": {
+            "type": "object",
+            "required": [
+              "runs",
+              "last_at",
+              "next_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "runs": {
+                "type": "integer"
+              },
+              "last_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "next_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "balance": {
+            "$ref": "#/components/schemas/RefundBalance"
+          },
+          "times": {
+            "type": "object",
+            "required": [
+              "requested_at",
+              "approved_at",
+              "submitted_at",
+              "processing_at",
+              "completed_at",
+              "failed_at",
+              "cancelled_at"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "requested_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "approved_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "submitted_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "processing_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "completed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "failed_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              },
+              "cancelled_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "ISO 8601, UTC"
+              }
+            }
+          },
+          "attempts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "finished_at",
+                "operation",
+                "generation",
+                "source",
+                "outcome",
+                "provider_status",
+                "provider_refund_reference",
+                "failure_code",
+                "idempotency_key",
+                "latency_ms"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "finished_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "operation": {
+                  "type": "string",
+                  "enum": [
+                    "CREATE",
+                    "LOOKUP",
+                    "LIST"
+                  ]
+                },
+                "generation": {
+                  "type": "integer"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "STARTED",
+                    "PROCESSED",
+                    "PENDING",
+                    "FAILED",
+                    "REJECTED",
+                    "UNKNOWN",
+                    "NOT_SENT",
+                    "NOT_FOUND",
+                    "UNAVAILABLE",
+                    "MISMATCH"
+                  ]
+                },
+                "provider_status": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "provider_refund_reference": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "failure_code": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "idempotency_key": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "latency_ms": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "description": "Every question asked of the provider, with what came back"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "type",
+                "source",
+                "from",
+                "to",
+                "detail"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "from": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "detail": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "webhook_events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "type",
+                "normalized_type",
+                "received_at",
+                "processed_at",
+                "processing_status",
+                "outcome",
+                "deliveries"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f-]{36}$"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "normalized_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "received_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "processed_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "processing_status": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "deliveries": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "audit": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "action",
+                "actor_type",
+                "actor_id",
+                "reason",
+                "changes"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "ISO 8601, UTC"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "actor_type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "actor_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "changes": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "disputes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DisputeBrief"
+            }
+          },
+          "actions": {
+            "type": "object",
+            "required": [
+              "approve",
+              "reject",
+              "execute",
+              "retry",
+              "reconcile",
+              "mark_refunded"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "approve": {
+                "type": "boolean"
+              },
+              "reject": {
+                "type": "boolean"
+              },
+              "execute": {
+                "type": "boolean"
+              },
+              "retry": {
+                "type": "boolean"
+              },
+              "reconcile": {
+                "type": "boolean"
+              },
+              "mark_refunded": {
+                "type": "string",
+                "enum": [
+                  "NOT_PROVIDED"
+                ],
+                "description": "There is no way to mark a refund as refunded"
+              }
+            },
+            "description": "What the refund's state allows AND the caller's permissions allow"
+          }
+        },
+        "description": "The refund record for administrators (Module 35)"
+      },
+      "AdminRefundEnvelope": {
+        "type": "object",
+        "required": [
+          "refund"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "refund": {
+            "$ref": "#/components/schemas/AdminRefundDetail"
+          }
+        }
+      },
+      "AdminRefundPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminRefund"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "RefundQueues": {
+        "type": "object",
+        "required": [
+          "queues",
+          "total"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "queues": {
+            "type": "object",
+            "required": [
+              "required",
+              "awaiting_approval",
+              "approved",
+              "processing",
+              "failed",
+              "review_required",
+              "completed",
+              "cancelled"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "required": {
+                "type": "integer"
+              },
+              "awaiting_approval": {
+                "type": "integer"
+              },
+              "approved": {
+                "type": "integer"
+              },
+              "processing": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              },
+              "review_required": {
+                "type": "integer"
+              },
+              "completed": {
+                "type": "integer"
+              },
+              "cancelled": {
+                "type": "integer"
+              }
+            }
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "description": "How many refunds wait in each operational queue, for the markets the caller may see"
+      },
+      "AdminRefundRequestForOrder": {
+        "type": "object",
+        "required": [
+          "type",
+          "reason_code"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "PARTIAL"
+            ],
+            "description": "FULL = everything that is left of the payment (the server works it out); PARTIAL = amount_minor"
+          },
+          "amount_minor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "PARTIAL only: a whole number of minor units > 0 and not more than what is left. A REQUEST — checked on the server against the payment's balance at this moment."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 3,
+            "maxLength": 3,
+            "description": "Optional; when sent it has to be the payment's currency (422 refund_currency_mismatch)"
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "ORDER_CANNOT_BE_FULFILLED",
+              "CUSTOMER_CANCELLATION",
+              "RESTAURANT_CANCELLATION",
+              "ITEM_UNAVAILABLE",
+              "PICKUP_CAPACITY_FAILURE",
+              "ADMIN_FINANCIAL_CORRECTION",
+              "OTHER"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "Required for OTHER and ADMIN_FINANCIAL_CORRECTION"
+          }
+        },
+        "description": "No status, approved amount, payment, customer or provider reference can be sent."
+      },
+      "AdminRefundRequestForPayment": {
+        "type": "object",
+        "required": [
+          "note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 500
+          }
+        },
+        "description": "Always the whole payment; the reason is read from the payment (PAYMENT_ORDER_FAILURE or DUPLICATE_PAYMENT). No amount, currency, type or reason can be sent."
+      },
+      "AdminRefundDecisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 3,
+            "maxLength": 500,
+            "description": "Required for reject, retry and reconcile; written to the audit log"
+          },
+          "expected_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          }
+        },
+        "description": "Nothing about a refund can be set by hand: a status, an amount, a currency or a reference in this request is refused."
+      },
+      "RefundMetrics": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "window_hours",
+          "provider",
+          "refunds",
+          "queues",
+          "amounts_minor",
+          "events",
+          "latency_ms",
+          "disputes",
+          "policy",
+          "settlement"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "ISO 8601, UTC"
+          },
+          "window_hours": {
+            "type": "integer"
+          },
+          "provider": {
+            "type": "object",
+            "required": [
+              "name",
+              "mode",
+              "status",
+              "health"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "mode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "type": "string"
+              },
+              "health": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "The provider's refund operations, counted apart from its payment operations"
+              }
+            }
+          },
+          "refunds": {
+            "type": "object",
+            "description": "Refunds per state",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "queues": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "amounts_minor": {
+            "type": "object",
+            "description": "Minor units per currency and state. Operational totals — NOT settlement or accounting figures."
+          },
+          "events": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "latency_ms": {
+            "type": "object",
+            "required": [
+              "provider_avg"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "provider_avg": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            }
+          },
+          "disputes": {
+            "type": "object",
+            "required": [
+              "open",
+              "won",
+              "lost",
+              "closed"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "open": {
+                "type": "integer"
+              },
+              "won": {
+                "type": "integer"
+              },
+              "lost": {
+                "type": "integer"
+              },
+              "closed": {
+                "type": "integer"
+              }
+            }
+          },
+          "policy": {
+            "type": "object",
+            "required": [
+              "auto_approve_reasons",
+              "four_eyes",
+              "customer_cancellation"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "auto_approve_reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "four_eyes": {
+                "type": "boolean"
+              },
+              "customer_cancellation": {
+                "type": "string",
+                "enum": [
+                  "ENABLED",
+                  "DISABLED_PENDING_POLICY_APPROVAL"
+                ]
+              }
+            }
+          },
+          "settlement": {
+            "type": "string",
+            "enum": [
+              "NOT_IMPLEMENTED"
+            ]
+          }
+        },
+        "description": "Counts and states of the refund domain. Numbers only."
+      },
+      "AdminDispute": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "open",
+          "provider",
+          "provider_dispute_reference",
+          "provider_status",
+          "phase",
+          "reason_code",
+          "amount",
+          "amount_deducted",
+          "payment",
+          "order",
+          "restaurant",
+          "market",
+          "opened_at",
+          "respond_by_at",
+          "closed_at",
+          "updated_at",
+          "actions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "ACTION_REQUIRED",
+              "UNDER_REVIEW",
+              "WON",
+              "LOST",
+              "CLOSED",
+              "UNKNOWN"
+            ]
+          },
+          "open": {
+            "type": "boolean"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "provider_dispute_reference": {
+            "type": "string"
+          },
+          "provider_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phase": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reason_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "amount_deducted": {
+            "$ref": "#/components/schemas/Money",
+            "description": "What the provider took back (non-zero once a dispute is lost)"
+          },
+          "payment": {
+            "type": "object",
+            "required": [
+              "id",
+              "reference",
+              "provider_payment_reference"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-f-]{36}$"
+              },
+              "reference": {
+                "type": "string"
+              },
+              "provider_payment_reference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "order": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "number"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "number": {
+                "type": "string"
+              }
+            }
+          },
+          "restaurant": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "market": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "opened_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "respond_by_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 8601, UTC"
+          },
+          "actions": {
+            "type": "object",
+            "required": [
+              "respond",
+              "accept"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "respond": {
+                "type": "string",
+                "enum": [
+                  "NOT_PROVIDED"
+                ]
+              },
+              "accept": {
+                "type": "string",
+                "enum": [
+                  "NOT_PROVIDED"
+                ]
+              }
+            },
+            "description": "Read-only: a dispute is answered with the provider, not here"
+          }
+        },
+        "description": "A dispute / chargeback a provider reported on a payment (Module 35 foundation). Written only from verified provider events. A dispute is NOT a refund."
+      },
+      "AdminDisputeEnvelope": {
+        "type": "object",
+        "required": [
+          "dispute"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "dispute": {
+            "$ref": "#/components/schemas/AdminDispute"
+          }
+        }
+      },
+      "AdminDisputePage": {
+        "type": "object",
+        "required": [
+          "data",
+          "links",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminDispute"
+            }
+          },
+          "links": {
+            "type": "object"
+          },
+          "meta": {
+            "type": "object"
+          }
+        }
+      },
+      "FakeRefundSimulation": {
+        "type": "object",
+        "required": [
+          "simulation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "simulation": {
+            "type": "object",
+            "required": [
+              "scenario",
+              "provider",
+              "money_moved",
+              "webhooks"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "scenario": {
+                "type": "string"
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "fake"
+                ]
+              },
+              "money_moved": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "webhooks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "result"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "provider_refund_reference": {
+                "type": "string"
+              },
+              "dispute_reference": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "FakeRefundSimulationRequest": {
+        "type": "object",
+        "required": [
+          "scenario"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "PROCESSED",
+              "FAILED",
+              "NEXT_PROCESSED",
+              "NEXT_PENDING",
+              "NEXT_FAILED",
+              "NEXT_TIMEOUT",
+              "NEXT_TIMEOUT_LOST",
+              "NEXT_REJECTED",
+              "NEXT_RATE_LIMITED",
+              "PROVIDER_DOWN",
+              "PROVIDER_UP"
+            ],
+            "description": "PROCESSED / FAILED: the bank finishes the refund the fake provider holds. NEXT_*: what the fake provider answers to the next refund request."
+          },
+          "webhook": {
+            "type": "string",
+            "enum": [
+              "none",
+              "deliver",
+              "duplicate",
+              "out_of_order"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "INSUFFICIENT_BALANCE",
+              "METHOD_NOT_SUPPORTED",
+              "REJECTED",
+              "AMOUNT_EXCEEDS_AVAILABLE"
+            ]
+          }
+        }
+      },
+      "FakeDisputeSimulationRequest": {
+        "type": "object",
+        "required": [
+          "scenario"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "UNDER_REVIEW",
+              "WON",
+              "LOST",
+              "CLOSED"
+            ]
+          },
+          "dispute_reference": {
+            "type": "string",
+            "description": "Required for every scenario but OPEN"
+          }
+        }
       }
     }
   }

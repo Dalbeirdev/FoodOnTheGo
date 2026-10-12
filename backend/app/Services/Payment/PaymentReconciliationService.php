@@ -214,7 +214,7 @@ final class PaymentReconciliationService
             }
             if ($paidElsewhere !== null) {
                 // The checkout is paid already by another attempt: this is a second charge and has to be returned.
-                if ($this->machine->move($attempt, PaymentStatus::ReviewRequired, $source, ['status_reason' => 'DUPLICATE_PAYMENT', 'failure_code' => 'PAYMENT_DUPLICATE', 'provider_payment_status' => $match->providerStatus], ['payment' => $match->reference, 'verified_payment' => (string) $paidElsewhere->public_id], $adminId)) {
+                if ($this->machine->move($attempt, PaymentStatus::ReviewRequired, $source, ['status_reason' => 'DUPLICATE_PAYMENT', 'failure_code' => 'PAYMENT_DUPLICATE', 'provider_payment_status' => $match->providerStatus, 'provider_payment_reference' => $match->reference], ['payment' => $match->reference, 'verified_payment' => (string) $paidElsewhere->public_id], $adminId)) {
                     DB::afterCommit(fn () => event(new PaymentEvent(PaymentEvent::DUPLICATE_PAYMENT, $attempt)));
                 }
 

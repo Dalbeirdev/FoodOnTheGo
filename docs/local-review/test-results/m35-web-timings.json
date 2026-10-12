@@ -1,0 +1,27 @@
+{
+  "module": "M35",
+  "measured_at": "2026-10-12T05:30:27.852Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, one local queue worker, the DEVELOPMENT payment provider (no network call to a real provider). submit_to_processing = from the administrator's \"send\" until the refund is PROCESSING (queued job + provider call); webhook_to_refunded = from the simulated provider webhook until the refund is REFUNDED; admin_list / admin_detail = the GET requests. Measurements, not targets.",
+  "timings": {
+    "submit_to_processing": {
+      "n": 1,
+      "median_ms": 2196,
+      "max_ms": 2196
+    },
+    "webhook_to_refunded": {
+      "n": 1,
+      "median_ms": 1525,
+      "max_ms": 1525
+    },
+    "admin_list": {
+      "n": 1,
+      "median_ms": 318,
+      "max_ms": 318
+    },
+    "admin_detail": {
+      "n": 1,
+      "median_ms": 361,
+      "max_ms": 361
+    }
+  }
+}

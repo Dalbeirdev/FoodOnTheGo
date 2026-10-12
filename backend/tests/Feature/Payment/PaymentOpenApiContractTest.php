@@ -102,7 +102,7 @@ class PaymentOpenApiContractTest extends TestCase
         $routes = collect(app('router')->getRoutes())->map(fn ($r) => [preg_replace('#^api/v1/#', '', $r->uri()), array_diff($r->methods(), ['HEAD'])])->filter(fn (array $r): bool => $mine($r[0]))
             ->flatMap(fn (array $r) => array_map(fn (string $m): string => $m.' /'.$r[0], $r[1]))->values()->all();
         $this->assertEqualsCanonicalizing($routes, $documented);
-        $this->assertCount(9, $routes);
+        $this->assertCount(11, $routes);   // + 2 (Module 35: POST admin/payments/{payment}/refunds, POST dev/payments/{payment}/dispute)
 
         // The webhook has no session of any kind; the customer operations name nothing but the checkout or the payment.
         $this->assertSame([], $paths['/webhooks/payments/{paymentProvider}']['post']['security']);
@@ -128,7 +128,9 @@ class PaymentOpenApiContractTest extends TestCase
         $this->assertSame(['string', 'null'], $schemas['Payment']['properties']['fulfillment']['properties']['order_id']['type']);
         $this->assertSame(['string', 'null'], $schemas['Payment']['properties']['fulfillment']['properties']['order_number']['type']);
         $this->assertSame([false], $schemas['AdminPaymentDetail']['properties']['actions']['properties']['mark_paid']['enum']);
-        $this->assertSame(['NOT_IMPLEMENTED'], $schemas['AdminPaymentDetail']['properties']['actions']['properties']['refund']['enum']);
+        // Module 35: a refund of a payment without an order can be ASKED for (a boolean); nobody can mark one as refunded.
+        $this->assertSame('boolean', $schemas['AdminPaymentDetail']['properties']['actions']['properties']['refund']['type']);
+        $this->assertSame(['NOT_PROVIDED'], $schemas['AdminPaymentDetail']['properties']['actions']['properties']['mark_refunded']['enum']);
         // Every amount is Money (integer minor units + currency) or an integer: no float anywhere in the payment schemas.
         $numbers = [];
         foreach (['Payment', 'PaymentProviderSession', 'AdminPayment', 'AdminPaymentDetail'] as $name) {
