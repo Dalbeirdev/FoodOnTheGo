@@ -1,7 +1,7 @@
 # FOODONTHEGO — MODULE 35 COMPLETION REPORT
 # REFUNDS, CANCELLATION FINANCIAL WORKFLOWS & PROVIDER RECOVERY
 
-Local only. Production was not touched. NO REAL MONEY and no live mode: every refund of this module ran on the DEVELOPMENT payment provider. Base commit e49125e + the Module 35 commit. Every number below is read from the evidence files in docs/local-review/test-results/.
+Local only. Production was not touched. NO REAL MONEY and no live mode: every refund of this module ran on the DEVELOPMENT payment provider. Module 35 commit 96aee79 on top of e49125e (Module 34); not pushed. Every number below is read from the evidence files in docs/local-review/test-results/.
 
 ## 1. MODULE STATUS
 
@@ -115,7 +115,7 @@ Final state of the first order of the web e2e (step B6):
 Order: REJECTED
 Payment: VERIFIED
 Refund: REFUNDED
-The payment remains VERIFIED and its amount unchanged after every refund in the suite; the order keeps REJECTED / CANCELLED / COMPLETED. The order carries a derived `refund_status`: NONE / REQUIRED / PROCESSING / PARTIALLY_REFUNDED / REFUNDED / FAILED / REVIEW_REQUIRED.
+The payment remains VERIFIED and its amount unchanged after every refund in the suite; the order keeps REJECTED / CANCELLED / COMPLETED. The order carries a derived `refund_status`: NONE / REQUIRED / PROCESSING / PARTIALLY_REFUNDED / REFUNDED / FAILED / REVIEW_REQUIRED. REQUIRED covers an approved refund that has not been sent — PROCESSING starts when the provider has it. A customer is never given FAILED or REVIEW_REQUIRED: every customer answer says UNDER_REVIEW instead (both rules were corrected on 2026-10-12 after the first browser run: BUG-256, BUG-257).
 
 ## 12. PARTIAL REFUND
 
