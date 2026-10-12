@@ -1,0 +1,21 @@
+# Module 36 — the LOCAL database (foodonthego_local) brought to this module, 2026-10-12: the migration, the roles with the new finance permissions, the development finance fixtures (TEST commission plans and FAKE payout destinations — not production policy), then the backfill and the checks. The local database held no order at that moment, so the backfill had nothing to post.
+
+== migrate (local database foodonthego_local) ==
+ INFO Running migrations. 
+
+ 2026_10_16_100000_module36_finance .. 479.21ms DONE
+
+== RoleSeeder ==
+ Database\Seeders\RoleSeeder .. 148 ms DONE 
+
+== LocalFinanceFixtureSeeder ==
+ Database\Seeders\LocalFinanceFixtureSeeder .. 110 ms DONE 
+
+== finance:post-pending --backfill ==
+{"payments":0,"allocations":0,"recognized":0,"voided":0,"refunds":0,"disputes":0,"holds_released":0,"failed":0,"payouts_submitted":0,"payouts_checked":0}
+== finance:verify-ledger ==
+{"status":"OK","problems":0,"transactions":0,"entries":0,"accounts":0,"checks":{"unbalanced_transactions":0,"currency_mismatches":0,"duplicate_postings":0,"orphan_postings":0,"payable_mismatches":0,"negative_restaurant_balances":0,"inverted_accounts":0,"settled_lines_of_cancelled_settlements":0,"paid_settlements_without_paid_payout":0,"paid_payouts_without_posting":0,"recognized_orders_without_payable_line":0}}
+== finance:reconcile-internal ==
+{"status":"OK","problems":0,"found":[],"auto_resolved":0}
+== finance:generate-settlements --dry-run ==
+{"dry_run":true,"summary":{"locations":0,"settlements":0,"zero_statements":0,"negative_carried":0,"held":0,"below_minimum":0,"lines":0},"results":[]}

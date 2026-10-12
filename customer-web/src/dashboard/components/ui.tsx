@@ -81,10 +81,10 @@ export function AvailabilityBadge({ availability, inactive, locale }: { availabi
 export function Pill({ tone = 'muted', children }: { tone?: string; children: ReactNode }) { return <span className={`db-badge db-badge--${tone}`}>{children}</span> }
 export const Money = ({ minor, currency, locale }: { minor: number; currency: string; locale: string }) => <span className="db-money">{formatMoney(minor, currency, locale)}</span>
 
-export function Tabs<T extends string>({ tabs, value, onChange, label }: { tabs: Array<{ id: T; label: string; count?: number }>; value: T; onChange: (v: T) => void; label: string }) {
+export function Tabs<T extends string>({ tabs, value, onChange, label, testId }: { tabs: Array<{ id: T; label: string; count?: number }>; value: T; onChange: (v: T) => void; label: string; /** Gives each tab button the test id `${testId}-${tab.id}`. */ testId?: string }) {
   return (
     <div className="db-tabs" role="tablist" aria-label={label}>
-      {tabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={value === tab.id} className={`db-tab ${value === tab.id ? 'is-on' : ''}`} onClick={() => onChange(tab.id)} data-tab={tab.id}>{tab.label}{tab.count !== undefined && <span className={`db-tab__count ${tab.count > 0 && (tab.id === 'new') ? 'db-tab__count--hot' : ''}`}>{tab.count}</span>}</button>)}
+      {tabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={value === tab.id} className={`db-tab ${value === tab.id ? 'is-on' : ''}`} onClick={() => onChange(tab.id)} data-tab={tab.id} data-testid={testId ? `${testId}-${tab.id}` : undefined}>{tab.label}{tab.count !== undefined && <span className={`db-tab__count ${tab.count > 0 && (tab.id === 'new') ? 'db-tab__count--hot' : ''}`}>{tab.count}</span>}</button>)}
     </div>
   )
 }

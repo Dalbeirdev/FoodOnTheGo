@@ -1,0 +1,52 @@
+# Module 36 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-12T11:59:10Z UTC, local machine, mains power
+# Unit tests always run the development mocks or scripted answers in the API's shape; no payment or payout provider is called.
+# New test files of this module: src/dashboard/api/apiFinance.test.tsx (13), src/admin/api/ApiAdminFinanceRepository.test.tsx (18), src/admin/pages/FinanceMetricsCard.test.tsx (3).
+# No older test file was changed. Run after the last source edit of the module (the contrast correction in src/dashboard/pages/EarningsPage.tsx).
+
+## tsc -b --noEmit
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/admin/pages/FinancialRulesPanel.tsx:29:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:18:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:19:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:20:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:68:40: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/dashboard/pages/MenuPage.tsx:122:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+(oxlint exit 0; 0 errors; 135 warnings.)
+warnings in files changed or added by this module:
+      1 src/admin/AdminContext.tsx:106:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+      1 src/admin/AdminContext.tsx:62:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+      1 src/admin/AdminContext.tsx:73:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+      1 src/admin/AdminContext.tsx:99:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/components/DataTable.tsx:12:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+      1 src/admin/components/DataTable.tsx:61:21: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/components/DataTable.tsx:82:111: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+      1 src/admin/components/DataTable.tsx:83:40: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/pages/finance/AdjustmentsTab.tsx:29:87: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/pages/finance/CommissionTab.tsx:28:61: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/pages/finance/PayoutsTab.tsx:27:61: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/pages/finance/ReconciliationTab.tsx:33:87: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/admin/pages/finance/SettlementsTab.tsx:27:61: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/dashboard/DashboardLayout.tsx:138:21: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+      1 src/dashboard/DashboardLayout.tsx:18:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+      1 src/dashboard/DashboardLayout.tsx:37:14: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+      1 src/dashboard/components/ui.tsx:103:108: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+      1 src/dashboard/components/ui.tsx:118:111: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+      1 src/dashboard/components/ui.tsx:138:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+(end of list)
+
+## vitest run
+ Test Files  66 passed (66)
+      Tests  793 passed (793)
+   Duration  31.29s (tests 63%, environment 21%, transform 7%, import 4%, setup 4%)
+
+## vite build (npm run build)
+dist/assets/index-C3akYxN9.js         1,370.50 kB │ gzip: 379.35 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 425ms[39m

@@ -26,6 +26,10 @@ enum Permission: string
     case RestaurantAnalyticsView = 'restaurant.analytics.view';
     case RestaurantNotificationsView = 'restaurant.notifications.view';
     case RestaurantSettingsManage = 'restaurant.settings.manage';
+    /** Read the location's earnings, settlement statements and payout states (Module 36). Never another restaurant's. */
+    case RestaurantFinanceView = 'restaurant.finance.view';
+    /** See where payouts go (the provider's mask of the destination and its verification state) — the owner's. */
+    case RestaurantPayoutAccountView = 'restaurant.payout_account.view';
 
     case AdminRestaurantsView = 'admin.restaurants.view';
     case AdminRestaurantsApprove = 'admin.restaurants.approve';
@@ -51,7 +55,34 @@ enum Permission: string
     case AdminRefundsReconcile = 'admin.refunds.reconcile';
     /** Read the disputes / chargebacks a provider reported (Module 35 foundation). Nothing can be done to them here. */
     case AdminDisputesView = 'admin.disputes.view';
+    /** Read restaurant settlements and their statements (Module 36). */
     case AdminSettlementsView = 'admin.settlements.view';
+    /** Read the finance overview, the restaurants' payables, allocations and reports (Module 36). */
+    case AdminFinanceView = 'admin.finance.view';
+    /** Read commercial terms (commission plans). Negotiated terms are confidential: not part of admin.finance.view. */
+    case AdminFinanceCommissionView = 'admin.finance.commission.view';
+    /** Make, end or withdraw a commission plan. A plan starts in the future and never rewrites an order already allocated. */
+    case AdminFinanceCommissionManage = 'admin.finance.commission.manage';
+    /** Generate settlements (also as a dry run) and withdraw one that was not paid. */
+    case AdminFinanceSettlementsManage = 'admin.finance.settlements.manage';
+    /** Approve a calculated settlement. Approving sends no money. */
+    case AdminFinanceSettlementsApprove = 'admin.finance.settlements.approve';
+    case AdminFinancePayoutsView = 'admin.finance.payouts.view';
+    /** Send an approved settlement's payout to the payout provider, try a failed one again, ask the provider again. There is no "mark as paid". */
+    case AdminFinancePayoutsExecute = 'admin.finance.payouts.execute';
+    /** Record a payout that was made outside the platform, with its bank reference, date and evidence. */
+    case AdminFinancePayoutsRecordExternal = 'admin.finance.payouts.record_external';
+    case AdminFinanceReconciliationView = 'admin.finance.reconciliation.view';
+    /** Import provider settlement records, run reconciliation, and close a difference with a reason. */
+    case AdminFinanceReconciliationManage = 'admin.finance.reconciliation.manage';
+    /** Decide who bears a refund or a dispute, decide an order's missing terms, and post a manual adjustment — each with a reason. */
+    case AdminFinanceAdjustmentsCreate = 'admin.finance.adjustments.create';
+    /** Place and release a financial hold. */
+    case AdminFinanceHoldsManage = 'admin.finance.holds.manage';
+    /** Read the ledger: accounts, transactions and entries. Nobody can write it through the API. */
+    case AdminFinanceLedgerView = 'admin.finance.ledger.view';
+    /** Download finance data as CSV. */
+    case AdminFinanceExport = 'admin.finance.export';
     case AdminReviewsView = 'admin.reviews.view';
     case AdminReviewsModerate = 'admin.reviews.moderate';
     case AdminReviewsRestore = 'admin.reviews.restore';

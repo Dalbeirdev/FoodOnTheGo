@@ -10,6 +10,7 @@ import { CartMetricsCard } from './CartMetricsCard'
 import { PickupMetricsCard } from './PickupMetricsCard'
 import { CheckoutMetricsCard } from './CheckoutMetricsCard'
 import { PaymentMetricsCard } from './PaymentMetricsCard'
+import { FinanceMetricsCard } from './FinanceMetricsCard'
 import { NotificationMetricsCard } from './NotificationMetricsCard'
 import { RealtimeMetricsCard } from './RealtimeMetricsCard'
 import { ProviderHealthCard } from './ProviderHealthCard'
@@ -75,6 +76,8 @@ export function SystemPage() {
       {real && <PickupMetricsCard locale={locale} />}
       {real && <CheckoutMetricsCard locale={locale} />}
       {real && <PaymentMetricsCard locale={locale} />}
+      {/* Module 36: the ledger, the reconciliations, the payout provider — states only, and never "healthy" by default. */}
+      {real && <FinanceMetricsCard locale={locale} />}
       {real && <RealtimeMetricsCard locale={locale} />}
       {real && <NotificationMetricsCard locale={locale} />}
       {state === 'loading' && <Skeleton rows={5} />}{state === 'error' && <ErrorState title={t('adm.error.loadTitle', undefined, locale)} onRetry={() => { void reload() }} locale={locale} />}

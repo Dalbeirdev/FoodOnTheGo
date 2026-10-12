@@ -1,0 +1,391 @@
+{
+  "module": "M27",
+  "date": "2026-10-12T10:59:02.125Z",
+  "base": "http://localhost:5173",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "note": "Customer Web in API mode against the real local backend (PostgreSQL 18, Redis). Pickup, checkout, payment and orders after the cart are still development data.",
+  "passed": 76,
+  "total": 76,
+  "results": [
+    {
+      "name": "A1 a first visit gets a guest cart token from the backend (GET /cart), kept in this browser; there is no cart yet and the page says so",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2 Add to cart sends ids, a quantity and the note — no price, no currency, no owner — with the guest token in a header and an idempotency key; the backend answers 201",
+      "pass": true,
+      "detail": "{\"restaurant_id\":\"0a000000-0000-4000-8000-0000000000a1\",\"item_id\":\"3f6ef553-3814-40d2-a1d4-68fe25cede47\",\"selections\":[{\"group_id\":\"790a9e43-43b9-4d3c-a39e-b6ae3ea5e536\",\"option_ids\":[\"3600c772-4829-44ef-9d00-b9d3d8fe3b39\"]},{\"group_id\":\"1289ddd8-c517-4298-9ed3-8536ed26c283\",\"option_ids\":[\"68cb8317-"
+    },
+    {
+      "name": "A3 the backend priced it: ₹249 + Large + Extra Cheese = ₹349.00 each, 2 = ₹698.00; the page shows \"Added to your cart\" and the cart bar the backend's count and subtotal",
+      "pass": true,
+      "detail": "{\"unit\":34900,\"subtotal\":69800}"
+    },
+    {
+      "name": "A4 the cart page shows the backend cart: restaurant, the line with its options and note, the unit price, the line total and the subtotal — and no \"development cart\" label",
+      "pass": true,
+      "detail": "CL Classic Burger Size: Large (+₹70.00) Add-ons: Extra Cheese (+₹30.00) “No onions” ₹349.00 each Edit Remove 2 Line total ₹698.00"
+    },
+    {
+      "name": "axe (cart page): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A5 the same configuration again (note spelled differently) raises the quantity of the same line: 3, one line",
+      "pass": true,
+      "detail": "{\"id\":\"e9143547-e542-4c5d-89b2-86e498b20b79\",\"merged\":true}"
+    },
+    {
+      "name": "A6 another size is its own line; a plain item of the same restaurant joins the cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 a note with markup is stored and shown as plain text: nothing runs, no element is injected, the customer sees exactly what they typed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A8 \"+\" on the cart page is PATCH with the new absolute quantity and the cart version the page saw; the subtotal shown is the backend's",
+      "pass": true,
+      "detail": "{\"cart_version\":4,\"quantity\":4}"
+    },
+    {
+      "name": "A9 \"−\" brings it back to 3",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A10 Edit reopens the item with the previous choices; saving another size is PATCH with the new selection and the backend prices it again",
+      "pass": true,
+      "detail": "{\"large\":true,\"cheese\":true}"
+    },
+    {
+      "name": "A11 Remove asks first, then DELETE; the other lines stay",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A12 the guest cart survives a refresh and is the same in another tab of this browser (token in localStorage, cart in PostgreSQL)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A13 only the hash of the token is stored; the token itself is in no column",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A14 a client cannot set a price, a currency, an owner, a status or a version: every such field is refused with 422 and nothing is added",
+      "pass": true,
+      "detail": "422,422,422,422,422,422,422"
+    },
+    {
+      "name": "A15 the backend validates the configuration: required Size missing 422, two sizes 422, an option under the wrong group 422, an unavailable option 409, another restaurant's item 404, quantity 0 / 100000 422, a sold-out item 409 or 422",
+      "pass": true,
+      "detail": "422:invalid_customization 422:invalid_customization 422:invalid_customization 409:option_unavailable 404:item_not_found 422:validation_failed 422:validation_failed 409:item_unavailable"
+    },
+    {
+      "name": "B1 an item of another restaurant is not added: the page asks \"Start a new cart?\" naming both restaurants",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe (restaurant conflict dialog): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B2 Cancel leaves the cart exactly as it was; the backend itself refuses the add with 409 cart_restaurant_conflict and a summary (restaurant, item count, subtotal — no item names)",
+      "pass": true,
+      "detail": "{\"current\":{\"restaurant\":{\"id\":\"0a000000-0000-4000-8000-0000000000a1\",\"slug\":\"burger-hub\",\"name\":\"Burger Hub\"},\"item_count\":4,\"line_count\":2,\"subtotal_minor\":147600,\"currency\":\"INR\"},\"requested\":{\"restaurant\":{\"id\":\"006f4b02-b4ff-442f-beec-38aabd54a4"
+    },
+    {
+      "name": "B3 another outlet of the SAME organization (Brew & Bites) is another restaurant: 409 too",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B4 a switch that is not confirmed (422) or whose item is not valid (422 quantity_limit) changes nothing: the old cart is intact",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B5 \"Clear cart & continue\" is the explicit switch (POST /cart/switch-restaurant, confirm: true): one answer with the new cart of Pizza Point holding the item, and a summary of the replaced cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B6 in the database the old cart is closed (ABANDONED, restaurant_switch) with its lines kept, and exactly one cart of this guest is ACTIVE",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 RESTAURANT SELLS OUT AN ITEM (Restaurant Dashboard → \"Mark as Sold Out\") → the customer's cart, read again, keeps the line and says \"no longer available\"; Continue is blocked; the subtotal counts only what can be ordered",
+      "pass": true,
+      "detail": "{\"code\":200,\"issues\":[\"unavailable\",\"\"],\"status\":\"INVALID\"}"
+    },
+    {
+      "name": "axe (cart with an unavailable item): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C2 the sold-out line cannot be stepped or changed (409 item_unavailable) — it can be removed; nothing was deleted behind the customer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 the restaurant restocks → the same cart is valid again, at the same total",
+      "pass": true,
+      "detail": "200 VALID"
+    },
+    {
+      "name": "C4 RESTAURANT RAISES THE PRICE by ₹20 → the cart shows \"Price updated from ₹349.00 to ₹369.00 each\", the line and the subtotal are at the CURRENT price, and the customer has to review before continuing",
+      "pass": true,
+      "detail": "{\"status\":200,\"issue\":\"price_changed\",\"v\":\"NEEDS_REVIEW\"}"
+    },
+    {
+      "name": "C5 \"Accept updated price\" is POST /cart/refresh: the snapshot is brought up to date and the cart may continue",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 A CHOSEN MODIFIER BECOMES UNAVAILABLE → the line stays with \"No longer available: Extra Cheese. Please review this item.\" — the paid option is neither dropped nor swapped",
+      "pass": true,
+      "detail": "CL Classic Burger Size: Large (+₹70.00) Add-ons: Extra Cheese (+₹30.00) ₹369.00 each No longer available: Extra Cheese. Please review this item. Edit Remove 2 Line total ₹738.00"
+    },
+    {
+      "name": "C7 RESTAURANT PAUSES ORDERS (dashboard switch) → the cart says the restaurant is not accepting orders, keeps every line and cannot proceed",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "C8 an item can still be put into the cart while the restaurant is paused (people order ahead of a journey) — the cart keeps saying why it cannot proceed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C9 the restaurant resumes → the cart may proceed again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C10 ADMINISTRATOR SUSPENDS THE RESTAURANT → the cart is still there with its lines, says the restaurant is unavailable, and cannot be added to (404) or changed (409)",
+      "pass": true,
+      "detail": "200 {\"id\":\"0a000000-0000-4000-8000-0000000000a1\",\"slug\":\"burger-hub\",\"name\":\"Burger Hub\",\"branch_label\":\"Sector 62 · Noida\",\"short_description\":\"Juicy bur"
+    },
+    {
+      "name": "C11 the restaurant is approved again → the very same cart is usable again; it was never emptied",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "D1 GUEST → CART → SIGN-IN (OTP): the cart is claimed with its token (POST /cart/claim) — same cart id, same lines, now the customer's",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D2 the guest token is spent: it is gone from the browser, and presented again it addresses nothing (a new token is issued)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D3 a second device signed in as the same customer sees the same cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D4 two devices: the first changes the quantity; the second, still on the old version, is refused (409 cart_version_conflict), is told so and shows the backend's cart again",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "D5 SIGN-OUT: the browser shows an empty cart and holds a NEW guest token; the signed-out session token reads no cart; the account's cart stays on the server for the account",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D5b after sign-out the cart is read as a guest: no cart request carries the old session token",
+      "pass": true,
+      "detail": "GET guest, GET guest, GET guest"
+    },
+    {
+      "name": "D6 SAME RESTAURANT at sign-in: the guest lines are merged into the account's cart — the same burger 3 + 19 = 22 is limited to the item's maximum of 20 and the customer is told; the onion rings come over as their own line",
+      "pass": true,
+      "detail": "[[\"Classic Burger\",20],[\"Onion Rings\",1]]"
+    },
+    {
+      "name": "D6b the merge is announced on the page (not done quietly)",
+      "pass": true,
+      "detail": "Your cart\n\nReview your items, then continue to choose a pickup time.\n\nYour carts were combined. Some quantities were limited to the maximum for the item: Classic Burger (20). Dismiss\n\nPICKUP AT\n\nBurge"
+    },
+    {
+      "name": "D7 DIFFERENT RESTAURANTS at sign-in: nothing is merged and nothing is dropped — the page asks which cart to keep, with restaurant, item count and total of both",
+      "pass": true,
+      "detail": "You have two carts\n\nOne from before you signed in and one saved in your account, from different restaurants. A cart holds items from one restaurant — which one do you want to keep?\n\nKeep Pizza Point ·"
+    },
+    {
+      "name": "D7b until the customer has chosen, both carts exist untouched in the database",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe (two-carts dialog): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D8 \"Keep Pizza Point\": the account's Burger Hub cart is closed (replaced_at_sign_in), the guest cart becomes the customer's, the dialog is gone",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E1 a cart started from route discovery keeps the journey: the add carries the journey id (and the journey token in its header), and the cart shows the two place names, that the restaurant is on the route, and the detour the routing provider calculated (the same figures the restaurant list showed; the arrival is \"leave now\" plus that leg)",
+      "pass": true,
+      "detail": "{\"id\":\"cec7cc16-79b2-4132-9ebe-9d57d63f6f22\",\"status\":\"ACTIVE\",\"requires_refresh\":false,\"origin\":{\"label\":\"Sector 62, Noida\"},\"destination\":{\"label\":\"Sector 18, Noida\"},\"restaurant_on_route\":true,\"distance_from_route_meters\":63,\"detour\":{\"distance_meters\":162,\"duration_seconds\":79},\"estimated_arriva"
+    },
+    {
+      "name": "E2 what the cart keeps of the journey is labels and figures only: no coordinate, no address, no route geometry — in the API answer and in the database row",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 the cart page shows \"Sector 62, Noida → Sector 18, Noida\" with the detour and arrival, labelled as the development routing model",
+      "pass": true,
+      "detail": "Sector 62, Noida → Sector 18, Noida\n· 60 m from route · 2m detour · arrive ~4:28 pm development routing model — not real road data"
+    },
+    {
+      "name": "E4 the journey ENDS (expired): the cart stays, can still proceed, and marks the route figures as stale — \"This journey has ended. Plan it again…\" — instead of showing an old detour as current",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E5 a cart started by browsing a restaurant directly has no journey and works the same",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E6 somebody else's journey cannot be linked: 404 journey_not_found",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 GUEST IDOR: another guest who knows the cart id and a line id gets nowhere (404, 404, 404, an empty cart); a token in the URL is ignored",
+      "pass": true,
+      "detail": "404,404,404,200,200"
+    },
+    {
+      "name": "F2 a tampered or made-up token is nobody's: no cart, a fresh token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F3 CUSTOMER IDOR: Asha cannot change or remove a line of Rahul's cart and Rahul cannot touch Asha's (404 each); both carts are unchanged",
+      "pass": true,
+      "detail": "404,404,404"
+    },
+    {
+      "name": "F4 a signed-in customer is the customer: a guest token sent along does not switch them to that guest's cart",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F5 RESTAURANT STAFF AND ADMINISTRATORS HAVE NO ACCESS TO CARTS: the restaurant owner sees no cart and cannot change one; there is no cart listing for staff or administrators (404); a staff token cannot claim a cart (401)",
+      "pass": true,
+      "detail": "200,404,404,404,404,404,401"
+    },
+    {
+      "name": "G1 TWO SIMULTANEOUS FIRST ADDS on two API processes for the same new guest: one cart, one line, quantity 2 — never two carts or two lines",
+      "pass": true,
+      "detail": "201,201 v2"
+    },
+    {
+      "name": "G2 two devices change the quantity from the same version at the same moment (two processes): exactly one wins, the other gets 409 cart_version_conflict, and the cart holds the winner's value",
+      "pass": true,
+      "detail": "200,409"
+    },
+    {
+      "name": "G3 A DOUBLE TAP / RETRY with the same Idempotency-Key (in parallel on two processes, then once more): applied once — the quantity rose by 2, not by 4 or 6; the repeat is answered with the first answer (Idempotency-Replayed) or told the first is still running",
+      "pass": true,
+      "detail": "201,409 retry 201 q7"
+    },
+    {
+      "name": "G4 the same key with a different request is refused (409 idempotency_key_reused), not guessed at",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H1 an EXPIRED cart says so on the page and in the API (status EXPIRED, CART_EXPIRED), still shows what was in it, and refuses every change with 410 cart_expired",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H2 \"Start a new cart\" clears it (the only way out); the next item starts a new cart for the same guest",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H3 the cleanup (php artisan carts:prune, scheduled hourly): a cart past its lifetime and the 24-hour grace is closed as EXPIRED; a cart closed more than 30 days ago is deleted with its lines",
+      "pass": true,
+      "detail": "Closed 1 expired cart(s); deleted 1 closed cart(s) past retention."
+    },
+    {
+      "name": "I1 Continue to pickup: the (still development) pickup step opens with this backend cart — restaurant and item count carried over",
+      "pass": true,
+      "detail": "http://localhost:5173/pickup-time"
+    },
+    {
+      "name": "I2 GET /admin/system/carts (platform administrator): counts of active / guest / customer carts and of the events of this run — conflicts, switches, sign-in take-overs, accepted price changes — and nothing else: no item, no customer, no token",
+      "pass": true,
+      "detail": "{\"created\":124,\"item_added\":233,\"item_updated\":16,\"item_removed\":2,\"cleared\":4,\"restaurant_conflict\":4,\"restaurant_switched\":3,\"claimed\":5,\"merged\":3,\"merge_conflict\":2,\"revalidated\":9,\"price_changes_accepted\":4,\"expired\":2}"
+    },
+    {
+      "name": "I2b the endpoint needs the system permission: a customer 401, the restaurant owner 401, nobody 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "I3 Platform Admin → System Status shows the \"Carts\" card with those numbers and the note \"counts only\"",
+      "pass": true,
+      "detail": "6 Active carts 2 Signed-in customers 4 Guests 0 Expired, awaiting cleanup 4 Other-restaurant conflicts 3 Confirmed restaurant switches 8 Carts taken over at sign-in 4 Price changes accepted Event counts cover the last 24 hours. A guest cart lives 7 d"
+    },
+    {
+      "name": "I4 on a 390 px phone the cart page has no horizontal overflow and shows the line, the subtotal and Continue",
+      "pass": true,
+      "detail": "overflow 0"
+    },
+    {
+      "name": "J1 no cart token ever travelled in a URL, and no cart id is part of any cart route",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "J2 the server log of this run has cart events with ids and numbers only: no guest token, no special instructions, no item name, no journey place",
+      "pass": true,
+      "detail": "46 cart lines"
+    },
+    {
+      "name": "J3 measured HTTP timings recorded (GET /cart, add, change, refresh on a 5-line cart)",
+      "pass": true,
+      "detail": "{\"get_empty\":278,\"add\":440,\"get\":383,\"update\":435,\"refresh\":441}"
+    },
+    {
+      "name": "J4 no page error, no unexpected dialog and no console error in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "J5 the fixture cart of the second fixture customer is exactly as it was before the run",
+      "pass": true,
+      "detail": "2:2 vs 2:2"
+    },
+    {
+      "name": "Z the local database is back in its seeded state: no cart of this run is left, the review account has no cart, Burger Hub and its Classic Burger are as before",
+      "pass": true,
+      "detail": "{\"carts\":0,\"rahul\":0,\"menu\":\"ACTIVE:24900\",\"location\":\"APPROVED:true\"}"
+    }
+  ]
+}

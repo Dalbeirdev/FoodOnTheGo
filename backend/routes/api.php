@@ -6,6 +6,13 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\DisputeController as AdminDisputeController;
+use App\Http\Controllers\Api\Admin\Finance\AdjustmentController as AdminFinanceAdjustmentController;
+use App\Http\Controllers\Api\Admin\Finance\CommissionPlanController as AdminCommissionPlanController;
+use App\Http\Controllers\Api\Admin\Finance\LedgerController as AdminLedgerController;
+use App\Http\Controllers\Api\Admin\Finance\OverviewController as AdminFinanceOverviewController;
+use App\Http\Controllers\Api\Admin\Finance\PayoutController as AdminPayoutController;
+use App\Http\Controllers\Api\Admin\Finance\ReconciliationController as AdminReconciliationController;
+use App\Http\Controllers\Api\Admin\Finance\SettlementController as AdminSettlementController;
 use App\Http\Controllers\Api\Admin\FinancialRuleController;
 use App\Http\Controllers\Api\Admin\GeographyController;
 use App\Http\Controllers\Api\Admin\MarketController as AdminMarketController;
@@ -44,6 +51,7 @@ use App\Http\Controllers\Api\Customer\ProfileController;
 use App\Http\Controllers\Api\Customer\RecentLocationController;
 use App\Http\Controllers\Api\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
+use App\Http\Controllers\Api\Dev\FakeFinanceController;
 use App\Http\Controllers\Api\Dev\FakePaymentController;
 use App\Http\Controllers\Api\Dev\FakeRefundController;
 use App\Http\Controllers\Api\HealthController;
@@ -55,9 +63,11 @@ use App\Http\Controllers\Api\Order\OrderEventsController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
+use App\Http\Controllers\Api\PayoutWebhookController;
 use App\Http\Controllers\Api\PlaceController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\Restaurant\ContextController;
+use App\Http\Controllers\Api\Restaurant\FinanceController as RestaurantFinanceController;
 use App\Http\Controllers\Api\Restaurant\HoursController;
 use App\Http\Controllers\Api\Restaurant\LocationController;
 use App\Http\Controllers\Api\Restaurant\MenuController;
@@ -106,6 +116,17 @@ Route::pattern('order', '[0-9a-fA-F-]{36}|[Ff][Oo][Tt][Gg]-[0-9]{8}-[A-Za-z0-9]{
 Route::pattern('fulfillment', '[0-9a-fA-F-]{36}');
 Route::pattern('review', '[0-9a-fA-F-]{36}');
 Route::pattern('reviewCase', '[0-9a-fA-F-]{36}');
+// Module 36 — finance.
+Route::pattern('settlement', '[0-9a-fA-F-]{36}');
+Route::pattern('payout', '[0-9a-fA-F-]{36}');
+Route::pattern('commissionPlan', '[0-9a-fA-F-]{36}');
+Route::pattern('allocation', '[0-9a-fA-F-]{36}');
+Route::pattern('adjustment', '[0-9a-fA-F-]{36}');
+Route::pattern('hold', '[0-9a-fA-F-]{36}');
+Route::pattern('providerSettlement', '[0-9a-fA-F-]{36}');
+Route::pattern('difference', '[0-9a-fA-F-]{36}');
+Route::pattern('ledgerTransaction', '[0-9a-fA-F-]{36}');
+Route::pattern('payoutProvider', '[a-z][a-z0-9_]{1,23}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -221,6 +242,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     // Not counted against the per-address API limit (the sender is the provider), only against a flood.
     Route::post('/webhooks/payments/{paymentProvider}', PaymentWebhookController::class)
         ->withoutMiddleware('throttle:api')->middleware('throttle:payment-webhook')->name('webhooks.payments');
+    // Module 36: a payout provider's events. The provider's signature is the only credential; an event is counted once
+    // and decides nothing by itself — the payout is read from the provider afterwards.
+    Route::post('/webhooks/payouts/{payoutProvider}', PayoutWebhookController::class)
+        ->withoutMiddleware('throttle:api')->middleware('throttle:payment-webhook')->name('webhooks.payouts');
 
     // DEVELOPMENT ONLY: the fake payment provider's side of a payment. Registered only where fake providers are
     // allowed — never in production.
@@ -232,6 +257,14 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::middleware(['auth:admin', 'active', 'throttle:refund-action'])->group(function (): void {
             Route::post('/dev/refunds/{refund}/simulate', [FakeRefundController::class, 'simulate'])->name('dev.refunds.simulate');
             Route::post('/dev/payments/{payment}/dispute', [FakeRefundController::class, 'dispute'])->name('dev.payments.dispute');
+        });
+        // Module 36: the fake providers' side of finance — a bank settling a payout, a TEST payout destination, and the
+        // fake payment provider's settlement report (with the fee the caller gives it: a test fixture). It cannot set a
+        // payout's or a settlement's status. For an administrator with the matching finance permission.
+        Route::middleware(['auth:admin', 'active', 'throttle:finance-action'])->group(function (): void {
+            Route::post('/dev/payouts/{payout}/simulate', [FakeFinanceController::class, 'payout'])->name('dev.payouts.simulate');
+            Route::post('/dev/finance/payout-profiles', [FakeFinanceController::class, 'payoutProfile'])->name('dev.finance.payout-profiles');
+            Route::post('/dev/finance/provider-settlements', [FakeFinanceController::class, 'providerSettlement'])->name('dev.finance.provider-settlements');
         });
     }
 
@@ -425,6 +458,23 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::put('/reviews/{review}/response', [RestaurantStaffReviewController::class, 'respond'])->middleware('throttle:review-write')->name('reviews.response');
         Route::post('/reviews/{review}/report', [RestaurantStaffReviewController::class, 'report'])->middleware('throttle:review-report')->name('reviews.report');
 
+        // Module 36: the restaurant's own earnings, settlement statements and payout states (restaurant.finance.view,
+        // checked per location in the controller). Read-only: no route here changes an amount, a settlement or a payout.
+        Route::prefix('finance')->name('finance.')->group(function (): void {
+            Route::middleware('throttle:finance-read')->group(function (): void {
+                Route::get('/summary', [RestaurantFinanceController::class, 'summary'])->name('summary');
+                Route::get('/earnings', [RestaurantFinanceController::class, 'earnings'])->name('earnings');
+                Route::get('/settlements', [RestaurantFinanceController::class, 'settlements'])->name('settlements.index');
+                Route::get('/settlements/{settlement}', [RestaurantFinanceController::class, 'settlement'])->name('settlements.show');
+                Route::get('/payouts', [RestaurantFinanceController::class, 'payouts'])->name('payouts');
+                Route::get('/terms', [RestaurantFinanceController::class, 'terms'])->name('terms');
+            });
+            Route::middleware('throttle:finance-export')->group(function (): void {
+                Route::get('/earnings/export', [RestaurantFinanceController::class, 'exportEarnings'])->name('earnings.export');
+                Route::get('/settlements/{settlement}/export', [RestaurantFinanceController::class, 'exportSettlement'])->name('settlements.export');
+            });
+        });
+
         Route::get('/organizations/{organization}/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
             Route::post('/organizations/{organization}/staff', [StaffController::class, 'store'])->name('staff.store');
@@ -489,6 +539,63 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/refunds/{refund}', [AdminRefundController::class, 'show'])->name('refunds.show');
         Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
         Route::get('/disputes/{dispute}', [AdminDisputeController::class, 'show'])->name('disputes.show');
+        // Finance (Module 36): the ledger (read-only), commission plans, restaurant payables, settlements, payouts, provider
+        // settlement records, reconciliation differences, adjustments and holds. Each permission (per market) is checked
+        // in the controllers. NO ROUTE WRITES A LEDGER ENTRY, EDITS A BALANCE OR MARKS ANYTHING AS PAID.
+        Route::get('/system/finance', [AdminFinanceOverviewController::class, 'system'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.finance');
+        Route::prefix('finance')->name('finance.')->group(function (): void {
+            Route::middleware('throttle:finance-read')->group(function (): void {
+                Route::get('/overview', [AdminFinanceOverviewController::class, 'overview'])->name('overview');
+                Route::get('/reports/commission', [AdminFinanceOverviewController::class, 'commissionReport'])->name('reports.commission');
+                Route::get('/reports/customer-returns', [AdminFinanceOverviewController::class, 'refundImpactReport'])->name('reports.customer-returns');
+                Route::get('/reports/provider-costs', [AdminFinanceOverviewController::class, 'providerCostReport'])->name('reports.provider-costs');
+                Route::get('/payables', [AdminFinanceOverviewController::class, 'payables'])->name('payables');
+                Route::get('/allocations', [AdminFinanceOverviewController::class, 'allocations'])->name('allocations');
+                Route::get('/runs', [AdminFinanceOverviewController::class, 'runs'])->name('runs');
+                Route::get('/commission-plans', [AdminCommissionPlanController::class, 'index'])->name('commission-plans.index');
+                Route::get('/commission-plans/{commissionPlan}', [AdminCommissionPlanController::class, 'show'])->name('commission-plans.show');
+                Route::get('/settlements', [AdminSettlementController::class, 'index'])->name('settlements.index');
+                Route::get('/settlements/{settlement}', [AdminSettlementController::class, 'show'])->name('settlements.show');
+                Route::get('/payouts', [AdminPayoutController::class, 'index'])->name('payouts.index');
+                Route::get('/payouts/{payout}', [AdminPayoutController::class, 'show'])->name('payouts.show');
+                Route::get('/adjustments', [AdminFinanceAdjustmentController::class, 'index'])->name('adjustments.index');
+                Route::get('/adjustments/{adjustment}', [AdminFinanceAdjustmentController::class, 'show'])->name('adjustments.show');
+                Route::get('/holds', [AdminFinanceAdjustmentController::class, 'holds'])->name('holds.index');
+                Route::get('/provider-settlements', [AdminReconciliationController::class, 'providerSettlements'])->name('provider-settlements.index');
+                Route::get('/provider-settlements/{providerSettlement}', [AdminReconciliationController::class, 'providerSettlement'])->name('provider-settlements.show');
+                Route::get('/differences', [AdminReconciliationController::class, 'differences'])->name('differences.index');
+                Route::get('/differences/{difference}', [AdminReconciliationController::class, 'difference'])->name('differences.show');
+                Route::get('/ledger/accounts', [AdminLedgerController::class, 'accounts'])->name('ledger.accounts');
+                Route::get('/ledger/transactions', [AdminLedgerController::class, 'transactions'])->name('ledger.transactions');
+                Route::get('/ledger/transactions/{ledgerTransaction}', [AdminLedgerController::class, 'transaction'])->name('ledger.transactions.show');
+            });
+            Route::get('/settlements/{settlement}/export', [AdminSettlementController::class, 'export'])->middleware('throttle:finance-export')->name('settlements.export');
+            Route::middleware('throttle:finance-action')->group(function (): void {
+                Route::post('/commission-plans', [AdminCommissionPlanController::class, 'store'])->name('commission-plans.store');
+                Route::post('/commission-plans/{commissionPlan}/end', [AdminCommissionPlanController::class, 'end'])->name('commission-plans.end');
+                Route::post('/commission-plans/{commissionPlan}/withdraw', [AdminCommissionPlanController::class, 'withdraw'])->name('commission-plans.withdraw');
+                Route::post('/allocations/{allocation}/decide', [AdminFinanceOverviewController::class, 'decideAllocation'])->name('allocations.decide');
+                Route::post('/settlements/generate', [AdminSettlementController::class, 'generate'])->name('settlements.generate');
+                Route::post('/settlements/{settlement}/approve', [AdminSettlementController::class, 'approve'])->name('settlements.approve');
+                Route::post('/settlements/{settlement}/cancel', [AdminSettlementController::class, 'cancel'])->name('settlements.cancel');
+                Route::post('/settlements/{settlement}/payouts', [AdminPayoutController::class, 'start'])->name('settlements.payouts.store');
+                Route::post('/settlements/{settlement}/external-payouts', [AdminPayoutController::class, 'recordExternal'])->name('settlements.external-payouts.store');
+                Route::post('/payouts/{payout}/reconcile', [AdminPayoutController::class, 'reconcile'])->name('payouts.reconcile');
+                Route::post('/payouts/{payout}/retry', [AdminPayoutController::class, 'retry'])->name('payouts.retry');
+                Route::post('/payouts/{payout}/cancel', [AdminPayoutController::class, 'cancel'])->name('payouts.cancel');
+                Route::post('/adjustments', [AdminFinanceAdjustmentController::class, 'store'])->name('adjustments.store');
+                Route::post('/adjustments/{adjustment}/decide', [AdminFinanceAdjustmentController::class, 'decide'])->name('adjustments.decide');
+                Route::post('/adjustments/{adjustment}/approve', [AdminFinanceAdjustmentController::class, 'approve'])->name('adjustments.approve');
+                Route::post('/adjustments/{adjustment}/cancel', [AdminFinanceAdjustmentController::class, 'cancel'])->name('adjustments.cancel');
+                Route::post('/holds', [AdminFinanceAdjustmentController::class, 'placeHold'])->name('holds.store');
+                Route::post('/holds/{hold}/release', [AdminFinanceAdjustmentController::class, 'releaseHold'])->name('holds.release');
+                Route::post('/provider-settlements/import', [AdminReconciliationController::class, 'import'])->name('provider-settlements.import');
+                Route::post('/checks', [AdminReconciliationController::class, 'run'])->name('checks.run');
+                Route::post('/differences/{difference}/investigate', [AdminReconciliationController::class, 'investigate'])->name('differences.investigate');
+                Route::post('/differences/{difference}/resolve', [AdminReconciliationController::class, 'resolve'])->name('differences.resolve');
+                Route::post('/differences/{difference}/ignore', [AdminReconciliationController::class, 'ignore'])->name('differences.ignore');
+            });
+        });
         // Module 32: the realtime layer's health and counters, the pickup verification counters, and the attempts (security view).
         Route::get('/system/realtime', [RealtimeController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.realtime');
         Route::get('/pickup-attempts', [RealtimeController::class, 'pickupAttempts'])->middleware('can:'.Permission::AdminSystemView->value)->name('pickup-attempts.index');

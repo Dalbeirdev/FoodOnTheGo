@@ -1057,3 +1057,32 @@ refunds while open and are read-only. Notifications reuse Module 33 (`refund.pen
 Razorpay test credentials exist on this machine, so RAZORPAY TEST REFUNDS = PENDING PROVIDER VERIFICATION; no live money, no live
 mode.** Not built: settlements, payouts, commission and funding-source accounting (Module 36), tax credit notes, promotion
 restoration, the dispute workflow, recording refunds made outside FoodOnTheGo. Details: [`refunds.md`](refunds.md).
+
+## 24. Finance: the ledger, commission, restaurant earnings, settlements, payouts and reconciliation (Module 36)
+
+Full description: [finance.md](finance.md).
+
+- **Ledger** — double entry in PostgreSQL (`ledger_accounts`, `ledger_transactions`, `ledger_entries`): one business
+  event is one balanced, single-currency, immutable transaction with a unique posting key. The database itself refuses
+  an unbalanced commit and every `UPDATE` / `DELETE`. No route writes it.
+- **Commission** — `commission_plans` (market / organization / location, basis points, an explicit base, effective
+  dates; never edited). An order's allocation (`order_financial_allocations`) freezes the terms it was placed under.
+  No rate exists in code; the plans on a development machine are TEST fixtures.
+- **Earnings** — recognized when the order is COMPLETED (policy, pending approval): `restaurant_payable_items` are the
+  restaurant's sub-ledger, each line settled exactly once. Refund liability, holds and manual adjustments are
+  explicit, reasoned and audited (`financial_adjustments`, `financial_holds`).
+- **Settlements** — `restaurant_settlements` + immutable lines: a statement of what is owed, not money sent and not a
+  tax invoice. Negative totals are carried forward; nothing is ever debited from a restaurant.
+- **Payouts** — `restaurant_payouts`: one live payout per settlement, one idempotency key, UNKNOWN on a lost answer,
+  PAID only on the provider's own record or a recorded external payment. **LIVE PAYOUT = DISABLED**
+  (`PAYOUT_DRIVER=fake` for development only; no real adapter exists).
+- **Reconciliation** — the payment provider's settlement records (`provider_settlements`, `provider_settlement_items`)
+  against the platform's, the platform's records against each other, and `reconciliation_differences` that stay until
+  closed with a reason. Provider fees are only ever the provider's own figures.
+- **Commands** — `finance:post-pending`, `finance:verify-ledger`, `finance:reconcile-internal`,
+  `finance:reconcile-provider`, `finance:generate-settlements`. A worker must listen on the `finance` queue.
+- **Pending** — commission terms, tax and fee ownership, refund liability, settlement schedule, minimum payout,
+  provider fee allocation, GST / TDS / TCS, tax invoices and credit notes, restaurant KYC / bank onboarding, a real
+  payout provider and verification of the Razorpay settlement reader: all PENDING BUSINESS / FINANCE / TAX / LEGAL /
+  PROVIDER decisions. Production = NO.
+

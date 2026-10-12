@@ -65,11 +65,12 @@ export const detectEnvironment = (): Environment => { const e = (import.meta.env
  * With the backend: market control, administrator accounts, the audit trail and security events talk to the admin API —
  * and, with the restaurant backend (Module 23), so do the restaurant list, details and approval lifecycle.
  * Promotions (Module 29), payments (Module 30), orders (Module 31), notifications (Module 33) and review moderation
- * (Module 34) are on the backend too — and refunds with their disputes (Module 35), which follow the order mode. The other
- * areas (customers, settlements, support, analytics) are still the mock.
+ * (Module 34) are on the backend too — and refunds with their disputes (Module 35) and finance (Module 36: the Settlements
+ * section — settlements, payouts, payables, commission, reconciliation, adjustments), which follow the order mode. The other
+ * areas (customers, support, analytics) are still the mock.
  */
 /** The admin sections that run on the backend: market control, administrator accounts, audit trail, security — and restaurants (Module 23). */
-export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', 'promotions', 'payments', ...(restaurantMode() === 'api' ? ['restaurants'] : []), ...(orderMode() === 'api' ? ['orders', 'notifications', 'refunds'] : []), ...(reviewMode() === 'api' ? ['reviews'] : [])] : [])
+export const adminBackendSections = (): string[] => (marketMode() === 'api' ? ['markets', 'admin-users', 'audit-logs', 'security', 'account-security', 'promotions', 'payments', ...(restaurantMode() === 'api' ? ['restaurants'] : []), ...(orderMode() === 'api' ? ['orders', 'notifications', 'refunds', 'settlements'] : []), ...(reviewMode() === 'api' ? ['reviews'] : [])] : [])
 const defaultRepositories = (): AdminRepositories => (marketMode() === 'api' ? { ...adminRepositories, ...(restaurantMode() === 'api' ? { restaurants: new ApiAdminRestaurantRepository() } : {}), ...(orderMode() === 'api' ? { orders: new ApiAdminOrderRepository(), notifications: new ApiAdminNotificationRepository() } : {}), ...(reviewMode() === 'api' ? { reviews: new ApiAdminReviewRepository() } : {}), promotions: new ApiAdminPromotionRepository(), marketControl: new ApiAdminMarketControlRepository(), adminUsers: new ApiAdminUserRepository(), backendAudit: new ApiAdminAuditRepository(), backendSecurity: new ApiAdminSecurityRepository() } : adminRepositories)
 
 export function AdminProvider({ children, repos: given }: { children: ReactNode; repos?: AdminRepositories }) {

@@ -26,7 +26,8 @@ return [
     // X-Journey-Token: a guest's own journey is read with the token issued when it was planned (Module 26) — a header, never a URL.
     'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'Idempotency-Key', 'X-Request-Id', 'X-Requested-With', 'X-Journey-Token', 'X-Cart-Token'],
 
-    'exposed_headers' => ['X-Request-Id', 'Retry-After', 'Idempotency-Replayed'],
+    // Content-Disposition: a CSV download's file name has to be readable by the web application (Module 36).
+    'exposed_headers' => ['X-Request-Id', 'Retry-After', 'Idempotency-Replayed', 'Content-Disposition'],
 
     'max_age' => 600,
 

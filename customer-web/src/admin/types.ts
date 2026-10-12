@@ -16,6 +16,10 @@ export type AdminPermission =
   | 'customers.view' | 'customers.manage'
   | 'orders.view' | 'orders.override'
   | 'payments.view' | 'payments.reconcile' | 'refunds.view' | 'refunds.create' | 'refunds.approve' | 'refunds.issue' | 'refunds.reconcile' | 'disputes.view' | 'settlements.view'
+  // Module 36 — finance: the backend's codes admin.finance.* under the same names.
+  | 'finance.view' | 'finance.commission.view' | 'finance.commission.manage' | 'finance.settlements.manage' | 'finance.settlements.approve'
+  | 'finance.payouts.view' | 'finance.payouts.execute' | 'finance.payouts.record_external' | 'finance.reconciliation.view' | 'finance.reconciliation.manage'
+  | 'finance.adjustments.create' | 'finance.holds.manage' | 'finance.ledger.view' | 'finance.export'
   | 'reviews.view' | 'reviews.moderate' | 'reviews.restore' | 'reviews.reports.view'
   | 'promotions.view' | 'promotions.manage'
   | 'support.view' | 'support.manage'

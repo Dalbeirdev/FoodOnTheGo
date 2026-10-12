@@ -88,6 +88,25 @@ export type ApiRequest = {
   headers?: Record<string, string>
 }
 
+const urlOf = (path: string, query: ApiRequest['query']): string => {
+  const q = Object.entries(query ?? {}).filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&')
+  return `${API_BASE_URL}${path}${q ? (path.includes('?') ? '&' : '?') + q : ''}`
+}
+/** The ApiError of a refused response: the backend's envelope in the backend's words (a fallback text for 5xx and bodies that are not JSON). */
+function failure(res: Response, data: Record<string, unknown>, requestId: string): ApiError {
+  const kind = kindOf(res.status)
+  const error = (data.error ?? {}) as { code?: string; message?: string; details?: Record<string, unknown>; request_id?: string }
+  const details = error.details ?? {}
+  const retryHeader = Number(res.headers.get('Retry-After'))
+  return new ApiError(res.status, typeof error.message === 'string' && error.message && kind !== 'server' ? error.message : FALLBACK[kind], {
+    code: error.code,
+    errors: (details.fields as Record<string, string[]> | undefined) ?? {},
+    details,
+    requestId: error.request_id ?? res.headers.get('X-Request-Id') ?? requestId,
+    retryAfterSeconds: typeof details.retry_after_seconds === 'number' ? details.retry_after_seconds : Number.isFinite(retryHeader) && retryHeader > 0 ? retryHeader : null,
+  })
+}
+
 export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const requestId = newRequestId()
   const context = init.context ?? 'customer'
@@ -98,9 +117,7 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const token = init.auth === false ? null : init.token ?? tokens.get(context)
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const query = Object.entries(init.query ?? {}).filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&')
-  const url = `${API_BASE_URL}${path}${query ? (path.includes('?') ? '&' : '?') + query : ''}`
-
+  const url = urlOf(path, init.query)
   let res: Response
   try {
     res = await fetch(url, { method: init.method ?? 'GET', headers, body: init.body === undefined ? undefined : form ? (init.body as FormData) : JSON.stringify(init.body), signal: init.signal })
@@ -113,19 +130,60 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   try { data = text ? (JSON.parse(text) as Record<string, unknown>) : {} } catch { /* non-JSON body (proxy / gateway error) */ }
 
   if (!res.ok) {
-    const kind = kindOf(res.status)
-    const error = (data.error ?? {}) as { code?: string; message?: string; details?: Record<string, unknown>; request_id?: string }
-    const details = error.details ?? {}
-    const retryHeader = Number(res.headers.get('Retry-After'))
     // Only a rejected *stored* session ends the session. A 403 never signs anyone out.
-    if (kind === 'unauthenticated' && token && !init.token) { tokens.set(context, null); unauthenticatedHandlers[context]?.() }
-    throw new ApiError(res.status, typeof error.message === 'string' && error.message && kind !== 'server' ? error.message : FALLBACK[kind], {
-      code: error.code,
-      errors: (details.fields as Record<string, string[]> | undefined) ?? {},
-      details,
-      requestId: error.request_id ?? res.headers.get('X-Request-Id') ?? requestId,
-      retryAfterSeconds: typeof details.retry_after_seconds === 'number' ? details.retry_after_seconds : Number.isFinite(retryHeader) && retryHeader > 0 ? retryHeader : null,
-    })
+    if (kindOf(res.status) === 'unauthenticated' && token && !init.token) { tokens.set(context, null); unauthenticatedHandlers[context]?.() }
+    throw failure(res, data, requestId)
   }
   return data as T
+}
+
+/** What a download may carry: the sign-in context, the query and — for a cross-origin answer that hides its headers — the file name to fall back on. */
+export type ApiDownloadRequest = Pick<ApiRequest, 'context' | 'query' | 'signal' | 'token'> & { accept?: string; filename?: string }
+
+const filenameOf = (disposition: string | null): string | null => {
+  const m = disposition ? /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition) : null
+  if (!m) return null
+  let name = m[1].trim()
+  try { name = decodeURIComponent(name) } catch { /* keep the raw name */ }
+  name = name.replace(/[\\/:*?"<>|]+/g, '-')
+  return name === '' ? null : name
+}
+
+/** Hands a file to the browser's own download: an object URL on a temporary <a download>, released right after. */
+export function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url; a.download = filename; a.rel = 'noopener'; a.style.display = 'none'
+  document.body.appendChild(a); a.click(); a.remove()
+  setTimeout(() => { try { URL.revokeObjectURL(url) } catch { /* already released */ } }, 0)
+}
+
+/**
+ * An authenticated file download (the CSV exports of Module 36). Same base URL, token, request id and error handling as
+ * api(): a refusal arrives as the backend's JSON envelope and becomes an ApiError with the backend's message; a file is
+ * read as a blob and handed to the browser. Returns the name the file was saved under — the server's own
+ * (Content-Disposition) when the browser may read it, else `filename`.
+ */
+export async function apiDownload(path: string, init: ApiDownloadRequest = {}): Promise<string> {
+  const requestId = newRequestId()
+  const context = init.context ?? 'customer'
+  const headers: Record<string, string> = { Accept: init.accept ?? 'text/csv', 'X-Request-Id': requestId }
+  const token = init.token ?? tokens.get(context)
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  let res: Response
+  try {
+    res = await fetch(urlOf(path, init.query), { method: 'GET', headers, signal: init.signal })
+  } catch {
+    throw new ApiError(0, FALLBACK.network, { requestId })
+  }
+  if (!res.ok) {
+    let data: Record<string, unknown> = {}
+    try { const text = await res.text(); data = text ? (JSON.parse(text) as Record<string, unknown>) : {} } catch { /* not JSON */ }
+    if (kindOf(res.status) === 'unauthenticated' && token && !init.token) { tokens.set(context, null); unauthenticatedHandlers[context]?.() }
+    throw failure(res, data, requestId)
+  }
+  const name = filenameOf(res.headers.get('Content-Disposition')) ?? init.filename ?? 'download.csv'
+  saveBlob(await res.blob(), name)
+  return name
 }

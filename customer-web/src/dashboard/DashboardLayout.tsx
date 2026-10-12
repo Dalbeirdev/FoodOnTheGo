@@ -26,6 +26,8 @@ export const NAV: Array<{ id: string; path: string; icon: string; perm: Permissi
   { id: 'reviews', path: 'reviews', icon: 'reviews', perm: 'reviews.view' },
   { id: 'staff', path: 'staff', icon: 'staff', perm: 'staff.view' },
   { id: 'analytics', path: 'analytics', icon: 'analytics', perm: 'analytics.view' },
+  // Module 36: the restaurant's own earnings, settlement statements and payout states (after index 3: the mobile tab bar reads NAV by position).
+  { id: 'earnings', path: 'earnings', icon: 'money', perm: 'finance.view' },
   { id: 'notifications', path: 'notifications', icon: 'notifications', perm: 'notifications.view', badge: 'notifications' },
   { id: 'settings', path: 'settings', icon: 'settings', perm: null },
   { id: 'help', path: 'help', icon: 'help', perm: null },

@@ -26,6 +26,7 @@ import { ApiRestaurantOrderRepository } from './apiOrders'
 import { orderMode } from '../../order/orderMode'
 import { reviewMode } from '../../review/reviewMode'
 import { ApiRestaurantReviewRepository } from './apiReviews'
+import { ApiRestaurantFinanceRepository } from './apiFinance'
 import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus, PickupPreview } from '../types'
 
 const R = { context: 'restaurant' as const }
@@ -347,7 +348,9 @@ export const apiDashboardRepositories: DashboardRepositories = (() => {
   // Orders (Module 31) come from the backend when the order domain runs there; otherwise the development mock stays.
   return { ...dashboardRepositories, management, staff: new ApiRestaurantStaffRepository(management), menu: new ApiMenuManagementRepository(management), ...(orderMode() === 'api' ? { orders: new ApiRestaurantOrderRepository(management) } : {}),
     // Reviews (Module 34): the published reviews of the member's locations, the response and the report.
-    ...(reviewMode() === 'api' ? { reviews: new ApiRestaurantReviewRepository(management) } : {}) }
+    ...(reviewMode() === 'api' ? { reviews: new ApiRestaurantReviewRepository(management) } : {}),
+    // Earnings, settlement statements and payout states (Module 36) are made from completed orders: they follow the order domain.
+    ...(orderMode() === 'api' ? { finance: new ApiRestaurantFinanceRepository() } : {}) }
 })()
 
 /** The invited staff member accepts with the single-use link (public call, no token). A new account sends a password. */

@@ -1,0 +1,26 @@
+# Module 36 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply — 2026-10-12
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_16_100000_module36_finance .. 148.25ms DONE
+
+
+## finance tables after the rollback (expected: none)
+none
+
+## ledger triggers and functions after the rollback (expected: none)
+{"triggers":[],"functions":[],"check_constraints":0,"foreign_keys":0,"indexes":0,"unique_indexes":0}
+
+
+ INFO Running migrations. 
+
+ 2026_10_16_100000_module36_finance .. 360.05ms DONE
+
+
+## finance tables after the re-apply (expected: the seventeen Module 36 tables)
+ledger_accounts,ledger_transactions,ledger_entries,commission_plans,order_financial_allocations,restaurant_payable_items,financial_adjustments,financial_holds,restaurant_settlements,restaurant_settlement_lines,restaurant_payouts,restaurant_payout_profiles,payout_webhook_events,provider_settlements,provider_settlement_items,reconciliation_differences,finance_runs
+
+## the database's own guards after the re-apply (the immutability and balance triggers, CHECK constraints, foreign keys, indexes)
+{"triggers":["ledger_entries_balanced","ledger_entries_immutable","ledger_transactions_has_entries","ledger_transactions_immutable","restaurant_settlement_lines_immutable"],"functions":["ledger_assert_balanced","ledger_assert_has_entries","ledger_refuse_change","settlement_lines_refuse_change"],"check_constraints":75,"foreign_keys":76,"indexes":113,"unique_indexes":55}
+DONE

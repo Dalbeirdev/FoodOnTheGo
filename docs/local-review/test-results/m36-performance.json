@@ -1,0 +1,65 @@
+{
+    "order_completion_with_recognition": {
+        "queries": 88,
+        "ms": 63,
+        "note": "pickup verification + completion + the finance posting (inline in tests; a queued job in production)"
+    },
+    "manual_adjustment_posting": {
+        "queries_per_adjustment": 14,
+        "ms_per_adjustment": 10.3,
+        "adjustments": 190
+    },
+    "restaurant_earnings_summary": {
+        "queries": 13,
+        "ms": 14,
+        "lines": 202
+    },
+    "restaurant_earnings_list_100": {
+        "queries": 8,
+        "ms": 23
+    },
+    "admin_payables": {
+        "queries": 10,
+        "ms": 10
+    },
+    "admin_ledger_list_100": {
+        "queries": 4,
+        "ms": 27
+    },
+    "admin_finance_overview": {
+        "queries": 22,
+        "ms": 37,
+        "ledger_transactions": 204
+    },
+    "settlement_generation_202_lines": {
+        "queries": 12,
+        "ms": 78
+    },
+    "settlement_detail_202_lines": {
+        "queries": 8,
+        "ms": 34
+    },
+    "settlement_list": {
+        "queries": 6,
+        "ms": 5
+    },
+    "settlement_approval_with_ledger_recheck": {
+        "queries": 23,
+        "ms": 58
+    },
+    "provider_import_and_reconciliation_50_lines": {
+        "queries": 366,
+        "ms": 253,
+        "note": "per line: one existence check, one insert, one match \u2014 bounded per record, not per page"
+    },
+    "explain": {
+        "settleable_lines_of_a_location": "Index Scan restaurant_payable_items",
+        "ledger_entries_of_an_account": "Bitmap Index Scan ledger_entries_account_id_occurred_at_index",
+        "postings_of_a_source": "Index Scan ledger_transactions",
+        "recognized_allocations_of_a_market_and_period": "Index Scan order_financial_allocations",
+        "open_differences_by_severity": "Index Only Scan reconciliation_differences",
+        "settlements_of_a_location": "Index Scan restaurant_settlements",
+        "payouts_due_for_a_check": "Index Scan restaurant_payouts",
+        "provider_item_by_reference": "Index Scan provider_settlement_items"
+    }
+}

@@ -329,11 +329,14 @@ class CheckoutPaymentPreparationTest extends TestCase
 
         // Since Module 30 a confirmed checkout has exactly one payment route: a payment attempt for its total.
         $this->assertSame(['POST api/v1/checkouts/{checkout}/payment-attempts'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts') && str_contains($r, 'pay'))->values()->all());
-        // Captures and settlements belong to later modules: nothing of them exists. Orders exist since Module 31 —
-        // created by the server from the verified payment; the one order route under /checkouts is for a ZERO total.
-        foreach (['capture', 'settlements', 'payment-intents'] as $segment) {
+        // Captures belong to later modules: nothing of them exists. Orders exist since Module 31 — created by the server
+        // from the verified payment; the one order route under /checkouts is for a ZERO total.
+        foreach (['capture', 'payment-intents'] as $segment) {
             $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, $segment))->values()->all(), $segment);
         }
+        // Module 36: settlements exist — as finance routes of administrators and restaurants (and the development
+        // simulator), never under a checkout, a payment or a customer path. Confirming a checkout settles nothing.
+        $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, 'settlements') && preg_match('#api/v1/(admin/finance|restaurant/finance|dev/finance)/#', $r) !== 1)->values()->all(), 'settlements');
         // Refunds exist since Module 35 — administrator routes (and the development simulator), never a checkout's or a customer's.
         $this->assertSame([], $routes->filter(fn (string $r): bool => str_contains($r, 'refunds') && ! str_contains($r, 'api/v1/admin/') && ! str_contains($r, 'api/v1/dev/'))->values()->all(), 'refunds');
         $this->assertSame(['POST api/v1/checkouts/{checkout}/fulfill'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts/') && str_contains($r, 'fulfill'))->values()->all());
@@ -344,9 +347,12 @@ class CheckoutPaymentPreparationTest extends TestCase
         foreach (['/pay', '/payment', '/payments', '/order', '/capture', '/refund'] as $suffix) {
             $this->postJson('/api/v1/checkouts/'.$ready['id'].$suffix, [], $this->using($this->asha))->assertNotFound();
         }
+        // Module 36: restaurant_settlements and provider_settlements exist (two different things, never one table
+        // called "settlements"), and confirming a checkout writes neither.
         foreach (['payment_intents', 'settlements'] as $table) {
             $this->assertFalse(DB::getSchemaBuilder()->hasTable($table), $table);
         }
+        $this->assertSame([0, 0], [DB::table('restaurant_settlements')->count(), DB::table('provider_settlements')->count()]);
         // Orders exist since Module 31. Module 35 replaced the order_refunds foundation with the refund domain's own table:
         // confirming a checkout creates no refund.
         $this->assertTrue(DB::getSchemaBuilder()->hasTable('orders'));

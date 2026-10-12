@@ -110,7 +110,8 @@ final class RefundMetrics
                 'four_eyes' => (bool) config('refunds.policy.four_eyes'),
                 'customer_cancellation' => (bool) config('refunds.customer_cancellation.enabled') ? 'ENABLED' : 'DISABLED_PENDING_POLICY_APPROVAL',
             ],
-            'settlement' => 'NOT_IMPLEMENTED',
+            // Module 36: restaurant settlements, payouts and the ledger exist; a completed refund is posted to the ledger.
+            'settlement' => 'IMPLEMENTED',
         ];
     }
 }

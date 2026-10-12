@@ -251,5 +251,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('review-read', fn (Request $request) => Limit::perMinute($perMinute('review_read'))->by('review-read:'.$actor($request)));
         RateLimiter::for('review-write', fn (Request $request) => Limit::perMinute($perMinute('review_write'))->by('review-write:'.$actor($request)));
         RateLimiter::for('review-report', fn (Request $request) => Limit::perMinute($perMinute('review_report'))->by('review-report:'.$actor($request)));
+        // Module 36 — finance.
+        RateLimiter::for('finance-read', fn (Request $request) => Limit::perMinute($perMinute('finance_read'))->by('finance-read:'.$actor($request)));
+        RateLimiter::for('finance-action', fn (Request $request) => Limit::perMinute($perMinute('finance_action'))->by('finance-action:'.$actor($request)));
+        RateLimiter::for('finance-export', fn (Request $request) => Limit::perMinute($perMinute('finance_export'))->by('finance-export:'.$actor($request)));
     }
 }

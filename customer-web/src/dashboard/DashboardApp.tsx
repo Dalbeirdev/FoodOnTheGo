@@ -14,6 +14,7 @@ import PickupSettingsPage from './pages/PickupSettingsPage'
 import ReviewsPage from './pages/ReviewsPage'
 import StaffPage from './pages/StaffPage'
 import AnalyticsPage from './pages/AnalyticsPage'
+import EarningsPage from './pages/EarningsPage'
 import NotificationsDashboardPage from './pages/NotificationsPage'
 import SettingsPage from './pages/SettingsPage'
 import HelpDashboardPage from './pages/HelpPage'
@@ -44,6 +45,7 @@ export default function DashboardApp() {
       <Route path="reviews" element={<RequirePermission perm="reviews.view"><ReviewsPage /></RequirePermission>} />
       <Route path="staff" element={<RequirePermission perm="staff.view"><StaffPage /></RequirePermission>} />
       <Route path="analytics" element={<RequirePermission perm="analytics.view"><AnalyticsPage /></RequirePermission>} />
+      <Route path="earnings" element={<RequirePermission perm="finance.view"><EarningsPage /></RequirePermission>} />
       <Route path="notifications" element={<RequirePermission perm="notifications.view"><NotificationsDashboardPage /></RequirePermission>} />
       <Route path="settings" element={<SettingsPage />} />
       <Route path="help" element={<HelpDashboardPage />} />

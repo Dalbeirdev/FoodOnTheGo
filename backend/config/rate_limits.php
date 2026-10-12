@@ -78,4 +78,8 @@ return [
     // limit of its own) and realtime channel authorizations per principal and minute.
     'pickup_verify' => (int) env('RATE_LIMIT_PICKUP_VERIFY', 30),
     'channel_auth' => (int) env('RATE_LIMIT_CHANNEL_AUTH', 60),
+    // Module 36 — finance. Reading (dashboards poll), an administrator's financial action, and a CSV download.
+    'finance_read' => (int) env('RATE_LIMIT_FINANCE_READ', 120),
+    'finance_action' => (int) env('RATE_LIMIT_FINANCE_ACTION', 30),
+    'finance_export' => (int) env('RATE_LIMIT_FINANCE_EXPORT', 10),
 ];

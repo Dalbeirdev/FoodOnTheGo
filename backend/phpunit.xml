@@ -95,6 +95,23 @@
         <env name="RAZORPAY_KEY_SECRET" value="" force="true"/>
         <env name="RAZORPAY_WEBHOOK_SECRET" value="" force="true"/>
         <env name="RATE_LIMIT_PAYMENT" value="1000" force="true"/>
+        <env name="PAYOUT_DRIVER" value="" force="true"/>
+        <env name="PAYOUT_FAKE_OUTCOME" value="processing" force="true"/>
+        <env name="FINANCE_TAX_OWNER" value="UNASSIGNED" force="true"/>
+        <env name="FINANCE_FEE_OWNER" value="PLATFORM" force="true"/>
+        <env name="FINANCE_REFUND_LIABILITY" value="" force="true"/>
+        <env name="FINANCE_SHARED_PROMOTION_RESTAURANT_BPS" value="" force="true"/>
+        <env name="FINANCE_SETTLEMENT_CADENCE" value="WEEKLY" force="true"/>
+        <env name="FINANCE_MINIMUM_PAYOUT_MINOR" value="" force="true"/>
+        <env name="FINANCE_SETTLEMENT_FOUR_EYES" value="false" force="true"/>
+        <env name="FINANCE_PAYOUT_FOUR_EYES" value="false" force="true"/>
+        <env name="FINANCE_ADJUSTMENT_FOUR_EYES" value="false" force="true"/>
+        <env name="FINANCE_HOLD_ON_PENDING_REFUND" value="true" force="true"/>
+        <env name="FINANCE_HOLD_ON_DISPUTE" value="true" force="true"/>
+        <env name="FINANCE_RESTAURANT_TERMS_VISIBLE" value="true" force="true"/>
+        <env name="RATE_LIMIT_FINANCE_READ" value="1000" force="true"/>
+        <env name="RATE_LIMIT_FINANCE_ACTION" value="1000" force="true"/>
+        <env name="RATE_LIMIT_FINANCE_EXPORT" value="1000" force="true"/>
         <env name="RATE_LIMIT_PAYMENT_READ" value="1000" force="true"/>
         <env name="RATE_LIMIT_PAYMENT_WEBHOOK" value="1000" force="true"/>
         <env name="ROUTING_DRIVER" value="fake" force="true"/>

@@ -17,10 +17,12 @@ export function useUrlState<T extends Record<string, string>>(defaults: T): [T, 
 }
 
 export type Column<T> = { id: string; label: string; render: (row: T) => ReactNode; sortable?: boolean; width?: string; align?: 'start' | 'end'; hideMobile?: boolean; primary?: boolean }
-export function DataTable<T>({ columns, rows, keyOf, state, total, page, pageSize, onPage, sort, onSort, empty, error, onRetry, locale, testId, actions, onRowClick, caption }: {
+export function DataTable<T>({ columns, rows, keyOf, state, total, page, pageSize, onPage, sort, onSort, empty, error, onRetry, locale, testId, actions, onRowClick, caption, rowProps }: {
   columns: Array<Column<T>>; rows: T[]; keyOf: (r: T) => string; state: 'loading' | 'ready' | 'error'; total: number; page: number; pageSize: number; onPage: (p: number) => void
   sort?: string; onSort?: (id: string) => void; empty: { title: string; text?: string; icon?: string }; error?: { title: string; text?: string }; onRetry?: () => void; locale: string; testId?: string
   actions?: (row: T) => ReactNode; onRowClick?: (row: T) => void; caption: string
+  /** Extra attributes of a row's <tr> (a test id, the record's own id) — data attributes only. */
+  rowProps?: (row: T) => Record<`data-${string}`, string | undefined>
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize))
   if (state === 'error') return <ErrorState title={error?.title ?? t('adm.error.loadTitle', undefined, locale)} text={error?.text ?? t('adm.error.loadText', undefined, locale)} onRetry={onRetry} locale={locale} />
@@ -32,7 +34,7 @@ export function DataTable<T>({ columns, rows, keyOf, state, total, page, pageSiz
         <table className="db-table adm-table__table">
           <caption className="db-sr-only">{caption}</caption>
           <thead><tr>{columns.map((c) => <th key={c.id} scope="col" style={{ width: c.width }} className={`${c.align === 'end' ? 'adm-td--end' : ''} ${c.hideMobile ? 'adm-hide-mobile' : ''}`} aria-sort={sort && c.sortable ? (sort === c.id ? 'descending' : 'none') : undefined}>{c.sortable && onSort ? <button type="button" className={`adm-sort ${sort === c.id ? 'is-on' : ''}`} onClick={() => onSort(c.id)}>{c.label}<Icon name={sort === c.id ? 'down' : 'chevron'} size={12} /></button> : c.label}</th>)}{actions && <th scope="col" className="adm-td--end">{t('adm.table.actions', undefined, locale)}</th>}</tr></thead>
-          <tbody>{rows.map((r) => <tr key={keyOf(r)} className={onRowClick ? 'adm-row--link' : ''} onClick={onRowClick ? () => onRowClick(r) : undefined}>{columns.map((c) => <td key={c.id} className={`${c.align === 'end' ? 'adm-td--end' : ''} ${c.hideMobile ? 'adm-hide-mobile' : ''} ${c.primary ? 'adm-td--primary' : ''}`}>{c.render(r)}</td>)}{actions && <td className="adm-td--end adm-td--actions" onClick={(e) => e.stopPropagation()}><div className="db-table__actions">{actions(r)}</div></td>}</tr>)}</tbody>
+          <tbody>{rows.map((r) => <tr key={keyOf(r)} {...(rowProps?.(r) ?? {})} className={onRowClick ? 'adm-row--link' : ''} onClick={onRowClick ? () => onRowClick(r) : undefined}>{columns.map((c) => <td key={c.id} className={`${c.align === 'end' ? 'adm-td--end' : ''} ${c.hideMobile ? 'adm-hide-mobile' : ''} ${c.primary ? 'adm-td--primary' : ''}`}>{c.render(r)}</td>)}{actions && <td className="adm-td--end adm-td--actions" onClick={(e) => e.stopPropagation()}><div className="db-table__actions">{actions(r)}</div></td>}</tr>)}</tbody>
         </table>
       </div>
       <Pagination page={page} pages={pages} total={total} pageSize={pageSize} onPage={onPage} locale={locale} />

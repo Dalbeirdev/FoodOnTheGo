@@ -30,3 +30,12 @@ Schedule::command('refunds:reconcile')->everyMinute()->withoutOverlapping();
 // Module 33: stranded or lost notification deliveries are re-queued; retention runs nightly.
 Schedule::command('notifications:recover')->everyMinute()->withoutOverlapping();
 Schedule::command('notifications:prune')->daily();
+
+// Module 36 — finance. Each command is idempotent and reads or posts only what the records already say; none of them
+// sends money. Settlement generation and the provider import run on a schedule only when their switch is on
+// (config/finance.php): no production cadence was approved.
+Schedule::command('finance:post-pending')->everyMinute()->withoutOverlapping();
+Schedule::command('finance:verify-ledger')->hourly()->withoutOverlapping();
+Schedule::command('finance:reconcile-internal')->hourly()->withoutOverlapping();
+Schedule::command('finance:reconcile-provider')->dailyAt('03:30')->withoutOverlapping()->when(fn (): bool => (bool) config('finance.provider_reconciliation.scheduled'));
+Schedule::command('finance:generate-settlements')->dailyAt('04:30')->withoutOverlapping()->when(fn (): bool => (bool) config('finance.settlements.scheduled'));

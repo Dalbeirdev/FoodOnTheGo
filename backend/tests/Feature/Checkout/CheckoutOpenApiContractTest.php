@@ -276,9 +276,13 @@ class CheckoutOpenApiContractTest extends TestCase
         $this->assertSame(['FIXED_AMOUNT', 'PERCENTAGE'], $schemas['AdminPromotion']['properties']['type']['enum']);
         // Payments exist since Module 30 and orders since Module 31 (created on the server from the verified payment).
         // Refunds exist since Module 35 — as administrator routes only (never under a checkout or a customer path).
-        // No path of the API settles anything yet.
+        // Settlements exist since Module 36 — as finance routes only.
         foreach (array_keys($paths) as $path) {
-            $this->assertDoesNotMatchRegularExpression('#/settlements(/|$)#', $path);
+            // Module 36: settlements exist since then — only as finance paths (administrators, restaurants, the
+            // development simulator), never under a checkout, a payment or a customer path.
+            if (preg_match('#settlements(/|$)#', $path) === 1) {
+                $this->assertMatchesRegularExpression('#^/(admin/finance|restaurant/finance|dev/finance)/#', $path, 'a settlement route is a finance route');
+            }
             if (preg_match('#/refunds(/|$)#', $path) === 1) {
                 $this->assertMatchesRegularExpression('#^/(admin|dev)/#', $path, 'a refund route is an administrator route');
             }

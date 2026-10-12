@@ -1,0 +1,1014 @@
+{
+  "order_number": "FOTG-20261012-55LFML",
+  "liability_decision": {
+    "id": "ef99eeee-7857-4681-9a00-09bae1d47700",
+    "kind": "REFUND_LIABILITY",
+    "status": "POSTED",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "market": "india",
+    "order_number": "FOTG-20261012-QT4XM6",
+    "source": {
+      "type": "REFUND",
+      "id": "09adfe00-474c-4a2a-8587-638c51ed7b10"
+    },
+    "currency": "INR",
+    "amount": {
+      "amount": 5000,
+      "currency": "INR"
+    },
+    "direction": null,
+    "liability": "RESTAURANT",
+    "restaurant_share": {
+      "amount": 5000,
+      "currency": "INR"
+    },
+    "platform_share": {
+      "amount": 0,
+      "currency": "INR"
+    },
+    "policy_source": "ADMIN",
+    "reason_code": "ITEM_UNAVAILABLE",
+    "reason": "E2E TEST FIXTURE: the kitchen sent the wrong item",
+    "supporting_reference": null,
+    "created_by": null,
+    "decided_by": "(administrator)",
+    "decided_at": "2026-10-12T11:53:21+00:00",
+    "posted_at": "2026-10-12T11:53:21+00:00",
+    "ledger_transaction": "0e870b07-7734-4ae6-a367-b9d64748fa9a",
+    "created_at": "2026-10-12T11:53:19+00:00",
+    "version": 2,
+    "can": {
+      "decide": false,
+      "approve": false,
+      "cancel": false
+    }
+  },
+  "admin_settlement": {
+    "id": "80adf3ea-ce64-40f8-9ed5-15d74a1cf7f6",
+    "reference": "STL-20261012-UNHGBY",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "currency": "INR",
+    "status": "CALCULATED",
+    "period": {
+      "start": "2026-10-11T11:52:26+00:00",
+      "end": "2026-10-11T18:30:00+00:00",
+      "timezone": "Asia/Kolkata",
+      "cadence": "WEEKLY"
+    },
+    "summary": {
+      "completed_orders": 2,
+      "lines": 3,
+      "gross_sales": {
+        "amount": 85400,
+        "currency": "INR"
+      },
+      "restaurant_discounts": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "commission": {
+        "amount": 8540,
+        "currency": "INR"
+      },
+      "tax_passed": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fees_passed": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "refund_adjustments": {
+        "amount": -5000,
+        "currency": "INR"
+      },
+      "other_adjustments": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "net_payable": {
+        "amount": 71860,
+        "currency": "INR"
+      },
+      "amount_paid": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "amount_pending": {
+        "amount": 71860,
+        "currency": "INR"
+      }
+    },
+    "document": {
+      "kind": "SETTLEMENT_STATEMENT",
+      "tax_invoice": false
+    },
+    "generated_at": "2026-10-12T11:53:22+00:00",
+    "approved_at": null,
+    "paid_at": null,
+    "market": "india",
+    "organization": {
+      "id": "0a000000-0000-4000-8000-00000000000a",
+      "name": "Riverside Hospitality Group"
+    },
+    "review_reason": null,
+    "generated_by": "(administrator)",
+    "approved_by": null,
+    "approval_note": null,
+    "cancelled_at": null,
+    "cancelled_by": null,
+    "cancelled_reason": null,
+    "version": 1,
+    "lines": "3 lines",
+    "payouts": [],
+    "can": {
+      "approve": true,
+      "cancel": true,
+      "start_payout": false,
+      "record_external_payout": false,
+      "export": true
+    },
+    "live_payouts": "DISABLED"
+  },
+  "restaurant_summary": {
+    "scope": {
+      "locations": [
+        {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "name": "Burger Hub",
+          "currency": "INR"
+        }
+      ],
+      "all_readable": false
+    },
+    "timezone": "Asia/Kolkata",
+    "currencies": [
+      {
+        "currency": "INR",
+        "pending": {
+          "amount": 0,
+          "currency": "INR"
+        },
+        "pending_orders": 0,
+        "awaiting_terms_orders": 0,
+        "available": {
+          "amount": 0,
+          "currency": "INR"
+        },
+        "held": {
+          "amount": 0,
+          "currency": "INR"
+        },
+        "in_settlement": {
+          "amount": 0,
+          "currency": "INR"
+        },
+        "paid_out": {
+          "amount": 71860,
+          "currency": "INR"
+        },
+        "balance": {
+          "amount": 0,
+          "currency": "INR"
+        },
+        "lifetime": {
+          "orders": 2,
+          "gross_sales": {
+            "amount": 85400,
+            "currency": "INR"
+          },
+          "restaurant_discount": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "commission": {
+            "amount": 8540,
+            "currency": "INR"
+          },
+          "adjustments": {
+            "amount": -5000,
+            "currency": "INR"
+          },
+          "net_earnings": {
+            "amount": 71860,
+            "currency": "INR"
+          }
+        },
+        "periods": {
+          "today": {
+            "orders": 0,
+            "gross_sales": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "restaurant_discount": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "commission": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "adjustments": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "net_earnings": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          },
+          "this_week": {
+            "orders": 0,
+            "gross_sales": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "restaurant_discount": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "commission": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "adjustments": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "net_earnings": {
+              "amount": 0,
+              "currency": "INR"
+            }
+          },
+          "this_month": {
+            "orders": 2,
+            "gross_sales": {
+              "amount": 85400,
+              "currency": "INR"
+            },
+            "restaurant_discount": {
+              "amount": 0,
+              "currency": "INR"
+            },
+            "commission": {
+              "amount": 8540,
+              "currency": "INR"
+            },
+            "adjustments": {
+              "amount": -5000,
+              "currency": "INR"
+            },
+            "net_earnings": {
+              "amount": 71860,
+              "currency": "INR"
+            }
+          }
+        }
+      }
+    ],
+    "series": [
+      {
+        "day": "2026-10-11",
+        "currency": "INR",
+        "orders": 2,
+        "gross_sales": {
+          "amount": 85400,
+          "currency": "INR"
+        },
+        "restaurant_discount": {
+          "amount": 0,
+          "currency": "INR"
+        },
+        "commission": {
+          "amount": 8540,
+          "currency": "INR"
+        },
+        "adjustments": {
+          "amount": -5000,
+          "currency": "INR"
+        },
+        "net_earnings": {
+          "amount": 71860,
+          "currency": "INR"
+        }
+      }
+    ],
+    "definitions": {
+      "gross_sales": "Merchandise of completed orders as priced, before discounts, tax and fees.",
+      "commission": "FoodOnTheGo commission on those orders, by the terms that applied when each order was placed.",
+      "adjustments": "Refunds borne by the restaurant, dispute adjustments and manual adjustments.",
+      "net_earnings": "Gross sales minus restaurant-funded discounts and commission, plus tax or fees passed to the restaurant, plus adjustments.",
+      "pending": "Estimated net of orders that are placed and not completed yet. Not earned until completion.",
+      "available": "Earned and ready for the next settlement.",
+      "held": "Earned and kept out of settlement by a financial hold.",
+      "in_settlement": "Included in a settlement statement that is not paid yet.",
+      "paid_out": "Confirmed payouts only.",
+      "balance": "What FoodOnTheGo owes the restaurant now, from the ledger."
+    },
+    "settlement_policy": {
+      "cadence": "WEEKLY",
+      "earnings_available_when": "ORDER_COMPLETED",
+      "approval": "PENDING BUSINESS APPROVAL",
+      "note": "Settlement timing and payout schedule are not final."
+    },
+    "payouts": {
+      "live": false,
+      "note": "Live payouts to restaurants are not enabled yet."
+    }
+  },
+  "restaurant_settlement": {
+    "id": "80adf3ea-ce64-40f8-9ed5-15d74a1cf7f6",
+    "reference": "STL-20261012-UNHGBY",
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "currency": "INR",
+    "status": "PAID",
+    "period": {
+      "start": "2026-10-11T11:52:26+00:00",
+      "end": "2026-10-11T18:30:00+00:00",
+      "timezone": "Asia/Kolkata",
+      "cadence": "WEEKLY"
+    },
+    "summary": {
+      "completed_orders": 2,
+      "lines": 3,
+      "gross_sales": {
+        "amount": 85400,
+        "currency": "INR"
+      },
+      "restaurant_discounts": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "commission": {
+        "amount": 8540,
+        "currency": "INR"
+      },
+      "tax_passed": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "fees_passed": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "refund_adjustments": {
+        "amount": -5000,
+        "currency": "INR"
+      },
+      "other_adjustments": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "net_payable": {
+        "amount": 71860,
+        "currency": "INR"
+      },
+      "amount_paid": {
+        "amount": 71860,
+        "currency": "INR"
+      },
+      "amount_pending": {
+        "amount": 0,
+        "currency": "INR"
+      }
+    },
+    "document": {
+      "kind": "SETTLEMENT_STATEMENT",
+      "tax_invoice": false
+    },
+    "generated_at": "2026-10-12T11:53:22+00:00",
+    "approved_at": "2026-10-12T11:53:25+00:00",
+    "paid_at": "2026-10-12T11:54:23+00:00",
+    "lines": "3 lines",
+    "payouts": [
+      {
+        "id": "c0b35696-a19b-4ba3-9e4e-a61853af5fd2",
+        "reference": "PO-C0B35696A1",
+        "settlement": {
+          "id": "80adf3ea-ce64-40f8-9ed5-15d74a1cf7f6",
+          "reference": "STL-20261012-UNHGBY"
+        },
+        "restaurant": {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "name": "Burger Hub"
+        },
+        "amount": {
+          "amount": 71860,
+          "currency": "INR"
+        },
+        "currency": "INR",
+        "status": "PAID",
+        "method": "PROVIDER",
+        "destination": "•••• 4321",
+        "requested_at": "2026-10-12T11:53:26+00:00",
+        "completed_at": "2026-10-12T11:54:23+00:00",
+        "failed_at": null
+      }
+    ]
+  },
+  "restaurant_payouts": {
+    "data": [
+      {
+        "id": "c0b35696-a19b-4ba3-9e4e-a61853af5fd2",
+        "reference": "PO-C0B35696A1",
+        "settlement": {
+          "id": "80adf3ea-ce64-40f8-9ed5-15d74a1cf7f6",
+          "reference": "STL-20261012-UNHGBY"
+        },
+        "restaurant": {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "name": "Burger Hub"
+        },
+        "amount": {
+          "amount": 71860,
+          "currency": "INR"
+        },
+        "currency": "INR",
+        "status": "PAID",
+        "method": "PROVIDER",
+        "destination": "•••• 4321",
+        "requested_at": "2026-10-12T11:53:26+00:00",
+        "completed_at": "2026-10-12T11:54:23+00:00",
+        "failed_at": null
+      }
+    ],
+    "links": {
+      "first": "http://127.0.0.1:8001/api/v1/restaurant/finance/payouts?page=1",
+      "last": "http://127.0.0.1:8001/api/v1/restaurant/finance/payouts?page=1",
+      "prev": null,
+      "next": null
+    },
+    "meta": {
+      "current_page": 1,
+      "from": 1,
+      "last_page": 1,
+      "links": [
+        {
+          "url": null,
+          "label": "&laquo; Previous",
+          "page": null,
+          "active": false
+        },
+        {
+          "url": "http://127.0.0.1:8001/api/v1/restaurant/finance/payouts?page=1",
+          "label": "1",
+          "page": 1,
+          "active": true
+        },
+        {
+          "url": null,
+          "label": "Next &raquo;",
+          "page": null,
+          "active": false
+        }
+      ],
+      "path": "http://127.0.0.1:8001/api/v1/restaurant/finance/payouts",
+      "per_page": 25,
+      "to": 1,
+      "total": 1
+    },
+    "payout_accounts": [
+      {
+        "location": {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "name": "Burger Hub"
+        },
+        "status": "VERIFIED",
+        "provider": "fake",
+        "destination": "•••• 4321",
+        "verified_at": "2026-10-12T09:25:27+00:00",
+        "test_only": true
+      }
+    ],
+    "live_payouts": false
+  },
+  "provider_settlement": {
+    "id": "e3126391-8087-4126-84e8-2a67e8411fd8",
+    "provider": "fake",
+    "provider_mode": "test",
+    "reference": "fsetl_0gelyf8b9h8nzy",
+    "currency": "INR",
+    "status": "PROCESSED",
+    "amount": {
+      "amount": 128984,
+      "currency": "INR"
+    },
+    "fees": {
+      "amount": 0,
+      "currency": "INR"
+    },
+    "tax_on_fees": {
+      "amount": 0,
+      "currency": "INR"
+    },
+    "bank_reference": "FAKEUTR996679043",
+    "lines": {
+      "count": 8,
+      "credits": {
+        "amount": 179684,
+        "currency": "INR"
+      },
+      "debits": {
+        "amount": 50700,
+        "currency": "INR"
+      },
+      "fees": {
+        "amount": 3416,
+        "currency": "INR"
+      },
+      "tax_on_fees": {
+        "amount": 616,
+        "currency": "INR"
+      }
+    },
+    "reconciliation_status": "DIFFERENCES",
+    "posted_to_ledger": false,
+    "provider_created_at": "2026-10-12T12:00:00+00:00",
+    "settled_at": "2026-10-12T12:00:00+00:00",
+    "reconciled_at": "2026-10-12T11:55:33+00:00",
+    "imported_at": "2026-10-12T11:55:33+00:00"
+  },
+  "difference": {
+    "id": "cb3ab474-a1c6-4b74-983c-0dc6cd24d5d5",
+    "source": "PROVIDER",
+    "type": "MISSING_INTERNAL_PAYMENT",
+    "severity": "HIGH",
+    "status": "OPEN",
+    "provider": "fake",
+    "provider_reference": "fpay_unknown_mq7kxrnc",
+    "subject": null,
+    "market": null,
+    "restaurant": null,
+    "currency": "INR",
+    "expected": null,
+    "actual": {
+      "amount": 12300,
+      "currency": "INR"
+    },
+    "difference": null,
+    "first_seen_at": "2026-10-12T11:55:33+00:00",
+    "last_seen_at": "2026-10-12T11:55:33+00:00",
+    "seen_count": 1,
+    "resolution": null,
+    "resolution_note": null,
+    "assigned_to": null,
+    "resolved_by": null,
+    "resolved_at": null,
+    "version": 1
+  },
+  "ledger_check": {
+    "id": "d4a3979a-f1f2-4ea1-90bd-d4feee91a002",
+    "kind": "VERIFY_LEDGER",
+    "status": "OK",
+    "triggered_by": "ADMIN",
+    "dry_run": false,
+    "parameters": null,
+    "result": {
+      "transactions": 20,
+      "entries": 47,
+      "accounts": 14,
+      "checks": {
+        "unbalanced_transactions": 0,
+        "currency_mismatches": 0,
+        "duplicate_postings": 0,
+        "orphan_postings": 0,
+        "payable_mismatches": 0,
+        "negative_restaurant_balances": 0,
+        "inverted_accounts": 0,
+        "settled_lines_of_cancelled_settlements": 0,
+        "paid_settlements_without_paid_payout": 0,
+        "paid_payouts_without_posting": 0,
+        "recognized_orders_without_payable_line": 0
+      }
+    },
+    "problems": 0,
+    "started_at": "2026-10-12T11:56:00+00:00",
+    "finished_at": "2026-10-12T11:56:00+00:00"
+  },
+  "internal_check": {
+    "id": "e708692e-880a-4c9d-8649-acbd66c09fd1",
+    "kind": "RECONCILE_INTERNAL",
+    "status": "OK",
+    "triggered_by": "ADMIN",
+    "dry_run": false,
+    "parameters": null,
+    "result": {
+      "found": [],
+      "auto_resolved": 0
+    },
+    "problems": 0,
+    "started_at": "2026-10-12T11:56:02+00:00",
+    "finished_at": "2026-10-12T11:56:02+00:00"
+  },
+  "admin_overview": {
+    "period": {
+      "from": "2026-09-13",
+      "to": "2026-10-12",
+      "timezone": "Asia/Kolkata"
+    },
+    "currencies": [
+      {
+        "currency": "INR",
+        "period": {
+          "customer_payments": {
+            "amount": 170800,
+            "currency": "INR"
+          },
+          "refunds": {
+            "amount": 50700,
+            "currency": "INR"
+          },
+          "gross_marketplace_sales": {
+            "amount": 128100,
+            "currency": "INR"
+          },
+          "platform_commission": {
+            "amount": 12810,
+            "currency": "INR"
+          },
+          "platform_fee_revenue": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "promotion_expense": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "refund_expense": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "restaurant_earnings": {
+            "amount": 115290,
+            "currency": "INR"
+          },
+          "provider_fees": {
+            "amount": 2800,
+            "currency": "INR"
+          },
+          "provider_fee_tax": {
+            "amount": 616,
+            "currency": "INR"
+          },
+          "provider_settlements_received": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "restaurant_payouts": {
+            "amount": 127290,
+            "currency": "INR"
+          },
+          "orders_recognized": 3,
+          "platform_revenue": {
+            "amount": 12810,
+            "currency": "INR"
+          }
+        },
+        "standing": {
+          "restaurant_payables": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "payment_clearing": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "provider_clearing": {
+            "amount": 116684,
+            "currency": "INR"
+          },
+          "refund_clearing": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "dispute_clearing": {
+            "amount": 0,
+            "currency": "INR"
+          },
+          "tax_held": {
+            "amount": 0,
+            "currency": "INR"
+          }
+        }
+      }
+    ],
+    "queues": {
+      "settlements": {
+        "PAID": 3
+      },
+      "payouts": {
+        "PAID": 3
+      },
+      "differences_open": {
+        "total": 0,
+        "by_severity": {}
+      },
+      "allocations_awaiting_terms": 0,
+      "liability_decisions_pending": 0,
+      "adjustments_awaiting_approval": 0,
+      "holds_active": 0
+    },
+    "provider_fees": {
+      "source": "PROVIDER_REPORTED",
+      "estimated": false,
+      "records_imported": 8,
+      "note": "Provider fees are posted only from the provider's own settlement records. Without an import the figure is zero — it is not an estimate."
+    },
+    "terms": {
+      "gross_marketplace_sales": "Merchandise restaurants sold through the platform. It is not FoodOnTheGo revenue.",
+      "platform_revenue": "Commission plus the customer fees that are the platform's.",
+      "restaurant_payables": "What the platform owes restaurants now, from the ledger.",
+      "provider_fees": "The payment provider's own reported fees. Never estimated."
+    },
+    "health": {
+      "ledger": "BALANCED",
+      "internal_reconciliation": "OK",
+      "provider_reconciliation": "FAKE_PROVIDER",
+      "payout_provider": "FAKE_PROVIDER",
+      "live_payouts": "DISABLED",
+      "queue": "UP_TO_DATE"
+    }
+  },
+  "commission_plan": {
+    "id": "e9ba40b5-7092-4909-b8ab-4047c0eef270",
+    "name": "E2E TEST FIXTURE terms for Burger Hub",
+    "scope": "LOCATION",
+    "market": "india",
+    "organization": {
+      "id": "0a000000-0000-4000-8000-00000000000a",
+      "name": "Riverside Hospitality Group"
+    },
+    "location": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub"
+    },
+    "type": "PERCENTAGE",
+    "rate_bps": 900,
+    "base_policy": "MERCHANDISE_GROSS",
+    "effective_from": "2026-10-13T11:56:04+00:00",
+    "effective_until": null,
+    "state": "SCHEDULED",
+    "approval": "TEST",
+    "approval_reference": null,
+    "source": "ADMIN",
+    "reason": "E2E TEST FIXTURE: negotiated terms from tomorrow",
+    "created_by": "(administrator)",
+    "withdrawn_at": null,
+    "withdrawn_reason": null,
+    "version": 1,
+    "created_at": "2026-10-12T11:56:05+00:00",
+    "orders_allocated": 0,
+    "can": {
+      "end": false,
+      "withdraw": true
+    }
+  },
+  "restaurant_terms": {
+    "visible": true,
+    "terms": [
+      {
+        "location": {
+          "id": "0a000000-0000-4000-8000-0000000000a1",
+          "name": "Burger Hub"
+        },
+        "currency": "INR",
+        "commission": {
+          "type": "PERCENTAGE",
+          "rate_bps": 1000,
+          "base_policy": "MERCHANDISE_NET_OF_RESTAURANT_DISCOUNT",
+          "applies_to": "MARKET_STANDARD",
+          "effective_from": "2025-12-31T18:30:00+00:00",
+          "effective_until": null,
+          "test_fixture": true
+        }
+      }
+    ],
+    "provider_fees": {
+      "borne_by": "PLATFORM",
+      "approval": "PENDING BUSINESS APPROVAL"
+    },
+    "approval": "PENDING BUSINESS APPROVAL"
+  },
+  "finance_health": {
+    "checked_at": "2026-10-12T11:58:51+00:00",
+    "window_hours": 24,
+    "ledger": {
+      "status": "BALANCED",
+      "last_run_at": "2026-10-12T11:56:03+00:00",
+      "problems": 0,
+      "result": {
+        "checks": {
+          "orphan_postings": 0,
+          "inverted_accounts": 0,
+          "duplicate_postings": 0,
+          "payable_mismatches": 0,
+          "currency_mismatches": 0,
+          "unbalanced_transactions": 0,
+          "negative_restaurant_balances": 0,
+          "paid_payouts_without_posting": 0,
+          "paid_settlements_without_paid_payout": 0,
+          "recognized_orders_without_payable_line": 0,
+          "settled_lines_of_cancelled_settlements": 0
+        },
+        "entries": 47,
+        "accounts": 14,
+        "transactions": 20
+      },
+      "transactions": 22,
+      "entries": 51,
+      "imbalance_events": 0
+    },
+    "internal_reconciliation": {
+      "status": "OK",
+      "last_run_at": "2026-10-12T11:56:02+00:00",
+      "problems": 0,
+      "result": {
+        "found": [],
+        "auto_resolved": 0
+      }
+    },
+    "provider_reconciliation": {
+      "payment_driver": "fake",
+      "status": "PROBLEMS",
+      "mode": "test",
+      "razorpay_settlement_api": "PENDING PROVIDER VERIFICATION",
+      "scheduled": false,
+      "last_run_at": "2026-10-12T11:55:58+00:00",
+      "problems": 1,
+      "result": {
+        "day": "2026-10-12",
+        "provider": "fake",
+        "lines_new": 0,
+        "lines_read": 8,
+        "lines_changed": 0,
+        "lines_repeated": 8,
+        "reconciliation": {
+          "fees_posted": 0,
+          "items_checked": 1,
+          "items_matched": 0,
+          "differences_open": 1,
+          "missing_at_provider": 0,
+          "settlements_checked": 1,
+          "settlements_matched": 0
+        },
+        "settlements_new": 0,
+        "settlements_read": 1
+      },
+      "source_status": "FAKE_PROVIDER"
+    },
+    "payout_provider": {
+      "driver": "fake",
+      "status": "FAKE_PROVIDER",
+      "mode": "test",
+      "fake": true,
+      "fake_allowed": true,
+      "live_enabled": false,
+      "live_payout": "DISABLED",
+      "real_adapter": "NOT_IMPLEMENTED",
+      "provider_account": "PENDING PROVIDER ACCOUNT ENABLEMENT",
+      "restaurant_onboarding": "PENDING (no KYC / linked-account onboarding exists)",
+      "health": {
+        "state": "DEGRADED",
+        "window_minutes": 10,
+        "calls": 8,
+        "ok": 7,
+        "failures": 0,
+        "timeouts": 1,
+        "rate_limited": 0,
+        "not_found": 0,
+        "avg_latency_ms": 0,
+        "last_call_at": "2026-10-12T11:57:20+00:00"
+      }
+    },
+    "queue": {
+      "name": "finance",
+      "unposted": {
+        "payments": 0,
+        "refunds": 0,
+        "completed_orders": 0
+      },
+      "status": "UP_TO_DATE"
+    },
+    "differences_open": {
+      "total": 0,
+      "by_severity": {}
+    },
+    "events": {
+      "posting": 113,
+      "posting_repeated": 64,
+      "ledger_refused": 0,
+      "ledger_imbalance": 0,
+      "allocation": 23,
+      "allocation_review_required": 0,
+      "order_recognized": 17,
+      "order_voided": 6,
+      "refund_posted": 18,
+      "refund_adjustment": 11,
+      "dispute_posted": 0,
+      "commission_minor": 72590,
+      "gross_minor": 725900,
+      "hold_placed": 10,
+      "hold_released": 10,
+      "settlement_generated": 19,
+      "settlement_approved": 19,
+      "settlement_cancelled": 0,
+      "settlement_negative_carried": 5,
+      "payout_started": 15,
+      "payout_submitted": 15,
+      "payout_paid": 19,
+      "payout_failed": 0,
+      "payout_unknown": 5,
+      "payout_review_required": 0,
+      "payout_duplicate_blocked": 15,
+      "payout_external": 4,
+      "payout_reversed": 0,
+      "payout_webhook": 15,
+      "payout_webhook_duplicate": 6,
+      "payout_webhook_refused": 0,
+      "provider_import": 15,
+      "provider_item_imported": 32,
+      "provider_item_repeated": 88,
+      "provider_fee_posted": 16,
+      "provider_settlement_minor": 0,
+      "difference_opened": 9,
+      "difference_resolved": 4,
+      "difference_auto_resolved": 5,
+      "adjustment_posted": 20,
+      "export": 12
+    },
+    "policies": {
+      "recognition": {
+        "value": "ORDER_COMPLETED",
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "commission": {
+        "value": "CONFIGURED_PER_PLAN",
+        "approval": "PENDING BUSINESS APPROVAL (no production rate exists; TEST plans only)"
+      },
+      "tax_owner": {
+        "value": "UNASSIGNED",
+        "approval": "PENDING TAX / LEGAL APPROVAL"
+      },
+      "fee_owner": {
+        "value": "PLATFORM",
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "shared_promotion_split": {
+        "value": "UNDEFINED",
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "provider_fees": {
+        "value": "PLATFORM_BORNE",
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "refund_liability": {
+        "value": "UNASSIGNED (a person decides each refund)",
+        "approval": "PENDING BUSINESS / LEGAL APPROVAL"
+      },
+      "holds": {
+        "value": {
+          "refund_pending": true,
+          "dispute": true
+        },
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "settlement_cadence": {
+        "value": "WEEKLY",
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "minimum_payout": {
+        "value": null,
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "four_eyes": {
+        "value": {
+          "settlements": false,
+          "payouts": false,
+          "adjustments": false
+        },
+        "approval": "PENDING BUSINESS APPROVAL"
+      }
+    },
+    "flags": {
+      "live_payouts": "DISABLED",
+      "restaurant_kyc": "NOT_IMPLEMENTED",
+      "gst_rate_hardcoded": false,
+      "tds_tcs_hardcoded": false,
+      "tax_invoice": "PENDING TAX / ACCOUNTING DESIGN",
+      "commission_invoice": "PENDING TAX / ACCOUNTING DESIGN",
+      "credit_note": "PENDING TAX / ACCOUNTING DESIGN",
+      "withholding": "PENDING PROFESSIONAL TAX REVIEW",
+      "production": "NO"
+    }
+  }
+}

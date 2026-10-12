@@ -6,6 +6,7 @@ import { adminBackendSections, useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, Select, Stat, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminPayment, AdminRefund, PaymentState, RefundStatus, Settlement, SettlementStatus } from '../types'
+import { BackendFinancePage } from './BackendFinancePage'
 import { BackendPaymentsPage } from './BackendPaymentsPage'
 import { BackendRefundsPage } from './BackendRefundsPage'
 import { MarketScopeChip, Cell, StatusPill, fmtDateTime, money, useLoad, usePageTitle } from './shared'
@@ -102,7 +103,15 @@ function DevelopmentRefundsPage() {
 
 const S_STATUSES: SettlementStatus[] = ['PENDING', 'PROCESSING', 'PAID', 'FAILED', 'ON_HOLD']
 const S_DEFAULTS = { status: 'all', currency: 'all', page: '1' }
+/**
+ * Module 36: with the order backend the Settlements entry opens the backend's finance domain — the overview, restaurant
+ * settlements, payouts, payables, commission plans, reconciliation, adjustments and holds (BackendFinancePage). Without it
+ * the development rows below stay, read-only as before.
+ */
 export function SettlementsPage() {
+  return adminBackendSections().includes('settlements') ? <BackendFinancePage /> : <DevelopmentSettlementsPage />
+}
+function DevelopmentSettlementsPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.settlements')
   const [s, set] = useUrlState(S_DEFAULTS)
   const filter = useMemo(() => ({ status: s.status as SettlementStatus | 'all', currency: s.currency, page: Number(s.page) || 1, pageSize: 10 }), [s])

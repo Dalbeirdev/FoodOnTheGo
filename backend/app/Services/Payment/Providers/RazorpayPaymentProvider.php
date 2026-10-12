@@ -2,12 +2,15 @@
 
 namespace App\Services\Payment\Providers;
 
+use App\Contracts\Finance\ProviderSettlementSource;
 use App\Contracts\Payment\PaymentProvider;
 use App\Enums\DisputeStatus;
 use App\Enums\ProviderPaymentState;
 use App\Enums\ProviderRefundState;
 use App\Exceptions\ProviderException;
 use App\Exceptions\ProviderRefundRejected;
+use App\Services\Finance\ProviderSettlement\ProviderSettlementLine;
+use App\Services\Finance\ProviderSettlement\ProviderSettlementRecord;
 use App\Services\Payment\Data\ProviderDispute;
 use App\Services\Payment\Data\ProviderPayment;
 use App\Services\Payment\Data\ProviderRefund;
@@ -17,6 +20,7 @@ use App\Services\Payment\Data\ProviderSessionRequest;
 use App\Services\Payment\Data\ProviderWebhook;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -44,11 +48,21 @@ use InvalidArgumentException;
  *
  * NOT EXERCISED against Razorpay: there is no Razorpay account on this machine. The shapes are the documented ones.
  *
+ * Settlement records (Module 36, the Settlements API as documented on 2026-10-12 — PENDING PROVIDER VERIFICATION):
+ *   settlements  GET /v1/settlements?from&to&count&skip                       id, amount (subunits), status created ·
+ *                                                                             processed · failed, fees, tax, utr, created_at
+ *   recon lines  GET /v1/settlements/recon/combined?year&month&day&count&skip entity_id, type payment · refund · transfer ·
+ *                                                                             adjustment, debit, credit, amount, currency, fee,
+ *                                                                             tax, on_hold, settled, created_at, settled_at,
+ *                                                                             settlement_id, payment_id, settlement_utr
+ *   Every number is taken as the provider sent it: no fee is calculated and no field is derived from another. Card,
+ *   bank and customer fields of a line are never kept.
+ *
  * Nothing of Razorpay's vocabulary leaves this class: states become ProviderPaymentState, methods become the
  * application's method types, and of a payment only safe fields are kept (never an e-mail, a phone number, a full
  * card or UPI address). The key secret and the webhook secret are used here and nowhere else.
  */
-final class RazorpayPaymentProvider implements PaymentProvider
+final class RazorpayPaymentProvider implements PaymentProvider, ProviderSettlementSource
 {
     public const NAME = 'razorpay';
 
@@ -313,6 +327,86 @@ final class RazorpayPaymentProvider implements PaymentProvider
         }
 
         return self::mapDispute($this->answered($response));
+    }
+
+    /* ------------------------------------------------------------------ settlement records (Module 36) */
+
+    /** The fields of a reconciliation line that are kept as the provider's snapshot — references and amounts only. */
+    private const SETTLEMENT_LINE_FIELDS = ['entity_id', 'type', 'debit', 'credit', 'amount', 'currency', 'fee', 'tax', 'on_hold', 'settled', 'created_at', 'settled_at', 'settlement_id', 'payment_id', 'settlement_utr', 'order_id', 'dispute_id'];
+
+    private const SETTLEMENT_FIELDS = ['id', 'entity', 'amount', 'status', 'fees', 'tax', 'utr', 'created_at'];
+
+    public function lines(CarbonInterface $day, int $skip, int $count): array
+    {
+        $response = $this->answered($this->send(fn () => $this->request()->get('/settlements/recon/combined', [
+            'year' => (int) $day->format('Y'), 'month' => (int) $day->format('n'), 'day' => (int) $day->format('j'), 'count' => max(1, min(1000, $count)), 'skip' => max(0, $skip),
+        ])));
+        $lines = [];
+        foreach ((array) ($response['items'] ?? []) as $item) {
+            if (! is_array($item) || self::reference($item['entity_id'] ?? null) === null) {
+                continue;
+            }
+            $lines[] = new ProviderSettlementLine(
+                (string) $item['entity_id'],
+                match (strtolower((string) ($item['type'] ?? ''))) {
+                    'payment' => 'PAYMENT', 'refund' => 'REFUND', 'transfer' => 'TRANSFER', 'adjustment' => 'ADJUSTMENT', default => 'OTHER',
+                },
+                strtoupper(mb_substr((string) ($item['currency'] ?? ''), 0, 3)),
+                (int) ($item['amount'] ?? 0), (int) ($item['credit'] ?? 0), (int) ($item['debit'] ?? 0), (int) ($item['fee'] ?? 0), (int) ($item['tax'] ?? 0),
+                (bool) ($item['settled'] ?? false), (bool) ($item['on_hold'] ?? false),
+                self::reference($item['settlement_id'] ?? null), self::text($item['settlement_utr'] ?? null), self::reference($item['payment_id'] ?? null),
+                self::moment($item['created_at'] ?? null), self::moment($item['settled_at'] ?? null),
+                self::only($item, self::SETTLEMENT_LINE_FIELDS),
+            );
+        }
+
+        return $lines;
+    }
+
+    public function settlements(CarbonInterface $from, CarbonInterface $to, int $skip, int $count): array
+    {
+        $response = $this->answered($this->send(fn () => $this->request()->get('/settlements', ['from' => $from->getTimestamp(), 'to' => $to->getTimestamp(), 'count' => max(1, min(100, $count)), 'skip' => max(0, $skip)])));
+        $records = [];
+        foreach ((array) ($response['items'] ?? []) as $item) {
+            if (! is_array($item) || self::reference($item['id'] ?? null) === null) {
+                continue;
+            }
+            $status = strtolower((string) ($item['status'] ?? ''));
+            $records[] = new ProviderSettlementRecord(
+                (string) $item['id'],
+                in_array($status, ['created', 'processed', 'failed'], true) ? strtoupper($status) : 'UNKNOWN',
+                mb_substr($status, 0, 24),
+                // The settlement entity documents no currency of its own: an account settles in its own currency.
+                strtoupper(mb_substr((string) ($item['currency'] ?? ($this->config['settlement_currency'] ?? 'INR')), 0, 3)),
+                (int) ($item['amount'] ?? 0), (int) ($item['fees'] ?? 0), (int) ($item['tax'] ?? 0),
+                self::text($item['utr'] ?? null), self::moment($item['created_at'] ?? null),
+                self::only($item, self::SETTLEMENT_FIELDS),
+            );
+        }
+
+        return $records;
+    }
+
+    private static function moment(mixed $value): ?CarbonImmutable
+    {
+        return is_int($value) && $value > 0 ? CarbonImmutable::createFromTimestampUTC($value) : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @param  list<string>  $fields
+     * @return array<string, scalar|null>
+     */
+    private static function only(array $item, array $fields): array
+    {
+        $kept = [];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $item) && (is_scalar($item[$field]) || $item[$field] === null)) {
+                $kept[$field] = is_string($item[$field]) ? mb_substr($item[$field], 0, 80) : $item[$field];
+            }
+        }
+
+        return $kept;
     }
 
     /**

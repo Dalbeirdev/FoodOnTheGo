@@ -1,0 +1,32 @@
+{
+  "module": "M36",
+  "measured_at": "2026-10-12T11:58:51.185Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, one local queue worker (orders, payments, notifications, finance), the DEVELOPMENT payment and payout providers (no network call to a real provider). recognition_after_completion = from the pickup verification request until the order allocation is RECOGNIZED in the ledger (queue included); payout_webhook_to_paid = from the request that makes the fake bank confirm the payout (it sends the signed webhook twice) until the payout is PAID; the others are single API requests. One run, so n = 1. Measurements, not targets.",
+  "timings": {
+    "recognition_after_completion": {
+      "n": 1,
+      "median_ms": 2740,
+      "max_ms": 2740
+    },
+    "admin_settlement_list": {
+      "n": 1,
+      "median_ms": 323,
+      "max_ms": 323
+    },
+    "payout_webhook_to_paid": {
+      "n": 1,
+      "median_ms": 471,
+      "max_ms": 471
+    },
+    "restaurant_summary": {
+      "n": 1,
+      "median_ms": 355,
+      "max_ms": 355
+    },
+    "admin_overview": {
+      "n": 1,
+      "median_ms": 476,
+      "max_ms": 476
+    }
+  }
+}
