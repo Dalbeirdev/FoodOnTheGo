@@ -262,5 +262,12 @@ class AppServiceProvider extends ServiceProvider
         foreach (['support-read' => 'support_read', 'support-case-create' => 'support_case_create', 'support-write' => 'support_write', 'support-admin-action' => 'support_admin_action'] as $name => $key) {
             RateLimiter::for($name, fn (Request $request) => Limit::perMinute($perMinute($key))->by($name.':'.$kind($request)));
         }
+
+        // Module 38 — analytics. Reports and exports per person and kind of account; the applications' events per signed-in
+        // customer or, for a guest, per address (a guest's session identifier is the guest's own word and cannot key a limit).
+        foreach (['analytics-read' => 'analytics_read', 'analytics-export' => 'analytics_export'] as $name => $key) {
+            RateLimiter::for($name, fn (Request $request) => Limit::perMinute($perMinute($key))->by($name.':'.$kind($request)));
+        }
+        RateLimiter::for('analytics-ingest', fn (Request $request) => Limit::perMinute($perMinute('analytics_ingest'))->by('analytics-ingest:'.(($customer = $request->user('customer')) !== null ? 'customer:'.$customer->getAuthIdentifier() : 'ip:'.$request->ip())));
     }
 }

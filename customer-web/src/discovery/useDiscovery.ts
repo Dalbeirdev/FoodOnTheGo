@@ -3,6 +3,7 @@ import { restaurantRepository } from '../repositories'
 import type { DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, JourneyLike, ResultPage, RouteRestaurantResult, ScopeRing, SearchMeta, SortKey } from '../repositories/types'
 import { JourneyError, type JourneyErrorCode } from '../journey/repositories'
 import { marketFor } from '../i18n/markets'
+import { track } from '../analytics'
 
 export type DiscoveryStatus = 'idle' | 'loading' | 'updating' | 'loadingMore' | 'ready' | 'error'
 
@@ -67,6 +68,8 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean,
       setItems((prev) => (mode === 'more' ? [...prev, ...page.items] : page.items))
       setTotal(page.total); setAvailability(page.availability); setNextCursor(page.nextCursor); setRingApplied(page.ringApplied); setNextRing(page.nextRing ?? null); setRingCounts(page.ringCounts)
       setEmptyReason(page.emptyReason ?? null); setSearchMeta(page.searchMeta); setStatus('ready'); first.current = false
+      // Module 38 (telemetry, never awaited): the list of a planned journey is on the screen — also an empty one. Once per journey.
+      if (journey?.backend) track('journey_results_viewed', { journey: journey.id }, { results: Math.max(0, Math.min(500, Math.trunc(page.total))) }, `journey_results_viewed:${journey.id}`)
     } catch (e) {
       if (my !== seq.current) return
       setError(e instanceof Error ? e.message : 'Something went wrong.'); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error')

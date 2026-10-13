@@ -116,6 +116,12 @@
         <env name="RATE_LIMIT_SUPPORT_CASE_CREATE" value="1000" force="true"/>
         <env name="RATE_LIMIT_SUPPORT_WRITE" value="1000" force="true"/>
         <env name="RATE_LIMIT_SUPPORT_ADMIN_ACTION" value="1000" force="true"/>
+        <env name="RATE_LIMIT_ANALYTICS_READ" value="1000" force="true"/>
+        <env name="RATE_LIMIT_ANALYTICS_EXPORT" value="1000" force="true"/>
+        <env name="RATE_LIMIT_ANALYTICS_INGEST" value="1000" force="true"/>
+        <env name="ANALYTICS_CACHE_ENABLED" value="false" force="true"/>
+        <env name="ANALYTICS_MIN_DENOMINATOR" value="1" force="true"/>
+        <env name="ANALYTICS_MIN_COHORT" value="1" force="true"/>
         <env name="RATE_LIMIT_PAYMENT_READ" value="1000" force="true"/>
         <env name="RATE_LIMIT_PAYMENT_WEBHOOK" value="1000" force="true"/>
         <env name="ROUTING_DRIVER" value="fake" force="true"/>

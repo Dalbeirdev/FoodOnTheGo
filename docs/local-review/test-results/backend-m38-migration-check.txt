@@ -1,0 +1,30 @@
+# Module 38 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply — 2026-10-13, after the final full run of the suite
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_18_100000_module38_analytics .. 96.26ms DONE
+
+
+## analytics tables after the rollback (expected: none)
+none
+
+## the module's indexes on source tables after the rollback (expected: none)
+none
+
+
+ INFO Running migrations. 
+
+ 2026_10_18_100000_module38_analytics .. 180.55ms DONE
+
+
+## analytics tables after the re-apply (expected: the sixteen Module 38 tables)
+analytics_daily_breakdowns,analytics_daily_customers,analytics_daily_finance,analytics_daily_funnel,analytics_daily_items,analytics_daily_market,analytics_daily_restaurant,analytics_daily_routes,analytics_daily_support,analytics_dirty_days,analytics_events,analytics_order_facts,analytics_quality_results,analytics_runs,analytics_session_facts,report_exports
+
+## counts after the re-apply
+{"tables" : 16, "indexes" : 53, "unique_indexes" : 29, "check_constraints" : 11, "source_table_indexes" : 9}
+## the module's "changed since" indexes on source tables (expected: nine)
+customers.customers_analytics_created_at_index, ledger_entries.ledger_entries_analytics_created_at_index, notification_deliveries.notification_deliveries_analytics_updated_at_index, order_financial_allocations.order_financial_allocations_analytics_updated_at_index, orders.orders_analytics_updated_at_index, payment_attempts.payment_attempts_analytics_updated_at_index, refunds.refunds_analytics_updated_at_index, restaurant_reviews.restaurant_reviews_analytics_updated_at_index, support_cases.support_cases_analytics_updated_at_index
+## the unique index that stores an event id once
+CREATE UNIQUE INDEX analytics_events_event_id_unique ON public.analytics_events USING btree (event_id)
+DONE

@@ -1,0 +1,42 @@
+# Module 38 — the LOCAL database (foodonthego_local) brought to this module, 2026-10-13: the migration (16 analytics tables, 9 source-table indexes), the roles with the two new export permissions, a rebuild of the read models from the domains and the ten integrity checks. Nothing of analytics is seeded: what the read models hold is what the local fixtures and the test runs left in the source domains — never a business figure. Nothing here touched production.
+
+$ php artisan migrate:status   (the last lines)
+ 2026_10_16_100000_module36_finance .. [15] Ran 
+ 2026_10_17_100000_module37_support .. [16] Ran 
+ 2026_10_18_100000_module38_analytics .. [17] Ran 
+
+
+$ php artisan db:seed --class=RoleSeeder --force
+
+ INFO Seeding database. 
+
+ Database\Seeders\RoleSeeder .. RUNNING 
+ Database\Seeders\RoleSeeder .. 106 ms DONE 
+
+
+$ php artisan analytics:rebuild   (no range: the whole history of the local database up to today)
+{"status":"OK","trigger":"BACKFILL","dry_run":false,"rows":10,"order_facts":0,"session_facts":0,"groups":{"orders":0,"customers":10,"restaurants":0,"items":0,"funnel":0,"routes":0,"payments":0,"refunds":0,"finance":0,"support":0,"notifications":0,"pickup":0},"markets":[{"market":1,"days":15,"from":"2026-09-29","to":"2026-10-13"}],"since":null}
+
+$ php artisan analytics:check
+{"status":"HEALTHY","counts":{"healthy":10,"warning":0,"error":0},"problems":[]}
+
+## what the read models hold after the rebuild (rows per table) — the local fixtures and what earlier test runs left in the source domains; never a business figure
+analytics_events: 0
+analytics_session_facts: 0
+analytics_order_facts: 0
+analytics_daily_market: 0
+analytics_daily_customers: 10
+analytics_daily_restaurant: 0
+analytics_daily_items: 0
+analytics_daily_funnel: 0
+analytics_daily_routes: 0
+analytics_daily_finance: 0
+analytics_daily_support: 0
+analytics_daily_breakdowns: 0
+analytics_runs: 1
+analytics_quality_results: 10
+report_exports: 0
+
+## holders of the two new permissions (roles)
+admin.analytics.export: ANALYST, FINANCE_ADMIN, OPERATIONS_ADMIN, SUPER_ADMIN
+restaurant.analytics.export: MANAGER, OWNER

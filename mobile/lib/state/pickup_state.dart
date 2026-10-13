@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../cart/cart_models.dart';
 import '../discovery/restaurant_models.dart';
@@ -283,6 +284,7 @@ class PickupState extends ChangeNotifier {
       final j = await backend!.select(mode: m, slotKey: slotKey, method: method, cartVersion: server?.cartVersion);
       _applySelection(j);
       mode = m; needsConnection = false; status = PickupStatus.selected;
+      Analytics.pickupSelected(restaurant: Analytics.restaurantRef(_restaurantId), asap: m == PickupMode.asap, method: serverSelection?.method ?? method, recommended: m == PickupMode.asap ? server?.asapRecommended : server?.slots.where((s) => s.slot.id == slotKey).firstOrNull?.slot.recommended); // Module 38: the backend accepted the time
     } catch (e) {
       final err = toPickupException(e);
       if (err.code == PickupErrorCode.offline) {

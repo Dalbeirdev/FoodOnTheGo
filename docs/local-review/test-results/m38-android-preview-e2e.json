@@ -1,0 +1,55 @@
+{
+ "module": "M38",
+ "date": "2026-10-13T14:25:48.409Z",
+ "target": "Flutter web preview of the Android app (same Dart code as the APK, 412x915), every domain mode = api so the event emitter is on, real local backend; NOT a device — the APK on a real phone is verified by the owner",
+ "provider": "development (fake) places and routing providers; no order is created and no money moves",
+ "passed": 9,
+ "total": 9,
+ "results": [
+  {
+   "name": "A0 the journey works in the app with the event emitter on: the journey is planned (201), the restaurants are listed (200) and a restaurant opens",
+   "pass": true,
+   "detail": "[201,200]"
+  },
+  {
+   "name": "A1 THE APP SENT ITS BEHAVIOURAL EVENTS to POST /analytics/events, answered 202: journey search started, results viewed, restaurant viewed and menu viewed — each exactly ONCE, although the list was loaded more than once — as platform ANDROID with the app's version and build number",
+   "pass": true,
+   "detail": "{\"posts\":2,\"events\":[\"journey_search_started\",\"journey_results_viewed\",\"restaurant_viewed\",\"menu_viewed\"],\"version\":\"0.1.0+42\"}"
+  },
+  {
+   "name": "A2 what the app sends is the contract and nothing more: the session, the platform, the version and the events — references by id (the journey, the restaurant), allowlisted properties, UTC times; no phone number, no place, no coordinate, and no customer token for a guest",
+   "pass": true,
+   "detail": "app_version,events,platform,session {\"restaurant\":\"006f4b02-b4ff-442f-beec-38aabd54a4ad\",\"journey\":\"d03a22d0-4a8f-4322-b586-4adbef4dfded\"}"
+  },
+  {
+   "name": "A3 what the backend stored: four ANDROID events of one anonymous session — no customer (a guest), the journey as a keyed hash and never its id — and its own record of the planned journey",
+   "pass": true,
+   "detail": "4 rows, server 1"
+  },
+  {
+   "name": "A4 ONCE PER SESSION: going back to the list and opening the same restaurant again sends no second \"restaurant viewed\", no second \"menu viewed\" and no second \"results viewed\"",
+   "pass": true,
+   "detail": "[\"journey_search_started\",\"journey_results_viewed\",\"restaurant_viewed\",\"menu_viewed\"]"
+  },
+  {
+   "name": "A5 THE EVENT DOOR IS UNREACHABLE (every request to it fails): the journey is planned, the restaurants are listed and a restaurant opens exactly as before; the app shows nothing about it, stores no client event, and does not hammer the door",
+   "pass": true,
+   "detail": "{\"refused\":1,\"plan\":201}"
+  },
+  {
+   "name": "X1 URL audit: of every API request the app made, none carries a coordinate or a token in its URL — the events travel in a request body",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "X2 no page errors in the app across these flows",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "Z1 CLEAN-UP: every event and journey of this run is removed from the local database",
+   "pass": true,
+   "detail": ""
+  }
+ ]
+}

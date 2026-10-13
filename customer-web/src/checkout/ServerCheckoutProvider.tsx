@@ -9,6 +9,7 @@ import { ApiCheckoutGateway, CheckoutApiError, promoStatusOf, remainingMs, toChe
 import { CheckoutCtx, type CheckoutApi, type CheckoutNotice } from './checkoutApi'
 import { connectivity as defaultConnectivity } from './mock/mockCheckout'
 import type { CheckoutIssue, CheckoutRequest, CheckoutStatus, CheckoutSummary, ConnectivityService, PaymentMethodOption, PaymentMethodType, PromoResult } from './repositories'
+import { track } from '../analytics'
 
 /**
  * Checkout on the backend (Module 29) behind the interface the pages already use.
@@ -138,6 +139,8 @@ export function ServerCheckoutProvider({ children, gateway: injected, connectivi
       const checkout = await gateway.open({ promotionCode })
       if (my !== seq.current) return null
       accept(checkout)
+      // Module 38 (telemetry, never awaited): the backend opened a checkout. This runs again whenever the cart, the pickup time or the session changes — once per checkout id.
+      track('checkout_started', { checkout: checkout.id, restaurant: checkout.restaurant?.id }, undefined, `checkout_started:${checkout.id}`)
       return checkout
     } catch (e) {
       const failure = toCheckoutError(e)

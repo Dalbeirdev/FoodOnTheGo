@@ -1,3 +1,4 @@
+import { analyticsStrings } from './analyticsStrings'
 import { deskStrings } from './supportStrings'
 
 /** Platform Admin Dashboard strings (Module 18) — English source table, merged into the global bundle (localization-ready). */
@@ -817,4 +818,6 @@ export const adminStrings: Record<string, string> = {
   'adm.finance.code.OK': 'OK',
   // Module 37: the service desk (the backend support pages).
   ...deskStrings,
+  // Module 38: analytics on the backend (the Analytics pages, the figures of the Overview, the System card).
+  ...analyticsStrings,
 }

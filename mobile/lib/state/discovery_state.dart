@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics.dart';
 import '../discovery/discovery_repository.dart';
 import '../discovery/restaurant_models.dart';
 import '../i18n/markets.dart';
@@ -142,6 +143,7 @@ class DiscoveryState extends ChangeNotifier {
       if (my != _seq) return;
       items = more ? [...items, ...page.items] : page.items;
       total = page.total; unavailable = page.unavailable; nextCursor = page.nextCursor; ringApplied = page.ringApplied; nextRing = page.nextRing; ringCounts = page.ringCounts; emptyReason = page.emptyReason; searchMeta = page.searchMeta; status = DiscoveryStatus.ready; _first = false;
+      if (j != null && !more) Analytics.journeyResultsViewed(j.id, page.total); // Module 38: once per journey, also when the list is empty
     } catch (e) {
       if (my != _seq) return;
       errorCode = e is JourneyException ? e.code : null;

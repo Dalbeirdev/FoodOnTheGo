@@ -14,6 +14,7 @@ import { AdminProvider } from '../AdminContext'
 import AdminLayout from '../AdminLayout'
 import { SUPPORT_QUEUES } from '../api/ApiAdminSupportRepository'
 import { adminRepositories, K, resetAdminStores, setMockAdminLatency } from '../mock/mockAdmin'
+import { sample } from './analytics/samples.fixture'
 import { BackendSupportPage } from './BackendSupportPage'
 import OverviewPage from './OverviewPage'
 import { SupportMetricsCard } from './SupportMetricsCard'
@@ -69,6 +70,8 @@ beforeEach(() => {
       ?? (key === 'GET /admin/support/queues' ? { body: { queues: QUEUES, total: 40 } } : undefined)
       ?? (key === 'GET /admin/support/metrics' ? { body: METRICS } : undefined)
       ?? (key === 'GET /admin/support/catalog' ? { body: CATALOG } : undefined)
+      // Module 38: with the backend the Overview's other figures are analytics' own (the support card stays the desk's).
+      ?? (key === 'GET /admin/analytics/overview' ? { body: sample('overview') } : key === 'GET /admin/analytics/live' ? { body: sample('live') } : key === 'GET /admin/analytics/catalog' ? { body: sample('catalog') } : undefined)
     if (!r) return new Response(JSON.stringify({ error: { code: 'not_found', message: `No stub for ${method} ${path}`, details: {} } }), { status: 404 })
     return new Response(JSON.stringify(r.body ?? {}), { status: r.status ?? 200, headers: { 'Content-Type': 'application/json' } })
   }))

@@ -24,6 +24,8 @@ enum Permission: string
     case RestaurantStaffView = 'restaurant.staff.view';
     case RestaurantStaffManage = 'restaurant.staff.manage';
     case RestaurantAnalyticsView = 'restaurant.analytics.view';
+    // Module 38: asking for a CSV of the restaurant's own analytics.
+    case RestaurantAnalyticsExport = 'restaurant.analytics.export';
     case RestaurantNotificationsView = 'restaurant.notifications.view';
     case RestaurantSettingsManage = 'restaurant.settings.manage';
     /** Read the location's earnings, settlement statements and payout states (Module 36). Never another restaurant's. */
@@ -127,6 +129,8 @@ enum Permission: string
     case AdminAuditView = 'admin.audit.view';
     case AdminSecurityView = 'admin.security.view';
     case AdminAnalyticsView = 'admin.analytics.view';
+    // Module 38: asking for a curated CSV report. A finance or support report needs that domain's permission as well.
+    case AdminAnalyticsExport = 'admin.analytics.export';
     case AdminSystemView = 'admin.system.view';
     case AdminSettingsManage = 'admin.settings.manage';
 

@@ -5,9 +5,19 @@ import { useDashboard } from '../DashboardContext'
 import { BarChart, DonutChart, LineChart, RatingBars } from '../components/Charts'
 import { Card, ErrorState, KpiCard, PageHeader, Pill, Skeleton, Thumb } from '../components/ui'
 import type { AnalyticsQuery, AnalyticsRange, AnalyticsSummary } from '../types'
+import { BackendAnalyticsPage } from './analytics/BackendAnalyticsPage'
 
-/** Analytics (Module 17): date range, KPIs, revenue trend, order volume, status distribution, top items, pickup hours, ratings. */
+/**
+ * Analytics. With the backend (Module 38: the order domain runs there) the page is the restaurant's real analytics —
+ * `analytics/BackendAnalyticsPage`. Without it the development sample below stays, labelled as such.
+ */
 export default function AnalyticsPage() {
+  const d = useDashboard(); const repo = d.repos.reports
+  return repo ? <BackendAnalyticsPage repo={repo} /> : <DevelopmentAnalyticsPage />
+}
+
+/** Analytics (Module 17, development sample): date range, KPIs, revenue trend, order volume, status distribution, top items, pickup hours, ratings. */
+function DevelopmentAnalyticsPage() {
   const d = useDashboard(); const locale = d.locale; const loc = d.location!; const rid = loc.restaurant.id; const cur = loc.restaurant.currency
   const [range, setRange] = useState<AnalyticsRange>('7d'); const [from, setFrom] = useState(''); const [to, setTo] = useState(''); const [data, setData] = useState<AnalyticsSummary | null>(null); const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
   const load = useCallback(async () => { setState('loading'); try { const q: AnalyticsQuery = range === 'custom' ? { range, from: from || undefined, to: to || undefined } : { range }; setData(await d.repos.analytics.summary(rid, q)); setState('ready') } catch { setState('error') } }, [d.repos, rid, range, from, to])

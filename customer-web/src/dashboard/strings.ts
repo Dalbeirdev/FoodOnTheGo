@@ -1,3 +1,5 @@
+import { analyticsStrings } from './analyticsStrings'
+
 /** Restaurant Dashboard strings (Module 17) — English source table, merged into the global bundle (localization-ready). */
 export const dashStrings: Record<string, string> = {
   'dash.brand': 'Restaurant Dashboard', 'dash.skip': 'Skip to content', 'dash.pending': 'Pending',
@@ -321,4 +323,6 @@ export const dashStrings: Record<string, string> = {
   'dash.support.ask.payout': 'Ask about this payout',
   'dash.support.ask.order': 'Get help with this order',
   'dash.support.col.help': 'Support',
+  // Module 38: analytics on the backend (its own table: analyticsStrings.ts).
+  ...analyticsStrings,
 }

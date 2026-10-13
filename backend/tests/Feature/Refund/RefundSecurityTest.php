@@ -187,7 +187,7 @@ class RefundSecurityTest extends TestCase
         foreach (['mark-refunded', 'mark_refunded', 'complete', 'refunded', 'status', 'settle', 'force'] as $action) {
             $this->postJson('/api/v1/admin/refunds/'.$id.'/'.$action, ['reason' => 'x'])->assertNotFound();
         }
-        $routes = collect(Route::getRoutes()->getRoutes())->map(fn ($r) => implode('|', $r->methods()).' '.$r->uri())->filter(fn (string $r): bool => str_contains($r, 'refund'))->values()->all();
+        $routes = collect(Route::getRoutes()->getRoutes())->map(fn ($r) => implode('|', $r->methods()).' '.$r->uri())->filter(fn (string $r): bool => str_contains($r, 'refund') && ! str_contains($r, '/analytics/'))->values()->all();   // Module 38: a read-only report about refunds is not a refund route
         sort($routes);
         $this->assertSame([
             'GET|HEAD api/v1/admin/refunds',

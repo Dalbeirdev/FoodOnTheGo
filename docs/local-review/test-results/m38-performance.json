@@ -1,0 +1,229 @@
+{
+ "written_on": "2026-10-13",
+ "about_measured_at": "measured_at is the clock the test travels to (its fixture day), not the day of the run; the run was on written_on",
+ "measured_at": "2026-10-07T06:30:00Z",
+ "note": "Measured by the test suite on the development machine against PostgreSQL (database foodonthego_test). Not a claim about scale.",
+ "data_set": {
+  "orders": 3001,
+  "restaurants": 5,
+  "customers": 301,
+  "behavioural_events": 13500,
+  "sessions": 3000,
+  "days": 60
+ },
+ "aggregation": {
+  "backfill_ms": 2021.1,
+  "rows_written": 8382,
+  "incremental_run_ms": 2216.4
+ },
+ "budget": {
+  "queries_per_report": 60,
+  "ms_per_report": 2000
+ },
+ "reports_small_data_set": {
+  "admin/overview": {
+   "queries": 31,
+   "ms": 86.1
+  },
+  "admin/funnel": {
+   "queries": 6,
+   "ms": 12.4
+  },
+  "admin/customers": {
+   "queries": 11,
+   "ms": 14.6
+  },
+  "admin/orders": {
+   "queries": 12,
+   "ms": 16.4
+  },
+  "admin/restaurants": {
+   "queries": 8,
+   "ms": 11
+  },
+  "admin/menu": {
+   "queries": 8,
+   "ms": 12.3
+  },
+  "admin/routes": {
+   "queries": 19,
+   "ms": 23.1
+  },
+  "admin/pickup": {
+   "queries": 7,
+   "ms": 13.7
+  },
+  "admin/payments": {
+   "queries": 10,
+   "ms": 21.7
+  },
+  "admin/refunds": {
+   "queries": 10,
+   "ms": 15.7
+  },
+  "admin/finance": {
+   "queries": 31,
+   "ms": 36
+  },
+  "admin/support": {
+   "queries": 8,
+   "ms": 18.4
+  },
+  "admin/reviews": {
+   "queries": 5,
+   "ms": 14.5
+  },
+  "admin/notifications": {
+   "queries": 9,
+   "ms": 15.1
+  },
+  "admin/live": {
+   "queries": 9,
+   "ms": 15.5
+  },
+  "restaurant/overview": {
+   "queries": 21,
+   "ms": 37.2
+  },
+  "restaurant/orders": {
+   "queries": 12,
+   "ms": 25.3
+  },
+  "restaurant/menu": {
+   "queries": 6,
+   "ms": 13.1
+  },
+  "restaurant/operations": {
+   "queries": 17,
+   "ms": 32.1
+  },
+  "restaurant/reviews": {
+   "queries": 5,
+   "ms": 14.8
+  },
+  "restaurant/routes": {
+   "queries": 5,
+   "ms": 11.3
+  }
+ },
+ "reports_large_data_set": {
+  "admin/overview": {
+   "queries": 31,
+   "ms": 41.8
+  },
+  "admin/funnel": {
+   "queries": 6,
+   "ms": 12.1
+  },
+  "admin/customers": {
+   "queries": 11,
+   "ms": 96
+  },
+  "admin/orders": {
+   "queries": 12,
+   "ms": 38.2
+  },
+  "admin/restaurants": {
+   "queries": 8,
+   "ms": 13.2
+  },
+  "admin/menu": {
+   "queries": 8,
+   "ms": 104.3
+  },
+  "admin/routes": {
+   "queries": 19,
+   "ms": 19.2
+  },
+  "admin/pickup": {
+   "queries": 7,
+   "ms": 10.8
+  },
+  "admin/payments": {
+   "queries": 10,
+   "ms": 13.7
+  },
+  "admin/refunds": {
+   "queries": 10,
+   "ms": 11.3
+  },
+  "admin/finance": {
+   "queries": 31,
+   "ms": 32.8
+  },
+  "admin/support": {
+   "queries": 8,
+   "ms": 17.4
+  },
+  "admin/reviews": {
+   "queries": 5,
+   "ms": 12.3
+  },
+  "admin/notifications": {
+   "queries": 9,
+   "ms": 13.9
+  },
+  "admin/live": {
+   "queries": 9,
+   "ms": 11
+  },
+  "restaurant/overview": {
+   "queries": 21,
+   "ms": 57.2
+  },
+  "restaurant/orders": {
+   "queries": 12,
+   "ms": 42.7
+  },
+  "restaurant/menu": {
+   "queries": 6,
+   "ms": 105.6
+  },
+  "restaurant/operations": {
+   "queries": 17,
+   "ms": 49
+  },
+  "restaurant/reviews": {
+   "queries": 5,
+   "ms": 13.8
+  },
+  "restaurant/routes": {
+   "queries": 5,
+   "ms": 18.8
+  }
+ },
+ "explain_analyze": {
+  "daily_market_sums": {
+   "sql": "select currency, sum(orders_placed), sum(gmv_minor) from analytics_daily_market where market_id = 45 and local_date between '2026-08-09' and '2026-10-07' group by currency",
+   "plan": "HashAggregate (actual time=0.076..0.076 rows=1.00 loops=1)\n  Group Key: currency\n  Batches: 1  Memory Usage: 32kB\n  Buffers: shared hit=4\n  ->  Seq Scan on analytics_daily_market (actual time=0.029..0.038 rows=60.00 loops=1)\n        Filter: ((local_date >= '2026-08-09'::date) AND (local_date <= '2026-10-07'::date) AND (market_id = 45))\n        Buffers: shared hit=4\nPlanning:\n  Buffers: shared hit=37\nPlanning Time: 2.344 ms\nExecution Time: 0.116 ms"
+  },
+  "order_fact_percentiles": {
+   "sql": "select percentile_cont(0.5) within group (order by accept_seconds), percentile_cont(0.9) within group (order by prep_seconds) from analytics_order_facts where market_id = 45 and placed_at >= '2026-09-07 18:30+00' and placed_at < '2026-10-07 18:30+00'",
+   "plan": "Aggregate (actual time=1.738..1.738 rows=1.00 loops=1)\n  Buffers: shared hit=233\n  ->  Seq Scan on analytics_order_facts (actual time=0.263..1.109 rows=1501.00 loops=1)\n        Filter: ((placed_at >= '2026-09-07 18:30:00+00'::timestamp with time zone) AND (placed_at < '2026-10-07 18:30:00+00'::timestamp with time zone) AND (market_id = 45))\n        Rows Removed by Filter: 1500\n        Buffers: shared hit=233\nPlanning:\n  Buffers: shared hit=28\nPlanning Time: 0.291 ms\nExecution Time: 1.788 ms"
+  },
+  "distinct_customers": {
+   "sql": "select count(distinct customer_key) from analytics_order_facts where market_id = 45 and status = 'COMPLETED' and completed_at >= '2026-09-07 18:30+00' and completed_at < '2026-10-07 18:30+00'",
+   "plan": "Aggregate (actual time=1.314..1.315 rows=1.00 loops=1)\n  Buffers: shared hit=233\n  ->  Sort (actual time=1.180..1.220 rows=1451.00 loops=1)\n        Sort Key: customer_key\n        Sort Method: quicksort  Memory: 49kB\n        Buffers: shared hit=233\n        ->  Seq Scan on analytics_order_facts (actual time=0.222..0.858 rows=1451.00 loops=1)\n              Filter: ((completed_at >= '2026-09-07 18:30:00+00'::timestamp with time zone) AND (completed_at < '2026-10-07 18:30:00+00'::timestamp with time zone) AND (market_id = 45) AND ((status)::text = 'COMPLETED'::text))\n              Rows Removed by Filter: 1550\n              Buffers: shared hit=233\nPlanning:\n  Buffers: shared hit=30\nPlanning Time: 0.203 ms\nExecution Time: 1.335 ms"
+  },
+  "restaurant_table": {
+   "sql": "select location_id, sum(orders_placed), sum(completed_total_minor) from analytics_daily_restaurant where market_id = 45 and local_date between '2026-08-09' and '2026-10-07' group by location_id",
+   "plan": "HashAggregate (actual time=0.061..0.062 rows=5.00 loops=1)\n  Group Key: location_id\n  Batches: 1  Memory Usage: 32kB\n  Buffers: shared hit=12\n  ->  Seq Scan on analytics_daily_restaurant (actual time=0.022..0.036 rows=61.00 loops=1)\n        Filter: ((local_date >= '2026-08-09'::date) AND (local_date <= '2026-10-07'::date) AND (market_id = 45))\n        Buffers: shared hit=12\nPlanning:\n  Buffers: shared hit=60\nPlanning Time: 0.192 ms\nExecution Time: 0.083 ms"
+  },
+  "funnel_stages": {
+   "sql": "select stage, sum(sessions) from analytics_daily_funnel where market_id = 45 and local_date between '2026-08-09' and '2026-10-07' group by stage",
+   "plan": "HashAggregate (actual time=0.236..0.238 rows=11.00 loops=1)\n  Group Key: stage\n  Batches: 1  Memory Usage: 32kB\n  Buffers: shared hit=21\n  ->  Seq Scan on analytics_daily_funnel (actual time=0.060..0.141 rows=660.00 loops=1)\n        Filter: ((local_date >= '2026-08-09'::date) AND (local_date <= '2026-10-07'::date) AND (market_id = 45))\n        Buffers: shared hit=21\nPlanning:\n  Buffers: shared hit=35\nPlanning Time: 0.184 ms\nExecution Time: 0.270 ms"
+  },
+  "session_events": {
+   "sql": "select session_id, event_name, occurred_at from analytics_events where source = 'CLIENT' and session_id = md5('17')::uuid order by occurred_at",
+   "plan": "Sort (actual time=0.018..0.019 rows=2.00 loops=1)\n  Sort Key: occurred_at\n  Sort Method: quicksort  Memory: 25kB\n  Buffers: shared hit=3\n  ->  Bitmap Heap Scan on analytics_events (actual time=0.013..0.013 rows=2.00 loops=1)\n        Recheck Cond: (session_id = '70efdf2e-c9b0-8607-9795-c442636b55fb'::uuid)\n        Filter: ((source)::text = 'CLIENT'::text)\n        Heap Blocks: exact=1\n        Buffers: shared hit=3\n        ->  Bitmap Index Scan on analytics_events_session_id_occurred_at_index (actual time=0.004..0.004 rows=2.00 loops=1)\n              Index Cond: (session_id = '70efdf2e-c9b0-8607-9795-c442636b55fb'::uuid)\n              Index Searches: 1\n              Buffers: shared hit=2\nPlanning:\n  Buffers: shared hit=47\nPlanning Time: 0.220 ms\nExecution Time: 0.030 ms"
+  },
+  "events_of_a_restaurant": {
+   "sql": "select count(*) from analytics_events where location_id = 46 and event_name = 'menu_viewed' and occurred_at >= '2026-09-07 18:30+00' and occurred_at < '2026-10-07 18:30+00'",
+   "plan": "Aggregate (actual time=0.196..0.196 rows=1.00 loops=1)\n  Buffers: shared hit=150\n  ->  Bitmap Heap Scan on analytics_events (actual time=0.050..0.184 rows=200.00 loops=1)\n        Recheck Cond: ((location_id = 46) AND ((event_name)::text = 'menu_viewed'::text) AND (occurred_at >= '2026-09-07 18:30:00+00'::timestamp with time zone) AND (occurred_at < '2026-10-07 18:30:00+00'::timestamp with time zone))\n        Heap Blocks: exact=147\n        Buffers: shared hit=150\n        ->  Bitmap Index Scan on analytics_events_location_id_event_name_occurred_at_index (actual time=0.029..0.029 rows=200.00 loops=1)\n              Index Cond: ((location_id = 46) AND ((event_name)::text = 'menu_viewed'::text) AND (occurred_at >= '2026-09-07 18:30:00+00'::timestamp with time zone) AND (occurred_at < '2026-10-07 18:30:00+00'::timestamp with time zone))\n              Index Searches: 1\n              Buffers: shared hit=3\nPlanning:\n  Buffers: shared hit=56\nPlanning Time: 0.244 ms\nExecution Time: 0.215 ms"
+  },
+  "source_orders_changed_since": {
+   "sql": "select id from orders where updated_at >= '2026-10-07 06:00+00'",
+   "plan": "Bitmap Heap Scan on orders (actual time=0.074..0.112 rows=43.00 loops=1)\n  Recheck Cond: (updated_at >= '2026-10-07 06:00:00+00'::timestamp with time zone)\n  Heap Blocks: exact=88\n  Buffers: shared hit=91\n  ->  Bitmap Index Scan on orders_analytics_updated_at_index (actual time=0.015..0.015 rows=235.00 loops=1)\n        Index Cond: (updated_at >= '2026-10-07 06:00:00+00'::timestamp with time zone)\n        Index Searches: 1\n        Buffers: shared hit=3\nPlanning:\n  Buffers: shared hit=41\nPlanning Time: 0.212 ms\nExecution Time: 0.123 ms"
+  }
+ }
+}

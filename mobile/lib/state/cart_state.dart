@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics.dart';
 import '../auth/auth_repository.dart' show SecureKeyValueStore;
 import '../cart/api_cart.dart';
 import '../cart/cart_models.dart';
@@ -164,6 +165,7 @@ class CartState extends ChangeNotifier {
       try {
         final a = await backend!.add(restaurant, _request(input), version: _version, journey: await _journey());
         _accept(a.cart);
+        Analytics.itemAddedToCart(restaurant, itemId: input.menuItemId, quantity: input.quantity); // Module 38: the backend accepted the add
         return AddResult.ok(a.cart?.items.where((i) => i.id == a.lineId).firstOrNull, merged: a.merged);
       } catch (e) {
         final err = toCartException(e);
@@ -199,6 +201,7 @@ class CartState extends ChangeNotifier {
       try {
         final a = await backend!.switchRestaurant(restaurant, _request(pending.input), version: _version, journey: await _journey());
         _accept(a.cart);
+        Analytics.itemAddedToCart(restaurant, itemId: pending.input.menuItemId, quantity: pending.input.quantity); // Module 38: the confirmed switch put this item into the new cart
         return AddResult.ok(a.cart?.items.where((i) => i.id == a.lineId).firstOrNull, merged: a.merged);
       } catch (e) { final err = _fail(e); await _recover(err); return AddResult.fail(_failure(err.code), message: err.message); }
     });

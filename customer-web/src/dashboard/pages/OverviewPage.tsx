@@ -9,9 +9,19 @@ import { BarChart } from '../components/Charts'
 import { Card, Delta, ErrorState, Icon, KpiCard, Skeleton, StatusBadge, EmptyState, Thumb } from '../components/ui'
 import type { OverviewSnapshot } from '../types'
 import { OrderActions } from './OrdersPage'
+import { BackendOverview } from './analytics/BackendOverview'
 
-/** Overview (Module 17): KPI cards, revenue summary chart, prep time / rating / unavailable items, recent orders, top items. */
+/**
+ * Overview. With the backend (Module 38) the home shows today's real figures of the location chosen in the header —
+ * `analytics/BackendOverview`. Without it the development sample below stays, under the "demo data" banner.
+ */
 export default function OverviewPage() {
+  const d = useDashboard(); const repo = d.repos.reports
+  return repo ? <BackendOverview repo={repo} /> : <DevelopmentOverviewPage />
+}
+
+/** Overview (Module 17, development sample): KPI cards, revenue summary chart, prep time / rating / unavailable items, recent orders, top items. */
+function DevelopmentOverviewPage() {
   const d = useDashboard(); const loc = d.location!; const rid = loc.restaurant.id; const locale = d.locale
   const [snap, setSnap] = useState<OverviewSnapshot | null>(null); const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
   const load = useCallback(async () => { setState('loading'); try { setSnap(await d.repos.analytics.overview(rid)); setState('ready') } catch { setState('error') } }, [d.repos, rid])

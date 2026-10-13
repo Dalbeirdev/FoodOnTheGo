@@ -43,3 +43,10 @@ Schedule::command('finance:generate-settlements')->dailyAt('04:30')->withoutOver
 // Module 37 — support cases: the system cases a listener missed, SLA states, and the auto-close rules (off until the
 // business sets the days). Idempotent; it changes no order, payment, refund or money.
 Schedule::command('support:sweep')->everyMinute()->withoutOverlapping();
+
+// Module 38 — analytics: the read models (what changed since the last run + the most recent days), the integrity
+// checks, and retention. Every one of them reads the source domains and writes only analytics tables; none changes
+// an order, a payment, a refund or the ledger.
+Schedule::command('analytics:aggregate')->everyFiveMinutes()->withoutOverlapping()->when(fn (): bool => (bool) config('analytics.aggregation.scheduled'));
+Schedule::command('analytics:check')->hourly()->withoutOverlapping()->when(fn (): bool => (bool) config('analytics.quality.scheduled'));
+Schedule::command('analytics:prune')->daily()->withoutOverlapping();

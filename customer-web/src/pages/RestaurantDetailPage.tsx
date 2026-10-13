@@ -19,6 +19,7 @@ import { mapProvider } from '../map/MapProvider'
 import RestaurantReviews from '../review/RestaurantReviews'
 import { reviewRepositories, reviewsAreLive } from '../review/reviewRepositories'
 import type { RestaurantReviewSummary } from '../review/repositories'
+import { restaurantRef, track } from '../analytics'
 import './RestaurantDetailPage.css'
 
 type P = { size?: number }
@@ -143,6 +144,12 @@ export default function RestaurantDetailPage() {
   }, [debounced, dietary, availableOnly])
   useEffect(() => { if (r) void loadMenu(r.id, true) }, [r]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (r && cats.status === 'ready') void loadMenu(r.id, false) }, [debounced, dietary, availableOnly]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Module 38 (telemetry — never awaited, never shown, once per restaurant per session): the restaurant's details are on
+  // the screen; its menu has loaded and is the tab being shown.
+  const viewed = r ? { restaurant: restaurantRef(r), journey: journey?.backend ? journey.id : undefined } : null
+  useEffect(() => { if (viewed) track('restaurant_viewed', viewed, { origin: journey ? 'JOURNEY' : location.key === 'default' ? 'DIRECT' : 'BROWSE' }, `restaurant_viewed:${viewed.restaurant}`) }, [r]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (viewed && tab === 'menu' && cats.status === 'ready') track('menu_viewed', viewed, undefined, `menu_viewed:${viewed.restaurant}`) }, [cats, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const categories = cats.data ?? []
   const byCat = useMemo(() => { const m = new Map<string, MenuItem[]>(); for (const i of items) { const a = m.get(i.categoryId) ?? []; a.push(i); m.set(i.categoryId, a) } return m }, [items])

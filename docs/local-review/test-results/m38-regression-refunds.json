@@ -1,0 +1,275 @@
+{
+  "module": "M35",
+  "suite": "Module 35 — Customer Web + Restaurant Dashboard + Platform Admin on the real local backend (refunds, approval, provider submission, refund webhooks, reconciliation, partial refunds, cancellation, disputes) with two API processes for the concurrency step and the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — NO MONEY MOVES; Razorpay refunds are NOT exercised (no credentials on this machine: PENDING PROVIDER VERIFICATION); customer cancellation is exercised as DISABLED (its enabled paths are covered by the backend tests)",
+  "ran_at": "2026-10-13T12:52:56.191Z",
+  "passed": 53,
+  "failed": 0,
+  "total": 53,
+  "results": [
+    {
+      "name": "A1 A PAID ORDER REJECTED BY THE RESTAURANT GETS EXACTLY ONE REFUND RECORD, REQUIRED for the whole payment (reason RESTAURANT_REJECTED, policy MANUAL_REVIEW — no auto-refund policy is approved), the amount is held on the payment (paid / held / refunded = T / T / 0) and nothing else changed: the order is REJECTED / PAID / refund REQUIRED and the payment is still VERIFIED",
+      "pass": true,
+      "detail": "{\"row\":{\"status\":\"REJECTED\",\"paymentState\":\"PAID\",\"refund\":\"REQUIRED\",\"total\":42700,\"currency\":\"INR\",\"payment\":\"b36e2743-64c4-4f03-a450-a174364fb525\",\"checkout\":\"b6ea95cc-2399-4230-a031-305b9df5be91\",\"version\":2,\"reason\":\"ITEM_UNAVAILABLE\",\"items\":3,\"reserved\":true},\"refunds\":[{\"id\":\"7d07ef13-53f1-4a8a-83bd-2777fc347970\",\"status\":\"REQUIRED\",\"type\":\"FULL\",\"amount\":42700,\"approved\":null,\"reason\":\"RE"
+    },
+    {
+      "name": "A2 THE CUSTOMER'S ORDER SAYS SO IN ITS OWN WORDS (GET /customer/orders/{number}): refund_status REQUIRED, refund { refunded 0, pending T, one item REQUIRED with an RFD- reference and a reason label }, no provider name, no receipt, no internal id; cancellation of this order is not offered",
+      "pass": true,
+      "detail": "{\"status\":\"REQUIRED\",\"paid\":{\"amount\":42700,\"currency\":\"INR\"},\"refunded\":{\"amount\":0,\"currency\":\"INR\"},\"pending\":{\"amount\":42700,\"currency\":\"INR\"},\"items\":[{\"id\":\"7d07ef13-53f1-4a8a-83bd-2777fc347970\",\"reference\":\"RFD-7D07EF1353\",\"type\":\"FULL\",\"amount\":{\"amount\":42700,\"currency\":\"INR\"},\"status\":\"REQUIRED\",\"reason\":{\"code\":\"RESTAURANT_REJECTED\",\"label\":\"The restaurant could not "
+    },
+    {
+      "name": "A3 ORDER DETAILS (Customer Web) shows the refund as DUE: status \"Refund due\", refunded so far ₹0.00, still to be refunded = the total, the RFD- reference — and never \"Refunded\", \"payment failed\" or a number of days",
+      "pass": true,
+      "detail": "ORDER DETAILS Burger Hub FOTG-20261013-D2ZRJR · placed Tue, 13 Oct · 6:18 pm IST Rejected Refund pending The restaurant could not accept this order. Reason: an item is unavailable. Reorder View receip"
+    },
+    {
+      "name": "axe (order details with a refund): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 TRACKING (Customer Web) says what happens to the money under the rejected status (\"A refund is due for this order…\"), shows the same refund, and offers no cancel action",
+      "pass": true,
+      "detail": "LIVE ORDER TRACKING Order could not be accepted Burger Hub was unable to accept this order. Nothing further will be prepared. If you were charged, the refund st"
+    },
+    {
+      "name": "A5 THE RESTAURANT DASHBOARD shows the refund state of its rejected order — \"Refund required — FoodOnTheGo is arranging it\", the amount, refunded so far ₹0.00 — as information only: no refund button, no refund id, no provider reference",
+      "pass": true,
+      "detail": "Orders Accept, prepare and hand over pickup orders for this location. Pickup Verification Live: new orders and changes appear as they happen New 0 Preparing 0 Ready 0 Completed 0 Cancelled 0 Search or"
+    },
+    {
+      "name": "A6 NEITHER THE RESTAURANT NOR THE CUSTOMER CAN ACT ON A REFUND: their tokens are refused on the admin refund routes (401), and the restaurant's own order answer carries the state and the amounts with controls NOT_PROVIDED — no refund id",
+      "pass": true,
+      "detail": "{\"restaurant\":401,\"customer\":401,\"read\":401,\"refund\":{\"status\":\"REQUIRED\",\"amount\":{\"amount\":42700,\"currency\":\"INR\"},\"refunded\":{\"amount\":0,\"currency\":\"INR\"},\"controls\":\"NOT_PROVIDED\"}}"
+    },
+    {
+      "name": "A7 THE CUSTOMER IS TOLD ONCE THAT A REFUND IS DUE (Module 33 notification refund.pending) — not that it was made",
+      "pass": true,
+      "detail": "refund.pending"
+    },
+    {
+      "name": "B1 REFUND MANAGEMENT (Platform Admin, backend data) opens the refund: status Required, the amount and currency, what the payment can still give back (paid T, held T, refundable ₹0.00), nothing sent to the provider yet, and the actions Approve / Turn down — there is NO \"mark refunded\" control, and the page says why",
+      "pass": true,
+      "detail": "STATUS Required REQUESTED ₹427.00 (INR) · Full APPROVED AMOUNT Not approved yet REASON Restaurant rejected the order · ITEM_UNAVAILABLE ASKED BY Restaurant (by rejecting the order) · 13 Oct, 06:18 pm REFUND POLICY A pers"
+    },
+    {
+      "name": "B2 APPROVING (through the page) approves the amount that was asked for and sends nothing: status APPROVED, approved amount = T, by the administrator, generation still 0, no provider receipt — and for the customer and on the order the refund is still DUE (REQUIRED), not \"processing\"",
+      "pass": true,
+      "detail": "{\"status\":200,\"row\":{\"status\":\"APPROVED\",\"version\":2,\"generation\":0,\"receipt\":\"\",\"providerRefund\":\"\",\"providerStatus\":\"\",\"failure\":\"\",\"review\":\"\",\"submits\":0,\"completed\":false},\"customer\":[\"REQUIRED\",\"REQUIRED\"],\"order\":\"REQUIRED\"}"
+    },
+    {
+      "name": "B3 SENDING (through the page) hands the refund to the provider ONCE: a queued submission with the receipt rf-{refund}-1 as its idempotency key, the provider answers \"pending\" → PROCESSING (not refunded): order refund PROCESSING, customer item PROCESSING, refunded still 0, the amount still held",
+      "pass": true,
+      "detail": "{\"ex\":200,\"row\":{\"status\":\"PROCESSING\",\"version\":4,\"generation\":1,\"receipt\":\"rf-7d07ef1353f14a8a83bd2777fc347970-1\",\"providerRefund\":\"fakerfnd_sprck0kkacwtge\",\"providerStatus\":\"pending\",\"failure\":\"\",\"review\":\"\",\"submits\":1,\"completed\":false},\"order\":\"PROCESSING\"}"
+    },
+    {
+      "name": "B4 ORDER DETAILS now reads \"Processing\" — on its way, not completed; refunded so far is still ₹0.00",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B5 SENDING OR APPROVING AGAIN CHANGES NOTHING: both are answered with the refund as it is (PROCESSING, the same version) — a double click or a second administrator cannot make a second provider refund: still exactly one request, generation 1, the amount held once",
+      "pass": true,
+      "detail": "{\"execute\":200,\"approve\":200,\"versions\":[4,4],\"creates\":1,\"balance\":\"42700/42700/0/0\"}"
+    },
+    {
+      "name": "B6 THE PROVIDER'S SIGNED WEBHOOK (refund.processed, through the same verification as a real one) COMPLETES IT: refund REFUNDED, order refund REFUNDED while the order stays REJECTED and the payment stays VERIFIED; paid / held / refunded = T / 0 / T; the customer's answer says refunded T, pending 0, completed_at set; no money moved (development provider)",
+      "pass": true,
+      "detail": "{\"sim\":200,\"done\":\"REFUNDED\",\"row\":{\"status\":\"REJECTED\",\"paymentState\":\"PAID\",\"refund\":\"REFUNDED\",\"total\":42700,\"currency\":\"INR\",\"payment\":\"b36e2743-64c4-4f03-a450-a174364fb525\",\"checkout\":\"b6ea95cc-2399-4230-a031-305b9df5be91\",\"version\":4,\"reason\":\"ITEM_UNAVAILABLE\",\"items\":3,\"reserved\":true},\"balance\":\"42700/0/42700/0\"}"
+    },
+    {
+      "name": "B7 THE OPEN ORDER DETAILS PAGE FOLLOWED IT WITHOUT A RELOAD: \"Refunded\", refunded so far = the total, nothing still to be refunded",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B8 THE SAME WEBHOOK AGAIN (a second delivery with a new event id, then one with the SAME event id — answered DUPLICATE) CHANGES NOTHING: the refund is still REFUNDED, completed once (one \"refunded\" event; the repeat is only noted), and the balance is unchanged",
+      "pass": true,
+      "detail": "{\"before\":\"required,policy_manual_review,approved,submitting,processing,webhook_refund_processed,refunded\",\"after\":\"required,policy_manual_review,approved,submitting,processing,webhook_refund_processed,refunded,webhook_refund_processed\",\"results\":\"\\\"ACCEPTED\\\" \\\"DUPLICATE\\\"\"}"
+    },
+    {
+      "name": "B9 A COMPLETED REFUND IS FINAL AND NOTHING SETS A STATUS BY HAND: no mark-refunded route (404), no PATCH / PUT on a refund (404 / 405), turning it down or retrying it is refused (409); the detail offers no action at all",
+      "pass": true,
+      "detail": "{\"tries\":[404,405,405,409,409],\"actions\":{\"approve\":false,\"reject\":false,\"execute\":false,\"retry\":false,\"reconcile\":false,\"mark_refunded\":\"NOT_PROVIDED\"}}"
+    },
+    {
+      "name": "B10 REFUND MANAGEMENT shows the whole story of the refund: Refunded, the provider's payment and refund references, the one request that was sent, the events, the verified webhooks, the approval by name and the audit trail of the actions taken — and no action is left",
+      "pass": true,
+      "detail": "{\"status\":\"REFUNDED\",\"attempts\":true,\"events\":true,\"webhooks\":true,\"audit\":2,\"refs\":\"fakepay_zmgjkmnssanksz / fakerfnd_sprck0kkacwtge\",\"noMark\":true}"
+    },
+    {
+      "name": "axe (admin refund detail): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B11 THE RESTAURANT DASHBOARD now reads \"Refunded to the customer\" with the refunded amount",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B12 THE CUSTOMER HEARD ABOUT EACH REAL STEP ONCE: refund.pending, refund.initiated (when it was sent), refund.completed (only on the provider's word) — the duplicate webhooks added nothing",
+      "pass": true,
+      "detail": "refund.pending,refund.initiated,refund.completed"
+    },
+    {
+      "name": "C1 NOTHING IS LEFT TO REFUND ON THE FULLY REFUNDED ORDER: a new request is refused (409) and no refund record is added",
+      "pass": true,
+      "detail": "409 refund_already_completed"
+    },
+    {
+      "name": "C2 A PARTIAL REFUND IS ASKED FOR FROM THE ORDER (Platform Admin): the dialog shows what is still refundable (the whole payment), the request carries the amount in minor units (10000), a reason and a note — and it only ASKS: status REQUESTED by ADMIN, ₹100.00 held, nothing sent; the page moves to the refund",
+      "pass": true,
+      "detail": "{\"status\":201,\"refund\":[\"REQUESTED\",\"PARTIAL\",{\"amount\":10000,\"currency\":\"INR\"}],\"body\":{\"type\":\"PARTIAL\",\"reason_code\":\"ITEM_UNAVAILABLE\",\"amount_minor\":10000,\"note\":\"One item was missing at pickup\"},\"balance\":\"42700/10000/0/0\",\"url\":\"/admin/refunds?open=d1e10dbd-c257-49a0-9862-7bbd0d675d49\",\"noRefunds\":true,\"available\":\"Still refundable: ₹427.00 (INR). The backend checks this again when the requ"
+    },
+    {
+      "name": "C3 THE AMOUNT IS THE SERVER'S TO ACCEPT: one paisa more than is left is refused (409 refund_amount_exceeds_available); zero, a negative amount, a fraction, another currency, an amount on a FULL refund and the reason OTHER without a note are refused (422) — and the balance did not move",
+      "pass": true,
+      "detail": "{\"tooMuch\":\"409 refund_amount_exceeds_available\",\"zero\":422,\"negative\":422,\"fraction\":422,\"usd\":\"422 refund_currency_mismatch\",\"fullWithAmount\":422,\"noNote\":422}"
+    },
+    {
+      "name": "C4 TWO ADMINISTRATORS ASK FOR THE LAST OF THE BALANCE AT THE SAME MOMENT (two API processes): exactly one request is accepted (201), the other is refused (409) — held never exceeds paid",
+      "pass": true,
+      "detail": "{\"statuses\":[201,409],\"balance\":\"42700/42700/0/0\"}"
+    },
+    {
+      "name": "C5 TURNING A REQUEST DOWN NEEDS A REASON (422 without) AND FREES ITS AMOUNT: the second request is CANCELLED, the held amount is back to ₹100.00, and a closed request cannot be approved (409)",
+      "pass": true,
+      "detail": "{\"down\":200,\"noReason\":422,\"balance\":\"42700/10000/0/0\"}"
+    },
+    {
+      "name": "C6 EVERY REFUND ACTION HAS ITS OWN PERMISSION AND A VERSION: a stale version is refused (409 refund_version_conflict); support and operations may READ a refund but not ask, approve or drive the development simulator (403); an administrator without the refund permission cannot even list them (403) — the refund is untouched",
+      "pass": true,
+      "detail": "{\"stale\":409,\"lea\":403,\"nina\":403,\"ask\":403,\"read\":200,\"tom\":403,\"sim\":403,\"actions\":{\"approve\":false,\"reject\":false,\"execute\":false,\"retry\":false,\"reconcile\":false,\"mark_refunded\":\"NOT_PROVIDED\"}}"
+    },
+    {
+      "name": "C7 THE PARTIAL REFUND IS APPROVED, SENT AND COMPLETED BY THE PROVIDER'S ANSWER: order refund PARTIALLY_REFUNDED on a COMPLETED order, paid / held / refunded = T / 0 / 10000, the customer sees one PARTIAL refund REFUNDED for ₹100.00 — and the order's prices, tax lines and item count are exactly as they were",
+      "pass": true,
+      "detail": "{\"ap\":200,\"ex\":200,\"done\":\"REFUNDED\",\"order\":\"PARTIALLY_REFUNDED\",\"balance\":\"42700/0/10000/0\",\"customerItems\":1}"
+    },
+    {
+      "name": "C8 ORDER DETAILS of the completed order: payment status \"Partially refunded\", refunded so far ₹100.00, the refund marked as part of the payment",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C9 A \"FULL\" REFUND AFTER A PARTIAL ONE IS EVERYTHING THAT IS LEFT — the server derives it: T − 10000, never the whole payment again",
+      "pass": true,
+      "detail": "{\"status\":201,\"amount\":{\"amount\":32700,\"currency\":\"INR\"},\"balance\":\"42700/32700/10000/0\"}"
+    },
+    {
+      "name": "D1 THE PROVIDER CREATED THE REFUND BUT ITS ANSWER NEVER ARRIVED: the refund is SUBMISSION_UNKNOWN (never \"failed\", never sent again blindly), its amount stays held, the customer still reads \"Processing\"",
+      "pass": true,
+      "detail": "{\"unknown\":\"SUBMISSION_UNKNOWN\",\"row\":{\"status\":\"SUBMISSION_UNKNOWN\",\"version\":4,\"generation\":1,\"receipt\":\"rf-f14b8a444c8b4a1ba766a38748aaa412-1\",\"providerRefund\":\"\",\"providerStatus\":\"\",\"failure\":\"\",\"review\":\"\",\"submits\":1,\"completed\":false},\"customer\":\"PROCESSING\",\"order\":\"PROCESSING\"}"
+    },
+    {
+      "name": "D2 ASKING THE PROVIDER (Reconcile, through the page, with a reason) FINDS THE REFUND BY OUR RECEIPT AND ADOPTS IT: PROCESSING with the provider's refund reference — and NO second refund was requested (one CREATE, generation 1)",
+      "pass": true,
+      "detail": "{\"attention\":\"This refund was sent and no answer came back: the provider may or may not have c\",\"rec\":200,\"status\":\"PROCESSING\",\"found\":\"PROCESSING\",\"row\":{\"status\":\"PROCESSING\",\"version\":5,\"generation\":1,\"receipt\":\"rf-f14b8a444c8b4a1ba766a38748aaa412-1\",\"providerRefund\":\"fakerfnd_kzrohuqjctpca4\",\"providerStatus\":\"pending\",\"failure\":\"\",\"review\":\"\",\"submits\":1,\"completed\":false}}"
+    },
+    {
+      "name": "D3 THE PROVIDER FAILS THE REFUND (refund.failed, followed by a late refund.created that must not bring it back): refund FAILED, its amount is FREE again (held 0), the order record says FAILED — and the answer the customer gets says UNDER_REVIEW everywhere (the word \"fail\" is not in it); the administrator sees the failure and may retry",
+      "pass": true,
+      "detail": "{\"sim\":200,\"status\":\"FAILED\",\"balance\":\"42700/0/0/0\",\"customer\":\"UNDER_REVIEW\",\"failure\":{\"category\":\"PROVIDER_FAILED\",\"code\":\"REFUND_FAILED\",\"message\":\"The payment provider could not complete this refund.\",\"retryable\":true}}"
+    },
+    {
+      "name": "D4 ORDER DETAILS of that order: \"Under review\", \"you do not need to do anything, and you will not be charged again\" — the words \"failed\" and \"payment failed\" do not appear",
+      "pass": true,
+      "detail": "ORDER DETAILS Burger Hub FOTG-20261013-UETNNN · placed Tue, 13 Oct · 6:20 pm IST Rejected Refund under review The restaurant could not accept this order. Reason"
+    },
+    {
+      "name": "D5 THE CUSTOMER WAS TOLD ONCE THAT THE REFUND NEEDS ATTENTION (refund.attention) and never that it was completed",
+      "pass": true,
+      "detail": "refund.pending,refund.initiated,refund.attention"
+    },
+    {
+      "name": "D6 A RETRY NEEDS A REASON (422 without) AND IS A NEW REFUND AT THE PROVIDER: generation 2 with the receipt …-2, the amount held again, PROCESSING — and the provider's webhook completes it: REFUNDED, paid / held / refunded = T / 0 / T, the order still REJECTED",
+      "pass": true,
+      "detail": "{\"noReason\":422,\"retried\":200,\"second\":\"PROCESSING\",\"row\":{\"status\":\"PROCESSING\",\"version\":9,\"generation\":2,\"receipt\":\"rf-f14b8a444c8b4a1ba766a38748aaa412-2\",\"providerRefund\":\"fakerfnd_zrfrur7cmtny6p\",\"providerStatus\":\"pending\",\"failure\":\"\",\"review\":\"\",\"submits\":1,\"completed\":false},\"done\":\"REFUNDED\",\"balance\":\"42700/0/42700/0\"}"
+    },
+    {
+      "name": "E1 CUSTOMER CANCELLATION IS DISABLED — PENDING POLICY APPROVAL: the quote says enabled false / can_cancel false / CUSTOMER_CANCELLATION_DISABLED / PENDING_BUSINESS_APPROVAL with no financial effect and no amount; a cancel request is refused (409 order_cancellation_not_allowed); one that names an amount or a status is refused as invalid (422); the order is untouched and no refund exists",
+      "pass": true,
+      "detail": "{\"quote\":{\"enabled\":false,\"policy_status\":\"PENDING_BUSINESS_APPROVAL\",\"policy_version\":\"unapproved-draft\",\"can_cancel\":false,\"reason\":\"CUSTOMER_CANCELLATION_DISABLED\",\"message\":\"Orders cannot be cancelled in the app yet. Please contact FoodOnTheGo support.\",\"financial_effect\":null,\"refundable_amount\":null,\"reasons\":[],\"order\":{\"id\":\"79e4822c-9d5b-49e3-a072-226c9b905e2d\",\"order_"
+    },
+    {
+      "name": "E2 TRACKING of the waiting order offers no cancel button and says plainly that orders cannot be cancelled in the app yet (no \"POLICY / BACKEND PENDING\" development text)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 ANOTHER CUSTOMER SEES NOTHING OF IT: the order with its refund, the cancellation quote and the cancel action all answer 404 for Asha",
+      "pass": true,
+      "detail": "[404,404,404]"
+    },
+    {
+      "name": "E4 AN ADMINISTRATOR WHO MAY CANCEL ORDERS CANCELS THE PAID ORDER WITH A REASON (support may not: 403): the order is CANCELLED with who and why, exactly one refund is REQUIRED for the whole payment (reason RESTAURANT_CANCELLATION) — owed, not made; the customer reads who cancelled and that a refund is due",
+      "pass": true,
+      "detail": "{\"lea\":403,\"cancel\":200,\"refunds\":[{\"id\":\"327f322e-b073-4ea7-bdd9-c00e82ddcd1e\",\"status\":\"REQUIRED\",\"type\":\"FULL\",\"amount\":42700,\"approved\":null,\"reason\":\"RESTAURANT_CANCELLATION\",\"by\":\"ADMIN\",\"policy\":\"MANUAL_REVIEW\",\"generation\":0,\"receipt\":\"\",\"version\":1}],\"cancellation\":{\"by\":\"FOODONTHEGO\",\"message\":\"This order was cancelled. A refund is due — its status is shown with this "
+    },
+    {
+      "name": "E5 TRACKING of the cancelled order shows the backend's sentence about the cancellation and \"A refund is due for this order\" — cancelled is not refunded",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F1 A DISPUTE OPENED AT THE PROVIDER (a signed payment.dispute.created event) IS RECORDED — status OPEN, the disputed amount — and it is NOT a refund: the order's refund is untouched; while it is open no refund of that payment is approved or asked for (409 refund_dispute_conflict); finance can list disputes, an administrator without the permission cannot (403)",
+      "pass": true,
+      "detail": "{\"opened\":200,\"row\":\"OPEN|42700|0|INR\",\"approve\":\"409 refund_dispute_conflict\",\"ask\":409,\"list\":200,\"forbidden\":403}"
+    },
+    {
+      "name": "F2 THE DISPUTES VIEW (Platform Admin) lists it read-only: the dispute, its status Open, the order — and no action to accept, contest or refund it",
+      "pass": true,
+      "detail": "Refund Management The refund records of the backend: what is owed, what waits for approval, what is with the payment provider and what the provider confirmed. A refund is \"refunded\" only on the provid"
+    },
+    {
+      "name": "F3 THE REFUND OF THAT PAYMENT warns that a dispute is open (the same money could go back twice)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F4 WHEN THE PROVIDER REPORTS THE DISPUTE WON it is closed in our record (WON, nothing taken back) and the refund can go on: approving now succeeds",
+      "pass": true,
+      "detail": "{\"won\":200,\"row\":\"WON|42700|0|INR\",\"approve\":200}"
+    },
+    {
+      "name": "G1 THE QUEUES AND THE SEARCH WORK ON SAFE REFERENCES: the queue counts come from the backend, a refund is found by its order number and by its RFD- reference; the system view of the refund pipeline is for those who may see the system (403 otherwise) and names Razorpay as not verified here",
+      "pass": true,
+      "detail": "{\"queues\":{\"required\":0,\"awaiting_approval\":0,\"approved\":1,\"processing\":0,\"failed\":0,\"review_required\":0,\"completed\":3,\"cancelled\":2},\"list\":1,\"byRef\":1,\"metrics\":200,\"lea\":403}"
+    },
+    {
+      "name": "G2 AT 390 px Order Details with its refund does not scroll sideways",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "G3 THE BACKEND LOG OF THIS RUN carries no customer token, no administrator token, no pickup code and no webhook secret",
+      "pass": true,
+      "detail": "65836 bytes"
+    },
+    {
+      "name": "G4 MEASURED on this machine (PHP built-in server, no OPcache, one queue worker): from \"send\" to PROCESSING 2084 ms (queue + provider call); from the provider's webhook to REFUNDED 885 ms; the admin list 351 ms; the admin detail 355 ms (measurements, not targets)",
+      "pass": true,
+      "detail": "{\"submit_to_processing\":{\"n\":1,\"median_ms\":2084,\"max_ms\":2084},\"webhook_to_refunded\":{\"n\":1,\"median_ms\":885,\"max_ms\":885},\"admin_list\":{\"n\":1,\"median_ms\":351,\"max_ms\":351},\"admin_detail\":{\"n\":1,\"median_ms\":355,\"max_ms\":355}}"
+    },
+    {
+      "name": "G5 THE SAVED API SAMPLES carry no phone number, no token, no pickup code and no secret",
+      "pass": true,
+      "detail": "9090 bytes"
+    },
+    {
+      "name": "G6 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z0 CLEAN-UP OF THE REFUNDS: every refund, attempt, event, payment balance and dispute of this run is removed from the local database",
+      "pass": true,
+      "detail": "{\"refunds\":0,\"balances\":0,\"disputes\":0}"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

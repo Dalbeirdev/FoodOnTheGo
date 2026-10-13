@@ -3,9 +3,11 @@ import { t } from '../../i18n/strings'
 import { BarChart, DonutChart, LineChart, RatingBars } from '../../dashboard/components/Charts'
 import { Card, ErrorState, Field, KpiCard, Skeleton, Toggle, ToastLine, useToastMessage } from '../../dashboard/components/ui'
 import { authMode } from '../../auth/authMode'
-import { useAdmin } from '../AdminContext'
+import { adminBackendSections, useAdmin } from '../AdminContext'
 import { Badge, DevNote, Select, Stat, useUrlState } from '../components/DataTable'
 import type { AnalyticsQuery } from '../types'
+import { AnalyticsMetricsCard } from './AnalyticsMetricsCard'
+import { BackendAnalyticsPage } from './BackendAnalyticsPage'
 import { CartMetricsCard } from './CartMetricsCard'
 import { PickupMetricsCard } from './PickupMetricsCard'
 import { CheckoutMetricsCard } from './CheckoutMetricsCard'
@@ -18,8 +20,15 @@ import { ProviderHealthCard } from './ProviderHealthCard'
 import { MarketScopeChip, KNOWN_MARKET_CODES, Stars, StatusPill, fmtDateTime, marketOptions, money, pct, useLoad, usePageTitle } from './shared'
 
 /* ------------------------------------------------------------------ Analytics */
+/**
+ * Analytics: with the backend (Module 38) the reports of /admin/analytics/*; otherwise the development page below
+ * (unit tests and share builds), which keeps its fixtures.
+ */
+export function AnalyticsPage() { return adminBackendSections().includes('analytics') ? <BackendAnalyticsPage /> : <DevelopmentAnalyticsPage /> }
+
 const AN_DEFAULTS = { range: '7d', market: 'all', from: '', to: '' }
-export function AnalyticsPage() {
+/** Platform Analytics (Module 18, development data). */
+export function DevelopmentAnalyticsPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.analytics')
   const [s, set] = useUrlState(AN_DEFAULTS)
   const q = useMemo<AnalyticsQuery>(() => ({ range: s.range as AnalyticsQuery['range'], market: a.market === 'all' ? s.market : a.market, from: s.from || undefined, to: s.to || undefined }), [s, a.market])
@@ -83,6 +92,8 @@ export function SystemPage() {
       {real && <SupportMetricsCard locale={locale} />}
       {real && <RealtimeMetricsCard locale={locale} />}
       {real && <NotificationMetricsCard locale={locale} />}
+      {/* Module 38: the analytics read models — when they were last rebuilt, what the quality checks found, and what analytics is not. */}
+      {real && <AnalyticsMetricsCard locale={locale} />}
       {state === 'loading' && <Skeleton rows={5} />}{state === 'error' && <ErrorState title={t('adm.error.loadTitle', undefined, locale)} onRetry={() => { void reload() }} locale={locale} />}
       {state === 'ready' && sys && <>
         <Card title={t('adm.system.services', undefined, locale)}><div className="db-table-wrap" tabIndex={0}><table className="db-table" data-testid="sys-services"><caption className="db-sr-only">{t('adm.system.services', undefined, locale)}</caption><thead><tr><th scope="col">{t('adm.system.col.service', undefined, locale)}</th><th scope="col">{t('adm.system.col.kind', undefined, locale)}</th><th scope="col">{t('adm.system.col.state', undefined, locale)}</th><th scope="col" className="adm-td--end">{t('adm.system.col.latency', undefined, locale)}</th><th scope="col" className="adm-hide-mobile">{t('adm.system.col.note', undefined, locale)}</th><th scope="col" className="adm-hide-mobile">{t('adm.system.col.checked', undefined, locale)}</th></tr></thead><tbody>{services.map((x) => <tr key={x.id} data-service={x.id}><td className="adm-td--primary">{x.name}</td><td>{t(`adm.system.kind.${x.kind}`, undefined, locale)}</td><td><StatusPill status={x.state} prefix="adm.health" dot /></td><td className="adm-td--end">{x.latencyMs == null ? '—' : t('adm.system.ms', { n: x.latencyMs.toLocaleString(locale) }, locale)}</td><td className="adm-hide-mobile">{x.note ?? '—'}</td><td className="adm-hide-mobile">{fmtDateTime(x.checkedAt, locale)}</td></tr>)}</tbody></table></div></Card>

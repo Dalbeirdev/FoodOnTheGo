@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../analytics/analytics.dart';
 import '../cart/cart_validation.dart';
 import '../core/theme.dart';
 import '../discovery/discovery_repository.dart';
@@ -99,6 +100,7 @@ class _PickupTimeScreenState extends State<PickupTimeScreen> with WidgetsBinding
   Future<void> _load() async {
     final cart = context.read<CartState>().cart;
     if (cart == null) return;
+    Analytics.pickupViewed(restaurant: cart.server?.restaurantPublicId ?? cart.restaurantSlug); // Module 38: once per restaurant
     final pk = context.read<PickupState>();
     // The backend needs nothing but the cart: the restaurant, its schedule and the journey's arrival are its own.
     // (Asked after this frame: the first call comes from didChangeDependencies, where the state must not notify yet.)

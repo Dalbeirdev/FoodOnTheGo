@@ -3,6 +3,8 @@
 use App\Enums\Permission;
 use App\Enums\PrincipalType;
 use App\Http\Controllers\Api\Admin\AdminUserController;
+use App\Http\Controllers\Api\Admin\Analytics\AnalyticsController as AdminAnalyticsController;
+use App\Http\Controllers\Api\Admin\Analytics\ExportController as AdminAnalyticsExportController;
 use App\Http\Controllers\Api\Admin\AuditEventController;
 use App\Http\Controllers\Api\Admin\CartMetricsController;
 use App\Http\Controllers\Api\Admin\DisputeController as AdminDisputeController;
@@ -30,6 +32,7 @@ use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
 use App\Http\Controllers\Api\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Api\Admin\SecurityEventController;
 use App\Http\Controllers\Api\Admin\SupportCaseController as AdminSupportCaseController;
+use App\Http\Controllers\Api\AnalyticsEventController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
 use App\Http\Controllers\Api\Auth\CustomerProfileController;
 use App\Http\Controllers\Api\Auth\SessionController;
@@ -68,6 +71,7 @@ use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\PayoutWebhookController;
 use App\Http\Controllers\Api\PlaceController;
 use App\Http\Controllers\Api\PublicMenuController;
+use App\Http\Controllers\Api\Restaurant\AnalyticsController as RestaurantAnalyticsController;
 use App\Http\Controllers\Api\Restaurant\ContextController;
 use App\Http\Controllers\Api\Restaurant\FinanceController as RestaurantFinanceController;
 use App\Http\Controllers\Api\Restaurant\HoursController;
@@ -132,6 +136,8 @@ Route::pattern('ledgerTransaction', '[0-9a-fA-F-]{36}');
 Route::pattern('payoutProvider', '[a-z][a-z0-9_]{1,23}');
 // Module 37: a support case by its public id or its case number (CS-XXXXXXXX). Neither is an authorization.
 Route::pattern('supportCase', '[0-9a-fA-F-]{36}|[Cc][Ss]-[A-Za-z2-9]{8}');
+// Module 38: a report export by its public id.
+Route::pattern('reportExport', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -775,6 +781,70 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
                 Route::post('/cases/{supportCase}/annotations', [AdminSupportCaseController::class, 'annotate'])->name('cases.annotate');
                 // A shortcut to ANOTHER domain's action on a linked record: that domain's permission decides.
                 Route::post('/cases/{supportCase}/domain-actions', [AdminSupportCaseController::class, 'domainAction'])->name('cases.domain-actions');
+            });
+        });
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Module 38 — analytics, reporting and exports
+|--------------------------------------------------------------------------
+| A READ / AGGREGATION layer. The reports read the analytics read models (and, for money, the finance module's own
+| reports); the one write endpoint takes behavioural telemetry that no domain ever reads. Scope is the server's:
+| markets for an administrator, the caller's own locations for a restaurant member — a query string only chooses
+| among what the caller may already see.
+*/
+Route::prefix('v1')->name('api.v1.')->middleware(['throttle:api'])->group(function (): void {
+    // Behavioural events of the web and Android applications. Guests and signed-in customers; always answered 202.
+    Route::post('/analytics/events', [AnalyticsEventController::class, 'store'])->middleware(['customer.optional', 'throttle:analytics-ingest'])->name('analytics.events.store');
+
+    Route::prefix('restaurant/analytics')->name('restaurant.analytics.')->middleware(['auth:restaurant', 'active'])->group(function (): void {
+        Route::middleware('throttle:analytics-read')->group(function (): void {
+            Route::get('/catalog', [RestaurantAnalyticsController::class, 'catalog'])->name('catalog');
+            Route::get('/overview', [RestaurantAnalyticsController::class, 'overview'])->name('overview');
+            Route::get('/orders', [RestaurantAnalyticsController::class, 'orders'])->name('orders');
+            Route::get('/menu', [RestaurantAnalyticsController::class, 'menu'])->name('menu');
+            Route::get('/operations', [RestaurantAnalyticsController::class, 'operations'])->name('operations');
+            Route::get('/reviews', [RestaurantAnalyticsController::class, 'reviews'])->name('reviews');
+            Route::get('/routes', [RestaurantAnalyticsController::class, 'routes'])->name('routes');
+            Route::get('/earnings', [RestaurantAnalyticsController::class, 'earnings'])->name('earnings');
+            Route::get('/exports', [RestaurantAnalyticsController::class, 'exportIndex'])->name('exports.index');
+            Route::get('/exports/{reportExport}', [RestaurantAnalyticsController::class, 'exportShow'])->name('exports.show');
+        });
+        Route::middleware('throttle:analytics-export')->group(function (): void {
+            Route::post('/exports', [RestaurantAnalyticsController::class, 'exportStore'])->name('exports.store');
+            Route::get('/exports/{reportExport}/download', [RestaurantAnalyticsController::class, 'exportDownload'])->name('exports.download');
+        });
+    });
+
+    Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'active'])->group(function (): void {
+        Route::get('/system/analytics', [AdminAnalyticsController::class, 'system'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.analytics');
+        Route::prefix('analytics')->name('analytics.')->group(function (): void {
+            Route::middleware('throttle:analytics-read')->group(function (): void {
+                Route::get('/catalog', [AdminAnalyticsController::class, 'catalog'])->name('catalog');
+                Route::get('/quality', [AdminAnalyticsController::class, 'quality'])->name('quality');
+                Route::get('/overview', [AdminAnalyticsController::class, 'overview'])->name('overview');
+                Route::get('/live', [AdminAnalyticsController::class, 'live'])->name('live');
+                Route::get('/funnel', [AdminAnalyticsController::class, 'funnel'])->name('funnel');
+                Route::get('/customers', [AdminAnalyticsController::class, 'customers'])->name('customers');
+                Route::get('/orders', [AdminAnalyticsController::class, 'orders'])->name('orders');
+                Route::get('/restaurants', [AdminAnalyticsController::class, 'restaurants'])->name('restaurants');
+                Route::get('/menu', [AdminAnalyticsController::class, 'menu'])->name('menu');
+                Route::get('/routes', [AdminAnalyticsController::class, 'routes'])->name('routes');
+                Route::get('/pickup', [AdminAnalyticsController::class, 'pickup'])->name('pickup');
+                Route::get('/payments', [AdminAnalyticsController::class, 'payments'])->name('payments');
+                Route::get('/refunds', [AdminAnalyticsController::class, 'refunds'])->name('refunds');
+                Route::get('/finance', [AdminAnalyticsController::class, 'finance'])->name('finance');
+                Route::get('/support', [AdminAnalyticsController::class, 'support'])->name('support');
+                Route::get('/reviews', [AdminAnalyticsController::class, 'reviews'])->name('reviews');
+                Route::get('/notifications', [AdminAnalyticsController::class, 'notifications'])->name('notifications');
+                Route::get('/exports', [AdminAnalyticsExportController::class, 'index'])->name('exports.index');
+                Route::get('/exports/{reportExport}', [AdminAnalyticsExportController::class, 'show'])->name('exports.show');
+            });
+            Route::middleware('throttle:analytics-export')->group(function (): void {
+                Route::post('/exports', [AdminAnalyticsExportController::class, 'store'])->name('exports.store');
+                Route::get('/exports/{reportExport}/download', [AdminAnalyticsExportController::class, 'download'])->name('exports.download');
             });
         });
     });

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../analytics/analytics.dart';
 import '../core/theme.dart';
 import '../discovery/discovery_repository.dart';
 import '../discovery/restaurant_models.dart';
@@ -82,6 +83,7 @@ class _ItemDetailState extends State<_ItemDetail> {
       final restored = <String, List<String>>{};
       if (line != null) { for (final o in line.allOptions) { (restored[o.groupId] ??= []).add(o.optionId); } instructions.text = line.specialInstructions; }
       setState(() { r = rest; detail = d; selections = line != null ? restored : defaultSelections(d); quantity = clampQuantity(d.minimumQuantity, d.maximumQuantity, line?.quantity ?? d.minimumQuantity); status = 'ready'; attempted = false; touched.clear(); notices.clear(); });
+      Analytics.itemViewed(rest.backendId ?? rest.slug, d.item.id); // Module 38: once per item per session — opening it again to edit a cart line is not a second view
     } catch (e) {
       if (mounted) setState(() { status = 'error'; error = '$e'; });
     }

@@ -1,0 +1,32 @@
+# Module 38 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-13T14:46:14Z UTC, local machine, mains power
+# Unit tests always run scripted answers in the API's shape; nothing is sent to a backend. The event emitter is OFF under vitest unless a test switches it on.
+# New test files of this module: src/analytics/analytics.test.ts (31; with it.each rows the runner counts more), src/analytics/callSites.test.tsx (9 scenarios x 3 endpoint states), src/admin/api/ApiAdminAnalyticsRepository.test.ts (12), src/admin/pages/BackendAnalyticsPage.test.tsx (41), src/dashboard/api/apiAnalytics.test.tsx (26).
+# One older test file was touched: src/admin/pages/BackendSupportPage.test.tsx (+3 lines: scripted answers for the analytics requests the admin Overview now makes in API mode; no assertion changed).
+# The run before this one (the same evening, 20:15 India time) was 997/998: src/analytics/callSites.test.tsx "3 + 4" read the recorded events at once and, under the load of the whole suite, was ahead of the page's own effect (alone it passed 3 of 3). The assertion waits for the events now (BUG-316); this run is the one after that change. The emitter itself changed twice this afternoon after the first browser runs (BUG-314): it reads every answer to its end, and only the last send of a page is keepalive.
+
+## tsc -b --noEmit
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/pages/PaymentPage.tsx:117:20: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/pages/PaymentPage.tsx:78:67: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/admin/pages/MarketAdminForms.tsx:51:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/admin/pages/MarketAdminForms.tsx:62:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/pages/MyProfilePage.tsx:74:63: warning react(globals): Cannot reassign variables declared outside of the component/hook help: Variable `pageLocale` is declared outside of the component/hook. Reassigning this value during render is a side effect which can cause unpredictable behavior. If this variable is used in rendering, use useState instead. Otherwise, update it in an effect
+src/pages/MyProfilePage.tsx:64:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+(oxlint exit 0; 0 errors; 162 warnings.)
+
+## vitest run
+ Test Files  77 passed (77)
+      Tests  998 passed (998)
+   Duration  39.73s (tests 67%, environment 18%, transform 7%, import 4%, setup 3%)
+
+## vite build (npm run build)
+dist/assets/index-CA0t6o1A.js          1,472.00 kB │ gzip: 406.71 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 414ms[39m

@@ -4,6 +4,7 @@ import { ApiPickupGateway, toAnswer, toPickupError, toSelection, toSelectionStat
 import { PickupCtx, type PickupApi, type PickupStatus } from './pickupApi'
 import type { PickupEstimate, PickupMode, PickupSelection, PickupSettings, PickupSlot, PickupValidation } from './repositories'
 import { localDateOf } from './time'
+import { track } from '../analytics'
 
 /**
  * Pickup time selection on the backend (Module 28), behind the same interface the pages already use.
@@ -115,6 +116,9 @@ export function ServerPickupProvider({ children, gateway: given }: { children: R
     try {
       const dto = await gateway.select({ ...choice, method: methodRef.current, cartVersion: answerRef.current?.server.cartVersion ?? null })
       applySelection(dto); setModeState(choice.mode); setStatus('SELECTED')
+      // Module 38 (telemetry, never awaited): the backend accepted the choice. "Recommended" only as far as the last answer on the screen said so.
+      const offered = answerRef.current?.server
+      track('pickup_selected', { restaurant: cart.cart?.server?.restaurantPublicId ?? cart.cart?.restaurantSlug }, { mode: dto.mode, method: dto.method, recommended: choice.mode === 'asap' ? offered?.asap.recommended : offered?.allSlots.find((s) => s.id === choice.slotKey)?.recommended })
     } catch (e) {
       const err = toPickupError(e)
       // The cart moved on under the page: show the cart the backend has, then what can be chosen for it.

@@ -31504,6 +31504,3350 @@
           }
         }
       }
+    },
+    "/admin/analytics/overview": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. The overview: eight defined figures, the order trend, and a headline of each area. Finance and support blocks come back \"restricted\" without their own permission.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsAdminOverview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsAdminOverview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/funnel": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. The customer funnel in SESSIONS: stages 1–8 from behavioural events, 9–11 from the payment and order domains. Every conversion carries its numerator and denominator.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "WEB",
+                "ANDROID"
+              ]
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsFunnel",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsFunnel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/customers": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Customer figures — aggregates only: new accounts, first-time ordering, ordering, repeat, active, orders per customer, a basic cohort table. No customer is listed.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsCustomers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsCustomers"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/orders": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Order counts, rates, durations (average, median, 90th percentile), the trend, status distribution and peak times — from the order domain.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restaurant",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id of a market of the report.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsOrders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsOrders"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/restaurants": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Restaurant performance per location, for comparison by administrators. No ranking score. Gross sales and net earnings (finance module) only with admin.finance.view.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restaurant",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id of a market of the report.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRestaurants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRestaurants"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/menu": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Menu performance: what was SOLD (order items of completed orders) next to what was looked at (behavioural events).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restaurant",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id of a market of the report.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsMenu"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/routes": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Route and corridor demand as AGGREGATES: searches, searches without a restaurant, impressions, orders, bands, coverage gaps. No origin, destination or route is stored; rows under the minimum cohort are not shown.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRoutes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRoutes"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/pickup": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Pickup: ASAP and scheduled, methods, refused times, lead time, and capacity only where a restaurant configured one.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restaurant",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id of a market of the report.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsPickup",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsPickup"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/payments": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Payment attempts from the payment domain: verified, failed, cancelled, expired, pending, unknown; methods as the provider reported them; normalized failure categories. No provider reference or payment detail.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsPayments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsPayments"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/refunds": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Refunds from the refund domain: completed count and amount, full and partial, processing time, reasons, and the two refund rates (by orders, by amount).",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRefunds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRefunds"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/finance": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. ALSO NEEDS admin.finance.view. The finance module's own figures from the ledger: commission, platform fees, platform revenue, restaurant earnings, provider fees, payables, payouts, settlements, differences — and GMV, which is not revenue.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsFinance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsFinance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/support": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. ALSO NEEDS admin.support.view. Support cases: opened, resolved, reopened, escalated, response and resolution times, the desk now. No figure per agent.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsSupport",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsSupport"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/reviews": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Published reviews only: count, average rating, distribution, restaurant response rate, reports.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "restaurant",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id of a market of the report.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsReviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsReviews"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/notifications": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Notifications: created, push waiting / sent / failed / invalid token / not sent by preference, in-app read. \"Sent\" is never \"read\": opening a push is not tracked.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsNotifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsNotifications"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/live": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. Counts of THIS MOMENT from the operational records (active orders, payments needing recovery, refunds needing a person, urgent cases). Never cached; not figures of a period.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "market",
+            "in": "query",
+            "required": false,
+            "description": "A market slug, or \"all\" for every market the caller may see. Default: the default market (India). A market that is not the caller's is refused (403).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsLive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsLive"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/catalog": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. The definitions: every metric (definition, source, numerator, denominator, exclusions, time zone, currency, freshness, owner), every behavioural event, the funnel stages, the bands.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "AnalyticsCatalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsCatalog"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/quality": {
+      "get": {
+        "summary": "Module 38 — analytics for administrators (admin.analytics.view, market-scoped by the server). READ ONLY: a report reads the analytics read models and changes nothing. What the integrity checks found the last time they ran (HEALTHY / WARNING / ERROR). Needs the permission for EVERY market. The checks report; they repair nothing.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "AnalyticsQuality",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsQuality"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/analytics": {
+      "get": {
+        "summary": "Module 38 — the system page of the analytics layer (admin.system.view): the last aggregation runs, read model sizes, data quality, exports, counters and switches.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "AnalyticsSystem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsSystem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/overview": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. Orders, sales of completed orders, average order value, acceptance and refund rates, rating — and net earnings only with restaurant.finance.view. New and returning customers as counts.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRestaurantOverview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRestaurantOverview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/orders": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. Order counts, rates, durations and trend of the caller's own locations.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsOrders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsOrders"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/menu": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. Menu performance of the caller's own menu: sold (order items) and looked at (events). Information only — nothing changes a menu.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsMenu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsMenu"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/operations": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. Time to accept, preparation time, ready-to-pickup time, rejections, peak times, pickup. Operational figures, not a judgement of the food.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRestaurantOperations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRestaurantOperations"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/reviews": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. The caller's own published reviews: count, average, distribution, response rate.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsReviews",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsReviews"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/routes": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. How often the restaurant was returned for a journey, opened from one and ordered from; detour bands of its own orders. No traveller's route.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRestaurantRoutes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRestaurantRoutes"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/earnings": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. ALSO NEEDS restaurant.finance.view. The finance module's own earnings summary and series — the same figures as the Earnings page.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          },
+          {
+            "name": "preset",
+            "in": "query",
+            "required": false,
+            "description": "today | yesterday | last_7_days | last_30_days (default) | this_month | previous_month | custom",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "First LOCAL day (YYYY-MM-DD) of a custom period; both ends are included; at most 366 days.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Last LOCAL day (YYYY-MM-DD) of a custom period.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRestaurantEarnings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRestaurantEarnings"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/catalog": {
+      "get": {
+        "summary": "Module 38 — a restaurant's own analytics (restaurant.analytics.view, checked per location; another restaurant's location, or one outside the caller's membership, is 404). READ ONLY. No customer is named and no comparison with another restaurant exists. The definitions of the figures a restaurant sees.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "description": "A restaurant location id the caller may read. Without it: every location the caller holds restaurant.analytics.view for.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AnalyticsRestaurantCatalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRestaurantCatalog"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/exports": {
+      "get": {
+        "summary": "Module 38 — the caller's own report exports and the reports they may ask for (admin.analytics.export (and the report's own: payments, refunds, support, finance + finance export)). An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReportExportList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportExportList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Module 38 — ask for a report export (admin.analytics.export (and the report's own: payments, refunds, support, finance + finance export)). Answers 202 at once with status QUEUED. An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportExportAdminRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "ReportExportEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportExportEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/exports/{reportExport}": {
+      "get": {
+        "summary": "Module 38 — one of the caller's own exports: its status (QUEUED, PROCESSING, READY, FAILED, EXPIRED). An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reportExport",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReportExportEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportExportEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/analytics/exports/{reportExport}/download": {
+      "get": {
+        "summary": "Module 38 — the CSV of a READY export, streamed from private storage (attachment, no-store). The permission is checked again now. 409 while it is not ready, 410 when it has expired. An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reportExport",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The CSV file (UTF-8 with a byte order mark; first line: what the file is; second line: the column names).",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/exports": {
+      "get": {
+        "summary": "Module 38 — the caller's own report exports and the reports they may ask for (restaurant.analytics.export for the locations). An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReportExportList",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportExportList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Module 38 — ask for a report export (restaurant.analytics.export for the locations). Answers 202 at once with status QUEUED. An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportExportRestaurantRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "ReportExportEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportExportEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/exports/{reportExport}": {
+      "get": {
+        "summary": "Module 38 — one of the caller's own exports: its status (QUEUED, PROCESSING, READY, FAILED, EXPIRED). An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reportExport",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReportExportEnvelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportExportEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/restaurant/analytics/exports/{reportExport}/download": {
+      "get": {
+        "summary": "Module 38 — the CSV of a READY export, streamed from private storage (attachment, no-store). The permission is checked again now. 409 while it is not ready, 410 when it has expired. An export is built by a queued job into PRIVATE storage, belongs to the person who asked (anybody else: 404), is downloadable until it expires, and is audited. Curated reports only — no free query. No customer name, phone, e-mail, address or route; text a person typed is neutralised against spreadsheet formulas.",
+        "security": [
+          {
+            "restaurant": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "reportExport",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f-]{36}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The CSV file (UTF-8 with a byte order mark; first line: what the file is; second line: the column names).",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/events": {
+      "post": {
+        "summary": "Module 38 — behavioural events of the web and Android applications, in batches. Guests and signed-in customers (the customer token is optional). ALWAYS answered 202: no customer flow waits for it or depends on it. The same event id is stored once. An unknown event, an unknown property or anything that claims a fact of the payment or order domain is refused for that event. Rate-limited.",
+        "security": [
+          {},
+          {
+            "customer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyticsEventBatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "AnalyticsEventAnswer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsEventAnswer"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -75675,6 +79019,1763 @@
         "required": [
           "intent"
         ]
+      },
+      "AnalyticsMetric": {
+        "description": "One figure of a report. Its definition is in the catalog under the same key. value: an integer (count, seconds), a number (percent with one decimal, rating, quotient), a money object {amount (minor units), currency} — or null: no data, insufficient data, several currencies, or restricted.",
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "unit",
+          "freshness"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "count",
+              "money",
+              "percent",
+              "seconds",
+              "milliseconds",
+              "number",
+              "rating"
+            ]
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "AGGREGATED",
+              "OPERATIONAL",
+              "LEDGER"
+            ]
+          },
+          "value": {
+            "type": [
+              "integer",
+              "number",
+              "object",
+              "null"
+            ]
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "currency"
+              ],
+              "additionalProperties": true,
+              "properties": {
+                "amount": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                }
+              }
+            }
+          },
+          "mixed_currencies": {
+            "type": "boolean"
+          },
+          "numerator": {
+            "type": "integer"
+          },
+          "denominator": {
+            "type": "integer"
+          },
+          "insufficient": {
+            "type": "boolean"
+          },
+          "no_data": {
+            "type": "boolean"
+          },
+          "minimum_denominator": {
+            "type": "integer"
+          },
+          "average": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "median": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "p90": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "count": {
+            "type": "integer"
+          },
+          "restricted": {
+            "type": "boolean"
+          },
+          "requires": {
+            "type": "string"
+          },
+          "comparison": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "UP",
+                  "DOWN",
+                  "FLAT",
+                  "NEW",
+                  "NO_DATA"
+                ]
+              },
+              "change_pct": {
+                "type": [
+                  "number",
+                  "integer",
+                  "null"
+                ]
+              },
+              "change_points": {
+                "type": [
+                  "number",
+                  "integer",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "AnalyticsPeriod": {
+        "type": "object",
+        "required": [
+          "preset",
+          "from",
+          "to",
+          "days",
+          "timezone",
+          "bucket",
+          "starts_at",
+          "ends_before",
+          "previous"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "preset": {
+            "type": "string",
+            "enum": [
+              "today",
+              "yesterday",
+              "last_7_days",
+              "last_30_days",
+              "this_month",
+              "previous_month",
+              "custom"
+            ]
+          },
+          "from": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "days": {
+            "type": "integer"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string",
+            "enum": [
+              "hour",
+              "day",
+              "week",
+              "month"
+            ]
+          },
+          "starts_at": {
+            "type": "string"
+          },
+          "ends_before": {
+            "type": "string"
+          },
+          "previous": {
+            "type": "object",
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "from": {},
+              "to": {}
+            }
+          }
+        }
+      },
+      "AnalyticsMeta": {
+        "type": "object",
+        "required": [
+          "period",
+          "scope",
+          "timezone",
+          "currency",
+          "freshness",
+          "permissions",
+          "definitions"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "period": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "null for the counts of this moment (live), which have no period."
+          },
+          "scope": {
+            "type": "object",
+            "description": "Administrator: {markets: [{slug, name, currency, timezone}], all_markets, restaurant|null}. Restaurant: {locations: [{id, name, currency, timezone}], all_readable}. Names only — decided by the server."
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "freshness": {
+            "type": "object",
+            "required": [
+              "mode",
+              "label",
+              "aggregated_at",
+              "stale",
+              "generated_at",
+              "cached",
+              "cache_seconds"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "AGGREGATED",
+                  "OPERATIONAL",
+                  "LEDGER"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "aggregated_at": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "stale": {
+                "type": "boolean"
+              },
+              "generated_at": {
+                "type": "string"
+              },
+              "cached": {
+                "type": "boolean"
+              },
+              "cache_seconds": {
+                "type": "integer"
+              }
+            }
+          },
+          "permissions": {
+            "type": "object"
+          },
+          "definitions": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsSeries": {
+        "type": "object",
+        "required": [
+          "bucket",
+          "timezone",
+          "points"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "bucket": {
+            "type": "string",
+            "enum": [
+              "hour",
+              "day",
+              "week",
+              "month"
+            ]
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "bucket"
+              ],
+              "additionalProperties": true,
+              "properties": {
+                "bucket": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AnalyticsAdminOverview": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "order_trend",
+          "funnel",
+          "restaurant_operations",
+          "route_coverage",
+          "finance_summary",
+          "support_health"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "order_trend": {
+            "$ref": "#/components/schemas/AnalyticsSeries"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "funnel": {},
+          "restaurant_operations": {},
+          "route_coverage": {},
+          "finance_summary": {},
+          "support_health": {}
+        }
+      },
+      "AnalyticsLive": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "note": {}
+        }
+      },
+      "AnalyticsFunnel": {
+        "type": "object",
+        "required": [
+          "meta",
+          "unit",
+          "metrics",
+          "stages",
+          "abandonment",
+          "window",
+          "platforms",
+          "historical_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "unit": {
+            "type": "string",
+            "enum": [
+              "SESSION"
+            ]
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "stage",
+                "key",
+                "label",
+                "source",
+                "event",
+                "sessions",
+                "customers",
+                "events",
+                "conversion_from_previous",
+                "conversion_overall",
+                "did_not_continue"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "stage": {
+                  "type": "integer"
+                },
+                "sessions": {
+                  "type": "integer"
+                },
+                "customers": {
+                  "type": "integer"
+                },
+                "events": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "event": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "did_not_continue": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "key": {},
+                "label": {},
+                "source": {},
+                "conversion_from_previous": {},
+                "conversion_overall": {}
+              }
+            }
+          },
+          "abandonment": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "window": {},
+          "historical_note": {}
+        }
+      },
+      "AnalyticsCustomers": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "segments",
+          "series",
+          "retention",
+          "not_reported"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "series": {
+            "$ref": "#/components/schemas/AnalyticsSeries"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "retention": {},
+          "not_reported": {}
+        }
+      },
+      "AnalyticsOrders": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "series",
+          "status_distribution",
+          "rejection_reasons",
+          "peak_times",
+          "estimated_preparation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/AnalyticsSeries"
+          },
+          "status_distribution": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "rejection_reasons": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "peak_times": {},
+          "estimated_preparation": {}
+        }
+      },
+      "AnalyticsRestaurants": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "restaurants",
+          "comparison_note",
+          "finance_restricted"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "restaurants": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "finance_restricted": {
+            "type": "boolean"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "comparison_note": {}
+        }
+      },
+      "AnalyticsMenu": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "items",
+          "sold_source",
+          "viewed_source",
+          "advice_only"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "sold_source": {},
+          "viewed_source": {},
+          "advice_only": {}
+        }
+      },
+      "AnalyticsRoutes": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "corridors",
+          "distance_bands",
+          "duration_bands",
+          "detour_bands",
+          "coverage_gaps",
+          "demand_by_origin_city",
+          "demand_by_destination_city",
+          "privacy",
+          "historical_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "distance_bands": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "duration_bands": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "detour_bands": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "privacy": {
+            "type": "object",
+            "required": [
+              "minimum_cohort",
+              "precise_routes_stored",
+              "origin_destination_stored",
+              "statement"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "minimum_cohort": {
+                "type": "integer"
+              },
+              "precise_routes_stored": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "origin_destination_stored": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "statement": {}
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "corridors": {},
+          "coverage_gaps": {},
+          "demand_by_origin_city": {},
+          "demand_by_destination_city": {},
+          "historical_note": {}
+        }
+      },
+      "AnalyticsPickup": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "modes",
+          "methods",
+          "refusal_reasons",
+          "capacity",
+          "delivery"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "modes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "refusal_reasons": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "capacity": {},
+          "delivery": {}
+        }
+      },
+      "AnalyticsPayments": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "status_distribution",
+          "methods",
+          "failure_categories",
+          "providers",
+          "provider_note",
+          "series"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status_distribution": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "failure_categories": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "provider_note": {},
+          "series": {}
+        }
+      },
+      "AnalyticsRefunds": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "status_distribution",
+          "reasons",
+          "kinds",
+          "by_request_day_note",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status_distribution": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "kinds": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "by_request_day_note": {},
+          "source": {}
+        }
+      },
+      "AnalyticsFinance": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "terms",
+          "series",
+          "commission_by_restaurant",
+          "settlements",
+          "provider_fees",
+          "reconciliation",
+          "payouts_note",
+          "commission_note",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "commission_by_restaurant": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "terms": {},
+          "series": {},
+          "settlements": {},
+          "provider_fees": {},
+          "reconciliation": {},
+          "payouts_note": {},
+          "commission_note": {},
+          "source": {}
+        }
+      },
+      "AnalyticsSupport": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "categories",
+          "priorities",
+          "series",
+          "targets_note",
+          "no_agent_ranking",
+          "trend_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "priorities": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "series": {},
+          "targets_note": {},
+          "no_agent_ranking": {},
+          "trend_note": {}
+        }
+      },
+      "AnalyticsReviews": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "distribution",
+          "series",
+          "excluded",
+          "alert_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "distribution": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "series": {},
+          "excluded": {},
+          "alert_note": {}
+        }
+      },
+      "AnalyticsNotifications": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "categories",
+          "channels",
+          "skip_reasons",
+          "errors",
+          "push_read",
+          "provider_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "push_read": {
+            "type": "object",
+            "required": [
+              "tracked",
+              "statement"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "tracked": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "statement": {}
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "categories": {},
+          "channels": {},
+          "skip_reasons": {},
+          "errors": {},
+          "provider_note": {}
+        }
+      },
+      "AnalyticsRestaurantOverview": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "series",
+          "status_distribution",
+          "customers",
+          "locations",
+          "sales_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "series": {
+            "$ref": "#/components/schemas/AnalyticsSeries"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "status_distribution": {},
+          "customers": {},
+          "sales_note": {}
+        }
+      },
+      "AnalyticsRestaurantOperations": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "rejection_reasons",
+          "peak_times",
+          "estimated_preparation",
+          "pickup",
+          "operational_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "rejection_reasons": {},
+          "peak_times": {},
+          "estimated_preparation": {},
+          "pickup": {},
+          "operational_note": {}
+        }
+      },
+      "AnalyticsRestaurantRoutes": {
+        "type": "object",
+        "required": [
+          "meta",
+          "metrics",
+          "detour_bands",
+          "privacy",
+          "views_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "detour_bands": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AnalyticsMetric"
+            }
+          },
+          "privacy": {},
+          "views_note": {}
+        }
+      },
+      "AnalyticsRestaurantEarnings": {
+        "type": "object",
+        "required": [
+          "meta",
+          "summary",
+          "series",
+          "definitions",
+          "source",
+          "series_note"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/AnalyticsMeta"
+          },
+          "summary": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "definitions": {
+            "type": "object"
+          },
+          "source": {},
+          "series_note": {}
+        }
+      },
+      "AnalyticsCatalog": {
+        "type": "object",
+        "required": [
+          "metrics",
+          "events",
+          "funnel",
+          "session",
+          "bands",
+          "periods",
+          "privacy",
+          "approval"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "name",
+                "group",
+                "unit",
+                "definition",
+                "source",
+                "numerator",
+                "denominator",
+                "filters",
+                "timezone",
+                "currency",
+                "exclusions",
+                "aggregation",
+                "freshness",
+                "freshness_meaning",
+                "owner",
+                "approval",
+                "notes",
+                "limitations"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "numerator": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "denominator": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "notes": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "limitations": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "key": {},
+                "name": {},
+                "group": {},
+                "unit": {},
+                "definition": {},
+                "source": {},
+                "filters": {},
+                "timezone": {},
+                "currency": {},
+                "exclusions": {},
+                "aggregation": {},
+                "freshness": {},
+                "freshness_meaning": {},
+                "owner": {},
+                "approval": {}
+              }
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "source",
+                "trigger",
+                "funnel_stage",
+                "references",
+                "required_references",
+                "properties",
+                "privacy_class",
+                "dedupe",
+                "schema_version"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "CLIENT",
+                    "SERVER"
+                  ]
+                },
+                "funnel_stage": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "privacy_class": {
+                  "type": "string",
+                  "enum": [
+                    "BEHAVIOURAL",
+                    "OPERATIONAL"
+                  ]
+                },
+                "name": {},
+                "trigger": {},
+                "references": {},
+                "required_references": {},
+                "properties": {},
+                "dedupe": {},
+                "schema_version": {}
+              }
+            }
+          },
+          "funnel": {},
+          "session": {},
+          "bands": {},
+          "periods": {},
+          "privacy": {},
+          "approval": {}
+        }
+      },
+      "AnalyticsRestaurantCatalog": {
+        "type": "object",
+        "required": [
+          "metrics",
+          "periods",
+          "privacy"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "metrics": {},
+          "periods": {},
+          "privacy": {}
+        }
+      },
+      "AnalyticsQuality": {
+        "type": "object",
+        "required": [
+          "status",
+          "checked_at",
+          "checks",
+          "counts",
+          "repair"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "HEALTHY",
+              "WARNING",
+              "ERROR",
+              "NEVER_CHECKED"
+            ]
+          },
+          "checked_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "check",
+                "status",
+                "message",
+                "observed",
+                "checked_at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "HEALTHY",
+                    "WARNING",
+                    "ERROR"
+                  ]
+                },
+                "check": {},
+                "message": {},
+                "observed": {},
+                "checked_at": {}
+              }
+            }
+          },
+          "counts": {
+            "type": "object",
+            "required": [
+              "healthy",
+              "warning",
+              "error"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "healthy": {},
+              "warning": {},
+              "error": {}
+            }
+          },
+          "repair": {}
+        }
+      },
+      "AnalyticsSystem": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "aggregation",
+          "read_models",
+          "data_quality",
+          "exports",
+          "window_hours",
+          "events",
+          "policies",
+          "flags"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "checked_at": {},
+          "aggregation": {},
+          "read_models": {},
+          "data_quality": {},
+          "exports": {},
+          "window_hours": {},
+          "events": {},
+          "policies": {},
+          "flags": {}
+        }
+      },
+      "ReportExport": {
+        "type": "object",
+        "required": [
+          "id",
+          "report",
+          "label",
+          "status",
+          "failure_code",
+          "period",
+          "scope",
+          "format",
+          "row_count",
+          "size_bytes",
+          "filename",
+          "download_path",
+          "download_count",
+          "requested_at",
+          "completed_at",
+          "expires_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "PROCESSING",
+              "READY",
+              "FAILED",
+              "EXPIRED"
+            ]
+          },
+          "failure_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "CSV"
+            ]
+          },
+          "row_count": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "size_bytes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "filename": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "download_path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A path of this API — only while the export is READY. The file itself is on private storage; its location is never returned."
+          },
+          "download_count": {
+            "type": "integer"
+          },
+          "requested_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "period": {
+            "type": "object",
+            "required": [
+              "from",
+              "to",
+              "timezone"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "from": {},
+              "to": {},
+              "timezone": {}
+            }
+          },
+          "scope": {
+            "type": "object"
+          },
+          "report": {},
+          "label": {}
+        }
+      },
+      "ReportExportEnvelope": {
+        "type": "object",
+        "required": [
+          "export"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "export": {
+            "$ref": "#/components/schemas/ReportExport"
+          }
+        }
+      },
+      "ReportExportList": {
+        "type": "object",
+        "required": [
+          "data",
+          "reports"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportExport"
+            }
+          },
+          "reports": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "ReportExportAdminRequest": {
+        "type": "object",
+        "required": [
+          "report"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "report": {
+            "type": "string",
+            "enum": [
+              "orders",
+              "payments",
+              "refunds",
+              "restaurant_performance",
+              "customer_funnel",
+              "route_performance",
+              "support_cases",
+              "financial_summary"
+            ]
+          },
+          "market": {
+            "type": "string",
+            "description": "A market slug, or \"all\". Default: the default market."
+          },
+          "restaurant": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "preset": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        }
+      },
+      "ReportExportRestaurantRequest": {
+        "type": "object",
+        "required": [
+          "report"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "report": {
+            "type": "string",
+            "enum": [
+              "orders",
+              "menu_items"
+            ]
+          },
+          "location": {
+            "type": "string",
+            "pattern": "^[0-9a-f-]{36}$"
+          },
+          "preset": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        }
+      },
+      "AnalyticsEventBatch": {
+        "description": "Behavioural telemetry of the web and Android applications. Nothing here is a fact about a payment, an order or money: there is no such event. No phone number, e-mail address, name, address, coordinate, route, search text or amount is accepted.",
+        "type": "object",
+        "required": [
+          "session",
+          "platform",
+          "events"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "session": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F-]{36}$",
+            "description": "A random identifier the application made up. Not a device identifier."
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "WEB",
+              "ANDROID"
+            ]
+          },
+          "app_version": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9A-Za-z.+-]{1,24}$"
+          },
+          "consent": {
+            "type": "boolean",
+            "description": "false = the person did not agree: nothing is stored."
+          },
+          "events": {
+            "type": "array",
+            "description": "1 to 25 events.",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "occurred_at"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F-]{36}$"
+                },
+                "name": {
+                  "type": "string",
+                  "enum": [
+                    "journey_search_started",
+                    "journey_results_viewed",
+                    "restaurant_viewed",
+                    "menu_viewed",
+                    "item_viewed",
+                    "item_added_to_cart",
+                    "pickup_viewed",
+                    "pickup_selected",
+                    "checkout_started",
+                    "payment_started"
+                  ]
+                },
+                "occurred_at": {
+                  "type": "string",
+                  "description": "ISO 8601 with a zone."
+                },
+                "refs": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "restaurant": {
+                      "type": "string"
+                    },
+                    "journey": {
+                      "type": "string"
+                    },
+                    "item": {
+                      "type": "string"
+                    },
+                    "checkout": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "properties": {
+                  "type": "object",
+                  "description": "Only the properties the registry lists for the event."
+                }
+              }
+            }
+          }
+        }
+      },
+      "AnalyticsEventAnswer": {
+        "type": "object",
+        "required": [
+          "accepted",
+          "duplicates",
+          "rejected",
+          "stored",
+          "session"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "accepted": {
+            "type": "integer"
+          },
+          "duplicates": {
+            "type": "integer"
+          },
+          "stored": {
+            "type": "boolean"
+          },
+          "rejected": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "reason"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "session": {
+            "type": "object",
+            "required": [
+              "idle_minutes",
+              "max_hours"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "idle_minutes": {},
+              "max_hours": {}
+            }
+          }
+        }
       }
     }
   }

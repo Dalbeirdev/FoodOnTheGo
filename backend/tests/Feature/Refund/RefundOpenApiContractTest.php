@@ -124,7 +124,8 @@ class RefundOpenApiContractTest extends TestCase
                 $documented[] = strtoupper($method).' '.$path;
             }
         }
-        $mine = fn (string $route): bool => (bool) preg_match('#refund|dispute|/customer/orders/\{order\}/cancel#', $route);
+        // Module 38: the analytics reports (/…/analytics/…) are read-only reports ABOUT this domain, not routes of it — they are inventoried by AnalyticsOpenApiContractTest.
+        $mine = fn (string $route): bool => ! str_contains($route, '/analytics/') && (bool) preg_match('#refund|dispute|/customer/orders/\{order\}/cancel#', $route);
         $registered = collect(Route::getRoutes()->getRoutes())
             ->flatMap(fn ($r) => collect($r->methods())->reject(fn (string $m): bool => $m === 'HEAD')->map(fn (string $m): string => $m.' '.preg_replace('#^/api/v1#', '', '/'.ltrim($r->uri(), '/'))))
             ->filter($mine)->unique()->sort()->values()->all();

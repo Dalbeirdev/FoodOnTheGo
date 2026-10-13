@@ -78,7 +78,8 @@ class ReviewOpenApiContractTest extends TestCase
     public function test_every_review_route_is_documented_with_the_right_security(): void
     {
         $document = $this->openApi();
-        $mine = fn (string $uri): bool => (bool) preg_match('#(^|/)(reviews?|review-cases)(/|$)#', $uri); // not "pickup-preview"
+        // Module 38: the analytics reports (/…/analytics/…) are read-only reports ABOUT this domain, not routes of it — they are inventoried by AnalyticsOpenApiContractTest.
+        $mine = fn (string $uri): bool => ! str_contains($uri, 'analytics/') && (bool) preg_match('#(^|/)(reviews?|review-cases)(/|$)#', $uri); // not "pickup-preview"
         $routes = collect(app('router')->getRoutes())->map(fn ($r) => [preg_replace('#^api/v1/#', '', $r->uri()), array_diff($r->methods(), ['HEAD'])])->filter(fn (array $r): bool => $mine($r[0]))
             ->flatMap(fn (array $r): array => array_map(fn (string $m): string => strtolower($m).' /'.$r[0], $r[1]))->sort()->values()->all();
         $documented = collect($document['paths'])->filter(fn ($ops, string $path): bool => $mine(ltrim($path, '/')))

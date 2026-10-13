@@ -1,0 +1,52 @@
+{
+ "measured_at": "2026-10-13T14:18:39.166Z",
+ "note": "Response times of this run on the development machine (local PostgreSQL, php artisan serve). Not a claim about scale.",
+ "timings_ms": {
+  "aggregation_run": {
+   "runs": 5,
+   "median": 794,
+   "max": 828
+  },
+  "admin_overview": {
+   "runs": 1,
+   "median": 478,
+   "max": 478
+  },
+  "admin_funnel": {
+   "runs": 1,
+   "median": 368,
+   "max": 368
+  },
+  "admin_restaurants": {
+   "runs": 1,
+   "median": 343,
+   "max": 343
+  },
+  "admin_routes": {
+   "runs": 1,
+   "median": 331,
+   "max": 331
+  },
+  "admin_finance": {
+   "runs": 1,
+   "median": 542,
+   "max": 542
+  },
+  "admin_support": null,
+  "restaurant_overview": {
+   "runs": 1,
+   "median": 368,
+   "max": 368
+  },
+  "export_ready": {
+   "runs": 3,
+   "median": 1327,
+   "max": 1344
+  },
+  "event_ingest": {
+   "runs": 9,
+   "median": 312,
+   "max": 327
+  }
+ }
+}

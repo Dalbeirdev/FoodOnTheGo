@@ -9,6 +9,7 @@ import { formatLocalDate } from '../pickup/time'
 import { t, useLocale } from '../i18n/strings'
 import { ApiPaymentGateway, PaymentApiError, endedUnpaid, isUnsettled, toPaymentError, type ProviderReport, type ServerPayment, type SimulationScenario } from '../payment/api/apiPayment'
 import { ProviderUnavailableError, launcherFor, type ProviderLauncher } from '../payment/api/providerLauncher'
+import { paymentMethodOf, track } from '../analytics'
 import './CartPage.css'
 import './CheckoutPage.css'
 
@@ -200,6 +201,8 @@ export default function BackendPaymentPage({ gateway: injected, launcher, checko
     try {
       const p = await gateway.start(subject.checkoutId, subject.fingerprint, subject.methodType)
       accept(p)
+      // Module 38 (telemetry, never awaited): the backend created (or handed back) the payment attempt. Pay again / continue is not a second start — once per checkout id.
+      track('payment_started', { checkout: subject.checkoutId }, { method: paymentMethodOf(p.method?.type ?? subject.methodType) }, `payment_started:${subject.checkoutId}`)
       if (p.nextAction === 'OPEN_PROVIDER') await open(p)
       else { setPhase('IDLE'); busy.current = false }
     } catch (e) {

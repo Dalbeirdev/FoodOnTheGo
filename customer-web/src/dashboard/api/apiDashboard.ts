@@ -9,8 +9,10 @@
  *    (403 access denied, 404 not yours, 409 changed in the meantime, 422 invalid);
  *  - writes carry the version the page loaded (optimistic concurrency).
  *
- * The menu is on the backend as well (Module 24, apiMenuManagement.ts). Still development data in the dashboard, and
- * labelled as such on screen: orders, pickup verification, reviews, analytics, notifications and the per-browser settings.
+ * The menu is on the backend as well (Module 24, apiMenuManagement.ts). Orders, reviews, earnings, support and analytics
+ * (Module 38, apiAnalytics.ts) follow when their own domain runs on the backend. Still development data in the dashboard,
+ * and labelled as such on screen: notifications and the per-browser settings — and any of the areas above whose domain
+ * is not on the backend.
  *
  * Locations keep the id the development menus / orders already use for them (matched by slug); the backend id is
  * `live.locationId`.
@@ -28,6 +30,7 @@ import { reviewMode } from '../../review/reviewMode'
 import { ApiRestaurantReviewRepository } from './apiReviews'
 import { ApiRestaurantFinanceRepository } from './apiFinance'
 import { ApiRestaurantSupportRepository } from './apiSupport'
+import { ApiRestaurantAnalyticsRepository } from './apiAnalytics'
 import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus, PickupPreview } from '../types'
 
 const R = { context: 'restaurant' as const }
@@ -353,7 +356,9 @@ export const apiDashboardRepositories: DashboardRepositories = (() => {
     // Earnings, settlement statements and payout states (Module 36) are made from completed orders: they follow the order domain.
     ...(orderMode() === 'api' ? { finance: new ApiRestaurantFinanceRepository() } : {}),
     // Support cases (Module 37) are about orders, settlements and payouts: they follow the order domain too. No backend, no cases.
-    ...(orderMode() === 'api' ? { support: new ApiRestaurantSupportRepository() } : {}) }
+    ...(orderMode() === 'api' ? { support: new ApiRestaurantSupportRepository() } : {}),
+    // Analytics (Module 38) are read from orders, reviews and the ledger: they follow the order domain as well. No backend, no real figures.
+    ...(orderMode() === 'api' ? { reports: new ApiRestaurantAnalyticsRepository() } : {}) }
 })()
 
 /** The invited staff member accepts with the single-use link (public call, no token). A new account sends a password. */

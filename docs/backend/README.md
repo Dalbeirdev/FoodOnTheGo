@@ -1113,3 +1113,38 @@ Full description: [support.md](support.md). In short:
   staff, a security-administrator role, answering provider disputes, merge / split, export, live chat. Operating
   values (priorities, routing, reopen windows, SLA targets) are DEVELOPMENT DEFAULTS pending business approval.
   Production = NO.
+
+## 26. Analytics: the read models, the customer funnel, reporting, secure exports (Module 38)
+
+Full description: [analytics.md](analytics.md) and [`docs/analytics/`](../analytics/README.md). In short:
+
+- **A read / aggregation layer.** It reads the domains of Modules 20–37 and writes only `analytics_*` tables and
+  `report_exports`; nothing in any domain reads an analytics table. Orders, payments, refunds, cases, reviews and
+  notifications are counted from their own records; money comes from the financial ledger through Module 36's own
+  report and earnings services. GMV is never called revenue; currencies are never added together.
+- **Behavioural events** — `POST /analytics/events` takes batches from the web and Android applications: a closed
+  registry of ten events, allowlisted properties, the event id stored once, a customer and a journey kept only as
+  keyed hashes, always answered 202. The backend records four events of its own (a planned journey as bands and
+  corridors, restaurants returned, no restaurant found, a refused pickup time). There is no event for a payment or
+  an order: stages 9–11 of the funnel are read from the payment and order domains.
+- **Read models** — an order fact and a session fact, and daily tables per market or restaurant and local day
+  (market, customers, restaurant, items, funnel, routes, finance, support, breakdowns). `analytics:aggregate` (every
+  5 minutes) deletes and rewrites the days that changed, so a rerun never counts twice and a late event or a refund
+  of an old order changes the day it belongs to; `analytics:rebuild` backfills from the domains. No warehouse, no
+  materialized view.
+- **Reports** — `/admin/analytics/*` (overview, live, funnel, customers, orders, restaurants, menu, routes, pickup,
+  payments, refunds, finance, support, reviews, notifications, catalog, quality) scoped to the caller's markets;
+  `/restaurant/analytics/*` (overview, orders, menu, operations, routes, reviews, earnings) scoped to the caller's
+  own locations. Every figure has a definition in the metric catalog — `Metric` refuses a key without one — and a
+  rate carries its numerator and denominator.
+- **Exports** — nine curated CSV reports, built by a queued job into private storage, downloadable by the requester
+  only while they still hold the permission, expiring after 24 hours, audited, without personal data and safe
+  against spreadsheet formulas.
+- **Privacy** — no phone number, e-mail address, name, address, coordinate or route in any analytics table; route
+  figures by corridor, city and band with a minimum cohort; raw events deleted after 180 days; no advertising or
+  third-party tracker.
+- **Data quality** — ten checks (`analytics:check`) that report and repair nothing.
+- **Not built** — a warehouse, a consent screen (the switch exists; the policy is Module 39's), lifetime value,
+  marketing attribution, a push open rate, a score per support agent, XLSX / PDF, a report builder, behavioural
+  history before Module 38 (never recorded, not invented). Every definition, band, threshold and retention period
+  is a DEVELOPMENT DEFAULT pending business approval. Production = NO.

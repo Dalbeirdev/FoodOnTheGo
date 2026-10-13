@@ -1,0 +1,2468 @@
+{
+ "admin_overview": {
+  "meta": {
+   "period": {
+    "preset": "today",
+    "from": "2026-10-13",
+    "to": "2026-10-13",
+    "days": 1,
+    "timezone": "Asia/Kolkata",
+    "bucket": "hour",
+    "starts_at": "2026-10-12T18:30:00Z",
+    "ends_before": "2026-10-13T18:30:00Z",
+    "previous": {
+     "from": "2026-10-12",
+     "to": "2026-10-12"
+    }
+   },
+   "scope": {
+    "markets": [
+     {
+      "slug": "india",
+      "name": "India",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     }
+    ],
+    "all_markets": false,
+    "restaurant": null
+   },
+   "timezone": "Asia/Kolkata",
+   "currency": "INR",
+   "freshness": {
+    "mode": "AGGREGATED",
+    "label": "Updated about every 5 minutes",
+    "aggregated_at": "2026-10-13T14:15:13Z",
+    "stale": false,
+    "generated_at": "2026-10-13T14:15:13Z",
+    "cached": false,
+    "cache_seconds": 0
+   },
+   "permissions": {
+    "finance": true,
+    "support": true
+   },
+   "definitions": "/api/v1/admin/analytics/catalog"
+  },
+  "metrics": {
+   "orders_completed": {
+    "key": "orders_completed",
+    "label": "Orders completed",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "ordering_customers": {
+    "key": "ordering_customers",
+    "label": "Ordering customers",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "active_restaurants": {
+    "key": "active_restaurants",
+    "label": "Restaurants with completed orders",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "gmv": {
+    "key": "gmv",
+    "label": "Gross merchandise value (GMV)",
+    "unit": "money",
+    "freshness": "AGGREGATED",
+    "value": {
+     "amount": 14900,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 14900,
+      "currency": "INR",
+      "comparison": {
+       "previous": 0,
+       "change_pct": null,
+       "state": "NEW"
+      }
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "platform_commission": {
+    "key": "platform_commission",
+    "label": "Platform commission",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 1490,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 1490,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   },
+   "order_completion_rate": {
+    "key": "order_completion_rate",
+    "label": "Order completion rate",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 1,
+    "denominator": 1,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": {
+     "previous": null,
+     "change_points": null,
+     "state": "NO_DATA"
+    }
+   },
+   "refund_rate_orders": {
+    "key": "refund_rate_orders",
+    "label": "Refund rate (orders)",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 0,
+    "denominator": 2,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": null
+   },
+   "support_open_cases": {
+    "key": "support_open_cases",
+    "label": "Open cases",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 0,
+    "comparison": null
+   }
+  },
+  "order_trend": {
+   "bucket": "hour",
+   "timezone": "Asia/Kolkata",
+   "currency": "INR",
+   "money_series_available": true,
+   "points": [
+    {
+     "bucket": "2026-10-13 00:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 01:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 02:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 03:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 04:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 05:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 06:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 07:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 08:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 09:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 10:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 11:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 12:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 13:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 14:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 15:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 16:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 17:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 18:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 19:00",
+     "orders_placed": 2,
+     "orders_completed": 1,
+     "gmv_minor": 14900
+    },
+    {
+     "bucket": "2026-10-13 20:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 21:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 22:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 23:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    }
+   ]
+  },
+  "funnel": {
+   "unit": "SESSION",
+   "stages": [
+    {
+     "stage": 1,
+     "key": "journey_search",
+     "label": "Journey search",
+     "sessions": 3,
+     "conversion_from_previous": null,
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 3,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 2,
+     "key": "route_results",
+     "label": "Route results",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 3,
+     "key": "restaurant_viewed",
+     "label": "Restaurant viewed",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 4,
+     "key": "menu_viewed",
+     "label": "Menu viewed",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 5,
+     "key": "added_to_cart",
+     "label": "Added to cart",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 6,
+     "key": "pickup_selected",
+     "label": "Pickup selected",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 7,
+     "key": "checkout_started",
+     "label": "Checkout started",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 8,
+     "key": "payment_started",
+     "label": "Payment started",
+     "sessions": 2,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 2,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 9,
+     "key": "payment_verified",
+     "label": "Payment verified",
+     "sessions": 1,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 1,
+      "denominator": 2,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 1,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 10,
+     "key": "order_created",
+     "label": "Order created",
+     "sessions": 1,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 1,
+      "denominator": 1,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 1,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    },
+    {
+     "stage": 11,
+     "key": "order_completed",
+     "label": "Order completed",
+     "sessions": 1,
+     "conversion_from_previous": {
+      "key": "funnel_stage_conversion",
+      "label": "Conversion from the previous stage",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 1,
+      "denominator": 1,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     },
+     "conversion_overall": {
+      "key": "funnel_overall_conversion",
+      "label": "Journey search to completed order",
+      "unit": "percent",
+      "freshness": "AGGREGATED",
+      "value": null,
+      "numerator": 1,
+      "denominator": 3,
+      "insufficient": true,
+      "no_data": false,
+      "minimum_denominator": 5,
+      "comparison": null
+     }
+    }
+   ],
+   "metrics": {
+    "funnel_sessions": {
+     "key": "funnel_sessions",
+     "label": "Sessions that searched a journey",
+     "unit": "count",
+     "freshness": "AGGREGATED",
+     "value": 3,
+     "comparison": null
+    },
+    "funnel_overall_conversion": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    }
+   }
+  },
+  "restaurant_operations": {
+   "order_rejection_rate": {
+    "key": "order_rejection_rate",
+    "label": "Order rejection rate",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 0,
+    "denominator": 2,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": {
+     "previous": null,
+     "change_points": null,
+     "state": "NO_DATA"
+    }
+   },
+   "acceptance_time": {
+    "key": "acceptance_time",
+    "label": "Time to accept",
+    "unit": "seconds",
+    "freshness": "AGGREGATED",
+    "value": 11,
+    "average": 11,
+    "median": null,
+    "p90": null,
+    "count": 1,
+    "no_data": false
+   },
+   "preparation_time": {
+    "key": "preparation_time",
+    "label": "Preparation time",
+    "unit": "seconds",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "average": 1,
+    "median": null,
+    "p90": null,
+    "count": 1,
+    "no_data": false
+   },
+   "pickup_wait_time": {
+    "key": "pickup_wait_time",
+    "label": "Ready-to-pickup time",
+    "unit": "seconds",
+    "freshness": "AGGREGATED",
+    "value": 0,
+    "average": 0,
+    "median": null,
+    "p90": null,
+    "count": 1,
+    "no_data": false
+   },
+   "orderable_restaurants": {
+    "key": "orderable_restaurants",
+    "label": "Restaurants accepting orders now",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 15,
+    "comparison": null
+   }
+  },
+  "route_coverage": {
+   "journey_searches": {
+    "key": "journey_searches",
+    "label": "Journey searches",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "no_result_searches": {
+    "key": "no_result_searches",
+    "label": "Searches without a restaurant",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 0,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NO_DATA"
+    }
+   },
+   "no_result_rate": {
+    "key": "no_result_rate",
+    "label": "Share of searches without a restaurant",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 0,
+    "denominator": 1,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": {
+     "previous": null,
+     "change_points": null,
+     "state": "NO_DATA"
+    }
+   },
+   "journey_orders": {
+    "key": "journey_orders",
+    "label": "Orders from a journey",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   }
+  },
+  "finance_summary": {
+   "restricted": false,
+   "gross_marketplace_sales": {
+    "key": "gross_marketplace_sales",
+    "label": "Gross marketplace sales",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 14900,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 14900,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   },
+   "platform_revenue": {
+    "key": "platform_revenue",
+    "label": "Platform revenue",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 1490,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 1490,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   },
+   "restaurant_net_earnings": {
+    "key": "restaurant_net_earnings",
+    "label": "Restaurant net earnings",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 13410,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 13410,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   },
+   "ledger_refunds": {
+    "key": "ledger_refunds",
+    "label": "Refunds (ledger)",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 0,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 0,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   },
+   "restaurant_payable": {
+    "key": "restaurant_payable",
+    "label": "Owed to restaurants now",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 13410,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 13410,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   },
+   "terms": {
+    "gmv": "What customers paid for completed orders. NOT FoodOnTheGo revenue.",
+    "platform_revenue": "Commission plus the platform's own fees — the only revenue."
+   }
+  },
+  "support_health": {
+   "restricted": false,
+   "support_open_cases": {
+    "key": "support_open_cases",
+    "label": "Open cases",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 0,
+    "comparison": null
+   },
+   "support_unassigned_cases": {
+    "key": "support_unassigned_cases",
+    "label": "Unassigned cases",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 0,
+    "comparison": null
+   },
+   "support_urgent_cases": {
+    "key": "support_urgent_cases",
+    "label": "Urgent open cases",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 0,
+    "comparison": null
+   },
+   "support_sla_at_risk": {
+    "key": "support_sla_at_risk",
+    "label": "Targets at risk",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 0,
+    "comparison": null
+   },
+   "support_sla_breached_open": {
+    "key": "support_sla_breached_open",
+    "label": "Open cases past a target",
+    "unit": "count",
+    "freshness": "OPERATIONAL",
+    "value": 0,
+    "comparison": null
+   },
+   "support_cases_created": {
+    "key": "support_cases_created",
+    "label": "Cases opened",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 0,
+    "comparison": null
+   },
+   "support_first_response_time": {
+    "key": "support_first_response_time",
+    "label": "First response time",
+    "unit": "seconds",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "average": null,
+    "median": null,
+    "p90": null,
+    "count": 0,
+    "no_data": true
+   }
+  }
+ },
+ "admin_funnel": {
+  "meta": {
+   "period": {
+    "preset": "today",
+    "from": "2026-10-13",
+    "to": "2026-10-13",
+    "days": 1,
+    "timezone": "Asia/Kolkata",
+    "bucket": "hour",
+    "starts_at": "2026-10-12T18:30:00Z",
+    "ends_before": "2026-10-13T18:30:00Z",
+    "previous": {
+     "from": "2026-10-12",
+     "to": "2026-10-12"
+    }
+   },
+   "scope": {
+    "markets": [
+     {
+      "slug": "india",
+      "name": "India",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     }
+    ],
+    "all_markets": false,
+    "restaurant": null
+   },
+   "timezone": "Asia/Kolkata",
+   "currency": "INR",
+   "freshness": {
+    "mode": "AGGREGATED",
+    "label": "Updated about every 5 minutes",
+    "aggregated_at": "2026-10-13T14:15:13Z",
+    "stale": false,
+    "generated_at": "2026-10-13T14:15:13Z",
+    "cached": false,
+    "cache_seconds": 0
+   },
+   "permissions": {
+    "finance": true,
+    "support": true
+   },
+   "definitions": "/api/v1/admin/analytics/catalog"
+  },
+  "unit": "SESSION",
+  "metrics": {
+   "funnel_sessions": {
+    "key": "funnel_sessions",
+    "label": "Sessions that searched a journey",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 3,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "funnel_overall_conversion": {
+    "key": "funnel_overall_conversion",
+    "label": "Journey search to completed order",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 1,
+    "denominator": 3,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": {
+     "previous": null,
+     "change_points": null,
+     "state": "NO_DATA"
+    }
+   }
+  },
+  "stages": [
+   {
+    "stage": 1,
+    "key": "journey_search",
+    "label": "Journey search",
+    "source": "Behavioural event",
+    "event": "journey_search_started",
+    "sessions": 3,
+    "customers": 1,
+    "events": 4,
+    "conversion_from_previous": null,
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 3,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 1
+   },
+   {
+    "stage": 2,
+    "key": "route_results",
+    "label": "Route results",
+    "source": "Behavioural event",
+    "event": "journey_results_viewed",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 3,
+    "key": "restaurant_viewed",
+    "label": "Restaurant viewed",
+    "source": "Behavioural event",
+    "event": "restaurant_viewed",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 4,
+    "key": "menu_viewed",
+    "label": "Menu viewed",
+    "source": "Behavioural event",
+    "event": "menu_viewed",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 5,
+    "key": "added_to_cart",
+    "label": "Added to cart",
+    "source": "Behavioural event",
+    "event": "item_added_to_cart",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 6,
+    "key": "pickup_selected",
+    "label": "Pickup selected",
+    "source": "Behavioural event",
+    "event": "pickup_selected",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 7,
+    "key": "checkout_started",
+    "label": "Checkout started",
+    "source": "Behavioural event",
+    "event": "checkout_started",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 8,
+    "key": "payment_started",
+    "label": "Payment started",
+    "source": "Behavioural event",
+    "event": "payment_started",
+    "sessions": 2,
+    "customers": 1,
+    "events": 2,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 2,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 1
+   },
+   {
+    "stage": 9,
+    "key": "payment_verified",
+    "label": "Payment verified",
+    "source": "Payment domain: a VERIFIED payment attempt of the session's checkout",
+    "event": null,
+    "sessions": 1,
+    "customers": 1,
+    "events": null,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 2,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 10,
+    "key": "order_created",
+    "label": "Order created",
+    "source": "Order domain: the order of the session's checkout",
+    "event": null,
+    "sessions": 1,
+    "customers": 1,
+    "events": null,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 1,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": 0
+   },
+   {
+    "stage": 11,
+    "key": "order_completed",
+    "label": "Order completed",
+    "source": "Order domain: that order is COMPLETED",
+    "event": null,
+    "sessions": 1,
+    "customers": 1,
+    "events": null,
+    "conversion_from_previous": {
+     "key": "funnel_stage_conversion",
+     "label": "Conversion from the previous stage",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 1,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "conversion_overall": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    },
+    "did_not_continue": null
+   }
+  ],
+  "abandonment": [
+   {
+    "key": "journey_to_restaurant",
+    "label": "Searched a journey, opened no restaurant",
+    "sessions": 1
+   },
+   {
+    "key": "restaurant_to_cart",
+    "label": "Opened a restaurant, added nothing to a cart",
+    "sessions": 0
+   },
+   {
+    "key": "cart_to_checkout",
+    "label": "Added to a cart, started no checkout",
+    "sessions": 0
+   },
+   {
+    "key": "checkout_to_payment",
+    "label": "Started a checkout, started no payment",
+    "sessions": 0
+   },
+   {
+    "key": "payment_to_order",
+    "label": "Started a payment, no order was created",
+    "sessions": 1
+   }
+  ],
+  "window": {
+   "session_idle_minutes": 30,
+   "session_max_hours": 12,
+   "conversion_window_hours": 24,
+   "cohort": "A session belongs to the day of its first event; its later stages count for that day."
+  },
+  "platforms": [
+   {
+    "platform": "WEB",
+    "sessions": 3,
+    "completed": 1,
+    "conversion": {
+     "key": "funnel_overall_conversion",
+     "label": "Journey search to completed order",
+     "unit": "percent",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 1,
+     "denominator": 3,
+     "insufficient": true,
+     "no_data": false,
+     "minimum_denominator": 5,
+     "comparison": null
+    }
+   }
+  ],
+  "historical_note": "Behavioural events are recorded from Module 38 on. Earlier periods have no funnel: HISTORICAL DATA UNAVAILABLE BEFORE MODULE 38."
+ },
+ "admin_routes": {
+  "meta": {
+   "period": {
+    "preset": "today",
+    "from": "2026-10-13",
+    "to": "2026-10-13",
+    "days": 1,
+    "timezone": "Asia/Kolkata",
+    "bucket": "hour",
+    "starts_at": "2026-10-12T18:30:00Z",
+    "ends_before": "2026-10-13T18:30:00Z",
+    "previous": {
+     "from": "2026-10-12",
+     "to": "2026-10-12"
+    }
+   },
+   "scope": {
+    "markets": [
+     {
+      "slug": "india",
+      "name": "India",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     }
+    ],
+    "all_markets": false,
+    "restaurant": null
+   },
+   "timezone": "Asia/Kolkata",
+   "currency": "INR",
+   "freshness": {
+    "mode": "AGGREGATED",
+    "label": "Updated about every 5 minutes",
+    "aggregated_at": "2026-10-13T14:15:13Z",
+    "stale": false,
+    "generated_at": "2026-10-13T14:15:14Z",
+    "cached": false,
+    "cache_seconds": 0
+   },
+   "permissions": {
+    "finance": true,
+    "support": true
+   },
+   "definitions": "/api/v1/admin/analytics/catalog"
+  },
+  "metrics": {
+   "journey_searches": {
+    "key": "journey_searches",
+    "label": "Journey searches",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "no_result_searches": {
+    "key": "no_result_searches",
+    "label": "Searches without a restaurant",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 0,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NO_DATA"
+    }
+   },
+   "no_result_rate": {
+    "key": "no_result_rate",
+    "label": "Share of searches without a restaurant",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 0,
+    "denominator": 1,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": {
+     "previous": null,
+     "change_points": null,
+     "state": "NO_DATA"
+    }
+   },
+   "restaurant_impressions": {
+    "key": "restaurant_impressions",
+    "label": "Restaurant impressions",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 6,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "journey_restaurant_views": {
+    "key": "journey_restaurant_views",
+    "label": "Restaurant views from a journey",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "journey_orders": {
+    "key": "journey_orders",
+    "label": "Orders from a journey",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "journey_order_conversion": {
+    "key": "journey_order_conversion",
+    "label": "Journey to order",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 1,
+    "denominator": 1,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": {
+     "previous": null,
+     "change_points": null,
+     "state": "NO_DATA"
+    }
+   },
+   "average_detour": {
+    "key": "average_detour",
+    "label": "Average detour of ordering travellers",
+    "unit": "seconds",
+    "freshness": "AGGREGATED",
+    "value": 79,
+    "average": 79,
+    "median": null,
+    "p90": null,
+    "count": 1,
+    "no_data": false
+   },
+   "average_restaurants_returned": {
+    "key": "average_restaurants_returned",
+    "label": "Restaurants returned per journey",
+    "unit": "number",
+    "freshness": "AGGREGATED",
+    "value": 6,
+    "numerator": 6,
+    "denominator": 1,
+    "no_data": false
+   }
+  },
+  "corridors": {
+   "rows": [],
+   "other": null,
+   "without_static_corridor": {
+    "searches": 1,
+    "no_result_searches": 0,
+    "orders": 1,
+    "note": "Journeys along no static corridor are counted for the market as a whole."
+   },
+   "multi_corridor_note": "A journey along two corridors counts in both; the totals above count it once."
+  },
+  "distance_bands": [
+   {
+    "band": "0-25",
+    "unit": "km",
+    "searches": null,
+    "suppressed": true
+   },
+   {
+    "band": "25-50",
+    "unit": "km",
+    "searches": 0,
+    "suppressed": false
+   },
+   {
+    "band": "50-100",
+    "unit": "km",
+    "searches": 0,
+    "suppressed": false
+   },
+   {
+    "band": "100-200",
+    "unit": "km",
+    "searches": 0,
+    "suppressed": false
+   },
+   {
+    "band": "200+",
+    "unit": "km",
+    "searches": 0,
+    "suppressed": false
+   }
+  ],
+  "duration_bands": [
+   {
+    "band": "0-30",
+    "unit": "minutes",
+    "searches": null,
+    "suppressed": true
+   },
+   {
+    "band": "30-60",
+    "unit": "minutes",
+    "searches": 0,
+    "suppressed": false
+   },
+   {
+    "band": "60-120",
+    "unit": "minutes",
+    "searches": 0,
+    "suppressed": false
+   },
+   {
+    "band": "120-240",
+    "unit": "minutes",
+    "searches": 0,
+    "suppressed": false
+   },
+   {
+    "band": "240+",
+    "unit": "minutes",
+    "searches": 0,
+    "suppressed": false
+   }
+  ],
+  "detour_bands": [
+   {
+    "band": "0-5",
+    "unit": "minutes",
+    "impressions": null,
+    "orders": null,
+    "orders_completed": null,
+    "orders_per_100_impressions": null,
+    "suppressed": true
+   },
+   {
+    "band": "5-10",
+    "unit": "minutes",
+    "impressions": 0,
+    "orders": 0,
+    "orders_completed": 0,
+    "orders_per_100_impressions": null,
+    "suppressed": false
+   },
+   {
+    "band": "10-15",
+    "unit": "minutes",
+    "impressions": null,
+    "orders": null,
+    "orders_completed": null,
+    "orders_per_100_impressions": null,
+    "suppressed": true
+   },
+   {
+    "band": "15+",
+    "unit": "minutes",
+    "impressions": 0,
+    "orders": 0,
+    "orders_completed": 0,
+    "orders_per_100_impressions": null,
+    "suppressed": false
+   }
+  ],
+  "coverage_gaps": {
+   "definition": "Journeys planned in the period for which discovery found no restaurant — demand the service does not cover yet.",
+   "by_reason": [],
+   "by_origin_city": {
+    "rows": [],
+    "other": null
+   },
+   "by_destination_city": {
+    "rows": [],
+    "other": null
+   },
+   "insight_only": "Demand without coverage is information. Nothing here activates a market, a city or a service area."
+  },
+  "demand_by_origin_city": {
+   "rows": [],
+   "other": {
+    "cities": 1,
+    "searches": null,
+    "suppressed": true
+   }
+  },
+  "demand_by_destination_city": {
+   "rows": [],
+   "other": {
+    "cities": 1,
+    "searches": null,
+    "suppressed": true
+   }
+  },
+  "privacy": {
+   "minimum_cohort": 5,
+   "precise_routes_stored": false,
+   "origin_destination_stored": false,
+   "statement": "Aggregated by corridor, city and band. No traveller's origin, destination or route is stored in analytics."
+  },
+  "historical_note": "Journey analytics are recorded from Module 38 on. Journeys themselves are deleted about an hour after they are planned: HISTORICAL DATA UNAVAILABLE BEFORE MODULE 38."
+ },
+ "restaurant_overview": {
+  "meta": {
+   "period": {
+    "preset": "today",
+    "from": "2026-10-13",
+    "to": "2026-10-13",
+    "days": 1,
+    "timezone": "Asia/Kolkata",
+    "bucket": "hour",
+    "starts_at": "2026-10-12T18:30:00Z",
+    "ends_before": "2026-10-13T18:30:00Z",
+    "previous": {
+     "from": "2026-10-12",
+     "to": "2026-10-12"
+    }
+   },
+   "scope": {
+    "locations": [
+     {
+      "id": "0859d041-80dd-4086-9416-61cdb3e9b0f9",
+      "name": "Brew & Bites",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     },
+     {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "Burger Hub",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     },
+     {
+      "id": "3aab7c65-48c6-447b-b40c-d234ff116cb0",
+      "name": "Healthy Bites",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     }
+    ],
+    "all_readable": true
+   },
+   "timezone": "Asia/Kolkata",
+   "currency": "INR",
+   "freshness": {
+    "mode": "AGGREGATED",
+    "label": "Updated about every 5 minutes",
+    "aggregated_at": "2026-10-13T14:15:13Z",
+    "stale": false,
+    "generated_at": "2026-10-13T14:15:21Z",
+    "cached": false,
+    "cache_seconds": 0
+   },
+   "permissions": {
+    "finance": true
+   },
+   "definitions": "/api/v1/restaurant/analytics/catalog"
+  },
+  "metrics": {
+   "orders_placed": {
+    "key": "orders_placed",
+    "label": "Orders placed",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 2,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "orders_completed": {
+    "key": "orders_completed",
+    "label": "Orders completed",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 1,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "completed_order_total": {
+    "key": "completed_order_total",
+    "label": "Sales of completed orders",
+    "unit": "money",
+    "freshness": "AGGREGATED",
+    "value": {
+     "amount": 14900,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 14900,
+      "currency": "INR",
+      "comparison": {
+       "previous": 0,
+       "change_pct": null,
+       "state": "NEW"
+      }
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NEW"
+    }
+   },
+   "average_order_value": {
+    "key": "average_order_value",
+    "label": "Average order value",
+    "unit": "money",
+    "freshness": "AGGREGATED",
+    "value": {
+     "amount": 14900,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 14900,
+      "currency": "INR",
+      "count": 1
+     }
+    ],
+    "mixed_currencies": false,
+    "no_data": false
+   },
+   "restaurant_acceptance_rate": {
+    "key": "restaurant_acceptance_rate",
+    "label": "Acceptance rate",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 1,
+    "denominator": 1,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": null
+   },
+   "restaurant_refund_rate": {
+    "key": "restaurant_refund_rate",
+    "label": "Refund rate (orders)",
+    "unit": "percent",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 0,
+    "denominator": 2,
+    "insufficient": true,
+    "no_data": false,
+    "minimum_denominator": 5,
+    "comparison": null
+   },
+   "average_rating": {
+    "key": "average_rating",
+    "label": "Average rating",
+    "unit": "rating",
+    "freshness": "AGGREGATED",
+    "value": null,
+    "numerator": 0,
+    "denominator": 0,
+    "no_data": true,
+    "previous": null
+   },
+   "reviews_published": {
+    "key": "reviews_published",
+    "label": "Reviews published",
+    "unit": "count",
+    "freshness": "AGGREGATED",
+    "value": 0,
+    "comparison": {
+     "previous": 0,
+     "change_pct": null,
+     "state": "NO_DATA"
+    }
+   },
+   "restaurant_net_earnings": {
+    "key": "restaurant_net_earnings",
+    "label": "Restaurant net earnings",
+    "unit": "money",
+    "freshness": "LEDGER",
+    "value": {
+     "amount": 13410,
+     "currency": "INR"
+    },
+    "values": [
+     {
+      "amount": 13410,
+      "currency": "INR"
+     }
+    ],
+    "mixed_currencies": false,
+    "comparison": null
+   }
+  },
+  "series": {
+   "bucket": "hour",
+   "timezone": "Asia/Kolkata",
+   "currency": "INR",
+   "money_series_available": true,
+   "points": [
+    {
+     "bucket": "2026-10-13 00:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 01:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 02:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 03:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 04:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 05:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 06:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 07:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 08:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 09:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 10:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 11:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 12:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 13:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 14:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 15:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 16:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 17:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 18:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 19:00",
+     "orders_placed": 2,
+     "orders_completed": 1,
+     "gmv_minor": 14900
+    },
+    {
+     "bucket": "2026-10-13 20:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 21:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 22:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    },
+    {
+     "bucket": "2026-10-13 23:00",
+     "orders_placed": 0,
+     "orders_completed": 0,
+     "gmv_minor": 0
+    }
+   ]
+  },
+  "status_distribution": [
+   {
+    "key": "COMPLETED",
+    "label": "Completed",
+    "count": 1
+   },
+   {
+    "key": "WAITING_FOR_RESTAURANT",
+    "label": "Waiting for restaurant",
+    "count": 1
+   }
+  ],
+  "customers": {
+   "ordering_customers": null,
+   "first_time_here": null,
+   "returning": null,
+   "orders_per_customer": null,
+   "suppressed": true,
+   "minimum_cohort": 5,
+   "statement": "Counts of customers who completed an order here. No customer is named or listed."
+  },
+  "locations": [
+   {
+    "restaurant": {
+     "id": "0859d041-80dd-4086-9416-61cdb3e9b0f9",
+     "name": "Brew & Bites"
+    },
+    "currency": "INR",
+    "orders_placed": 0,
+    "orders_completed": 0,
+    "completed_order_total": {
+     "amount": 0,
+     "currency": "INR"
+    },
+    "average_rating": {
+     "key": "average_rating",
+     "label": "Average rating",
+     "unit": "rating",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 0,
+     "denominator": 0,
+     "no_data": true
+    }
+   },
+   {
+    "restaurant": {
+     "id": "0a000000-0000-4000-8000-0000000000a1",
+     "name": "Burger Hub"
+    },
+    "currency": "INR",
+    "orders_placed": 2,
+    "orders_completed": 1,
+    "completed_order_total": {
+     "amount": 14900,
+     "currency": "INR"
+    },
+    "average_rating": {
+     "key": "average_rating",
+     "label": "Average rating",
+     "unit": "rating",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 0,
+     "denominator": 0,
+     "no_data": true
+    }
+   },
+   {
+    "restaurant": {
+     "id": "3aab7c65-48c6-447b-b40c-d234ff116cb0",
+     "name": "Healthy Bites"
+    },
+    "currency": "INR",
+    "orders_placed": 0,
+    "orders_completed": 0,
+    "completed_order_total": {
+     "amount": 0,
+     "currency": "INR"
+    },
+    "average_rating": {
+     "key": "average_rating",
+     "label": "Average rating",
+     "unit": "rating",
+     "freshness": "AGGREGATED",
+     "value": null,
+     "numerator": 0,
+     "denominator": 0,
+     "no_data": true
+    }
+   }
+  ],
+  "sales_note": "Sales are what customers paid for completed orders. Your earnings — after commission — are on the Earnings tab."
+ },
+ "export": {
+  "export": {
+   "id": "cc09f95d-268e-4f03-a4f8-800c8d76d23e",
+   "report": "orders",
+   "label": "Orders",
+   "status": "EXPIRED",
+   "failure_code": null,
+   "period": {
+    "from": "2026-10-13",
+    "to": "2026-10-13",
+    "timezone": "Asia/Kolkata"
+   },
+   "scope": {
+    "markets": [
+     {
+      "name": "India",
+      "slug": "india",
+      "currency": "INR",
+      "timezone": "Asia/Kolkata"
+     }
+    ],
+    "restaurant": null,
+    "all_markets": false
+   },
+   "format": "CSV",
+   "row_count": 2,
+   "size_bytes": 579,
+   "filename": null,
+   "download_path": null,
+   "download_count": 1,
+   "requested_at": "2026-10-13T14:15:30Z",
+   "completed_at": "2026-10-13T14:15:31Z",
+   "expires_at": "2026-10-13T14:14:40Z"
+  }
+ },
+ "system": {
+  "checked_at": "2026-10-13T14:18:38Z",
+  "aggregation": {
+   "last_success_at": "2026-10-13T14:18:37Z",
+   "stale": false,
+   "scheduled": true,
+   "every_minutes": 5,
+   "runs": [
+    {
+     "id": "ddabd318-fec9-4e46-b41e-f23818a9f701",
+     "trigger": "SCHEDULED",
+     "dry_run": false,
+     "status": "OK",
+     "rows_written": 82,
+     "duration_ms": 309,
+     "error": null,
+     "started_at": "2026-10-13T14:18:37Z"
+    },
+    {
+     "id": "398af04b-8699-42fa-b7b9-2cd28039c67a",
+     "trigger": "BACKFILL",
+     "dry_run": true,
+     "status": "OK",
+     "rows_written": 0,
+     "duration_ms": 219,
+     "error": null,
+     "started_at": "2026-10-13T14:18:36Z"
+    },
+    {
+     "id": "712149e5-56cf-4c82-aa18-804226473a02",
+     "trigger": "REBUILD",
+     "dry_run": false,
+     "status": "OK",
+     "rows_written": 72,
+     "duration_ms": 306,
+     "error": null,
+     "started_at": "2026-10-13T14:18:35Z"
+    },
+    {
+     "id": "b898eea7-d531-4c55-aef2-bafd64255bdc",
+     "trigger": "SCHEDULED",
+     "dry_run": false,
+     "status": "OK",
+     "rows_written": 73,
+     "duration_ms": 305,
+     "error": null,
+     "started_at": "2026-10-13T14:18:34Z"
+    },
+    {
+     "id": "e582296f-d68b-4b92-9348-23641c2f520f",
+     "trigger": "SCHEDULED",
+     "dry_run": false,
+     "status": "OK",
+     "rows_written": 73,
+     "duration_ms": 343,
+     "error": null,
+     "started_at": "2026-10-13T14:15:12Z"
+    },
+    {
+     "id": "82ec0ea4-d117-47ac-967b-8bc7c64a37f7",
+     "trigger": "SCHEDULED",
+     "dry_run": false,
+     "status": "OK",
+     "rows_written": 73,
+     "duration_ms": 309,
+     "error": null,
+     "started_at": "2026-10-13T14:15:11Z"
+    },
+    {
+     "id": "d6a9f9a4-e284-424a-a8cb-ce400183aec7",
+     "trigger": "SCHEDULED",
+     "dry_run": false,
+     "status": "OK",
+     "rows_written": 73,
+     "duration_ms": 217,
+     "error": null,
+     "started_at": "2026-10-13T14:13:57Z"
+    }
+   ]
+  },
+  "read_models": {
+   "events": 28,
+   "sessions": 4,
+   "order_facts": 2,
+   "first_event_at": "2026-10-12T14:18:36Z"
+  },
+  "data_quality": "HEALTHY",
+  "exports": {
+   "EXPIRED": 1,
+   "READY": 4
+  },
+  "window_hours": 24,
+  "events": {
+   "events_accepted": 398,
+   "events_duplicate": 32,
+   "events_rejected": 75,
+   "events_server": 204,
+   "ingest_requests": 328,
+   "ingest_disabled": 0,
+   "ingest_consent_withheld": 6,
+   "ingest_failed": 0,
+   "aggregation_ok": 28,
+   "aggregation_failed": 0,
+   "rebuild": 11,
+   "quality_run": 6,
+   "cache_hit": 232,
+   "cache_miss": 238,
+   "export_requested": 29,
+   "export_ready": 29,
+   "export_failed": 0,
+   "export_downloaded": 23,
+   "export_refused": 18,
+   "export_expired": 6,
+   "scope_refused": 66
+  },
+  "policies": {
+   "approval": "PENDING BUSINESS APPROVAL",
+   "min_cohort": 5,
+   "min_denominator": 5,
+   "raw_event_days": 180,
+   "export_expiry_hours": 24,
+   "session": {
+    "idle_minutes": 30,
+    "max_hours": 12
+   }
+  },
+  "flags": {
+   "events_enabled": true,
+   "cache_enabled": true,
+   "advertising_trackers": false,
+   "warehouse": "NOT REQUIRED / NOT IMPLEMENTED",
+   "materialized_views": "NOT USED",
+   "historical_behavioural_data": "UNAVAILABLE BEFORE MODULE 38",
+   "production": "NO"
+  }
+ },
+ "timings_ms": {
+  "aggregation_run": {
+   "runs": 5,
+   "median": 794,
+   "max": 828
+  },
+  "admin_overview": {
+   "runs": 1,
+   "median": 478,
+   "max": 478
+  },
+  "admin_funnel": {
+   "runs": 1,
+   "median": 368,
+   "max": 368
+  },
+  "admin_restaurants": {
+   "runs": 1,
+   "median": 343,
+   "max": 343
+  },
+  "admin_routes": {
+   "runs": 1,
+   "median": 331,
+   "max": 331
+  },
+  "admin_finance": {
+   "runs": 1,
+   "median": 542,
+   "max": 542
+  },
+  "admin_support": null,
+  "restaurant_overview": {
+   "runs": 1,
+   "median": 368,
+   "max": 368
+  },
+  "export_ready": {
+   "runs": 3,
+   "median": 1327,
+   "max": 1344
+  },
+  "event_ingest": {
+   "runs": 9,
+   "median": 312,
+   "max": 327
+  }
+ }
+}

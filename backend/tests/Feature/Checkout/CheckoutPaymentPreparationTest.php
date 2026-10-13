@@ -342,7 +342,9 @@ class CheckoutPaymentPreparationTest extends TestCase
         $this->assertSame(['POST api/v1/checkouts/{checkout}/fulfill'], $routes->filter(fn (string $r): bool => str_contains($r, '/checkouts/') && str_contains($r, 'fulfill'))->values()->all());
         // 24 = 15 (Module 31) + 4 (Module 32) + 2 (Module 34: GET / POST customer/orders/{order}/review — a review, never an order or a refund)
         //      + 3 (Module 35: GET customer/orders/{order}/cancellation, POST customer/orders/{order}/cancel, POST admin/orders/{order}/refunds)
-        $this->assertCount(24, $routes->filter(fn (string $r): bool => str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill')));   // 15 (Module 31) + 4 (Module 32: the event streams and the pickup credential routes)
+        // Module 38: + 2 read-only reports (GET admin/analytics/orders, GET restaurant/analytics/orders) — they read the order domain's records and create nothing; counted apart so the 24 stay the 24.
+        $this->assertCount(2, $routes->filter(fn (string $r): bool => str_contains($r, '/analytics/') && str_contains($r, 'orders')));
+        $this->assertCount(24, $routes->filter(fn (string $r): bool => ! str_contains($r, '/analytics/') && (str_contains($r, 'orders') || str_contains($r, 'order-fulfillments') || str_contains($r, '/fulfill'))));   // 15 (Module 31) + 4 (Module 32: the event streams and the pickup credential routes)
         $ready = $this->confirmCheckout($this->asha, $this->checkout)->assertOk()->json('checkout');
         foreach (['/pay', '/payment', '/payments', '/order', '/capture', '/refund'] as $suffix) {
             $this->postJson('/api/v1/checkouts/'.$ready['id'].$suffix, [], $this->using($this->asha))->assertNotFound();

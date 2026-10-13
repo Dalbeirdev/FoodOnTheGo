@@ -8,6 +8,7 @@ import { ApiCartGateway, CartError, restaurantPublicId, selectionsOf, toCartErro
 import { CartContext, type AddFailure, type AddItemInput, type AddResult, type CartApi, type CartLine } from './cartApi'
 import { cartItemCount, cartSubtotalMinor, type Cart, type CartStatus } from './cartModel'
 import { NO_PROMO, discountMinor, evaluatePromo, type PromoState } from './cartValidation'
+import { track } from '../analytics'
 import '../pages/account/AccountPage.css'
 import '../components/AccountStates.css'
 
@@ -116,6 +117,7 @@ export function ServerCartProvider({ children, gateway }: { children: ReactNode;
       try {
         const a = await gw.add(restaurant, toRequest(input), version(), journeyRef.current)
         accept(a.cart); setLastAdded({ at: Date.now(), menuItemId: input.menuItemId, merged: a.merged })
+        track('item_added_to_cart', { restaurant, item: input.menuItemId }, { quantity: Math.trunc(input.quantity) }) // Module 38 telemetry: the backend accepted the add (never awaited)
         return { ok: true, item: a.cart?.items.find((i) => i.id === a.lineId) ?? null, merged: a.merged }
       } catch (e) {
         const err = toCartError(e)
@@ -133,6 +135,7 @@ export function ServerCartProvider({ children, gateway }: { children: ReactNode;
     try {
       const a = await gw.switchRestaurant(restaurant, toRequest(input), version(), journeyRef.current)
       accept(a.cart); setLastAdded({ at: Date.now(), menuItemId: input.menuItemId, merged: a.merged })
+      track('item_added_to_cart', { restaurant, item: input.menuItemId }, { quantity: Math.trunc(input.quantity) }) // Module 38 telemetry: an add the backend accepted with the cart it replaced
       return { ok: true, item: a.cart?.items.find((i) => i.id === a.lineId) ?? null, merged: a.merged }
     } catch (e) { const err = fail(e); await recover(err); return failure(err) }
   }), [gw, run, accept, fail, recover])

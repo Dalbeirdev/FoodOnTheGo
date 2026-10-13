@@ -4,6 +4,7 @@ namespace App\Services\Journey;
 
 use App\Enums\AvailabilityReason;
 use App\Enums\RouteCoverage;
+use App\Events\Journey\JourneyPlanned;
 use App\Exceptions\ApiException;
 use App\Exceptions\ProviderException;
 use App\Models\Customer;
@@ -117,6 +118,9 @@ final class JourneyService
             'distance_m' => $plan->distanceMeters, 'duration_s' => $plan->durationSeconds, 'route_points' => $geometry['route_points'], 'search_points' => $geometry['search_points'],
             'coverage' => $coverage['along_route'], 'corridor_m' => $corridor, 'departure_given' => $departure !== null, 'total_ms' => (int) round((hrtime(true) - $started) / 1_000_000),
         ]);
+
+        // Module 38: analytics hears that a journey was planned — bands and corridors only; a failure there is its own.
+        event(new JourneyPlanned($journey));
 
         return ['journey' => $journey, 'guest_token' => $token];
     }

@@ -89,4 +89,10 @@ return [
     'support_case_create' => (int) env('RATE_LIMIT_SUPPORT_CASE_CREATE', 6),
     'support_write' => (int) env('RATE_LIMIT_SUPPORT_WRITE', 20),
     'support_admin_action' => (int) env('RATE_LIMIT_SUPPORT_ADMIN_ACTION', 60),
+
+    // Module 38 — analytics. Reading a report (a dashboard opens several at once), asking for or downloading an export,
+    // and the applications' behavioural events (a batch at a time; per session of a guest, per customer when signed in).
+    'analytics_read' => (int) env('RATE_LIMIT_ANALYTICS_READ', 120),
+    'analytics_export' => (int) env('RATE_LIMIT_ANALYTICS_EXPORT', 10),
+    'analytics_ingest' => (int) env('RATE_LIMIT_ANALYTICS_INGEST', 60),
 ];

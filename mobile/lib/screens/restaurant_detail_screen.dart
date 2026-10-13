@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:provider/provider.dart';
 
+import '../analytics/analytics.dart';
 import '../core/theme.dart';
 import '../discovery/discovery_repository.dart';
 import '../discovery/restaurant_models.dart';
@@ -62,6 +63,12 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
   @override
   void dispose() { _tabs.dispose(); _search.dispose(); super.dispose(); }
 
+  /// Module 38 (telemetry only — neither can fail): the journey this page is opened in, as the page itself decides it
+  /// (a journey with a route), and whether the customer came here from inside the app (there is a page to go back to,
+  /// or the restaurant is in the list being browsed) rather than straight from a link or a notification.
+  String? get _journeyId { try { final j = context.read<JourneyState>().journey; return j?.route != null ? j!.id : null; } catch (_) { return null; } }
+  bool _browsed(String slug) { try { return context.canPop() || context.read<DiscoveryState>().items.any((x) => x.restaurant.slug == slug); } catch (_) { return false; } }
+
   Future<void> _load() async {
     setState(() { status = 'loading'; error = null; });
     try {
@@ -69,6 +76,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
       if (!mounted) return;
       if (found == null) { setState(() => status = 'notfound'); return; }
       setState(() { r = found; status = 'ready'; });
+      if (Analytics.enabled) Analytics.restaurantViewed(found.backendId ?? found.slug, journeyId: _journeyId, listed: _browsed(found.slug)); // Module 38
       await _loadMenu(first: true);
     } catch (e) {
       if (mounted) setState(() { status = 'error'; error = '$e'; });
@@ -84,6 +92,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
       final page = await _mr.getItems(rest.id, MenuFilter(search: query, dietary: dietary.toList(), availableOnly: availableOnly, limit: 500));
       if (!mounted || my != _seq) return;
       setState(() { items = page.items; menuStatus = 'ready'; menuError = null; });
+      if (Analytics.enabled) Analytics.menuViewed(rest.backendId ?? rest.slug, journeyId: _journeyId); // Module 38
     } catch (e) {
       if (!mounted || my != _seq) return;
       setState(() { menuStatus = 'error'; menuError = '$e'; });

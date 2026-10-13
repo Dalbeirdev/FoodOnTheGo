@@ -4,6 +4,7 @@ import type { Order, OrderStatus } from '../order/repositories'
 import type { PickupSettings } from '../pickup/repositories'
 import type { ReportReason, Review } from '../review/repositories'
 import type { RestaurantFinanceRepository } from './api/apiFinance'
+import type { RestaurantAnalyticsReports } from './api/apiAnalytics'
 import type { RestaurantSupportRepository } from '../support/repositories'
 
 /**
@@ -22,6 +23,8 @@ export type Permission =
   | 'finance.view' | 'payout_account.view'
   // Module 37: restaurant.support.view / restaurant.support.create of the backend (read the restaurant's cases / open one and write in it).
   | 'support.view' | 'support.create'
+  // Module 38: restaurant.analytics.export of the backend (ask for and download a CSV export of the restaurant's own figures).
+  | 'analytics.export'
 export type RoleId = 'owner' | 'manager' | 'order_staff' | 'menu_manager' | 'viewer'
 /** Roles are named permission bundles — the UI checks permissions, never the role label. */
 export type Role = { id: RoleId; permissions: Permission[] }
@@ -195,6 +198,8 @@ export type DashboardRepositories = {
   finance?: RestaurantFinanceRepository
   /** Support cases (Module 37). Backend only: there are no development cases, so without a backend it is absent. */
   support?: RestaurantSupportRepository
+  /** Analytics reports and exports (Module 38). Backend only: without a backend the analytics page stays the development sample and is labelled as such. */
+  reports?: RestaurantAnalyticsReports
 }
 
 /**

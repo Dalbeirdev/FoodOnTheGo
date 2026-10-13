@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics.dart';
 import '../auth/auth_repository.dart' show SecureKeyValueStore;
 import '../journey/api_journey.dart';
 import '../journey/journey_repositories.dart';
@@ -59,6 +60,7 @@ class JourneyState extends ChangeNotifier {
     errors = validateJourney(origin, destination);
     if (errors.isNotEmpty) { status = JourneyStatus.editing; notifyListeners(); return null; }
     try {
+      Analytics.journeySearchStarted(); // Module 38: telemetry only — never awaited, never fails
       final j = await repos.journeys.create(origin: origin!, destination: destination!, departureAt: departureAt);
       if (id != _run) return null;
       await repos.locations.remember(origin!);

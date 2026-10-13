@@ -14,6 +14,7 @@ import type { Restaurant } from '../repositories/types'
 import { computeAvailability } from '../repositories/mock/restaurants'
 import { formatLocalTime, formatMinutes, formatMoney, zoneLabel } from '../i18n/format'
 import { t, useLocale } from '../i18n/strings'
+import { track } from '../analytics'
 import './CartPage.css'
 import './PickupTimePage.css'
 
@@ -52,6 +53,9 @@ export default function PickupTimePage() {
 
   useEffect(() => { let alive = true; if (!slug) return; restaurantRepository.getRestaurantBySlug(slug).then((r) => { if (alive) setRestaurant(r) }).catch(() => { if (alive) setRestaurant(null) }); return () => { alive = false } }, [slug])
   useEffect(() => { document.title = `${t('pickup.title', undefined, locale)} · FoodOnTheGo` }, [locale])
+  // Module 38 (telemetry, never awaited): the pickup time page is on the screen for this cart's restaurant. Once per restaurant per session.
+  const viewedRestaurant = cart.hydrated && c && c.items.length > 0 ? c.server?.restaurantPublicId ?? c.restaurantSlug : null
+  useEffect(() => { if (viewedRestaurant) track('pickup_viewed', { restaurant: viewedRestaurant }, undefined, `pickup_viewed:${viewedRestaurant}`) }, [viewedRestaurant])
   // Load settings / estimate / slots whenever the restaurant, cart or journey changes.
   // With the backend the cart's version is part of the question: another item or quantity may have moved the earliest time.
   useEffect(() => { if (restaurant && c && cartId) void load({ restaurant, cart: c, journey, prepMinutes: restaurant.prepTimeMin }) }, [restaurant, cartId, cartVersion, journey, load]) // eslint-disable-line react-hooks/exhaustive-deps

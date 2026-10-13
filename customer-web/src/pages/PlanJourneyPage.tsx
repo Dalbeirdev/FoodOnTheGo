@@ -6,6 +6,7 @@ import LocationInput from '../components/LocationInput'
 import RoutePreview from '../components/RoutePreview'
 import { useJourney, type Journey, type RouteSummary } from '../journey/JourneyContext'
 import { formatDuration } from '../journey/mock/mockRepositories'
+import { track } from '../analytics'
 import './PlanJourneyPage.css'
 
 type P = { size?: number }
@@ -51,7 +52,7 @@ export default function PlanJourneyPage() {
   const [time, setTime] = useState(j.departureAt ? j.departureAt.slice(11, 16) : '')
 
   const applyDeparture = (d: string, t: string) => { setDate(d); setTime(t); j.setDepartureAt(d ? new Date(`${d}T${t || '09:00'}:00`).toISOString() : null) }
-  const submit = async (e: FormEvent) => { e.preventDefault(); await j.plan(originText, destinationText) }
+  const submit = async (e: FormEvent) => { e.preventDefault(); track('journey_search_started'); await j.plan(originText, destinationText) }
   const busy = j.status === 'validating' || j.status === 'ready' || j.status === 'route-loading'
   const showPreview = j.journey && (j.status === 'route-available' || j.status === 'route-loading' || j.status === 'error' || j.status === 'ready')
   const continueTo = (journey: Journey) => navigate(`/restaurants?journey=${encodeURIComponent(journey.id)}`)

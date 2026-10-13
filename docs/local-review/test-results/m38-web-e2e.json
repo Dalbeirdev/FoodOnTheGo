@@ -1,0 +1,400 @@
+{
+  "module": "M38",
+  "suite": "Module 38 — Customer Web + Restaurant Dashboard + Platform Admin on the real local backend (behavioural events sent by the real pages, the session funnel with its conversions read from the payment and order domains, the aggregation, administrators' and restaurants' reports, market and location scope, finance figures against the finance module, exports through a queued job) with a queue worker and the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — NO MONEY MOVES; the figures are those of this run's test orders, not business figures; commission plans are TEST FIXTURES; no behavioural history exists before Module 38",
+  "ran_at": "2026-10-13T14:18:46.366Z",
+  "passed": 78,
+  "failed": 0,
+  "total": 78,
+  "results": [
+    {
+      "name": "A0 the whole customer journey works through the real pages with the event emitter on: journey planned (201), restaurants listed, an item added (201), a pickup time chosen (200), the checkout confirmed (200), the payment started (201) and the order confirmed",
+      "pass": true,
+      "detail": "[201,200,201,200,200,201,\"FOTG-20261013-HUPKAH\"]"
+    },
+    {
+      "name": "A1 the pages sent the ten behavioural events of the registry to POST /analytics/events — each exactly ONCE as designed, although the list was re-sorted and the restaurant page reloaded — in batches, under one session identifier the application made up",
+      "pass": true,
+      "detail": "journey_search_started,journey_results_viewed,restaurant_viewed,menu_viewed,item_viewed,item_added_to_cart,pickup_viewed,pickup_selected,checkout_started,payment_started"
+    },
+    {
+      "name": "A2 what a page sends is the contract and nothing more: {session, platform, events} with ids, names, times, references by id and the allowlisted properties — no phone number, no e-mail address, no name, no place, no coordinate, no amount",
+      "pass": true,
+      "detail": "events,platform,session {\"journey_search_started\":\"\",\"journey_results_viewed\":\"journey\",\"item_viewed\":\"item+restaurant\",\"pickup_viewed\":\"restaurant\",\"checkout_started\":\"checkout+restaurant\",\"payment_started\":\"checkout\"}"
+    },
+    {
+      "name": "A3 what the server stored of them: the signed-in customer as a 32-character keyed hash (never the id or the phone number), the journey as a keyed hash (never its id), the checkout reference because the checkout is this customer's own, the restaurant and market resolved by the server",
+      "pass": true,
+      "detail": "10 rows"
+    },
+    {
+      "name": "A4 the BACKEND recorded its own answers: the planned journey as bands (no length, no place, no route) and one impression per restaurant it returned — not doubled by the re-sort",
+      "pass": true,
+      "detail": "{\"coverage\":\"COVERED\",\"corridors\":[],\"origin_city\":1,\"distance_band\":\"0-25\",\"duration_band\":\"0-30\",\"destination_city\":1} impressions 6"
+    },
+    {
+      "name": "A5 after the aggregation the session stands at stage 11 of the funnel: stages 1–8 from its own events, 9–11 read from the payment and the order of ITS checkout (verified payment, order created, order completed)",
+      "pass": true,
+      "detail": "{\"stage\":11,\"day\":\"2026-10-13\"}"
+    },
+    {
+      "name": "B1 THE EVENT DOOR IS UNREACHABLE for a whole purchase (every send of the emitter fails as a lost connection does — also the last send of a page being left; each batch is tried once more and then dropped): the customer adds an item, chooses a time, confirms the checkout, pays and gets the order exactly as always — nothing on any page mentions analytics, no error is shown, and no event of the application was stored (what the backend records by itself — the restaurants it returned — does not pass that door)",
+      "pass": true,
+      "detail": "{\"sends_that_failed\":7,\"reached_the_network\":0,\"orderB\":\"FOTG-20261013-3SACBX\",\"client_events_stored\":0,\"recorded_by_the_backend\":0}"
+    },
+    {
+      "name": "C1 the same event id is stored once: a batch sent again (the application never got the answer) adds only what is new — 202 both times",
+      "pass": true,
+      "detail": "{\"accepted\":1,\"duplicates\":1,\"rejected\":[],\"stored\":true,\"session\":{\"idle_minutes\":30,\"max_hours\":12}}"
+    },
+    {
+      "name": "C2 A CLIENT CANNOT REPORT A PAYMENT OR AN ORDER: \"payment_verified\", \"order_created\", \"order_completed\" and \"refund_completed\" are not events (unknown_event), and an event only the backend records is refused too (not_a_client_event) — nothing is stored",
+      "pass": true,
+      "detail": "[\"unknown_event\",\"unknown_event\",\"unknown_event\",\"unknown_event\",\"not_a_client_event\"]"
+    },
+    {
+      "name": "C3 a property that is not on the list (a phone number, an amount), a value outside its rule, an event older than 72 hours and a restaurant that does not exist are each refused for that event — the registry is a closed list",
+      "pass": true,
+      "detail": "[\"unknown_property\",\"unknown_property\",\"invalid_property\",\"too_old\",\"unknown_reference\"]"
+    },
+    {
+      "name": "C4 somebody else's checkout id proves nothing (a guest naming Rahul's checkout: unknown_reference); the request is a closed list (an extra \"customer_id\": 422), a session is a random id (a device identifier: 422), a batch has a size (26 events: 422), and without consent nothing is kept (202, stored false)",
+      "pass": true,
+      "detail": "[2,422,422,422,{\"accepted\":0,\"duplicates\":0,\"rejected\":[],\"stored\":false,\"session\":{\"idle_minutes\":30,\"max_hours\":12}}]"
+    },
+    {
+      "name": "C5 EVENTS ALONE NEVER MAKE A PAYMENT OR AN ORDER: a session that claims every stage for a checkout nobody paid stops at stage 8 (\"payment started\") — no payment was verified, no order exists for it, and the payment and order tables are as they were",
+      "pass": true,
+      "detail": "stage 8"
+    },
+    {
+      "name": "D1 THE FUNNEL (sessions, today): three sessions searched a journey; one of them — the real one — has a verified payment, an order and a completed order; the forged one stops at \"payment started\"; every conversion carries its numerator and denominator",
+      "pass": true,
+      "detail": "{\"1\":3,\"2\":2,\"3\":2,\"4\":2,\"5\":2,\"6\":2,\"7\":2,\"8\":2,\"9\":1,\"10\":1,\"11\":1}"
+    },
+    {
+      "name": "D2 ORDERS: the report's counts and GMV are the order domain's own — orders placed, orders completed and the sum of the completed orders' totals — with the still-waiting order in neither side of the completion rate",
+      "pass": true,
+      "detail": "[2,1,14900]"
+    },
+    {
+      "name": "D3 FINANCE: commission, platform revenue, restaurant earnings and gross marketplace sales of the report are, to the paisa, the finance module's own overview for the same day — read from the ledger at the moment of the request — and GMV is shown beside them and never called revenue",
+      "pass": true,
+      "detail": "[1490,1490,13410]"
+    },
+    {
+      "name": "D4 ROUTES: one journey was planned, restaurants were returned for it and one order came from it; the answer is counts, bands and corridors — it holds no place, no coordinate, no route and no journey id, and says that none is stored",
+      "pass": true,
+      "detail": "[1,6,1]"
+    },
+    {
+      "name": "D5 THE OVERVIEW is eight defined figures and a headline of each area (not forty cards); the restaurant table has Burger Hub's two orders; every answer says its period, time zone, currency and that it is an AGGREGATED read (never \"live\") with the time of the last aggregation",
+      "pass": true,
+      "detail": "{\"n\":8,\"completed\":1,\"freshness\":{\"mode\":\"AGGREGATED\",\"label\":\"Updated about every 5 minutes\",\"aggregated_at\":\"2026-10-13T14:15:13Z\",\"stale\":false,\"generated_at\":\"2026-10-13T14:15:13Z\",\"cached\":false,\"cache_seconds\":0},\"currency\":\"INR\",\"markets\":[{\"slug\":\"india\",\"name\":\"India\",\"currency\":\"INR\",\"timezone\":\"Asia/Kolkata\"}],\"row\":{\"currency\":\"INR\",\"orders_placed\":2,\"orders_completed\":1,\"orders_reject"
+    },
+    {
+      "name": "D6 NO FIGURE WITHOUT A DEFINITION: all 118 different figures returned by the fifteen administrator reports are in the metric catalog (120 definitions, each with a source, a time zone, a currency rule and a freshness; every rate with its numerator and denominator); the counts of this moment are labelled OPERATIONAL and are not cached",
+      "pass": true,
+      "detail": "118 figures"
+    },
+    {
+      "name": "E1 A RESTAURANT READS ITS OWN FIGURES ONLY: the owner of Riverside sees its orders of today; the owner of Second Kitchen sees none of them and gets 404 on every one of the seven reports when naming Burger Hub in the query string; Riverside's owner gets 404 for a Second Kitchen location; order staff (no analytics permission) get 403",
+      "pass": true,
+      "detail": "{\"idor\":[404,404,404,404,404,404,404],\"staff\":403,\"mine\":[200,2],\"theirs\":[200,0],\"foreign\":1,\"hubInForeign\":false,\"notMine\":404}"
+    },
+    {
+      "name": "E2 A MANAGER OF SOME LOCATIONS reads those and no other location of the same organization (naming one answers 404); without a location the owner's report covers every location, the manager's only theirs; no answer names a customer",
+      "pass": true,
+      "detail": "{\"owner\":3,\"manager\":2,\"refused\":404}"
+    },
+    {
+      "name": "E3 a restaurant's EARNINGS in analytics are the finance module's own summary, identical to the Earnings page (same per-currency figures), read from the ledger and not cached",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "E4 ADMINISTRATORS: a support administrator (no analytics permission) is refused (403); an onboarding administrator (analytics and support access, no finance access) reads the overview with its support figure, but its finance figures come back \"restricted\" — never a zero — and the finance report is refused (403) while the support report is theirs (200); nobody without an administrator's session gets in (401)",
+      "pass": true,
+      "detail": "{\"statuses\":[403,200,403,200,401,401,401],\"commission\":{\"key\":\"platform_commission\",\"label\":\"Platform commission\",\"unit\":\"money\",\"freshness\":\"LEDGER\",\"value\":null,\"restricted\":true,\"requires\":\"admin.finance.view\"},\"finance_summary\":[\"restricted\",\"requires\"],\"support\":{\"key\":\"support_open_cases\",\"label\":\"Open cases\",\"unit\":\"count\",\"freshness\":\"OPERATIONAL\",\"value\":0,\"comparison\":null},\"completed\":1"
+    },
+    {
+      "name": "E5 THE MARKET IS THE SERVER'S DECISION: an operations administrator whose permission is for India asking for \"all\" markets gets India only; naming another market is refused (403) whatever the query string says; a market that does not exist is 404",
+      "pass": true,
+      "detail": "[[\"india\"],403,404,[\"united-arab-emirates\",\"united-kingdom\",\"united-states\"]]"
+    },
+    {
+      "name": "F1 AN EXPORT IS BUILT IN THE BACKGROUND: asking answers 202 with status QUEUED at once; the queue worker builds the CSV; it becomes READY with a row count and an expiry about 24 hours away; the download is an attachment that no cache may keep",
+      "pass": true,
+      "detail": "[202,\"READY\",2]"
+    },
+    {
+      "name": "F2 THE FILE: a title line (report, period, time zone), a header line, one line per order of today with its number, status, restaurant and total — and no customer: no name, no phone number, no e-mail address",
+      "pass": true,
+      "detail": "{\"lines\":4,\"bom\":[239,187,191],\"l0\":\"\\\"FoodOnTheGo Orders report — 2026-10-13 to 2026-10-13 (Asia/Kolkata)\\\"\",\"l1\":\"\\\"Order number\\\",\\\"Placed at\\\",\\\"Status\\\",\\\"Restaurant\\\",\\\"Currency\\\",\\\"Order total\\\",\\\"Items\\\",\\\"Pickup\\\",\\\"Pickup method\\\",\\\"Accepted at\\\",\\\"Ready at\\\",\\\"Completed at\\\",\\\"Refund statu\",\"hasA\":true,\"hub\":true,\"done\":true,\"clean\":true}"
+    },
+    {
+      "name": "F3 PRIVATE STORAGE: the file is on the private disk under analytics-exports, the answer never says where, and nothing public points at it",
+      "pass": true,
+      "detail": "1 file(s)"
+    },
+    {
+      "name": "F4 AN EXPORT IS ITS REQUESTER'S ONLY: another administrator with the export permission gets 404 for it and for its download, a restaurant owner gets 404, and it is not in anybody else's list",
+      "pass": true,
+      "detail": "[404,404,404]"
+    },
+    {
+      "name": "F5 EXPORT PERMISSIONS: reading analytics is not exporting it (onboarding administrator: 403); the financial report needs the finance export permission on top (operations administrator: 403; finance administrator: 202 and READY); there is no free query (an extra \"sql\" field: 422) and no report outside the curated list (422)",
+      "pass": true,
+      "detail": "[403,403,202,422,422]"
+    },
+    {
+      "name": "F6 asking for an export and downloading it are on the audit trail (who, which report, which period)",
+      "pass": true,
+      "detail": "analytics.export_requested,analytics.export_downloaded"
+    },
+    {
+      "name": "F7 A RESTAURANT EXPORTS ITS OWN: the owner's menu report is built and holds the item that was sold; order staff may not export (403); another restaurant's owner naming Burger Hub gets 404",
+      "pass": true,
+      "detail": "[202,\"READY\",403,404]"
+    },
+    {
+      "name": "F8 AN EXPORT EXPIRES: past its time the download answers 410 export_expired, its status is EXPIRED with no download path, and its file is deleted from the private disk",
+      "pass": true,
+      "detail": "[410,\"EXPIRED\"]"
+    },
+    {
+      "name": "N1 THE ADMIN ANALYTICS SECTION RUNS ON THE BACKEND: market India by default, the period of the request, the currency (INR), the freshness of an aggregated read with the time of the last aggregation — and the word \"live\" is nowhere on an aggregated view",
+      "pass": true,
+      "detail": "{\"source\":\"backend\",\"market\":\"india\",\"mode\":\"AGGREGATED\",\"stale\":\"false\",\"from\":\"2026-10-13\",\"today\":\"2026-10-13\",\"currency\":\"Currency INR\",\"at\":\"2026-10-13T14:15:13Z\",\"neverLive\":true,\"urls\":[\"http://127.0.0.1:8001/api/v1/admin/analytics/overview?market=india&preset=today\",\"http://127.0.0.1:8001/api/v1/admin/analytics/overview?market=india&preset=today\"]}"
+    },
+    {
+      "name": "N2 THE OVERVIEW IS EIGHT DEFINED FIGURES, with the API's values: completed orders, ordering customers, GMV in ₹, platform commission — plus one order trend, the funnel, restaurant operations, route coverage, the finance summary and the support health (not forty cards)",
+      "pass": true,
+      "detail": "8 cards, GMV ₹149.00"
+    },
+    {
+      "name": "N3 EVERY FIGURE OPENS ITS DEFINITION in place: GMV says what is summed (completed orders' totals), from which domain, what is left out, in which time zone and currency — and that it is NOT revenue",
+      "pass": true,
+      "detail": "DEFINITION The sum of what customers paid for the orders COMPLETED in the period: items after discounts, plus tax and fees. SOURCE Order domain (orders.total_minor of completed orders) EXCLUSIONS Orde"
+    },
+    {
+      "name": "N4 THE \"RIGHT NOW\" STRIP is a different thing and says so: counts of this moment read from the operational records (one order waiting for the restaurant), not figures of the period",
+      "pass": true,
+      "detail": "Right now Counts of this moment, read from the operational records — not the aggregated figures of the period below. · read at 13 Oct 2026, 07:45 pm 1 Active or"
+    },
+    {
+      "name": "N5 the DATA QUALITY panel shows the result of the integrity checks as they last ran",
+      "pass": true,
+      "detail": "NEVER_CHECKED"
+    },
+    {
+      "name": "axe (admin analytics — overview): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N6 THE FUNNEL on the Customers view is the API's: eleven stages counted in SESSIONS, each with its conversion from the previous stage and overall (\"Insufficient data\" where the API says the sample is too small for a rate — one of two is not shown as 50 %), sessions that did not continue, signed-in customers and events in their own columns — and no event count for the three stages that are not events",
+      "pass": true,
+      "detail": "{\"shown\":[3,2,1,1],\"api\":[3,2,1,1],\"events9\":\"—\",\"unit\":\"SESSION\",\"stages\":11,\"previous9\":\"Insufficient data\",\"historical\":\"Behavioural events are recorded from Module 38 on. Earlier periods have no funne\"}"
+    },
+    {
+      "name": "axe (admin analytics — customers and funnel): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N7 ORDERS: placed and completed are the order domain's (2 and 1), the order still waiting is \"in progress\" and in no rate, and the four order times are shown with average, median and 90th percentile",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N8 RESTAURANTS: a comparison table for administrators — Burger Hub with its two orders and, for a holder of finance access, gross sales and net earnings from the finance module; the note says it is not a ranking; no score and no \"top\" badge",
+      "pass": true,
+      "detail": "{\"restricted\":\"false\",\"note\":\"A comparison for administrators. The rows carry no ranking score, and nothing he\",\"word\":null,\"row\":\"Burger Hub INR 2 1 0 0 1 ₹149.00 ₹149.00 Insufficient data Insufficient data Insufficient data ₹0.00 11 s 1 s 0 s No data for this period. 0 1 2 1 ₹149.00 ₹134.\"}"
+    },
+    {
+      "name": "N9 ROUTES: journey searches and restaurant impressions of the API, the privacy statement (aggregates; no traveller's origin, destination or route is stored), coverage gaps as information only — and no place, coordinate or map of a journey on the page",
+      "pass": true,
+      "detail": "Journey searches 1 New — no earlier figure to compare Searches without a restaurant 0 Share of searches without a restaurant Insufficient da"
+    },
+    {
+      "name": "N10 PAYMENTS, REFUNDS AND FINANCE: verified payments from the payment domain; refunds from the refund domain (none today: no invented figure); finance shows the ledger's commission in ₹ — the finance module's own number — says it is read from the ledger, names GMV \"not revenue\", and states that live payouts are disabled",
+      "pass": true,
+      "detail": "₹14.90"
+    },
+    {
+      "name": "N11 SUPPORT, REVIEWS, NOTIFICATIONS: support says its targets are test fixtures and that there is no figure per agent; reviews with nothing published today say \"No data for this period.\" instead of a rating; notifications state that a push being READ is NOT TRACKED — no \"read\" or \"open\" rate of a push exists",
+      "pass": true,
+      "detail": "{\"supportOk\":true,\"reviewsOk\":true}"
+    },
+    {
+      "name": "N11b MENU AND PICKUP: the item that was sold with its two labelled sources (orders and behaviour); pickup by mode and method, and — no capacity per slot configured — the note instead of a utilization figure; no delivery figures",
+      "pass": true,
+      "detail": "true"
+    },
+    {
+      "name": "N12 FILTERS: \"All markets\" and \"India\" are sent to the server as the market of the report; \"Last 7 days\" is seven local days ending today; a custom period longer than a year is refused and the page says so in place",
+      "pass": true,
+      "detail": "{\"allAsked\":true,\"weekFrom\":\"2026-10-07\"}"
+    },
+    {
+      "name": "N13 REPORTS THROUGH THE PAGE: choose a curated report, \"Generate export\" (202), the row turns from waiting to Ready by itself, the expiry and the row count are shown, and Download saves the CSV — the orders of today by number, with no customer in it",
+      "pass": true,
+      "detail": "[202,true,\"foodonthego-orders-2026-10-13-to-2026-10-13.csv\"]"
+    },
+    {
+      "name": "axe (admin analytics — reports): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N14 THE ADMIN OVERVIEW no longer shows development KPIs: its cards are the analytics figures of the backend (with their definitions) and the \"right now\" strip; the removed mock cards are gone",
+      "pass": true,
+      "detail": "Orders completed 1 New — no earlier figure to compare Ordering customers 1 New — no earlier figure to compare Restaurants with completed ord"
+    },
+    {
+      "name": "axe (admin overview): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "N15 THE SYSTEM PAGE has the analytics card: last aggregation, data quality, read model sizes — and the plain statements: no warehouse, behavioural history unavailable before Module 38, PRODUCTION = NO",
+      "pass": true,
+      "detail": "NEVER_CHECKED"
+    },
+    {
+      "name": "N16 AN ADMINISTRATOR WITHOUT FINANCE ACCESS (restaurant onboarding): the commission card says \"no access\" and shows no number — not a zero; the finance block is \"restricted\" (the support block is theirs: the role holds support access); the Finance view is refused; the restaurant table has no earnings; there is no Reports tab (no export permission)",
+      "pass": true,
+      "detail": "Platform commission You do not have access to this figure From the ledger"
+    },
+    {
+      "name": "N17 A SUPPORT ADMINISTRATOR holds no analytics permission: the Analytics section is not theirs — no figure, and no report is asked for",
+      "pass": true,
+      "detail": "You do not have access to this area Your role (Support Admin) does not include this permission. The "
+    },
+    {
+      "name": "R1 THE RESTAURANT ANALYTICS PAGE RUNS ON THE BACKEND: it says so (no \"development data\" banner), shows the period, the time zone (Asia/Kolkata), the currency (INR) and how fresh the figures are — an aggregated read, never called \"live\"",
+      "pass": true,
+      "detail": "Updated about every 5 minutes · figures as of 13 Oct 2026, 7:45 pm"
+    },
+    {
+      "name": "R2 THE OVERVIEW SHOWS THE API'S FIGURES: orders placed and completed, the sales of completed orders in ₹ and the net earnings are exactly what GET /restaurant/analytics/overview returns; the note says sales are not earnings",
+      "pass": true,
+      "detail": "[2,14900,13410]"
+    },
+    {
+      "name": "R3 every figure can show its DEFINITION — the one of the metric catalog (what is counted, from which domain, what is left out)",
+      "pass": true,
+      "detail": "Sales of completed orders — What customers paid for the orders completed in the period: items after discounts, plus tax and fees.\n\nSource\nOrder domain (orders.t"
+    },
+    {
+      "name": "R4 CUSTOMERS are counts and nothing else: new and returning (or \"too few to show a split\"), the statement that no customer is named — and no name, phone number or e-mail address anywhere on the page",
+      "pass": true,
+      "detail": "Too few customers to show a split Counts of customers who completed an order here. No customer is named or listed."
+    },
+    {
+      "name": "axe (restaurant dashboard analytics — overview): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R5 MENU: the item that was sold is listed with the units and sales of the ORDER (order items of the completed order) beside what sessions looked at (behavioural events) — two labelled sources, and a note that nothing changes a menu",
+      "pass": true,
+      "detail": "Onion Rings 1 1 1 1 ₹149.00 100.0%"
+    },
+    {
+      "name": "R6 OPERATIONS: time to accept, preparation and ready-to-pickup times of the completed order, the note that these are operational and say nothing about the food, peak times (week from Monday), and — no capacity per slot being configured — the capacity note instead of a made-up utilization",
+      "pass": true,
+      "detail": "{\"configured\":false,\"slots_with_orders\":null,\"slots_full\":null,\"units_used\":null,\"units_capacity\":null,\"note\":\"No capacity per slot is configured in this scope: capacity is unlimited and no utilization is shown.\"}"
+    },
+    {
+      "name": "R7 ROUTES: how often the restaurant was returned for a journey (the API's number) and the privacy statement — counts and bands only; no map, no route, no place of anybody's journey",
+      "pass": true,
+      "detail": "3"
+    },
+    {
+      "name": "R8 REVIEWS with no review today: \"No data for this period.\" — no invented rating — and the note that hidden reviews are in no figure",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R9 EARNINGS are the finance module's own figures: the pending and available amounts on the tab are the Earnings page's (same API figures), with the sentence saying so and a link to the Earnings page",
+      "pass": true,
+      "detail": "[13410,13410]"
+    },
+    {
+      "name": "R10 FILTERS: choosing one location sends its id to the server and keeps it in the address; \"Last 7 days\" asks the server for that period (seven days ending today); a custom period that runs backwards is said to be wrong on the page and asks nothing",
+      "pass": true,
+      "detail": "{\"withLocation\":true,\"weekFrom\":\"2026-10-07\",\"asked\":0}"
+    },
+    {
+      "name": "R11 AN EXPORT THROUGH THE PAGE: \"Generate export\" answers 202, the row goes from waiting to Ready by itself (the page polls), and the Download button saves the CSV of the restaurant's own orders — with the order number and without any customer",
+      "pass": true,
+      "detail": "[202,true,\"foodonthego-orders-2026-10-13-to-2026-10-13.csv\"]"
+    },
+    {
+      "name": "axe (restaurant dashboard analytics — exports): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R12 THE DASHBOARD HOME no longer shows development numbers: \"today so far\" for the header location, read from the backend (orders placed = the API's), and the page says where its figures come from",
+      "pass": true,
+      "detail": "2"
+    },
+    {
+      "name": "R13 ORDER STAFF hold no analytics permission: the Analytics page is not theirs — no figure is shown and no report is asked for",
+      "pass": true,
+      "detail": "Permission denied Your role (Order Staff) does not include this area. Ask an owner or manager if you need access."
+    },
+    {
+      "name": "G1 RUNNING THE AGGREGATION AGAIN CHANGES NOTHING: a second scheduled run and a rebuild of today leave the daily order and funnel figures exactly as they were (no double counting); a dry run writes nothing and says what it would write",
+      "pass": true,
+      "detail": "[\"OK\",72,81]"
+    },
+    {
+      "name": "G2 A LATE EVENT CHANGES THE DAY IT BELONGS TO: an Android event of yesterday sent today lands on yesterday's funnel (one ANDROID session at stage 1) — the run recomputed that day, not everything",
+      "pass": true,
+      "detail": "[{\"market\":1,\"days\":2,\"from\":\"2026-10-12\",\"to\":\"2026-10-13\"},{\"market\":2,\"days\":2,\"from\":\"2026-10-12\",\"to\":\"2026-10-13\"},{\"market\":3,\"days\":2,\"from\":\"2026-10-12\",\"to\":\"2026-10-13\"},{\"market\":4,\"days\":2,\"from\":\"2026-10-12\",\"to\":\"2026-10-13\"}]"
+    },
+    {
+      "name": "G3 DATA QUALITY: the ten integrity checks ran against this run's data and are HEALTHY — facts cover the orders, totals agree, events have a market, every session reached its stages in order (also the forged ones: they claim their stages in order and simply stop where the domains stop them), the per-day finance figures cover the ledger, the aggregation is fresh; the checks report and repair nothing",
+      "pass": true,
+      "detail": "{\"counts\":{\"healthy\":10,\"warning\":0,\"error\":0},\"funnel_transitions\":{\"sessions\":4,\"out_of_order\":0}}"
+    },
+    {
+      "name": "G4 THE SYSTEM PAGE says what the layer is and is not: last aggregation fresh, no warehouse, no materialized view, no advertising tracker, behavioural history unavailable before Module 38, PRODUCTION = NO",
+      "pass": true,
+      "detail": "{\"events_enabled\":true,\"cache_enabled\":true,\"advertising_trackers\":false,\"warehouse\":\"NOT REQUIRED / NOT IMPLEMENTED\",\"materialized_views\":\"NOT USED\",\"historical_behavioural_data\":\"UNAVAILABLE BEFORE MODULE 38\",\"production\":\"NO\"}"
+    },
+    {
+      "name": "Y1 PRIVACY OF THE LOGS AND THE TABLES: nothing the run logged holds a phone number, a bearer token, a session's events or a journey's place; no analytics table has a column for a phone number, an e-mail address, the name of a person, an address, a coordinate, a route, an IP address, a device or a customer id (the one \"name\" column is that of a menu item) — and the rows of this run hold none either",
+      "pass": true,
+      "detail": "18 KB of log {\"log\":true,\"events\":true,\"sessions\":true,\"columns\":true,\"order_facts\":true} "
+    },
+    {
+      "name": "Y2 no page error, console error or dialog in any of the pages of this run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z-2 THE SEEDED CART OF THE SECOND FIXTURE CUSTOMER is exactly as it was before the run (the run buys with the first customer only)",
+      "pass": true,
+      "detail": "2x45900,1x14900"
+    },
+    {
+      "name": "Z-1 CLEAN-UP OF ANALYTICS: every behavioural event, session and order fact, daily row, aggregation run, quality result and export of this run is removed from the local database, and so is every export file on the private disk",
+      "pass": true,
+      "detail": "{\"report_exports\":0,\"analytics_quality_results\":0,\"analytics_runs\":0,\"analytics_dirty_days\":0,\"analytics_daily_breakdowns\":0,\"analytics_daily_support\":0,\"analytics_daily_finance\":0,\"analytics_daily_routes\":0,\"analytics_daily_funnel\":0,\"analytics_daily_items\":0,\"analytics_daily_restaurant\":0,\"analytics_daily_customers\":0,\"analytics_daily_market\":0,\"analytics_order_facts\":0,\"analytics_session_facts\""
+    },
+    {
+      "name": "Z0 CLEAN-UP OF FINANCE: every ledger transaction, entry and account, allocation, payable line, adjustment, hold, settlement, payout, provider record, difference and administrator-made plan of this run is removed from the local database (the two TEST FIXTURE plans stay); no refund of the run is left",
+      "pass": true,
+      "detail": "{\"ledger_transactions\":0,\"ledger_entries\":0,\"ledger_accounts\":0,\"order_financial_allocations\":0,\"restaurant_payable_items\":0,\"financial_adjustments\":0,\"financial_holds\":0,\"restaurant_settlements\":0,\"restaurant_settlement_lines\":0,\"restaurant_payouts\":0,\"provider_settlements\":0,\"provider_settlement_items\":0,\"reconciliation_differences\":0,\"admin_plans\":0,\"fixture_plans\":2,\"refunds\":0}"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

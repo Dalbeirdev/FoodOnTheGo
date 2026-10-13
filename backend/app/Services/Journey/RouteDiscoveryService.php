@@ -6,6 +6,7 @@ use App\Enums\DetourStatus;
 use App\Enums\JourneySort;
 use App\Enums\RestaurantStatus;
 use App\Enums\RouteCoverage;
+use App\Events\Journey\JourneyDiscovered;
 use App\Exceptions\ApiException;
 use App\Exceptions\ProviderException;
 use App\Models\Journey;
@@ -104,7 +105,7 @@ final class RouteDiscoveryService
             'counts' => $computed['counts'], 'provider_ms' => $computed['provider_ms'], 'total_ms' => (int) round((hrtime(true) - $started) / 1_000_000), 'empty_reason' => $emptyReason,
         ]);
 
-        return new DiscoveryResult($items, $total, $filters->page, $filters->pageSize, [
+        $result = new DiscoveryResult($items, $total, $filters->page, $filters->pageSize, [
             'journey_id' => $journey->public_id,
             'search' => $filters->toArray($corridor, $maxDetour) + ['corridor_min_meters' => $policy['corridor_min_meters'], 'corridor_max_meters' => $policy['corridor_max_meters'], 'max_detour_max_minutes' => $policy['max_detour_max_minutes'], 'candidate_cap' => $policy['candidate_cap']],
             'departure_at' => $computed['departure_at'],
@@ -115,6 +116,10 @@ final class RouteDiscoveryService
             'counts' => $computed['counts'] + ['matching' => $total, 'dropped_since_calculation' => $dropped],
             'empty_reason' => $emptyReason,
         ]);
+        // Module 38: analytics hears which restaurants were returned for the journey, or why none was.
+        event(new JourneyDiscovered($journey, $result));
+
+        return $result;
     }
 
     /**

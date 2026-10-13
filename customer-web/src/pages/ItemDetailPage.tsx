@@ -11,6 +11,7 @@ import type { Restaurant } from '../repositories/types'
 import { computeAvailability } from '../repositories/mock/restaurants'
 import { formatMinutes, formatMoney } from '../i18n/format'
 import { t, useLocale } from '../i18n/strings'
+import { restaurantRef, track } from '../analytics'
 import { clampQuantity, defaultSelections, lineTotalMinor, normalizeInstructions, orderability, selectOption, selectedOptions, unitPriceMinor, validateSelections, type GroupIssue, type Selections } from '../pricing/pricing'
 import './ItemDetailPage.css'
 
@@ -93,6 +94,8 @@ export default function ItemDetailPage() {
         if (!alive) return
         if (!restaurant || !item) { setState({ status: 'notfound', restaurant, item: null }); return }
         setState({ status: 'ready', restaurant, item })
+        // Module 38 (telemetry, never awaited): the item's detail is on the screen. Once per item per session — reopening it to edit a cart line is not a second view.
+        track('item_viewed', { restaurant: restaurantRef(restaurant), item: item.publicId }, undefined, `item_viewed:${item.publicId}`)
         setSelections(defaultSelections(item)); setQuantity(clampQuantity(item, item.minimumQuantity)); setInstructions(''); restoredFor.current = null
         setAttempted(false); setTouched({}); setGroupNotice({}); setSlide(0); setToast(null)
         document.title = `${item.name} · ${restaurant.name} · FoodOnTheGo`

@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../cart/cart_validation.dart' as cv;
 import '../checkout/api_checkout.dart';
@@ -286,6 +287,7 @@ class CheckoutState extends ChangeNotifier {
       final checkout = await backend!.open(promotionCode: promotionCode);
       if (my != _seq) return null;
       _accept(checkout, cart: cart);
+      Analytics.checkoutStarted(checkout.id, restaurant: c.server?.restaurantPublicId); // Module 38: once per checkout id
       notifyListeners();
       return checkout;
     } catch (e) {

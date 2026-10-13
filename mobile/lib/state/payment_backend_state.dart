@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../analytics/analytics.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../checkout/api_checkout.dart' show CheckoutBackend, ServerCheckout;
 import '../checkout/checkout_models.dart' show CheckoutRequest;
@@ -214,6 +215,7 @@ class PaymentBackendState extends ChangeNotifier {
     try {
       final p = await backend.start(s.checkoutId, s.fingerprint, methodType: s.methodType);
       _accept(p); unconfirmed = false;
+      Analytics.paymentStarted(s.checkoutId, method: p.methodType ?? s.methodType); // Module 38: once per checkout id — paying again is not another start
       if (p.nextAction == 'OPEN_PROVIDER') { await _openProvider(p); return; }
       phase = PayPhase.idle; _busy = false;
     } catch (e) {

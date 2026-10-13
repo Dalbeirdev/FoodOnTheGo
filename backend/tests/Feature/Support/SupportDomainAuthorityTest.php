@@ -122,7 +122,7 @@ class SupportDomainAuthorityTest extends TestCase
         // The answer says what a case cannot do, and no route of the API offers it.
         $detail = $this->desk('GET', '/cases/'.$case['id'])->assertOk()->json('case');
         $this->assertSame(['mark_payment_verified' => 'NOT_PROVIDED', 'mark_refund_completed' => 'NOT_PROVIDED', 'edit_settlement' => 'NOT_PROVIDED', 'edit_payout' => 'NOT_PROVIDED'], $detail['domain_authority']);
-        $support = array_values(array_filter(array_map(fn ($r): string => implode('|', $r->methods()).' '.$r->uri(), Route::getRoutes()->getRoutes()), fn (string $r): bool => str_contains($r, '/support')));
+        $support = array_values(array_filter(array_map(fn ($r): string => implode('|', $r->methods()).' '.$r->uri(), Route::getRoutes()->getRoutes()), fn (string $r): bool => str_contains($r, '/support') && ! str_contains($r, '/analytics/')));   // Module 38: a read-only report about cases is not a route of the case domain
         $this->assertCount(43, $support);
         foreach ($support as $route) {
             $this->assertDoesNotMatchRegularExpression('#PUT|PATCH|DELETE#', explode(' ', $route)[0], $route);

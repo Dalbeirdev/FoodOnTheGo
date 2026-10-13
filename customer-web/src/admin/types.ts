@@ -29,7 +29,8 @@ export type AdminPermission =
   | 'cities.view' | 'cities.manage' | 'service_areas.view' | 'service_areas.manage' | 'market_configuration.view' | 'market_configuration.manage' | 'market_features.manage'
   | 'notifications.view' | 'notifications.manage' | 'notifications.test'
   | 'admin_users.view' | 'admin_users.manage'
-  | 'audit.view' | 'security.view' | 'analytics.view' | 'system.view' | 'settings.manage'
+  // Module 38 — analytics.export: asking for a CSV export of a report (the backend's admin.analytics.export).
+  | 'audit.view' | 'security.view' | 'analytics.view' | 'analytics.export' | 'system.view' | 'settings.manage'
 export type AdminRoleId = 'super_admin' | 'operations_admin' | 'restaurant_onboarding' | 'support_admin' | 'finance_admin' | 'moderation_admin' | 'analyst'
 export type AdminRole = { id: AdminRoleId; permissions: AdminPermission[] }
 export type AdminStatus = 'INVITED' | 'ACTIVE' | 'SUSPENDED' | 'DISABLED'

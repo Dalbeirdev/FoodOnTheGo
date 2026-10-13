@@ -35,8 +35,12 @@ export const NAV: Array<{ id: string; path: string; icon: string; perm: Permissi
   { id: 'help', path: 'help', icon: 'help', perm: null },
 ]
 
-/** Sections that are still development data when the restaurant domain runs on the backend (Module 23). */
-export const DEMO_SECTIONS = ['overview', ...(orderMode() === 'api' ? [] : ['orders', 'pickup-verification']), ...(reviewMode() === 'api' ? [] : ['reviews']), 'analytics', 'notifications', 'settings']
+/**
+ * Sections that are still development data when the restaurant domain runs on the backend (Module 23).
+ * Module 38: the overview and analytics read the backend's analytics when the order domain runs there — without it
+ * they are still the development sample and keep the banner.
+ */
+export const DEMO_SECTIONS = [...(orderMode() === 'api' ? [] : ['overview', 'orders', 'pickup-verification']), ...(reviewMode() === 'api' ? [] : ['reviews']), ...(orderMode() === 'api' ? [] : ['analytics']), 'notifications', 'settings']
 /** Reasons that keep a restaurant away from customers altogether. */
 const HIDDEN_REASONS = ['MARKET_UNAVAILABLE', 'RESTAURANT_NOT_APPROVED', 'RESTAURANT_SUSPENDED', 'LOCATION_NOT_APPROVED', 'LOCATION_SUSPENDED', 'OUTSIDE_SERVICE_AREA']
 
