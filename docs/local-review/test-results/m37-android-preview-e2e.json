@@ -1,0 +1,51 @@
+{
+  "module": "M37",
+  "suite": "Module 37 — Android app code (Flutter web preview, ORDER_MODE=api) on the real local backend: Help › support, a new case, the conversation, retry safety, confirm / reopen / withdraw, another customer's case",
+  "note": "The same Dart code as the APK, run in a 412×915 browser preview — not a device. USER DEVICE VERIFICATION = PENDING. No order is created by this run and no money moves. Attachments are not offered (NOT IMPLEMENTED).",
+  "ran_at": "2026-10-12T17:57:17.795Z",
+  "passed": 8,
+  "failed": 0,
+  "total": 8,
+  "results": [
+    {
+      "name": "A1 ANDROID — HELP: the Help screen offers \"contact support\" and \"my cases\" to the signed-in customer and reads the customer's cases from the backend; the old note that requests are not sent anywhere is not shown",
+      "pass": true,
+      "detail": "failed: - {\"contact\":true,\"cases\":true}"
+    },
+    {
+      "name": "A2 ANDROID — A NEW CASE: the form (category from the link, subject, message) sends the category, the subject, the message and the source ANDROID with an Idempotency-Key — and no priority, status, owner or queue; the BACKEND creates the case (CUSTOMER_SUPPORT, NORMAL) and the app opens it by its case number, status Open",
+      "pass": true,
+      "detail": "failed: - {\"sent\":[\"category\",\"subject\",\"message\",\"source\",\"locale\"],\"row0\":{\"status\":\"OPEN\",\"source\":\"ANDROID\",\"requester\":\"CUSTOMER\",\"messages\":1,\"resolution\":\"\",\"team\":\"CUSTOMER_SUPPORT\",\"priority\":\"NORMAL\"},\"landed\":\"#/support/cases/CS-QHXAJAF9\",\"status\":\"Open\"}"
+    },
+    {
+      "name": "A3 ANDROID — SUPPORT REPLIED: \"My cases\" marks the case \"New reply\" and \"Waiting for your reply\"; the case shows the customer's message and Support's reply; the internal note written on the desk is on no screen and in NO answer the phone received — and no answer carries a priority, an assignee, a target or a classification",
+      "pass": true,
+      "detail": "failed: - My support cases | Refresh | Every request you sent to FoodOnTheGo support, and where it stands. | Open | Closed | Contact support | 1 with a new reply from sup"
+    },
+    {
+      "name": "A4 ANDROID — RETRY SAFETY: with the connection gone the reply is shown as \"Not sent\" and nothing is stored on the backend; Retry sends it with its client_message_id and it joins the conversation only then; the same id sent again writes nothing twice (one message more than before, not two)",
+      "pass": true,
+      "detail": "failed: - {\"notSent\":true,\"storedWhileOffline\":2,\"messagesBefore\":2,\"retry\":201,\"again\":201,\"now\":3}"
+    },
+    {
+      "name": "A5 ANDROID — CONFIRM, REOPEN, WITHDRAW: a resolved case offers no reply box; \"confirm\" says CONFIRM and the case is Closed; the customer reopens it with a message (REOPENED on the desk, Open on the phone); \"withdraw\" asks first, says WITHDRAW and the case is Cancelled (USER_WITHDREW)",
+      "pass": true,
+      "detail": "failed: - {\"sawResolved\":\"Resolved\",\"confirm\":[200,\"{\\\"intent\\\":\\\"CONFIRM\\\"}\"],\"sawClosed\":\"Closed\",\"reopen\":200,\"sawOpen\":\"Open\",\"withdraw\":[200,\"{\\\"intent\\\":\\\"WITHDRAW\\\"}\"],\"sawCancelled\":\"Cancelled\",\"final\":{\"status\":\"CANCELLED\",\"source\":\"ANDROID\",\"requester\":\"CUSTOMER\",\"messages\":4,\"resolution\":\"USER_WITHDREW\",\"team\":\"CUSTOMER_SUPPORT\",\"priority\":\"NORMAL\"}}"
+    },
+    {
+      "name": "A6 ANDROID — NOT THEIR CASE, AND THE NOTICES: the case number of ANOTHER customer's case opens \"Case not found\" (the backend answered 404, nothing of it is shown); for the customer's own case the backend wrote one notice each for \"opened\", \"support replied\" and \"resolved\" — the reply notice leads to the case by its number (the app's route for that target is covered by its unit tests)",
+      "pass": true,
+      "detail": "failed: - {\"other\":201,\"notFound\":true,\"call\":404,\"notices\":\"support.case_created,support.reply,support.case_resolved\"}"
+    },
+    {
+      "name": "A7 NO SCRIPT ERROR in the app during the run (the blocked request of A4 aside)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every case, message, note and support notice of this run is removed from the local database",
+      "pass": true,
+      "detail": "{\"cases\":0,\"messages\":0,\"notes\":0,\"notices\":0}"
+    }
+  ]
+}

@@ -44,9 +44,13 @@ export type DashboardState = {
   live: boolean
   /** A refused action of the shell (e.g. the accepting-orders switch), shown as a short notice. */
   notice: string | null
+  /** Module 37: the restaurant's support cases with a reply nobody opened yet (0 without the backend or the permission). */
+  supportUnread: number
+  refreshSupportUnread: () => Promise<void>
 }
 const Ctx = createContext<DashboardState | null>(null)
 const LOC_KEY = 'fotg.rd.location', STAFF_KEY = 'fotg.rd.staff'
+const SUPPORT_UNREAD_POLL_MS = 60000
 const read = (k: string) => { try { return localStorage.getItem(k) } catch { return null } }
 const write = (k: string, v: string) => { try { localStorage.setItem(k, v) } catch { /* ignore */ } }
 
@@ -90,6 +94,20 @@ export function DashboardProvider({ children, repos: given }: { children: ReactN
   const refreshLocation = useCallback(async () => { try { setLocations(await repos.management.getLocations()) } catch { /* keep current */ } }, [repos])
   const refreshNotifications = useCallback(async () => { try { setNotifications(await repos.notifications.list(location?.restaurant.id ?? null)) } catch { /* ignore */ } }, [repos, location?.restaurant.id])
   useEffect(() => { if (status === 'ready') void refreshNotifications() }, [status, refreshNotifications])
+  // Module 37: how many of the restaurant's support cases carry a reply that was not opened. Read from the backend on
+  // load and on a slow poll (a visible tab only) — there is no realtime channel for cases and no development data.
+  const [supportUnread, setSupportUnread] = useState(0)
+  const support = repos.support; const readsSupport = permissions.has('support.view')
+  const refreshSupportUnread = useCallback(async () => {
+    if (!support || !readsSupport) return
+    try { setSupportUnread((await support.list({ state: 'all', page: 1, pageSize: 1 })).unread) } catch { /* the last known count stays */ }
+  }, [support, readsSupport])
+  useEffect(() => {
+    if (status !== 'ready' || !support || !readsSupport) return
+    void refreshSupportUnread()
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void refreshSupportUnread() }, SUPPORT_UNREAD_POLL_MS)
+    return () => window.clearInterval(timer)
+  }, [status, support, readsSupport, refreshSupportUnread])
 
   const value: DashboardState = {
     repos, status, locations, location, accessibleLocations, staff, staffList, permissions, locale, live,
@@ -106,6 +124,7 @@ export function DashboardProvider({ children, repos: given }: { children: ReactN
     markRead: async (id) => { await repos.notifications.markRead(id); await refreshNotifications() },
     markAllRead: async () => { await repos.notifications.markAllRead(location?.restaurant.id ?? null); await refreshNotifications() },
     refreshNotifications,
+    supportUnread: support && readsSupport ? supportUnread : 0, refreshSupportUnread,
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

@@ -27,6 +27,7 @@ import { orderMode } from '../../order/orderMode'
 import { reviewMode } from '../../review/reviewMode'
 import { ApiRestaurantReviewRepository } from './apiReviews'
 import { ApiRestaurantFinanceRepository } from './apiFinance'
+import { ApiRestaurantSupportRepository } from './apiSupport'
 import type { DashboardLocation, DashboardRepositories, LocationLive, LocationSettings, OnboardingStatus, Organization, ProfilePatch, ProfileTaxonomy, RestaurantManagementRepository, RestaurantStaffRepository, Role, RoleId, SpecialHours, StaffInvite, StaffMember, StaffStatus, PickupPreview } from '../types'
 
 const R = { context: 'restaurant' as const }
@@ -350,7 +351,9 @@ export const apiDashboardRepositories: DashboardRepositories = (() => {
     // Reviews (Module 34): the published reviews of the member's locations, the response and the report.
     ...(reviewMode() === 'api' ? { reviews: new ApiRestaurantReviewRepository(management) } : {}),
     // Earnings, settlement statements and payout states (Module 36) are made from completed orders: they follow the order domain.
-    ...(orderMode() === 'api' ? { finance: new ApiRestaurantFinanceRepository() } : {}) }
+    ...(orderMode() === 'api' ? { finance: new ApiRestaurantFinanceRepository() } : {}),
+    // Support cases (Module 37) are about orders, settlements and payouts: they follow the order domain too. No backend, no cases.
+    ...(orderMode() === 'api' ? { support: new ApiRestaurantSupportRepository() } : {}) }
 })()
 
 /** The invited staff member accepts with the single-use link (public call, no token). A new account sends a password. */

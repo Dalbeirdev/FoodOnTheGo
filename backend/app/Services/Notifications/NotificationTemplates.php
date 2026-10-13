@@ -12,7 +12,7 @@ use App\Enums\NotificationChannel;
  */
 final class NotificationTemplates
 {
-    public const VARIABLES = ['restaurant', 'order', 'pickup_time', 'refund_line', 'refund_amount'];
+    public const VARIABLES = ['restaurant', 'order', 'pickup_time', 'refund_line', 'refund_amount', 'case'];
 
     /** @var array<string, array<string, mixed>> */
     private array $loaded = [];

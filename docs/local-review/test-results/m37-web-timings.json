@@ -1,0 +1,32 @@
+{
+  "module": "M37",
+  "measured_at": "2026-10-13T04:57:35.115Z",
+  "note": "Local machine, PHP built-in server without OPcache behind the local proxy, one local queue worker, the DEVELOPMENT payment provider. Single API requests of the support domain, one run, so n = 1. Measurements, not targets.",
+  "timings": {
+    "admin_queue": {
+      "n": 1,
+      "median_ms": 387,
+      "max_ms": 387
+    },
+    "admin_case_detail": {
+      "n": 1,
+      "median_ms": 358,
+      "max_ms": 358
+    },
+    "admin_search": {
+      "n": 1,
+      "median_ms": 364,
+      "max_ms": 364
+    },
+    "customer_case_list": {
+      "n": 1,
+      "median_ms": 310,
+      "max_ms": 310
+    },
+    "restaurant_case_list": {
+      "n": 1,
+      "median_ms": 330,
+      "max_ms": 330
+    }
+  }
+}

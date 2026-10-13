@@ -8,6 +8,7 @@ import { createContext, useContext } from 'react'
 import { isRtl } from './format'
 import { dashStrings } from '../dashboard/strings'
 import { adminStrings } from '../admin/strings'
+import { supportStrings } from '../support/strings'
 
 export type Locale = { locale: string; dir: 'ltr' | 'rtl'; unitPreference: 'auto' | 'metric' | 'imperial' }
 
@@ -1184,6 +1185,8 @@ const en: Record<string, string> = {
 Object.assign(en, dashStrings)
 // Module 18: platform admin strings.
 Object.assign(en, adminStrings)
+// Module 37: support cases (Customer Web and Restaurant Dashboard share the labels of categories and statuses).
+Object.assign(en, supportStrings)
 
 const bundles: Record<string, Record<string, string>> = { en }
 

@@ -1,0 +1,9 @@
+# Module 37 — full backend test suite (php artisan test — the project's JSON reporter; phpunit.xml: DB_DATABASE=foodonthego_test on the local PostgreSQL 18 + PostGIS, QUEUE_CONNECTION=sync, CACHE_STORE=array, BROADCAST_CONNECTION=null, PAYMENT_DRIVER=fake, the support rate limits raised for the suite). LOCAL machine, 2026-10-12.
+# Module 37 suites (tests/Feature/Support, 52 tests): SupportConcurrencyAndPerformanceTest (3), SupportCustomerCaseTest (8), SupportDeskTest (7), SupportDomainAuthorityTest (4), SupportHardeningTest (7), SupportIntentAndCapabilityTest (5), SupportLinkedRecordsTest (1), SupportOpenApiContractTest (2), SupportRestaurantCaseTest (4), SupportSlaAndNotificationTest (5), SupportSystemCaseTest (6).
+# One earlier test adapted, with a "Module 37:" reason beside the change: Notifications/DeliveryRetryAndAdminTest (the number of notification types, 17 -> 20 with support.case_created / support.reply / support.case_resolved).
+# Run 1 (1266 tests, 1265 passed, 1 failed): DeliveryRetryAndAdminTest::test_admin_sees_deliveries_and_attempts_without_tokens_retries_only_a_failed_delivery_with_a_live_device_and_everything_is_audited — the pinned number of notification types; nothing else. Run 2 (1273 tests, all passed) followed the first client feedback; the final run follows the fixes of the independent review (15 support tests were written after run 1).
+# Code style: vendor/bin/pint --test --dirty (every PHP file this module added or changed), 2026-10-12: {"tool":"pint","result":"passed"}
+
+## final run (full3)
+{"tool":"phpunit","result":"passed","tests":1281,"passed":1281,"assertions":55507,"duration_ms":893007}
+exit 0

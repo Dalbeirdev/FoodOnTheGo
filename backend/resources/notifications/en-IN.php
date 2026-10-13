@@ -96,6 +96,21 @@ return [
         'version' => 1,
         'in_app' => ['title' => 'Your review is not shown', 'body' => 'Your review of :restaurant for order :order is not shown publicly because it does not meet the review guidelines. Contact support if you think this is a mistake.'],
     ],
+    // Module 37: the customer's own support case. The texts never quote what was written in the case.
+    'support.case_created' => [
+        'version' => 1,
+        'in_app' => ['title' => 'We received your request', 'body' => 'Your support case :case is open. We will reply here and in the case itself.'],
+    ],
+    'support.reply' => [
+        'version' => 1,
+        'push' => ['title' => 'Support replied', 'body' => 'There is a new reply in your support case :case.'],
+        'in_app' => ['title' => 'Support replied to your case', 'body' => 'There is a new reply in your support case :case. Open the case to read it.'],
+    ],
+    'support.case_resolved' => [
+        'version' => 1,
+        'push' => ['title' => 'Support case resolved', 'body' => 'Your support case :case was marked as resolved.'],
+        'in_app' => ['title' => 'Your case was marked as resolved', 'body' => 'Support marked your case :case as resolved. If you still need help, you can reopen it from the case.'],
+    ],
     'account.phone_changed' => [
         'version' => 1,
         'push' => ['title' => 'Phone number changed', 'body' => 'The phone number on your FoodOnTheGo account was changed. Not you? Open the app and contact support.'],

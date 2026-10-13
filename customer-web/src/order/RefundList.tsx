@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom'
 import { formatMoney } from '../i18n/format'
 import { t } from '../i18n/strings'
 import { formatLocalDate } from '../pickup/time'
+import { newCaseLink, useSupport } from '../support/supportRepositories'
 import type { Order } from './repositories'
 import './RefundList.css'
 
@@ -13,6 +15,8 @@ import './RefundList.css'
  */
 export default function RefundList({ order: o, locale }: { order: Order; locale: string }) {
   const r = o.refunds
+  // Module 37: with the support backend each refund offers a case that already names it (and its order).
+  const support = useSupport()
   if (!r || r.items.length === 0) return null
   const money = (m: number, currency = o.pricing.currency) => formatMoney(m, currency, locale)
   const tz = o.pickup.restaurantTimezone
@@ -37,6 +41,7 @@ export default function RefundList({ order: o, locale }: { order: Order; locale:
               {x.completedAt && <> · {t('od.refunds.completed', { date: formatLocalDate(x.completedAt, tz, locale) }, locale)}</>}
             </p>
             <p className="cart-muted">{t(`od.refunds.help.${x.status}`, undefined, locale)}</p>
+            {support.repository && x.reference && <p className="cart-muted"><Link to={newCaseLink({ refund: x.reference, order: o.orderNumber, category: 'REFUND' })} className="cart-link" data-testid="refund-get-help" data-reference={x.reference}>{t('sup.entry.refund', undefined, locale)}</Link></p>}
           </li>
         ))}
       </ul>

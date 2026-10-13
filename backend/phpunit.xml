@@ -112,6 +112,10 @@
         <env name="RATE_LIMIT_FINANCE_READ" value="1000" force="true"/>
         <env name="RATE_LIMIT_FINANCE_ACTION" value="1000" force="true"/>
         <env name="RATE_LIMIT_FINANCE_EXPORT" value="1000" force="true"/>
+        <env name="RATE_LIMIT_SUPPORT_READ" value="1000" force="true"/>
+        <env name="RATE_LIMIT_SUPPORT_CASE_CREATE" value="1000" force="true"/>
+        <env name="RATE_LIMIT_SUPPORT_WRITE" value="1000" force="true"/>
+        <env name="RATE_LIMIT_SUPPORT_ADMIN_ACTION" value="1000" force="true"/>
         <env name="RATE_LIMIT_PAYMENT_READ" value="1000" force="true"/>
         <env name="RATE_LIMIT_PAYMENT_WEBHOOK" value="1000" force="true"/>
         <env name="ROUTING_DRIVER" value="fake" force="true"/>

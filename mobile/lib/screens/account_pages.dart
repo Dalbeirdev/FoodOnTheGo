@@ -513,7 +513,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 Card(
                   color: n.read ? Colors.white : Brand.peach,
                   child: ListTile(
-                    leading: Container(width: 42, height: 42, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Brand.line)), child: Icon(switch (n.kind) { 'orders' => Icons.shopping_bag_outlined, 'offers' => Icons.local_offer_outlined, _ => Icons.notifications_none }, color: Brand.orangeDeep)),
+                    leading: Container(width: 42, height: 42, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Brand.line)), child: Icon(n.target == 'SUPPORT_CASE' ? Icons.support_agent : switch (n.kind) { 'orders' => Icons.shopping_bag_outlined, 'offers' => Icons.local_offer_outlined, _ => Icons.notifications_none }, color: Brand.orangeDeep)),
                     title: Text(n.title, style: TextStyle(fontWeight: n.read ? FontWeight.w600 : FontWeight.w800, fontSize: 14.5)),
                     subtitle: Text('${n.text}\n${_ago(n.at)}', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
                     isThreeLine: true,

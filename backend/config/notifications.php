@@ -74,6 +74,11 @@ return [
         'review.response' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'off', 'SMS' => 'off']],
         'review.published' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'off', 'EMAIL' => 'off', 'SMS' => 'off']],
         'review.moderated' => ['category' => 'ORDER_UPDATES', 'subject' => 'REVIEW', 'priority' => 'NORMAL', 'target' => 'REVIEW', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'off', 'EMAIL' => 'off', 'SMS' => 'off']],
+        // Module 37: a customer's own support case. Filed under ACCOUNT_SECURITY (the "account" channel) until the business
+        // decides whether support gets a category of its own in the preference matrix.
+        'support.case_created' => ['category' => 'ACCOUNT_SECURITY', 'subject' => 'SUPPORT_CASE', 'priority' => 'NORMAL', 'target' => 'SUPPORT_CASE', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'off', 'EMAIL' => 'off', 'SMS' => 'off']],
+        'support.reply' => ['category' => 'ACCOUNT_SECURITY', 'subject' => 'SUPPORT_CASE', 'priority' => 'NORMAL', 'target' => 'SUPPORT_CASE', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'off', 'SMS' => 'off']],
+        'support.case_resolved' => ['category' => 'ACCOUNT_SECURITY', 'subject' => 'SUPPORT_CASE', 'priority' => 'NORMAL', 'target' => 'SUPPORT_CASE', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'preference', 'EMAIL' => 'off', 'SMS' => 'off']],
         'account.phone_changed' => ['category' => 'ACCOUNT_SECURITY', 'subject' => 'ACCOUNT', 'priority' => 'HIGH', 'target' => 'ACCOUNT_SECURITY', 'channels' => ['IN_APP' => 'mandatory', 'PUSH' => 'mandatory', 'EMAIL' => 'mandatory', 'SMS' => 'off']],
     ],
 

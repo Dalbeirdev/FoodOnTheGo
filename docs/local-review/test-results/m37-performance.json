@@ -1,0 +1,64 @@
+{
+    "admin_queue_100_of_120_cases": {
+        "queries": 5,
+        "ms": 36,
+        "queries_with_3_cases": 5
+    },
+    "admin_queue_counts_16_queues": {
+        "queries": 17,
+        "ms": 18
+    },
+    "admin_case_detail": {
+        "queries": 5,
+        "ms": 12
+    },
+    "admin_conversation_page_50_of_150": {
+        "queries": 5,
+        "ms": 14
+    },
+    "admin_timeline_page_100": {
+        "queries": 5,
+        "ms": 17
+    },
+    "admin_search_by_case_number": {
+        "queries": 4,
+        "ms": 11
+    },
+    "admin_metrics": {
+        "queries": 17,
+        "ms": 24
+    },
+    "customer_case_list_60": {
+        "queries": 5,
+        "ms": 15,
+        "queries_with_2_cases": 6
+    },
+    "customer_conversation_page_50_of_150": {
+        "queries": 6,
+        "ms": 9
+    },
+    "customer_reply": {
+        "queries": 10,
+        "ms": 16
+    },
+    "restaurant_case_list_41": {
+        "queries": 10,
+        "ms": 23,
+        "queries_with_1_case": 10
+    },
+    "explain": {
+        "queue_by_status_and_priority": "Index Scan support_cases",
+        "cases_of_a_team": "Index Scan support_cases",
+        "cases_of_an_administrator": "Index Scan support_cases",
+        "cases_of_a_market": "Index Scan support_cases",
+        "cases_of_a_customer": "Index Scan support_cases",
+        "cases_of_a_location": "Index Scan support_cases",
+        "case_by_number": "Index Scan support_cases",
+        "messages_of_a_case": "Index Scan support_case_messages",
+        "timeline_of_a_case": "Index Scan support_case_events",
+        "cases_by_linked_reference": "Index Scan support_case_links",
+        "cases_by_linked_record": "Index Scan support_case_links",
+        "sla_state_of_active_cases": "Index Scan support_cases",
+        "live_system_case_by_key": "Index Scan support_cases"
+    }
+}

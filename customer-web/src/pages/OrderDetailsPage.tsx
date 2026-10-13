@@ -15,6 +15,7 @@ import { timelineFor } from '../order/tracking'
 import { orderRepositories } from '../order/useOrderConfirmation'
 import { formatLocalDate } from '../pickup/time'
 import { useReviewEntry, type ReviewDeps } from '../review/useReviewEntry'
+import { newCaseLink, useSupport } from '../support/supportRepositories'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
@@ -101,6 +102,7 @@ function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reord
   const auth = useAuth()
   const reviewEntry = useReviewEntry(o, auth.user?.id ?? null, review)
   const account = useAccount()
+  const support = useSupport()
   const s = o.orderStatus
   const closed = s === 'CANCELLED' || s === 'REJECTED'
   const closedAt = o.events.filter((e) => e.type === 'CANCELLED' || e.type === 'RESTAURANT_REJECTED').map((e) => e.at).pop() ?? null
@@ -126,7 +128,8 @@ function Details({ order: o, receipt, locale, showReceipt, setShowReceipt, reord
           <button type="button" className="btn btn--outline" onClick={() => setShowReceipt(!showReceipt)} aria-expanded={showReceipt} aria-controls="od-receipt">{showReceipt ? t('oc.receipt.hide', undefined, locale) : t('oc.receipt.view', undefined, locale)}</button>
           {isReviewable(s) && reviewEntry.state === 'eligible' && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="od-review">{t('rv.entry.rate', undefined, locale)}</Link>}
           {isReviewable(s) && reviewEntry.state === 'reviewed' && <Link to={`/order/${o.orderNumber}/review`} className="btn btn--outline" data-testid="od-review">{reviewEntry.eligibility?.canEdit ? t('rv.entry.edit', undefined, locale) : t('rv.entry.view', undefined, locale)}</Link>}
-          <Link to="/help" className="btn btn--outline">{t('od.action.help', undefined, locale)}</Link>
+          {/* Module 37: with the support backend "Get help" opens a case that already names this order; without it, the Help page. */}
+          <Link to={support.repository ? newCaseLink({ order: o.orderNumber, category: 'ORDER' }) : '/help'} className="btn btn--outline" data-testid="order-get-help">{t('od.action.help', undefined, locale)}</Link>
         </div>
         {isReviewable(s) && reviewEntry.state === 'ineligible' && reviewEntry.eligibility && <p id="od-rate-note" className="cart-muted" data-testid="od-review-note">{t(`rv.ineligible.${reviewEntry.eligibility.reason}`, undefined, locale)}</p>}
         {isReviewable(s) && reviewEntry.state === 'reviewed' && reviewEntry.review && <p className="cart-muted" data-testid="od-review-note">{t('rv.entry.reviewed', undefined, locale)} · {t('rv.rating.value', { n: reviewEntry.review.overallRating, max: 5 }, locale)}</p>}

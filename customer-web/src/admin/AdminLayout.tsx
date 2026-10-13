@@ -4,6 +4,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { t } from '../i18n/strings'
 import { Avatar, ErrorState, Icon, Skeleton } from '../dashboard/components/ui'
 import { useAdmin } from './AdminContext'
+import { ApiAdminSupportRepository } from './api/ApiAdminSupportRepository'
 import type { AdminPermission, SearchHit } from './types'
 import '../dashboard/dashboard.css'
 import './admin.css'
@@ -34,8 +35,9 @@ function useOutsideClose<T extends HTMLElement>(open: boolean, onClose: () => vo
 /** Global search: restaurants, orders, customers, payments and support cases the current admin may see. */
 function GlobalSearch() {
   const a = useAdmin(); const nav = useNavigate(); const [q, setQ] = useState(''); const [hits, setHits] = useState<SearchHit[]>([]); const [open, setOpen] = useState(false); const [active, setActive] = useState(0)
+  const supportLive = a.backendSections.includes('support')
   const ref = useOutsideClose<HTMLDivElement>(open, () => setOpen(false))
-  useEffect(() => { if (q.trim().length < 2) { setHits([]); return } let alive = true; const id = setTimeout(() => { void a.repos.search.search(q, a.permissions).then((h) => { if (alive) { setHits(h); setActive(0); setOpen(true) } }) }, 180); return () => { alive = false; clearTimeout(id) } }, [q, a.repos, a.permissions])
+  useEffect(() => { if (q.trim().length < 2) { setHits([]); return } let alive = true; const id = setTimeout(() => { void a.repos.search.search(q, a.permissions).then((h) => { if (alive) { /* Module 37: with the service desk on the backend the development cases are not offered — their links would open nothing. */ setHits(supportLive ? h.filter((x) => x.kind !== 'support') : h); setActive(0); setOpen(true) } }) }, 180); return () => { alive = false; clearTimeout(id) } }, [q, a.repos, a.permissions, supportLive])
   const go = (h: SearchHit) => { setOpen(false); setQ(''); nav(h.link) }
   return (
     <div className="adm-search" ref={ref}>
@@ -127,9 +129,10 @@ export function RequirePermission({ perm, children }: { perm: AdminPermission; c
 export default function AdminLayout() {
   const a = useAdmin(); const loc = useLocation(); const [collapsed, setCollapsed] = useState(false); const [drawer, setDrawer] = useState(false)
   const [pendingCount, setPendingCount] = useState(0); const [supportCount, setSupportCount] = useState(0)
+  const supportLive = a.backendSections.includes('support'); const canSupport = a.can('support.view')
   useEffect(() => { setDrawer(false) }, [loc.pathname])
   useEffect(() => { document.body.classList.toggle('db-lock', drawer); return () => document.body.classList.remove('db-lock') }, [drawer])
-  useEffect(() => { if (a.status !== 'ready') return; let alive = true; void a.repos.restaurants.list({ tab: 'pending', pageSize: 1 }).then((p) => alive && setPendingCount(p.total)).catch(() => {}); void a.repos.support.list({ tab: 'open', pageSize: 1 }).then((p) => alive && setSupportCount(p.counts.open)).catch(() => {}); return () => { alive = false } }, [a.status, a.repos, loc.pathname])
+  useEffect(() => { if (a.status !== 'ready') return; let alive = true; void a.repos.restaurants.list({ tab: 'pending', pageSize: 1 }).then((p) => alive && setPendingCount(p.total)).catch(() => {}); /* Module 37: with the backend the badge is the service desk's own number of open cases (of the cases this administrator may see); the development count otherwise. */ if (supportLive) { if (canSupport) void new ApiAdminSupportRepository().metrics().then((m) => alive && setSupportCount(m.open)).catch(() => { if (alive) setSupportCount(0) }); else setSupportCount(0) } else void a.repos.support.list({ tab: 'open', pageSize: 1 }).then((p) => alive && setSupportCount(p.counts.open)).catch(() => {}); return () => { alive = false } }, [a.status, a.repos, loc.pathname, supportLive, canSupport])
   const badge = (b: NavItem['badge']) => (b === 'pending' ? pendingCount : b === 'alerts' ? a.unreadCount : b === 'support' ? supportCount : 0)
   const visible = (i: NavItem) => !i.perm || a.can(i.perm)
   const nav = (

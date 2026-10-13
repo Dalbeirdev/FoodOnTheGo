@@ -4,6 +4,8 @@ import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../order/order_models.dart';
 import '../review/review_models.dart';
 import '../payment/payment_models.dart';
+import '../support/support_drafts.dart';
+import '../support/support_models.dart';
 
 export '../order/order_models.dart';
 
@@ -13,7 +15,7 @@ export '../order/order_models.dart';
 enum ConfirmationStatus { loading, confirmed, paymentPending, paymentFailed, failedToLoad, orderNotFound, cancelled }
 
 class OrderState extends ChangeNotifier {
-  OrderState({OrderRepository? orders, PickupVerificationRepository? verifications, ReceiptRepository? receipts, PaymentRepository? payments, KeyValueStore? store, ReviewRepository? reviews, ReviewEligibilityService? reviewEligibility, ReviewConfigProvider? reviewConfig}) {
+  OrderState({OrderRepository? orders, PickupVerificationRepository? verifications, ReceiptRepository? receipts, PaymentRepository? payments, KeyValueStore? store, ReviewRepository? reviews, ReviewEligibilityService? reviewEligibility, ReviewConfigProvider? reviewConfig, this.support, SupportDrafts? supportDrafts}) {
     final st = store ?? SecureKeyValueStore();
     final mock = orders is MockOrderRepository ? orders : MockOrderRepository(st);
     this.orders = orders ?? mock;
@@ -23,6 +25,7 @@ class OrderState extends ChangeNotifier {
     this.reviews = reviews ?? MockReviewRepository(st);
     this.reviewEligibility = reviewEligibility ?? MockReviewEligibilityService(this.reviews);
     this.reviewConfig = reviewConfig ?? MockReviewConfigProvider();
+    this.supportDrafts = supportDrafts ?? SupportDrafts(st);
   }
   late final OrderRepository orders;
   late final PickupVerificationRepository verifications;
@@ -32,6 +35,11 @@ class OrderState extends ChangeNotifier {
   late final ReviewRepository reviews;
   late final ReviewEligibilityService reviewEligibility;
   late final ReviewConfigProvider reviewConfig;
+  /// Module 37 — support cases follow the order domain (ORDER_MODE=api). Null = no backend: support is not connected,
+  /// and nothing is kept on the device and pretended to be sent.
+  final SupportRepository? support;
+  /// What the customer wrote to support and the backend does not have yet (reply drafts, unconfirmed replies, the new-case form).
+  late final SupportDrafts supportDrafts;
 
   ConfirmationStatus status = ConfirmationStatus.loading;
   Order? order;

@@ -1,0 +1,51 @@
+# Module 37 — the LOCAL database (foodonthego_local) brought to this module, 2026-10-12: the migration, the roles with the new support permissions, the development support fixtures (four TEST SLA policies — internal targets, not commitments; NO case is seeded) and one sweep. Nothing here touched production.
+
+$ php artisan migrate:rollback --step=1 --force   (the Module 37 migration changed after the review: one unique index per system key, two more indexes)
+
+ INFO Rolling back migrations. 
+
+ 2026_10_17_100000_module37_support .. 119.06ms DONE
+
+
+$ php artisan migrate --force
+
+ INFO Running migrations. 
+
+ 2026_10_17_100000_module37_support .. 269.68ms DONE
+
+
+$ php artisan db:seed --class=RoleSeeder --force
+
+ INFO Seeding database. 
+
+ Database\Seeders\RoleSeeder .. RUNNING 
+ Database\Seeders\RoleSeeder .. 122 ms DONE 
+
+
+$ php artisan db:seed --class=LocalSupportFixtureSeeder --force
+
+ INFO Seeding database. 
+
+ Database\Seeders\LocalSupportFixtureSeeder .. RUNNING 
+ Database\Seeders\LocalSupportFixtureSeeder .. 191 ms DONE 
+
+
+$ php artisan support:sweep
+{"system_cases":{"payment_recovery":0,"refund_review":0,"finance_difference":0,"dispute":0},"sla_at_risk":0,"sla_breached":0,"sla_escalated":0,"no_response_resolved":0,"auto_closed":0,"failed":0}
+
+$ psql: support tables, the system-key index and the fixture policies
+support_case_assignments
+support_case_attachments
+support_case_escalations
+support_case_events
+support_case_internal_notes
+support_case_links
+support_case_messages
+support_cases
+support_sla_policies
+CREATE UNIQUE INDEX support_cases_system_key_unique ON public.support_cases USING btree (system_key) WHERE (system_key IS NOT NULL)
+TEST FIXTURE — any case (internal target, not a commitment) | TEST | ACTIVE
+TEST FIXTURE — high priority (internal target, not a commitment) | TEST | ACTIVE
+TEST FIXTURE — urgent priority (internal target, not a commitment) | TEST | ACTIVE
+TEST FIXTURE — finance queue (internal target, not a commitment) | TEST | ACTIVE
+0 support cases

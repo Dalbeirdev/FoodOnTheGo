@@ -1,0 +1,250 @@
+{
+  "module": "M32",
+  "suite": "Module 32 — Customer Web + Restaurant Dashboard + Platform Admin on the real local backend with Laravel Reverb (realtime) and the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — no money moves; Razorpay itself is NOT exercised",
+  "ran_at": "2026-10-13T05:23:09.127Z",
+  "passed": 47,
+  "failed": 1,
+  "total": 48,
+  "results": [
+    {
+      "name": "A1 A PAID ORDER EXISTS (Module 31 path unchanged): the payment page waited for the server's order number and opened its confirmation",
+      "pass": true,
+      "detail": "FOTG-20261013-VY8E2S"
+    },
+    {
+      "name": "A2 THE ORDER CARRIES WHAT THE CLIENTS NEED FOR REALTIME: version 1, every timeline line numbered (sequence 1, event_id \"<id>-1\"), realtime hints (channel customer.order.<id>, event order.updated, the customer auth endpoint, poll 8 s, not terminal), pickup_verification NOT_YET and a credential whose QR payload is FOTG1.<43 opaque characters>",
+      "pass": true,
+      "detail": "{\"version\":1,\"realtime\":{\"enabled\":true,\"channel\":\"customer.order.5ca57b24-0856-4e35-bb32-e90e1da44c2a\",\"event\":\"order.updated\",\"auth_endpoint\":\"/customer/broadcasting/auth\",\"poll_seconds\":8,\"terminal\":false},\"pv\":{\"status\":\"NOT_YET\",\"credential_status\":\"ACTIVE\"},\"qr\":49}"
+    },
+    {
+      "name": "A3 THE CREDENTIAL ENDPOINT answers the same QR payload and code, private and never cached (Cache-Control: no-store), with the verification state",
+      "pass": true,
+      "detail": "max-age=0, no-store, private 200"
+    },
+    {
+      "name": "A4 ANOTHER CUSTOMER cannot read the credential (404), nor the event stream (404); no session: 401",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "name": "A5 THE TRACKING PAGE (Customer Web) connects to the private channel over the WebSocket (Laravel Reverb): the transport line says CONNECTED — and the order status is still \"waiting for the restaurant\", read from the API, not from the socket",
+      "pass": true,
+      "detail": "CONNECTED | transport attr: CONNECTED | errors:  | page: Live updates on LIVE ORDER TRACKING Waiting for the restaurant Burger Hub has received your order and will confirm it shortly. Live updates Last updated 10:48 am Refresh status ORDER NUMBER FOTG-20261"
+    },
+    {
+      "name": "A6 THE SUBSCRIPTION WAS AUTHORIZED BY THE BACKEND: the browser posted /customer/broadcasting/auth with the bearer token for private-customer.order.<id> (a socket id and a channel name — nothing else)",
+      "pass": true,
+      "detail": "[\"channel_name,socket_id\"]"
+    },
+    {
+      "name": "A7 CHANNEL AUTHORIZATION IS THE SERVER'S: another customer → 403 channel_forbidden; a public channel name → 422; a restaurant token on a customer channel → 403",
+      "pass": true,
+      "detail": "403 422 403"
+    },
+    {
+      "name": "B1 THE DASHBOARD'S QUEUE IS LIVE: it subscribed to the location's private channel (restaurant.location.<location id>, authorized with the staff token) and the badge says CONNECTED",
+      "pass": true,
+      "detail": "CONNECTED"
+    },
+    {
+      "name": "B2 ACCEPT (API) → the customer's tracking page shows \"accepted\" WITHOUT a reload (the socket notice made it read the order) — measured 456 ms after the step; the dashboard moved the card off \"new\" too (2050 ms)",
+      "pass": true,
+      "detail": "Live updates on LIVE ORDER TRACKING Restaurant accepted your order Burger Hub accepted your order and will start prepari"
+    },
+    {
+      "name": "B3 THE EVENT STREAM (GET /customer/orders/{n}/events?after_sequence=1) returns exactly the new line — RESTAURANT_ACCEPTED, sequence 2, actor RESTAURANT — with the current status and version and the cursor",
+      "pass": true,
+      "detail": "{\"after_sequence\":1,\"last_sequence\":2,\"has_more\":false}"
+    },
+    {
+      "name": "B4 PREPARING reaches the customer live",
+      "pass": true,
+      "detail": "Live updates on LIVE ORDER TRACKING Restaurant accepted your order Burger Hub accepted your order and will start prepari"
+    },
+    {
+      "name": "B5 READY reaches the customer live (785 ms) — the page now shows the pickup QR and the code prominently",
+      "pass": true,
+      "detail": "Live updates on LIVE ORDER TRACKING Your order is being prepared Burger Hub is preparing your order. We'll tell you when it's ready. Live updates Last updated 1"
+    },
+    {
+      "name": "axe (tracking ready): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A8 THE QR IMAGE on the page is rendered from the credential's opaque payload — the page has the payload only in the image and the credential answer, never in a URL",
+      "pass": true,
+      "detail": "data:image/png;base64,iVBORw0K"
+    },
+    {
+      "name": "C1 THE RESTAURANT'S ORDER says AVAILABLE for the pickup (pickup_verification.status) and offers \"verify_pickup\" as the only step — no \"picked up\" button exists",
+      "pass": true,
+      "detail": "[\"verify_pickup\"]"
+    },
+    {
+      "name": "C2 A WRONG QR, THE ORDER NUMBER AS A QR, A WRONG CODE: 422 pickup_credential_invalid each time, nothing revealed, the order untouched",
+      "pass": true,
+      "detail": "422 422 422"
+    },
+    {
+      "name": "C3 ANOTHER RESTAURANT'S OWNER with the real QR (no second organization staff fixture reachable here — covered by PickupVerificationTest::test_the_staff_of_another_restaurant_cannot_verify_and_learns_nothing_even_with_a_valid_qr)",
+      "pass": true,
+      "detail": "skipped: no fixture"
+    },
+    {
+      "name": "C4 THE SCANNER PAGE (Restaurant Dashboard) SENDS THE PAYLOAD TO THE BACKEND — method QR, the location, the payload, nothing else — and the backend answers PICKUP_VERIFIED: the order PICKED_UP → COMPLETED, verified by John with the QR method",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"method\":\"QR\",\"verified_at\":\"2026-10-13T05:19:20+00:00\",\"verified_by\":{\"id\":\"6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc\",\"name\":\"John Doe\"},\"credential_status\":\"CONSUMED\",\"completed_at\":\"2026-10-13T05:19:20+00:00\"}"
+    },
+    {
+      "name": "C5 THE SCANNER PAGE SHOWS \"Pickup Verified\" with the order, the method and the time",
+      "pass": true,
+      "detail": "ok"
+    },
+    {
+      "name": "axe (scanner verified): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C6 THE CUSTOMER'S TRACKING PAGE follows live: picked up / completed (469 ms) — the QR is gone, the final status is shown",
+      "pass": true,
+      "detail": "LIVE ORDER TRACKING Order completed Thanks for ordering with FoodOnTheGo. Final status Last updated 10:49 am Refresh status ORDER NUMBER FOTG-20261013-VY8E2S RE"
+    },
+    {
+      "name": "C7 DATABASE: COMPLETED, picked_up_at and completed_at set, version 6; the credential CONSUMED by QR by a restaurant user; the timeline … READY_FOR_PICKUP → CUSTOMER_PICKED_UP, PICKUP_VERIFIED (internal), ORDER_COMPLETED; the attempts of this order recorded — the wrong code and the success, never a secret",
+      "pass": true,
+      "detail": "ORDER_CREATED/SYSTEM,RESTAURANT_ACCEPTED/RESTAURANT_USER,PREPARATION_STARTED/RESTAURANT_USER,READY_FOR_PICKUP/RESTAURANT_USER,CUSTOMER_PICKED_UP/RESTAURANT_USER,PICKUP_VERIFIED/RESTAURANT_USER,ORDER_COMPLETED/SYSTEM | MANUAL_CODE/INVALID_CREDENTIAL,QR/SUCCESS"
+    },
+    {
+      "name": "C8 REPLAY: the same QR again → 409 pickup_already_verified with the order's state, verified_by_you true for John — no second pickup",
+      "pass": true,
+      "detail": "{\"order_number\":\"FOTG-20261013-VY8E2S\",\"status\":\"COMPLETED\",\"verified_at\":\"2026-10-13T05:19:20+00:00\",\"verified_by_you\":true}"
+    },
+    {
+      "name": "C9 THE SCANNER PAGE shows the replay as \"already verified\" (by you, a moment ago) — not a generic error",
+      "pass": true,
+      "detail": "already_used"
+    },
+    {
+      "name": "C10 THE CUSTOMER'S ORDER after the pickup: COMPLETED, pickup_verification VERIFIED (method, time — but never the staff member), no credential any more, next_action DONE, realtime terminal; the money untouched (PAID, refund NONE)",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"method\":\"QR\",\"verified_at\":\"2026-10-13T05:19:20+00:00\",\"credential_status\":\"CONSUMED\",\"completed_at\":\"2026-10-13T05:19:20+00:00\"}"
+    },
+    {
+      "name": "D1 A CODE BEFORE THE ORDER IS READY: 409 order_not_ready_for_pickup (PREPARING) — nothing consumed",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "D2 WRONG LOCATION (the same organization's other location as the scanner context): 403 pickup_location_unauthorized naming the order's location — nothing consumed",
+      "pass": true,
+      "detail": "one location only"
+    },
+    {
+      "name": "D3 CONCURRENT VERIFICATION (two requests at the same moment, two API processes): exactly one 200 PICKUP_VERIFIED and one 409 pickup_already_verified; the database has ONE pickup — version 6, one SUCCESS attempt",
+      "pass": true,
+      "detail": "200,409"
+    },
+    {
+      "name": "D4 THE MANUAL CODE verified the pickup with method MANUAL_CODE; the restaurant's answer names the staff member who verified",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"method\":\"MANUAL_CODE\",\"verified_at\":\"2026-10-13T05:19:53+00:00\",\"verified_by\":{\"id\":\"6ca1f7d9-2a14-424d-9f48-fac12ee4a1dc\",\"name\":\"John Doe\"},\"credential_status\":\"CONSUMED\",\"completed_at\":\"2026-10-13T05:19:53+00:00\"}"
+    },
+    {
+      "name": "E1 THE CUSTOMER ASKS FOR A NEW CODE (POST …/pickup-credential/reissue): 201, a new QR payload and a new code; the old ones are REVOKED (ROTATED) at once; the timeline says PICKUP_CREDENTIAL_REISSUED",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "name": "E2 THE OLD QR → 409 pickup_credential_revoked; the old code → 422 invalid (it is not the active credential's code)",
+      "pass": true,
+      "detail": "409 422"
+    },
+    {
+      "name": "E3 FIVE WRONG CODES against one order (one in E2, four here) → the credential is locked: the next wrong code and the RIGHT code answer 429 pickup_attempts_exceeded with retry_after_seconds; the credential is still ACTIVE (the customer is not stranded)",
+      "pass": true,
+      "detail": "422,422,422,422,429 429"
+    },
+    {
+      "name": "E4 THE NEW QR works once the lock is over: PICKUP_VERIFIED, COMPLETED",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "name": "E5 A REJECTED ORDER: its QR → 409 pickup_credential_revoked; the customer sees no credential, pickup_verification NOT_POSSIBLE, the refund in progress",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "F1 SOCKET GONE (cut) → the page says the live updates are away (transport FALLBACK_POLLING) and POLLING brings the step taken meanwhile (\"accepted\") to the screen; SOCKET BACK → CONNECTED again and the next step (\"preparing\") arrives live — never a reload",
+      "pass": true,
+      "detail": "FALLBACK_POLLING true true true"
+    },
+    {
+      "name": "F2 THE STREAM FROM ZERO is the whole customer-visible timeline (ORDER_CREATED, RESTAURANT_ACCEPTED, PREPARATION_STARTED) with sequences 1, 2, 3 — a full resync in one call",
+      "pass": true,
+      "detail": "[\"ORDER_CREATED\",\"RESTAURANT_ACCEPTED\",\"PREPARATION_STARTED\"]"
+    },
+    {
+      "name": "G1 ADMIN DETAIL (API): pickup_verification VERIFIED by QR with the staff member and the time, the credential history (one CONSUMED), the attempts (total ≥ 2, failed ≥ 1, the last ten with method / result / staff), actions.mark_picked_up NOT_PROVIDED — never a code or a secret",
+      "pass": true,
+      "detail": "{\"t\":4,\"f\":3}"
+    },
+    {
+      "name": "G2 THE ADMIN ORDER PAGE shows the pickup verification card: VERIFIED, the method, the staff member, the attempts",
+      "pass": true,
+      "detail": "VERIFIED"
+    },
+    {
+      "name": "G3 SYSTEM › REALTIME (GET /admin/system/realtime): health OPERATIONAL (Reverb answered its channel listing, latency measured), transport WebSocket → REST → polling, origins restricted (no \"*\"), broadcasts sent ≥ 10 and failed 0 in this run, channel auth granted ≥ 2 and denied ≥ 2, resync reads ≥ 1 (the B3 cursor read; the browser resyncs through the order read); pickup verified ≥ 3 (QR and code), replays ≥ 1, refused ≥ 5, rate limited ≥ 1; completions ≥ 3",
+      "pass": true,
+      "detail": "{\"h\":{\"status\":\"OPERATIONAL\",\"driver\":\"reverb\",\"checked_at\":\"2026-10-13T05:22:46+00:00\",\"latency_ms\":8,\"detail\":null},\"c\":{\"broadcast_sent\":158,\"broadcast_failed\":0,\"broadcast_avg_ms\":23,\"channel_auth_granted\":20,\"channel_auth_denied\":3,\"events_resync\":1},\"p\":{\"verified\":6,\"verified_qr\":2,\"verified_manual_code\":4,\"refused\":14,\"refused_invalid\":6,\"refused_not_ready\":1,\"refused_wrong_location\":0,\"re"
+    },
+    {
+      "name": "G4 THE ATTEMPTS VIEW (GET /admin/pickup-attempts?filter[failed]=1): the refused attempts of this run with staff, location, method and result — never a secret; John's repeated failures are listed",
+      "pass": true,
+      "detail": "16"
+    },
+    {
+      "name": "G5 THE INSIGHTS PAGE shows the Realtime and pickup card with the health and the counters",
+      "pass": true,
+      "detail": "OPERATIONAL"
+    },
+    {
+      "name": "G6 /admin/system/orders now says realtime_tracking, pickup_verification and order_completion IMPLEMENTED; refund_processing and notification_delivery NOT_IMPLEMENTED",
+      "pass": false,
+      "detail": "{\"verified\":6,\"verified_qr\":2,\"verified_manual_code\":4,\"refused\":14,\"refused_invalid\":6,\"refused_not_ready\":1,\"refused_wrong_location\":0,\"replay\":3,\"rate_limited\":2,\"locked\":1,\"picked_up_not_completed\":0}"
+    },
+    {
+      "name": "H1 NO CUSTOMER OR ADMIN ROUTE marks a pickup (404); a verify request that carries \"status\" / \"picked_up\" is refused (422) — the server decides every outcome",
+      "pass": true,
+      "detail": "404 404 422"
+    },
+    {
+      "name": "H2 LOGS: 14 pickup / completion / broadcast lines were written in this run — ids, states, codes and methods only: no pickup code, no QR secret, no phone, no token",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H3 THE SAVED API SAMPLES carry no QR secret and no pickup code of the run except the customer's own answers (which are theirs to see) — the restaurant's and the administrator's answers carry neither",
+      "pass": true,
+      "detail": "ok"
+    },
+    {
+      "name": "H4 MEASURED on this machine (PHP built-in server, no OPcache; Reverb local): live accept → customer screen median 456 ms, ready → screen 785 ms, pickup → customer screen 469 ms; order read 599 ms; restaurant step 452 ms; admin detail 347 ms — not targets",
+      "pass": true,
+      "detail": "{\"order_read\":{\"n\":1,\"median_ms\":599,\"max_ms\":599},\"restaurant_step\":{\"n\":1,\"median_ms\":452,\"max_ms\":452},\"admin_detail\":{\"n\":1,\"median_ms\":347,\"max_ms\":347},\"live_accept_ms\":{\"n\":1,\"median_ms\":456,\"max_ms\":456},\"live_ready_ms\":{\"n\":1,\"median_ms\":785,\"max_ms\":785},\"live_pickup_ms\":{\"n\":1,\"median_ms\":469,\"max_ms\":469},\"pickup_verify\":{\"n\":1,\"median_ms\":1438,\"max_ms\":1438}}"
+    },
+    {
+      "name": "H5 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

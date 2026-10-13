@@ -1,3 +1,5 @@
+import '../support/support_models.dart' show supportCaseNumberPattern;
+
 /// What a push carries (Module 33): the data payload the backend sends — a type, the notification id, an allow-listed
 /// target and a reference. Navigation only: the target screen still signs the customer in and the backend still
 /// decides whether this customer may see that order. Nothing in a push is trusted beyond the allow-list.
@@ -7,7 +9,7 @@ class PushNotice {
   final String type, notificationId, target, category;
   final String? reference, title, body;
 
-  static const targets = {'ORDER_DETAIL', 'ORDER_TRACKING', 'PAYMENT_STATUS', 'REVIEW', 'ACCOUNT_SECURITY', 'PROMOTION', 'NONE'};
+  static const targets = {'ORDER_DETAIL', 'ORDER_TRACKING', 'PAYMENT_STATUS', 'REVIEW', 'ACCOUNT_SECURITY', 'PROMOTION', 'SUPPORT_CASE', 'NONE'};
   static final _orderNumber = RegExp(r'^FOTG-[0-9]{8}-[A-Z0-9]{6}$');
 
   /// Null when the payload is not one of ours (an unknown target, an invalid reference).
@@ -17,6 +19,8 @@ class PushNotice {
     final reference = data['reference']?.toString();
     final needsOrder = target == 'ORDER_DETAIL' || target == 'ORDER_TRACKING' || target == 'PAYMENT_STATUS' || target == 'REVIEW';
     if (needsOrder && (reference == null || !_orderNumber.hasMatch(reference))) return null;
+    // Module 37: a support notice names its case by the case number — and only by that.
+    if (target == 'SUPPORT_CASE' && (reference == null || !supportCaseNumberPattern.hasMatch(reference))) return null;
     return PushNotice(
       type: (data['type'] ?? '').toString(),
       notificationId: (data['notification_id'] ?? '').toString(),
@@ -44,6 +48,8 @@ class PushNotice {
         return '/my-profile';
       case 'PROMOTION':
         return '/restaurants';
+      case 'SUPPORT_CASE':
+        return reference != null && supportCaseNumberPattern.hasMatch(reference) ? '/support/cases/$reference' : '/support';
       default:
         return null;
     }

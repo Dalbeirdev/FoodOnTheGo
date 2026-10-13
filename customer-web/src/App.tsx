@@ -38,6 +38,9 @@ import PaymentMethodsPage from './pages/account/PaymentMethodsPage'
 import NotificationsPage from './pages/account/NotificationsPage'
 import MyReviewsPage from './pages/account/MyReviewsPage'
 import HelpPage from './pages/account/HelpPage'
+import SupportCasesPage from './pages/account/SupportCasesPage'
+import SupportNewCasePage from './pages/account/SupportNewCasePage'
+import SupportCasePage from './pages/account/SupportCasePage'
 import ForRestaurantsPage from './pages/ForRestaurantsPage'
 import LoginPage from './pages/auth/LoginPage'
 import VerifyOtpPage from './pages/auth/VerifyOtpPage'
@@ -103,6 +106,10 @@ export function AppShell() {
             <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
             <Route path="/my-reviews" element={<RequireAuth><MyReviewsPage /></RequireAuth>} />
             <Route path="/help" element={<HelpPage />} />
+            {/* Module 37: support cases — the customer's own, behind sign-in (the Help page itself stays public). */}
+            <Route path="/help/cases" element={<RequireAuth><SupportCasesPage /></RequireAuth>} />
+            <Route path="/help/cases/new" element={<RequireAuth><SupportNewCasePage /></RequireAuth>} />
+            <Route path="/help/cases/:caseId" element={<RequireAuth><SupportCasePage /></RequireAuth>} />
             <Route path="/for-restaurants" element={<ForRestaurantsPage />} />
             <Route path="/for-restaurants/register" element={<ComingSoonPage title="Restaurant Registration" text="Partner onboarding opens with the restaurant portal. We are not accepting registrations through the website yet." module="the Restaurant Portal module" backTo="/for-restaurants" backLabel="Back to For Restaurants" />} />
             <Route path="/get-app" element={<GetAppPage />} />

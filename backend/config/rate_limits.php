@@ -82,4 +82,11 @@ return [
     'finance_read' => (int) env('RATE_LIMIT_FINANCE_READ', 120),
     'finance_action' => (int) env('RATE_LIMIT_FINANCE_ACTION', 30),
     'finance_export' => (int) env('RATE_LIMIT_FINANCE_EXPORT', 10),
+
+    // Module 37 — support cases. Reading (an open case polls), opening a case, writing in one, and the service desk's
+    // actions. Enough for somebody who needs help; too little for somebody who floods. Per person and per kind of account.
+    'support_read' => (int) env('RATE_LIMIT_SUPPORT_READ', 120),
+    'support_case_create' => (int) env('RATE_LIMIT_SUPPORT_CASE_CREATE', 6),
+    'support_write' => (int) env('RATE_LIMIT_SUPPORT_WRITE', 20),
+    'support_admin_action' => (int) env('RATE_LIMIT_SUPPORT_ADMIN_ACTION', 60),
 ];

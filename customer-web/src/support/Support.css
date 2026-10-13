@@ -1,0 +1,71 @@
+/* Module 37: support cases on the Customer Web — the block on /help, My cases, the new-case form and one case.
+   Logical properties keep it RTL-safe; everything wraps at 390px. */
+.sup-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+.sup-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
+.sup-muted { margin: 6px 0 0; font-size: 13.5px; color: var(--muted); }
+.sup-link { color: var(--orange-text, #b8471b); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.sup-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #e5261f; color: #fff; font-size: 12px; font-weight: 600; }
+.sup-error { margin: 10px 0 0; padding: 10px 14px; border-radius: 12px; background: #fdecec; color: #9a1d17; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.sup-field-error { margin: 0; color: #b42318; font-weight: 600; font-size: 13px; }
+
+/* Status chip */
+.sup-chip { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; background: #eaf2ff; color: #1d4ed8; }
+.sup-chip--waiting { background: #fff8e6; color: #6b4300; }
+.sup-chip--done { background: #e6f7ea; color: #15733a; }
+.sup-chip--closed { background: #eef0f4; color: #475467; }
+
+/* My cases */
+.sup-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.sup-filter { height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #dfe2e8; background: #fff; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.sup-filter[aria-pressed='true'] { background: #fff3ea; border-color: var(--orange-deep); color: var(--orange-text); }
+.sup-filter:focus-visible, .sup-row:focus-visible { outline: 3px solid #f24e1e; outline-offset: 2px; }
+.sup-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.sup-row { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: 16px; background: #fff; box-shadow: var(--shadow-card); color: var(--text); min-width: 0; }
+.sup-row:hover { background: #fffaf6; }
+.sup-row__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.sup-row__number { display: inline-flex; align-items: center; gap: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13.5px; color: var(--muted); }
+.sup-row__subject { margin: 0; font-size: 16.5px; font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.sup-row__meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); }
+.sup-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e5261f; flex-shrink: 0; }
+
+/* New case */
+.sup-form { display: flex; flex-direction: column; gap: 16px; }
+.sup-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sup-field label { font-size: 14px; font-weight: 600; color: var(--text); }
+.sup-form select, .sup-form input, .sup-form textarea, .sup-reply textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #dfe2e8; font: inherit; font-size: 15px; font-weight: 400; color: var(--ink); background: #fff; }
+.sup-form select, .sup-form input { height: 46px; }
+.sup-form textarea, .sup-reply textarea { min-height: 140px; resize: vertical; }
+.sup-reply textarea { min-height: 96px; }
+.sup-form select:focus-visible, .sup-form input:focus-visible, .sup-form textarea:focus-visible, .sup-reply textarea:focus-visible { outline: 3px solid #f24e1e; outline-offset: 1px; border-color: transparent; }
+.sup-form [aria-invalid='true'] { border-color: #d92d20; }
+.sup-hint { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 12.5px; font-weight: 400; color: var(--muted); }
+.sup-hint--over { color: #b42318; font-weight: 700; }
+.sup-linked { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sup-linked li { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #eef0f4; font-size: 13px; color: var(--text); max-width: 100%; }
+.sup-linked code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; overflow-wrap: anywhere; }
+
+/* One case */
+.sup-case__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.sup-case__number { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; letter-spacing: .3px; color: var(--muted); }
+.sup-case__subject { margin: 8px 0 4px; font-size: 22px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.sup-links { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.sup-links li { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 13.5px; color: var(--muted); min-width: 0; }
+.sup-links b { color: var(--ink); font-size: 14.5px; overflow-wrap: anywhere; }
+.sup-links__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+.sup-thread { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.sup-msg { max-width: min(640px, 92%); padding: 10px 14px; border-radius: 14px; background: #f6f7fa; align-self: flex-start; min-width: 0; }
+.sup-msg--YOU { align-self: flex-end; background: #fff3ea; }
+.sup-msg--SYSTEM { align-self: center; background: none; border: 1px dashed #dfe2e8; color: var(--muted); max-width: 100%; }
+.sup-msg__meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; color: var(--muted); }
+.sup-msg__meta b { color: var(--ink); }
+/* User-written text: plain text nodes, line breaks kept, long words wrapped. */
+.sup-msg__body { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; color: var(--ink); }
+.sup-msg--SYSTEM .sup-msg__body { font-size: 13.5px; color: var(--muted); }
+.sup-reply { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sup-section-title { margin: 0 0 12px; font-size: 19px; font-weight: 600; color: var(--ink); }
+
+@media (max-width: 480px) {
+  .sup-msg { max-width: 100%; }
+  .sup-actions .btn { flex: 1 1 100%; justify-content: center; }
+  .sup-case__subject { font-size: 19px; }
+}

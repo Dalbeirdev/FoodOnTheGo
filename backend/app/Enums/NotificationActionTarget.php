@@ -17,4 +17,6 @@ enum NotificationActionTarget: string
     case Promotion = 'PROMOTION';
     // Module 34: the customer's own review of an order (the reference is the order number).
     case Review = 'REVIEW';
+    // Module 37: the customer's own support case (the reference is the case number).
+    case SupportCase = 'SUPPORT_CASE';
 }

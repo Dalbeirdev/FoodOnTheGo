@@ -1,0 +1,326 @@
+{
+  "module": "M26",
+  "date": "2026-10-13T02:54:27.818Z",
+  "base": "http://localhost:5173",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "provider": "development (fake) places + routing — no live provider is configured on this machine",
+  "passed": 61,
+  "total": 63,
+  "results": [
+    {
+      "name": "P1 Plan a Journey runs on the backend: the privacy note is shown and nothing is labelled \"mock development data\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P2 typing in Starting Point asks GET /places/search (200, no Authorization for a guest): suggestions are the backend's, all inside the market country",
+      "pass": true,
+      "detail": "[\"Chandigarh\\nChandigarh, India\",\"Chandigarh Airport\\nShaheed Bhagat Singh International Airport, Chandigarh, India\",\"Chandigarh Railway Station\\nDaria, Chandigarh 160002, India\"]"
+    },
+    {
+      "name": "P2b choosing a suggestion resolves it on the server: POST /places/resolve (200) carries the place id only",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P3 a place outside the market (Dubai) is not offered: the search answers no result and the field says \"No location found\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P4 the same place as start and destination is refused before anything is sent (\"Destination must be different\")",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P5 swap exchanges start and destination (and back)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P6 POST /journeys/plan (201): the body is two place ids — no coordinates, no owner, no market; the answer carries the provider route and a guest token",
+      "pass": true,
+      "detail": "{\"origin\":{\"place_id\":\"fake:chandigarh\"},\"destination\":{\"place_id\":\"fake:pathankot\"}}"
+    },
+    {
+      "name": "P6b the summary shows the provider figures with their source (248 km, \"development routing model\", tolls) and the route LINE is the provider geometry, not a straight line",
+      "pass": true,
+      "detail": "{\"mode\":\"development\",\"points\":105,\"d\":105}"
+    },
+    {
+      "name": "P7 storage: the guest token and the journey live in sessionStorage (this tab); localStorage holds no place, route or journey",
+      "pass": true,
+      "detail": "fotg.cart.token"
+    },
+    {
+      "name": "AXE /plan-journey with a planned route: no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "P8 a departure date and time is sent as an ISO 8601 instant with its offset; the journey keeps it (departure.given) and a new plan is a NEW journey",
+      "pass": true,
+      "detail": "2026-10-14T03:30:00.000Z"
+    },
+    {
+      "name": "D1 the restaurants page carries only the journey id in its URL and reads GET /journeys/{id}/restaurants (200) with the guest token as a HEADER",
+      "pass": true,
+      "detail": "?sort=recommended&corridor_width_meters=3000&page%5Bnumber%5D=1&page%5Bsize%5D=6"
+    },
+    {
+      "name": "D2 every card is what the backend returned: same restaurants in the same (recommended) order, the ACTUAL detour, an estimated arrival and the state on arrival",
+      "pass": true,
+      "detail": "[[\"burger-hub\",2,\"true\"],[\"healthy-bites\",4,\"true\"],[\"brew-bites\",12,\"true\"],[\"pizza-point\",1,\"false\"],[\"wok-express\",3,\"false\"],[\"spice-nest\",11,\"false\"]]"
+    },
+    {
+      "name": "D2b a temporarily closed restaurant is shown as such, open ones as \"Open when you arrive\"; no rating is shown (no reviews backend) and no ready-by promise",
+      "pass": false,
+      "detail": ""
+    },
+    {
+      "name": "D3 the page says where the figures come from (\"development routing model — synthetic roads, not real road data\"), offers the backend's corridor bounds (0.5–10 km) and only orderings / filters the API applies (no \"Highest rated\", no rating / price filter)",
+      "pass": false,
+      "detail": "[\"Cuisine\",\"North Indian\",\"Punjabi\",\"Biryani\",\"Chinese\",\"Pizza\",\"Burgers\",\"Open when I arrive\",\"Max detour time\",\"Rating\",\"\",\"4.5 & above\",\"\",\"4.0 & above\",\"\",\"3.5 & above\",\"\",\"3.0 & above\"]"
+    },
+    {
+      "name": "AXE /restaurants along a journey: no WCAG 2.0/2.1 A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D4 \"Lowest detour\" is the backend's ordering (sort=lowest_detour), served from the calculated candidate set (cached, no new detour request)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D5 \"Order along route\" follows the route from start to destination (route progress ascending)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D6 \"Open when I arrive\" is applied by the backend (open_at_arrival=true): only restaurants open at the expected arrival remain",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D7 a cuisine filter is the backend's (cuisine=pizza, taxonomy codes): the list narrows and needs no new detour (already known for this journey)",
+      "pass": true,
+      "detail": "{\"corridor_rows\":1,\"shortlist\":1,\"detour_requested\":0,\"unreachable\":0,\"provider_calls\":0,\"matching\":1,\"dropped_since_calculation\":0}"
+    },
+    {
+      "name": "D8 the search box is sent as q= and matched by the backend",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D9 \"Max detour time\" is the backend's detour limit (max_detour_minutes=5): only restaurants whose ACTUAL detour is within it",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D10 the corridor slider is the search corridor (corridor_width_meters=500): fewer restaurants, all within 500 m of the route, and no new provider call for restaurants already calculated",
+      "pass": true,
+      "detail": "{\"corridor_rows\":3,\"shortlist\":3,\"detour_requested\":0,\"unreachable\":0,\"provider_calls\":0,\"matching\":3,\"dropped_since_calculation\":0}"
+    },
+    {
+      "name": "D11 the map draws the provider route geometry (not a two-point line), one marker per listed restaurant, and selecting a marker selects its card",
+      "pass": true,
+      "detail": "{\"map\":{\"segments\":5,\"markers\":6,\"cards\":6,\"badge\":\"Schematic view of the route line from the routing provider. Map tiles: map provider integration is PENDING.\"},\"sync\":{\"marker\":\"Burger Hub\",\"card\":\"Burger Hub\"}}"
+    },
+    {
+      "name": "D12 the restaurant page shows the journey's figures for this restaurant as the backend gave them (detour, arrival) and names their source",
+      "pass": true,
+      "detail": "60 m from route 2m detour 8:21 am Arrive local development route model"
+    },
+    {
+      "name": "D12b a restaurant the journey did not find has NO route figures — nothing is estimated in the browser",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D13 after a reload in the same tab the journey continues (the token is still in this tab's sessionStorage)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D14 another browser (no token) opening the same link gets \"Journey not found on this device\" — GET /journeys/{id} is 404 and no restaurant is requested",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "D15 pages are bounded and stable: three pages of two list every restaurant once, later pages come from the calculated set (cached) and the total never exceeds the candidate cap",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S1 a guest journey is readable only with its own token: no token 404, a wrong token 404, another guest's token 404, its own token 200 — and the token is never returned again",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "S2 fields a client may never set (owner, market, provider, status, expiry) are refused (422), as are a departure without an offset and coordinates outside the valid range",
+      "pass": true,
+      "detail": "[422,[\"customer_id\",\"market_id\",\"provider\",\"status\",\"expires_at\"],422,\"{\\\"error\\\":{\\\"code\\\":\\\"validation_failed\\\",\\\"message\\\":\\\"The submitted data is invalid.\\\",\\\"details\\\":{\\\"fields\\\":{\\\"departure_at\\\":[\\\"Give the departure time with its time zone\",422]"
+    },
+    {
+      "name": "S3 a journey that ends outside the market is refused with a reason (422 market_unsupported, end = destination) — no route is planned",
+      "pass": true,
+      "detail": "{\"error\":{\"code\":\"market_unsupported\",\"message\":\"FoodOnTheGo is not available where this journey ends yet.\",\"details\":{\"end\":\"destination\",\"reason\":\"MARKET_UNSUPPORTED\"},\"request_id\":\"c9c6d044-b3e8-4aa9-b992-74fc4eb5d740\"}}"
+    },
+    {
+      "name": "E1 no road between the two places: 422 route_not_found, the page says so, shows no distance, no time and no line (never a straight-line stand-in)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E2 a route FoodOnTheGo does not serve is still a route: both places say \"does not serve this place yet\", the plan succeeds (along_route NO_SERVICE_COVERAGE) and the preview says no restaurants will be listed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E2b its restaurant list is an answer, not an error: 200 with zero restaurants and empty_reason NO_SERVICE_COVERAGE — \"FoodOnTheGo does not cover this route yet\", nothing sent to the routing provider",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 when route planning is unavailable (503 routing_temporarily_unavailable) the page says so and estimates NOTHING: no distance, no time, no line",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E4 offline: \"Cannot reach FoodOnTheGo right now\" — again nothing is estimated",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E4b back online the same button plans the journey (201)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E5 the same outage while searching restaurants: an error with a retry, no restaurant card is made up",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E5b \"Try again\" loads the list once the backend answers",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E6 an expired journey: the backend answers 410 journey_expired and the page offers to plan it again (no stale list)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E6a after a reload the same link still says \"expired\" — the tab keeps its token and the backend answers 410 to the owner (not \"not found\"); nothing is listed under the panel",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E6b \"Plan it again\" returns to the planner with both places kept",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E7 journeys:prune removes expired journeys after the grace period (the row is gone; no journey history remains)",
+      "pass": true,
+      "detail": "Removed 6 expired journey context(s)."
+    },
+    {
+      "name": "C1 a signed-in customer picks a saved place: it is sent by its id (saved_location_id) — the backend reads its coordinates itself",
+      "pass": true,
+      "detail": "{\"origin\":{\"saved_location_id\":\"bd0f8347-59ea-48f8-af49-166078a621cd\",\"label\":\"Home\"},\"destination\":{\"place_id\":\"fake:noida-18\"}}"
+    },
+    {
+      "name": "C2 the journey belongs to the customer: no guest token is issued or stored, the owner reads it with the account token (200), another customer and a guest get 404",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 of the two ends only the place the customer SEARCHED for is in the recent places (with its place id); the saved place is not copied there",
+      "pass": true,
+      "detail": "Sector 18, Noida"
+    },
+    {
+      "name": "C3b the customer's restaurant list is read with the account token only (no journey token header)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3c a journey that cannot be read right now is NOT called \"not found\": \"This journey could not be loaded\" with the reason and a retry; nothing is listed meanwhile",
+      "pass": true,
+      "detail": "This journey could not be loaded. Cannot reach FoodOnTheGo right now. Check your connection and try again. Try again"
+    },
+    {
+      "name": "C3d \"Try again\" opens the journey for its owner in the other tab (200, account token) and lists its restaurants",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C4 \"Use my current location\" asks the browser only when pressed and sends the position as coordinates in the request BODY (never in a URL); the backend plans from it",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C4b the device position was used for that journey only: it is NOT among the recent places (no location trail), and no recent place sits at that position",
+      "pass": true,
+      "detail": "Sector 18, Noida"
+    },
+    {
+      "name": "C5 when location permission is not given the page says so and asks for a place instead — nothing is guessed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A1 GET /admin/system/providers (platform administrator): both capabilities run the development provider, configured, and their health is derived from the calls of this run (OPERATIONAL, call counts, latency) — no secret, no cost",
+      "pass": true,
+      "detail": "{\"state\":\"OPERATIONAL\",\"window_minutes\":10,\"calls\":10,\"ok\":9,\"failures\":0,\"timeouts\":0,\"rate_limited\":0,\"not_found\":1,\"avg_latency_ms\":4,\"last_call_at\":\"2026-10-13T02:52:50+00:00\"}"
+    },
+    {
+      "name": "A1b the endpoint needs the system permission platform-wide: a market-scoped administrator 403, an onboarding administrator 403, a customer 401, nobody 401",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A2 the admin System Status page shows that report: \"Places & routing providers\" with driver, \"Development provider\", state, calls and the active journeys — and no fixture \"Maps & routing\" row or card beside it",
+      "pass": true,
+      "detail": "[{\"capability\":\"places\",\"mode\":\"development\",\"state\":\"OPERATIONAL\",\"text\":\"PLACE SEARCH fake Development provider Operational 43 0 / 0 / 0 0 ms 13 Oct, 08:22 am\"},{\"capability\":\"routing\",\"mode\":\"development\",\"state\":\"OPERATIONAL\",\"text\":\"ROUTES & DETOURS fake Development provider Operational 10 0 / 0 / 0 4 ms 13 Oct, 08:22 am\"}]"
+    },
+    {
+      "name": "X1 concurrency (two API processes, same journey, same instant): both answer 200 with the same restaurants; ONE calculated (cached false), the other waited and reused it (cached true); the routing provider was called for one calculation only",
+      "pass": true,
+      "detail": "{\"flags\":[false,true],\"providerCalls\":1,\"ms\":[441,661]}"
+    },
+    {
+      "name": "X2 measured over HTTP on this machine (5 runs each; PHP built-in server, no opcode cache, development provider): plan a journey, first restaurant search, cached page, place search — recorded, not judged against a target",
+      "pass": true,
+      "detail": "{\"plan\":{\"median_ms\":345,\"min_ms\":339,\"max_ms\":353,\"runs\":5},\"first\":{\"median_ms\":437,\"min_ms\":408,\"max_ms\":554,\"runs\":5},\"cached\":{\"median_ms\":379,\"min_ms\":358,\"max_ms\":392,\"runs\":5},\"places\":{\"median_ms\":282,\"min_ms\":276,\"max_ms\":287,\"runs\":5}}"
+    },
+    {
+      "name": "X3 URL audit: of every API request the pages made, none carries a coordinate, a place name or a token in its URL (they travel in bodies and headers)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "X4 log audit: the backend logged every plan and search of this run with ids, market, provider outcome, timings and counts — and no coordinate, place name, address or polyline",
+      "pass": true,
+      "detail": "49 lines"
+    },
+    {
+      "name": "X5 mobile viewport (390 px): the planner with its route and the restaurant list render without horizontal overflow",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "X6 no page or console errors across the journey flows",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "R1 planning is limited for guests on the real stack: within one minute a guest is answered 429 rate_limited with Retry-After after at most 6 plans, while a signed-in customer (own, higher limit) and cached reads of an existing journey are not affected",
+      "pass": true,
+      "detail": "{\"sent\":6,\"limited\":429,\"retryAfter\":\"56\",\"customer\":422,\"read\":200}"
+    }
+  ]
+}

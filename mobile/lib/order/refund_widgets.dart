@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../core/theme.dart';
 import '../data/api_client.dart';
 import '../i18n/format.dart';
 import '../i18n/strings.dart';
+import '../support/support_widgets.dart';
 import '../widgets/common.dart';
 import 'order_models.dart';
 
@@ -27,6 +29,8 @@ class RefundCard extends StatelessWidget {
     final tz = o.pickup.restaurantTimezone;
     String money(int m, [String? currency]) => formatMoney(m, currency == null || currency.isEmpty ? o.pricing.currency : currency);
     String day(DateTime d) => DateFormat.MMMEd('en_US').format(toZone(d, tz));
+    // Module 37: with the backend, each refund can be taken to support — the case is linked to the refund and its order.
+    final support = supportOf(context) != null;
     return Semantics(identifier: 'od-refunds', container: true, child: SectionCard(title: S.t('od.refunds.title'), icon: Icons.currency_exchange, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Semantics(identifier: 'od-refund-confirmed', container: true, child: SummaryRow(S.t('od.refunds.confirmed'), money(r.refundedMinor), bold: true)),
       if (r.pendingMinor > 0) Semantics(identifier: 'od-refund-pending', container: true, child: SummaryRow(S.t('od.refunds.pending'), money(r.pendingMinor))),
@@ -52,6 +56,11 @@ class RefundCard extends StatelessWidget {
             ].join(' · '), style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
             const SizedBox(height: 4),
             Text(S.t('od.refunds.help.${x.status}'), style: const TextStyle(fontSize: 12.5)),
+            if (support) Align(alignment: Alignment.centerLeft, child: Semantics(identifier: 'refund-get-help', container: true, child: TextButton(
+              key: Key('refund-get-help-${x.id}'), style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+              onPressed: () => context.push(supportNewCaseRoute(category: 'REFUND', refund: x.reference, order: o.orderNumber)),
+              child: Text(S.t('support.entry.refund')),
+            ))),
           ]),
         )),
       const SizedBox(height: 8),

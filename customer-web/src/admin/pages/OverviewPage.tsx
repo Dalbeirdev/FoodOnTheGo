@@ -4,6 +4,7 @@ import { BarChart } from '../../dashboard/components/Charts'
 import { Card, Delta, EmptyState, ErrorState, Icon, KpiCard, Skeleton, Thumb } from '../../dashboard/components/ui'
 import { useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
+import { ApiAdminSupportRepository } from '../api/ApiAdminSupportRepository'
 import { Badge, DevNote } from '../components/DataTable'
 import { Cell, Stars, StatusPill, fmtDate, fmtTime, money, useLoad, usePageTitle } from './shared'
 
@@ -11,6 +12,9 @@ import { Cell, Stars, StatusPill, fmtDate, fmtTime, money, useLoad, usePageTitle
 export default function OverviewPage() {
   const a = useAdmin(); const locale = a.locale; usePageTitle('adm.nav.overview')
   const { data: snap, state, reload } = useLoad(() => a.repos.overview.snapshot(), [a.repos])
+  // Module 37: with the backend the support figure is the service desk's own count of open cases — never the development number.
+  const supportLive = a.backendSections.includes('support'); const canSupport = a.can('support.view')
+  const desk = useLoad(() => (supportLive && canSupport ? new ApiAdminSupportRepository().metrics() : Promise.resolve(null)), [supportLive, canSupport])
   return (
     <div className="db-page" data-testid="adm-overview">
       <div className="db-page__head"><div><h1 className="db-page__title">{t('adm.overview.title', undefined, locale)}</h1><p className="db-page__lead">{t('adm.overview.lead', undefined, locale)}</p></div><div className="db-page__actions"><span className="db-chip"><Icon name="hours" size={14} /> {t('adm.overview.updated', { time: fmtTime(new Date().toISOString(), locale) }, locale)}</span></div></div>
@@ -26,7 +30,7 @@ export default function OverviewPage() {
             <KpiCard icon="customers" tone="blue" value={snap.customers.toLocaleString(locale)} label={t('adm.kpi.customers', undefined, locale)} delta={18} locale={locale} testId="kpi-customers" />
             <KpiCard icon="orders" tone="orange" value={snap.ordersToday.toLocaleString(locale)} label={t('adm.kpi.ordersToday', undefined, locale)} delta={16} locale={locale} testId="kpi-orders" />
             <KpiCard icon="refunds" tone="red" value={snap.refundsPending.toLocaleString(locale)} label={t('adm.kpi.refunds', undefined, locale)} delta={-8} invert locale={locale} testId="kpi-refunds" />
-            <KpiCard icon="support" tone="purple" value={snap.openSupport.toLocaleString(locale)} label={t('adm.kpi.openSupport', undefined, locale)} locale={locale} testId="kpi-support" />
+            <KpiCard icon="support" tone="purple" value={supportLive ? <span data-testid="kpi-support-value" data-source="backend">{desk.data ? desk.data.open.toLocaleString(locale) : '—'}</span> : snap.openSupport.toLocaleString(locale)} label={t('adm.kpi.openSupport', undefined, locale)} locale={locale} testId="kpi-support" />
             <KpiCard icon="star" tone="amber" value={snap.platformRating == null ? '—' : snap.platformRating.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} label={t('adm.kpi.rating', undefined, locale)} delta={0.2} suffix="" locale={locale} testId="kpi-rating" />
           </div>
           <div className="adm-grid--3">

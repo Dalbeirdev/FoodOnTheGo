@@ -4,6 +4,7 @@ import type { Order, OrderStatus } from '../order/repositories'
 import type { PickupSettings } from '../pickup/repositories'
 import type { ReportReason, Review } from '../review/repositories'
 import type { RestaurantFinanceRepository } from './api/apiFinance'
+import type { RestaurantSupportRepository } from '../support/repositories'
 
 /**
  * Restaurant Dashboard (Module 17) — domain contracts. The dashboard shares the customer-side domain (Restaurant, menu,
@@ -19,6 +20,8 @@ export type Permission =
   | 'analytics.view' | 'notifications.view' | 'settings.manage'
   // Module 36: restaurant.finance.view / restaurant.payout_account.view of the backend.
   | 'finance.view' | 'payout_account.view'
+  // Module 37: restaurant.support.view / restaurant.support.create of the backend (read the restaurant's cases / open one and write in it).
+  | 'support.view' | 'support.create'
 export type RoleId = 'owner' | 'manager' | 'order_staff' | 'menu_manager' | 'viewer'
 /** Roles are named permission bundles — the UI checks permissions, never the role label. */
 export type Role = { id: RoleId; permissions: Permission[] }
@@ -190,6 +193,8 @@ export type DashboardRepositories = {
   staff: RestaurantStaffRepository; reviews: RestaurantReviewRepository; analytics: RestaurantAnalyticsRepository; notifications: RestaurantNotificationRepository
   /** Earnings, settlement statements and payout states (Module 36). Backend only: there are no development figures, so without a backend it is absent. */
   finance?: RestaurantFinanceRepository
+  /** Support cases (Module 37). Backend only: there are no development cases, so without a backend it is absent. */
+  support?: RestaurantSupportRepository
 }
 
 /**

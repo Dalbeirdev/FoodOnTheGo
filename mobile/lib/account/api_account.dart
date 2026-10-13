@@ -22,6 +22,7 @@ import '../data/api_client.dart';
 import '../discovery/api_restaurants.dart' show ApiRestaurantRepository, knownRestaurants;
 import '../discovery/discovery_repository.dart' show globalRestaurants;
 import '../market/market.dart';
+import '../support/support_models.dart' show supportCaseNumberPattern;
 import 'account_repositories.dart';
 
 /* ------------------------------------------------------------------ errors */
@@ -479,6 +480,8 @@ String? notificationRoute(String? target, String? reference) {
     case 'REVIEW': return ref == null ? '/my-reviews' : '/order/$ref/review';
     case 'ACCOUNT_SECURITY': return '/my-profile';
     case 'PROMOTION': return '/restaurants';
+    // Module 37: the reference of a support notice is the CASE NUMBER (never an order number, never a URL).
+    case 'SUPPORT_CASE': return reference != null && supportCaseNumberPattern.hasMatch(reference) ? '/support/cases/$reference' : '/support';
     default: return null;
   }
 }

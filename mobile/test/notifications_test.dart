@@ -35,6 +35,9 @@ void main() {
       expect(PushNotice.fromData({'target': 'ORDER_TRACKING', 'reference': '../../admin'}), isNull, reason: 'a malformed reference is dropped');
       expect(PushNotice.fromData({'target': 'ORDER_TRACKING'}), isNull, reason: 'an order target needs an order number');
       expect(PushNotice.routeFor('ORDER_TRACKING', 'nope'), '/my-orders');
+      // Module 37: a support notice names its case by the case number.
+      expect(PushNotice.fromData({'target': 'SUPPORT_CASE', 'reference': 'CS-ABCD2345'})!.route, '/support/cases/CS-ABCD2345');
+      expect(PushNotice.fromData({'target': 'SUPPORT_CASE', 'reference': 'FOTG-20261009-ABC123'}), isNull, reason: 'an order number is not a case number');
     });
   });
 
@@ -132,6 +135,8 @@ void main() {
       expect([s.kind, s.route, s.read], ['updates', '/my-profile', true]);
       expect(notificationRoute('ORDER_DETAIL', 'not-an-order'), '/my-orders');
       expect(notificationRoute('WEIRD', null), isNull);
+      expect(notificationRoute('SUPPORT_CASE', 'CS-ABCD2345'), '/support/cases/CS-ABCD2345');
+      expect(notificationRoute('SUPPORT_CASE', 'not-a-case'), '/support');
     });
 
     test('the preference matrix carries the channel status of the server', () {

@@ -23,6 +23,8 @@ export type AdminPermission =
   | 'reviews.view' | 'reviews.moderate' | 'reviews.restore' | 'reviews.reports.view'
   | 'promotions.view' | 'promotions.manage'
   | 'support.view' | 'support.manage'
+  // Module 37 — the service desk: the backend's codes admin.support.* under the same names. Display only: what can be done with a case is the backend's `can` block.
+  | 'support.assign' | 'support.notes' | 'support.escalate' | 'support.restricted.finance' | 'support.restricted.security'
   | 'markets.view' | 'markets.manage' | 'configuration.manage'
   | 'cities.view' | 'cities.manage' | 'service_areas.view' | 'service_areas.manage' | 'market_configuration.view' | 'market_configuration.manage' | 'market_features.manage'
   | 'notifications.view' | 'notifications.manage' | 'notifications.test'

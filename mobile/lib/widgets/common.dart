@@ -77,12 +77,18 @@ class CartAction extends StatelessWidget {
 
 /// Scrolling page body that centres content on tablets (max width) and keeps 16px gutters on phones.
 class PageBody extends StatelessWidget {
-  const PageBody({super.key, required this.children, this.header, this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 32)});
+  const PageBody({super.key, required this.children, this.header, this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 32), this.controller, this.physics});
   final List<Widget> children;
   final Widget? header;
   final EdgeInsets padding;
+
+  /// For a screen that follows its own scrolling (paging, pull-to-refresh on a short list). Default: the list's own.
+  final ScrollController? controller;
+  final ScrollPhysics? physics;
   @override
   Widget build(BuildContext context) => ListView(
+        controller: controller,
+        physics: physics,
         padding: EdgeInsets.zero,
         children: [
           ?header,

@@ -140,6 +140,8 @@ export function OrderDetailsDrawer({ onChanged }: { onChanged: () => void }) {
             <ol className="db-timeline" data-testid="order-timeline">{order.events.map((e) => <li key={e.eventId}><span className={`db-timeline__dot ${e.actor === 'restaurant' ? 'db-timeline__dot--restaurant' : ''} ${e.type === 'RESTAURANT_REJECTED' || e.type === 'CANCELLED' ? 'db-timeline__dot--stop' : ''}`} /><span><b>{t(`dash.event.${e.type}`, undefined, locale)}</b>{e.reasonKey && <> · <span className="db-muted">{t(`track.reason.${e.reasonKey}`, undefined, locale)}</span></>}<br /><small className="db-muted">{formatLocalDate(e.at, tz, locale)} · {formatLocalTime(e.at, tz, locale)} · {t(`dash.actor.${e.actor}`, undefined, locale)}</small></span></li>)}</ol>
           </Card>
           <p className="db-muted" style={{ margin: 0, fontSize: '0.8rem' }}>{t('dash.orders.paymentSafe', { method: order.payment.methodLabel, ref: order.payment.reference }, locale)}</p>
+          {/* Module 37: a support case that already names this order — with the support backend, for a member who may open one. */}
+          {d.repos.support && d.can('support.create') && <p style={{ margin: 0 }}><Link to={`${BASE}/support?new=1&category=ORDER&order=${encodeURIComponent(order.orderNumber)}`} className="db-link" data-testid="db-order-get-help">{t('dash.support.ask.order', undefined, locale)}</Link></p>}
         </div>
       )}
       <ToastLine msg={msg} />

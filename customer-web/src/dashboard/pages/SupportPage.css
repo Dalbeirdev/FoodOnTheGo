@@ -1,0 +1,17 @@
+/* Module 37: support cases on the Restaurant Dashboard — the conversation and the linked record cards. */
+.db-sup-row { cursor: pointer; }
+.db-sup-row:hover td { background: #fff8f2; }
+.db-sup-subject { overflow-wrap: anywhere; }
+.db-sup-links { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.db-sup-links li { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--db-line); border-radius: 10px; font-size: 0.85rem; min-width: 0; }
+.db-sup-links b { overflow-wrap: anywhere; }
+.db-sup-links__top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; }
+.db-sup-thread { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.db-sup-msg { max-width: min(560px, 94%); padding: 10px 12px; border-radius: 12px; background: #f6f7fa; align-self: flex-start; min-width: 0; }
+.db-sup-msg--YOU { align-self: flex-end; background: #fff3ea; }
+.db-sup-msg--SYSTEM { align-self: center; max-width: 100%; background: none; border: 1px dashed var(--db-line); }
+.db-sup-msg__meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.78rem; }
+/* What a person wrote: a plain text node, its line breaks kept, long words wrapped. */
+.db-sup-msg__body { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.db-sup-form { display: flex; flex-direction: column; gap: 14px; }
+@media (max-width: 480px) { .db-sup-msg { max-width: 100%; } }

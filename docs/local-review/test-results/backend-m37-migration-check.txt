@@ -1,0 +1,28 @@
+# Module 37 migration check on the TEST database (foodonthego_test): rollback one step, then re-apply — 2026-10-12 (after the review changes to the migration: one unique index per system key, two more indexes)
+
+
+ INFO Rolling back migrations. 
+
+ 2026_10_17_100000_module37_support .. 68.89ms DONE
+
+
+## support tables after the rollback (expected: none)
+none
+
+## support triggers and functions after the rollback (expected: none)
+{"triggers" : [], "functions" : [], "check_constraints" : 0, "foreign_keys" : 0, "indexes" : 0, "unique_indexes" : 0}
+
+
+ INFO Running migrations. 
+
+ 2026_10_17_100000_module37_support .. 228.68ms DONE
+
+
+## support tables after the re-apply (expected: the nine Module 37 tables)
+support_case_assignments,support_case_attachments,support_case_escalations,support_case_events,support_case_internal_notes,support_case_links,support_case_messages,support_cases,support_sla_policies
+
+## the database's own guards after the re-apply (the append-only trigger, CHECK constraints, foreign keys, indexes)
+{"triggers" : ["support_case_events_immutable", "support_case_internal_notes_immutable", "support_case_messages_immutable"], "functions" : ["support_refuse_update"], "check_constraints" : 33, "foreign_keys" : 41, "indexes" : 44, "unique_indexes" : 23}
+## the unique index that keeps ONE system case per condition
+CREATE UNIQUE INDEX support_cases_system_key_unique ON public.support_cases USING btree (system_key) WHERE (system_key IS NOT NULL)
+DONE

@@ -14,6 +14,7 @@ import type { Order, OrderRepository } from '../order/repositories'
 import { distanceMeters, pickupVisible, SCENARIOS, timelineFor, type TimelineStage, type TrackingScenario } from '../order/tracking'
 import { useOrderTracking, type TrackingDeps } from '../order/useOrderTracking'
 import { useInboxRefreshOn } from '../account/AccountContext'
+import { newCaseLink, useSupport } from '../support/supportRepositories'
 import './CartPage.css'
 import './CheckoutPage.css'
 import './OrderConfirmationPage.css'
@@ -99,6 +100,9 @@ function Tracking({ order: o, tr, locale, unitPreference, orders }: { order: Ord
   const showCode = pickupVisible(o) && !done
   // Module 35: the cancel action exists only when the backend says this customer may cancel this order now.
   const [cancelling, setCancelling] = useState(false)
+  // Module 37: with the support backend the help links open a case that already names this order; without it, the Help page.
+  const support = useSupport()
+  const helpTo = support.repository ? newCaseLink({ order: o.orderNumber, category: 'ORDER' }) : '/help'
   const units = resolveUnitSystem(unitPreference, o.restaurant.countryCode)
   const dist = o.journey?.originLat != null && o.journey?.originLng != null && o.restaurant.lat != null && o.restaurant.lng != null ? distanceMeters(o.journey.originLat, o.journey.originLng, o.restaurant.lat, o.restaurant.lng) : null
   const arrival = o.pickup.estimatedCustomerArrival ?? null
@@ -204,7 +208,7 @@ function Tracking({ order: o, tr, locale, unitPreference, orders }: { order: Ord
         <div className="pay-actions">
           {mapsHref && <a className="btn btn--outline" href={mapsHref} target="_blank" rel="noopener noreferrer">{t('oc.action.directions', undefined, locale)}</a>}
           {o.restaurant.contact && <a className="btn btn--outline" href={`tel:${o.restaurant.contact}`}>{t('track.action.call', undefined, locale)}</a>}
-          <Link to="/help" className="btn btn--outline">{t('track.action.support', undefined, locale)}</Link>
+          <Link to={helpTo} className="btn btn--outline">{t('track.action.support', undefined, locale)}</Link>
         </div>
         <p className="cart-muted">{t('track.location.note', undefined, locale)}</p>
       </section>
@@ -229,7 +233,7 @@ function Tracking({ order: o, tr, locale, unitPreference, orders }: { order: Ord
         <h2 id="trk-help">{t('oc.help', undefined, locale)}</h2>
         <p className="cart-muted">{t('track.help.text', undefined, locale)}</p>
         <div className="pay-actions">
-          <Link to="/help" className="btn btn--outline">{t('oc.action.help', undefined, locale)}</Link>
+          <Link to={helpTo} className="btn btn--outline" data-testid="order-get-help">{t('oc.action.help', undefined, locale)}</Link>
           <Link to="/refund-policy" className="btn btn--outline">{t('oc.action.cancellationPolicy', undefined, locale)}</Link>
           {/* Backend orders: a real action when the policy allows it, nothing when it does not. Development orders keep the placeholder. */}
           {o.cancellation === undefined && <button type="button" className="btn btn--outline" disabled aria-describedby="trk-cancel-note">{t('track.action.cancel', undefined, locale)}</button>}

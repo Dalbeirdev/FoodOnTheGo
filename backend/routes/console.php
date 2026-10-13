@@ -39,3 +39,7 @@ Schedule::command('finance:verify-ledger')->hourly()->withoutOverlapping();
 Schedule::command('finance:reconcile-internal')->hourly()->withoutOverlapping();
 Schedule::command('finance:reconcile-provider')->dailyAt('03:30')->withoutOverlapping()->when(fn (): bool => (bool) config('finance.provider_reconciliation.scheduled'));
 Schedule::command('finance:generate-settlements')->dailyAt('04:30')->withoutOverlapping()->when(fn (): bool => (bool) config('finance.settlements.scheduled'));
+
+// Module 37 — support cases: the system cases a listener missed, SLA states, and the auto-close rules (off until the
+// business sets the days). Idempotent; it changes no order, payment, refund or money.
+Schedule::command('support:sweep')->everyMinute()->withoutOverlapping();

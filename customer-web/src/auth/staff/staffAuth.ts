@@ -108,6 +108,8 @@ export function staffAuth(context: StaffContext) {
 /* ---- backend permission codes → the permission keys the dashboards already use (display only) ---- */
 const ADMIN_RENAMES: Record<string, AdminPermission> = { 'users.view': 'admin_users.view', 'users.manage': 'admin_users.manage' }
 const ADMIN_KEYS = new Set<string>(['restaurants.view', 'restaurants.approve', 'restaurants.suspend', 'customers.view', 'customers.manage', 'orders.view', 'orders.override', 'payments.view', 'payments.reconcile', 'refunds.view', 'refunds.create', 'refunds.approve', 'refunds.issue', 'refunds.reconcile', 'disputes.view', 'settlements.view', 'finance.view', 'finance.commission.view', 'finance.commission.manage', 'finance.settlements.manage', 'finance.settlements.approve', 'finance.payouts.view', 'finance.payouts.execute', 'finance.payouts.record_external', 'finance.reconciliation.view', 'finance.reconciliation.manage', 'finance.adjustments.create', 'finance.holds.manage', 'finance.ledger.view', 'finance.export', 'reviews.view', 'reviews.moderate', 'reviews.restore', 'reviews.reports.view', 'promotions.view', 'promotions.manage', 'support.view', 'support.manage', 'markets.view', 'markets.manage', 'configuration.manage', 'cities.view', 'cities.manage', 'service_areas.view', 'service_areas.manage', 'market_configuration.view', 'market_configuration.manage', 'market_features.manage', 'notifications.view', 'notifications.manage', 'notifications.test', 'admin_users.view', 'admin_users.manage', 'audit.view', 'security.view', 'analytics.view', 'system.view', 'settings.manage'])
+// Module 37 — the service desk: admin.support.assign / notes / escalate and the two restricted classes, under the same names.
+for (const key of ['support.assign', 'support.notes', 'support.escalate', 'support.restricted.finance', 'support.restricted.security']) ADMIN_KEYS.add(key)
 export function adminPermissionsFromApi(codes: string[]): AdminPermission[] {
   const out = new Set<AdminPermission>()
   for (const code of codes) {
@@ -128,6 +130,8 @@ const RESTAURANT_MAP: Record<string, RestaurantPermission> = {
   'restaurant.analytics.view': 'analytics.view', 'restaurant.notifications.view': 'notifications.view', 'restaurant.settings.manage': 'settings.manage',
   // Module 36: the restaurant's own earnings, statements and payout states; where payouts go is the owner's to see.
   'restaurant.finance.view': 'finance.view', 'restaurant.payout_account.view': 'payout_account.view',
+  // Module 37: the restaurant's support cases — reading them, and opening one / writing in it.
+  'restaurant.support.view': 'support.view', 'restaurant.support.create': 'support.create',
 }
 export const restaurantPermissionsFromApi = (codes: string[]): RestaurantPermission[] => [...new Set(codes.map((c) => RESTAURANT_MAP[c]).filter((p): p is RestaurantPermission => !!p))]
 const RESTAURANT_ROLES: RestaurantRoleId[] = ['owner', 'manager', 'order_staff', 'menu_manager', 'viewer']

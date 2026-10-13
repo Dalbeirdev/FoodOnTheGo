@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMe
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
 use App\Http\Controllers\Api\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Api\Admin\SecurityEventController;
+use App\Http\Controllers\Api\Admin\SupportCaseController as AdminSupportCaseController;
 use App\Http\Controllers\Api\Auth\CustomerOtpController;
 use App\Http\Controllers\Api\Auth\CustomerProfileController;
 use App\Http\Controllers\Api\Auth\SessionController;
@@ -51,6 +52,7 @@ use App\Http\Controllers\Api\Customer\ProfileController;
 use App\Http\Controllers\Api\Customer\RecentLocationController;
 use App\Http\Controllers\Api\Customer\ReviewController as CustomerReviewController;
 use App\Http\Controllers\Api\Customer\SavedLocationController;
+use App\Http\Controllers\Api\Customer\SupportCaseController as CustomerSupportCaseController;
 use App\Http\Controllers\Api\Dev\FakeFinanceController;
 use App\Http\Controllers\Api\Dev\FakePaymentController;
 use App\Http\Controllers\Api\Dev\FakeRefundController;
@@ -75,6 +77,7 @@ use App\Http\Controllers\Api\Restaurant\OrderController as RestaurantOrderContro
 use App\Http\Controllers\Api\Restaurant\PickupVerificationController;
 use App\Http\Controllers\Api\Restaurant\ReviewController as RestaurantStaffReviewController;
 use App\Http\Controllers\Api\Restaurant\StaffController;
+use App\Http\Controllers\Api\Restaurant\SupportCaseController as RestaurantSupportCaseController;
 use App\Http\Controllers\Api\RestaurantController;
 use App\Http\Controllers\Api\RestaurantReviewController;
 use Illuminate\Support\Facades\Route;
@@ -127,6 +130,8 @@ Route::pattern('providerSettlement', '[0-9a-fA-F-]{36}');
 Route::pattern('difference', '[0-9a-fA-F-]{36}');
 Route::pattern('ledgerTransaction', '[0-9a-fA-F-]{36}');
 Route::pattern('payoutProvider', '[a-z][a-z0-9_]{1,23}');
+// Module 37: a support case by its public id or its case number (CS-XXXXXXXX). Neither is an authorization.
+Route::pattern('supportCase', '[0-9a-fA-F-]{36}|[Cc][Ss]-[A-Za-z2-9]{8}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
     Route::get('/health', [HealthController::class, 'health'])->name('health');
@@ -694,6 +699,83 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/restaurant-organizations/{organization}/notes', [RestaurantOrganizationController::class, 'storeNote'])->name('restaurant-organizations.notes.store');
             Route::post('/restaurant-organizations/{organization}/staff', [RestaurantOrganizationController::class, 'inviteStaff'])->name('restaurant-organizations.staff.store');
             Route::delete('/restaurant-organizations/{organization}/staff/{membership}', [RestaurantOrganizationController::class, 'revokeStaff'])->name('restaurant-organizations.staff.destroy');
+        });
+    });
+
+    /*
+    |----------------------------------------------------------------------------------------------------------
+    | Module 37 — support cases. ONE case domain, three scoped surfaces.
+    |
+    | A case is addressed by its public id or its case number; neither is an authorization — every endpoint
+    | decides by who is asking. No route here changes an order, a payment, a refund, a settlement or a payout,
+    | and none takes a status: each change of a case is its own action. Linked records travel in the BODY.
+    |----------------------------------------------------------------------------------------------------------
+    */
+    Route::prefix('customer/support')->name('customer.support.')->middleware(['auth:customer', 'active'])->group(function (): void {
+        Route::middleware('throttle:support-read')->group(function (): void {
+            Route::get('/catalog', [CustomerSupportCaseController::class, 'catalog'])->name('catalog');
+            Route::get('/cases', [CustomerSupportCaseController::class, 'index'])->name('cases.index');
+            Route::get('/cases/{supportCase}', [CustomerSupportCaseController::class, 'show'])->name('cases.show');
+            Route::get('/cases/{supportCase}/messages', [CustomerSupportCaseController::class, 'messages'])->name('cases.messages.index');
+        });
+        Route::post('/cases', [CustomerSupportCaseController::class, 'store'])->middleware(['throttle:support-case-create', 'idempotent:support.case.create.customer,optional'])->name('cases.store');
+        Route::middleware('throttle:support-write')->group(function (): void {
+            Route::post('/cases/{supportCase}/messages', [CustomerSupportCaseController::class, 'reply'])->name('cases.messages.store');
+            Route::post('/cases/{supportCase}/close', [CustomerSupportCaseController::class, 'close'])->name('cases.close');
+            Route::post('/cases/{supportCase}/reopen', [CustomerSupportCaseController::class, 'reopen'])->name('cases.reopen');
+        });
+    });
+
+    Route::prefix('restaurant/support')->name('restaurant.support.')->middleware(['auth:restaurant', 'active'])->group(function (): void {
+        Route::middleware('throttle:support-read')->group(function (): void {
+            Route::get('/catalog', [RestaurantSupportCaseController::class, 'catalog'])->name('catalog');
+            Route::get('/cases', [RestaurantSupportCaseController::class, 'index'])->name('cases.index');
+            Route::get('/cases/{supportCase}', [RestaurantSupportCaseController::class, 'show'])->name('cases.show');
+            Route::get('/cases/{supportCase}/messages', [RestaurantSupportCaseController::class, 'messages'])->name('cases.messages.index');
+        });
+        Route::post('/cases', [RestaurantSupportCaseController::class, 'store'])->middleware(['throttle:support-case-create', 'idempotent:support.case.create.restaurant,optional'])->name('cases.store');
+        Route::middleware('throttle:support-write')->group(function (): void {
+            Route::post('/cases/{supportCase}/messages', [RestaurantSupportCaseController::class, 'reply'])->name('cases.messages.store');
+            Route::post('/cases/{supportCase}/close', [RestaurantSupportCaseController::class, 'close'])->name('cases.close');
+            Route::post('/cases/{supportCase}/reopen', [RestaurantSupportCaseController::class, 'reopen'])->name('cases.reopen');
+        });
+    });
+
+    // The service desk. Permission, market scope and the restricted classes are checked in the controller.
+    Route::prefix('admin')->name('admin.')->middleware(['auth:admin', 'active'])->group(function (): void {
+        Route::get('/system/support', [AdminSupportCaseController::class, 'system'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.support');
+        Route::prefix('support')->name('support.')->group(function (): void {
+            Route::middleware('throttle:support-read')->group(function (): void {
+                Route::get('/catalog', [AdminSupportCaseController::class, 'catalog'])->name('catalog');
+                Route::get('/agents', [AdminSupportCaseController::class, 'agents'])->name('agents');
+                Route::get('/metrics', [AdminSupportCaseController::class, 'metrics'])->name('metrics');
+                Route::get('/queues', [AdminSupportCaseController::class, 'queues'])->name('queues');
+                Route::get('/cases', [AdminSupportCaseController::class, 'index'])->name('cases.index');
+                Route::get('/cases/{supportCase}', [AdminSupportCaseController::class, 'show'])->name('cases.show');
+                Route::get('/cases/{supportCase}/messages', [AdminSupportCaseController::class, 'messages'])->name('cases.messages.index');
+                Route::get('/cases/{supportCase}/notes', [AdminSupportCaseController::class, 'notes'])->name('cases.notes.index');
+                Route::get('/cases/{supportCase}/events', [AdminSupportCaseController::class, 'events'])->name('cases.events');
+                Route::get('/cases/{supportCase}/links', [AdminSupportCaseController::class, 'links'])->name('cases.links.index');
+            });
+            Route::middleware('throttle:support-admin-action')->group(function (): void {
+                Route::post('/cases', [AdminSupportCaseController::class, 'store'])->middleware('idempotent:support.case.create.admin,optional')->name('cases.store');
+                Route::post('/cases/{supportCase}/messages', [AdminSupportCaseController::class, 'reply'])->name('cases.messages.store');
+                Route::post('/cases/{supportCase}/notes', [AdminSupportCaseController::class, 'note'])->name('cases.notes.store');
+                Route::post('/cases/{supportCase}/assign', [AdminSupportCaseController::class, 'assign'])->name('cases.assign');
+                Route::post('/cases/{supportCase}/priority', [AdminSupportCaseController::class, 'priority'])->name('cases.priority');
+                Route::post('/cases/{supportCase}/start', [AdminSupportCaseController::class, 'start'])->name('cases.start');
+                Route::post('/cases/{supportCase}/wait', [AdminSupportCaseController::class, 'wait'])->name('cases.wait');
+                Route::post('/cases/{supportCase}/resume', [AdminSupportCaseController::class, 'resume'])->name('cases.resume');
+                Route::post('/cases/{supportCase}/resolve', [AdminSupportCaseController::class, 'resolve'])->name('cases.resolve');
+                Route::post('/cases/{supportCase}/close', [AdminSupportCaseController::class, 'close'])->name('cases.close');
+                Route::post('/cases/{supportCase}/reopen', [AdminSupportCaseController::class, 'reopen'])->name('cases.reopen');
+                Route::post('/cases/{supportCase}/cancel', [AdminSupportCaseController::class, 'cancel'])->name('cases.cancel');
+                Route::post('/cases/{supportCase}/escalate', [AdminSupportCaseController::class, 'escalate'])->name('cases.escalate');
+                Route::post('/cases/{supportCase}/links', [AdminSupportCaseController::class, 'link'])->name('cases.links.store');
+                Route::post('/cases/{supportCase}/annotations', [AdminSupportCaseController::class, 'annotate'])->name('cases.annotate');
+                // A shortcut to ANOTHER domain's action on a linked record: that domain's permission decides.
+                Route::post('/cases/{supportCase}/domain-actions', [AdminSupportCaseController::class, 'domainAction'])->name('cases.domain-actions');
+            });
         });
     });
 });

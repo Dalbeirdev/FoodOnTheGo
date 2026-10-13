@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type DependencyList, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { ApiError } from '../../api/client'
 import { formatMoney } from '../../i18n/format'
 import { t } from '../../i18n/strings'
 import { useDashboard } from '../DashboardContext'
+import { BASE } from '../DashboardLayout'
 import {
   EARNING_STATES, EARNING_TYPES, EXPORT_MAX_DAYS, SETTLEMENT_STATUSES, ratePercent,
   type EarningLineDto, type EarningsCurrencyDto, type EarningsPeriodDto, type EarningsSummaryDto, type FinanceLocationDto, type MoneyDto,
@@ -220,6 +222,7 @@ function LinesPanel({ repo, location, locale, timezone }: { repo: RestaurantFina
 /* ------------------------------------------------------------------ settlement statements */
 
 function SettlementsPanel({ repo, location, locale }: { repo: RestaurantFinanceRepository; location: string; locale: string }) {
+  const dash = useDashboard(); const canAsk = !!dash.repos.support && dash.can('support.create')
   const [page, setPage] = useState(1); const [open, setOpen] = useState<RestaurantSettlementDetailDto | null>(null); const [busy, setBusy] = useState(false); const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null)
   const [status, setStatus] = useState('all')
   const list = useAsync(() => repo.settlements({ location, status, page, pageSize: PAGE_SIZE }), [repo, location, status, page])
@@ -282,7 +285,11 @@ function SettlementsPanel({ repo, location, locale }: { repo: RestaurantFinanceR
             <ul className="db-list" data-testid="earn-settlement-payouts">{open.payouts.map((p) => <li key={p.id}><span className="db-table__num">{p.reference}</span> · {money(p.amount, locale)} · <StatePill prefix="dash.earn.payoutStatus" code={p.status} locale={locale} />{p.completed_at ? ` · ${dayTime(p.completed_at, locale, zone)}` : ''}</li>)}</ul>
           )}
         </Card>
-        <div className="db-toolbar"><button type="button" className="db-btn db-btn--outline" disabled={busy} onClick={() => { void exportCsv() }} data-testid="earn-settlement-export">{t('dash.earn.statement.export', undefined, locale)}</button></div>
+        <div className="db-toolbar">
+          <button type="button" className="db-btn db-btn--outline" disabled={busy} onClick={() => { void exportCsv() }} data-testid="earn-settlement-export">{t('dash.earn.statement.export', undefined, locale)}</button>
+          {/* Module 37: a support case that already names this settlement — for a member who may open one. */}
+          {canAsk && <Link to={`${BASE}/support?new=1&category=SETTLEMENT&settlement=${encodeURIComponent(open.reference)}`} className="db-link" data-testid="earn-settlement-ask">{t('dash.support.ask.settlement', undefined, locale)}</Link>}
+        </div>
         {note && <p className={note.ok ? 'db-muted' : 'db-field__error'} role={note.ok ? 'status' : 'alert'} data-testid="earn-settlement-note">{note.text}</p>}
       </div>}
     </Drawer>
@@ -292,6 +299,7 @@ function SettlementsPanel({ repo, location, locale }: { repo: RestaurantFinanceR
 /* ------------------------------------------------------------------ payouts */
 
 function PayoutsPanel({ repo, location, locale, timezone }: { repo: RestaurantFinanceRepository; location: string; locale: string; timezone?: string }) {
+  const dash = useDashboard(); const canAsk = !!dash.repos.support && dash.can('support.create')
   const [page, setPage] = useState(1)
   const list = useAsync(() => repo.payouts({ location, page, pageSize: PAGE_SIZE }), [repo, location, page])
   const rows = list.data?.items ?? []; const accounts = list.data?.accounts ?? []
@@ -308,9 +316,9 @@ function PayoutsPanel({ repo, location, locale, timezone }: { repo: RestaurantFi
     <Card title={t('dash.earn.payouts.title', undefined, locale)} subtitle={t('dash.earn.payouts.sub', undefined, locale)}>
       <Listing state={list.state} empty={rows.length === 0 ? t('dash.earn.payouts.empty', undefined, locale) : null} onRetry={() => { void list.reload() }} locale={locale}>
         <div className="db-table-wrap"><table className="db-table" data-testid="earn-payouts">
-          <thead><tr><th scope="col">{t('dash.earn.col.reference', undefined, locale)}</th><th scope="col">{t('dash.earn.col.settlement', undefined, locale)}</th><th scope="col">{t('dash.earn.col.restaurant', undefined, locale)}</th><th scope="col">{t('dash.earn.col.amount', undefined, locale)}</th><th scope="col">{t('dash.earn.col.method', undefined, locale)}</th><th scope="col">{t('dash.earn.col.destination', undefined, locale)}</th><th scope="col">{t('dash.earn.col.status', undefined, locale)}</th><th scope="col">{t('dash.earn.col.requested', undefined, locale)}</th><th scope="col">{t('dash.earn.col.completed', undefined, locale)}</th></tr></thead>
+          <thead><tr><th scope="col">{t('dash.earn.col.reference', undefined, locale)}</th><th scope="col">{t('dash.earn.col.settlement', undefined, locale)}</th><th scope="col">{t('dash.earn.col.restaurant', undefined, locale)}</th><th scope="col">{t('dash.earn.col.amount', undefined, locale)}</th><th scope="col">{t('dash.earn.col.method', undefined, locale)}</th><th scope="col">{t('dash.earn.col.destination', undefined, locale)}</th><th scope="col">{t('dash.earn.col.status', undefined, locale)}</th><th scope="col">{t('dash.earn.col.requested', undefined, locale)}</th><th scope="col">{t('dash.earn.col.completed', undefined, locale)}</th>{canAsk && <th scope="col">{t('dash.support.col.help', undefined, locale)}</th>}</tr></thead>
           <tbody>{rows.map((p: RestaurantPayoutDto) => (
-            <tr key={p.id} data-testid="earn-payout-row" data-id={p.id} data-ref={p.reference} data-status={p.status}><td className="db-table__num">{p.reference}</td><td className="db-table__num">{p.settlement?.reference ?? '—'}</td><td dir="auto">{p.restaurant.name}</td><td><b>{money(p.amount, locale)}</b></td><td>{label('dash.earn.method', p.method, locale)}</td><td className="db-table__num">{p.destination ?? '—'}</td><td><StatePill prefix="dash.earn.payoutStatus" code={p.status} locale={locale} /></td><td>{dayTime(p.requested_at, locale, timezone)}</td><td>{dayTime(p.completed_at, locale, timezone)}</td></tr>
+            <tr key={p.id} data-testid="earn-payout-row" data-id={p.id} data-ref={p.reference} data-status={p.status}><td className="db-table__num">{p.reference}</td><td className="db-table__num">{p.settlement?.reference ?? '—'}</td><td dir="auto">{p.restaurant.name}</td><td><b>{money(p.amount, locale)}</b></td><td>{label('dash.earn.method', p.method, locale)}</td><td className="db-table__num">{p.destination ?? '—'}</td><td><StatePill prefix="dash.earn.payoutStatus" code={p.status} locale={locale} /></td><td>{dayTime(p.requested_at, locale, timezone)}</td><td>{dayTime(p.completed_at, locale, timezone)}</td>{canAsk && <td><Link to={`${BASE}/support?new=1&category=PAYOUT&payout=${encodeURIComponent(p.id)}`} className="db-link" data-testid="earn-payout-ask">{t('dash.support.ask.payout', undefined, locale)}</Link></td>}</tr>
           ))}</tbody>
         </table></div>
         <Pager page={page} total={list.data?.total ?? 0} onPage={setPage} locale={locale} />

@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { t } from '../../i18n/strings'
 import { Card, ErrorState, Skeleton, Tabs, ToastLine, useToastMessage } from '../../dashboard/components/ui'
-import { useAdmin } from '../AdminContext'
+import { adminBackendSections, useAdmin } from '../AdminContext'
 import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { SupportCase, SupportFilter, SupportPriority, SupportStatus } from '../types'
+import { BackendSupportCasePage } from './BackendSupportCasePage'
+import { BackendSupportPage } from './BackendSupportPage'
 import { Cell, StatusPill, fmtDateTime, useLoad, usePageTitle } from './shared'
 
 const DEFAULTS = { tab: 'open', q: '', priority: 'all', page: '1' }
@@ -13,8 +15,15 @@ const TABS: SupportFilter['tab'][] = ['open', 'in_progress', 'waiting', 'resolve
 const PRIORITIES: SupportPriority[] = ['URGENT', 'HIGH', 'MEDIUM', 'LOW']
 const STATUSES: SupportStatus[] = ['OPEN', 'IN_PROGRESS', 'WAITING_CUSTOMER', 'WAITING_RESTAURANT', 'RESOLVED', 'CLOSED']
 
-/** Support Management (Module 18): queues, assignment, priority, replies and internal notes (never public). */
-export default function SupportPage() {
+/**
+ * Support: with the backend (Module 37) the service desk — the real queue of support cases and the case page; otherwise
+ * the development pages below (unit tests and share builds), which keep their fixtures.
+ */
+export default function SupportPage() { return adminBackendSections().includes('support') ? <BackendSupportPage /> : <DevelopmentSupportPage /> }
+export function SupportCasePage() { return adminBackendSections().includes('support') ? <BackendSupportCasePage /> : <DevelopmentSupportCasePage /> }
+
+/** Support Management (Module 18, development data): queues, assignment, priority, replies and internal notes (never public). */
+export function DevelopmentSupportPage() {
   const a = useAdmin(); const locale = a.locale; const nav = useNavigate(); usePageTitle('adm.nav.support')
   const [s, set] = useUrlState(DEFAULTS)
   const filter = useMemo<SupportFilter>(() => ({ tab: (TABS.includes(s.tab as SupportFilter['tab']) ? s.tab : 'open') as SupportFilter['tab'], query: s.q, priority: s.priority as SupportFilter['priority'], page: Number(s.page) || 1, pageSize: 10 }), [s])
@@ -41,7 +50,7 @@ export default function SupportPage() {
   )
 }
 
-export function SupportCasePage() {
+export function DevelopmentSupportCasePage() {
   const a = useAdmin(); const locale = a.locale; const { id = '' } = useParams(); usePageTitle('adm.nav.support')
   const { data: c, state, reload, setData } = useLoad(() => a.repos.support.get(id), [a.repos, id])
   const [text, setText] = useState(''); const [internal, setInternal] = useState(false); const [busy, setBusy] = useState(false); const { msg, toast } = useToastMessage()

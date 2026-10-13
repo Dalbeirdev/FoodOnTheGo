@@ -255,5 +255,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('finance-read', fn (Request $request) => Limit::perMinute($perMinute('finance_read'))->by('finance-read:'.$actor($request)));
         RateLimiter::for('finance-action', fn (Request $request) => Limit::perMinute($perMinute('finance_action'))->by('finance-action:'.$actor($request)));
         RateLimiter::for('finance-export', fn (Request $request) => Limit::perMinute($perMinute('finance_export'))->by('finance-export:'.$actor($request)));
+
+        // Module 37 — support. Customers, restaurant users and administrators share these names but never a bucket: the key
+        // carries the kind of account, because the three id spaces overlap.
+        $kind = fn (Request $request): string => ($request->user() instanceof Principal ? $request->user()->principalType()->morphAlias() : 'guest').':'.$actor($request);
+        foreach (['support-read' => 'support_read', 'support-case-create' => 'support_case_create', 'support-write' => 'support_write', 'support-admin-action' => 'support_admin_action'] as $name => $key) {
+            RateLimiter::for($name, fn (Request $request) => Limit::perMinute($perMinute($key))->by($name.':'.$kind($request)));
+        }
     }
 }

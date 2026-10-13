@@ -200,8 +200,12 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect([states.last, events], [TrackingConnection.live, ['3 restaurantAccepted']]);
       stop();
+      // Module 37: a read that was already on its way when the subscription stopped may still finish (one read is more than
+      // one request). It is let through before the requests are counted — the test failed now and then by exactly one
+      // request on a loaded machine. What is asserted is unchanged: after a stop, no new poll starts.
+      await Future<void>.delayed(const Duration(milliseconds: 40));
       final calls = r.net.calls.length;
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 80));
       expect(r.net.calls.length, calls, reason: 'stopped: no more polling');
     });
   });

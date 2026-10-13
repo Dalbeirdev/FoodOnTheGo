@@ -16,6 +16,7 @@ import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/cart_state.dart' hide PromoStatus, PromoState;
 import '../state/order_state.dart';
+import '../support/support_widgets.dart';
 import '../widgets/common.dart';
 
 /// Full order details (Module 15) — Android. Route /order/:number. Historical snapshot only; Module 14 timeline model and
@@ -172,7 +173,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         ])),
         if (_canReorder(o)) ...[const SizedBox(height: 12), _reorderCard(o, money)],
         const SizedBox(height: 12),
-        SectionCard(title: S.t('oc.help'), icon: Icons.help_outline, child: Wrap(spacing: 10, runSpacing: 10, children: [OutlineButton(label: S.t('od.action.help'), expand: false, height: 44, onPressed: () => context.push('/help')), OutlineButton(label: S.t('oc.action.cancellationPolicy'), expand: false, height: 44, onPressed: () => context.push('/legal/refund-policy'))])),
+        // Module 37: with the backend, "Get help" opens a support case that is already linked to this order (the backend
+        // checks that the order is the customer's). Without it the button leads to the Help screen, as before.
+        SectionCard(title: S.t('oc.help'), icon: Icons.help_outline, child: Wrap(spacing: 10, runSpacing: 10, children: [
+          if (supportOf(context) != null) Semantics(identifier: 'order-get-help', container: true, child: OutlineButton(key: const Key('order-get-help'), label: S.t('od.action.help'), expand: false, height: 44, onPressed: () => context.push(supportNewCaseRoute(category: 'ORDER', order: o.orderNumber))))
+          else OutlineButton(label: S.t('od.action.help'), expand: false, height: 44, onPressed: () => context.push('/help')),
+          OutlineButton(label: S.t('oc.action.cancellationPolicy'), expand: false, height: 44, onPressed: () => context.push('/legal/refund-policy')),
+        ])),
       ]),
       bottomNavigationBar: isTrackable(s) ? BottomBar(child: BrandButton(icon: Icons.place_outlined, label: S.t('oc.action.track'), onPressed: () => context.push('/order-tracking/${o.orderNumber}'))) : _canReorder(o) && reorderState == 'idle' ? BottomBar(child: BrandButton(icon: Icons.replay, label: S.t('od.reorder.check'), onPressed: _check)) : null,
     );

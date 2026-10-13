@@ -1,0 +1,764 @@
+{
+  "customer_case": {
+    "id": "ff4b6714-182e-46e0-a80b-09f8d66b4e87",
+    "case_number": "CS-7G2F2487",
+    "category": "ORDER",
+    "subcategory": "ORDER_NOT_ACCEPTED",
+    "subject": "Nobody accepted my order",
+    "status": "OPEN",
+    "unread": false,
+    "message_count": 1,
+    "location": null,
+    "created_at": "2026-10-13T04:48:42+00:00",
+    "last_message_at": "2026-10-13T04:48:42+00:00",
+    "resolved_at": null,
+    "closed_at": null,
+    "links": [
+      {
+        "id": "ad212c47-c47c-4e6d-9361-cb4a886e82f2",
+        "type": "ORDER",
+        "reference": "FOTG-20261013-FUE8X2",
+        "record_id": "82c22ba6-671e-44c8-ae94-3df939c392c9",
+        "order_number": "FOTG-20261013-FUE8X2",
+        "status": "WAITING_FOR_RESTAURANT",
+        "restaurant": "Burger Hub",
+        "total": {
+          "amount": 42700,
+          "currency": "INR"
+        },
+        "placed_at": "2026-10-13T04:48:34+00:00",
+        "refund_status": "NONE"
+      }
+    ],
+    "can": {
+      "reply": true,
+      "close": false,
+      "withdraw": true,
+      "reopen": false
+    },
+    "reopen_until": null,
+    "limits": {
+      "message_max": 4000
+    },
+    "attachments": {
+      "enabled": false
+    }
+  },
+  "admin_case": {
+    "id": "ff4b6714-182e-46e0-a80b-09f8d66b4e87",
+    "case_number": "CS-7G2F2487",
+    "subject": "Nobody accepted my order",
+    "category": "ORDER",
+    "subcategory": "ORDER_NOT_ACCEPTED",
+    "priority": "NORMAL",
+    "status": "WAITING_FOR_CUSTOMER",
+    "requester": {
+      "type": "CUSTOMER",
+      "id": "d79adb86-3bad-401d-8fc9-171506ee0342",
+      "name": "(a person)",
+      "phone": "(masked)"
+    },
+    "restaurant": null,
+    "market": "india",
+    "source": "CUSTOMER_WEB",
+    "assigned": {
+      "team": "CUSTOMER_SUPPORT",
+      "admin": {
+        "id": "b67c5b23-43bb-4386-8b1f-c87bb2ae7d12",
+        "name": "(a person)"
+      }
+    },
+    "classification": "STANDARD",
+    "restricted_class": null,
+    "escalation_level": null,
+    "sla": {
+      "status": "PAUSED",
+      "policy": {
+        "id": "8a2e6821-ee0d-481f-841e-02729c38a109",
+        "name": "(a person)",
+        "market": "india",
+        "category": null,
+        "priority": null,
+        "team": null,
+        "first_response_minutes": 240,
+        "resolution_minutes": 2880,
+        "pause_while_waiting_for_requester": true,
+        "status": "ACTIVE",
+        "approval": "TEST",
+        "contractual": false
+      },
+      "first_response_due_at": "2026-10-13T08:48:42+00:00",
+      "first_response_at": "2026-10-13T04:50:58+00:00",
+      "resolution_due_at": "2026-10-15T04:48:42+00:00",
+      "paused_at": "2026-10-13T04:50:58+00:00",
+      "paused_seconds": 0,
+      "at_risk_at": null,
+      "breached_at": null,
+      "contractual": false
+    },
+    "message_count": 2,
+    "awaiting_reply": false,
+    "last_message_at": "2026-10-13T04:50:58+00:00",
+    "created_at": "2026-10-13T04:48:42+00:00",
+    "version": 3,
+    "summary": null,
+    "locale": "en-IN",
+    "system_key": null,
+    "resolution": null,
+    "next_action_at": null,
+    "reopen_count": 0,
+    "escalated_at": null,
+    "first_response_at": "2026-10-13T04:50:58+00:00",
+    "resolved_at": null,
+    "closed_at": null,
+    "reopened_at": null,
+    "cancelled_at": null,
+    "updated_at": "2026-10-13T04:50:58+00:00",
+    "assignments": [
+      {
+        "team": "CUSTOMER_SUPPORT",
+        "admin": null,
+        "source": "ROUTING",
+        "by": null,
+        "note": null,
+        "at": "2026-10-13T04:48:42+00:00"
+      },
+      {
+        "team": "CUSTOMER_SUPPORT",
+        "admin": "(a person)",
+        "source": "ADMIN",
+        "by": "(a person)",
+        "note": null,
+        "at": "2026-10-13T04:50:56+00:00"
+      }
+    ],
+    "escalations": [],
+    "attachments": {
+      "enabled": false,
+      "scanner": "none"
+    },
+    "domain_authority": {
+      "mark_payment_verified": "NOT_PROVIDED",
+      "mark_refund_completed": "NOT_PROVIDED",
+      "edit_settlement": "NOT_PROVIDED",
+      "edit_payout": "NOT_PROVIDED"
+    },
+    "can": {
+      "reply": true,
+      "notes": true,
+      "assign": true,
+      "priority": true,
+      "start": true,
+      "resume": true,
+      "wait": true,
+      "resolve": true,
+      "close": false,
+      "reopen": false,
+      "cancel": true,
+      "escalate": true,
+      "link": true,
+      "annotate": true
+    }
+  },
+  "customer_thread": [
+    {
+      "id": "3dbea30c-3c0c-4526-b027-157f63fc3493",
+      "author": "YOU",
+      "author_name": null,
+      "body": "I paid twenty minutes ago and the order is still waiting.",
+      "created_at": "2026-10-13T04:48:42+00:00"
+    },
+    {
+      "id": "da87e9f7-4953-4961-b537-9e86502f58d1",
+      "author": "SUPPORT",
+      "author_name": null,
+      "body": "We are checking with the restaurant and will come back to you here.",
+      "created_at": "2026-10-13T04:50:58+00:00"
+    }
+  ],
+  "customer_notification": {
+    "id": "193bdc2a-739e-4fb2-93b8-fb8ef77e5f19",
+    "category": "ACCOUNT_SECURITY",
+    "type": "support.reply",
+    "priority": "NORMAL",
+    "transactional": true,
+    "title": "Support replied to your case",
+    "body": "There is a new reply in your support case CS-7G2F2487. Open the case to read it.",
+    "action": {
+      "target": "SUPPORT_CASE",
+      "reference": "CS-7G2F2487"
+    },
+    "subject": {
+      "type": "SUPPORT_CASE",
+      "id": "ff4b6714-182e-46e0-a80b-09f8d66b4e87",
+      "reference": "CS-7G2F2487"
+    },
+    "read": false,
+    "read_at": null,
+    "created_at": "2026-10-13T04:50:58+00:00"
+  },
+  "order_panel": {
+    "id": "ad212c47-c47c-4e6d-9361-cb4a886e82f2",
+    "type": "ORDER",
+    "reference": "FOTG-20261013-FUE8X2",
+    "record_id": "82c22ba6-671e-44c8-ae94-3df939c392c9",
+    "linked_at": "2026-10-13T04:48:42+00:00",
+    "linked_by": "CUSTOMER",
+    "visible": true,
+    "read_at": "2026-10-13T04:51:05+00:00",
+    "record": {
+      "order_number": "FOTG-20261013-FUE8X2",
+      "status": "COMPLETED",
+      "payment_state": "PAID",
+      "refund_status": "NONE",
+      "total": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "restaurant": "Burger Hub",
+      "placed_at": "2026-10-13T04:48:34+00:00",
+      "pickup_at": "2026-10-13T05:45:00+00:00",
+      "ready_at": "2026-10-13T04:51:04+00:00",
+      "picked_up_at": "2026-10-13T04:51:05+00:00",
+      "completed_at": "2026-10-13T04:51:05+00:00",
+      "cancelled_at": null,
+      "rejection_reason": null,
+      "version": 6
+    },
+    "shortcuts": []
+  },
+  "system_case": {
+    "id": "38a2e98d-4320-4e75-b502-777e1affee6c",
+    "case_number": "CS-MX6ZTPSV",
+    "subject": "Payment PAY-ED44D91EC3 is verified and has no order",
+    "category": "PAYMENT",
+    "subcategory": "PAYMENT_CHARGED_NO_ORDER",
+    "priority": "HIGH",
+    "status": "OPEN",
+    "requester": {
+      "type": "SYSTEM",
+      "id": null,
+      "name": null,
+      "phone": null
+    },
+    "restaurant": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "(a person)"
+    },
+    "market": "india",
+    "source": "PAYMENT_RECOVERY",
+    "assigned": {
+      "team": "PAYMENTS",
+      "admin": null
+    },
+    "classification": "STANDARD",
+    "restricted_class": null,
+    "escalation_level": null,
+    "sla": {
+      "status": "ON_TRACK",
+      "policy": {
+        "id": "7ac3adfb-46d0-47bb-a156-c9ec25ee995a",
+        "name": "(a person)",
+        "market": "india",
+        "category": null,
+        "priority": "HIGH",
+        "team": null,
+        "first_response_minutes": 60,
+        "resolution_minutes": 1440,
+        "pause_while_waiting_for_requester": true,
+        "status": "ACTIVE",
+        "approval": "TEST",
+        "contractual": false
+      },
+      "first_response_due_at": null,
+      "first_response_at": null,
+      "resolution_due_at": "2026-10-14T04:51:51+00:00",
+      "paused_at": null,
+      "paused_seconds": 0,
+      "at_risk_at": null,
+      "breached_at": null,
+      "contractual": false
+    },
+    "message_count": 0,
+    "awaiting_reply": false,
+    "last_message_at": null,
+    "created_at": "2026-10-13T04:51:51+00:00",
+    "version": 1,
+    "summary": null,
+    "locale": null,
+    "system_key": "payment-recovery:ed44d91e-c357-4395-a167-d3fe71cf8849",
+    "resolution": null,
+    "next_action_at": null,
+    "reopen_count": 0,
+    "escalated_at": null,
+    "first_response_at": null,
+    "resolved_at": null,
+    "closed_at": null,
+    "reopened_at": null,
+    "cancelled_at": null,
+    "updated_at": "2026-10-13T04:51:51+00:00",
+    "assignments": [
+      {
+        "team": "PAYMENTS",
+        "admin": null,
+        "source": "ROUTING",
+        "by": null,
+        "note": null,
+        "at": "2026-10-13T04:51:51+00:00"
+      }
+    ],
+    "escalations": [],
+    "attachments": {
+      "enabled": false,
+      "scanner": "none"
+    },
+    "domain_authority": {
+      "mark_payment_verified": "NOT_PROVIDED",
+      "mark_refund_completed": "NOT_PROVIDED",
+      "edit_settlement": "NOT_PROVIDED",
+      "edit_payout": "NOT_PROVIDED"
+    },
+    "can": {
+      "reply": false,
+      "notes": true,
+      "assign": true,
+      "priority": true,
+      "start": true,
+      "resume": false,
+      "wait": true,
+      "resolve": true,
+      "close": false,
+      "reopen": false,
+      "cancel": true,
+      "escalate": true,
+      "link": true,
+      "annotate": true
+    }
+  },
+  "dispute_panel": {
+    "id": "7cf07c12-323b-451c-8a7d-c06d77df32f4",
+    "type": "DISPUTE",
+    "reference": "fakedisp_ltunlhptudjmsp",
+    "record_id": "fbc5a8b9-61b4-44d6-8003-e908a87f6864",
+    "linked_at": "2026-10-13T04:52:08+00:00",
+    "linked_by": "SYSTEM",
+    "visible": true,
+    "read_at": "2026-10-13T04:52:11+00:00",
+    "record": {
+      "provider_dispute_reference": "fakedisp_ltunlhptudjmsp",
+      "status": "OPEN",
+      "phase": "chargeback",
+      "reason_code": "goods_not_received",
+      "amount": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "order_number": "FOTG-20261013-7L7TGR",
+      "restaurant": "Burger Hub",
+      "opened_at": "2026-10-13T04:52:07+00:00",
+      "respond_by_at": "2026-10-20T04:52:07+00:00",
+      "closed_at": null,
+      "response": "NOT_PROVIDED"
+    },
+    "shortcuts": []
+  },
+  "difference_panel": {
+    "id": "afd91af2-885d-4057-88fa-50f2d1aed61b",
+    "type": "DIFFERENCE",
+    "reference": "DIF-7A4F3C5499",
+    "record_id": "7a4f3c54-99e7-4f91-94b4-ec5f409c9ea1",
+    "linked_at": "2026-10-13T04:52:13+00:00",
+    "linked_by": "SYSTEM",
+    "visible": true,
+    "read_at": "2026-10-13T04:52:14+00:00",
+    "record": {
+      "type": "MISSING_INTERNAL_PAYMENT",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "subject_reference": null,
+      "expected": null,
+      "actual": {
+        "amount": 12300,
+        "currency": "INR"
+      },
+      "first_seen_at": "2026-10-13T04:52:12+00:00",
+      "last_seen_at": "2026-10-13T04:52:12+00:00"
+    },
+    "shortcuts": []
+  },
+  "restaurant_case": {
+    "id": "497f9a13-5303-4507-9948-4cac401bfa2a",
+    "case_number": "CS-3F2DB73V",
+    "category": "ORDER",
+    "subcategory": "CUSTOMER_DISPUTE",
+    "subject": "A customer says the order was wrong",
+    "status": "OPEN",
+    "unread": false,
+    "message_count": 3,
+    "location": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "(a person)"
+    },
+    "created_at": "2026-10-13T04:52:17+00:00",
+    "last_message_at": "2026-10-13T04:53:24+00:00",
+    "resolved_at": null,
+    "closed_at": null,
+    "links": [
+      {
+        "id": "ad97113a-f436-46c9-aa21-b11cbbef8f61",
+        "type": "ORDER",
+        "reference": "FOTG-20261013-FUE8X2",
+        "record_id": "82c22ba6-671e-44c8-ae94-3df939c392c9",
+        "order_number": "FOTG-20261013-FUE8X2",
+        "status": "COMPLETED",
+        "restaurant": "Burger Hub",
+        "total": {
+          "amount": 42700,
+          "currency": "INR"
+        },
+        "placed_at": "2026-10-13T04:48:34+00:00",
+        "refund_status": "NONE"
+      }
+    ],
+    "can": {
+      "reply": true,
+      "close": false,
+      "withdraw": true,
+      "reopen": false
+    },
+    "reopen_until": null,
+    "limits": {
+      "message_max": 4000
+    },
+    "attachments": {
+      "enabled": false
+    }
+  },
+  "settlement_case": {
+    "id": "0c07a2ec-bd03-4ca7-a26f-9bab7ed9b186",
+    "case_number": "CS-SGRNBDEY",
+    "category": "SETTLEMENT",
+    "subcategory": null,
+    "subject": "A question about this settlement",
+    "status": "RESOLVED",
+    "unread": false,
+    "message_count": 1,
+    "location": {
+      "id": "0a000000-0000-4000-8000-0000000000a1",
+      "name": "(a person)"
+    },
+    "created_at": "2026-10-13T04:53:27+00:00",
+    "last_message_at": "2026-10-13T04:53:27+00:00",
+    "resolved_at": "2026-10-13T04:53:30+00:00",
+    "closed_at": null,
+    "links": [
+      {
+        "id": "a6add311-1bc1-4331-9388-c72f06fa1fcd",
+        "type": "SETTLEMENT",
+        "reference": "STL-20261012-GUPKDD",
+        "record_id": "a7473194-c268-4134-8b46-e26674157644",
+        "status": "IN_REVIEW",
+        "net_payable": {
+          "amount": 38430,
+          "currency": "INR"
+        },
+        "period_start": "2026-10-05T04:51:05+00:00",
+        "period_end": "2026-10-11T18:30:00+00:00",
+        "restaurant": "Burger Hub"
+      }
+    ],
+    "can": {
+      "reply": false,
+      "close": true,
+      "withdraw": false,
+      "reopen": true
+    },
+    "reopen_until": "2026-10-27T04:53:30+00:00",
+    "limits": {
+      "message_max": 4000
+    },
+    "attachments": {
+      "enabled": false
+    }
+  },
+  "settlement_panel_support": {
+    "id": "a6add311-1bc1-4331-9388-c72f06fa1fcd",
+    "type": "SETTLEMENT",
+    "reference": "STL-20261012-GUPKDD",
+    "record_id": "a7473194-c268-4134-8b46-e26674157644",
+    "linked_at": "2026-10-13T04:53:27+00:00",
+    "linked_by": "RESTAURANT",
+    "visible": false,
+    "reason": "PERMISSION",
+    "required_permission": "admin.settlements.view"
+  },
+  "settlement_panel_finance": {
+    "id": "a6add311-1bc1-4331-9388-c72f06fa1fcd",
+    "type": "SETTLEMENT",
+    "reference": "STL-20261012-GUPKDD",
+    "record_id": "a7473194-c268-4134-8b46-e26674157644",
+    "linked_at": "2026-10-13T04:53:27+00:00",
+    "linked_by": "RESTAURANT",
+    "visible": true,
+    "read_at": "2026-10-13T04:53:30+00:00",
+    "record": {
+      "reference": "STL-20261012-GUPKDD",
+      "status": "CALCULATED",
+      "restaurant": "Burger Hub",
+      "period_start": "2026-10-05T04:51:05+00:00",
+      "period_end": "2026-10-11T18:30:00+00:00",
+      "order_count": 1,
+      "line_count": 1,
+      "gross_sales": {
+        "amount": 42700,
+        "currency": "INR"
+      },
+      "commission": {
+        "amount": 4270,
+        "currency": "INR"
+      },
+      "refund_adjustments": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "other_adjustments": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "net_payable": {
+        "amount": 38430,
+        "currency": "INR"
+      },
+      "paid": {
+        "amount": 0,
+        "currency": "INR"
+      },
+      "paid_at": null
+    },
+    "shortcuts": []
+  },
+  "sla": {
+    "status": "BREACHED",
+    "policy": {
+      "id": "8a2e6821-ee0d-481f-841e-02729c38a109",
+      "name": "(a person)",
+      "market": "india",
+      "category": null,
+      "priority": null,
+      "team": null,
+      "first_response_minutes": 240,
+      "resolution_minutes": 2880,
+      "pause_while_waiting_for_requester": true,
+      "status": "ACTIVE",
+      "approval": "TEST",
+      "contractual": false
+    },
+    "first_response_due_at": "2026-10-13T04:51:39+00:00",
+    "first_response_at": "2026-10-13T04:53:41+00:00",
+    "resolution_due_at": "2026-10-15T04:53:38+00:00",
+    "paused_at": null,
+    "paused_seconds": 0,
+    "at_risk_at": null,
+    "breached_at": "2026-10-13T04:53:39+00:00",
+    "contractual": false
+  },
+  "desk_metrics": {
+    "total": 12,
+    "open": 7,
+    "unassigned": 6,
+    "urgent": 0,
+    "high": 3,
+    "escalated": 1,
+    "restricted": 3,
+    "waiting": {},
+    "resolved": 3,
+    "closed": 1,
+    "cancelled": 1,
+    "reopened": 1,
+    "reopened_ever": 1,
+    "sla_at_risk": 0,
+    "sla_breached": 0,
+    "sla_not_measured": 0,
+    "by_status": {
+      "RESOLVED": 3,
+      "CLOSED": 1,
+      "CANCELLED": 1,
+      "OPEN": 5,
+      "REOPENED": 1,
+      "IN_PROGRESS": 1
+    },
+    "by_category": {
+      "DISPUTE": 1,
+      "ACCOUNT": 1,
+      "ORDER": 2,
+      "REFUND": 1,
+      "SECURITY": 1,
+      "PAYOUT": 1
+    },
+    "by_priority": {
+      "HIGH": 3,
+      "NORMAL": 4
+    },
+    "by_team": {
+      "PAYMENTS": 1,
+      "CUSTOMER_SUPPORT": 1,
+      "SECURITY": 2,
+      "RESTAURANT_SUPPORT": 1,
+      "FINANCE": 2
+    },
+    "by_requester": {
+      "CUSTOMER": 3,
+      "RESTAURANT": 2,
+      "SYSTEM": 2
+    },
+    "created_last_7_days": 12,
+    "first_response_minutes_avg_30d": 1.1,
+    "resolution_minutes_avg_30d": 0.1
+  },
+  "support_health": {
+    "checked_at": "2026-10-13T04:53:46+00:00",
+    "cases": {
+      "total": 12,
+      "open": 7,
+      "unassigned": 6,
+      "urgent": 0,
+      "high": 3,
+      "escalated": 1,
+      "restricted": 3,
+      "waiting": {},
+      "resolved": 3,
+      "closed": 1,
+      "cancelled": 1,
+      "reopened": 1,
+      "reopened_ever": 1,
+      "sla_at_risk": 0,
+      "sla_breached": 0,
+      "sla_not_measured": 0,
+      "by_status": {
+        "RESOLVED": 3,
+        "CLOSED": 1,
+        "CANCELLED": 1,
+        "OPEN": 5,
+        "REOPENED": 1,
+        "IN_PROGRESS": 1
+      },
+      "by_category": {
+        "DISPUTE": 1,
+        "ACCOUNT": 1,
+        "ORDER": 2,
+        "REFUND": 1,
+        "SECURITY": 1,
+        "PAYOUT": 1
+      },
+      "by_priority": {
+        "HIGH": 3,
+        "NORMAL": 4
+      },
+      "by_team": {
+        "PAYMENTS": 1,
+        "CUSTOMER_SUPPORT": 1,
+        "SECURITY": 2,
+        "RESTAURANT_SUPPORT": 1,
+        "FINANCE": 2
+      },
+      "by_requester": {
+        "CUSTOMER": 3,
+        "RESTAURANT": 2,
+        "SYSTEM": 2
+      },
+      "created_last_7_days": 12,
+      "first_response_minutes_avg_30d": 1.1,
+      "resolution_minutes_avg_30d": 0.1
+    },
+    "events": {
+      "case_created": 34,
+      "case_created_customer": 13,
+      "case_created_restaurant": 9,
+      "case_created_admin": 0,
+      "case_created_system": 12,
+      "system_case_repeated": 0,
+      "message_customer": 20,
+      "message_restaurant": 13,
+      "message_support": 9,
+      "message_repeated": 6,
+      "note_added": 19,
+      "assigned": 3,
+      "priority_changed": 0,
+      "escalated": 5,
+      "resolved": 15,
+      "closed": 7,
+      "reopened": 3,
+      "cancelled": 2,
+      "step_refused": 0,
+      "version_conflict": 5,
+      "link_added": 39,
+      "link_refused": 0,
+      "domain_action": 9,
+      "domain_action_refused": 6,
+      "sla_at_risk": 0,
+      "sla_breached": 2,
+      "auto_closed": 0,
+      "access_refused": 0,
+      "restricted_refused": 14,
+      "notification_sent": 26,
+      "attachment_added": 0,
+      "attachment_refused": 0
+    },
+    "window_hours": 24,
+    "policies": {
+      "priority_and_routing": {
+        "value": "BY_CATEGORY (config/support.php)",
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "reopen": {
+        "value": {
+          "resolved_days": 14,
+          "closed_days": 7
+        },
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "auto_close": {
+        "value": {
+          "resolved_after_days": null,
+          "no_response_after_days": null
+        },
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "sla": {
+        "value": {
+          "active_policies": 4,
+          "approved_policies": 0,
+          "auto_escalate": false
+        },
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "system_cases": {
+        "value": {
+          "payment_order_recovery": true,
+          "refund_review": true,
+          "finance_difference_min_severity": "HIGH",
+          "dispute": true,
+          "security": "READINESS_ONLY"
+        },
+        "approval": "PENDING BUSINESS APPROVAL"
+      },
+      "retention": {
+        "value": "NOTHING_IS_DELETED",
+        "approval": "PENDING LEGAL / PRIVACY APPROVAL"
+      }
+    },
+    "flags": {
+      "contractual_sla": false,
+      "attachments": "DISABLED",
+      "attachment_scanner": "NOT_CONFIGURED",
+      "restaurant_notifications": "UNREAD_MARK_ONLY",
+      "admin_notifications": "NOT_IMPLEMENTED",
+      "security_admin_role": "NOT_DEFINED",
+      "support_marks_payment_verified": false,
+      "support_marks_refund_completed": false,
+      "support_edits_settlement_or_payout": false,
+      "realtime": "POLLING",
+      "production": "NO"
+    }
+  }
+}

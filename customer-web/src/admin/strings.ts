@@ -1,3 +1,5 @@
+import { deskStrings } from './supportStrings'
+
 /** Platform Admin Dashboard strings (Module 18) — English source table, merged into the global bundle (localization-ready). */
 export const adminStrings: Record<string, string> = {
   'adm.brand': 'Platform Administration', 'adm.title': 'FoodOnTheGo Admin',
@@ -813,4 +815,6 @@ export const adminStrings: Record<string, string> = {
   'adm.finance.code.NEVER_CHECKED': 'Never checked',
   'adm.finance.code.NEVER_RUN': 'Never run',
   'adm.finance.code.OK': 'OK',
+  // Module 37: the service desk (the backend support pages).
+  ...deskStrings,
 }

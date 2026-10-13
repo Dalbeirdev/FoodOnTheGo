@@ -31,13 +31,13 @@ const INDIA_REMAP: Record<string, string> = { 'kettleman-diner': 'brew-bites', '
 /** Staff fixtures with location access mapped onto the locations of the current fixture scope. */
 export const seedStaff = (): StaffMember[] => (fixtureScope() === 'global' ? STAFF : STAFF.map((m) => ({ ...m, locationAccess: m.locationAccess === 'all' ? 'all' : m.locationAccess.map((l) => INDIA_REMAP[l] ?? l) })))
 
-/** Roles are permission bundles (starting examples; the backend / admin manage them later). */
+/** Roles are permission bundles (starting examples; the backend / admin manage them later). Module 37: everybody reads the restaurant's support cases; all but the viewer open one and write in it. */
 export const ROLES: Role[] = [
-  { id: 'owner', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'reviews.report', 'staff.view', 'staff.manage', 'analytics.view', 'notifications.view', 'settings.manage', 'finance.view', 'payout_account.view'] },
-  { id: 'manager', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'reviews.report', 'staff.view', 'analytics.view', 'notifications.view', 'settings.manage', 'finance.view'] },
-  { id: 'order_staff', permissions: ['restaurant.profile.view', 'menu.view', 'orders.view', 'orders.update', 'pickup.verify', 'notifications.view'] },
-  { id: 'menu_manager', permissions: ['restaurant.profile.view', 'menu.view', 'menu.edit', 'orders.view', 'reviews.view', 'reviews.report', 'notifications.view'] },
-  { id: 'viewer', permissions: ['restaurant.profile.view', 'menu.view', 'orders.view', 'reviews.view', 'analytics.view', 'notifications.view'] },
+  { id: 'owner', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'reviews.report', 'staff.view', 'staff.manage', 'analytics.view', 'notifications.view', 'settings.manage', 'finance.view', 'payout_account.view', 'support.view', 'support.create'] },
+  { id: 'manager', permissions: ['restaurant.profile.view', 'restaurant.profile.edit', 'hours.edit', 'pickup.settings.edit', 'menu.view', 'menu.edit', 'orders.view', 'orders.update', 'pickup.verify', 'reviews.view', 'reviews.respond', 'reviews.report', 'staff.view', 'analytics.view', 'notifications.view', 'settings.manage', 'finance.view', 'support.view', 'support.create'] },
+  { id: 'order_staff', permissions: ['restaurant.profile.view', 'menu.view', 'orders.view', 'orders.update', 'pickup.verify', 'notifications.view', 'support.view', 'support.create'] },
+  { id: 'menu_manager', permissions: ['restaurant.profile.view', 'menu.view', 'menu.edit', 'orders.view', 'reviews.view', 'reviews.report', 'notifications.view', 'support.view', 'support.create'] },
+  { id: 'viewer', permissions: ['restaurant.profile.view', 'menu.view', 'orders.view', 'reviews.view', 'analytics.view', 'notifications.view', 'support.view'] },
 ]
 
 export const STAFF: StaffMember[] = [

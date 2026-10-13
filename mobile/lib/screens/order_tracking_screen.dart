@@ -16,6 +16,7 @@ import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../state/discovery_state.dart';
 import '../state/tracking_state.dart';
+import '../support/support_widgets.dart';
 import '../widgets/common.dart';
 
 /// Live order tracking (Module 14) — Android. Route /order-tracking/:number, driven by structured order events.
@@ -192,7 +193,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> with WidgetsB
         SectionCard(title: S.t('oc.help'), icon: Icons.help_outline, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(S.t('track.help.text'), style: const TextStyle(color: Brand.grey, fontSize: 13)),
           const SizedBox(height: 10),
-          Wrap(spacing: 10, runSpacing: 10, children: [OutlineButton(label: S.t('oc.action.help'), expand: false, height: 44, onPressed: () => context.push('/help')), OutlineButton(label: S.t('oc.action.cancellationPolicy'), expand: false, height: 44, onPressed: () => context.push('/legal/refund-policy')), if (o.cancellation == null) OutlineButton(label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: null), if (o.cancellation?.canCancel == true) Semantics(identifier: 'trk-cancel', container: true, child: OutlineButton(key: const Key('trk-cancel'), label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: () => _cancel(o)))]),
+          Wrap(spacing: 10, runSpacing: 10, children: [
+            // Module 37: with the backend, a support case that is already linked to this order.
+            if (supportOf(context) != null) Semantics(identifier: 'order-get-help', container: true, child: OutlineButton(key: const Key('order-get-help'), label: S.t('od.action.help'), expand: false, height: 44, onPressed: () => context.push(supportNewCaseRoute(category: 'ORDER', order: o.orderNumber)))),
+            OutlineButton(label: S.t('oc.action.help'), expand: false, height: 44, onPressed: () => context.push('/help')), OutlineButton(label: S.t('oc.action.cancellationPolicy'), expand: false, height: 44, onPressed: () => context.push('/legal/refund-policy')), if (o.cancellation == null) OutlineButton(label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: null), if (o.cancellation?.canCancel == true) Semantics(identifier: 'trk-cancel', container: true, child: OutlineButton(key: const Key('trk-cancel'), label: S.t('track.action.cancel'), expand: false, height: 44, onPressed: () => _cancel(o)))]),
           // Development orders have no cancellation policy at all; a backend order says whether it can be cancelled in the app.
           if (o.cancellation == null) ...[const SizedBox(height: 6), Text(S.t('track.cancel.pending'), style: const TextStyle(color: Brand.grey, fontSize: 12))],
           if (o.cancellation != null && !o.cancellation!.canCancel && !exceptional && !done) ...[const SizedBox(height: 6), Semantics(identifier: 'trk-cancel-unavailable', container: true, child: Text(S.t(o.cancellation!.enabled ? 'track.cancel.notNow' : 'track.cancel.unavailable'), key: const Key('trk-cancel-unavailable'), style: const TextStyle(color: Brand.grey, fontSize: 12)))],

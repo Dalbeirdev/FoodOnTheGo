@@ -293,6 +293,8 @@ export const notificationLink = (action: NotificationAction | undefined): string
     case 'PROMOTION': return '/restaurants'
     // Module 34: the customer's own review of that order (the reference is the order number).
     case 'REVIEW': return ref ? `/order/${ref}/review` : '/my-reviews'
+    // Module 37: a support case of the customer's own (the reference is the case number, CS-XXXXXXXX).
+    case 'SUPPORT_CASE': return ref && /^CS-[A-Za-z2-9]{8}$/.test(action.reference ?? '') ? `/help/cases/${ref}` : '/help/cases'
     default: return undefined
   }
 }

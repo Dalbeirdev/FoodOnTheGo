@@ -30,6 +30,10 @@ enum Permission: string
     case RestaurantFinanceView = 'restaurant.finance.view';
     /** See where payouts go (the provider's mask of the destination and its verification state) — the owner's. */
     case RestaurantPayoutAccountView = 'restaurant.payout_account.view';
+    /** Read the support cases of the locations the member may open (Module 37). Money cases also need restaurant.finance.view. */
+    case RestaurantSupportView = 'restaurant.support.view';
+    /** Open a support case for the restaurant and write in it. */
+    case RestaurantSupportCreate = 'restaurant.support.create';
 
     case AdminRestaurantsView = 'admin.restaurants.view';
     case AdminRestaurantsApprove = 'admin.restaurants.approve';
@@ -89,8 +93,20 @@ enum Permission: string
     case AdminReviewsReportsView = 'admin.reviews.reports.view';
     case AdminPromotionsView = 'admin.promotions.view';
     case AdminPromotionsManage = 'admin.promotions.manage';
+    /** Read support cases and their conversations (Module 37) — not the internal notes, not restricted cases. */
     case AdminSupportView = 'admin.support.view';
+    /** Work a case: reply to the requester, change its status and priority, link records, resolve, reopen, cancel. It opens NO other domain: no payment, refund or finance action follows from it. */
     case AdminSupportManage = 'admin.support.manage';
+    /** Give a case to a queue or a person. */
+    case AdminSupportAssign = 'admin.support.assign';
+    /** Read and write the internal notes of a case. */
+    case AdminSupportNotes = 'admin.support.notes';
+    /** Escalate a case to another queue or level. */
+    case AdminSupportEscalate = 'admin.support.escalate';
+    /** Open finance-restricted cases (provider disputes, reconciliation differences). */
+    case AdminSupportRestrictedFinance = 'admin.support.restricted.finance';
+    /** Open security-restricted cases. */
+    case AdminSupportRestrictedSecurity = 'admin.support.restricted.security';
     case AdminMarketsView = 'admin.markets.view';
     case AdminMarketsManage = 'admin.markets.manage';
     case AdminCitiesView = 'admin.cities.view';

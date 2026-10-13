@@ -1,24 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../core/theme.dart';
 import '../data/help_content.dart';
+import '../i18n/strings.dart';
+import '../state/auth_state.dart';
+import '../support/support_models.dart';
+import '../support/support_widgets.dart';
 import '../widgets/common.dart';
 
 /// Help & Support entry (Module 02). Topics and contacts come from the mock
-/// repository in help_content.dart; live chat is shown as pending because no
-/// support backend exists yet (BACKEND CONNECTION = NOT STARTED).
+/// repository in help_content.dart; live chat is shown as pending (there is no chat).
+///
+/// Module 37: with the backend (support follows ORDER_MODE=api) a signed-in customer can contact support and open
+/// their cases from here, with the number of cases that carry a reply they have not read; a guest is asked to sign
+/// in first. Without the backend nothing is added and the screen is what it was — it never pretends to send a request.
 class HelpScreen extends StatefulWidget {
-  const HelpScreen({super.key});
+  const HelpScreen({super.key, this.repository});
+  final SupportRepository? repository;
   @override
   State<HelpScreen> createState() => _HelpScreenState();
 }
 
 class _HelpScreenState extends State<HelpScreen> {
   String query = '';
+  int unread = 0;
+  String? _unreadFor;
+
+  // How many of the customer's cases have a reply they have not opened: asked once per customer, and again on return.
+  Future<void> _loadUnread(SupportRepository repo) async {
+    try { final p = await repo.listCases(state: 'all', page: 1, perPage: 1); if (mounted) setState(() => unread = p.unread); } on SupportFailure { /* the badge is a convenience: no badge, no error */ }
+  }
+
+  Widget _support(BuildContext context, SupportRepository repo) {
+    final auth = context.watch<AuthState>();
+    // While the session is still being restored nobody is "a guest" yet: no prompt flashes at a signed-in customer.
+    if (!auth.isAuthenticated && auth.loading) return const SizedBox.shrink();
+    if (!auth.isAuthenticated) {
+      _unreadFor = null;
+      return supportSem('help-support-sign-in', Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(S.t('support.help.signIn.title'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 4), Text(S.t('support.help.signIn.text'), style: const TextStyle(color: Brand.grey, fontSize: 13)),
+        const SizedBox(height: 12),
+        supportSem('help-sign-in', BrandButton(key: const Key('help-sign-in'), label: S.t('support.help.signIn.action'), expand: false, height: 44, onPressed: () { auth.requireLoginFor(supportNewCaseRoute()); context.push('/login'); })),
+      ]))));
+    }
+    final id = auth.user?.id;
+    if (id != null && _unreadFor != id) { _unreadFor = id; WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _loadUnread(repo); }); }
+    return Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(S.t('support.help.title'), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+      const SizedBox(height: 4), Text(S.t('support.help.text'), style: const TextStyle(color: Brand.grey, fontSize: 13)),
+      const SizedBox(height: 12),
+      Wrap(spacing: 10, runSpacing: 10, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        supportSem('help-contact-support', BrandButton(key: const Key('help-contact-support'), label: S.t('support.help.contact'), icon: Icons.add_comment_outlined, expand: false, height: 44, onPressed: () => context.push(supportNewCaseRoute()).then((_) { if (mounted) _loadUnread(repo); }))),
+        supportSem('help-my-cases', state: '$unread', Row(mainAxisSize: MainAxisSize.min, children: [
+          OutlineButton(key: const Key('help-my-cases'), label: S.t('support.help.cases'), expand: false, height: 44, onPressed: () => context.push('/support').then((_) { if (mounted) _loadUnread(repo); })),
+          if (unread > 0) Padding(padding: const EdgeInsets.only(left: 6), child: Semantics(label: S.t('support.help.unread', {'count': unread}), child: ExcludeSemantics(child: Container(key: const Key('help-unread'), constraints: const BoxConstraints(minWidth: 22), height: 22, padding: const EdgeInsets.symmetric(horizontal: 6), decoration: BoxDecoration(color: Brand.red, borderRadius: BorderRadius.circular(999)), alignment: Alignment.center, child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)))))),
+        ])),
+      ]),
+    ])));
+  }
+
   @override
   Widget build(BuildContext context) {
     final help = helpRepository.content;
+    final support = widget.repository ?? supportOf(context);
     final q = query.trim().toLowerCase();
     final topics = q.isEmpty ? help.topics : help.topics.where((t) => '${t.title} ${t.text} ${t.keywords}'.toLowerCase().contains(q)).toList();
     return Scaffold(
@@ -30,6 +77,7 @@ class _HelpScreenState extends State<HelpScreen> {
             decoration: InputDecoration(hintText: help.searchPlaceholder, prefixIcon: const Icon(Icons.search, color: Brand.grey)),
             onChanged: (v) => setState(() => query = v),
           ),
+          if (support != null) ...[const SizedBox(height: 14), _support(context, support)],
           const SectionTitle('Popular Topics'),
           if (topics.isEmpty)
             EmptyState(icon: Icons.search_off, title: 'No topics match "$query"', sub: 'Try another word, or contact support below.')
@@ -72,8 +120,11 @@ class _HelpScreenState extends State<HelpScreen> {
               ],
             ]),
           ),
-          const SizedBox(height: 14),
-          const InfoBox(icon: Icons.info_outline, color: Brand.blue, bg: Brand.blueBg, child: Text('Support requests are not sent anywhere yet — the support backend arrives in a later module.', style: TextStyle(fontSize: 13, color: Brand.navy))),
+          // Only without the backend: with it, requests are real support cases (above) and this would be untrue.
+          if (support == null) ...[
+            const SizedBox(height: 14),
+            const InfoBox(icon: Icons.info_outline, color: Brand.blue, bg: Brand.blueBg, child: Text('Support requests are not sent anywhere yet — the support backend arrives in a later module.', style: TextStyle(fontSize: 13, color: Brand.navy))),
+          ],
         ],
       ),
     );

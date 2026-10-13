@@ -15,7 +15,7 @@ import './dashboard.css'
  * Desktop: expanded sidebar · ≤1200px: collapsible · mobile: drawer + bottom tab bar (Overview / Orders / Menu / More).
  */
 export const BASE = '/restaurant-dashboard'
-export const NAV: Array<{ id: string; path: string; icon: string; perm: Permission | null; badge?: 'orders' | 'notifications' }> = [
+export const NAV: Array<{ id: string; path: string; icon: string; perm: Permission | null; badge?: 'orders' | 'notifications' | 'support' }> = [
   { id: 'overview', path: 'overview', icon: 'overview', perm: null },
   { id: 'orders', path: 'orders', icon: 'orders', perm: 'orders.view', badge: 'orders' },
   { id: 'pickup', path: 'pickup-verification', icon: 'qr', perm: 'pickup.verify' },
@@ -28,6 +28,8 @@ export const NAV: Array<{ id: string; path: string; icon: string; perm: Permissi
   { id: 'analytics', path: 'analytics', icon: 'analytics', perm: 'analytics.view' },
   // Module 36: the restaurant's own earnings, settlement statements and payout states (after index 3: the mobile tab bar reads NAV by position).
   { id: 'earnings', path: 'earnings', icon: 'money', perm: 'finance.view' },
+  // Module 37: the restaurant's support cases (also after index 3). The badge is the number of cases with an unopened reply.
+  { id: 'support', path: 'support', icon: 'support', perm: 'support.view', badge: 'support' },
   { id: 'notifications', path: 'notifications', icon: 'notifications', perm: 'notifications.view', badge: 'notifications' },
   { id: 'settings', path: 'settings', icon: 'settings', perm: null },
   { id: 'help', path: 'help', icon: 'help', perm: null },
@@ -139,10 +141,10 @@ export default function DashboardLayout() {
   useEffect(() => { document.title = `${t('dash.brand', undefined, d.locale)} · FoodOnTheGo` }, [d.locale])
   const items = NAV.filter((n) => !n.perm || d.can(n.perm))
   const pendingOrders = 0 // sidebar order badge is filled by the orders page through context-free polling later; header counts come from notifications
-  const badge = (n: (typeof NAV)[number]) => (n.badge === 'notifications' ? d.unreadCount : n.badge === 'orders' ? pendingOrders + d.notifications.filter((x) => !x.read && x.type === 'new_order').length : 0)
+  const badge = (n: (typeof NAV)[number]) => (n.badge === 'support' ? d.supportUnread : n.badge === 'notifications' ? d.unreadCount : n.badge === 'orders' ? pendingOrders + d.notifications.filter((x) => !x.read && x.type === 'new_order').length : 0)
   const nav = (mobile = false) => (
     <nav className="db-nav" aria-label={t('dash.nav.label', undefined, d.locale)}>
-      <ul>{items.map((n) => <li key={n.id}><NavLink to={`${BASE}/${n.path}`} className={({ isActive }) => `db-nav__link ${isActive ? 'is-active' : ''}`} onClick={() => mobile && setDrawer(false)} data-nav={n.id}><Icon name={n.icon} size={20} /><span className="db-nav__text">{t(`dash.nav.${n.id}`, undefined, d.locale)}</span>{badge(n) > 0 && <span className="db-nav__badge" aria-label={`${badge(n)}`}>{badge(n)}</span>}</NavLink></li>)}</ul>
+      <ul>{items.map((n) => <li key={n.id}><NavLink to={`${BASE}/${n.path}`} className={({ isActive }) => `db-nav__link ${isActive ? 'is-active' : ''}`} onClick={() => mobile && setDrawer(false)} data-nav={n.id}><Icon name={n.icon} size={20} /><span className="db-nav__text">{t(`dash.nav.${n.id}`, undefined, d.locale)}</span>{badge(n) > 0 && <span className="db-nav__badge" aria-label={`${badge(n)}`} data-testid={n.badge === 'support' ? 'db-support-unread' : undefined}>{badge(n)}</span>}</NavLink></li>)}</ul>
     </nav>
   )
   const brand = (

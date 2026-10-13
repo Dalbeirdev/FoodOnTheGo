@@ -1,0 +1,31 @@
+# Module 37 — Customer Web (incl. Restaurant Dashboard and Platform Admin) checks, 2026-10-12T17:49:58Z UTC, local machine, mains power
+# Unit tests always run scripted answers in the API's shape; nothing is sent to a backend.
+# New test files of this module: src/support/api/apiSupport.test.ts (11), src/support/supportPages.test.tsx (12), src/dashboard/api/apiSupport.test.tsx (11), src/admin/api/ApiAdminSupportRepository.test.ts (12), src/admin/pages/BackendSupportCasePage.test.tsx (13), src/admin/pages/BackendSupportPage.test.tsx (9).
+# No older test file was changed. vitest.config.ts: testTimeout 15000 (Module 37) — in the parallel full run of 72 files the long typing tests of src/admin/admin.test.tsx (TEST 19 / TEST 20; 1.4 s and 2.5 s when that file runs alone) passed the 5 s default and failed without any assertion failing: two full runs of this evening failed that way (2 and 1 timeouts) before the limit was raised; they are kept in the scratchpad, not here.
+
+## tsc -b --noEmit
+tsc: 0 errors
+
+## oxlint (npm run lint)
+src/admin/pages/finance/PayoutsTab.tsx:27:61: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/admin/pages/finance/ReconciliationTab.tsx:33:87: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/ReviewPage.tsx:81:20: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/OrderDetailsPage.tsx:51:20: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/OrderDetailsPage.tsx:228:67: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/pages/OrderDetailsPage.tsx:243:31: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+(oxlint exit 0; 0 errors; 146 warnings.)
+
+## vitest run
+ Test Files  72 passed (72)
+      Tests  861 passed (861)
+   Duration  35.04s (tests 65%, environment 20%, transform 7%, import 4%, setup 4%)
+
+## vite build (npm run build)
+dist/assets/index-C-Cstg4s.js          1,433.80 kB │ gzip: 395.82 kB
+
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 519ms[39m

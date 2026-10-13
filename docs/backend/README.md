@@ -1086,3 +1086,30 @@ Full description: [finance.md](finance.md).
   payout provider and verification of the Razorpay settlement reader: all PENDING BUSINESS / FINANCE / TAX / LEGAL /
   PROVIDER decisions. Production = NO.
 
+
+## 25. Support cases: customer and restaurant support, the service desk, system cases (Module 37)
+
+Full description: [support.md](support.md). In short:
+
+- **One case domain** — `support_cases` with its conversation (`support_case_messages`), internal notes
+  (`support_case_internal_notes`, a table of its own that no requester endpoint reads), an append-only numbered
+  timeline (`support_case_events`), typed links, assignment and escalation history, and internal SLA policies.
+  Customers, restaurants, administrators and the system are requester types of the same case.
+- **A case coordinates; it decides nothing.** It holds references to orders, payments, refunds, settlements and
+  payouts and no copy of their state; closing a case changes none of them; support cannot mark a payment verified,
+  complete a refund or edit a settlement or payout. A shortcut to a domain action needs that domain's own permission.
+- **Three surfaces** — `/customer/support`, `/restaurant/support` (scoped by organization and location; money cases
+  need `restaurant.finance.view`), `/admin/support` (the service desk: queue, assignment, priority, the state
+  machine, escalation, resolution, internal notes, read-only panels of the linked records). 43 routes, none of them
+  PUT / PATCH / DELETE; every state-changing desk action names the `expected_version`.
+- **System cases** — a verified payment without an order, a refund that needs a person, a serious reconciliation
+  difference, an open provider dispute: one case per condition (listener + `support:sweep`).
+- **Restricted cases** — finance (disputes, differences) and security: invisible without the class's permission.
+- **Internal targets (SLA)** — from real timestamps; TEST fixtures locally; not a contract and never shown to a
+  requester. Closing by the clock is off.
+- **Notifications** — customers through Module 33 (`support.case_created`, `support.reply`,
+  `support.case_resolved`); restaurants see an unread mark; administrators have no notification channel.
+- **Not built** — attachments (schema only: no private-file infrastructure, no malware scanner), notifications for
+  staff, a security-administrator role, answering provider disputes, merge / split, export, live chat. Operating
+  values (priorities, routing, reopen windows, SLA targets) are DEVELOPMENT DEFAULTS pending business approval.
+  Production = NO.
