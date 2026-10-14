@@ -1,0 +1,275 @@
+{
+  "module": "M37",
+  "suite": "Module 37 — Customer Web + Restaurant Dashboard + Platform Admin on the real local backend (support cases, conversation, internal notes, links to orders / payments / refunds / disputes, domain authority, system cases, escalation, restricted cases, internal SLA targets) with a queue worker, two API processes for the concurrent step and the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — NO MONEY MOVES; every SLA target is a TEST FIXTURE and not a commitment; attachments are NOT IMPLEMENTED; no administrator or restaurant notification channel exists",
+  "ran_at": "2026-10-14T12:12:22.849Z",
+  "passed": 53,
+  "failed": 0,
+  "total": 53,
+  "results": [
+    {
+      "name": "A1 A CUSTOMER OPENS A CASE ABOUT THEIR OWN ORDER (POST /customer/support/cases): the case has a number of its own (CS-XXXXXXXX), is OPEN, belongs to the customer by the token, is routed and prioritised by the BACKEND (CUSTOMER_SUPPORT, NORMAL) and carries the order as a reference with the order's OWN state; the answer has no priority, queue, SLA or internal field; the customer is told once in the inbox; the catalog offers a customer no settlement, payout or dispute category",
+      "pass": true,
+      "detail": "{\"status\":201,\"row\":{\"status\":\"OPEN\",\"priority\":\"NORMAL\",\"team\":\"CUSTOMER_SUPPORT\",\"version\":1,\"requester\":\"CUSTOMER\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":1,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"\",\"events\":3},\"links\":[{\"id\":\"3ed2124c-6fe7-4926-8192-0fa3407cc73f\",\"type\":\"ORDER\",\"reference\":\"FOTG-20261014-EEZCRC\",\"record_id\":\"3a9cf96a-b731-4171-9c43"
+    },
+    {
+      "name": "A2 ANOTHER CUSTOMER'S CASE DOES NOT EXIST (IDOR): Asha gets 404 for Rahul's case by its id AND by its case number, for its messages, for a reply and for closing it; she cannot attach Rahul's order to a case of her own (404 order_not_found, no case written); her list is empty; nothing of Rahul's case changed",
+      "pass": true,
+      "detail": "[404,404,404,404,404,404,0]"
+    },
+    {
+      "name": "A3 NOTHING THE SERVER DECIDES IS ACCEPTED FROM A CUSTOMER: a priority, a status, a requester type, a customer id, a queue, an assignee, a visibility, an internal flag, a classification, a settlement or a generic links list in the request is refused (422) — and so is INTERNAL or an author on a message, a category that is not a customer's (422) and a PATCH of the case (405); no case and no message was written",
+      "pass": true,
+      "detail": "{\"massCreate\":[422,422,422,422,422,422,422,422,422,422,422],\"massReply\":[422,422,422,422],\"badCategory\":422,\"patch\":405}"
+    },
+    {
+      "name": "B1 THE DESK (the seeded SUPPORT_ADMIN): the case is in the queue and is found by the order's number and by its own number — and NOT by the customer's phone number; assigning it to a person makes it ASSIGNED (history kept); an action decided on an old version is refused (409 case_version_conflict); a text sent as a reply with visibility INTERNAL is refused (422) — the note goes to the notes; a reply (EXTERNAL) that makes the case wait for the customer carries the version that was read (422 without it); the same reply sent again — with its old version — writes nothing twice",
+      "pass": true,
+      "detail": "{\"assigned\":200,\"stale\":409,\"noteWrong\":422,\"note\":201,\"replied\":201,\"row\":{\"status\":\"WAITING_FOR_CUSTOMER\",\"priority\":\"NORMAL\",\"team\":\"CUSTOMER_SUPPORT\",\"version\":3,\"requester\":\"CUSTOMER\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":2,\"resolution\":\"\",\"sla\":\"PAUSED\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"\",\"events\":8},\"found\":1,\"phone\":0}"
+    },
+    {
+      "name": "B2 THE CUSTOMER SEES THE REPLY — AND NEVER THE INTERNAL NOTE: the list marks the case unread and WAITING_FOR_YOU; the conversation is \"YOU\" then \"SUPPORT\" (no administrator's name); the internal note is in no answer the customer can get — list, case, conversation, inbox, catalog — and notes / events / links are not resources of a customer (404); the inbox has ONE \"support replied\" notice that leads to the case by its number and does not quote the case",
+      "pass": true,
+      "detail": "{\"unread\":1,\"authors\":[\"YOU\",\"SUPPORT\"],\"noNotes\":[404,404,404],\"notices\":\"support.case_created,support.reply\"}"
+    },
+    {
+      "name": "B3 THE CUSTOMER ANSWERS: the case is support's again (IN_PROGRESS — a person holds it); a retry of the same message (the same client_message_id) writes nothing twice; the reply the customer wrote is no notification to the customer",
+      "pass": true,
+      "detail": "{\"status\":\"IN_PROGRESS\",\"priority\":\"NORMAL\",\"team\":\"CUSTOMER_SUPPORT\",\"version\":4,\"requester\":\"CUSTOMER\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":3,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"\",\"events\":10}"
+    },
+    {
+      "name": "B4 THE ORDER PANEL IS THE ORDER'S OWN TRUTH, READ NOW: before, the panel said WAITING_FOR_RESTAURANT; the restaurant completes the order (pickup verified) and the SAME case shows COMPLETED — nothing was copied into the case, and the case itself did not change (status, version, messages)",
+      "pass": true,
+      "detail": "{\"before\":\"WAITING_FOR_RESTAURANT\",\"after\":\"COMPLETED\"}"
+    },
+    {
+      "name": "B5 RESOLUTION IS ABOUT THE CASE: support resolves it with a code and a note; the customer reads RESOLVED (not the note), is told once, cannot write into it (409 case_not_open) and confirms — CLOSED; closing must say what is meant (422 without an intent) and a \"withdraw\" of a resolved case is refused (409 case_changed). The ORDER is exactly as it was before the case was resolved and closed (status, payment state, refund status, version, updated_at)",
+      "pass": true,
+      "detail": "{\"resolved\":200,\"blocked\":409,\"confirmed\":200,\"notices\":\"support.case_created,support.reply,support.case_resolved\"}"
+    },
+    {
+      "name": "C1 A CUSTOMER LINKS THEIR OWN REFUND: the case goes to the PAYMENTS queue and shows the refund in the customer's own words — REQUIRED (\"due\"), never \"refunded\"; another customer naming that refund gets 404 refund_not_found",
+      "pass": true,
+      "detail": "{\"status\":201,\"link\":{\"id\":\"a4d51482-eabf-45fe-a5d2-001e24645062\",\"type\":\"REFUND\",\"reference\":\"RFD-EBD0B61519\",\"record_id\":\"ebd0b615-19bf-4c82-aaa1-bc8f436de67b\",\"status\":\"REQUIRED\",\"amount\":{\"amount\":42700,\"currency\":\"INR\"},\"order_number\":\"FOTG-20261014-VHCEMA\"},\"other\":404}"
+    },
+    {
+      "name": "C2 SUPPORT CANNOT COMPLETE A REFUND: the refund panel shows REQUIRED and a shortcut \"ask the provider again\" that is NOT allowed for the support agent (it needs admin.refunds.reconcile); resolving the case as REFUND_COMPLETED is refused while the refund itself is not refunded (409 resolution_not_supported_by_record); the shortcut is refused (403 domain_permission_required); invented actions are refused (422); \"mark-refunded\", \"refund\", \"status\" and \"mark-paid\" are not routes of a case (404); a typed status is refused (422). The refund did not change",
+      "pass": true,
+      "detail": "{\"claim\":409,\"shortcut\":403,\"invented\":[422,422,422],\"noRoutes\":[404,404,404,404],\"typed\":422}"
+    },
+    {
+      "name": "C3 ESCALATION ASKS, THE DOMAIN ACTS: support escalates to finance (FINANCIAL_RISK, L2) — the case moves to the FINANCE queue with its priority unchanged, and nothing happened to the refund; a finance administrator finds it in that queue and completes the refund IN THE REFUND DOMAIN (approve, send, the provider's confirmation). The refund is REFUNDED — and the case is still open: a case is ended by a person, not by a state elsewhere. The customer's case now shows the refund as REFUNDED, read from the refund",
+      "pass": true,
+      "detail": "{\"escalated\":200,\"row\":{\"status\":\"OPEN\",\"priority\":\"NORMAL\",\"team\":\"FINANCE\",\"version\":2,\"requester\":\"CUSTOMER\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":1,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"L2\",\"events\":5},\"refunded\":\"REFUNDED\",\"case\":\"OPEN\",\"customer\":\"REFUNDED\"}"
+    },
+    {
+      "name": "C4 NOW THE CASE MAY SAY SO — AND SAYING SO REFUNDS NOTHING AGAIN: finance resolves the case as REFUND_COMPLETED; the payment's refund balance and the number of refunds are exactly as before; the escalation is closed with the case",
+      "pass": true,
+      "detail": "{\"status\":200,\"balance\":\"42700/0/42700/0\"}"
+    },
+    {
+      "name": "D1 VERIFIED PAYMENT / NO ORDER → ONE RECOVERY CASE: the restaurant stopped accepting after the provider opened and the customer paid — the payment is VERIFIED and marked RECOVERY_REQUIRED (RESTAURANT_NOT_ACCEPTING). The payment's own event opened ONE system case (PAYMENTS queue, HIGH) linked to the payment, with a note of what the system saw; two sweeps add none; the customer does not see it (their payment page said: \"you do not need to pay again\"); opening the case changed nothing about the payment; the panel offers \"retry the order creation\" to the support agent (admin.orders.recover) and NOT \"ask the provider again\" (admin.payments.reconcile)",
+      "pass": true,
+      "detail": "failed: - {\"reason\":\"RESTAURANT_NOT_ACCEPTING\",\"shortcuts\":[{\"action\":\"PAYMENT_RECONCILE\",\"allowed\":false,\"required_permission\":\"admin.payments.reconcile\"},{\"action\":\"ORDER_RECOVER\",\"allowed\":true,\"required_permission\":\"admin.orders.recover\"}],\"creation\":\"RECOVERY_REQUIRED\"}"
+    },
+    {
+      "name": "D2 A SHORTCUT IS THE DOMAIN'S OWN ACTION WITH THE DOMAIN'S OWN PERMISSION: the support agent may not ask the provider about the payment (403 domain_permission_required — admin.payments.reconcile); while the restaurant is still closed a retry (answered 200) leaves the payment in RECOVERY_REQUIRED — the case cannot create an order; once the restaurant accepts orders again the support agent retries (admin.orders.recover, which the role holds) — the ORDER domain judges again and creates the ONE order (ORDER_CREATED); finance asks the provider about the payment — the PAYMENT domain reconciles and writes ITS audit record (payment.reconciled), the payment stays VERIFIED; asking for the order again (answered 409 by the order domain) creates no second order. The case only notes that somebody asked (internal timeline lines) and is still open",
+      "pass": true,
+      "detail": "failed: - {\"recon403\":403,\"recoverClosed\":200,\"stillRecovery\":\"RECOVERY_REQUIRED\",\"recover\":200,\"recoverBody\":\"\",\"recon\":200,\"again\":409,\"recovered\":{\"status\":\"VERIFIED\",\"fulfillment\":\"ORDER_CREATED\",\"reason\":\"\"},\"events\":\"ORDER_RECOVER:INTERNAL,ORDER_RECOVER:INTERNAL,PAYMENT_RECONCILE:INTERNAL\"}"
+    },
+    {
+      "name": "D3 THE CONDITION IS GONE, THE CASE IS CLOSED BY A PERSON: resolved (PAYMENT_RECONCILED) and closed; the sweep opens no new case for a payment that has its order",
+      "pass": true,
+      "detail": "{\"payment_recovery\":0,\"refund_review\":0,\"finance_difference\":0,\"dispute\":0}"
+    },
+    {
+      "name": "D4 REFUND REVIEW REQUIRED → ONE CASE; THE DISPUTE → ONE FINANCE-RESTRICTED CASE: with a dispute open on the payment the approved refund is not sent — REVIEW_REQUIRED (DISPUTE_OPEN). The refund's own event opened ONE case (PAYMENTS, HIGH) linked to the refund, the order and the payment; the open dispute has ONE case of its own — RESTRICTED / FINANCE — and repeated sweeps open nothing more. The support agent sees the refund case and NOT the dispute case (absent from the list and from search, 403 case_restricted by id); finance reads the dispute with the provider's deadline and \"response: NOT_PROVIDED\"",
+      "pass": true,
+      "detail": "failed: - {\"opened\":200,\"held\":200,\"sweeps\":[{\"payment_recovery\":0,\"refund_review\":0,\"finance_difference\":0,\"dispute\":1},{\"payment_recovery\":0,\"refund_review\":0,\"finance_difference\":0,\"dispute\":0}],\"disputes\":1,\"D4d\":[\"RESTRICTED\",\"FINANCE\",\"FINANCE\"],\"lea\":403,\"panel\":{\"provider_dispute_reference\":\"fakedisp_kt5dmht5gduu9c\",\"status\":\"OPEN\",\"phase\":\"chargeback\",\"reason_code\":\"goods_not_received\",\"a"
+    },
+    {
+      "name": "D5 A SERIOUS RECONCILIATION DIFFERENCE → ONE FINANCE-RESTRICTED CASE: the fake provider's report for today names a payment FoodOnTheGo never had; the import records 1 serious difference(s) (and 0 below the threshold, which open nothing); the sweep opens ONE case per serious difference — RESTRICTED / FINANCE, linked to the difference — and a second sweep none; finance reads the difference's own figures in the case (no action is offered there); the support agent cannot open it; resolving the case leaves every difference exactly as it was — a difference is closed in the reconciliation queue, not by a case",
+      "pass": true,
+      "detail": "failed: - {\"report\":201,\"import\":201,\"serious\":1,\"minor\":0,\"cases\":1,\"sweeps\":[{\"payment_recovery\":0,\"refund_review\":0,\"finance_difference\":1,\"dispute\":0},{\"payment_recovery\":0,\"refund_review\":0,\"finance_difference\":0,\"dispute\":0}],\"D5\":[\"RESTRICTED\",\"FINANCE\",\"FINANCE\"],\"panel\":{\"type\":\"MISSING_INTERNAL_PAYMENT\",\"severity\":\"HIGH\",\"status\":\"OPEN\",\"subject_reference\":null,\"expected\":null,\"actual\":{"
+    },
+    {
+      "name": "E1 A RESTAURANT OPENS CASES FOR ITS OWN LOCATION: an order case (RESTAURANT_SUPPORT queue) linked to an order of that location, and a payout question (FINANCE queue) — the owner may, because the owner reads the restaurant's money; the catalog offers a restaurant no payment, refund or dispute category",
+      "pass": true,
+      "detail": "{\"order\":201,\"money\":201,\"E1\":{\"status\":\"OPEN\",\"priority\":\"NORMAL\",\"team\":\"RESTAURANT_SUPPORT\",\"version\":1,\"requester\":\"RESTAURANT\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":1,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"RESTAURANT_DASHBOARD\",\"escalation\":\"\",\"events\":3},\"E1m\":{\"status\":\"OPEN\",\"priority\":\"NORMAL\",\"team\":\"FINANCE\",\"version\":1,\"requester\":\"RESTAURANT\",\"classification\":\"STA"
+    },
+    {
+      "name": "E2 TENANT AND LOCATION ISOLATION, AND MONEY NEEDS ITS PERMISSION: another organization gets 404 for the case by id and by number and for a reply, an empty list, 404 for naming Riverside's location and 404 for attaching Riverside's order; order staff (no finance permission) see the order case and NOT the payout case (404), are not offered money categories and cannot open one (403); a manager sees both; a priority, a visibility, a payment or a refund in a restaurant's request is refused (422)",
+      "pass": true,
+      "detail": "{\"otherOrg\":[404,404,404,0],\"otherLink\":404,\"otherLocation\":404,\"mike\":[1,404,403],\"sarah\":2,\"rMass\":[422,422,422,422,422]}"
+    },
+    {
+      "name": "E3 THE CASE IS THE RESTAURANT'S: support asks and waits for the restaurant; a COLLEAGUE (the manager) sees it unread and answers — the conversation names the restaurant's own staff and calls support \"SUPPORT\"; the internal note is in none of the restaurant's answers and notes / events / links are not resources of a restaurant (404); no customer notification was written for a restaurant's case (a restaurant has an unread mark instead)",
+      "pass": true,
+      "detail": "{\"reply\":201,\"unread\":1,\"authors\":[[\"YOU\",\"John Doe\"],[\"SUPPORT\",null],[\"YOU\",\"Sarah Wilson\"]],\"rNoNotes\":[404,404,404]}"
+    },
+    {
+      "name": "E4 A MONEY CASE OF A RESTAURANT ON THE DESK: the support agent reads the case and its conversation (it is a restaurant's question) but holds no finance permission — a settlement or payout attached to it would be shown to them as a reference only; the case sits in the FINANCE queue for a finance administrator",
+      "pass": true,
+      "detail": "{\"detail\":200}"
+    },
+    {
+      "name": "E5 A SETTLEMENT QUESTION — THE FIGURES ONLY FOR THOSE WHO MAY READ THEM: finance generates a settlement for Burger Hub (CALCULATED); the owner opens a case about it by its reference and reads it in a restaurant's words (IN_REVIEW) with its net amount; order staff do not see the case (404) and cannot attach a settlement; another organization naming that settlement gets 404; on the desk the support agent sees only that a settlement is linked and which permission is missing (admin.settlements.view) — the finance administrator reads its status and net amount, and no action is offered; resolving the case changed nothing about the settlement (status, amount, version)",
+      "pass": true,
+      "detail": "failed: - {\"gen\":201,\"stl\":[\"STL-20261012-2HB3UD\",\"CALCULATED\",\"38430\",\"1\"],\"sCase\":201,\"sLink\":{\"id\":\"832c5079-f023-4959-8690-ddef6bfcc83f\",\"type\":\"SETTLEMENT\",\"reference\":\"STL-20261012-2HB3UD\",\"record_id\":\"1c2f3b97-c469-448f-976c-fa1b13e6978c\",\"status\":\"IN_REVIEW\",\"net_payable\":{\"amount\":38430,\"currency\":\"INR\"},\"period_start\":\"2026-10-06T12:05:45+00:00\",\"period_end\":\"2026-10-11T18:30:00+00:00\",\""
+    },
+    {
+      "name": "F1 ONE PERMISSION PER KIND OF WORK, AND RESTRICTED MEANS RESTRICTED: an administrator who only reads cases (RESTAURANT_ONBOARDING) reads the case and may not read its internal notes, reply, write a note, assign, resolve or escalate (403 each). A customer's SECURITY report is RESTRICTED from the start: the customer still reads their own report; the support agent and the finance administrator get 403 case_restricted and do not count it in any queue; only the holder of the security class (SUPER_ADMIN — there is no security-administrator role) opens it",
+      "pass": true,
+      "detail": "{\"tom\":[200,403,[403,403,403,403,403]],\"F1\":{\"status\":\"OPEN\",\"priority\":\"HIGH\",\"team\":\"SECURITY\",\"version\":1,\"requester\":\"CUSTOMER\",\"classification\":\"RESTRICTED\",\"restricted\":\"SECURITY\",\"messages\":1,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"\",\"events\":2},\"lea\":403,\"kenji\":403,\"alex\":200,\"queues\":[0,2]}"
+    },
+    {
+      "name": "F2 TWO ADMINISTRATORS AT THE SAME MOMENT, AND A SECURITY ESCALATION: two actions decided on the same version through two API processes — one wins, the other is told the case changed (409 case_version_conflict); a SECURITY escalation makes the case RESTRICTED and hands it to the SECURITY queue — the escalating support agent is answered \"visible: false\" and can no longer open it (403)",
+      "pass": true,
+      "detail": "{\"race\":\"200,409\",\"esc\":200,\"after\":403}"
+    },
+    {
+      "name": "G1 INTERNAL TARGETS: the case got the TEST FIXTURE policy that applies (TEST FIXTURE — any case (internal target, not a commitment) — approval TEST, \"contractual: false\") and was ON_TRACK; with its first-response target in the past the sweep marks it BREACHED once (a second sweep writes nothing), it appears in the \"SLA breached\" queue; answering late does not undo the breach; nothing about a target is in anything the customer reads",
+      "pass": true,
+      "detail": "{\"G0\":\"ON_TRACK\",\"policy\":\"TEST FIXTURE — any case (internal target, not a commitment)\",\"sweeps\":[1,0],\"G1\":\"BREACHED\",\"G2\":\"BREACHED\"}"
+    },
+    {
+      "name": "H1 REOPEN AND WITHDRAW: the customer reopens the closed case inside the window with a message (REOPENED, the resolution cleared, the history kept); the timeline is numbered 1…n in the order things happened and the database refuses to rewrite a line (append-only); a case that is still being worked on is withdrawn by its customer (CANCELLED, USER_WITHDREW)",
+      "pass": true,
+      "detail": "{\"reopened\":200,\"H1\":{\"status\":\"REOPENED\",\"priority\":\"NORMAL\",\"team\":\"CUSTOMER_SUPPORT\",\"version\":7,\"requester\":\"CUSTOMER\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":4,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"\",\"events\":14},\"forged\":\"refused\",\"withdrawn\":200,\"types\":\"CASE_CREATED,ENTITY_LINKED,CUSTOMER_MESSAGE,CASE_ASSIGNED,STATUS_CHANGED,INTERNAL_NOTE_ADD"
+    },
+    {
+      "name": "H2 THE NUMBERS ARE THE CASES: the desk's metrics (for an administrator who sees everything) equal what the local database holds — 12 cases, 7 being worked on — with real first-response and resolution averages; the health view says what is not there (contractual SLA: no; attachments: DISABLED; scanner: NOT_CONFIGURED; administrator notifications: NOT_IMPLEMENTED; security role: NOT_DEFINED; support marks a payment verified / a refund completed / edits a settlement: false)",
+      "pass": true,
+      "detail": "{\"total\":12,\"openDb\":7,\"metrics\":[12,7],\"flags\":{\"contractual_sla\":false,\"attachments\":\"DISABLED\",\"attachment_scanner\":\"NOT_CONFIGURED\",\"restaurant_notifications\":\"UNREAD_MARK_ONLY\",\"admin_notifications\":\"NOT_IMPLEMENTED\",\"security_admin_role\":\"NOT_DEFINED\",\"support_marks_payment_verified\":false,\"support_marks_refund_completed\":false,\"support_edits_settlement_or_payout\":false,\"realtime\":\"POLLING\","
+    },
+    {
+      "name": "axe (customer my cases): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U1 CUSTOMER WEB — HELP AND MY CASES: Help offers support to the signed-in customer; \"My cases\" is on the backend and lists the customer's OWN cases in a customer's words — the reopened order case under Open, the resolved refund case and the withdrawn case under Closed — and no system case, no other customer's case, no restaurant's case, no priority / queue / target",
+      "pass": true,
+      "detail": "failed: - {\"openRows\":[\"CS-5KX4CT8G:OPEN\"],\"closedRows\":[\"CS-6UK6R9LH:CANCELLED\",\"CS-EKSQXFHU:RESOLVED\"]}"
+    },
+    {
+      "name": "axe (customer new case): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U2 CUSTOMER WEB — \"GET HELP\" ON AN ORDER: the order page (and each refund on it) leads to the case form with the order attached and the category chosen; the page sends the category, the subject, the message and the order with an Idempotency-Key — and no priority, status, owner or queue; the BACKEND creates the case (CUSTOMER_SUPPORT, NORMAL, source CUSTOMER_WEB) and the page opens it by its case number with the order's own state (REJECTED)",
+      "pass": true,
+      "detail": "failed: - {\"chip\":[\"ORDER\"],\"chipText\":\"FOTG-20261014-VHCEMA\",\"preselected\":\"ORDER\",\"sentKeys\":\"category,message,order,source,subject\",\"row\":{\"status\":\"OPEN\",\"priority\":\"NORMAL\",\"team\":\"CUSTOMER_SUPPORT\",\"version\":1,\"requester\":\"CUSTOMER\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\":1,\"resolution\":\"\",\"sla\":\"ON_TRACK\",\"source\":\"CUSTOMER_WEB\",\"escalation\":\"\",\"events\":3}}"
+    },
+    {
+      "name": "axe (admin service desk queue): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U3 PLATFORM ADMIN — THE SERVICE DESK QUEUE (the seeded SUPPORT_ADMIN): the page is on the backend; the queue shows the cases this administrator may see — the new case and the system's refund case — and not the finance-restricted dispute case or the security cases (restricted queue: 0); sixteen queues with their counts; searching the case number finds exactly that case; no customer phone number in the list",
+      "pass": true,
+      "detail": "failed: - {\"rows\":5,\"chips\":[\"open:5\",\"unassigned:4\",\"mine:1\",\"awaiting_reply:3\",\"waiting_customer:0\",\"waiting_restaurant:0\"]}"
+    },
+    {
+      "name": "U3b PLATFORM ADMIN — THE CASE: the composer starts as an INTERNAL note (labelled); the note is saved to the notes and is not a message; switching to a reply shows the warning that the customer will read it; the reply is sent, the case waits for the customer and the composer returns to INTERNAL; the order panel is the order's own record; the page says support cannot complete what belongs to another domain and offers no button to mark anything paid, refunded or verified",
+      "pass": true,
+      "detail": "failed: - {\"modeAtStart\":\"INTERNAL\",\"noteStatus\":201,\"replyStatus\":201,\"waiting\":\"WAITING_FOR_CUSTOMER\",\"authors\":[\"CUSTOMER\",\"SUPPORT\"]}"
+    },
+    {
+      "name": "axe (admin support case): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U4 CUSTOMER WEB — THE CONVERSATION: the list marks the case unread and \"waiting for you\"; the case shows the customer's message and SUPPORT's reply — the internal note, the administrator's name and the word INTERNAL are nowhere on the page; the customer answers from the page and the message is in the conversation",
+      "pass": true,
+      "detail": "failed: - {\"unreadDot\":1,\"rowStatus\":\"WAITING_FOR_YOU\",\"custAuthors\":[\"YOU\",\"SUPPORT\"],\"cReply\":201}"
+    },
+    {
+      "name": "axe (customer case): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U5 PLATFORM ADMIN — RESOLVE: the dialog asks for a resolution code and a note and sends the version it read; the case is RESOLVED (ANSWERED); the timeline on the page is the case's own timeline, line for line; the order the case is about is as it was",
+      "pass": true,
+      "detail": "failed: - {\"resolveStatus\":200,\"resolvedUi\":\"RESOLVED\",\"sent\":\"expected_version,note,resolution_code\",\"uiEvents\":\"CASE_CREATED,CUSTOMER_MESSAGE,CUSTOMER_MESSAGE,ENTITY_LINKED,INTERNAL_NOTE_ADDED,RESOLVED,STATUS_CHANGED,STATUS_CHANGED,SUPPORT_MESSAGE\"}"
+    },
+    {
+      "name": "U6 CUSTOMER WEB — CONFIRM AND REOPEN: a resolved case offers no reply box, only \"confirm\" and \"reopen\"; the customer confirms (CLOSED) and then reopens it with a message — the case is open again (REOPENED on the desk) with its whole history",
+      "pass": true,
+      "detail": "failed: - {\"seenResolved\":\"RESOLVED\",\"confirmStatus\":200,\"closedUi\":\"CLOSED\",\"reopenStatus\":200,\"reopenedUi\":\"OPEN\"}"
+    },
+    {
+      "name": "U7 PLATFORM ADMIN — SYSTEM AND RESTRICTED CASES: the refund-review case names SYSTEM as its requester, offers no reply (nobody to reply to), shows the refund, the order and the payment as their own domains have them and the shortcut \"ask the provider again\" DISABLED for the support agent, with the permission that is missing; the dispute case is refused to the support agent by its address; the finance administrator opens it — marked RESTRICTED / FINANCE — and reads the dispute with the provider's deadline and the note that a dispute is answered at the provider, not from here; no page offers to answer a dispute or to complete anything",
+      "pass": true,
+      "detail": "failed: - {\"sysPanels\":[\"REFUND:true\",\"ORDER:true\",\"PAYMENT:true\"],\"sysShortcut\":[\"REFUND_RECONCILE:false\",\"PAYMENT_RECONCILE:false\"],\"sysUi\":{\"requester\":\"SYSTEM\",\"external\":0,\"missing\":2,\"systemNote\":true},\"leaRestricted\":true,\"disputeUi\":{\"banner\":\"FINANCE\",\"panel\":true,\"deadline\":1,\"response\":\"Respond by 21 Oct, 05:36 pm. A dispute is answered in the payment provider's own dashboard — not from"
+    },
+    {
+      "name": "axe (admin dispute case): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U7b PLATFORM ADMIN — A RESTAURANT'S SETTLEMENT CASE: the support agent's page shows that a settlement is linked, its reference and the permission that is missing — not its amount; the finance administrator's page shows the settlement's status and net amount, read from the finance domain; neither page offers to change a settlement or a payout",
+      "pass": true,
+      "detail": "failed: - {\"lea\":[\"SETTLEMENT:false:STL-20261012-2HB3UD\",\"admin.settlements.view\"],\"kenji\":{\"panel\":\"SETTLEMENT:true:STL-20261012-2HB3UD\",\"status\":\"CALCULATED\",\"net\":\"38430\"}}"
+    },
+    {
+      "name": "U8 PLATFORM ADMIN — READ ONLY (RESTAURANT_ONBOARDING holds admin.support.view only): the case and its conversation are readable; the internal notes are not shown (the page says so), there is no composer and no action button",
+      "pass": true,
+      "detail": "failed: - {\"readable\":\"false\",\"notes\":0,\"composer\":0,\"none\":1,\"noActions\":1,\"actions\":0,\"shown\":\"CS-EDXV3TE3\",\"messages\":3}"
+    },
+    {
+      "name": "axe (dashboard support): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U9 RESTAURANT DASHBOARD — SUPPORT (the owner): the page is on the backend and lists the restaurant's OWN cases — the order case and the payout question — and no customer's case; the case shows the restaurant's messages and SUPPORT's, never the internal note; a reply from the page is in the conversation; the form offers money categories to the owner and no payment / refund / dispute category, and a case opened from it is created by the BACKEND for the chosen location (RESTAURANT_SUPPORT, source RESTAURANT_DASHBOARD)",
+      "pass": true,
+      "detail": "failed: - {\"dbRows\":[\"CS-3V4MMDHT\",\"CS-EDXV3TE3\"],\"dbAuthors\":[\"YOU\",\"SUPPORT\",\"YOU\"],\"dbReply\":201,\"johnCategories\":[\"ORDER\",\"PICKUP\",\"RESTAURANT\",\"ACCOUNT\",\"REVIEW\",\"SETTLEMENT\",\"PAYOUT\",\"TECHNICAL\",\"SECURITY\",\"OTHER\"],\"dbCreate\":201,\"dbNew\":{\"status\":\"OPEN\",\"priority\":\"NORMAL\",\"team\":\"RESTAURANT_SUPPORT\",\"version\":1,\"requester\":\"RESTAURANT\",\"classification\":\"STANDARD\",\"restricted\":\"\",\"messages\""
+    },
+    {
+      "name": "U9c RESTAURANT DASHBOARD — \"ASK ABOUT THIS SETTLEMENT\": the statement of a settlement on Earnings leads to the support form with the category Settlement and the settlement's reference filled in",
+      "pass": true,
+      "detail": "{\"ask\":{\"reference\":\"STL-20261012-2HB3UD\",\"kind\":\"settlement\",\"category\":\"SETTLEMENT\"},\"rows\":3}"
+    },
+    {
+      "name": "U9b RESTAURANT DASHBOARD — ORDER STAFF (no finance permission): the order case is listed and the payout question is NOT; the form offers no settlement or payout category",
+      "pass": true,
+      "detail": "failed: - {\"mikeRows\":[\"CS-Y3EWNV44\",\"CS-EDXV3TE3\"],\"mikeCategories\":[\"ORDER\",\"PICKUP\",\"RESTAURANT\",\"ACCOUNT\",\"REVIEW\",\"TECHNICAL\",\"SECURITY\",\"OTHER\"]}"
+    },
+    {
+      "name": "U10 PLATFORM ADMIN — SYSTEM AND OVERVIEW: the support card shows the real number of open cases (9) and says what is not there — attachments DISABLED, no contractual SLA, production NO; the overview's support figure is the backend's number, not a mock",
+      "pass": true,
+      "detail": "failed: - {\"sysAttrs\":{\"open\":\"9\",\"attachments\":\"DISABLED\",\"contractual\":\"false\",\"production\":\"NO\"},\"kpi\":\"9\",\"openNow\":9}"
+    },
+    {
+      "name": "U11 NO SCRIPT ERROR on any support screen of this run (page errors, console errors, unexpected dialogs)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Y1 SUPPORT LOGGING: the application log of this run has the cases by public id, case number, requester kind, category and queue — and no message text, no internal note, no customer phone number, no bearer token and no fixture password",
+      "pass": true,
+      "detail": "failed: - log bytes: 45323, support lines: 14"
+    },
+    {
+      "name": "Z-1 CLEAN-UP OF SUPPORT: every case of this run with its messages, internal notes, timeline, links, assignment and escalation history is removed from the local database, and so is every support notice; the four TEST FIXTURE targets stay; Burger Hub accepts orders again",
+      "pass": true,
+      "detail": "{\"support_cases\":0,\"support_case_messages\":0,\"support_case_internal_notes\":0,\"support_case_events\":0,\"support_case_links\":0,\"support_case_assignments\":0,\"support_case_escalations\":0,\"support_case_attachments\":0,\"notices\":0,\"fixture_policies\":4,\"accepting\":\"t\"}"
+    },
+    {
+      "name": "Z0 CLEAN-UP OF FINANCE: every ledger transaction, entry and account, allocation, payable line, adjustment, hold, settlement, payout, provider record, difference and administrator-made plan of this run is removed from the local database (the two TEST FIXTURE plans stay); no refund of the run is left",
+      "pass": true,
+      "detail": "{\"ledger_transactions\":0,\"ledger_entries\":0,\"ledger_accounts\":0,\"order_financial_allocations\":0,\"restaurant_payable_items\":0,\"financial_adjustments\":0,\"financial_holds\":0,\"restaurant_settlements\":0,\"restaurant_settlement_lines\":0,\"restaurant_payouts\":0,\"provider_settlements\":0,\"provider_settlement_items\":0,\"reconciliation_differences\":0,\"admin_plans\":0,\"fixture_plans\":2,\"refunds\":0}"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

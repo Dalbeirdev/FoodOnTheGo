@@ -33,7 +33,9 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Module 39: never served over HTTP — private files (analytics exports, …) are streamed by their own
+            // authorized endpoints only; a served disk would answer GET / PUT /storage/{path} to anybody with a signed URL.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

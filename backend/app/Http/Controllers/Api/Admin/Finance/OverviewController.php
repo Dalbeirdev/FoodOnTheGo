@@ -83,6 +83,10 @@ class OverviewController extends Controller
         $timezone = $this->reportingTimezone($input['market'] ?? null);
         [$from, $to, $period] = $this->period($request, $timezone);
         $markets = $this->narrow($request, $input['market'] ?? null);
+        // Module 39: negotiated rates only for the markets where the caller holds the commission permission.
+        if ($group === 'plan' && ($commission = $this->marketIds($request, Permission::AdminFinanceCommissionView)) !== null) {
+            $markets = $markets === null ? $commission : array_values(array_intersect($markets, $commission));
+        }
         $location = isset($input['restaurant']) ? $this->locationOf($input['restaurant']) : null;
         if ($location !== null) {
             $this->authorizeFor(Permission::AdminFinanceView, $location->market);

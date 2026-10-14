@@ -6,6 +6,7 @@ import { configurationKey, lineTotalMinor } from '../pricing/pricing'
 import { NO_PROMO, discountMinor, evaluatePromo, type PromoState } from './cartValidation'
 import { CartContext, useCart, type AddItemInput, type AddResult, type CartApi, type CartLine } from './cartApi'
 import { cartMode } from './cartMode'
+import { PRIVATE_CONTEXT_CLEARED } from '../auth/privateContext'
 import { ServerCartProvider } from './ServerCartProvider'
 import '../pages/account/AccountPage.css'
 import '../components/AccountStates.css'
@@ -56,6 +57,8 @@ function DeviceCartProvider({ children, repository, initialCart }: { children: R
   const [lastAdded, setLastAdded] = useState<{ at: number; menuItemId: string; merged: boolean } | null>(null)
   const [promo, setPromo] = useState<PromoState>(NO_PROMO)
   const [note, setNoteState] = useState(() => { try { return sessionStorage.getItem(NOTE_KEY) ?? '' } catch { return '' } })
+  // Module 39: the order note is the customer's private checkout text — a sign-out (clearPrivateContext) forgets it here too.
+  useEffect(() => { const forget = () => setNoteState(''); window.addEventListener(PRIVATE_CONTEXT_CLEARED, forget); return () => window.removeEventListener(PRIVATE_CONTEXT_CLEARED, forget) }, [])
   const hydrated = useRef(!!initialCart)
   const [hydratedState, setHydratedState] = useState(!!initialCart)
 

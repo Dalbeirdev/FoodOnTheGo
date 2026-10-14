@@ -145,8 +145,8 @@ return [
 
     /*
     | Attachments — FOUNDATION, DISABLED. Private files need a malware scanner before a customer may send one; none is
-    | configured ("scanner" => "none"), which is a PRODUCTION BLOCKER for switching this on. While disabled the upload
-    | endpoints answer 409 and no client offers them.
+    | configured ("scanner" => "none"), which is a PRODUCTION BLOCKER for switching this on. No upload endpoint exists
+    | (Module 39: the schema and these settings only) and no client offers one.
     */
     'attachments' => [
         // NOT IMPLEMENTED: there is no upload endpoint, no private store and no scanner behind this. It is a constant —

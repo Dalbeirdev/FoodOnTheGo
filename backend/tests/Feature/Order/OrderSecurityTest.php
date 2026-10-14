@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\PickupSlotReservation;
 use App\Models\Refund;
 use App\Services\Order\OrderNumbers;
+use App\Services\Order\PickupCredentials;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -170,7 +171,11 @@ class OrderSecurityTest extends TestCase
 
         // The code is encrypted at rest; the token is never stored, only its hash; neither is derivable from the row.
         $this->assertNotSame($order['pickup_credential']['code'], $raw['display_code']);
-        $this->assertSame(hash('sha256', $order['id'].':'.$order['pickup_credential']['code']), $raw['display_code_hash']);
+        // Module 39: the code's hash is an HMAC keyed by the application key — not the plain SHA-256 a database copy
+        // could reverse by trying the small code space offline.
+        $orderModel = $this->orderModel($order['order_number']);
+        $this->assertSame(PickupCredentials::codeHash($orderModel, $order['pickup_credential']['code']), $raw['display_code_hash']);
+        $this->assertNotSame(hash('sha256', $order['id'].':'.$order['pickup_credential']['code']), $raw['display_code_hash']);
         $this->assertMatchesRegularExpression('/\A[0-9a-f]{64}\z/', $raw['token_hash']);
         $this->assertStringNotContainsString($raw['token_hash'], json_encode($order));
         $this->assertStringNotContainsString($order['order_number'], $order['pickup_credential']['qr_payload']);

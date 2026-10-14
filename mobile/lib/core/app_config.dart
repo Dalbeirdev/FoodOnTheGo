@@ -3,10 +3,79 @@
 /// Local (emulator):  --dart-define=APP_ENV=local --dart-define=API_BASE_URL=http://10.0.2.2:8001/api/v1
 /// Local (phone/LAN): --dart-define=APP_ENV=local --dart-define=API_BASE_URL=http://192.168.1.221:8001/api/v1
 /// Local (USB):       adb reverse tcp:8001 tcp:8001 then API_BASE_URL=http://127.0.0.1:8001/api/v1
+///
+/// Module 39 (C-03): the environment is no longer decided by APP_ENV alone. A `--flavor production` build that forgot
+/// `--dart-define=APP_ENV=production` used to run as "local": development panels, the fake-provider sheet, the
+/// development code on the OTP screen and an `http://10.0.2.2` API. Now the Gradle flavor (Flutter's [appFlavor])
+/// decides first — see [BuildEnvironment] — and a production build with an unusable configuration shows
+/// [UnconfiguredBuildScreen] instead of running on development data.
+library;
+
+import 'package:flutter/services.dart' show appFlavor;
+
+/// The pure decisions behind [AppConfig.env], [AppConfig.apiBaseUrl] and [AppConfig.configurationProblems], kept apart
+/// so that unit tests can feed any flavor / environment / URL (a test run itself has no flavor).
+class BuildEnvironment {
+  BuildEnvironment._();
+
+  /// The API of a local build when API_BASE_URL is not given: the developer PC as seen from the Android emulator.
+  static const localDefaultApiBaseUrl = 'http://10.0.2.2:8001/api/v1';
+
+  /// The environment the app runs as. The `production` flavor is always production and the `staging` flavor is never
+  /// local, whatever APP_ENV says; without a flavor (tests, `flutter run -d web-server`) APP_ENV decides as before.
+  static String effectiveEnv({required String? flavor, required String definedEnv}) {
+    if (flavor == 'production') return 'production';
+    if (flavor == 'staging' && (definedEnv == 'local' || definedEnv.isEmpty)) return 'staging';
+    return definedEnv.isEmpty ? 'local' : definedEnv;
+  }
+
+  /// The API base URL: the one given with API_BASE_URL; without it only a LOCAL build falls back to the emulator's
+  /// plain-HTTP address — a staging or production build gets none (and is then "not configured").
+  static String apiBaseUrl({required String env, required String definedUrl}) {
+    if (definedUrl.isNotEmpty) return definedUrl;
+    return env == 'local' ? localDefaultApiBaseUrl : '';
+  }
+
+  /// The realtime (Reverb) schemes that give an encrypted WebSocket (wss://) — see PusherClient.uri.
+  static const secureRealtimeSchemes = {'https', 'wss'};
+
+  /// The push mode of a real build: Firebase Cloud Messaging ('fake' is the development token source, 'off' no push).
+  static const realPushMode = 'fcm';
+
+  /// What makes a PRODUCTION build unusable; empty when it may run (and always empty for other environments).
+  /// Besides the API and the domain modes (Module 39 follow-up): the WebSocket must be encrypted (REVERB_SCHEME
+  /// `https` / `wss`; the define defaults to `http`), push must be the real provider (PUSH_MODE=fcm; the define
+  /// defaults to `off`) and no DEV_OTP may be compiled in (the value is never shown — only that one is set).
+  static List<String> configurationProblems({
+    required String env,
+    required String apiBaseUrl,
+    required Map<String, String> modes,
+    required String realtimeScheme,
+    required String pushMode,
+    required String devOtp,
+  }) {
+    if (env != 'production') return const [];
+    return [
+      if (apiBaseUrl.isEmpty) 'API_BASE_URL is not set'
+      else if (!apiBaseUrl.startsWith('https://')) 'API_BASE_URL is not an https:// address',
+      for (final e in modes.entries)
+        if (e.value != 'api') '${e.key} is "${e.value}", not "api"',
+      if (!secureRealtimeSchemes.contains(realtimeScheme)) 'REVERB_SCHEME is "$realtimeScheme", not "https" or "wss"',
+      if (pushMode != realPushMode) 'PUSH_MODE is "$pushMode", not "$realPushMode"',
+      if (devOtp.isNotEmpty) 'DEV_OTP is set (a production build must not carry a development code)',
+    ];
+  }
+}
+
 class AppConfig {
-  static const String env = String.fromEnvironment('APP_ENV', defaultValue: 'local');
-  static const String apiBaseUrl =
-      String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.0.2.2:8001/api/v1');
+  /// APP_ENV as given with `--dart-define` (default `local`). Use [env], which also takes the build flavor into account.
+  static const String definedEnv = String.fromEnvironment('APP_ENV', defaultValue: 'local');
+  static const String definedApiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
+
+  /// Module 39: the environment this build runs as — the flavor first, then APP_ENV ([BuildEnvironment.effectiveEnv]).
+  static final String env = BuildEnvironment.effectiveEnv(flavor: appFlavor, definedEnv: definedEnv);
+  /// Module 39: API_BASE_URL; the plain-HTTP emulator default only in a local build ([BuildEnvironment.apiBaseUrl]).
+  static final String apiBaseUrl = BuildEnvironment.apiBaseUrl(env: env, definedUrl: definedApiBaseUrl);
   /// 'api' = sign in against the backend (Module 21); 'mock' = the in-app development mock (default, used by tests).
   static const String authMode = String.fromEnvironment('AUTH_MODE', defaultValue: 'mock');
 
@@ -76,6 +145,25 @@ class AppConfig {
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
+
+  /// Module 39: why this build may not run (production only): no https API, a domain still on development data, an
+  /// unencrypted WebSocket, push not on FCM, or a DEV_OTP compiled in.
+  static List<String> get configurationProblems => BuildEnvironment.configurationProblems(env: env, apiBaseUrl: apiBaseUrl, modes: const {
+        'AUTH_MODE': authMode,
+        'MARKET_MODE': marketMode,
+        'RESTAURANT_MODE': restaurantMode,
+        'JOURNEY_MODE': journeyMode,
+        'CART_MODE': cartMode,
+        'PICKUP_MODE': pickupMode,
+        'CHECKOUT_MODE': checkoutMode,
+        'PAYMENT_MODE': paymentMode,
+        'ORDER_MODE': orderMode,
+        'REVIEW_MODE': reviewMode,
+      }, realtimeScheme: reverbScheme, pushMode: pushMode, devOtp: devOtp);
+
+  /// Module 39 (C-03): the backend's local test code may be shown only in a LOCAL build, never only because DEV_OTP
+  /// was defined.
+  static String get localDevOtp => isLocal ? devOtp : '';
 
   /// Safe, secret-free summary for the Build Info screen and logs.
   static Map<String, String> get summary => {

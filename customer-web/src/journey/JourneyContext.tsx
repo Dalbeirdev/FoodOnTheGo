@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { PRIVATE_CONTEXT_CLEARED } from '../auth/privateContext'
 import { journeyRepositories, type JourneyRepositories } from './journeyRepositories'
 import { JourneyError, validateJourney, type Journey, type JourneyErrorCode, type Location, type ValidationErrors } from './repositories'
 
@@ -89,6 +90,18 @@ export function JourneyProvider({ children, repositories = journeyRepositories }
       setStatus(j.route ? 'route-available' : 'ready')
     } catch { /* ignore corrupt storage */ }
   }, [repos])
+  // Module 39 (C-06): a sign-out removed the journey from browser storage (auth/privateContext.ts); the screens forget
+  // it too, so the next person on this browser does not see where the previous customer was going.
+  useEffect(() => {
+    const forget = () => {
+      runId.current++
+      setJourney(null); setOriginState(null); setDestinationState(null); setDepartureAtState(null)
+      setErrors({}); setError(null); setErrorCode(null); setStatus('no-journey'); setRecent([])
+      void loadRecent()
+    }
+    window.addEventListener(PRIVATE_CONTEXT_CLEARED, forget)
+    return () => window.removeEventListener(PRIVATE_CONTEXT_CLEARED, forget)
+  }, [loadRecent])
   const persist = (j: Journey | null) => { try { j ? sessionStorage.setItem(CURRENT_KEY, JSON.stringify(j)) : sessionStorage.removeItem(CURRENT_KEY) } catch { /* ignore */ } }
   const clearError = () => { setError(null); setErrorCode(null) }
   const fail = (e: unknown, fallback: string) => { setError(e instanceof Error && e.message ? e.message : fallback); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error') }

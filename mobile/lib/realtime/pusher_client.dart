@@ -46,7 +46,7 @@ class PusherClient {
 
   RealtimeTransport get transport => _transport;
   Stream<RealtimeTransport> get transportChanges => _transportController.stream;
-  Uri get uri => Uri(scheme: scheme == 'https' ? 'wss' : 'ws', host: host, port: port, path: '/app/$key', queryParameters: {'protocol': '7', 'client': 'foodonthego-android', 'version': '1.0'});
+  Uri get uri => Uri(scheme: scheme == 'https' || scheme == 'wss' ? 'wss' : 'ws', host: host, port: port, path: '/app/$key', queryParameters: {'protocol': '7', 'client': 'foodonthego-android', 'version': '1.0'});
 
   /// Starts (or keeps) the connection. Idempotent.
   void connect() {

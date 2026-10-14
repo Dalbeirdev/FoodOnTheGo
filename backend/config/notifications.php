@@ -147,7 +147,8 @@ return [
         'retention_hours' => (int) env('NOTIFICATIONS_METRICS_RETENTION_HOURS', 48),
     ],
 
-    // The admin test send exists only where this is true (never in production).
-    'admin_test_enabled' => env('NOTIFICATIONS_ADMIN_TEST_ENABLED', env('APP_ENV') !== 'production'),
+    // The admin test send exists only where this is true. Module 39: an allow-list (local / testing), like the fake
+    // providers — a staging or a misnamed environment never has it, whatever NOTIFICATIONS_ADMIN_TEST_ENABLED says.
+    'admin_test_enabled' => in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) && (bool) env('NOTIFICATIONS_ADMIN_TEST_ENABLED', true),
 
 ];

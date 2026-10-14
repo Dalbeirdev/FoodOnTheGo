@@ -27,7 +27,9 @@ class DiscoveryState extends ChangeNotifier {
   final JourneyApi? journeys;
   JourneyApi get _api => journeys ?? journeyApi;
   final KeyValueStore _store;
-  static const _kScope = 'fotg.discovery.scope';
+  /// The manually chosen discovery location (it can be a saved address) — private context, cleared on sign-out.
+  static const scopeKey = 'fotg.discovery.scope';
+  static const _kScope = scopeKey;
   @visibleForTesting
   KeyValueStore get storeForTest => _store;
 
@@ -124,6 +126,13 @@ class DiscoveryState extends ChangeNotifier {
     scope = journey != null ? null : (_manual ?? scope);
     if (journey == null && scope == null) { items = const []; total = 0; notifyListeners(); return; }
     await load();
+  }
+
+  /// Module 39: the customer signed out (or the session ended) — the manually chosen location and the journey's list go.
+  void forgetPrivate() {
+    _manual = null; scope = null;
+    _store.write(_kScope, null).catchError((_) {});
+    clearJourney();
   }
 
   /// The journey of the link could not be opened (unknown, over, or unreachable): nothing of an earlier one stays listed.

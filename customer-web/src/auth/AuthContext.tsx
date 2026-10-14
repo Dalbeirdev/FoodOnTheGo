@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { setUnauthenticatedHandler } from '../api/client'
 import { ApiAuthRepository } from './api/ApiAuthRepository'
 import { authMode } from './authMode'
+import { clearPrivateContext } from './privateContext'
 import { MockAuthRepository } from './mock/MockAuthRepository'
 import { AuthError, type AuthRepository, type AuthUser, type OtpRequest, type VerifyResult } from './repository'
 
@@ -56,7 +57,10 @@ export function AuthProvider({ children, repository = defaultAuthRepository }: {
       const u = await repo.refreshSession()
       setUser(u); setStatus(u ? 'authenticated' : 'loggedOut')
     } catch (e) {
-      setUser(null); setStatus(e instanceof AuthError && e.code === 'session_expired' ? 'sessionExpired' : 'loggedOut')
+      const expired = e instanceof AuthError && e.code === 'session_expired'
+      // Module 39: a stored session the backend no longer accepts is a sign-out — its private context goes too.
+      if (expired) clearPrivateContext()
+      setUser(null); setStatus(expired ? 'sessionExpired' : 'loggedOut')
     } finally {
       setLoading(false)
     }
@@ -64,8 +68,9 @@ export function AuthProvider({ children, repository = defaultAuthRepository }: {
 
   useEffect(() => { const t = setTimeout(() => { void refresh() }, 0); return () => clearTimeout(t) }, [refresh])
   // A 401 on any customer API call (expired / revoked session) ends the session once — no retry loop: the guard
-  // then sends the customer to sign in with a return route.
-  useEffect(() => { setUnauthenticatedHandler(() => { setUser(null); setStatus('sessionExpired') }, 'customer'); return () => setUnauthenticatedHandler(null, 'customer') }, [])
+  // then sends the customer to sign in with a return route. Module 39: the session's private context in this browser
+  // (journey, checkout, pickup, payment, chosen location) ends with it — see auth/privateContext.ts.
+  useEffect(() => { setUnauthenticatedHandler(() => { clearPrivateContext(); setUser(null); setStatus('sessionExpired') }, 'customer'); return () => setUnauthenticatedHandler(null, 'customer') }, [])
 
   const value = useMemo<AuthApi>(() => ({
     status, user, loading, pending, repository: repo,
@@ -98,11 +103,12 @@ export function AuthProvider({ children, repository = defaultAuthRepository }: {
       return u
     },
     changePhone: () => { setStatus('loggedOut'); setPending(pending ? { returnTo: pending.returnTo, phone: '' } : null) },
-    logout: async () => { setNotice('logged-out'); setUser(null); setStatus('loggedOut'); setPending(null); await repo.logout() },
+    // Module 39: the private context is removed after the backend sign-out (which still needs the token), and also when it fails.
+    logout: async () => { setNotice('logged-out'); setUser(null); setStatus('loggedOut'); setPending(null); try { await repo.logout() } finally { clearPrivateContext() } },
     notice,
     clearNotice: () => setNotice(null),
     refresh,
-    expire: () => { setUser(null); setStatus('sessionExpired') },
+    expire: () => { clearPrivateContext(); setUser(null); setStatus('sessionExpired') },
     updateProfile: async (patch) => {
       if (!user) throw new AuthError('session_expired', 'Please sign in again.')
       const next = await repo.updateProfile(patch)

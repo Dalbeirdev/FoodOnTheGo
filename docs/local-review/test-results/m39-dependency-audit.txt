@@ -1,0 +1,11 @@
+# Module 39 — dependency audits (2026-10-14, LOCAL; the tools' own databases, read at the time of the run)
+
+composer: 0 advisories, 0 abandoned packages (composer audit --format=json, backend/composer.lock)
+npm before: 1 vulnerabilities (critical 0, high 1, moderate 0, low 0) — packages: source-map-js (a build-time dependency; GHSA-68fv-2mgg-jv7q)
+npm fix: npm audit fix (no --force) — source-map-js 1.2.1 → 1.2.2, "changed 1 package"
+npm after: 0 vulnerabilities (critical 0, high 0, moderate 0, low 0); 189 dependencies (customer-web/package-lock.json)
+flutter pub outdated --json (mobile/pubspec.lock): 30 packages listed with newer versions; discontinued: none; current version retracted: none; current version affected by a pub.dev security advisory: none
+Android (Gradle) dependencies: NOT AUDITED — no Gradle dependency-check tool on this machine; the Android dependencies are the Flutter plugins above plus the Android Gradle plugin and Kotlin standard library of the Flutter template.
+Abandoned / unnecessary: composer reports no abandoned package; laravel/boost is a development dependency (security:check fails while it is installed; production installs use composer install --no-dev).
+Lock files: backend/composer.lock, customer-web/package-lock.json and mobile/pubspec.lock are committed (reproducible installs).
+Outdated (not vulnerable) packages are not upgraded in Module 39: an upgrade is a change of its own with its own regression run.

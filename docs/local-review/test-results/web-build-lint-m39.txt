@@ -1,0 +1,26 @@
+# Module 39 — web checks (LOCAL, 2026-10-14): tsc, oxlint, vitest, vite build (production build with the Module 39 CSP and without the development OTP)
+
+## tsc -b --noEmit
+tsc: 0 errors (exit 0)
+
+## oxlint (npm run lint)
+src/dashboard/pages/MenuPage.tsx:20:17: warning react(only-export-components): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.
+src/dashboard/pages/MenuPage.tsx:68:40: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+src/dashboard/pages/MenuPage.tsx:122:26: warning react(set-state-in-effect): Calling setState synchronously within an effect can trigger cascading renders help: Effects should synchronize React with external systems. Calling setState synchronously inside an effect starts another render and is usually unnecessary. Derive the value during render, initialize state directly, or update it from the event that caused the change. Use an effect only when synchronizing with an external system.
+(oxlint exit 0; 0 errors; 162 warnings — the same number as before Module 39 (162); none is on code added in Module 39.)
+
+## vitest (npx vitest run)
+ Test Files  81 passed (81)
+      Tests  1016 passed (1016)
+   Duration  72.16s (tests 46%, environment 37%, setup 8%, import 5%, transform 4%)
+
+## vite build (npm run build)
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 799ms[39m
+
+## built index.html: Content-Security-Policy meta present
+1

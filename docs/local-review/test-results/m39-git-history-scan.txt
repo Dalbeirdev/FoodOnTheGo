@@ -1,0 +1,22 @@
+# Module 39 — git history secret scan (2026-10-14, LOCAL; scratchpad m39/history_scan.py). Names, counts and kinds only — never a value.
+
+history: 117 commits on every local ref, 1250565 patch lines read; secret-like variables in backend/.env searched for by value: 4 (names: APP_KEY, DB_PASSWORD, LOCAL_FIXTURE_PASSWORD, REVERB_APP_SECRET)
+BY VALUE — a value of the local .env that was ever committed: none
+BY SHAPE:
+  Razorpay live key id: 3 added line location(s) — backend/tests/Feature/Payment/PaymentSecurityTest.php x1; backend/tests/Feature/Refund/PaymentRefundAndAdapterTest.php x1; backend/tests/Feature/Payment/RazorpayPaymentProviderTest.php x1
+  Razorpay test key id: 6 added line location(s) — backend/tests/Feature/Payment/PaymentSecurityTest.php x1; backend/tests/Feature/Payment/AdminPaymentApiTest.php x1; customer-web/src/payment/api/apiPayment.test.tsx x1; backend/tests/Feature/Payment/RazorpayPaymentProviderTest.php x1; mobile/test/api_payment_test.dart x1; backend/tests/Feature/Refund/PaymentRefundAndAdapterTest.php x1
+  private key block: 0 added line location(s)
+  Google API key: 0 added line location(s)
+  Google service-account private_key field: 0 added line location(s)
+  AWS access key id: 0 added line location(s)
+  Slack token: 0 added line location(s)
+  GitHub token: 0 added line location(s)
+  Laravel APP_KEY value (base64:…) outside .env.example placeholders: 0 added line location(s)
+  Sanctum token shape: 1 added line location(s) — docs/local-review/test-results/m03-api-live-curl.txt x1
+  JWT: 0 added line location(s)
+FILES THAT SHOULD NEVER BE COMMITTED (.env, key stores, service-account files, google-services.json) ever added: none
+
+Notes:
+- The Razorpay-shaped key ids are invented placeholders inside tests (live-shaped ones prove that a live key is refused); no Razorpay credential exists on this machine.
+- The Sanctum-token-shaped strings were local session tokens captured in an early evidence file (m03-api-live-curl.txt, committed 2026-09-25). Checked on 2026-10-14 by their numeric id only: id 2 does not exist in the local database; id 1 now belongs to a different token created 2026-09-30 (after that commit, so its hash cannot match) which expired on 2026-10-01. They authorise nothing. The working copy is redacted in Module 39 (0 token shapes); the old commit still contains them — history is not rewritten (shared repository); INFORMATIONAL.
+- No value of the local backend/.env was ever committed; no .env, key store, service-account file or google-services.json was ever added.

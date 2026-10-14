@@ -28,6 +28,7 @@ final class StaffLoginService
         private readonly TokenIssuer $tokens,
         private readonly MfaService $mfa,
         private readonly SecurityEventRecorder $events,
+        private readonly AccountLockout $lockout,
     ) {}
 
     /**
@@ -36,6 +37,8 @@ final class StaffLoginService
     public function attempt(PrincipalType $type, string $email, #[SensitiveParameter] string $password, ?string $device): array
     {
         $email = self::normaliseEmail($email);
+        // Module 39: a durable limit per e-mail (also for e-mails without an account).
+        $this->lockout->assertOpen('password', $type, $email);
         /** @var AdminUser|RestaurantUser|null $user */
         $user = $type->model()::query()->where('email', $email)->first();
 
@@ -43,6 +46,7 @@ final class StaffLoginService
 
         if ($user === null || $user->password === null || ! $passwordOk) {
             $this->events->record(SecurityEventType::LoginFailed, $user, ['method' => 'password', 'context' => $type->guard(), 'reason' => 'invalid_credentials'], $email);
+            $this->lockout->failed('password', $type, $email, $user);
 
             throw new ApiException(401, 'invalid_credentials', 'The e-mail or password is incorrect.');
         }
@@ -52,6 +56,8 @@ final class StaffLoginService
 
             throw new ApiException(403, 'account_not_active', 'This account cannot sign in. Please contact your administrator.');
         }
+
+        $this->lockout->clear('password', $type, $email);
 
         if (Hash::needsRehash($user->password)) {
             $user->forceFill(['password' => $password])->save();
@@ -79,6 +85,16 @@ final class StaffLoginService
     public function completeMfa(PrincipalType $type, #[SensitiveParameter] string $challenge, #[SensitiveParameter] ?string $code, #[SensitiveParameter] ?string $recoveryCode): array
     {
         $key = $this->challengeKey($challenge);
+
+        // Module 39: one verification of a challenge at a time — the attempt counter cannot be raced.
+        return Cache::lock($key.':lock', 10)->block(5, fn (): array => $this->verifyChallenge($type, $key, $code, $recoveryCode));
+    }
+
+    /**
+     * @return array{0: AdminUser|RestaurantUser, 1: NewAccessToken}
+     */
+    private function verifyChallenge(PrincipalType $type, string $key, #[SensitiveParameter] ?string $code, #[SensitiveParameter] ?string $recoveryCode): array
+    {
         $state = Cache::get($key);
 
         if (! is_array($state) || $state['type'] !== $type->value) {
@@ -94,9 +110,18 @@ final class StaffLoginService
             throw new ApiException(401, 'mfa_challenge_invalid', 'This sign-in attempt has expired. Please sign in again.');
         }
 
+        // Module 39: a second factor guessed across many challenges is limited per account, not per challenge.
+        $this->lockout->assertOpen('mfa', $type, (string) $user->getKey());
+
         if (! $this->mfa->verifySecondFactor($user, $code, $recoveryCode)) {
             $state['attempts']++;
             $this->events->record(SecurityEventType::MfaChallengeFailed, $user, ['attempt' => $state['attempts']]);
+
+            if ($this->lockout->failed('mfa', $type, (string) $user->getKey(), $user)) {
+                Cache::forget($key);
+
+                throw new ApiException(429, 'account_temporarily_locked', 'Too many failed attempts. Please wait a while before you try again.');
+            }
 
             if ($state['attempts'] >= (int) config('auth_security.mfa.challenge_max_attempts')) {
                 Cache::forget($key);
@@ -110,6 +135,7 @@ final class StaffLoginService
         }
 
         Cache::forget($key);
+        $this->lockout->clear('mfa', $type, (string) $user->getKey());
 
         return [$user, $this->complete($user, $state['device'], [AccessToken::ACCESS], $recoveryCode ? 'password+recovery_code' : 'password+totp')];
     }

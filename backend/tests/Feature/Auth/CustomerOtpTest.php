@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Market;
 use App\Models\OtpChallenge;
 use App\Models\SecurityEvent;
+use App\Services\Auth\SecurityEventRecorder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
@@ -271,7 +272,9 @@ class CustomerOtpTest extends TestCase
         foreach (['123456', '000000', '9876543210'] as $secret) {
             $this->assertStringNotContainsString($secret, $serialised);
         }
-        $this->assertSame(hash('sha256', '+919876543210'), $events[0]->identifier_hash);
+        // Module 39: a keyed hash — the plain SHA-256 of the number is not what is stored.
+        $this->assertSame(SecurityEventRecorder::identifierHash('+919876543210'), $events[0]->identifier_hash);
+        $this->assertNotSame(hash('sha256', '+919876543210'), $events[0]->identifier_hash);
         $this->assertSame('customer', $events[3]->principal_type);
     }
 

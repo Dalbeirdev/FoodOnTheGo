@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import { useAuth } from '../../auth/AuthContext'
 import { COUNTRIES, DEFAULT_COUNTRY, countryByCode, toE164, validatePhone } from '../../auth/phone'
 import { AuthError } from '../../auth/repository'
+import { apiSignInHintAllowed, developmentHintsAllowed } from '../../auth/devOtp'
 import { ArrowRightIcon } from '../../components/Icons'
 import AuthLayout from './AuthLayout'
 
@@ -68,10 +69,12 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="auth__switch">By continuing you agree to our <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>.</p>
-      {/* Development note: only in the mock build or in a local build configured with the backend test code. A production build shows nothing here. */}
+      {/* Development note: only in the mock build or in a local build configured with the backend test code. A production build shows nothing here.
+          Module 39: "production build" is now enforced (import.meta.env.PROD), and the API hint also needs the backend to have answered
+          "development" in this tab — a backend that really sends codes never gets this hint (see auth/devOtp.ts). */}
       {authMode() === 'mock'
-        ? <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. Use the development code <b>123456</b>. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.</p>
-        : import.meta.env.VITE_DEV_OTP ? <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. The test code is shown on the next screen. 98765 43210 = existing customer.</p> : null}
+        ? developmentHintsAllowed() && <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. Use the development code <b>123456</b>. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.</p>
+        : apiSignInHintAllowed() ? <p className="auth__switch auth__dev" role="note">LOCAL preview: no SMS is sent. The test code is shown on the next screen. 98765 43210 = existing customer.</p> : null}
     </AuthLayout>
   )
 }

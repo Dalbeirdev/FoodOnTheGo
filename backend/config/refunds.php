@@ -25,7 +25,7 @@ return [
         // An automatic approval never exceeds this amount (minor units of the payment's currency). Null = no limit.
         'auto_approve_max_minor' => env('REFUND_AUTO_APPROVE_MAX_MINOR') === null ? null : (int) env('REFUND_AUTO_APPROVE_MAX_MINOR'),
         // When true, the administrator who asked for a refund cannot be the one who approves it.
-        'four_eyes' => (bool) env('REFUND_FOUR_EYES', false),
+        'four_eyes' => (bool) env('REFUND_FOUR_EYES', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),   // Module 39: on by default everywhere except local development and the test suite
     ],
 
     'submission' => [

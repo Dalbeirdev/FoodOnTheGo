@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Models\Concerns\StoresUtcTimestamps;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -13,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Hidden(['token_hash'])]
 class RestaurantStaffInvitation extends Model
 {
-    use StoresUtcTimestamps;
+    use Prunable, StoresUtcTimestamps;
 
     public $timestamps = false;
 
@@ -25,6 +27,16 @@ class RestaurantStaffInvitation extends Model
     public function membership(): BelongsTo
     {
         return $this->belongsTo(RestaurantMembership::class, 'membership_id');
+    }
+
+    /**
+     * An invitation link expired 30 days ago (used or not) is removed; the membership it created stays. Removed by `php artisan model:prune` (scheduled daily, Module 39).
+     *
+     * @return Builder<RestaurantStaffInvitation>
+     */
+    public function prunable(): Builder
+    {
+        return static::query()->where('expires_at', '<', now()->subDays(30));
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Auth\Principal;
 use App\Models\MenuItem;
 use App\Models\MenuItemImage;
 use App\Services\Audit\AuditRecorder;
+use App\Support\ImageSanitizer;
 use App\Support\PlainText;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -60,14 +61,16 @@ final class MenuImageService
             }
             $directory = 'menu/'.$item->menu->public_id;
             $name = (string) Str::uuid().'.'.self::EXTENSION[$mime];
-            $stored = Storage::disk($config['disk'])->putFileAs($directory, $file, $name);
+            // Module 39: stored re-encoded — no EXIF / GPS, no bytes appended to the picture.
+            $clean = ImageSanitizer::reencode($file->getRealPath(), $mime);
+            $stored = Storage::disk($config['disk'])->put($directory.'/'.$name, $clean) ? $directory.'/'.$name : false;
             if ($stored === false) {
                 throw ValidationException::withMessages(['image' => ['The image could not be stored. Please try again.']]);
             }
 
             $image = (new MenuItemImage)->forceFill([
                 'item_id' => $item->getKey(), 'path' => $directory.'/'.$name, 'mime_type' => $mime, 'width' => $width, 'height' => $height,
-                'size_bytes' => (int) $file->getSize(), 'alt_text' => PlainText::clean($altText, 'alt_text'), 'status' => 'ACTIVE',
+                'size_bytes' => strlen($clean), 'alt_text' => PlainText::clean($altText, 'alt_text'), 'status' => 'ACTIVE',
                 'display_order' => (int) (MenuItemImage::query()->where('item_id', $item->getKey())->max('display_order') ?? -1) + 1,
             ]);
             $image->save();

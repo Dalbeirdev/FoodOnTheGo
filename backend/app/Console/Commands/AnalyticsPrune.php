@@ -39,6 +39,9 @@ class AnalyticsPrune extends Command
             $result['forgotten'] = [
                 'events' => DB::table('analytics_events')->where('customer_key', $key)->update(['customer_key' => null]),
                 'sessions' => DB::table('analytics_session_facts')->where('customer_key', $key)->update(['customer_key' => null]),
+                // Module 39: the order facts carry the key too (a required column): it is replaced by a random key that
+                // nobody can derive — the facts still count as one customer, and no longer point to this person.
+                'order_facts' => DB::table('analytics_order_facts')->where('customer_key', $key)->update(['customer_key' => bin2hex(random_bytes(16))]),
             ];
         }
         $result['raw_events_deleted'] = DB::table('analytics_events')->where('occurred_at', '<', $now->subDays((int) config('analytics.retention.raw_event_days')))->delete();

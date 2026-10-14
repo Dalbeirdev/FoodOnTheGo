@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\LegalDocumentType;
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Checkout\CheckoutPresenter;
 use App\Models\Customer;
@@ -11,6 +12,7 @@ use App\Services\Checkout\CheckoutView;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 
 /**
@@ -36,6 +38,15 @@ class CheckoutController extends Controller
             'cart_version' => ['sometimes', 'integer', 'min:0'],
             ...self::forbidden(),
         ], self::messages());
+        // Module 39: a code sent with "open" is a guess like one sent to /promotion — the same tight limit applies to it
+        // (it had only the looser checkout-write limit).
+        if (($input['promotion_code'] ?? null) !== null && $input['promotion_code'] !== '') {
+            $key = 'promotion-code-open:'.$this->customer($request)->getKey();
+            if (RateLimiter::tooManyAttempts($key, (int) config('rate_limits.promotion_apply'))) {
+                throw new ApiException(429, 'too_many_requests', 'Too many attempts. Please wait a minute and try again.');
+            }
+            RateLimiter::hit($key, 60);
+        }
         $view = $this->checkouts->open($this->customer($request), $input);
 
         return $this->answer($request, $view, $view->created ? 201 : 200);

@@ -18,6 +18,7 @@
  * The notification INBOX (list / mark read) stays development data until the delivery module; it is labelled as such.
  */
 import { ApiError, api } from '../../api/client'
+import { developmentOtp } from '../../auth/devOtp'
 import { dataUrlToBlob } from '../../api/dataUrl'
 import { marketRepository } from '../../market/mock/mockMarket'
 import { apiRestaurants, legacyRestaurant, restaurantCuisines, toRestaurant, type PublicRestaurantDto } from '../../restaurants/api/restaurantData'
@@ -120,7 +121,8 @@ export function toProfileBody(p: ProfilePatch, version?: number): Record<string,
 const toChallenge = (c: ChallengeDto): CodeChallenge => {
   // Server timestamps → this device's clock, so a wrong device clock cannot shorten or extend the display.
   const skew = Date.now() - Date.parse(c.server_time)
-  const devOtp = c.delivery === 'development' ? (import.meta.env.VITE_DEV_OTP as string | undefined) || undefined : undefined
+  // Module 39: the local test code only in a development build and only for a challenge the backend calls "development".
+  const devOtp = developmentOtp(c.delivery)
   return { challengeId: c.challenge_id, phoneMasked: c.phone_masked, expiresAt: Date.parse(c.expires_at) + skew, resendAfter: Date.parse(c.resend_available_at) + skew, attemptsAllowed: c.attempts_allowed, devOtp, ...(c.change_id ? { changeId: c.change_id } : {}) }
 }
 

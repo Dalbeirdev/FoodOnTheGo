@@ -135,7 +135,7 @@ final class OrderPresenter
             'payment_state' => $order->payment_state->value,
             'refund_status' => $order->refund_status->value,
             'location_id' => (string) ($snapshot['restaurant']['location_id'] ?? ''),
-            'customer' => ['name' => (string) ($customer['name'] ?? ''), 'phone' => $customer['phone'] ?? null],
+            'customer' => self::restaurantContact($order, $customer),
             'item_count' => (int) $order->item_count,
             'total' => $order->total()->toArray(),
             'pickup' => $this->pickup($order),
@@ -508,6 +508,29 @@ final class OrderPresenter
             OrderEvent::ACTOR_CUSTOMER => 'YOU',
             default => 'FOODONTHEGO',
         };
+    }
+
+    /**
+     * Module 39: the restaurant needs to reach its customer while the order is open and for a short time after it
+     * ended (a forgotten bag, a question). After that window it sees a masked number and a shortened name — the full
+     * contact of every past customer is no longer readable for ever.
+     *
+     * @param  array<string, mixed>  $customer
+     * @return array{name: string, phone: string|null, contact_masked: bool}
+     */
+    private static function restaurantContact(Order $order, array $customer): array
+    {
+        $name = (string) ($customer['name'] ?? '');
+        $phone = $customer['phone'] ?? null;
+        $ended = $order->status->isTerminal() ? ($order->completed_at ?? $order->cancelled_at ?? $order->rejected_at ?? $order->updated_at) : null;
+        $hours = (int) config('security.restaurant_contact_hours');
+        if ($ended === null || $ended->greaterThan(now()->subHours($hours))) {
+            return ['name' => $name, 'phone' => $phone, 'contact_masked' => false];
+        }
+        $parts = preg_split('/\s+/u', trim($name)) ?: [];
+        $short = count($parts) > 1 ? $parts[0].' '.mb_substr((string) end($parts), 0, 1).'.' : ($parts[0] ?? '');
+
+        return ['name' => $short, 'phone' => self::maskPhone(is_string($phone) ? $phone : null), 'contact_masked' => true];
     }
 
     private static function maskPhone(?string $phone): ?string

@@ -57520,7 +57520,8 @@
             "type": "object",
             "required": [
               "name",
-              "phone"
+              "phone",
+              "contact_masked"
             ],
             "additionalProperties": false,
             "properties": {
@@ -57532,9 +57533,13 @@
                   "string",
                   "null"
                 ]
+              },
+              "contact_masked": {
+                "type": "boolean",
+                "description": "Module 39: true once the order ended more than RESTAURANT_CONTACT_HOURS (24 h by default) ago — the phone is then masked and the name shortened."
               }
             },
-            "description": "How to reach the customer about THIS order — the name and number it was placed with. Not a customer directory."
+            "description": "How to reach the customer about THIS order — the name and number it was placed with. Not a customer directory. Module 39: full name and phone while the order is open and for a short time after it ended; masked afterwards."
           },
           "item_count": {
             "type": "integer"
@@ -57662,7 +57667,8 @@
             "type": "object",
             "required": [
               "name",
-              "phone"
+              "phone",
+              "contact_masked"
             ],
             "additionalProperties": false,
             "properties": {
@@ -57674,9 +57680,13 @@
                   "string",
                   "null"
                 ]
+              },
+              "contact_masked": {
+                "type": "boolean",
+                "description": "Module 39: true once the order ended more than RESTAURANT_CONTACT_HOURS (24 h by default) ago — the phone is then masked and the name shortened."
               }
             },
-            "description": "How to reach the customer about THIS order — the name and number it was placed with. Not a customer directory."
+            "description": "How to reach the customer about THIS order — the name and number it was placed with. Not a customer directory. Module 39: full name and phone while the order is open and for a short time after it ended; masked afterwards."
           },
           "item_count": {
             "type": "integer"

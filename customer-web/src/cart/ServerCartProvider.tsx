@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
+import { PRIVATE_CONTEXT_CLEARED } from '../auth/privateContext'
 import { minorDigits, formatMoney } from '../i18n/format'
 import { t, useLocale } from '../i18n/strings'
 import { journeyTokens } from '../journey/api/apiJourney'
@@ -51,6 +52,8 @@ export function ServerCartProvider({ children, gateway }: { children: ReactNode;
   const [flash, setFlash] = useState<string | null>(null)
   const [promo, setPromo] = useState<PromoState>(NO_PROMO)
   const [note, setNoteState] = useState(() => { try { return sessionStorage.getItem(NOTE_KEY) ?? '' } catch { return '' } })
+  // Module 39: the order note is the customer's private checkout text — a sign-out (clearPrivateContext) forgets it here too.
+  useEffect(() => { const forget = () => setNoteState(''); window.addEventListener(PRIVATE_CONTEXT_CLEARED, forget); return () => window.removeEventListener(PRIVATE_CONTEXT_CLEARED, forget) }, [])
 
   // The newest cart the backend sent — also while the screen shows an optimistic quantity.
   const confirmed = useRef<Cart | null>(null)

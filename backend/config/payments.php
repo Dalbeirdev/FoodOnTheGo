@@ -15,10 +15,10 @@
 
 return [
     'providers' => [
-        // The fake provider moves no money and exists for tests and local development. In production it is ALWAYS
-        // refused, whatever the environment file says. Elsewhere it is allowed unless PAYMENT_ALLOW_FAKE_PROVIDER
-        // switches it off (to see production's view).
-        'allow_fake' => env('APP_ENV', 'production') !== 'production' && ! in_array(env('PAYMENT_ALLOW_FAKE_PROVIDER'), [false, 'false', '0', 0, 'off', 'no'], true),
+        // The fake provider moves no money and exists for tests and local development. It is allowed ONLY in the
+        // environments named here (Module 39: an allow-list — a "staging" or misnamed environment refuses it, like
+        // production), and even there PAYMENT_ALLOW_FAKE_PROVIDER can switch it off (to see production's view).
+        'allow_fake' => in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) && ! in_array(env('PAYMENT_ALLOW_FAKE_PROVIDER'), [false, 'false', '0', 0, 'off', 'no'], true),
         // Module 30 is TEST MODE ONLY. Live payments are switched on by a later, deliberate change of this line —
         // not by an environment variable.
         'allow_live' => false,

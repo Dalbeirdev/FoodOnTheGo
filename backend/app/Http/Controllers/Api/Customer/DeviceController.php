@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\RegisterDeviceRequest;
 use App\Http\Requests\Customer\UpdateDeviceRequest;
 use App\Http\Resources\Notifications\NotificationPresenter;
+use App\Models\AccessToken;
 use App\Models\Customer;
 use App\Models\CustomerDevice;
 use App\Services\Notifications\CustomerDeviceService;
@@ -39,7 +40,9 @@ class DeviceController extends Controller
     {
         /** @var Customer $customer */
         $customer = $request->user();
-        $device = $this->devices->bind($customer, $request->validated());
+        // Module 39: the session that registers the device; its end ends the binding (a transient token in tests has no row).
+        $token = $customer->currentAccessToken();
+        $device = $this->devices->bind($customer, $request->validated() + ($token instanceof AccessToken ? ['access_token_id' => $token->getKey()] : []));
 
         return response()->json(['device' => $this->presenter->device($device, (string) $device->installation_id)], $device->wasRecentlyCreated ? 201 : 200);
     }

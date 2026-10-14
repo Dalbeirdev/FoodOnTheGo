@@ -15,7 +15,8 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    // Module 39: the API is bearer-token only — no cookie travels, so no credentialed CORS and no CSRF-cookie route.
+    'paths' => ['api/*'],
 
     'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
@@ -31,6 +32,6 @@ return [
 
     'max_age' => 600,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
 ];

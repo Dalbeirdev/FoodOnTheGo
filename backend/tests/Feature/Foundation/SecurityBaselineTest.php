@@ -31,8 +31,11 @@ class SecurityBaselineTest extends TestCase
         File::delete($path);
         $record = json_decode($line, true, flags: JSON_THROW_ON_ERROR);
 
+        // Module 39: the secrets are looked for in what the application wrote (message and context) — the record's own
+        // timestamp carries microseconds, which contained "555" in one run out of a few hundred (BUG-318).
+        $written = json_encode([$record['message'], $record['context']], JSON_THROW_ON_ERROR);
         foreach (['482913', 'Secret123', '555', '7777', 'tokenValueXYZ', 'anotherSecret'] as $secret) {
-            $this->assertStringNotContainsString($secret, $line);
+            $this->assertStringNotContainsString($secret, $written);
         }
         $this->assertSame('+919876543210', $record['context']['phone']);
         $this->assertSame('trace-abcdef12', $record['extra']['request_id']);

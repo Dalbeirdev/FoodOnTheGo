@@ -66,6 +66,11 @@ final class CustomerDeviceService
                 'notifications_permission_state' => PushPermissionState::tryFrom(strtoupper((string) ($input['notifications_permission_state'] ?? 'UNKNOWN'))) ?? PushPermissionState::Unknown,
                 'last_seen_at' => now(),
             ];
+            // Module 39: the binding belongs to the session that made it (when it was made with a real token).
+            if (isset($input['access_token_id'])) {
+                $attributes['session_bound'] = true;
+                $attributes['access_token_id'] = (int) $input['access_token_id'];
+            }
 
             if ($existing !== null) {
                 if ($existing->push_token_hash !== $hash) {

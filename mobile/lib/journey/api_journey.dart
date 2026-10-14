@@ -114,6 +114,9 @@ class JourneyTokens {
     await _save({for (final e in kept.skip(kept.length > 4 ? kept.length - 4 : 0)) e.key: e.value, id: (token, expiresAt.millisecondsSinceEpoch)});
   }
 
+  /// Module 39: every guest token on this device goes (sign-out / session ended).
+  Future<void> forgetAll() => _save({});
+
   Future<void> forget(String id) async {
     final all = await _all();
     if (all.remove(id) != null) await _save(all);

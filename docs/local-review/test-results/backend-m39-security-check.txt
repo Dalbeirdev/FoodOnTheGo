@@ -1,0 +1,42 @@
+# Module 39 — php artisan security:check on the LOCAL installation (2026-10-14). Names and verdicts only; the command never prints a value.
+# Locally the failures are expected: they list what a production installation must change. Judged as production (--as-production) the command exits 1.
+
+$ php artisan security:check
+Security check — environment local (local: shows what production must change; does not fail)
+ FAIL APP_DEBUG is off
+ PASS APP_KEY is set
+ FAIL APP_URL is https
+ PASS trusted hosts are configured (APP_URL / TRUSTED_HOSTS)
+ FAIL session cookie is Secure
+ PASS session cookie is HttpOnly
+ PASS CORS: no wildcard origin and no credentials
+ FAIL realtime: no wildcard or localhost origin (REVERB_ALLOWED_ORIGINS)
+ FAIL CORS: no localhost origin
+ FAIL readiness endpoint is not public
+ FAIL database connection requires TLS (DB_SSLMODE require / verify-*)
+ FAIL Redis has a password
+ FAIL mail is a real provider (set; not log / array)
+ FAIL SMS is a real provider (not log / fake)
+ FAIL push is FCM (not the fake provider)
+ FAIL fake payment provider is refused
+ FAIL fake journey providers are refused
+ FAIL payout provider is not the fake one
+ FAIL administrator MFA is required
+ FAIL four-eyes: refunds
+ FAIL four-eyes: settlements
+ FAIL four-eyes: payouts
+ FAIL four-eyes: manual adjustments
+ PASS administrator idle timeout is on
+ PASS request body limit is on
+ PASS private disk is not served over HTTP
+ FAIL no development routes are registered (/dev, _boost)
+ PASS no default /broadcasting/auth web route
+ FAIL development packages are not installed (laravel/boost)
+ PASS audit purge is not enabled for this database session
+ PASS live payments stay off until a deliberate change (Module 30)
+10 / 31 passed
+exit 0
+
+$ php artisan security:check --as-production --json
+{"environment":"local","judged_as_production":true,"passed":10,"total":31,"failed":["APP_DEBUG is off","APP_URL is https","session cookie is Secure","realtime: no wildcard or localhost origin (REVERB_ALLOWED_ORIGINS)","CORS: no localhost origin","readiness endpoint is not public","database connection requires TLS (DB_SSLMODE require \/ verify-*)","Redis has a password","mail is a real provider (set; not log \/ array)","SMS is a real provider (not log \/ fake)","push is FCM (not the fake provider)","fake payment provider is refused","fake journey providers are refused","payout provider is not the fake one","administrator MFA is required","four-eyes: refunds","four-eyes: settlements","four-eyes: payouts","four-eyes: manual adjustments","no development routes are registered (\/dev, _boost)","development packages are not installed (laravel\/boost)"]}
+exit 1

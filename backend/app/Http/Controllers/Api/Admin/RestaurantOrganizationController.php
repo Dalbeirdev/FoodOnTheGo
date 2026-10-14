@@ -195,6 +195,16 @@ class RestaurantOrganizationController extends Controller
         $role = Role::query()->where('principal_type', PrincipalType::RestaurantUser->value)->where('code', $input['role'] ?? 'OWNER')->first()
             ?? throw ValidationException::withMessages(['role' => ['Unknown restaurant role.']]);
 
+        // Module 39: an administrator BOOTSTRAPS an organization (its first owner); once it has an active owner, the
+        // owners invite their own staff. Otherwise anybody holding admin.restaurants.manage could make themselves owner
+        // of a running restaurant and remove its real owners.
+        $hasOwner = RestaurantMembership::query()->where('organization_id', $organization->getKey())
+            ->where('status', MembershipStatus::Active->value)
+            ->whereHas('role', fn ($q) => $q->where('code', 'OWNER'))->exists();
+        if ($hasOwner) {
+            throw new ApiException(409, 'organization_has_owner', 'This organization already has an active owner. Its owners invite their own staff.');
+        }
+
         $membership = $staff->invite($organization, $input['name'], $input['email'], $role, true, new Collection, $request->user());
 
         return (new RestaurantMembershipResource($membership->load(['user', 'role', 'locations'])))->response()->setStatusCode(201);

@@ -2,6 +2,7 @@
 backend/.env
 backend/.env.*
 !backend/.env.example
+!backend/.env.production.example
 customer-web/.env.local
 mobile/android/local.properties
 mobile/android/key.properties

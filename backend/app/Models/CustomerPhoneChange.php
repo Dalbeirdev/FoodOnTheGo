@@ -5,7 +5,9 @@ namespace App\Models;
 use App\Enums\PhoneChangeStatus;
 use App\Models\Concerns\HasPublicId;
 use App\Models\Concerns\StoresUtcTimestamps;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -14,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CustomerPhoneChange extends Model
 {
-    use HasPublicId, StoresUtcTimestamps;
+    use HasPublicId, Prunable, StoresUtcTimestamps;
 
     /**
      * @return BelongsTo<Customer, $this>
@@ -22,6 +24,16 @@ class CustomerPhoneChange extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * A phone-change request holds the new number: it is kept 30 days after it expired (support questions), then removed. Removed by `php artisan model:prune` (scheduled daily, Module 39).
+     *
+     * @return Builder<CustomerPhoneChange>
+     */
+    public function prunable(): Builder
+    {
+        return static::query()->where('expires_at', '<', now()->subDays(30));
     }
 
     /**

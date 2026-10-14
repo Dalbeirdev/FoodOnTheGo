@@ -67,6 +67,9 @@ return [
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
 
+    // Module 39: bearer tokens only (no stateful SPA cookies) — the /sanctum/csrf-cookie route is not registered.
+    'routes' => false,
+
     /*
     |--------------------------------------------------------------------------
     | Sanctum Middleware

@@ -1,0 +1,380 @@
+{
+ "module": "M39",
+ "probe": "light dynamic probe of the running LOCAL API (php artisan serve on 127.0.0.1:8002, APP_ENV=local) \u2014 not a scanner; trusted-host checking is skipped by the framework in the local environment and is covered by the configuration and security:check instead",
+ "passed": 44,
+ "total": 44,
+ "results": [
+  {
+   "check": "headers on public 200 (GET /api/v1/health)",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "cache-control": "no-store, private",
+    "x-powered-by": "PHP/8.3.33"
+   }
+  },
+  {
+   "check": "no server detail in public 200",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "error_code": null
+   }
+  },
+  {
+   "check": "headers on public list (GET /api/v1/restaurants)",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "cache-control": "no-store, private",
+    "x-powered-by": "PHP/8.3.33"
+   }
+  },
+  {
+   "check": "no server detail in public list",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "error_code": null
+   }
+  },
+  {
+   "check": "headers on 401 (GET /api/v1/auth/me)",
+   "pass": true,
+   "detail": {
+    "status": 401,
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "cache-control": "no-store, private",
+    "x-powered-by": "PHP/8.3.33"
+   }
+  },
+  {
+   "check": "no server detail in 401",
+   "pass": true,
+   "detail": {
+    "status": 401,
+    "error_code": "unauthenticated"
+   }
+  },
+  {
+   "check": "headers on 404 (GET /api/v1/no-such-route)",
+   "pass": true,
+   "detail": {
+    "status": 404,
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "cache-control": "no-store, private",
+    "x-powered-by": "PHP/8.3.33"
+   }
+  },
+  {
+   "check": "no server detail in 404",
+   "pass": true,
+   "detail": {
+    "status": 404,
+    "error_code": "not_found"
+   }
+  },
+  {
+   "check": "headers on 405 (DELETE /api/v1/health)",
+   "pass": true,
+   "detail": {
+    "status": 405,
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "cache-control": "no-store, private",
+    "x-powered-by": "PHP/8.3.33"
+   }
+  },
+  {
+   "check": "no server detail in 405",
+   "pass": true,
+   "detail": {
+    "status": 405,
+    "error_code": "method_not_allowed"
+   }
+  },
+  {
+   "check": "headers on 422 (POST /api/v1/auth/admin/login)",
+   "pass": true,
+   "detail": {
+    "status": 422,
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "cache-control": "no-store, private",
+    "x-powered-by": "PHP/8.3.33"
+   }
+  },
+  {
+   "check": "no server detail in 422",
+   "pass": true,
+   "detail": {
+    "status": 422,
+    "error_code": "validation_failed"
+   }
+  },
+  {
+   "check": "CORS preflight from https://evil.example",
+   "pass": true,
+   "detail": {
+    "status": 204,
+    "allow-origin": null,
+    "allow-credentials": null
+   }
+  },
+  {
+   "check": "CORS preflight from null",
+   "pass": true,
+   "detail": {
+    "status": 204,
+    "allow-origin": null,
+    "allow-credentials": null
+   }
+  },
+  {
+   "check": "CORS preflight from http://localhost:5173.evil.example",
+   "pass": true,
+   "detail": {
+    "status": 204,
+    "allow-origin": null,
+    "allow-credentials": null
+   }
+  },
+  {
+   "check": "CORS preflight from http://evil.localhost",
+   "pass": true,
+   "detail": {
+    "status": 204,
+    "allow-origin": null,
+    "allow-credentials": null
+   }
+  },
+  {
+   "check": "CORS preflight from the local web origin (configured)",
+   "pass": true,
+   "detail": {
+    "status": 204,
+    "allow-origin": "http://localhost:5173"
+   }
+  },
+  {
+   "check": "GET /.env gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /.env.example gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /.git/config gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /storage/logs/laravel.log gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /vendor/autoload.php gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /composer.json gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /phpinfo.php gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /telescope gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /horizon gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /_ignition/health-check gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /sanctum/csrf-cookie gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /broadcasting/auth gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /storage/x.txt gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /api/v1/media/../../.env gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /api/v1/media/menu/..%2f..%2f.env gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "GET /index.php/../.env gives nothing",
+   "pass": true,
+   "detail": {
+    "status": 404
+   }
+  },
+  {
+   "check": "TRACE is not served",
+   "pass": true,
+   "detail": {
+    "status": 405
+   }
+  },
+  {
+   "check": "TRACK is not served",
+   "pass": true,
+   "detail": {
+    "status": 501
+   }
+  },
+  {
+   "check": "PROPFIND is not served",
+   "pass": true,
+   "detail": {
+    "status": 405
+   }
+  },
+  {
+   "check": "malformed JSON \u2192 refused, no crash",
+   "pass": true,
+   "detail": {
+    "status": 422,
+    "error_code": "validation_failed"
+   }
+  },
+  {
+   "check": "array where a string belongs \u2192 refused, no crash",
+   "pass": true,
+   "detail": {
+    "status": 422,
+    "error_code": "validation_failed"
+   }
+  },
+  {
+   "check": "object injection \u2192 refused, no crash",
+   "pass": true,
+   "detail": {
+    "status": 422,
+    "error_code": "validation_failed"
+   }
+  },
+  {
+   "check": "XML body \u2192 refused, no crash",
+   "pass": true,
+   "detail": {
+    "status": 422,
+    "error_code": "validation_failed"
+   }
+  },
+  {
+   "check": "a 300 KB JSON body \u2192 413 before it is read",
+   "pass": true,
+   "detail": {
+    "status": 413,
+    "error_code": "payload_too_large"
+   }
+  },
+  {
+   "check": "CR/LF in X-Request-Id never becomes a header",
+   "pass": true,
+   "detail": {
+    "status": -1
+   }
+  },
+  {
+   "check": "no session cookie is set by the API (bearer-only)",
+   "pass": true,
+   "detail": {
+    "status": 200,
+    "set-cookie": false
+   }
+  },
+  {
+   "check": "password guessing is stopped (lockout after 10 failures, then 429 account_temporarily_locked)",
+   "pass": true,
+   "detail": {
+    "answers": [
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "401:invalid_credentials",
+     "429:account_temporarily_locked",
+     "429:account_temporarily_locked"
+    ]
+   }
+  }
+ ]
+}

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../auth/api_auth_repository.dart';
 import '../auth/auth_repository.dart';
+import '../auth/private_context.dart';
 import '../core/app_config.dart';
 
 export '../auth/auth_repository.dart' show AuthErrorCode, AuthException, AuthUser, Authenticated, OtpRequest, SetupRequired, VerifyResult;
@@ -10,12 +11,18 @@ enum AuthStatus { loggedOut, authenticating, authenticated, sessionExpired }
 
 /// Centralised session state for the Android app. Screens never talk to the repository directly.
 class AuthState extends ChangeNotifier {
-  AuthState({AuthRepository? repository}) : _repo = repository ?? defaultRepository() {
+  /// [privateStore]: where the customer's private context lives (secure storage on the phone; tests pass their own).
+  AuthState({AuthRepository? repository, KeyValueStore? privateStore}) : _repo = repository ?? defaultRepository(), _private = PrivateContext(privateStore ?? SecureKeyValueStore()) {
     // A session rejected by the backend (expired / revoked) ends here once; the router then shows sign-in.
     final repo = _repo;
     if (repo is ApiAuthRepository) repo.onSessionEnded = expire;
   }
   final AuthRepository _repo;
+  final PrivateContext _private;
+
+  /// Module 39: the last private-context removal (tests await it; the app does not need to).
+  Future<void> privateContextCleared = Future.value();
+  void _clearPrivate() => privateContextCleared = _private.clear();
 
   /// The real backend when the build says so (--dart-define=AUTH_MODE=api), otherwise the development mock.
   static AuthRepository defaultRepository() =>
@@ -43,6 +50,8 @@ class AuthState extends ChangeNotifier {
     } on AuthException catch (e) {
       user = null;
       status = e.code == AuthErrorCode.sessionExpired ? AuthStatus.sessionExpired : AuthStatus.loggedOut;
+      // Module 39: a session found expired / unusable at launch leaves nothing of the customer's context behind.
+      if (status == AuthStatus.sessionExpired) _clearPrivate();
     } finally {
       loading = false;
       notifyListeners();
@@ -141,7 +150,14 @@ class AuthState extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _repo.logout();
+    try {
+      await _repo.logout();
+    } finally {
+      // Module 39: the token AND the customer's private context (journey, checkout, pickup, payment, chosen location,
+      // review drafts) leave the phone; the guest cart token, analytics ids and development switches stay.
+      _clearPrivate();
+      await privateContextCleared;
+    }
     user = null;
     status = AuthStatus.loggedOut;
     pendingPhone = null;
@@ -151,7 +167,9 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// A 401 on any customer API call (expired / revoked session) or a session the backend no longer accepts.
   void expire() {
+    _clearPrivate();
     user = null;
     status = AuthStatus.sessionExpired;
     notifyListeners();

@@ -1,4 +1,5 @@
 import { paymentMode } from '../payment/paymentMode'
+import { modeOverride } from '../config/modeOverride'
 
 /**
  * Where orders come from (Module 31).
@@ -8,13 +9,14 @@ import { paymentMode } from '../payment/paymentMode'
  *         browser never creates an order, never sets its status and never prices it. It needs the backend payment.
  * `mock`: the in-browser development orders of Modules 13–15 — for unit tests and static share builds only.
  *
- * Set with VITE_ORDER_MODE; `localStorage fotg.order.mode` overrides it on one device.
+ * Set with VITE_ORDER_MODE; `localStorage fotg.order.mode` overrides it on one device (development builds only — Module 39).
  */
 export type OrderSource = 'api' | 'mock'
 
 export function orderMode(): OrderSource {
   if (paymentMode() !== 'api') return 'mock'
-  try { const override = localStorage.getItem('fotg.order.mode'); if (override === 'api' || override === 'mock') return override } catch { /* storage unavailable */ }
+  // Module 39: the browser override is honoured in development builds only (see config/modeOverride.ts).
+  const override = modeOverride('fotg.order.mode', ['api', 'mock'] as const); if (override) return override
   if (import.meta.env.MODE === 'test' || import.meta.env.VITE_SHARE_BUILD === '1') return 'mock'
   return import.meta.env.VITE_ORDER_MODE === 'api' ? 'api' : 'mock'
 }

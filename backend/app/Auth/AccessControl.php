@@ -116,7 +116,9 @@ final class AccessControl
      */
     public function flush(): void
     {
-        Cache::forever(self::VERSION_KEY, bin2hex(random_bytes(8)));
+        // Module 39: after the commit — a request between a flush and the commit would cache the OLD grants under the
+        // NEW version, and a demoted user would keep them until the cache expired. Outside a transaction: at once.
+        DB::afterCommit(fn () => Cache::forever(self::VERSION_KEY, bin2hex(random_bytes(8))));
     }
 
     private function version(): string

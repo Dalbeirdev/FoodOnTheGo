@@ -27,7 +27,8 @@ final class MenuCatalog
 
     public function key(Menu $menu, string $suffix): string
     {
-        return 'menu:'.$menu->public_id.':v'.(int) $menu->catalog_version.':'.$suffix;
+        // Module 39: per host — the document carries absolute media URLs built from the request's host.
+        return 'menu:'.$menu->public_id.':v'.(int) $menu->catalog_version.':'.$suffix.':'.substr(hash('sha256', url('/')), 0, 12);
     }
 
     /**

@@ -20,6 +20,10 @@ enum SecurityEventType: string
     case AccountStatusChanged = 'ACCOUNT_STATUS_CHANGED';
     case PermissionChanged = 'PERMISSION_CHANGED';
     case MfaChallengeFailed = 'MFA_CHALLENGE_FAILED';
+    // Module 39
+    case AccountLocked = 'ACCOUNT_LOCKED';
+    case OtpBudgetExceeded = 'OTP_BUDGET_EXCEEDED';
+    case AdminSessionIdleExpired = 'ADMIN_SESSION_IDLE_EXPIRED';
     case MfaEnabled = 'MFA_ENABLED';
     case MfaDisabled = 'MFA_DISABLED';
     case Reauthenticated = 'REAUTHENTICATED';

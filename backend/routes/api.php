@@ -280,14 +280,15 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
     }
 
     // Stored media (menu item images): immutable files, no rate limit (a menu page loads many).
-    Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->name('media.show');
+    // Module 39: a generous limit of its own instead of none (bandwidth abuse); a menu page loads many images.
+    Route::get('/media/{path}', [MediaController::class, 'show'])->where('path', '.*')->withoutMiddleware('throttle:api')->middleware('throttle:media')->name('media.show');
 
     // Customer account (Module 25): the customer's own profile, favorites, saved journey locations, recent places,
     // payment-method references and notification preferences. Identity = the token; no customer id is ever accepted.
     Route::prefix('customer')->name('account.')->middleware(['auth:customer', 'active'])->group(function (): void {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::post('/profile/avatar', [ProfileController::class, 'storeAvatar'])->name('profile.avatar.store');
+        Route::post('/profile/avatar', [ProfileController::class, 'storeAvatar'])->middleware('throttle:upload')->name('profile.avatar.store');   // Module 39: uploads have a limit of their own
         Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
         Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
@@ -439,7 +440,7 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::delete('/menu/items/{item}', [MenuController::class, 'archiveItem'])->name('menu.items.archive');
         Route::patch('/menu/items/{item}/status', [MenuController::class, 'updateItemStatus'])->name('menu.items.status');
         Route::post('/menu/items/{item}/duplicate', [MenuController::class, 'duplicateItem'])->name('menu.items.duplicate');
-        Route::post('/menu/items/{item}/images', [MenuController::class, 'storeImage'])->name('menu.items.images.store');
+        Route::post('/menu/items/{item}/images', [MenuController::class, 'storeImage'])->middleware('throttle:upload')->name('menu.items.images.store');   // Module 39: uploads have a limit of their own
         Route::patch('/menu/items/{item}/images/{image}', [MenuController::class, 'updateImage'])->name('menu.items.images.update');
         Route::delete('/menu/items/{item}/images/{image}', [MenuController::class, 'destroyImage'])->name('menu.items.images.destroy');
 

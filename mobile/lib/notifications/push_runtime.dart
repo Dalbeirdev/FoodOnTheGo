@@ -52,7 +52,8 @@ class PushRuntime {
         if (initial != null) runtime._onOpened(initial);
         return runtime;
       } catch (e) {
-        debugPrint('push: Firebase did not initialise ($e); falling back to no push');
+        // Module 39 (C-08): debugPrint is not removed from a release build; the exception text stays out of its log.
+        if (kDebugMode) debugPrint('push: Firebase did not initialise ($e); falling back to no push');
         return PushRuntime._('off', null, false);
       }
     }

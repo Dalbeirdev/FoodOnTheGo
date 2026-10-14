@@ -5,6 +5,7 @@ namespace App\Services\Customer;
 use App\Auth\Principal;
 use App\Models\Customer;
 use App\Services\Audit\AuditRecorder;
+use App\Support\ImageSanitizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,8 @@ final class CustomerAvatarService
         $disk = Storage::disk((string) $config['disk']);
         $directory = 'avatars/'.$customer->public_id;
         $name = (string) Str::uuid().'.'.self::EXTENSION[$mime];
-        if ($disk->putFileAs($directory, $file, $name) === false) {
+        // Module 39: stored re-encoded — no EXIF / GPS, no bytes appended to the picture.
+        if ($disk->put($directory.'/'.$name, ImageSanitizer::reencode($file->getRealPath(), $mime)) === false) {
             throw ValidationException::withMessages(['image' => ['The photo could not be stored. Please try again.']]);
         }
 

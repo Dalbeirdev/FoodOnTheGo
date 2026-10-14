@@ -173,6 +173,13 @@ class PickupState extends ChangeNotifier {
       notifyListeners(); return res;
     } catch (e) { error = '$e'; status = PickupStatus.error; notifyListeners(); rethrow; }
   }
+  /// Module 39: the customer signed out (or the session ended) — the choice kept on this device goes. Nothing is sent:
+  /// the backend's choice belongs to the customer's cart, and the guest cart is read again by [syncWithCart].
+  void forgetLocal() {
+    _seq++; selection = null; serverSelection = null; staleReason = null; error = null; _persist();
+    status = PickupStatus.notSelected; notifyListeners();
+  }
+
   void clear() {
     if (backendMode) {
       selection = null; serverSelection = null; staleReason = null; _persist();

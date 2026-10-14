@@ -1,0 +1,6221 @@
+{
+ "generated": "Module 39 — from `php artisan route:list --json` (local environment, so the DEVELOPMENT_ONLY routes appear) and the staff RBAC tables of the Module 39 authorization audit. Regenerate after any route change; tests/Feature/Security/RouteInventoryTest fails when a registered route is missing here or breaks the rule of its class.",
+ "classes": {
+  "PUBLIC": "no sign-in; public data only",
+  "PUBLIC_AUTH": "sign-in / recovery entry points; rate-limited",
+  "PUBLIC_OR_CUSTOMER": "guest or customer (guest token / journey token bound)",
+  "CUSTOMER": "auth:customer + active; owner-scoped",
+  "RESTAURANT": "auth:restaurant + active; organization + location + permission",
+  "ADMIN": "auth:admin + active; permission + market",
+  "ANY_PRINCIPAL": "any signed-in principal, own session / account only",
+  "ANY_STAFF": "restaurant or admin user, own account only",
+  "PROVIDER_WEBHOOK": "no sign-in; provider signature",
+  "HEALTH": "liveness / readiness (readiness detail only when configured)",
+  "DEVELOPMENT_ONLY": "registered only in local / testing (fake providers, dev tooling)"
+ },
+ "routes": [
+  {
+   "method": "GET",
+   "uri": "/",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": null
+  },
+  {
+   "method": "POST",
+   "uri": "/_boost/browser-logs",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": null,
+   "active": false,
+   "throttle": [],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "boost.browser-logs"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/catalog",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view (somewhere)",
+   "scope": "none (catalogue)",
+   "name": "api.v1.admin.analytics.catalog"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/customers",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.customers"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/exports",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.export (somewhere)",
+   "scope": "own exports",
+   "name": "api.v1.admin.analytics.exports.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/analytics/exports",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-export"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.export + the report's domain permissions",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.exports.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/exports/{reportExport}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "NONE beyond ownership (metadata only)",
+   "scope": "own export (belongsTo)",
+   "name": "api.v1.admin.analytics.exports.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/exports/{reportExport}/download",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-export"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.export + domain permissions, re-checked per market at download",
+   "scope": "own export + markets",
+   "name": "api.v1.admin.analytics.exports.download"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/finance",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view + admin.finance.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.finance"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/funnel",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.funnel"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/live",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.live"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/menu",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (+?restaurant)",
+   "name": "api.v1.admin.analytics.menu"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/notifications",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.notifications"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/orders",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (+?restaurant of those markets)",
+   "name": "api.v1.admin.analytics.orders"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/overview",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view (finance / support blocks restricted without their view permission)",
+   "scope": "market (?market slug authorized, all = held markets)",
+   "name": "api.v1.admin.analytics.overview"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/payments",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.payments"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/pickup",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (+?restaurant)",
+   "name": "api.v1.admin.analytics.pickup"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/quality",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.analytics.quality"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/refunds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.refunds"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/restaurants",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view (+finance.view for money columns)",
+   "scope": "market (+?restaurant)",
+   "name": "api.v1.admin.analytics.restaurants"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/reviews",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.reviews"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/routes",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.routes"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/analytics/support",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.analytics.view + admin.support.view",
+   "scope": "market (AnalyticsScoping)",
+   "name": "api.v1.admin.analytics.support"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/audit-events",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.audit.view",
+   "scope": "market list (marketsWith -> whereIn market_id) (events without market: platform-wide holders only)",
+   "name": "api.v1.admin.audit-events.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/cities/{city}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.cities.view",
+   "scope": "market of the city",
+   "name": "api.v1.admin.cities.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/cities/{city}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.cities.manage",
+   "scope": "market of the city",
+   "name": "api.v1.admin.cities.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/disputes",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.disputes.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.disputes.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/disputes/{dispute}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.disputes.view",
+   "scope": "market of the dispute (null -> platform-wide)",
+   "name": "api.v1.admin.disputes.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/fee-rules/{feeRule}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market of the rule",
+   "name": "api.v1.admin.fee-rules.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/fee-rules/{feeRule}/status",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market of the rule",
+   "name": "api.v1.admin.fee-rules.status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/adjustments",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.adjustments.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/adjustments",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.adjustments.create (+reason, supporting reference)",
+   "scope": "market of the location",
+   "name": "api.v1.admin.finance.adjustments.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/adjustments/{adjustment}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market of the adjustment",
+   "name": "api.v1.admin.finance.adjustments.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/adjustments/{adjustment}/approve",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.adjustments.create (same permission as maker; +reason)",
+   "scope": "market of the adjustment",
+   "name": "api.v1.admin.finance.adjustments.approve"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/adjustments/{adjustment}/cancel",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.adjustments.create (+reason)",
+   "scope": "market of the adjustment",
+   "name": "api.v1.admin.finance.adjustments.cancel"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/adjustments/{adjustment}/decide",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.adjustments.create (+reason)",
+   "scope": "market of the adjustment",
+   "name": "api.v1.admin.finance.adjustments.decide"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/allocations",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view (terms only with platform-wide commission.view)",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.allocations"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/allocations/{allocation}/decide",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.adjustments.create (+reason)",
+   "scope": "market of the allocation",
+   "name": "api.v1.admin.finance.allocations.decide"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/checks",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.manage",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.finance.checks.run"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/commission-plans",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.commission.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.commission-plans.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/commission-plans",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.commission.manage (+reason, approval)",
+   "scope": "market in body",
+   "name": "api.v1.admin.finance.commission-plans.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/commission-plans/{commissionPlan}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.commission.view",
+   "scope": "market of the plan",
+   "name": "api.v1.admin.finance.commission-plans.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/commission-plans/{commissionPlan}/end",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.commission.manage (+reason)",
+   "scope": "market of the plan",
+   "name": "api.v1.admin.finance.commission-plans.end"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/commission-plans/{commissionPlan}/withdraw",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.commission.manage (+reason)",
+   "scope": "market of the plan",
+   "name": "api.v1.admin.finance.commission-plans.withdraw"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/differences",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.differences.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/differences/{difference}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.view",
+   "scope": "market of the difference",
+   "name": "api.v1.admin.finance.differences.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/differences/{difference}/ignore",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.manage (+reason)",
+   "scope": "market of the difference",
+   "name": "api.v1.admin.finance.differences.ignore"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/differences/{difference}/investigate",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.manage",
+   "scope": "market of the difference",
+   "name": "api.v1.admin.finance.differences.investigate"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/differences/{difference}/resolve",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.manage (+reason)",
+   "scope": "market of the difference",
+   "name": "api.v1.admin.finance.differences.resolve"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/holds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.holds.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/holds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.holds.manage (+reason code, note)",
+   "scope": "market of the location",
+   "name": "api.v1.admin.finance.holds.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/holds/{hold}/release",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.holds.manage (+reason)",
+   "scope": "market of the hold",
+   "name": "api.v1.admin.finance.holds.release"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/ledger/accounts",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.ledger.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.ledger.accounts"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/ledger/transactions",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.ledger.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.ledger.transactions"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/ledger/transactions/{ledgerTransaction}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.ledger.view",
+   "scope": "market of the transaction (null -> platform-wide)",
+   "name": "api.v1.admin.finance.ledger.transactions.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/overview",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.overview"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/payables",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market list via location market",
+   "name": "api.v1.admin.finance.payables"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/payouts",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.payouts.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/payouts/{payout}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.view",
+   "scope": "market of the payout",
+   "name": "api.v1.admin.finance.payouts.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/payouts/{payout}/cancel",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.execute (+reason)",
+   "scope": "market of the payout",
+   "name": "api.v1.admin.finance.payouts.cancel"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/payouts/{payout}/reconcile",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.execute (+reason)",
+   "scope": "market of the payout",
+   "name": "api.v1.admin.finance.payouts.reconcile"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/payouts/{payout}/retry",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.execute (+reason)",
+   "scope": "market of the payout",
+   "name": "api.v1.admin.finance.payouts.retry"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/provider-settlements",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.view",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.finance.provider-settlements.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/provider-settlements/import",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.manage",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.finance.provider-settlements.import"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/provider-settlements/{providerSettlement}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.reconciliation.view",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.finance.provider-settlements.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/reports/commission",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view (+admin.finance.commission.view somewhere for group_by=plan)",
+   "scope": "finance.view markets",
+   "name": "api.v1.admin.finance.reports.commission"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/reports/customer-returns",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.reports.customer-returns"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/reports/provider-costs",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.finance.reports.provider-costs"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/runs",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.runs"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/settlements",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.settlements.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.finance.settlements.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/settlements/generate",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.settlements.manage",
+   "scope": "restaurant / market / all markets the caller holds",
+   "name": "api.v1.admin.finance.settlements.generate"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/settlements/{settlement}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.settlements.view",
+   "scope": "market of the settlement",
+   "name": "api.v1.admin.finance.settlements.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/settlements/{settlement}/approve",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.settlements.approve (note optional)",
+   "scope": "market of the settlement",
+   "name": "api.v1.admin.finance.settlements.approve"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/settlements/{settlement}/cancel",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.settlements.manage (+reason)",
+   "scope": "market of the settlement",
+   "name": "api.v1.admin.finance.settlements.cancel"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/finance/settlements/{settlement}/export",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-export"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.export + admin.settlements.view",
+   "scope": "market of the settlement",
+   "name": "api.v1.admin.finance.settlements.export"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/settlements/{settlement}/external-payouts",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.record_external (+reason, evidence)",
+   "scope": "market of the settlement",
+   "name": "api.v1.admin.finance.settlements.external-payouts.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/finance/settlements/{settlement}/payouts",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.finance.payouts.execute (+confirm; note optional)",
+   "scope": "market of the settlement",
+   "name": "api.v1.admin.finance.settlements.payouts.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.markets.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.markets.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.markets.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/markets/{market}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.markets.manage (+reason, version)",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/availability-check",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "journeys (M26)",
+   "permission": "admin.service_areas.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.availability-check"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/cities",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.cities.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.cities.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/cities",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.cities.manage",
+   "scope": "market (authorizeMarket on the record's market); region_id must be of the market",
+   "name": "api.v1.admin.cities.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/configuration",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.market_configuration.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.configuration"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/markets/{market}/configuration",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.configuration.update"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/markets/{market}/features",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.market_features.manage (+reason)",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.features.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/fee-rules",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.fee-rules.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/financial-rules",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.market_configuration.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.financial-rules"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/map",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.markets.map"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/regions",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.markets.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.regions.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/regions",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.markets.manage",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.regions.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/route-corridors",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.route-corridors.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/route-corridors",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.manage",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.route-corridors.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/markets/{market}/service-areas",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.view",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.service-areas.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/service-areas",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.manage",
+   "scope": "market (authorizeMarket on the record's market); city_id must be of the market",
+   "name": "api.v1.admin.service-areas.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/markets/{market}/tax-rules",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market (authorizeMarket on the record's market)",
+   "name": "api.v1.admin.tax-rules.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/notifications",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.notifications.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.notifications.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/notifications/deliveries",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.notifications.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.notifications.deliveries"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/notifications/deliveries/{delivery}/retry",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.notifications.manage (+reason, audited) (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.notifications.deliveries.retry"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/notifications/templates",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.notifications.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.notifications.templates"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/notifications/test",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-notification-test"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.notifications.test (only when notifications.admin_test_enabled; registry type only; audited) (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope); any customer by id",
+   "name": "api.v1.admin.notifications.test"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/notifications/{notification}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.notifications.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.notifications.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/order-fulfillments",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "orders (M31)",
+   "permission": "admin.orders.view",
+   "scope": "market list via checkout_sessions.market_id",
+   "name": "api.v1.admin.order-fulfillments.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/order-fulfillments/{fulfillment}/recover",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "orders (M31)",
+   "permission": "admin.orders.recover (+reason, audited)",
+   "scope": "market of the checkout",
+   "name": "api.v1.admin.order-fulfillments.recover"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/orders",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "orders (M31)",
+   "permission": "admin.orders.view",
+   "scope": "market list (marketsWith -> whereIn market_id); filters intersected",
+   "name": "api.v1.admin.orders.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/orders/{order}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "orders (M31)",
+   "permission": "admin.orders.view",
+   "scope": "market of the order",
+   "name": "api.v1.admin.orders.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/orders/{order}/cancel",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "orders (M31)",
+   "permission": "admin.orders.override (+reason)",
+   "scope": "market of the order",
+   "name": "api.v1.admin.orders.cancel"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/orders/{order}/refunds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.create (reason_code; note when the reason needs one)",
+   "scope": "market of the order",
+   "name": "api.v1.admin.orders.refunds.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/payments",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "payments (M30)",
+   "permission": "admin.payments.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.payments.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/payments/{payment}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "payments (M30)",
+   "permission": "admin.payments.view",
+   "scope": "market of the payment (null market -> platform-wide)",
+   "name": "api.v1.admin.payments.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/payments/{payment}/reconcile",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "payments (M30)",
+   "permission": "admin.payments.reconcile (+reason, audited)",
+   "scope": "market of the payment",
+   "name": "api.v1.admin.payments.reconcile"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/payments/{payment}/refunds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.create (+note)",
+   "scope": "market of the payment",
+   "name": "api.v1.admin.payments.refunds.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/pickup-attempts",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "pickup (M28)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope) (staff names + order numbers)",
+   "name": "api.v1.admin.pickup-attempts.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/promotions",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.promotions.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.promotions.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/promotions",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.promotions.manage",
+   "scope": "market in body",
+   "name": "api.v1.admin.promotions.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/promotions/{promotion}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.promotions.view",
+   "scope": "market of the promotion (null -> platform-wide)",
+   "name": "api.v1.admin.promotions.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/promotions/{promotion}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.promotions.manage (+reason)",
+   "scope": "market of the promotion and of a new market",
+   "name": "api.v1.admin.promotions.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/promotions/{promotion}/status",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.promotions.manage (+reason)",
+   "scope": "market of the promotion",
+   "name": "api.v1.admin.promotions.status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/refunds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.refunds.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/refunds/queues",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.refunds.queues"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/refunds/{refund}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.view",
+   "scope": "market of the refund",
+   "name": "api.v1.admin.refunds.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/refunds/{refund}/approve",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.approve (reason optional)",
+   "scope": "market of the refund",
+   "name": "api.v1.admin.refunds.approve"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/refunds/{refund}/execute",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.issue (reason optional)",
+   "scope": "market of the refund",
+   "name": "api.v1.admin.refunds.execute"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/refunds/{refund}/reconcile",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.reconcile (+reason)",
+   "scope": "market of the refund",
+   "name": "api.v1.admin.refunds.reconcile"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/refunds/{refund}/reject",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.approve (+reason)",
+   "scope": "market of the refund",
+   "name": "api.v1.admin.refunds.reject"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/refunds/{refund}/retry",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.refunds.issue (+reason)",
+   "scope": "market of the refund",
+   "name": "api.v1.admin.refunds.retry"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/regions/{region}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "platform (M20)",
+   "permission": "admin.markets.manage",
+   "scope": "market of the region",
+   "name": "api.v1.admin.regions.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/restaurant-organizations",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.view",
+   "scope": "market list on primary_market_id",
+   "name": "api.v1.admin.restaurant-organizations.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/restaurant-organizations",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage",
+   "scope": "market in body, authorized",
+   "name": "api.v1.admin.restaurant-organizations.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.view",
+   "scope": "primary market of the organization",
+   "name": "api.v1.admin.restaurant-organizations.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage",
+   "scope": "primary market",
+   "name": "api.v1.admin.restaurant-organizations.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}/locations",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage (primary market AND target market)",
+   "scope": "primary + body market",
+   "name": "api.v1.admin.restaurant-organizations.locations.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}/notes",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage",
+   "scope": "primary market; location_id of same org",
+   "name": "api.v1.admin.restaurant-organizations.notes.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}/staff",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage (no reason)",
+   "scope": "primary market",
+   "name": "api.v1.admin.restaurant-organizations.staff.store"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}/staff/{membership}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage (+reason)",
+   "scope": "primary market; membership of that org",
+   "name": "api.v1.admin.restaurant-organizations.staff.destroy"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/restaurant-organizations/{organization}/status",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.approve / .suspend / .manage per transition",
+   "scope": "primary market only",
+   "name": "api.v1.admin.restaurant-organizations.status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/restaurants",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.restaurants.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/restaurants/{location}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.view",
+   "scope": "market of the location",
+   "name": "api.v1.admin.restaurants.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/restaurants/{location}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.manage",
+   "scope": "market of the location; city_id of that market",
+   "name": "api.v1.admin.restaurants.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/restaurants/{location}/menu",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "admin.restaurants.view",
+   "scope": "market of the location",
+   "name": "api.v1.admin.restaurants.menu"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/restaurants/{location}/status",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "admin.restaurants.approve / .suspend / .manage per transition (RestaurantStatus::permissionFor); reason required for reject/suspend/inactive",
+   "scope": "market of the location",
+   "name": "api.v1.admin.restaurants.status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/review-cases",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.reports.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.review-cases.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/review-cases/{reviewCase}/assign",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate",
+   "scope": "market of the case",
+   "name": "api.v1.admin.review-cases.assign"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/review-cases/{reviewCase}/escalate",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate (+reason)",
+   "scope": "market of the case",
+   "name": "api.v1.admin.review-cases.escalate"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/review-cases/{reviewCase}/resolve",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate (+reason)",
+   "scope": "market of the case",
+   "name": "api.v1.admin.review-cases.resolve"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/reviews",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.view",
+   "scope": "market list (marketsWith -> whereIn market_id)",
+   "name": "api.v1.admin.reviews.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/reviews/{review}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.view",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/reviews/{review}/hide",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate (+reason)",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.hide"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/reviews/{review}/publish",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.publish"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/reviews/{review}/reject",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate (+reason)",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.reject"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/reviews/{review}/response/hide",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.moderate (+reason)",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.response.hide"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/reviews/{review}/response/restore",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.restore (+reason)",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.response.restore"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/reviews/{review}/restore",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "admin.reviews.restore (+reason)",
+   "scope": "market of the review",
+   "name": "api.v1.admin.reviews.restore"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/roles",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.roles.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.roles.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/route-corridors/{routeCorridor}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.view",
+   "scope": "market of the corridor",
+   "name": "api.v1.admin.route-corridors.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/route-corridors/{routeCorridor}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.manage",
+   "scope": "market of the corridor",
+   "name": "api.v1.admin.route-corridors.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/security-events",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.security.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.security-events.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/security/summary",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.security.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.security.summary"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/service-areas/{serviceArea}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.view",
+   "scope": "market of the area",
+   "name": "api.v1.admin.service-areas.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/service-areas/{serviceArea}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": "admin.service_areas.manage",
+   "scope": "market of the area",
+   "name": "api.v1.admin.service-areas.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/agents",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.assign or admin.support.escalate",
+   "scope": "market of ?market",
+   "name": "api.v1.admin.support.agents"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/cases",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view",
+   "scope": "visible(): markets + restricted classes held",
+   "name": "api.v1.admin.support.cases.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage (+linked records need their domain read permission)",
+   "scope": "market in body",
+   "name": "api.v1.admin.support.cases.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/cases/{supportCase}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view (+restricted.finance / .security for restricted cases)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/annotations",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.annotate"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/assign",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.assign (assignee must hold manage + class)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.assign"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/cancel",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class (duplicate_of needs view)",
+   "name": "api.v1.admin.support.cases.cancel"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/close",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.close"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/domain-actions",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage + the domain permission (payments.reconcile / refunds.reconcile / orders.recover) (+reason)",
+   "scope": "market of the case; link must belong to the case",
+   "name": "api.v1.admin.support.cases.domain-actions"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/escalate",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.escalate",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.escalate"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/events",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view (+restricted class)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.events"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/links",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view (+domain read permission per panel)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.links.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/links",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage (+domain read permission of the record)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.links.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/messages",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view (+restricted class)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.messages.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/messages",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.messages.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/notes",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.notes (+restricted class)",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.notes.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/notes",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.notes",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.notes.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/priority",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.priority"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/reopen",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.reopen"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/resolve",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.resolve"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/resume",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.resume"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/start",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.start"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/support/cases/{supportCase}/wait",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-admin-action"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.manage",
+   "scope": "market of the case + class",
+   "name": "api.v1.admin.support.cases.wait"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/catalog",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view (somewhere)",
+   "scope": "none (catalogue)",
+   "name": "api.v1.admin.support.catalog"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/metrics",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view",
+   "scope": "visible(): markets + restricted classes held",
+   "name": "api.v1.admin.support.metrics"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/support/queues",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.support.view",
+   "scope": "visible(): markets + restricted classes held",
+   "name": "api.v1.admin.support.queues"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/analytics",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.analytics"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/carts",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "cart (M27)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope) (counts only)",
+   "name": "api.v1.admin.system.carts"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/checkout",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.checkout"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/finance",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "finance (M36)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.finance"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/notifications",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.notifications"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/orders",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "orders (M31)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.orders"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/payments",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "payments (M30)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.payments"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/pickup",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "pickup (M28)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope) (counts only)",
+   "name": "api.v1.admin.system.pickup"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/providers",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.providers"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/realtime",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.realtime"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/refunds",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "refunds (M35)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.refunds"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/system/support",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "support (M37)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.support"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/tax-rules/{taxRule}",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market of the rule",
+   "name": "api.v1.admin.tax-rules.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/tax-rules/{taxRule}/status",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "admin.market_configuration.manage (+reason)",
+   "scope": "market of the rule",
+   "name": "api.v1.admin.tax-rules.status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/admin/users",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.users.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.users.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/users",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.users.manage (role must be within actor permissions) (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.users.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/users/{adminUser}/invitation",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.users.manage (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.users.invitation"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/admin/users/{adminUser}/mfa/reset",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.users.manage (+reason; not self) (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.users.mfa.reset"
+  },
+  {
+   "method": "PUT",
+   "uri": "/api/v1/admin/users/{adminUser}/role",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.roles.manage (+reason; not self; new role within actor permissions) (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.users.role"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/admin/users/{adminUser}/status",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "identity (M21)",
+   "permission": "admin.users.manage (+reason; not self; last admin kept) (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.users.status"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/analytics/events",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "analytics-ingest"
+   ],
+   "owner": "analytics (M38)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.analytics.events.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/admin/invitation/accept",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.admin.invitation.accept"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/admin/login",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "admin-login"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.admin.login"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/admin/mfa/verify",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "mfa-verify"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.admin.mfa.verify"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/admin/password/forgot",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.admin.password.forgot"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/admin/password/reset",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.admin.password.reset"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/customer/otp/request",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "otp-request"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.customer.otp.request"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/customer/otp/verify",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "otp-verify"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.customer.otp.verify"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/auth/customer/profile",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.customer.profile.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/customer/truecaller",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "otp-verify"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.customer.truecaller"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/logout",
+   "class": "ANY_PRINCIPAL",
+   "guard": "customer,restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.logout"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/logout-all",
+   "class": "ANY_PRINCIPAL",
+   "guard": "customer,restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.logout-all"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/auth/me",
+   "class": "ANY_PRINCIPAL",
+   "guard": "customer,restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.me"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/auth/mfa/totp",
+   "class": "ANY_STAFF",
+   "guard": "restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "mfa-verify"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.mfa.totp.disable"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/mfa/totp/confirm",
+   "class": "ANY_STAFF",
+   "guard": "restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "mfa-verify"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.mfa.totp.confirm"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/mfa/totp/setup",
+   "class": "ANY_STAFF",
+   "guard": "restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.mfa.totp.setup"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/password",
+   "class": "ANY_STAFF",
+   "guard": "restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.password.change"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/restaurant/invitation/accept",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.restaurant.invitation.accept"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/restaurant/login",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "staff-login"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.restaurant.login"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/restaurant/mfa/verify",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "mfa-verify"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.restaurant.mfa.verify"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/restaurant/password/forgot",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.restaurant.password.forgot"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/restaurant/password/reset",
+   "class": "PUBLIC_AUTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "password-reset"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.restaurant.password.reset"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/auth/sessions",
+   "class": "ANY_PRINCIPAL",
+   "guard": "customer,restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.sessions.index"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/auth/sessions/{session}",
+   "class": "ANY_PRINCIPAL",
+   "guard": "customer,restaurant,admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.sessions.destroy"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/availability/location",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "availability"
+   ],
+   "owner": "journeys (M26)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.availability.location"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/cart",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.clear"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/cart",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-read"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/cart/claim",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.claim"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/cart/items",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.items.add"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/cart/items/{line}",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.items.remove"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/cart/items/{line}",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.items.update"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/cart/journey",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.journey.unlink"
+  },
+  {
+   "method": "PUT",
+   "uri": "/api/v1/cart/journey",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.journey.link"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/cart/pickup-availability",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-read"
+   ],
+   "owner": "pickup (M28)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.pickup.availability"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/cart/pickup-selection",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "pickup (M28)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.pickup.selection.clear"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/cart/pickup-selection",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-read"
+   ],
+   "owner": "pickup (M28)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.pickup.selection.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/cart/pickup-selection",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "pickup (M28)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.pickup.selection.select"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/cart/refresh",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.refresh"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/cart/switch-restaurant",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "cart-write"
+   ],
+   "owner": "cart (M27)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cart.switch"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/checkouts",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "checkout-write"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.open"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/checkouts/{checkout}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "checkout-read"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/checkouts/{checkout}/cancel",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "checkout-write"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.cancel"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/checkouts/{checkout}/confirm",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "checkout-write"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.confirm"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/checkouts/{checkout}/fulfill",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-write"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.fulfill"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/checkouts/{checkout}/payment-attempts",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "payment"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.payments.start"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/checkouts/{checkout}/promotion",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "checkout-write"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.promotion.remove"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/checkouts/{checkout}/promotion",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "promotion-apply"
+   ],
+   "owner": "checkout (M29)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.checkouts.promotion.apply"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/config",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.config"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/cuisines",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "search"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.cuisines.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/account/deletion-request",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.deletion.request"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/account/reauth",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "otp-request"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.reauth.request"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/account/reauth/verify",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "otp-verify"
+   ],
+   "owner": "identity (M21)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.reauth.verify"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/broadcasting/auth",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "channel-auth"
+   ],
+   "owner": "realtime (M32)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.broadcasting.auth"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/devices",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "notifications-read"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.devices.index"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/devices/current",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "device-register"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.devices.current.destroy"
+  },
+  {
+   "method": "PUT",
+   "uri": "/api/v1/customer/devices/current",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "device-register"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.devices.current"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/devices/{device}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "device-register"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.devices.destroy"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/customer/devices/{device}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "device-register"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.devices.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/favorites",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.favorites.index"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/favorites/{restaurant}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.favorites.destroy"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/favorites/{restaurant}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.favorites.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/notification-preferences",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.notification-preferences.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/customer/notification-preferences",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.notification-preferences.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/notifications",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "notifications-read"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.notifications.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/notifications/read-all",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "notifications-write"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.notifications.read-all"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/notifications/unread-count",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "notifications-read"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.notifications.unread-count"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/notifications/{notification}/read",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "notifications-write"
+   ],
+   "owner": "notifications (M33)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.notifications.read"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/orders",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/orders/{order}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/orders/{order}/cancel",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-cancel"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.cancel"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/orders/{order}/cancellation",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.cancellation.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/orders/{order}/events",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.events"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/orders/{order}/pickup-credential",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.pickup-credential.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/orders/{order}/pickup-credential/reissue",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-write"
+   ],
+   "owner": "orders (M31)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.pickup-credential.reissue"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/orders/{order}/review",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.review.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/orders/{order}/review",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-write"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.orders.review.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/payment-methods",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.payment-methods.index"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/payment-methods/{paymentMethod}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.payment-methods.destroy"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/customer/payment-methods/{paymentMethod}/default",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.payment-methods.default"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/phone-change/request",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "otp-request"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.phone-change.request"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/phone-change/verify",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "otp-verify"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.phone-change.verify"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/profile",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.profile.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/customer/profile",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.profile.update"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/profile/avatar",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.profile.avatar.destroy"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/profile/avatar",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "upload"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.profile.avatar.store"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/recent-locations",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.recent-locations.clear"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/recent-locations",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.recent-locations.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/recent-locations",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.recent-locations.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/reviews",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.reviews.index"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/reviews/{review}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-write"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.reviews.destroy"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/reviews/{review}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.reviews.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/customer/reviews/{review}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-write"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.reviews.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/saved-locations",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.saved-locations.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/saved-locations",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.saved-locations.store"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/customer/saved-locations/{savedLocation}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.saved-locations.destroy"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/customer/saved-locations/{savedLocation}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.saved-locations.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/saved-locations/{savedLocation}/default",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.account.saved-locations.default"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/support/cases",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/support/cases",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-case-create"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/support/cases/{supportCase}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/support/cases/{supportCase}/close",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-write"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.close"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/support/cases/{supportCase}/messages",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.messages.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/support/cases/{supportCase}/messages",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-write"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.messages.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/customer/support/cases/{supportCase}/reopen",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-write"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.cases.reopen"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/customer/support/catalog",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.customer.support.catalog"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/dev/finance/payout-profiles",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.dev.finance.payout-profiles"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/dev/finance/provider-settlements",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.dev.finance.provider-settlements"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/dev/payments/{payment}/dispute",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.dev.payments.dispute"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/dev/payments/{payment}/simulate",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "payment-read"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.dev.payments.simulate"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/dev/payouts/{payout}/simulate",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-action"
+   ],
+   "owner": "finance (M36)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.dev.payouts.simulate"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/dev/refunds/{refund}/simulate",
+   "class": "DEVELOPMENT_ONLY",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "refund-action"
+   ],
+   "owner": "refunds (M35)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.dev.refunds.simulate"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/health",
+   "class": "HEALTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.health"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/journeys/plan",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "journey-plan"
+   ],
+   "owner": "journeys (M26)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.journeys.plan"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/journeys/{journey}",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "journey-read"
+   ],
+   "owner": "journeys (M26)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.journeys.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/journeys/{journey}/restaurants",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "journey-read"
+   ],
+   "owner": "journeys (M26)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.journeys.restaurants"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/markets",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.markets.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/markets/current",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.markets.current"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/markets/current/coverage",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api"
+   ],
+   "owner": "market & geography (M22)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.markets.coverage"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/media/{path}",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "media"
+   ],
+   "owner": "menus (M24)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.media.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/payments/{payment}",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "payment-read"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.payments.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/payments/{payment}/complete",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "payment"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.payments.complete"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/places/resolve",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "places-search"
+   ],
+   "owner": "journeys (M26)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.places.resolve"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/places/search",
+   "class": "PUBLIC_OR_CUSTOMER",
+   "guard": "customer?",
+   "active": false,
+   "throttle": [
+    "api",
+    "places-search"
+   ],
+   "owner": "journeys (M26)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.places.search"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/ready",
+   "class": "HEALTH",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.ready"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/catalog",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view (somewhere)",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.catalog"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/earnings",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view + restaurant.finance.view (every location)",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.earnings"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/exports",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "NONE (own exports only)",
+   "scope": "requested_by_restaurant_user_id = caller",
+   "name": "api.v1.restaurant.analytics.exports.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/analytics/exports",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-export"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.export",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.exports.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/exports/{reportExport}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "NONE (own export only)",
+   "scope": "ReportExportService::belongsTo (audience + requester)",
+   "name": "api.v1.restaurant.analytics.exports.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/exports/{reportExport}/download",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-export"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.export (re-checked for every location at download)",
+   "scope": "own export + every location still reachable",
+   "name": "api.v1.restaurant.analytics.exports.download"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/menu",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.menu"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/operations",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.operations"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/orders",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.orders"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/overview",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view (+finance.view for net earnings)",
+   "scope": "every reachable location holding the permission, or ?location= intersected; cache key carries locations + finance flag",
+   "name": "api.v1.restaurant.analytics.overview"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/reviews",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.reviews"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/analytics/routes",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "analytics-read"
+   ],
+   "owner": "analytics (M38)",
+   "permission": "restaurant.analytics.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.analytics.routes"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/broadcasting/auth",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "channel-auth"
+   ],
+   "owner": "realtime (M32)",
+   "permission": "channel callback: restaurant.orders.view",
+   "scope": "restaurant.location.{id}: RestaurantAccess::authorize; guard restaurant only",
+   "name": "api.v1.restaurant.broadcasting.auth"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/context",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "NONE (auth + active only)",
+   "scope": "own ACTIVE memberships only",
+   "name": "api.v1.restaurant.context"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/earnings",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.finance.earnings"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/earnings/export",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-export"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected; audited",
+   "name": "api.v1.restaurant.finance.earnings.export"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/payouts",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view (+restaurant.payout_account.view for the destination mask)",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.finance.payouts"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/settlements",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.finance.settlements.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/settlements/{settlement}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "settlement -> location; reaches() else 404, then authorize",
+   "name": "api.v1.restaurant.finance.settlements.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/settlements/{settlement}/export",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-export"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "settlement -> location; reaches() + authorize; audited",
+   "name": "api.v1.restaurant.finance.settlements.export"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/summary",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.finance.summary"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/finance/terms",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "finance-read"
+   ],
+   "owner": "finance (M36)",
+   "permission": "restaurant.finance.view",
+   "scope": "every reachable location holding the permission, or ?location= intersected",
+   "name": "api.v1.restaurant.finance.terms"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/locations/{location}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.profile.view",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/locations/{location}/availability",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "journeys (M26)",
+   "permission": "restaurant.settings.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.availability.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/locations/{location}/hours",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.profile.view",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.hours.show"
+  },
+  {
+   "method": "PUT",
+   "uri": "/api/v1/restaurant/locations/{location}/hours",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.hours.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.hours.replace"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/restaurant/locations/{location}/images/{image}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.profile.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); image.location_id must match",
+   "name": "api.v1.restaurant.locations.images.archive"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/locations/{location}/images/{image}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.profile.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); image.location_id must match",
+   "name": "api.v1.restaurant.locations.images.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/locations/{location}/menu",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.view",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.menu.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/locations/{location}/menu",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.menu.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/locations/{location}/menu/categories",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.menu.categories.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/locations/{location}/menu/categories/reorder",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.menu.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); ids limited to this menu",
+   "name": "api.v1.restaurant.menu.categories.reorder"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/locations/{location}/menu/items",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); category_id must be of this menu",
+   "name": "api.v1.restaurant.menu.items.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/locations/{location}/menu/items/status",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); ids limited to this menu",
+   "name": "api.v1.restaurant.menu.items.bulk-status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/locations/{location}/pickup-preview",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "restaurant.profile.view",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.pickup-preview"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/locations/{location}/pickup-settings",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "pickup (M28)",
+   "permission": "restaurant.profile.view",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.pickup-settings.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/locations/{location}/pickup-settings",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "pickup (M28)",
+   "permission": "restaurant.pickup_settings.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.pickup-settings.update"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/locations/{location}/profile",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "customer account (M25)",
+   "permission": "restaurant.profile.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); protected fields prohibited",
+   "name": "api.v1.restaurant.locations.profile.update"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/locations/{location}/special-hours",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.profile.view",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.special-hours.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/locations/{location}/special-hours",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.hours.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope)",
+   "name": "api.v1.restaurant.locations.special-hours.store"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/restaurant/locations/{location}/special-hours/{specialHour}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.hours.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); specialHour.location_id must match",
+   "name": "api.v1.restaurant.locations.special-hours.destroy"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/locations/{location}/special-hours/{specialHour}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.hours.manage",
+   "scope": "location (RestaurantAccess::authorize: active membership reach + permission at location scope); specialHour.location_id must match",
+   "name": "api.v1.restaurant.locations.special-hours.update"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/restaurant/menu/categories/{category}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "category -> menu -> location, then authorize",
+   "name": "api.v1.restaurant.menu.categories.archive"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/menu/categories/{category}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "category -> menu -> location, then authorize",
+   "name": "api.v1.restaurant.menu.categories.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/menu/categories/{category}/items/reorder",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.menu.manage",
+   "scope": "category -> menu -> location; ids limited to category",
+   "name": "api.v1.restaurant.menu.items.reorder"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/restaurant/menu/items/{item}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location",
+   "name": "api.v1.restaurant.menu.items.archive"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/menu/items/{item}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.view",
+   "scope": "item -> menu -> location, then authorize",
+   "name": "api.v1.restaurant.menu.items.show"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/menu/items/{item}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location; category_id of same menu",
+   "name": "api.v1.restaurant.menu.items.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/menu/items/{item}/duplicate",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location",
+   "name": "api.v1.restaurant.menu.items.duplicate"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/menu/items/{item}/images",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "upload"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location",
+   "name": "api.v1.restaurant.menu.items.images.store"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/restaurant/menu/items/{item}/images/{image}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location; image.item_id must match",
+   "name": "api.v1.restaurant.menu.items.images.destroy"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/menu/items/{item}/images/{image}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location; image.item_id must match",
+   "name": "api.v1.restaurant.menu.items.images.update"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/menu/items/{item}/status",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "menus (M24)",
+   "permission": "restaurant.menu.manage",
+   "scope": "item -> menu -> location",
+   "name": "api.v1.restaurant.menu.items.status"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/orders",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.view",
+   "scope": "location from ?location= (OrderStore::location reach) + RestaurantAccess::authorize (location required)",
+   "name": "api.v1.restaurant.orders.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/orders/{order}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.view",
+   "scope": "OrderStore::forRestaurant (reachable locations) + authorize",
+   "name": "api.v1.restaurant.orders.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/orders/{order}/accept",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-write"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.update",
+   "scope": "OrderStore::forRestaurant + authorize at order location",
+   "name": "api.v1.restaurant.orders.accept"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/orders/{order}/events",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-read"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.view",
+   "scope": "OrderStore::forRestaurant + RestaurantAccess::authorize at the order's location (Module 39)",
+   "name": "api.v1.restaurant.orders.events"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/orders/{order}/ready",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-write"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.update",
+   "scope": "OrderStore::forRestaurant + authorize at order location",
+   "name": "api.v1.restaurant.orders.ready"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/orders/{order}/reject",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-write"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.update",
+   "scope": "OrderStore::forRestaurant + authorize at order location",
+   "name": "api.v1.restaurant.orders.reject"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/orders/{order}/start-preparing",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "order-write"
+   ],
+   "owner": "orders (M31)",
+   "permission": "restaurant.orders.update",
+   "scope": "OrderStore::forRestaurant + authorize at order location",
+   "name": "api.v1.restaurant.orders.start-preparing"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/organizations/{organization}/staff",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.staff.view (org scope, or per location -> filtered members)",
+   "scope": "organization membership; location-limited viewers see only members at their locations",
+   "name": "api.v1.restaurant.staff.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/organizations/{organization}/staff",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.staff.manage (whole organization)",
+   "scope": "organization (active membership + permission at organization scope); may grant only roles whose permissions caller holds; locations of same org",
+   "name": "api.v1.restaurant.staff.store"
+  },
+  {
+   "method": "DELETE",
+   "uri": "/api/v1/restaurant/organizations/{organization}/staff/{membership}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.staff.manage (whole organization)",
+   "scope": "organization (active membership + permission at organization scope); membership.organization_id must match; not self; last owner kept",
+   "name": "api.v1.restaurant.staff.destroy"
+  },
+  {
+   "method": "PATCH",
+   "uri": "/api/v1/restaurant/organizations/{organization}/staff/{membership}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.staff.manage (whole organization)",
+   "scope": "organization (active membership + permission at organization scope); membership.organization_id must match; not self; not above own permissions; last owner kept; version",
+   "name": "api.v1.restaurant.staff.update"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/organizations/{organization}/staff/{membership}/invitation",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "admin-sensitive"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "restaurant.staff.manage (whole organization)",
+   "scope": "organization (active membership + permission at organization scope); membership.organization_id must match",
+   "name": "api.v1.restaurant.staff.invitation"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/pickup/verify",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "pickup-verify"
+   ],
+   "owner": "pickup (M28)",
+   "permission": "restaurant.pickup.verify (scanner location AND order location)",
+   "scope": "location + order.location_id must equal scanner location; credential lock",
+   "name": "api.v1.restaurant.pickup.verify"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/reviews",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "restaurant.reviews.view",
+   "scope": "location from ?location= (OrderStore::location reach) + RestaurantAccess::authorize",
+   "name": "api.v1.restaurant.reviews.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/reviews/summary",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "restaurant.reviews.view",
+   "scope": "location from ?location= (OrderStore::location reach) + RestaurantAccess::authorize",
+   "name": "api.v1.restaurant.reviews.summary"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/reviews/{review}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "restaurant.reviews.view",
+   "scope": "record -> its location; whereIn reachable locations, then authorize (published only)",
+   "name": "api.v1.restaurant.reviews.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/reviews/{review}/report",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-report"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "restaurant.reviews.report",
+   "scope": "record -> its location; whereIn reachable locations, then authorize",
+   "name": "api.v1.restaurant.reviews.report"
+  },
+  {
+   "method": "PUT",
+   "uri": "/api/v1/restaurant/reviews/{review}/response",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-write"
+   ],
+   "owner": "reviews (M34)",
+   "permission": "restaurant.reviews.respond",
+   "scope": "record -> its location; whereIn reachable locations, then authorize",
+   "name": "api.v1.restaurant.reviews.response"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/roles",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": "NONE (reference data)",
+   "scope": "none (role catalogue only)",
+   "name": "api.v1.restaurant.roles"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/support/cases",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.view",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members; ?location= intersected",
+   "name": "api.v1.restaurant.support.cases.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/support/cases",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-case-create"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.create (+restaurant.finance.view for money categories / settlement / payout links)",
+   "scope": "location or organization of caller; linked order/settlement/payout must be of that restaurant",
+   "name": "api.v1.restaurant.support.cases.store"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/support/cases/{supportCase}",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.view",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members",
+   "name": "api.v1.restaurant.support.cases.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/support/cases/{supportCase}/close",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-write"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.create",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members + write set",
+   "name": "api.v1.restaurant.support.cases.close"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/support/cases/{supportCase}/messages",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.view",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members",
+   "name": "api.v1.restaurant.support.cases.messages.index"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/support/cases/{supportCase}/messages",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-write"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.create",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members + write set",
+   "name": "api.v1.restaurant.support.cases.messages.store"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurant/support/cases/{supportCase}/reopen",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-write"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.create",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members + write set",
+   "name": "api.v1.restaurant.support.cases.reopen"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/support/catalog",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api",
+    "support-read"
+   ],
+   "owner": "support (M37)",
+   "permission": "restaurant.support.view (somewhere)",
+   "scope": "reachable locations with restaurant.support.view (+finance.view for money cases); org-level cases only for all-locations members",
+   "name": "api.v1.restaurant.support.catalog"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurant/taxonomy",
+   "class": "RESTAURANT",
+   "guard": "restaurant",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "checkout (M29)",
+   "permission": "NONE (reference data)",
+   "scope": "none (no tenant data)",
+   "name": "api.v1.restaurant.taxonomy"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurants",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "search"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurants/{restaurantSlug}",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "search"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.show"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurants/{restaurantSlug}/items/{itemSlug}",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "search"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.items.show"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/restaurants/{restaurantSlug}/items/{itemSlug}/price-quote",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "search"
+   ],
+   "owner": "restaurants (M23)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.items.price-quote"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurants/{restaurantSlug}/menu",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "search"
+   ],
+   "owner": "menus (M24)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.menu"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurants/{restaurantSlug}/reviews",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.reviews.index"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/restaurants/{restaurantSlug}/reviews/summary",
+   "class": "PUBLIC",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "api",
+    "review-read"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.restaurants.reviews.summary"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/reviews/{review}/report",
+   "class": "CUSTOMER",
+   "guard": "customer",
+   "active": true,
+   "throttle": [
+    "api",
+    "review-report"
+   ],
+   "owner": "reviews (M34)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.reviews.report"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/webhooks/payments/{paymentProvider}",
+   "class": "PROVIDER_WEBHOOK",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "payment-webhook"
+   ],
+   "owner": "payments (M30)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.webhooks.payments"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/webhooks/payouts/{payoutProvider}",
+   "class": "PROVIDER_WEBHOOK",
+   "guard": null,
+   "active": false,
+   "throttle": [
+    "payment-webhook"
+   ],
+   "owner": "finance (M36)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.webhooks.payouts"
+  },
+  {
+   "method": "GET",
+   "uri": "/up",
+   "class": "HEALTH",
+   "guard": null,
+   "active": false,
+   "throttle": [],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": null
+  }
+ ]
+}

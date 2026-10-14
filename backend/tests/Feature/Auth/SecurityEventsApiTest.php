@@ -15,6 +15,7 @@ use App\Models\SecurityEvent;
 use App\Services\Rbac\RoleService;
 use Database\Factories\AdminUserFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -31,6 +32,8 @@ class SecurityEventsApiTest extends TestCase
         $roles = app(RoleService::class);
         $roles->assign($admin, $roles->define(PrincipalType::AdminUser, 'T_'.Str::upper(Str::random(8)), 'Test role', $permissions), $scope);
         // Granting the role is itself a security event; the tests below start from a clean list.
+        // Module 39: security_events is append-only in the database; a deletion must declare itself a purge.
+        DB::statement("set local fotg.audit_purge = 'on'");
         SecurityEvent::query()->where('event', E::PermissionChanged->value)->where('principal_id', $admin->getKey())->delete();
 
         return $admin;

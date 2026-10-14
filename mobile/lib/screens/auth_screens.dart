@@ -45,7 +45,11 @@ Widget _errorBox(String? message) => message == null ? const SizedBox.shrink() :
 
 /// Development note: only in the mock build or in a local build configured with the backend test code.
 /// A staging / production build shows nothing here.
-final Widget _devNote = AppConfig.authMode != 'api'
+/// Module 39 (C-03): "local build" is now [AppConfig.isLocal] (the build flavor and APP_ENV), not merely "DEV_OTP was
+/// defined" or "AUTH_MODE is not api": a staging or production build never shows a code or the test numbers.
+final Widget _devNote = !AppConfig.isLocal
+    ? const SizedBox.shrink()
+    : AppConfig.authMode != 'api'
     ? const InfoBox(icon: Icons.science_outlined, color: Brand.amber, bg: Brand.amberBg, child: Text('LOCAL preview — no SMS is sent. Development code: 123456. Test numbers: 98765 43210 = existing customer, 99999 00000 = send failure, 99999 00001 = no network.', style: TextStyle(fontSize: 12.5, color: Color(0xFF7C3D00), fontWeight: FontWeight.w600)))
     : AppConfig.devOtp.isEmpty
         ? const SizedBox.shrink()

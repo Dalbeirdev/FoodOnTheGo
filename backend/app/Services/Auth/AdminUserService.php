@@ -109,8 +109,10 @@ final class AdminUserService
     public function changeStatus(AdminUser $admin, StaffStatus $status, string $reason, AdminUser $actor): AdminUser
     {
         $this->assertNotSelf($admin, $actor);
+        $this->assertOutranks($actor, $admin);
 
         return DB::transaction(function () use ($admin, $status, $reason, $actor): AdminUser {
+            $this->lockAccountManagement();
             $locked = AdminUser::query()->whereKey($admin->getKey())->lockForUpdate()->firstOrFail();
             $from = $locked->status;
 
@@ -137,9 +139,11 @@ final class AdminUserService
     public function changeRole(AdminUser $admin, Role $role, ?Market $market, string $reason, AdminUser $actor): AdminUser
     {
         $this->assertNotSelf($admin, $actor);
+        $this->assertOutranks($actor, $admin);
         $this->assertMayGrant($actor, $role);
 
         return DB::transaction(function () use ($admin, $role, $market, $reason, $actor): AdminUser {
+            $this->lockAccountManagement();
             $current = $admin->roleAssignments()->with('role')->get();
             $codes = Market::query()->whereIn('public_id', $current->where('scope_type', 'market')->pluck('scope_id'))->pluck('country_code', 'public_id');
             $before = $current->map(fn ($a): string => $a->role->code.($a->scope_type === null ? '' : ' ('.($codes[$a->scope_id] ?? $a->scope_type).')'))->sort()->values()->all();
@@ -174,6 +178,7 @@ final class AdminUserService
     public function resetMfa(AdminUser $admin, string $reason, AdminUser $actor): AdminUser
     {
         $this->assertNotSelf($admin, $actor);
+        $this->assertOutranks($actor, $admin);
 
         return DB::transaction(function () use ($admin, $reason, $actor): AdminUser {
             $locked = AdminUser::query()->whereKey($admin->getKey())->lockForUpdate()->firstOrFail();
@@ -227,6 +232,31 @@ final class AdminUserService
                 throw new ApiException(403, 'cannot_grant_beyond_own_permissions', 'You cannot grant a role that includes permissions you do not hold yourself.');
             }
         }
+    }
+
+    /**
+     * Module 39: nobody manages a superior. The actor must hold, platform-wide, every permission of every role the
+     * target holds now (a market-scoped grant counts as the permission) — the same rule as granting a role.
+     */
+    private function assertOutranks(AdminUser $actor, AdminUser $target): void
+    {
+        $codes = $target->roleAssignments()->with('role.permissions')->get()
+            ->flatMap(fn ($assignment) => $assignment->role->permissions->pluck('permission'))->unique();
+        foreach ($codes as $code) {
+            $permission = Permission::tryFrom((string) $code);
+            if ($permission === null || ! $this->access->allows($actor, $permission)) {
+                throw new ApiException(403, 'cannot_manage_superior', 'You cannot change an administrator who holds permissions you do not hold yourself.');
+            }
+        }
+    }
+
+    /**
+     * Module 39: two administrators demoting or suspending each other at the same moment must not both succeed and
+     * leave nobody able to manage accounts — such changes take one database-wide lock, in turn.
+     */
+    private function lockAccountManagement(): void
+    {
+        DB::select('select pg_advisory_xact_lock(?)', [391001]);
     }
 
     /**

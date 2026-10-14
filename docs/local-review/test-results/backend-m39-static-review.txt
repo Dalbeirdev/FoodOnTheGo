@@ -1,0 +1,97 @@
+# Module 39 — backend static security review (no new tool installed: php -l + a sink search reviewed by hand)
+
+php -l: 864 files under app/ config/ routes/ database/ bootstrap/ — syntax errors: 0
+
+## command execution: 19
+  app/Console/Commands/AnalyticsCatalog.php:61: ."| Key | `{$m['key']}` |\n| Unit | {$m['unit']} |\n| Definition | {$m['definition']} |\n| Source | {$m['source']} |\n"
+  app/Console/Commands/AnalyticsCatalog.php:88: $properties = array_map(fn (string $key, string $rule): string => "`{$key}` ({$rule})", array_keys((array) $e['properties']), array_values((array) $e[
+  app/Console/Commands/AnalyticsCatalog.php:89: $out .= "\n### `{$name}`\n\n| | |\n|---|---|\n| Source | {$source} |\n| Trigger | {$e['trigger']} |\n| Funnel stage | ".($e['stage'] === null ? '—' : 
+  app/Http/Controllers/Api/Admin/Analytics/AnalyticsController.php:175: public function system(DataQualityService $quality): JsonResponse
+  app/Http/Controllers/Api/Admin/Finance/OverviewController.php:225: public function system(FinanceHealthService $health): JsonResponse
+  app/Http/Controllers/Api/Admin/NotificationController.php:117: public function system(Request $request, NotificationHealth $health): JsonResponse
+  app/Http/Controllers/Api/Admin/SupportCaseController.php:232: public function system(): JsonResponse
+  app/Services/Support/SupportActor.php:39: public static function system(): self
+  app/Services/Support/SupportCaseService.php:538: $actor = $admin === null ? SupportActor::system() : SupportActor::admin($admin);
+  app/Services/Support/SupportCaseService.php:705: return $this->append($case, SupportActor::system(), $body, null, CarbonImmutable::now('UTC'));
+  app/Services/Support/SupportCaseService.php:721: return $this->writeNote($case, SupportActor::system(), SupportText::clean($body, 'note', (int) config('support.limits.note_max')), null, CarbonImmutab
+  app/Services/Support/SupportSweepService.php:85: $this->machine->line($case, SupportCaseEvent::SLA_BREACHED, SupportActor::system(), SupportCaseEvent::INTERNAL, ['target' => $missed], null, null, $no
+  app/Services/Support/SupportSweepService.php:89: $this->machine->line($case, SupportCaseEvent::SLA_AT_RISK, SupportActor::system(), SupportCaseEvent::INTERNAL, [], null, null, $now);
+  app/Services/Support/SupportSweepService.php:135: $this->machine->move($locked, SupportCaseStatus::Resolved, SupportActor::system(), ['resolution_code' => SupportResolutionCode::NoActionRequired->valu
+  app/Services/Support/SupportSweepService.php:149: $this->cases->close($case, SupportActor::system());
+  app/Services/Support/SystemCaseService.php:203: $locked = $this->cases->reopen($existing, SupportActor::system(), 'The condition this case is about was reported again.');
+  app/Services/Support/SystemCaseService.php:214: return $this->cases->create(SupportActor::system(), SupportRequesterType::System, $input, $source, $records, array_filter($columns, fn ($v): bool => $
+  config/finance.php:101: | Holds placed by the system (a person can always place one with a reason). PENDING BUSINESS APPROVAL.
+  config/support.php:120: |   auto_escalate   when true, a breached case is escalated by the system (SLA_RISK)
+
+## eval / dynamic code: 2
+  app/Http/Controllers/Api/Customer/AccountController.php:52: $this->recent->assert($request);
+  app/Http/Controllers/Api/Customer/PhoneChangeController.php:31: $this->recent->assert($request);
+
+## unserialize: 0
+
+## raw SQL with interpolation: 26
+  app/Http/Controllers/Api/Admin/SupportCaseController.php:699: $minutes = fn (string $from, string $to, Builder $q): ?float => ($v = $q->whereNotNull($to)->where($to, '>=', $since)->toBase()->selectRaw('avg(extrac
+  app/Services/Analytics/Aggregation/DailyAggregator.php:390: DB::delete("delete from analytics_daily_finance where market_id {$where} and local_date = any(?::date[])", [$days]);
+  app/Services/Analytics/Aggregation/DailyAggregator.php:428: DB::delete("delete from analytics_daily_support where market_id {$where} and local_date = any(?::date[])", [$days]);
+  app/Services/Analytics/OrderAnalyticsService.php:212: $rows = $this->read->facts($scope, $period)->when($where !== null, fn ($q) => $q->whereRaw($where))->selectRaw("coalesce(f.{$column}, 'UNKNOWN') as va
+  app/Services/Analytics/ReadModel.php:56: foreach ($this->daily($table, $scope, $period)->selectRaw('t.currency, '.$select)->groupBy('t.currency')->orderBy('t.currency')->get() as $row) {
+  app/Services/Analytics/ReadModel.php:87: $query = $this->daily($table, $scope, $period)->selectRaw('t.local_date, '.$select)->groupBy('t.local_date');
+  app/Services/Analytics/SupportAnalyticsService.php:31: $by = fn (string $column): array => $this->read->daily('analytics_daily_support', $scope, $period)->selectRaw("t.{$column} as k, coalesce(sum(t.create
+  app/Services/Finance/FinanceReportService.php:98: $count = fn (string $table, string $column = 'status') => (object) $scoped(DB::table($table), 'market_id')->selectRaw("{$column} as k, count(*) as n")
+  app/Services/Finance/FinanceReportService.php:145: 'location' => [$query->join('restaurant_locations as l', 'l.id', '=', 'a.location_id')->selectRaw("l.public_id as key, l.name as label, {$sums}")->gro
+  app/Services/Finance/FinanceReportService.php:146: 'organization' => [$query->join('restaurant_organizations as o', 'o.id', '=', 'a.organization_id')->selectRaw("o.public_id as key, o.display_name as l
+  app/Services/Finance/FinanceReportService.php:147: 'market' => [$query->leftJoin('markets as m', 'm.id', '=', 'a.market_id')->selectRaw("m.slug as key, m.name as label, {$sums}")->groupBy('m.slug', 'm.
+  app/Services/Finance/FinanceReportService.php:150: default => [$query->selectRaw("(a.recognized_at at time zone {$zone})::date as key, (a.recognized_at at time zone {$zone})::date as label, {$sums}")->
+  app/Services/Finance/FinanceReportService.php:198: ->selectRaw("provider, currency, (coalesce(settled_at, provider_created_at) at time zone {$zone})::date as day, count(*) filter (where type = 'PAYMENT
+  app/Services/Geo/DistanceService.php:20: return new Distance((float) DB::selectOne("select ST_Distance({$a}::geography, {$b}::geography) as m", [...$aBindings, ...$bBindings])->m);
+  app/Services/Geo/RouteCorridorQuery.php:32: ->selectRaw("ST_Distance(route_corridors.centerline::geography, {$point}::geography) as distance_m", $bindings)
+  app/Services/Geo/RouteCorridorQuery.php:34: ->whereRaw("ST_DWithin(route_corridors.centerline::geography, {$point}::geography, route_corridors.corridor_width_meters)", $bindings)
+  app/Services/Market/GeographyAdminService.php:369: $inside = DB::selectOne("select bounds is null or ST_Covers(bounds, {$expression}) as inside from markets where id = ?", [...$bindings, $market->getKe
+  app/Services/Market/MarketLocationResolver.php:34: ->whereRaw("ST_Covers(bounds, {$point})", $bindings)
+  app/Services/Market/MarketLocationResolver.php:60: ->whereRaw("ST_Covers(service_areas.geometry, {$point})", $bindings)
+  app/Services/Market/MarketLocationResolver.php:76: ->selectRaw("ST_Distance(cities.center, {$point}::geography) as distance_m", $bindings)
+  app/Services/Market/MarketLocationResolver.php:78: ->whereRaw("ST_DWithin(cities.center, {$point}::geography, ?)", [...$bindings, (int) config('geo.city_match_radius_meters')])
+  app/Services/Market/MarketLocationResolver.php:94: ->selectRaw("ST_Distance(service_areas.geometry::geography, {$point}::geography) as distance_m", $bindings)
+  app/Services/Restaurant/LocationGeography.php:40: $inside = DB::selectOne("select bounds is null or ST_Covers(bounds, {$sql}) as inside from markets where id = ?", [...$bindings, $market->getKey()]);
+  app/Services/Restaurant/LocationGeography.php:63: $distance = (float) DB::selectOne("select ST_Distance(center, {$sql}::geography) as m from cities where id = ?", [...$bindings, $city->getKey()])->m;
+  app/Services/Restaurant/RestaurantVisibility.php:60: $query->selectRaw('('.$this->coveringArea([CoverageStatus::Active->value], ['PILOT', 'ACTIVE'], ['PILOT', 'ACTIVE'], true).') as geo_serviceable', [$i
+  app/Services/Support/SystemCaseService.php:159: ->whereRaw("support_cases.system_key = '".$prefix.":' || ".$table.'.public_id::text'));
+
+## file access with a variable path: 3
+  app/Console/Commands/AnalyticsCatalog.php:27: file_put_contents($directory.'/metric-catalog.md', self::metrics());
+  app/Console/Commands/AnalyticsCatalog.php:28: file_put_contents($directory.'/event-registry.md', self::events($events));
+  app/Services/Notifications/Providers/FcmHttpV1PushProvider.php:163: $decoded = json_decode((string) file_get_contents($path), true);
+
+## outbound HTTP to a computed URL: 2
+  app/Services/Auth/TruecallerVerifier.php:41: $token = Http::timeout($timeout)->asForm()->acceptJson()->post($base.'/v1/token', [
+  app/Services/Auth/TruecallerVerifier.php:53: $profile = Http::timeout($timeout)->withToken($accessToken)->acceptJson()->get($base.'/v1/userinfo');
+
+## redirect: 0
+
+## mass assignment off: 9
+  app/Models/AuditEvent.php:18: protected $guarded = [];
+  app/Models/CredentialResetToken.php:19: protected $guarded = [];
+  app/Models/OtpChallenge.php:17: protected $guarded = [];
+  app/Models/RestaurantAdminNote.php:19: protected $guarded = [];
+  app/Models/RestaurantLocationHour.php:19: protected $guarded = [];
+  app/Models/RestaurantLocationPickupMethod.php:17: protected $guarded = [];
+  app/Models/RestaurantSpecialHourPeriod.php:14: protected $guarded = [];
+  app/Models/RestaurantStaffInvitation.php:22: protected $guarded = [];
+  app/Models/SecurityEvent.php:18: protected $guarded = [];
+
+## weak hash / random for secrets: 3
+  app/Providers/AppServiceProvider.php:210: $hash = fn (Request $request, string $field): string => sha1(mb_strtolower(preg_replace('/[\s().-]/', '', $scalar($request->input($field))) ?? ''));
+  app/Providers/AppServiceProvider.php:237: Limit::perMinute($perMinute('otp_verify_challenge'))->by($request->filled('challenge_id') ? 'otp-verify:challenge:'.sha1($scalar($request->input('chal
+  app/Services/Analytics/Aggregation/DailyAggregator.php:205: select f.location_id, (f.completed_at at time zone l.timezone)::date as local_date, coalesce(i.item_public_id::text, 'name:' || md5(i.name)) as item_k
+
+## Reviewer verdicts (each hit read in its file, 2026-10-14)
+- command execution (19): 0 real — every hit is a method named system() (support, finance, notification, analytics health) or Markdown text with backticks in AnalyticsCatalog / config comments. No exec / shell_exec / proc_open / backtick operator exists in app/, config/, routes/.
+- eval / dynamic code (2): 0 real — both are the method call $this->recent->assert($request) (RecentAuthentication), not PHP assert().
+- unserialize: none.
+- raw SQL with interpolation (26): 0 injectable — the interpolated parts are code constants or values the code produces: column names from fixed lists (ReadModel, Support/Order analytics, FinanceReportService group maps, SupportCaseController::$minutes called with literal column names), '= '.(int) market id (DailyAggregator), a time-zone name accepted only if it is in timezone_identifiers_list() and matches [A-Za-z0-9_/+-] before it is quoted (FinanceReportService::zone), PostGIS point / geometry expressions whose coordinates are bound parameters (Geo, Market, Restaurant services), literal WHERE fragments (OrderAnalyticsService "f.status = 'REJECTED'"), and SystemCaseService constants. Request values always reach SQL as bindings.
+- file access with a variable path (3): 0 real — AnalyticsCatalog writes its two generated documents to a fixed folder (console only); FcmHttpV1PushProvider reads the service-account file named in configuration (FIREBASE_CREDENTIALS, config notifications.fcm.credentials), never a request value.
+- outbound HTTP to a computed URL (2): 0 SSRF — TruecallerVerifier joins a fixed path to the base URL from configuration (services.truecaller); no request value builds an outbound URL anywhere (also checked: Http:: uses in Payment / Notifications / Journey providers take configured hosts).
+- redirect: none — the API never redirects (no open redirect).
+- $guarded = [] (9): models written only by services with server-built arrays (audit and security events, credential reset tokens, OTP challenges, staff invitations, location hours / pickup methods / special hours, admin notes); no controller passes $request->all() to create / fill / update (grep: none).
+- weak hash (3): sha1 is used for rate-limiter keys and md5 for grouping menu items by name in analytics — neither protects a secret. Secrets use random_bytes / Str::random (64), HMAC-SHA256 (pickup codes, security event identifiers), SHA-256 (tokens, recovery codes) and the framework hasher (passwords).
+RESULT: 0 exploitable sink found. Limits: a pattern search reviewed by hand, not a type-aware analyser (PHPStan / Larastan are not installed and were not added).

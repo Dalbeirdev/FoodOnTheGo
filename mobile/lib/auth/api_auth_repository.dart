@@ -19,7 +19,8 @@ class ApiAuthRepository implements AuthRepository {
       // ignore: prefer_initializing_formals
       : _store = store,
         _now = now ?? DateTime.now,
-        _devOtp = devOtp ?? AppConfig.devOtp {
+        // Module 39: the build's DEV_OTP only in a local build (AppConfig.localDevOtp); tests hand one in.
+        _devOtp = devOtp ?? AppConfig.localDevOtp {
     _api = client ?? ApiClient(tokenProvider: () => _store.read(tokenKey), onUnauthenticated: _sessionEnded);
   }
 

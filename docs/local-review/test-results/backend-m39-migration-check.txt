@@ -1,0 +1,25 @@
+# Module 39 — migration check (2026-10-14). Test database: migrate, rollback --step=1, migrate again; LOCAL database: migrate.
+# Migration 2026_10_19_100000_module39_security: idempotency replies encrypted (backfill), append-only triggers on audit_events / security_events, unique signed-body index on payment_webhook_events (rows after the highest id at migration time), customer_devices.session_bound + access_token_id.
+== test DB: rollback + re-apply of the Module 39 migration ==
+
+ INFO Nothing to migrate. 
+
+
+ 2026_10_19_100000_module39_security .. 18.57ms DONE
+
+
+ 2026_10_19_100000_module39_security .. 32.53ms DONE
+
+== local DB: migrate ==
+
+ 2026_10_19_100000_module39_security .. 276.94ms DONE
+
+== migration status (LOCAL) ==
+ 2026_10_18_100000_module38_analytics .. [17] Ran 
+ 2026_10_19_100000_module39_security .. [18] Ran 
+== triggers present (LOCAL) ==
+[{"tgname":"audit_events_append_only","tbl":"audit_events"},{"tgname":"security_events_append_only","tbl":"security_events"}]
+
+== index present (LOCAL) ==
+[{"indexname":"payment_webhook_events_signed_body_unique"}]
+

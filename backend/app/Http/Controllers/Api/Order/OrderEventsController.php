@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Order;
 
+use App\Enums\Permission;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Order\OrderPresenter;
 use App\Models\Customer;
@@ -10,6 +11,7 @@ use App\Models\OrderEvent;
 use App\Models\RestaurantUser;
 use App\Services\Order\OrderMetrics;
 use App\Services\Order\OrderStore;
+use App\Services\Restaurant\RestaurantAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -25,7 +27,7 @@ class OrderEventsController extends Controller
 {
     private const LIMIT = 200;
 
-    public function __construct(private readonly OrderStore $orders, private readonly OrderPresenter $presenter, private readonly OrderMetrics $metrics) {}
+    public function __construct(private readonly OrderStore $orders, private readonly OrderPresenter $presenter, private readonly OrderMetrics $metrics, private readonly RestaurantAccess $access) {}
 
     public function customer(Request $request, string $order): JsonResponse
     {
@@ -41,6 +43,8 @@ class OrderEventsController extends Controller
         /** @var RestaurantUser $user */
         $user = $request->user();
         $found = $this->orders->forRestaurant($user, $order);
+        // Module 39: like every other read of a restaurant's order, the permission is required, not only the location.
+        $this->access->authorize($user, $found->location, Permission::RestaurantOrdersView);
 
         return $this->answer($request, $found, true);
     }

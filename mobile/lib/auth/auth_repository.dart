@@ -76,8 +76,23 @@ abstract class KeyValueStore {
   Future<void> write(String key, String? value);
 }
 
-class SecureKeyValueStore implements KeyValueStore {
+/// A store that can say which keys it holds — so a sign-out can remove keys that carry an id in their name
+/// (a review draft per order). Separate from [KeyValueStore] so the stores of the tests stay as they are.
+abstract interface class KeyListingStore {
+  Future<Iterable<String>> keys();
+}
+
+class SecureKeyValueStore implements KeyValueStore, KeyListingStore {
   final _storage = const FlutterSecureStorage();
+  @override
+  Future<Iterable<String>> keys() async {
+    try {
+      return (await _storage.readAll()).keys;
+    } catch (_) {
+      return const [];
+    }
+  }
+
   @override
   Future<String?> read(String key) async {
     try {
@@ -95,8 +110,10 @@ class SecureKeyValueStore implements KeyValueStore {
   }
 }
 
-class MemoryKeyValueStore implements KeyValueStore {
+class MemoryKeyValueStore implements KeyValueStore, KeyListingStore {
   final _m = <String, String>{};
+  @override
+  Future<Iterable<String>> keys() async => [..._m.keys];
   @override
   Future<String?> read(String key) async => _m[key];
   @override

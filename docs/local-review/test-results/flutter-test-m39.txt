@@ -1,0 +1,12 @@
+# Module 39 — Android app checks (LOCAL, 2026-10-14, 19:00 India time — the pickup widget tests of Module 28 read the wall clock and pass only during the opening hours of the restaurant fixture: CF-527): flutter analyze, flutter test (Windows host). New test files of this module: test/build_environment_test.dart, test/private_context_test.dart.
+
+== flutter analyze
+Try `flutter pub outdated` for more information.
+Analyzing mobile...                                             
+No issues found! (ran in 59.4s)
+
+== flutter test
+00:25 +680: E:/TechPio-Data/FoodOnTheGo/mobile/test/support_screens_test.dart: Layout — the support screens lay out on a tablet
+00:26 +681: E:/TechPio-Data/FoodOnTheGo/mobile/test/support_screens_test.dart: Semantics — the identifiers of the support screens are real semantics nodes: roots, rows, fields, actions, messages, the unsent reply
+00:26 +682: E:/TechPio-Data/FoodOnTheGo/mobile/test/support_screens_test.dart: Notifications — an inbox item and a push with the target SUPPORT_CASE open that case; the route is behind sign-in
+00:26 +683: All tests passed!

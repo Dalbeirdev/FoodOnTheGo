@@ -1148,3 +1148,31 @@ Full description: [analytics.md](analytics.md) and [`docs/analytics/`](../analyt
   marketing attribution, a push open rate, a score per support agent, XLSX / PDF, a report builder, behavioural
   history before Module 38 (never recorded, not invented). Every definition, band, threshold and retention period
   is a DEVELOPMENT DEFAULT pending business approval. Production = NO.
+
+## 27. Security, privacy and compliance hardening (Module 39)
+
+Full description: [`docs/security/`](../security/threat-model.md) (threat model, data flow and architecture diagram,
+RBAC matrix, data classification, retention, secrets, headers, uploads, webhooks, mobile, incident response, the
+production checklist) and [`docs/privacy/`](../privacy/data-inventory.md). In short:
+
+- **Proven by negative tests** — `tests/Feature/Security/`: every registered route is in
+  [`route-inventory.json`](../security/route-inventory.json) with its class, guard, limit and permission (a new
+  route that is not fails the suite); no protected route answers without a token or to another kind of principal;
+  IDOR master walks for customers, restaurant organizations, locations and administrator markets (with positive
+  controls); hostile query strings on every read route; stored script / SQL text; media path traversal.
+- **Authentication** — per-account lockout (password and second factor, also for unknown e-mails), administrator
+  idle timeout, administrator MFA and four-eyes approval ON by default outside local / testing, OTP budgets (global
+  per hour, per number per day), every per-person limiter key names the kind of principal.
+- **Data protection** — idempotency replies encrypted at rest; `audit_events` / `security_events` append-only in
+  the database (not on the local development database — BUG-323); push devices bound to the session that registered them; restaurant staff see a customer's contact
+  only while it is needed; a customer who asked for deletion (RESTRICTED) cannot pay; `privacy:erase-customer`
+  anonymises in place (dry run by default) and keeps the financial record; images re-encoded; keyed pickup code
+  hashes; a replayed webhook body is a duplicate; request bodies above 256 KB refused (413).
+- **Configuration** — fake providers, `/dev` routes and the admin test send only in local / testing (allow-list);
+  trusted hosts and proxies; CORS without credentials; the framework's CSRF-cookie, web broadcasting and private
+  storage routes removed; `php artisan security:check` (32 items, exit 1 outside local / testing on any failure)
+  and `backend/.env.production.example`.
+- **Not done (production blockers)** — administrator step-up for high-risk actions, the web session decision
+  (owner decision 393 vs bearer tokens in sessionStorage, CF-281), Android release signing, legal texts and the
+  analytics consent screen, real provider verification, malware scanning before attachments, a least-privilege
+  database role, TLS / HSTS / WAF / secret manager / monitoring (deployment). No compliance is claimed. Production = NO.

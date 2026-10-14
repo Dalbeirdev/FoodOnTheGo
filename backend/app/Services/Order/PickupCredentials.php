@@ -136,9 +136,31 @@ final class PickupCredentials
         return $c !== null && $c->status === PickupCredentialStatus::Active && ! is_string($c->token_secret);
     }
 
+    /**
+     * Module 39: an HMAC keyed by the application key — the code space is small (about 2^30), so a plain hash in a
+     * database copy could be reversed offline.
+     */
     public static function codeHash(Order $order, string $code): string
     {
+        return hash_hmac('sha256', (string) $order->public_id.':'.self::normalizeCode($code), self::hashKey());
+    }
+
+    /**
+     * The hash credentials issued before Module 39 carry (they expire within a day of their pickup time).
+     */
+    public static function legacyCodeHash(Order $order, string $code): string
+    {
         return hash('sha256', (string) $order->public_id.':'.self::normalizeCode($code));
+    }
+
+    /** Credentials issued before this moment were stored with the legacy hash. */
+    public const HMAC_SINCE = '2026-10-14 00:00:00';
+
+    private static function hashKey(): string
+    {
+        $key = (string) config('app.key');
+
+        return 'pickup-code|'.(str_starts_with($key, 'base64:') ? base64_decode(substr($key, 7)) : $key);
     }
 
     /** Trims, upper-cases and drops separators; never swaps characters (0/O/1/I are not in the alphabet, so none is "corrected"). */

@@ -29,7 +29,8 @@ class IdempotencyKey extends Model
     protected function casts(): array
     {
         return [
-            'response_body' => 'array',
+            // Module 39: encrypted at rest — a replayed answer may carry a pickup code, a QR secret or a payer's details.
+            'response_body' => 'encrypted:array',
             'completed_at' => 'datetime',
             'expires_at' => 'datetime',
         ];

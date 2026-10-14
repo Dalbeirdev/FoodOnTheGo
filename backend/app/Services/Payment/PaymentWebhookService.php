@@ -83,7 +83,9 @@ final class PaymentWebhookService
         $stored = $this->store($provider->name(), $reference, $hash, $event);
         if ($stored === null) {
             // Delivered again. Counted, and handed to a worker once more only if the first handling did not finish.
-            $existing = PaymentWebhookEvent::query()->where('provider', $provider->name())->where('provider_event_reference', $reference)->first();
+            // Module 39: the same signed body under a new event-id header is the same delivery.
+            $existing = PaymentWebhookEvent::query()->where('provider', $provider->name())
+                ->where(fn ($same) => $same->where('provider_event_reference', $reference)->orWhere('payload_hash', $hash))->orderBy('id')->first();
             $existing?->forceFill(['deliveries' => (int) $existing->deliveries + 1])->save();
             if ($existing !== null && $existing->processing_status === PaymentWebhookEvent::FAILED) {
                 ProcessPaymentWebhookEvent::dispatch((int) $existing->getKey());

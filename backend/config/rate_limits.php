@@ -19,6 +19,9 @@ return [
     'otp_phone' => (int) env('RATE_LIMIT_OTP_PHONE', 3),
     'otp_verify_ip' => (int) env('RATE_LIMIT_OTP_VERIFY_IP', 20),
     'otp_verify_challenge' => (int) env('RATE_LIMIT_OTP_VERIFY_CHALLENGE', 10),
+    // Module 39: what one-time codes may cost. All numbers together per hour (SMS pumping), and one number per day.
+    'otp_global_per_hour' => (int) env('RATE_LIMIT_OTP_GLOBAL_PER_HOUR', 600),
+    'otp_phone_per_day' => (int) env('RATE_LIMIT_OTP_PHONE_PER_DAY', 10),
 
     'staff_login_ip' => (int) env('RATE_LIMIT_STAFF_LOGIN_IP', 20),
     'staff_login_identity' => (int) env('RATE_LIMIT_STAFF_LOGIN_IDENTITY', 5),
@@ -26,6 +29,12 @@ return [
     'admin_login_identity' => (int) env('RATE_LIMIT_ADMIN_LOGIN_IDENTITY', 3),
     'mfa_verify' => (int) env('RATE_LIMIT_MFA_VERIFY', 10),
     'password_reset' => (int) env('RATE_LIMIT_PASSWORD_RESET', 5),
+    // Module 39: file uploads (avatar, menu images) per person.
+    'upload' => (int) env('RATE_LIMIT_UPLOAD', 10),
+    // Module 39: public media files per address.
+    'media' => (int) env('RATE_LIMIT_MEDIA', 1200),
+    // Module 39: per e-mail address as well (a reset mail cannot be sent to one person over and over from many addresses).
+    'password_reset_identity' => (int) env('RATE_LIMIT_PASSWORD_RESET_IDENTITY', 3),
 
     'availability' => (int) env('RATE_LIMIT_AVAILABILITY', 30),
     'search' => (int) env('RATE_LIMIT_SEARCH', 60),

@@ -14,6 +14,8 @@ use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Sms\SmsProvider;
 use App\Enums\Permission;
 use App\Enums\PrincipalType;
+use App\Enums\SecurityEventType;
+use App\Exceptions\ApiException;
 use App\Models\AccessToken;
 use App\Models\City;
 use App\Models\Cuisine;
@@ -30,6 +32,7 @@ use App\Models\RoleAssignment;
 use App\Models\RolePermission;
 use App\Models\RouteCorridor;
 use App\Models\ServiceArea;
+use App\Services\Auth\SecurityEventRecorder;
 use App\Services\Journey\Providers\ProviderManager;
 use App\Services\Market\MarketContext;
 use App\Services\Notifications\NotificationMetrics;
@@ -49,6 +52,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
@@ -96,6 +100,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Module 39: the private channels and their authorization callbacks — without Laravel's default web route
+        // (see bootstrap/app.php); the API's own authorization endpoints call Broadcast::auth().
+        require base_path('routes/channels.php');
+        // Module 39: only these proxies may set X-Forwarded-* (none by default).
+        if (($proxies = config('security.trusted_proxies')) !== null) {
+            TrustProxies::at($proxies);
+        }
         $this->configureIdentity();
         $this->configureRateLimiting();
         $this->configureAuthorization();
@@ -116,6 +127,23 @@ class AppServiceProvider extends ServiceProvider
         )->all());
 
         Sanctum::usePersonalAccessTokenModel(AccessToken::class);
+
+        // Module 39: an administrator's token that was not used for `admin_idle_minutes` is revoked on its next use —
+        // decided before Sanctum records the use, so an idle token cannot refresh itself.
+        Sanctum::authenticateAccessTokensUsing(function (AccessToken $token, bool $isValid): bool {
+            $idle = (int) config('auth_security.admin_idle_minutes');
+            if (! $isValid || $idle <= 0 || $token->tokenable_type !== PrincipalType::AdminUser->morphAlias()) {
+                return $isValid;
+            }
+            $lastUse = $token->last_used_at ?? $token->created_at;
+            if ($lastUse === null || $lastUse->greaterThanOrEqualTo(now()->subMinutes($idle))) {
+                return true;
+            }
+            app(SecurityEventRecorder::class)->record(SecurityEventType::AdminSessionIdleExpired, $token->tokenable, ['idle_minutes' => $idle]);
+            $token->delete();
+
+            return false;
+        });
     }
 
     /**
@@ -176,19 +204,37 @@ class AppServiceProvider extends ServiceProvider
     private function configureRateLimiting(): void
     {
         $perMinute = fn (string $name): int => (int) config("rate_limits.{$name}");
-        $hash = fn (Request $request, string $field): string => sha1(mb_strtolower(preg_replace('/[\s().-]/', '', (string) $request->input($field)) ?? ''));
-        $actor = fn (Request $request): string => (string) ($request->user()?->getAuthIdentifier() ?? $request->ip());
+        // Module 39: a field sent as an array or an object (`email[]=…`) is keyed by its JSON, never cast to a string — the
+        // cast crashed the request (500) before validation could refuse it (422).
+        $scalar = fn (mixed $value): string => is_scalar($value) || $value === null ? (string) $value : (string) json_encode($value);
+        $hash = fn (Request $request, string $field): string => sha1(mb_strtolower(preg_replace('/[\s().-]/', '', $scalar($request->input($field))) ?? ''));
+        // Module 39: the kind of account is part of every per-person key — customer, restaurant user and administrator ids
+        // overlap, and restaurant user #7 must never spend administrator #7's allowance. A guest is keyed by address.
+        $actor = fn (Request $request): string => $request->user() instanceof Principal
+            ? $request->user()->principalType()->morphAlias().':'.$request->user()->getAuthIdentifier()
+            : 'ip:'.$request->ip();
 
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute($perMinute('api'))->by('api:'.$request->ip()));
 
+        // Module 39: a request without a phone number (re-authentication sends the code to the signed-in customer's own
+        // number) is keyed by that customer, never by an empty field everybody shares; and every code costs money: one
+        // budget for all numbers per hour, and one per number per day.
+        $otpBudgetSpent = function (string $which): never {
+            app(SecurityEventRecorder::class)->record(SecurityEventType::OtpBudgetExceeded, null, ['budget' => $which]);
+
+            throw new ApiException(429, 'too_many_requests', 'Too many codes were requested. Please try again later.');
+        };
         RateLimiter::for('otp-request', fn (Request $request) => [
             Limit::perMinute($perMinute('otp_ip'))->by('otp-request:ip:'.$request->ip()),
-            Limit::perMinute($perMinute('otp_phone'))->by('otp-request:phone:'.$hash($request, 'phone')),
+            Limit::perMinute($perMinute('otp_phone'))->by($request->filled('phone') ? 'otp-request:phone:'.$hash($request, 'phone') : 'otp-request:principal:'.$actor($request)),
+            Limit::perHour($perMinute('otp_global_per_hour'))->by('otp-request:global')->response(fn () => $otpBudgetSpent('global_per_hour')),
+            Limit::perDay($perMinute('otp_phone_per_day'))->by($request->filled('phone') ? 'otp-request:phone-day:'.$hash($request, 'phone') : 'otp-request:principal-day:'.$actor($request))->response(fn () => $otpBudgetSpent('number_per_day')),
         ]);
 
         RateLimiter::for('otp-verify', fn (Request $request) => [
             Limit::perMinute($perMinute('otp_verify_ip'))->by('otp-verify:ip:'.$request->ip()),
-            Limit::perMinute($perMinute('otp_verify_challenge'))->by('otp-verify:challenge:'.sha1((string) $request->input('challenge_id'))),
+            // A Truecaller sign-in has no challenge id: it is keyed by address, not by an empty field everybody shares.
+            Limit::perMinute($perMinute('otp_verify_challenge'))->by($request->filled('challenge_id') ? 'otp-verify:challenge:'.sha1($scalar($request->input('challenge_id'))) : 'otp-verify:no-challenge:'.$request->ip()),
         ]);
 
         RateLimiter::for('staff-login', fn (Request $request) => [
@@ -203,7 +249,13 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('mfa-verify', fn (Request $request) => Limit::perMinute($perMinute('mfa_verify'))->by('mfa:'.$actor($request)));
 
-        RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute($perMinute('password_reset'))->by('reset:'.$request->ip()));
+        RateLimiter::for('password-reset', fn (Request $request) => array_values(array_filter([
+            Limit::perMinute($perMinute('password_reset'))->by('reset:'.$request->ip()),
+            $request->filled('email') ? Limit::perMinute($perMinute('password_reset_identity'))->by('reset:id:'.$hash($request, 'email')) : null,
+        ])));
+
+        RateLimiter::for('media', fn (Request $request) => Limit::perMinute($perMinute('media'))->by('media:'.$request->ip()));
+        RateLimiter::for('upload', fn (Request $request) => Limit::perMinute($perMinute('upload'))->by('upload:'.$actor($request)));
 
         RateLimiter::for('availability', fn (Request $request) => Limit::perMinute($perMinute('availability'))->by('availability:'.$request->ip()));
 

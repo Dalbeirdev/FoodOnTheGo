@@ -33,6 +33,7 @@ import 'screens/my_reviews_screen.dart';
 import 'screens/support_case_screen.dart';
 import 'screens/support_cases_screen.dart';
 import 'screens/support_new_case_screen.dart';
+import 'screens/unconfigured_build_screen.dart';
 import 'support/api_support.dart';
 import 'review/api_review.dart';
 import 'auth/auth_repository.dart' show SecureKeyValueStore;
@@ -52,6 +53,7 @@ import 'screens/order_tracking_screen.dart';
 import 'state/orders_history_state.dart';
 import 'screens/order_confirmation_screen.dart';
 import 'state/journey_state.dart';
+import 'state/private_state.dart';
 import 'auth/api_auth_repository.dart' show ApiAuthRepository;
 import 'core/app_config.dart';
 import 'data/api_client.dart';
@@ -65,6 +67,12 @@ import 'notifications/push_runtime.dart';
 /// that need the backend say so.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Module 39 (C-03): a production build whose configuration cannot work (no https API, development data) never runs.
+  final problems = AppConfig.configurationProblems;
+  if (problems.isNotEmpty) {
+    runApp(UnconfiguredBuildApp(problems: problems));
+    return;
+  }
   await Future.wait([
     if (marketFromApi) marketRepository.hydrate().timeout(const Duration(seconds: 8), onTimeout: () => false),
     if (restaurantsFromApi) restaurantApi.hydrate().timeout(const Duration(seconds: 8), onTimeout: () => false),
@@ -160,6 +168,9 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
   // Payments on the backend (Module 30) go out as the checkout does: as the signed-in customer.
   late final PaymentBackendState? paymentBackend = paymentsFromApi && cartBackend != null ? PaymentBackendState(backend: PaymentBackend(cartBackend!)) : null;
   String? _checkoutOwner;
+  AuthStatus? _lastStatus;
+  // The development payment flow (the backend one is [paymentBackend]); held here so a sign-out can reset it.
+  final payment = PaymentState();
   String? _deviceOwner;
   late final GoRouter router = buildRouter(auth);
   // Module 33: push (Firebase when configured, the development token source otherwise) and this installation's binding to the
@@ -226,10 +237,15 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
     account.bind(auth.user); cart.onSessionChanged(auth.isAuthenticated);
     // Module 33: the installation follows the session — bound on sign-in; the logout body unbinds it on the backend.
     if (auth.isAuthenticated && auth.user?.id != _deviceOwner) { _deviceOwner = auth.user?.id; _bindDevice(); } else if (!auth.isAuthenticated) { _deviceOwner = null; }
-    // Signing out, or another customer on this phone: nothing of the earlier checkout may be shown or paid.
+    // Signing out, a session that ended (401 / expired), or another customer on this phone: nothing of the earlier
+    // checkout may be shown or paid, and (Module 39) no journey, pickup choice, payment or chosen location stays in memory.
     final owner = auth.user?.id;
-    if (checkout.backendMode && _checkoutOwner != null && _checkoutOwner != owner) { checkout.reset(); paymentBackend?.reset(); }
+    final expiredNow = auth.status == AuthStatus.sessionExpired && _lastStatus != AuthStatus.sessionExpired;
+    if ((_checkoutOwner != null && _checkoutOwner != owner) || expiredNow) {
+      forgetPrivateState(checkout: checkout, paymentBackend: paymentBackend, payment: payment, journey: journey, journeyApi: journeysFromApi ? journeyApi : null, discovery: discovery, pickup: pickup);
+    }
     _checkoutOwner = owner;
+    _lastStatus = auth.status;
   }
 
   // The pickup choice belongs to the cart: when the cart appears, changes or goes, the backend's judgement of the
@@ -258,7 +274,7 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
           ChangeNotifierProvider(create: (_) => OrdersState()),
           ChangeNotifierProvider.value(value: pickup),
           ChangeNotifierProvider.value(value: checkout),
-          ChangeNotifierProvider(create: (_) => PaymentState()),
+          ChangeNotifierProvider.value(value: payment),
           if (paymentBackend != null) ChangeNotifierProvider<PaymentBackendState>.value(value: paymentBackend!),
           Provider<DeviceRegistrar?>.value(value: devices),
           Provider<PushRuntime?>.value(value: push),

@@ -5,6 +5,7 @@ namespace App\Services\Checkout;
 use App\Enums\CartStatus;
 use App\Enums\CheckoutIssueCode as Code;
 use App\Enums\CheckoutStatus as Status;
+use App\Enums\CustomerStatus;
 use App\Enums\PaymentMethodStatus;
 use App\Enums\PromotionRejection;
 use App\Events\Checkout\CheckoutEvent;
@@ -75,6 +76,11 @@ final class CheckoutService
      */
     public function open(Customer $customer, array $input = [], ?CarbonInterface $at = null): CheckoutView
     {
+        // Module 39: a customer who asked for the account to be deleted (RESTRICTED) can still sign in to follow open
+        // orders, refunds and cases, but cannot start a new purchase.
+        if ($customer->status === CustomerStatus::Restricted) {
+            throw new ApiException(403, 'account_restricted', 'This account is being deleted at your request, so it cannot place new orders. Contact support if you want to keep using it.');
+        }
         $at = CarbonImmutable::instance($at ?? now());
 
         return DB::transaction(function () use ($customer, $input, $at): CheckoutView {

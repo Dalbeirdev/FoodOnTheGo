@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { maskPhone } from '../../auth/phone'
 import { AuthError } from '../../auth/repository'
+import { developmentHintsAllowed } from '../../auth/devOtp'
 import AuthLayout from './AuthLayout'
 
 const LENGTH = 6
@@ -114,7 +115,8 @@ export default function VerifyOtpPage() {
           ? <span>Resend in {fmt(resendIn)}</span>
           : <button type="button" className="auth__link" onClick={resend} disabled={busy}>{state === 'resending' ? 'Sending…' : otp?.resendChannel && otp.resendChannel !== otp.channel ? (otp.resendChannel === 'sms' ? 'Send the code by SMS instead' : 'Send the code on WhatsApp instead') : 'Resend OTP'}</button>}
       </p>
-      {pending?.otp?.devOtp && <p className="auth__switch auth__dev" role="note" data-testid="dev-otp">LOCAL preview: the development code is <b>{pending.otp.devOtp}</b>.</p>}
+      {/* Module 39: a deployable build never shows a code, even if a repository handed one over (see auth/devOtp.ts). */}
+      {pending?.otp?.devOtp && developmentHintsAllowed() && <p className="auth__switch auth__dev" role="note" data-testid="dev-otp">LOCAL preview: the development code is <b>{pending.otp.devOtp}</b>.</p>}
     </AuthLayout>
   )
 }

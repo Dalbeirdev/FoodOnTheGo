@@ -30,7 +30,9 @@ final class SecurityEventRecorder
             'event' => $type,
             'principal_type' => $principal?->principalType()->morphAlias(),
             'principal_id' => $principal?->getAuthIdentifier(),
-            'identifier_hash' => $identifier === null ? null : hash('sha256', strtolower($identifier)),
+            // Module 39: keyed (HMAC with the application key) — a plain SHA-256 of a phone number is reversed by trying the
+            // numbering plan; the keyed hash still groups the events of one identifier.
+            'identifier_hash' => $identifier === null ? null : self::identifierHash($identifier),
             'ip' => $this->request->ip(),
             'user_agent' => mb_substr((string) $this->request->userAgent(), 0, 255) ?: null,
             'request_id' => Context::get('request_id'),
@@ -40,5 +42,12 @@ final class SecurityEventRecorder
         event(new SecurityEventRecorded($event, $principal));
 
         return $event;
+    }
+
+    public static function identifierHash(string $identifier): string
+    {
+        $key = (string) config('app.key');
+
+        return hash_hmac('sha256', strtolower($identifier), 'security-event|'.(str_starts_with($key, 'base64:') ? base64_decode(substr($key, 7)) : $key));
     }
 }

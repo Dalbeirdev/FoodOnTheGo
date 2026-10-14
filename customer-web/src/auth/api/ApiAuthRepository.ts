@@ -5,12 +5,14 @@
  *  - the backend owns the code, its expiry, the attempt limit and the resend cooldown; the timestamps returned here
  *    are translated from server time, and the on-screen countdown is only a hint;
  *  - the code is never returned by the API. In a local development build the screen shows the local test code from
- *    VITE_DEV_OTP, and only when the backend says the delivery is "development";
+ *    VITE_DEV_OTP, and only when the backend says the delivery is "development" (Module 39: never in a production
+ *    build — see auth/devOtp.ts);
  *  - a new customer is signed in by the backend straight away; the account-setup step then completes the profile
  *    (name, terms). Until that is done the token is held aside and is not treated as a session.
  */
 import { ApiError, api, tokens } from '../../api/client'
 import { marketRepository } from '../../market/mock/mockMarket'
+import { developmentOtp, rememberOtpDelivery } from '../devOtp'
 import { AuthError, type AuthRepository, type AuthUser, type OtpChannel, type OtpRequest, type VerifyResult } from '../repository'
 
 type PrincipalDto = { principal_type: string; id: string; status: string; name: string | null; email: string | null; phone: string; phone_masked: string; phone_verified: boolean; profile_complete: boolean; market: string | null; member_since: string | null }
@@ -58,7 +60,9 @@ export class ApiAuthRepository implements AuthRepository {
       ss.set(KEY_CHALLENGE, { phone, id: c.challenge_id })
       // Server timestamps → this device's clock, so a wrong device clock cannot shorten or extend the display.
       const skew = Date.now() - Date.parse(c.server_time)
-      const devOtp = c.delivery === 'development' ? (import.meta.env.VITE_DEV_OTP as string | undefined) || undefined : undefined
+      // Module 39: the local test code only in a development build and only for a challenge the backend calls "development".
+      const devOtp = developmentOtp(c.delivery)
+      rememberOtpDelivery(c.delivery)
       // The channel is told to the customer only when a real message went out (the backend escalates a resend to the next channel by itself).
       const live = c.delivery === 'live'
       return { phone, expiresAt: Date.parse(c.expires_at) + skew, resendAfter: Date.parse(c.resend_available_at) + skew, attemptsAllowed: c.attempts_allowed, devOtp, ...(live && c.channel ? { channel: c.channel } : {}), ...(live && c.resend_channel ? { resendChannel: c.resend_channel } : {}) }

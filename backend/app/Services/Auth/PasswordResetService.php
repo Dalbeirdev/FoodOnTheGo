@@ -51,7 +51,9 @@ final class PasswordResetService
         ]);
 
         $path = $type === PrincipalType::AdminUser ? '/admin/reset-password' : '/restaurant-dashboard/reset-password';
-        $user->notify(new CredentialResetNotification(rtrim((string) config('app.frontend_url'), '/').$path.'#'.$token, $minutes));
+        $link = rtrim((string) config('app.frontend_url'), '/').$path.'#'.$token;
+        // Module 39: the mail goes out after the answer — "known e-mail" and "unknown e-mail" take the same time.
+        \Illuminate\Support\defer(fn () => $user->notify(new CredentialResetNotification($link, $minutes)));
     }
 
     public function reset(PrincipalType $type, #[SensitiveParameter] string $token, #[SensitiveParameter] string $password): void

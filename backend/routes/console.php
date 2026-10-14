@@ -8,6 +8,12 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Module 39: every Prunable model's expired rows (OTP challenges, idempotency records, phone-change requests, reset
+// tokens, staff invitations), expired access tokens, and failed jobs older than 30 days.
+Schedule::command('model:prune')->daily()->withoutOverlapping();
+Schedule::command('sanctum:prune-expired --hours=24')->daily();
+Schedule::command('queue:prune-failed --hours=720')->daily();
+
 // Module 25: recent locations are kept only for the configured retention.
 Schedule::command('customer:prune-recent-locations')->daily();
 

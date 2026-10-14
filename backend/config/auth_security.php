@@ -44,9 +44,18 @@ return [
     | sign in only to enrol: its token cannot use the platform until it does.
     */
 
+    // Module 39: failures counted per ACCOUNT inside a window; at the limit that step is refused for lock_minutes.
+    'lockout' => [
+        'password' => ['failures' => (int) env('AUTH_LOCKOUT_PASSWORD_FAILURES', 10), 'window_minutes' => 15, 'lock_minutes' => (int) env('AUTH_LOCKOUT_PASSWORD_MINUTES', 15)],
+        'mfa' => ['failures' => (int) env('AUTH_LOCKOUT_MFA_FAILURES', 10), 'window_minutes' => 60, 'lock_minutes' => (int) env('AUTH_LOCKOUT_MFA_MINUTES', 30)],
+    ],
+
+    // Module 39: an administrator's token that was not used for this long is revoked on its next use (0 = off).
+    'admin_idle_minutes' => (int) env('AUTH_ADMIN_IDLE_MINUTES', 60),
+
     'mfa' => [
         'required' => [
-            'admin' => (bool) env('AUTH_MFA_REQUIRED_ADMIN', false),
+            'admin' => (bool) env('AUTH_MFA_REQUIRED_ADMIN', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),   // Module 39: on by default everywhere except local development and the test suite
             'restaurant' => (bool) env('AUTH_MFA_REQUIRED_RESTAURANT', false),
         ],
         'challenge_ttl_seconds' => (int) env('AUTH_MFA_CHALLENGE_TTL_SECONDS', 300),

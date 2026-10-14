@@ -109,9 +109,16 @@ final class PickupVerificationService
         }
         $credential = OrderPickupCredential::query()->where('order_id', $order->getKey())->orderByDesc('id')->first();
         $expected = PickupCredentials::codeHash($order, $normalized);
+        $legacy = PickupCredentials::legacyCodeHash($order, $normalized);
 
-        return $this->verify($user, $context, Attempt::METHOD_MANUAL_CODE, $credential, $requestId, function (OrderPickupCredential $locked) use ($expected): bool {
-            return hash_equals((string) $locked->display_code_hash, $expected);
+        return $this->verify($user, $context, Attempt::METHOD_MANUAL_CODE, $credential, $requestId, function (OrderPickupCredential $locked) use ($expected, $legacy): bool {
+            if (hash_equals((string) $locked->display_code_hash, $expected)) {
+                return true;
+            }
+
+            // Module 39: only a credential issued before the HMAC change can still match the old hash.
+            return $locked->issued_at !== null && $locked->issued_at->lt(CarbonImmutable::parse(PickupCredentials::HMAC_SINCE, 'UTC'))
+                && hash_equals((string) $locked->display_code_hash, $legacy);
         }, $order);
     }
 

@@ -189,7 +189,8 @@ class RefundNotificationAndDisputeTest extends TestCase
         $won = $this->fakeProvider()->settleDispute($opened->reference, DisputeStatus::Won);
         $this->providerSendsDispute('payment.dispute.won', $won)->assertOk();
         $this->fakeProvider()->failNext('dispute', ProviderFailure::Unavailable, 5);   // the provider cannot be asked: only the stale event's content is there
-        $this->providerSendsDispute('payment.dispute.created', $opened, 'fakeevt_dispute_late')->assertOk();
+        // Module 39: the late event carries its own (earlier) created_at — a byte-identical body under a new event id would be a replay.
+        $this->providerSendsDispute('payment.dispute.created', $opened, 'fakeevt_dispute_late', now()->getTimestamp() - 60)->assertOk();
         $this->fakeProvider()->recover();
         $dispute->refresh();
         $this->assertSame([DisputeStatus::Won, 0], [$dispute->status, $dispute->amount_deducted_minor]);

@@ -13,11 +13,11 @@ final class RedactSensitiveData
 {
     public function __invoke(Logger $logger): void
     {
-        $redactor = new SensitiveDataRedactor(config('logging.redact_keys', []));
         $environment = (string) config('app.env');
+        $redactor = new SensitiveDataRedactor(config('logging.redact_keys', []), ! in_array($environment, ['local', 'testing'], true));
 
         $logger->getLogger()->pushProcessor(static fn (LogRecord $record): LogRecord => $record->with(
-            message: $redactor->redactText($record->message),
+            message: $redactor->redactMessage($record->message),
             context: $redactor->redact($record->context),
             extra: $redactor->redact($record->extra) + ['environment' => $environment],
         ));

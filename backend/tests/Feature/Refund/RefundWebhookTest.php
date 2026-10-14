@@ -61,6 +61,8 @@ class RefundWebhookTest extends TestCase
 
         // Delivered again (the same event id), and once more as a new event: one logical transition.
         $this->providerSendsRefund('refund.processed', $settled, 'fakeevt_refund_0001')->assertOk()->assertJsonPath('duplicate', true);
+        // Module 39: a new event carries a body of its own (its own created_at); a byte-identical body under a new event id is a replay (DataProtectionTest).
+        $this->travel(1)->seconds();
         $this->providerSendsRefund('refund.processed', $settled, 'fakeevt_refund_0002')->assertOk()->assertExactJson(['received' => true]);
         $this->assertSame(2, (int) $event->refresh()->deliveries);
         $this->assertSame(1, Line::query()->where('refund_id', $refund->getKey())->where('to_status', 'REFUNDED')->count());

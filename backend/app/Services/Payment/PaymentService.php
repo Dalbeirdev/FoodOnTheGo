@@ -3,6 +3,7 @@
 namespace App\Services\Payment;
 
 use App\Contracts\Payment\PaymentProvider;
+use App\Enums\CustomerStatus;
 use App\Enums\PaymentFailureCategory;
 use App\Enums\PaymentNextAction;
 use App\Enums\PaymentStatus;
@@ -65,6 +66,11 @@ final class PaymentService
      */
     public function start(Customer $customer, string $checkoutId, array $input, ?CarbonInterface $at = null): array
     {
+        // Module 39: a customer who asked for the account to be deleted (RESTRICTED) can still sign in to follow open
+        // orders, refunds and cases, but cannot start a new purchase.
+        if ($customer->status === CustomerStatus::Restricted) {
+            throw new ApiException(403, 'account_restricted', 'This account is being deleted at your request, so it cannot place new orders. Contact support if you want to keep using it.');
+        }
         $at = CarbonImmutable::instance($at ?? now());
         $provider = $this->provider(); // before anything changes: no payments here means no checkout is touched
 

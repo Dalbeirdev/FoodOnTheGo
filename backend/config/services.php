@@ -138,11 +138,6 @@ return [
         'methods' => array_values(array_filter(array_map('trim', explode(',', (string) env('RAZORPAY_METHODS', ''))))),
     ],
 
-    'fcm' => [
-        'project_id' => env('FCM_PROJECT_ID'),
-        'credentials' => env('FCM_CREDENTIALS_PATH'),
-    ],
-
     'websocket' => [
         'driver' => env('WEBSOCKET_DRIVER'),
     ],

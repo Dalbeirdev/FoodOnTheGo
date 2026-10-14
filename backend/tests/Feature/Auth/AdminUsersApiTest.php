@@ -276,15 +276,17 @@ class AdminUsersApiTest extends TestCase
         $this->putJson($own.'/role', ['role' => 'ANALYST', 'reason' => 'Self'])->assertConflict()->assertJsonPath('error.code', 'cannot_change_own_account');
 
         // An account manager who cannot manage roles must not be able to remove the only full administrator.
+        // Module 39: an administrator may not act on a superior at all — refused before the last-administrator rule.
         $manager = AdminUser::factory()->create();
         $this->roles->assign($manager, $this->roles->define(PrincipalType::AdminUser, 'ACCOUNT_MANAGER', 'Account manager', [P::AdminUsersView, P::AdminUsersManage]));
         $this->actingAsPrincipal($manager);
-        $this->patchJson($own.'/status', ['status' => 'SUSPENDED', 'reason' => 'Coup'])->assertConflict()->assertJsonPath('error.code', 'last_administrator');
-        $this->patchJson($own.'/status', ['status' => 'DISABLED', 'reason' => 'Coup'])->assertConflict()->assertJsonPath('error.code', 'last_administrator');
+        $this->patchJson($own.'/status', ['status' => 'SUSPENDED', 'reason' => 'Coup'])->assertForbidden()->assertJsonPath('error.code', 'cannot_manage_superior');
+        $this->patchJson($own.'/status', ['status' => 'DISABLED', 'reason' => 'Coup'])->assertForbidden()->assertJsonPath('error.code', 'cannot_manage_superior');
         $this->assertSame(StaffStatus::Active, $this->super->refresh()->status);
 
-        // With a second full administrator the first one can be suspended.
-        $this->adminWithRole('SUPER_ADMIN');
+        // With a second full administrator, that administrator (an equal) can suspend the first one.
+        $second = $this->adminWithRole('SUPER_ADMIN');
+        $this->actingAsPrincipal($second);
         $this->patchJson($own.'/status', ['status' => 'SUSPENDED', 'reason' => 'Handover done'])->assertOk();
     }
 
@@ -293,14 +295,22 @@ class AdminUsersApiTest extends TestCase
         $delegate = AdminUser::factory()->create();
         $this->roles->assign($delegate, $this->roles->define(PrincipalType::AdminUser, 'DELEGATE', 'Delegate', [P::AdminUsersView, P::AdminUsersManage, P::AdminRolesView, P::AdminRolesManage, P::AdminSupportView, P::AdminAnalyticsView]));
         $this->roles->define(PrincipalType::AdminUser, 'HELPDESK', 'Helpdesk', [P::AdminSupportView]);
-        $target = $this->adminWithRole('ANALYST');
+        // Module 39: the target is somebody the delegate outranks (a role inside the delegate's own permissions), so what
+        // is tested here is the GRANT rule; acting on a superior is refused earlier (cannot_manage_superior, below).
+        $this->roles->define(PrincipalType::AdminUser, 'READER', 'Reader', [P::AdminAnalyticsView]);
+        $target = $this->adminWithRole('READER');
+        $superior = $this->adminWithRole('ANALYST');
         $this->actingAsPrincipal($delegate);
 
         $this->postJson('/api/v1/admin/users', ['name' => 'Sneaky', 'email' => 'sneaky@foodonthego.example', 'role' => 'SUPER_ADMIN'])->assertForbidden()->assertJsonPath('error.code', 'cannot_grant_beyond_own_permissions');
         $this->putJson("/api/v1/admin/users/{$target->public_id}/role", ['role' => 'SUPER_ADMIN', 'reason' => 'Promote'])->assertForbidden()->assertJsonPath('error.code', 'cannot_grant_beyond_own_permissions');
+        // Module 39: an administrator holding permissions the delegate lacks (ANALYST) cannot be changed by the delegate at all.
+        $this->putJson("/api/v1/admin/users/{$superior->public_id}/role", ['role' => 'HELPDESK', 'reason' => 'Demote'])->assertForbidden()->assertJsonPath('error.code', 'cannot_manage_superior');
+        $this->patchJson("/api/v1/admin/users/{$superior->public_id}/status", ['status' => 'SUSPENDED', 'reason' => 'Demote'])->assertForbidden()->assertJsonPath('error.code', 'cannot_manage_superior');
         $this->putJson("/api/v1/admin/users/{$target->public_id}/role", ['role' => 'FINANCE_ADMIN', 'reason' => 'Promote'])->assertForbidden();
         $this->assertSame(0, AdminUser::query()->where('email', 'sneaky@foodonthego.example')->count());
-        $this->assertSame(['ANALYST'], $target->roleAssignments()->with('role')->get()->pluck('role.code')->all());
+        $this->assertSame(['READER'], $target->roleAssignments()->with('role')->get()->pluck('role.code')->all());
+        $this->assertSame(['ANALYST'], $superior->roleAssignments()->with('role')->get()->pluck('role.code')->all());
 
         $this->putJson("/api/v1/admin/users/{$target->public_id}/role", ['role' => 'HELPDESK', 'reason' => 'Within my own permissions'])->assertOk();
         $this->postJson('/api/v1/admin/users', ['name' => 'Helper', 'email' => 'helper@foodonthego.example', 'role' => 'HELPDESK'])->assertCreated();

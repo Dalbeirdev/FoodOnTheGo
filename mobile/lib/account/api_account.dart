@@ -96,7 +96,8 @@ Map<String, dynamic> profileDiff(CustomerProfile before, CustomerProfile after) 
 CodeChallenge challengeFromApi(Map<String, dynamic> c, {DateTime Function()? now, String? devOtp}) {
   // Server timestamps → this device's clock, so a wrong device clock cannot shorten or extend the display.
   final skew = (now ?? DateTime.now)().difference(DateTime.parse(c['server_time'] as String));
-  final dev = devOtp ?? AppConfig.devOtp;
+  // Module 39: the build's DEV_OTP only in a local build (AppConfig.localDevOtp); tests hand one in.
+  final dev = devOtp ?? AppConfig.localDevOtp;
   return CodeChallenge(
     challengeId: c['challenge_id'] as String,
     phoneMasked: c['phone_masked'] as String,

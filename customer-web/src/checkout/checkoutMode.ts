@@ -1,5 +1,6 @@
 import { cartMode } from '../cart/cartMode'
 import { pickupMode } from '../pickup/pickupMode'
+import { modeOverride } from '../config/modeOverride'
 
 /**
  * Where checkout comes from.
@@ -10,7 +11,7 @@ import { pickupMode } from '../pickup/pickupMode'
  *  - 'mock' — the in-browser development checkout of Module 11. Always used by unit tests and by the static share
  *             builds, which have no backend.
  *
- * The build decides (VITE_CHECKOUT_MODE). `localStorage fotg.checkout.mode` overrides it on one browser.
+ * The build decides (VITE_CHECKOUT_MODE). `localStorage fotg.checkout.mode` overrides it on one browser (development builds only — Module 39).
  * A checkout is made from the backend's cart and pickup selection, so 'api' needs both on the backend too
  * (VITE_CART_MODE=api and VITE_PICKUP_MODE=api).
  */
@@ -18,7 +19,8 @@ export type CheckoutSource = 'api' | 'mock'
 
 export function checkoutMode(): CheckoutSource {
   if (cartMode() !== 'api' || pickupMode() !== 'api') return 'mock'
-  try { const override = localStorage.getItem('fotg.checkout.mode'); if (override === 'api' || override === 'mock') return override } catch { /* storage unavailable */ }
+  // Module 39: the browser override is honoured in development builds only (see config/modeOverride.ts).
+  const override = modeOverride('fotg.checkout.mode', ['api', 'mock'] as const); if (override) return override
   if (import.meta.env.MODE === 'test' || import.meta.env.VITE_SHARE_BUILD === '1') return 'mock'
   return import.meta.env.VITE_CHECKOUT_MODE === 'api' ? 'api' : 'mock'
 }

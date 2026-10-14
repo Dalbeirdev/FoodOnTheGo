@@ -8,11 +8,19 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <!-- Cleartext (plain HTTP) is disabled here. The `local` flavor overrides this in
-         src/local/AndroidManifest.xml so the developer PC can be reached over the LAN. -->
+         src/local/AndroidManifest.xml so the developer PC can be reached over the LAN.
+         Module 39 (C-05): no Android backup. allowBackup / fullBackupContent switch Auto Backup off up to Android 11;
+         dataExtractionRules (res/xml/data_extraction_rules.xml) excludes everything from the cloud backup and from the
+         device-to-device transfer on Android 12+, where allowBackup alone no longer stops the transfer. The app's
+         state lives in flutter_secure_storage under a Keystore key that is never backed up, so a restored copy could
+         not be read anyway: it only produced a broken sign-in, or would be a clear copy of any future plain file. -->
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"

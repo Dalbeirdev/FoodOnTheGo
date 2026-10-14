@@ -21,7 +21,7 @@ return [
         | The deterministic fake providers exist for local development and automated tests. They are refused
         | wherever this is false — production must never silently plan journeys on synthetic roads.
         */
-        'allow_fake' => filter_var(env('JOURNEY_ALLOW_FAKE_PROVIDERS', env('APP_ENV', 'production') !== 'production'), FILTER_VALIDATE_BOOL),
+        'allow_fake' => in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) && ! in_array(env('JOURNEY_ALLOW_FAKE_PROVIDERS'), [false, 'false', '0', 0, 'off', 'no'], true),   // Module 39: an allow-list of environments
 
         /*
         | Bounded retries for TRANSIENT provider failures only (timeouts, 5xx, connection errors): `attempts`

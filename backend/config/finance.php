@@ -127,7 +127,7 @@ return [
         'timezone' => 'MARKET',
         'negative' => 'CARRY_FORWARD',
         'minimum_payout_minor' => $optionalInt('FINANCE_MINIMUM_PAYOUT_MINOR'),
-        'four_eyes' => (bool) env('FINANCE_SETTLEMENT_FOUR_EYES', false),
+        'four_eyes' => (bool) env('FINANCE_SETTLEMENT_FOUR_EYES', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),   // Module 39: on by default everywhere except local development and the test suite
         'scheduled' => (bool) env('FINANCE_SETTLEMENTS_SCHEDULED', false),
         'approval' => 'PENDING BUSINESS APPROVAL',
     ],
@@ -144,7 +144,7 @@ return [
         'driver' => strtolower(trim((string) env('PAYOUT_DRIVER', ''))),
         'live_enabled' => false,
         // When true, who approved a settlement cannot be the one who pays it.
-        'four_eyes' => (bool) env('FINANCE_PAYOUT_FOUR_EYES', false),
+        'four_eyes' => (bool) env('FINANCE_PAYOUT_FOUR_EYES', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),   // Module 39: on by default everywhere except local development and the test suite
         // A submission is "in flight" for this long (seconds) before an unanswered one is looked up.
         'settle_margin_seconds' => 30,
         // The sweep asks the provider about an unsettled payout after these waits (seconds); then a person looks.
@@ -163,7 +163,7 @@ return [
     | posting. four_eyes: the adjustment waits for a second administrator before it is posted.
     */
     'adjustments' => [
-        'four_eyes' => (bool) env('FINANCE_ADJUSTMENT_FOUR_EYES', false),
+        'four_eyes' => (bool) env('FINANCE_ADJUSTMENT_FOUR_EYES', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),   // Module 39: on by default everywhere except local development and the test suite
         'reasons' => ['CORRECTION', 'GOODWILL', 'RECOVERY', 'COMMERCIAL_AGREEMENT', 'OTHER'],
     ],
 
