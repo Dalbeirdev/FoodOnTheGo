@@ -8,6 +8,7 @@ use App\Http\Middleware\EnforceIdempotency;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\LimitRequestBody;
 use App\Http\Middleware\OptionalCustomer;
+use App\Http\Middleware\RequestMetrics;
 use App\Http\Middleware\ResolveCartOwner;
 use App\Http\Middleware\ResolveJourney;
 use Illuminate\Foundation\Application;
@@ -32,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Global, so error responses produced before the route middleware runs carry them too.
-        $middleware->prepend([AssignRequestId::class, ApiSecurityHeaders::class]);
+        $middleware->prepend([AssignRequestId::class, ApiSecurityHeaders::class, RequestMetrics::class]);
         // Module 39: one size limit for every API body that is not a file upload (413 before decoding).
         $middleware->append(LimitRequestBody::class);
         // Module 39: only the proxies named in TRUSTED_PROXIES may set X-Forwarded-* (none by default, so a client cannot

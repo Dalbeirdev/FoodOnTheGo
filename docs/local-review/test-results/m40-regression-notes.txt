@@ -1,0 +1,53 @@
+# Module 40 — regression of the earlier browser suites on the REAL local backend after the performance, reliability and disaster-recovery work, 2026-10-15
+# NOTES — every miss of the latest result per suite, with its cause. The run log is m40-regression-runs.txt; the results are m40-regression-<suite>.json.
+# THE NINETEEN SCRIPTS ARE EXACTLY THE ONES THAT RAN AFTER MODULE 39 (unchanged since Module 38) — no step or expectation changed. The dated restaurant and pickup fixtures were re-seeded on the local database before the run (their rows are relative to the seeding day).
+# Analytics rows left by the suites and removed by the runner between them: 249; SYSTEM support cases removed: 7.
+# Defects of Module 40 found by the regression: none.
+# New misses with Module 40: none — every miss below was already a recorded miss after Module 39.
+
+LATEST RESULT PER SUITE: auth 48/48, market 51/51, site 68/68, restaurants 97/101, menus 48/48, account 62/63, journeys 61/63, cart 76/76, pickup 69/69, checkout 75/77, payments 57/63, orders 47/53, realtime 47/48, notifications 40/41, reviews 48/48, refunds 53/53, finance 67/67, support 53/53, analytics 78/78 — 1145/1168.
+After Module 38 the same regression suites were 1067/1090 and the Module 38 suite itself 78/78.
+
+## Already recorded after Module 39 (23) — the same misses, for the causes written in m39-regression-notes.txt and the notes before it
+
+- m23_e2e.js (restaurants) C14, D3, D19b, A2b
+- m25_e2e_m33.js (account) N2
+- m26_e2e.js (journeys) D2b, D3
+- m29_e2e_m30.js (checkout) G3, G4
+- m30_e2e.js (payments) A9, A10, H3, H6, H8, I3
+- m31_e2e_m35.js (orders) A6, C3, C6, E3, E6, F2
+- m32_e2e_m35.js (realtime) G6
+- m33_e2e_m35.js (notifications) G3
+
+Their causes, as written in m39-regression-notes.txt (obsolete expectations — the product is as designed; the suites are not edited):
+
+- m30_e2e.js (payments) H3 — the step ends with "(mark_paid false, refund NOT_IMPLEMENTED)". The payment detail no longer says refunds are not implemented: it carries the payment's refunds, its refund balance and its disputes, and the action it offers is a refund REQUEST (which moves no money). "mark_paid false" is unchanged, and there is no "mark refunded".
+- m30_e2e.js (payments) H6 — the step ends with "the page says … that refunds are not available yet". The page now says that a refund never changes the payment and that refunds are approved and sent in Refund Management. The rest of the step holds (why it needs a person, the provider references, the timeline, no button to mark it paid or to capture).
+- m31_e2e_m35.js (orders) C3 — the step reads the refund record from the table order_refunds ("ONE refund record for the whole total (REQUIRED …)"). Module 35 replaced that table by refunds; the read answers the variant's marker "TABLE order_refunds WAS REPLACED BY MODULE 35", so the comparison misses. Everything else the step checks is in its output and unchanged: REJECTED with the reason, the amount unchanged, refund REQUIRED, the reservation RELEASED, the payment still VERIFIED. The record itself is asserted by the Module 35 suite (m35-web-e2e.json, A1: one refund, REQUIRED, the whole total).
+- m31_e2e_m35.js (orders) C6 — "REJECTING AGAIN changes nothing … still one refund record" counts the rows of order_refunds; same cause as C3. The Module 35 backend test "the same refund-required condition reported twice makes one refund" and m35 A1 cover it on the new table.
+- m31_e2e_m35.js (orders) E3 — the step expects "the refund record (REQUIRED, processing NOT_IMPLEMENTED) … actions … refund NOT_IMPLEMENTED". The admin order detail now lists the order's refunds with their real states and says refund: true for a paid order that is over (a refund can be asked for). The step's own output shows it: {"cancel":false,"refund":true,"mark_picked_up":"NOT_PROVIDED","mark_refunded":"NOT_PROVIDED"}.
+- m31_e2e_m35.js (orders) F2 — "A CUSTOMER cannot cancel … an order (404 / 401)" expected 404 because no customer cancel route existed. The route exists now (POST /customer/orders/{order}/cancel): the suite's request has no reason and is answered 422; with a reason it is answered 409 order_cancellation_not_allowed, because customer cancellation is DISABLED pending policy approval (m35-web-e2e.json, E1). The customer still cannot cancel. The other two parts of the step are unchanged (401, 422).
+- m32_e2e_m35.js (realtime) G6 — the step expects "/admin/system/orders … refund_processing and notification_delivery NOT_IMPLEMENTED". Refund processing is implemented (Module 35) and the flag says so. The same answer still carried notification_delivery NOT_IMPLEMENTED when this suite ran — a stale flag since Module 33; it was corrected to IMPLEMENTED after the regression (the full backend suite was run again afterwards).
+- m23_e2e.js (restaurants) C14, D3, A2b — C14 and D3 since Module 24 (menus on the backend; the "Demo data" list keeps changing as sections move to the backend), A2b since Module 31 (Orders is backend data). D19b since Module 34 (17 permission rows, was 16).
+- m25_e2e_m33.js (account) N2 — expects the inbox labelled development data; Module 33 made the inbox the backend's.
+- m26_e2e.js (journeys) D2b, D3 — a rating and a rating sort / filter exist along a journey since Module 34.
+- m29_e2e_m30.js (checkout) G3, G4 — "no order routes" and the route count (281 now; Module 35 added 17); obsolete since Module 31.
+- m30_e2e.js (payments) A9, A10, I3 — "a verified payment creates NO order"; obsolete since Module 31. H8 — the admin System › Payments note changed in Module 31 (and now also no longer says refunds are not built).
+- m31_e2e_m35.js (orders) A6, E6 — pickup verification / realtime NOT_IMPLEMENTED; obsolete since Module 32 (E6 names refund processing NOT_IMPLEMENTED too, which is obsolete with Module 35).
+- m33_e2e_m35.js (notifications) G3 — the step expects 11 notification types; Module 34 made it 14 and Module 35 added refund.initiated, refund.completed and refund.attention: 17.
+- m22_e2e.js → m22_e2e_m38.js (market): the original ended without a result at step D1 — it waits for the development card "today's revenue" (test id ov-revenue) of the Restaurant Dashboard home, and Module 38 replaced the development cards of that page by the backend's figures when the order mode is api (a dashboard unit test pins that they are not rendered). This is the ONE script that differs for Module 38: the variant m22_e2e_m38.js reads the same fact — the dashboard works in the currency of the market the backend serves — from the new page (its currency is INR, no foreign currency symbol on the page). 51/51 with the variant; the steps before D1 had passed in the original run too.
+- m27_e2e.js (cart): first run 56/57 — stopped at F3 because the seeded cart of the second fixture customer was missing (BUG-315, a defect of the Module 38 suite, see above); after re-seeding 76/76, as after Module 37. The other seventeen suites do not use that cart: their results equal their Module 37 results step by step.
+- m36_e2e_m37.js (finance): first run 66/67 — step U20 counted the settlement panel of the operations administrator 1.5 seconds after the page shell appeared and found none yet (every count in its detail is 0, also the ones that must be 0); the second run, unchanged, 67/67 as after Module 37. The step waits a fixed time instead of waiting for the panel; nothing about finance or its permissions changed in Module 38. Recorded as a timing miss of one run, not hidden.
+- m22_regression_m32.js (site): 67/68 in the full run — F6 logged net::ERR_NAME_NOT_RESOLVED on every route (the machine's DNS could not resolve the Google Fonts host for a moment); run again by name right after: 68/68 (the latest result is kept).
+- m29_e2e_m30.js (checkout): 74/77 in the full run — I2 looks for card-number fragments with the pattern 4111 in every checkout log line, and one line's random request id (a UUID ending …a41119) contained 4111; the line itself held ids, a status, a total and a reason code only. Run again by name: 75/77 (G3, G4 as after Module 38; the latest result is kept).
+
+## Complete
+
+m22_auth_regression.js (auth) 48/48, m22_e2e_m38.js (market) 51/51, m22_regression_m32.js (site) 68/68, m24_e2e.js (menus) 48/48, m27_e2e.js (cart) 76/76, m28_e2e.js (pickup) 69/69, m34_e2e_m35.js (reviews) 48/48, m35_e2e.js (refunds) 53/53, m36_e2e_m37.js (finance) 67/67, m37_e2e.js (support) 53/53, m38_e2e.js (analytics) 78/78.
+
+## What the regression covers for Module 40
+
+- Every earlier customer, restaurant and admin flow runs against the hardened backend: lockout and OTP budgets, admin idle timeout (the suites stay under it), session-bound push devices, contact masking, RESTRICTED accounts, the body limit, encrypted idempotency replies, append-only audit trails, the keyed pickup code hash, webhook body dedupe, trusted hosts, CORS without credentials and the removed framework routes.
+- The web runs on the development server (a DEV build): the production-only Module 40 changes (CSP, no development OTP, DEV-only mode overrides) are covered by the web unit tests and the production build; sign-out clean-up is exercised by every suite that signs out.
+- Module 40 added no API route; it removed three framework routes (CSRF cookie, web broadcasting auth, private storage).
+

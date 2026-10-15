@@ -1,0 +1,37 @@
+{
+ "module": "M40",
+ "kind": "failure-injection",
+ "scenario": "reverb",
+ "at": "2026-10-14T16:37:38.932Z",
+ "database": "foodonthego_perf",
+ "steps": [
+  {
+   "step": "realtime server UP",
+   "t": "2026-10-14T16:37:56.617Z",
+   "transitions": 12,
+   "ok": 12,
+   "p50_ms": 216,
+   "max_ms": 346,
+   "statuses": [
+    200
+   ]
+  },
+  {
+   "step": "realtime server DOWN",
+   "t": "2026-10-14T16:38:23.268Z",
+   "transitions": 12,
+   "ok": 12,
+   "p50_ms": 1215,
+   "max_ms": 1318,
+   "statuses": [
+    200
+   ]
+  },
+  {
+   "step": "what the admin sees",
+   "t": "2026-10-14T16:38:24.665Z",
+   "status": 200,
+   "view": "{\"realtime\":{\"health\":{\"status\":\"UNAVAILABLE\",\"driver\":\"reverb\",\"checked_at\":\"2026-10-14T16:38:23+00:00\",\"latency_ms\":1003,\"detail\":\"The realtime server did not answer (ConnectException).\"},\"transport\":{\"preferred\":\"websocket (Laravel Reverb)\",\"fallback\":\"REST resync + polling\",\"sse\":\"NOT_IMPLEMENTED (optional by design)\"},\"allowed_origins\":[\"localhost\",\"127.0.0.1\"],\"counters\":{\"broadcast_sent\":58"
+  }
+ ]
+}

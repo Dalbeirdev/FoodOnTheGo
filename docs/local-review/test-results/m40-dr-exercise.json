@@ -1,0 +1,122 @@
+{
+ "module": "M40",
+ "kind": "dr-exercise",
+ "at": "2026-10-14T17:08:21.328Z",
+ "primary": "foodonthego_perf",
+ "restored_into": "foodonthego_dr",
+ "timeline": [
+  {
+   "step": "start",
+   "t_s": 0.6,
+   "primary_counts": {
+    "orders": 20357,
+    "payment_attempts": 20360,
+    "ledger_transactions": 40062,
+    "ledger_entries": 99829,
+    "customers": 5121,
+    "analytics_events": 249973
+   }
+  },
+  {
+   "step": "1. backup taken",
+   "t_s": 9.9,
+   "duration_ms": 9151,
+   "size_bytes": 77752640,
+   "sha256": "c840ed12d9912b9b…"
+  },
+  {
+   "step": "2. business after the backup (the RPO window)",
+   "t_s": 23.2,
+   "purchases": 3,
+   "orders": 3,
+   "primary_counts": {
+    "orders": 20360,
+    "payment_attempts": 20363,
+    "ledger_transactions": 40065,
+    "ledger_entries": 99835,
+    "customers": 5121,
+    "analytics_events": 249973
+   }
+  },
+  {
+   "step": "3. DISASTER: the primary is declared lost",
+   "t_s": 23.2
+  },
+  {
+   "step": "4. restored",
+   "t_s": 54.2,
+   "restore_ms": 10379,
+   "analyze_ms": 16894,
+   "postgis": "3.6.2",
+   "spatial_rows_valid": 15,
+   "gist_indexes": 5,
+   "tables": 138
+  },
+  {
+   "step": "4b. restored = backup?",
+   "t_s": 54.9,
+   "equal": true,
+   "restored_counts": {
+    "orders": 20357,
+    "payment_attempts": 20360,
+    "ledger_transactions": 40062,
+    "ledger_entries": 99829,
+    "customers": 5121,
+    "analytics_events": 249973
+   }
+  },
+  {
+   "step": "5. application up on the restored database",
+   "t_s": 56.2,
+   "live": 200,
+   "health": 200
+  },
+  {
+   "step": "5b. first order after recovery",
+   "t_s": 61.7,
+   "order": "created",
+   "kitchen": "ready",
+   "picked_up": true
+  },
+  {
+   "step": "6. verified",
+   "t_s": 85,
+   "integrity": {
+    "finance:verify-ledger": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":40064,\"entries\":99834,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0"
+    },
+    "finance:reconcile-internal": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"found\":[],\"auto_resolved\":0}"
+    },
+    "payments:reconcile": {
+     "exit": 0,
+     "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+    },
+    "orders:recover": {
+     "exit": 0,
+     "tail": "orders:recover retried 0, picked up 0, completed 0"
+    },
+    "analytics:aggregate": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"trigger\":\"SCHEDULED\",\"dry_run\":false,\"rows\":38034,\"order_facts\":1595,\"session_facts\":25001,\"groups\":{\"orders\":2342,\"customers\":180,\"restaurants\":582,\"items\":370,\"funnel\":3420,\"routes\":28,\"payments\":722,\"refunds\":0,\"finance\":1260,\"support\":180,\""
+    },
+    "analytics:check": {
+     "exit": 0,
+     "tail": "{\"status\":\"WARNING\",\"counts\":{\"healthy\":9,\"warning\":1,\"error\":0},\"problems\":[\"funnel_transitions=WARNING\"]}"
+    }
+   },
+   "orders_after_backup_missing_from_restore": "3 of 3"
+  },
+  {
+   "step": "restored database dropped",
+   "t_s": 85.7
+  }
+ ],
+ "rto_local_seconds": 38.5,
+ "rpo_local": {
+  "orders_lost": 3,
+  "note": "everything written after the backup is lost by a dump restore; the payments behind those orders exist at the payment provider and are found again only by provider reconciliation (settlement import) — with WAL archiving / PITR the window shrinks to seconds"
+ }
+}

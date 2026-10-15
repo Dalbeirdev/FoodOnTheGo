@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\Admin\PromotionController;
 use App\Http\Controllers\Api\Admin\ProviderHealthController;
 use App\Http\Controllers\Api\Admin\RealtimeController;
 use App\Http\Controllers\Api\Admin\RefundController as AdminRefundController;
+use App\Http\Controllers\Api\Admin\ReliabilityController;
 use App\Http\Controllers\Api\Admin\RestaurantController as AdminRestaurantController;
 use App\Http\Controllers\Api\Admin\RestaurantMenuController as AdminRestaurantMenuController;
 use App\Http\Controllers\Api\Admin\RestaurantOrganizationController;
@@ -140,6 +141,12 @@ Route::pattern('supportCase', '[0-9a-fA-F-]{36}|[Cc][Ss]-[A-Za-z2-9]{8}');
 Route::pattern('reportExport', '[0-9a-fA-F-]{36}');
 
 Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function (): void {
+    // Module 40: liveness (the process answers — no dependency is touched), readiness for traffic (/health: database and
+    // Redis, status only) and the detailed readiness of every dependency (/ready, restricted outside local / testing).
+    // Not rate limited (the one exception, tests/Feature/Security/RouteInventoryTest::UNTHROTTLED): the limiter's
+    // store is Redis, and a liveness probe must not fail because Redis does — measured: with the limiter, a Redis
+    // outage answered 500 to /live (docs/reliability/provider-resilience.md). It touches nothing; the edge limits it.
+    Route::get('/live', [HealthController::class, 'live'])->withoutMiddleware('throttle:api')->name('live');
     Route::get('/health', [HealthController::class, 'health'])->name('health');
     Route::get('/ready', [HealthController::class, 'ready'])->name('ready');
 
@@ -529,6 +536,8 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
 
         // Provider health (Module 26) is platform-wide system information.
         Route::get('/system/providers', [ProviderHealthController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.providers');
+        // Operational health (Module 40): database, Redis, queues, failed jobs, domain signals and their alerts — read only.
+        Route::get('/system/reliability', [ReliabilityController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.reliability');
         // Cart numbers (Module 27): counts only — there is no way to read a customer's cart from here.
         Route::get('/system/carts', [CartMetricsController::class, 'index'])->middleware('can:'.Permission::AdminSystemView->value)->name('system.carts');
         // Pickup availability numbers (Module 28): counts only.

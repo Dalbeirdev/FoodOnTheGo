@@ -1,0 +1,50 @@
+{
+ "module": "M40",
+ "kind": "integrity",
+ "database": "foodonthego_perf",
+ "at": "2026-10-14T15:39:09.178Z",
+ "results": [
+  {
+   "command": "finance:verify-ledger",
+   "exit": 0,
+   "duration_ms": 1119,
+   "output_tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":37530,\"entries\":93825,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements\":0,\"paid_settlements_without_paid_payout\":0,\"paid_payouts_without_posting\":0,\"recognized_orders_without_payable_line\":0}}"
+  },
+  {
+   "command": "finance:reconcile-internal",
+   "exit": 0,
+   "duration_ms": 785,
+   "output_tail": "{\"status\":\"OK\",\"problems\":0,\"found\":[],\"auto_resolved\":0}"
+  },
+  {
+   "command": "payments:reconcile",
+   "exit": 0,
+   "duration_ms": 567,
+   "output_tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+  },
+  {
+   "command": "refunds:reconcile",
+   "exit": 0,
+   "duration_ms": 571,
+   "output_tail": "{\"policy\":0,\"submitted\":0,\"reconciled\":0,\"failed\":0}"
+  },
+  {
+   "command": "orders:recover",
+   "exit": 0,
+   "duration_ms": 683,
+   "output_tail": "orders:recover retried 0, picked up 0, completed 0"
+  },
+  {
+   "command": "analytics:check",
+   "exit": 0,
+   "duration_ms": 908,
+   "output_tail": "{\"status\":\"WARNING\",\"counts\":{\"healthy\":9,\"warning\":1,\"error\":0},\"problems\":[\"funnel_transitions=WARNING\"]}"
+  },
+  {
+   "command": "ops:reliability --alerts",
+   "exit": 0,
+   "duration_ms": 1149,
+   "output_tail": "{\n \"status\": \"warning\",\n \"alerts\": [\n {\n \"key\": \"failed_jobs_24h\",\n \"severity\": \"warning\",\n \"value\": 24,\n \"threshold\": 1\n }\n ]\n}"
+  }
+ ]
+}

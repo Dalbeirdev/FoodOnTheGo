@@ -1,0 +1,651 @@
+{
+ "module": "M40",
+ "kind": "write-profile",
+ "at": "2026-10-14T16:55:09.463Z",
+ "database": "foodonthego_perf",
+ "orders": 5,
+ "note": "statements per request = calls / orders; the preparation of a step (provider simulation, pickup-code read) runs BEFORE the reset and is not counted",
+ "steps": {
+  "POST /cart/items": {
+   "statuses": [
+    201
+   ],
+   "statements_per_request": 112,
+   "distinct": 44,
+   "repeated": [
+    {
+     "per_request": 54,
+     "total_ms": 1.1,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 9.6,
+     "query": "set time zone 'UTC'\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.7,
+     "query": "select * from \"personal_access_tokens\" where \"personal_access_tokens\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.5,
+     "query": "select * from \"menus\" where \"menus\".\"status\" = $1 and \"location_id\" = $2 order by \"display_order\" asc, \"id\" asc limit $3\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select * from \"customers\" where \"customers\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"cities\".*, ST_Y(cities.center::geometry) as latitude, ST_X(cities.center::geometry) as longitude from \"cities\" where \"cities\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"menu_categories\" where \"menu_categories\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"carts\" where \"public_id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"market_regions\" where \"market_regions\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"menu_option_groups\" where \"menu_option_groups\".\"item_id\" in ($1) order by \"display_order\" asc, \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "set search_path to $1\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"cart_pickup_selections\" where \"cart_pickup_selections\".\"cart_id\" in ($1)\r"
+    }
+   ]
+  },
+  "POST /cart/pickup-selection": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 76,
+   "distinct": 38,
+   "repeated": [
+    {
+     "per_request": 37,
+     "total_ms": 0.6,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select \"cities\".*, ST_Y(cities.center::geometry) as latitude, ST_X(cities.center::geometry) as longitude from \"cities\" where \"cities\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"market_regions\" where \"market_regions\".\"id\" in ($1)\r"
+    }
+   ]
+  },
+  "POST /checkouts": {
+   "statuses": [
+    201
+   ],
+   "statements_per_request": 90,
+   "distinct": 44,
+   "repeated": [
+    {
+     "per_request": 44,
+     "total_ms": 0.8,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 1.4,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"cities\".*, ST_Y(cities.center::geometry) as latitude, ST_X(cities.center::geometry) as longitude from \"cities\" where \"cities\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"market_regions\" where \"market_regions\".\"id\" in ($1)\r"
+    }
+   ]
+  },
+  "POST /checkouts/{checkout}/confirm": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 115,
+   "distinct": 50,
+   "repeated": [
+    {
+     "per_request": 56,
+     "total_ms": 1,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 6.3,
+     "query": "insert into \"checkout_legal_acceptances\" (\"checkout_session_id\", \"customer_id\", \"document_type\", \"document_version\", \"document_effective_date\", \"document_status\", \"accepted_at\", \"request_id\", \"updated_at\", \"created_at\") \r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.2,
+     "query": "delete from \"checkout_legal_acceptances\" where \"checkout_session_id\" = $1 and \"document_type\" = $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 1.2,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"cities\".*, ST_Y(cities.center::geometry) as latitude, ST_X(cities.center::geometry) as longitude from \"cities\" where \"cities\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"market_regions\" where \"market_regions\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select \"legal\" from \"market_configurations\" where \"market_id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"pickup_slot_reservations\" where \"checkout_session_id\" = $1 and \"status\" = $2 and \"source\" = $3 and \"expires_at\" > $4 limit $5\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select \"payment\" from \"market_configurations\" where \"market_id\" = $1 limit $2\r"
+    }
+   ]
+  },
+  "POST /checkouts/{checkout}/payment-attempts": {
+   "statuses": [
+    201
+   ],
+   "statements_per_request": 128,
+   "distinct": 59,
+   "repeated": [
+    {
+     "per_request": 62,
+     "total_ms": 1,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 8,
+     "query": "insert into \"payment_attempt_events\" (\"payment_attempt_id\", \"type\", \"source\", \"from_status\", \"to_status\", \"detail\", \"admin_user_id\", \"request_id\", \"occurred_at\") values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning \"id\"\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 1.1,
+     "query": "select \"restaurant_locations\".*, ST_Y(restaurant_locations.location::geometry) as latitude, ST_X(restaurant_locations.location::geometry) as longitude from \"restaurant_locations\" where \"restaurant_locations\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select \"cities\".*, ST_Y(cities.center::geometry) as latitude, ST_X(cities.center::geometry) as longitude from \"cities\" where \"cities\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select count(*) as \"aggregate\" from \"payment_attempts\" where \"checkout_public_id\" = $1\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"pickup_slot_reservations\" where \"checkout_session_id\" = $1 and \"status\" = $2 and \"source\" = $3 and \"expires_at\" > $4 limit $5\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"market_regions\" where \"market_regions\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0,
+     "query": "BEGIN\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0,
+     "query": "COMMIT\r"
+    }
+   ]
+  },
+  "POST /payments/{payment}/complete": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 112,
+   "distinct": 46,
+   "repeated": [
+    {
+     "per_request": 54,
+     "total_ms": 1.2,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 10.9,
+     "query": "insert into \"payment_attempt_events\" (\"payment_attempt_id\", \"type\", \"source\", \"from_status\", \"to_status\", \"detail\", \"admin_user_id\", \"request_id\", \"occurred_at\") values ($1, $2, $3, $4, $5, $6, $7, $8, $9) returning \"id\"\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.3,
+     "query": "select * from \"pickup_slot_reservations\" where \"checkout_session_id\" = $1 and \"status\" = $2 and \"source\" = $3 and \"expires_at\" > $4 limit $5\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.7,
+     "query": "select * from \"checkout_sessions\" where \"checkout_sessions\".\"id\" = $1 limit $2 for update\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.5,
+     "query": "select * from \"payment_attempts\" where \"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"cities\".*, ST_Y(cities.center::geometry) as latitude, ST_X(cities.center::geometry) as longitude from \"cities\" where \"cities\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"payment_attempts\" where \"payment_attempts\".\"id\" = $1 limit $2 for update\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select \"checkout_session_id\" from \"payment_attempts\" where \"payment_attempts\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"customers\" where \"customers\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"market_regions\" where \"market_regions\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0,
+     "query": "BEGIN\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0,
+     "query": "COMMIT\r"
+    }
+   ]
+  },
+  "(queue) order creation: FulfillCheckoutJob + listeners": {
+   "statements_per_request": 156.8,
+   "distinct": 62,
+   "repeated": [
+    {
+     "per_request": 73.4,
+     "total_ms": 0.9,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 4,
+     "total_ms": 0,
+     "query": "BEGIN\r"
+    },
+    {
+     "per_request": 4,
+     "total_ms": 0,
+     "query": "COMMIT\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.5,
+     "query": "select * from \"orders\" where \"orders\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2.4,
+     "total_ms": 0.3,
+     "query": "select * from \"payment_attempts\" where \"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 2.1,
+     "query": "insert into \"notification_deliveries\" (\"notification_id\", \"channel\", \"customer_device_id\", \"provider\", \"status\", \"policy_result\", \"attempt_count\", \"public_id\", \"updated_at\", \"created_at\") values ($1, $2, $3, $4, $5, $6, \r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.5,
+     "query": "select * from \"order_fulfillments\" where \"checkout_public_id\" = $1 limit $2 for update\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select * from \"payment_attempts\" where \"public_id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"ledger_transactions\" where \"posting_key\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"customers\" where \"customers\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"ledger_accounts\" where \"code\" = $1 and \"currency\" = $2 and \"owner_type\" = $3 and \"location_id\" is null and \"provider\" = $4 limit $5\r"
+    }
+   ]
+  },
+  "POST /restaurant/orders/{order}/accept": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 98.8,
+   "distinct": 40,
+   "repeated": [
+    {
+     "per_request": 47.4,
+     "total_ms": 0.9,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 1.3,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.5,
+     "query": "select * from \"orders\" where \"orders\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"restaurant_locations\".*, ST_Y(restaurant_locations.location::geometry) as latitude, ST_X(restaurant_locations.location::geometry) as longitude from \"restaurant_locations\" where \"restaurant_locations\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"order_pickup_credentials\".* from \"order_pickup_credentials\" inner join (select MAX(\"order_pickup_credentials\".\"id\") as \"id_aggregate\", \"order_pickup_credentials\".\"order_id\" from \"order_pickup_credentials\" where \"\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"order_events\" where \"order_events\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"order_items\" where \"order_items\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"order_item_options\" where \"order_item_options\".\"order_item_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"refunds\" where \"refunds\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"order_tax_lines\" where \"order_tax_lines\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"order_fee_lines\" where \"order_fee_lines\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0,
+     "query": "BEGIN\r"
+    }
+   ]
+  },
+  "POST /restaurant/orders/{order}/start-preparing": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 96.4,
+   "distinct": 39,
+   "repeated": [
+    {
+     "per_request": 46.2,
+     "total_ms": 0.8,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 1.2,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select * from \"orders\" where \"orders\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select \"restaurant_locations\".*, ST_Y(restaurant_locations.location::geometry) as latitude, ST_X(restaurant_locations.location::geometry) as longitude from \"restaurant_locations\" where \"restaurant_locations\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"order_events\" where \"order_events\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select \"order_pickup_credentials\".* from \"order_pickup_credentials\" inner join (select MAX(\"order_pickup_credentials\".\"id\") as \"id_aggregate\", \"order_pickup_credentials\".\"order_id\" from \"order_pickup_credentials\" where \"\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"order_items\" where \"order_items\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"order_item_options\" where \"order_item_options\".\"order_item_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"refunds\" where \"refunds\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"order_tax_lines\" where \"order_tax_lines\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"order_fee_lines\" where \"order_fee_lines\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0,
+     "query": "BEGIN\r"
+    }
+   ]
+  },
+  "POST /restaurant/orders/{order}/ready": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 100.8,
+   "distinct": 40,
+   "repeated": [
+    {
+     "per_request": 48.4,
+     "total_ms": 0.9,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 1.3,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 4.1,
+     "query": "insert into \"notification_deliveries\" (\"notification_id\", \"channel\", \"customer_device_id\", \"provider\", \"status\", \"policy_result\", \"attempt_count\", \"public_id\", \"updated_at\", \"created_at\") values ($1, $2, $3, $4, $5, $6, \r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select * from \"orders\" where \"orders\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"order_pickup_credentials\".* from \"order_pickup_credentials\" inner join (select MAX(\"order_pickup_credentials\".\"id\") as \"id_aggregate\", \"order_pickup_credentials\".\"order_id\" from \"order_pickup_credentials\" where \"\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.4,
+     "query": "select \"restaurant_locations\".*, ST_Y(restaurant_locations.location::geometry) as latitude, ST_X(restaurant_locations.location::geometry) as longitude from \"restaurant_locations\" where \"restaurant_locations\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.3,
+     "query": "select * from \"order_events\" where \"order_events\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"order_items\" where \"order_items\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"order_item_options\" where \"order_item_options\".\"order_item_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.2,
+     "query": "select * from \"refunds\" where \"refunds\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"order_tax_lines\" where \"order_tax_lines\".\"order_id\" in ($1) order by \"position\" asc\r"
+    },
+    {
+     "per_request": 2,
+     "total_ms": 0.1,
+     "query": "select * from \"order_fee_lines\" where \"order_fee_lines\".\"order_id\" in ($1) order by \"position\" asc\r"
+    }
+   ]
+  },
+  "POST /restaurant/pickup/verify": {
+   "statuses": [
+    200
+   ],
+   "statements_per_request": 170.8,
+   "distinct": 44,
+   "repeated": [
+    {
+     "per_request": 81.4,
+     "total_ms": 1.6,
+     "query": "DEALLOCATE $1\r"
+    },
+    {
+     "per_request": 5,
+     "total_ms": 1.6,
+     "query": "select * from \"markets\" where \"markets\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 5,
+     "total_ms": 1,
+     "query": "select * from \"orders\" where \"orders\".\"id\" = $1 limit $2\r"
+    },
+    {
+     "per_request": 4,
+     "total_ms": 0.6,
+     "query": "select \"restaurant_locations\".*, ST_Y(restaurant_locations.location::geometry) as latitude, ST_X(restaurant_locations.location::geometry) as longitude from \"restaurant_locations\" where \"restaurant_locations\".\"id\" in ($1)\r"
+    },
+    {
+     "per_request": 4,
+     "total_ms": 0,
+     "query": "BEGIN\r"
+    },
+    {
+     "per_request": 4,
+     "total_ms": 0,
+     "query": "COMMIT\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 4.8,
+     "query": "insert into \"order_events\" (\"order_id\", \"sequence\", \"type\", \"from_status\", \"to_status\", \"actor_type\", \"actor_public_id\", \"detail\", \"customer_visible\", \"request_id\", \"occurred_at\", \"created_at\") values ($1, $2, $3, $4, $5\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.8,
+     "query": "select max(\"sequence\") as \"aggregate\" from \"order_events\" where \"order_id\" = $1\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.5,
+     "query": "select \"order_pickup_credentials\".* from \"order_pickup_credentials\" inner join (select MAX(\"order_pickup_credentials\".\"id\") as \"id_aggregate\", \"order_pickup_credentials\".\"order_id\" from \"order_pickup_credentials\" where \"\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.5,
+     "query": "select * from \"order_events\" where \"order_events\".\"order_id\" in ($1) order by \"id\" asc\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.4,
+     "query": "select exists(select \"restaurant_locations\".*, ST_Y(restaurant_locations.location::geometry) as latitude, ST_X(restaurant_locations.location::geometry) as longitude from \"restaurant_locations\" where (\"restaurant_location\r"
+    },
+    {
+     "per_request": 3,
+     "total_ms": 0.3,
+     "query": "select * from \"order_items\" where \"order_items\".\"order_id\" in ($1) order by \"position\" asc\r"
+    }
+   ]
+  }
+ }
+}

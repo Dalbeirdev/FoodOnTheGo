@@ -2,7 +2,9 @@
 
 namespace App\Jobs\Analytics;
 
+use App\Models\ReportExport;
 use App\Services\Analytics\Reports\ReportExportService;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -16,7 +18,11 @@ final class GenerateReportExportJob implements ShouldQueue
 
     public int $tries = 1;
 
-    public int $timeout = 300;
+    /**
+     * Below the queue's retry_after (90 s, config/queue.php), so a slow export is never handed to a second worker while
+     * the first is still building it (Module 40). Exports are row-capped; the medium perf dataset builds in seconds.
+     */
+    public int $timeout = 80;
 
     public function __construct(public readonly int $exportId)
     {
@@ -28,5 +34,15 @@ final class GenerateReportExportJob implements ShouldQueue
     public function handle(ReportExportService $exports): void
     {
         $exports->generate($this->exportId);
+    }
+
+    /**
+     * The worker gave up on it (a timeout kills the process before the service can record anything): the export is
+     * closed as FAILED now, so the person sees it and asks again — instead of a row left PROCESSING for a day.
+     */
+    public function failed(?\Throwable $e): void
+    {
+        ReportExport::query()->whereKey($this->exportId)->whereIn('status', [ReportExport::QUEUED, ReportExport::PROCESSING])
+            ->update(['status' => ReportExport::FAILED, 'failure_code' => 'generation_timed_out', 'completed_at' => CarbonImmutable::now('UTC')]);
     }
 }

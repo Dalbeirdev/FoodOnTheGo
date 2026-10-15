@@ -99,6 +99,17 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             // Sessions always run in UTC: timestamps are stored normalised, business time zones are explicit data.
             'timezone' => 'UTC',
+            // Module 40: reuse a PHP worker's database connection across requests (PDO persistent connections). OFF by
+            // default; production uses a connection pooler (PgBouncer, transaction mode) instead — see
+            // docs/reliability/database-performance.md for the measurement and the caveats.
+            // DB_PGSQL_DISABLE_PREPARES (Module 40, OFF by default): send each statement with its parameters in one
+            // round trip (libpq PQexecParams — still server-side binding, never string interpolation) instead of a
+            // named prepared statement followed by DEALLOCATE: measured, every query cost two round trips (81 extra
+            // DEALLOCATE per pickup verification). Named prepares also do not survive a transaction-mode pooler.
+            'options' => extension_loaded('pdo_pgsql') ? array_filter([
+                PDO::ATTR_PERSISTENT => (bool) env('DB_PERSISTENT', false),
+                PDO::PGSQL_ATTR_DISABLE_PREPARES => (bool) env('DB_PGSQL_DISABLE_PREPARES', false),
+            ]) : [],
         ],
 
         'sqlsrv' => [
@@ -166,6 +177,13 @@ return [
             'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+            // Module 40: keep the TCP connection across requests (predis reads it per connection, phpredis too).
+            // OFF by default; with a fresh connection per request, the load test exhausted Windows' client ports at
+            // ≈ 70 requests/s (docs/reliability/cache-strategy.md). The value is a persistent-connection NAME, never
+            // `true`: with `true` predis names the socket only by host:port, so this connection (database 0: queue,
+            // locks) and the cache connection (database 1) share ONE socket and one SELECT — measured: queued order
+            // jobs went to the wrong database and no order was created. Each connection gets its own name.
+            'persistent' => filter_var(env('REDIS_PERSISTENT', false), FILTER_VALIDATE_BOOLEAN) ? 'fotg-default' : false,
         ],
 
         'cache' => [
@@ -179,6 +197,8 @@ return [
             'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+            // Module 40: its own persistent-connection name (see the default connection above).
+            'persistent' => filter_var(env('REDIS_PERSISTENT', false), FILTER_VALIDATE_BOOLEAN) ? 'fotg-cache' : false,
         ],
 
     ],

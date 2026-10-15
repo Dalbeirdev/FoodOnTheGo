@@ -1,0 +1,157 @@
+{
+ "module": "M40",
+ "kind": "failure-injection",
+ "scenario": "queue",
+ "at": "2026-10-14T16:34:33.139Z",
+ "database": "foodonthego_perf",
+ "steps": [
+  {
+   "step": "workers",
+   "t": "2026-10-14T16:34:36.309Z",
+   "running": 0
+  },
+  {
+   "step": "paid with no worker",
+   "t": "2026-10-14T16:35:16.234Z",
+   "purchases": {
+    "paid, order pending": 20
+   },
+   "queues": {
+    "orders": {
+     "depth": 20,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": 37.9
+    },
+    "payments": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "finance": {
+     "depth": 20,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": 38
+    },
+    "notifications": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "default": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    }
+   },
+   "fulfilment": {
+    "ORDER_PENDING orders=0": 20
+   }
+  },
+  {
+   "step": "worker killed in the middle of the backlog",
+   "t": "2026-10-14T16:35:19.080Z",
+   "killed": 1,
+   "queues": {
+    "orders": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "payments": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "finance": {
+     "depth": 18,
+     "delayed": 0,
+     "reserved": 1,
+     "oldest_age_s": 2
+    },
+    "notifications": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "default": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    }
+   }
+  },
+  {
+   "step": "after a new worker",
+   "t": "2026-10-14T16:35:22.414Z",
+   "orders_created": 20,
+   "of": 20,
+   "seconds": 3.1,
+   "queues": {
+    "orders": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "payments": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "finance": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 1,
+     "oldest_age_s": null
+    },
+    "notifications": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "default": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    }
+   }
+  },
+  {
+   "step": "exactly once",
+   "t": "2026-10-14T16:35:28.252Z",
+   "payments": 20,
+   "all_one_order_one_posting": true,
+   "not_exactly_once": [],
+   "integrity": {
+    "payments:reconcile": {
+     "exit": 0,
+     "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+    },
+    "orders:recover": {
+     "exit": 0,
+     "tail": "orders:recover retried 0, picked up 0, completed 0"
+    },
+    "finance:post-pending": {
+     "exit": 0,
+     "tail": "{\"payments\":0,\"allocations\":1,\"recognized\":0,\"voided\":0,\"refunds\":0,\"disputes\":0,\"holds_released\":0,\"failed\":0,\"payouts_submitted\":0,\"payouts_checked\":0}"
+    },
+    "finance:verify-ledger": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":38538,\"entries\":96208,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements"
+    }
+   }
+  }
+ ]
+}

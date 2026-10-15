@@ -105,6 +105,25 @@ class AnalyticsExportTest extends TestCase
         $this->assertContains('financial_summary', array_column($list['reports'], 'key'));
     }
 
+    public function test_an_export_the_worker_gave_up_on_is_closed_as_failed_at_once_and_its_timeout_stays_below_retry_after(): void
+    {
+        $this->completedOrderWith();
+        $this->aggregate();
+        $admin = $this->analyst();
+        Queue::fake();
+        $queued = $this->ask($admin, 'admin', ['report' => 'orders'] + self::PERIOD)->assertStatus(202)->json('export');
+        $record = ReportExport::query()->where('public_id', $queued['id'])->firstOrFail();
+        $record->forceFill(['status' => ReportExport::PROCESSING])->save();   // the worker had claimed it, then was killed
+
+        $job = new GenerateReportExportJob((int) $record->getKey());
+        $job->failed(new \RuntimeException('timed out'));
+
+        $failed = $this->fetch($admin, 'admin', '/'.$queued['id'])->assertOk()->json('export');
+        $this->assertSame(['FAILED', 'generation_timed_out'], [$failed['status'], $failed['failure_code']]);
+        // Module 40: a job is never handed to a second worker while the first still has time to finish it.
+        $this->assertLessThan((int) config('queue.connections.redis.retry_after'), $job->timeout);
+    }
+
     public function test_an_export_belongs_to_the_person_who_asked_and_to_nobody_else(): void
     {
         $this->completedOrderWith();

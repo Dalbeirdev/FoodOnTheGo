@@ -1,0 +1,14 @@
+# Module 40 — DR exercise, FIRST RUN (2026-10-14 ~22:50 IST), console output of node tests/performance/dr-exercise.mjs. The result file m40-dr-exercise.json holds the SECOND run (after analytics:aggregate was added before analytics:check).
+=== dr
+    0.4 start {"primary_counts":{"orders":19845,"payment_attempts":19857,"ledger_transactions":39210,"ledger_entries":97785,"customers":5118,"analytics_events":235503}}
+    8.3 1. backup taken {"duration_ms":7760,"size_bytes":63373323,"sha256":"f06f41f3776e9fb7…"}
+   20.2 2. business after the backup (the RPO window) {"purchases":3,"orders":3,"primary_counts":{"orders":19848,"payment_attempts":19860,"ledger_transactions":39213,"ledger_entries":97791,"customers":5121,"analytics_events":235503}}
+   20.2 3. DISASTER: the primary is declared lost {}
+   35.2 4. restored {"restore_ms":8604,"analyze_ms":3309,"postgis":"3.6.2","spatial_rows_valid":15,"gist_indexes":5,"tables":138}
+   35.6 4b. restored = backup? {"equal":true,"restored_counts":{"orders":19845,"payment_attempts":19857,"ledger_transactions":39210,"ledger_entries":97785,"customers":5118,"analytics_events":235503}}
+   36.6 5. application up on the restored database {"live":200,"health":200}
+   42.2 5b. first order after recovery {"order":"created","kitchen":"ready","picked_up":true}
+   47.9 6. verified {"integrity":{"finance:verify-ledger":{"exit":0,"tail":"{\"status\":\"OK\",\"problems\":0,\"transactions\":39212,\"entries\":97790,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0"},"finance:reconcile-internal":{"exit":0,"tail":"{\"sta
+   48.7 restored database dropped {}
+
+[exited with code 0]

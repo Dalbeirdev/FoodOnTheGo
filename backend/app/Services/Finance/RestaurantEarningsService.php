@@ -32,6 +32,16 @@ use Illuminate\Support\Facades\DB;
  */
 final class RestaurantEarningsService
 {
+    /**
+     * A payable line is held when an ACTIVE hold names the line or covers its whole location. Written as two
+     * UNCORRELATED IN lists (Module 40) rather than one correlated EXISTS with an OR: PostgreSQL computes each list once
+     * and hashes it, instead of running a subquery per line (88 ms → 8 ms for 18,780 lines of one location in the
+     * medium perf dataset). NULLs are left out of both lists so the test is strictly true / false; parenthesised
+     * because it is negated as a whole.
+     */
+    private const HELD = "(i.id in (select h.payable_item_id from financial_holds h where h.status = '".FinancialHold::STATUS_ACTIVE."' and h.payable_item_id is not null)"
+        ." or i.location_id in (select h.location_id from financial_holds h where h.status = '".FinancialHold::STATUS_ACTIVE."' and h.scope = '".FinancialHold::SCOPE_LOCATION."' and h.location_id is not null))";
+
     public const DEFINITIONS = [
         'gross_sales' => 'Merchandise of completed orders as priced, before discounts, tax and fees.',
         'commission' => 'FoodOnTheGo commission on those orders, by the terms that applied when each order was placed.',
@@ -78,7 +88,7 @@ final class RestaurantEarningsService
             }
         }
 
-        $held = 'exists (select 1 from financial_holds h where h.status = \''.FinancialHold::STATUS_ACTIVE.'\' and (h.payable_item_id = i.id or (h.scope = \''.FinancialHold::SCOPE_LOCATION.'\' and h.location_id = i.location_id)))';
+        $held = self::HELD;
         $open = "'".implode("','", [SettlementStatus::Calculated->value, SettlementStatus::ReviewRequired->value, SettlementStatus::Approved->value, SettlementStatus::PaymentPending->value, SettlementStatus::Failed->value])."'";
         $states = DB::table('restaurant_payable_items as i')->leftJoin('restaurant_settlements as s', 's.id', '=', 'i.settlement_id')->whereIn('i.location_id', $locationIds)
             ->selectRaw("i.currency,
@@ -168,7 +178,7 @@ final class RestaurantEarningsService
         if ($locationIds === []) {
             return $out;
         }
-        $held = 'exists (select 1 from financial_holds h where h.status = \''.FinancialHold::STATUS_ACTIVE.'\' and (h.payable_item_id = i.id or (h.scope = \''.FinancialHold::SCOPE_LOCATION.'\' and h.location_id = i.location_id)))';
+        $held = self::HELD;
         $rows = DB::table('restaurant_payable_items as i')->leftJoin('restaurant_settlements as s', 's.id', '=', 'i.settlement_id')->whereIn('i.location_id', $locationIds)
             ->selectRaw("i.location_id, i.currency,
                 coalesce(sum(i.amount_minor) filter (where i.status = 'AVAILABLE' and not {$held}), 0) as available,

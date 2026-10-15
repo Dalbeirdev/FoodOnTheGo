@@ -32,7 +32,7 @@ pwsh -File scripts/local/start-backend.ps1
 php artisan migrate            # schema
 php artisan db:seed            # India market (all environments) + local fixtures (local / testing only)
 php artisan foundation:verify  # PostgreSQL, PostGIS, Redis, cache, queue, market seed against the current environment
-php artisan queue:work redis   # worker, only needed when jobs are dispatched
+php artisan queue:work redis --queue=orders,payments,finance,notifications,default   # every queue, in priority order (Module 40: without --queue only "default" is served — see docs/reliability/queue-strategy.md)
 php artisan test               # 260 tests, real PostgreSQL + PostGIS + Redis
 php artisan otp:check          # how one-time codes are delivered here (channels, providers) and whether it is configured
 php artisan admin:create you@company.example "Your Name" --role=SUPER_ADMIN   # bootstrap an administrator (hidden password prompt)

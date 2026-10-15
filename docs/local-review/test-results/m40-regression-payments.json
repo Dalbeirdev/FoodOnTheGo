@@ -1,0 +1,325 @@
+{
+  "module": "M30",
+  "suite": "Customer Web + Platform Admin on the real local backend, DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — Razorpay itself is NOT exercised: no credentials on this machine",
+  "ran_at": "2026-10-15T04:48:37.467Z",
+  "passed": 57,
+  "failed": 6,
+  "total": 63,
+  "results": [
+    {
+      "name": "A1 THE CONFIRMED CHECKOUT SAYS PAYMENTS CAN BE TAKEN: provider READY — the development provider, mode FAKE — and no payment attempt exists yet",
+      "pass": true,
+      "detail": "{\"status\":\"READY\",\"name\":\"fake\",\"mode\":\"FAKE\"}"
+    },
+    {
+      "name": "A2 THE PAYMENT PAGE shows the BACKEND'S total with its currency, puts it on the button — and has no field for a card, a CVV, a UPI PIN or a bank password (no input at all)",
+      "pass": true,
+      "detail": "{\"view\":\"READY\",\"total\":42700,\"currency\":\"INR\",\"inputs\":0,\"cta\":\"Pay ₹427.00 securely\",\"ctaAmount\":42700}"
+    },
+    {
+      "name": "A3 arriving on the page started nothing: no payment attempt exists, the checkout is still READY",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 PAY ASKS THE BACKEND FOR A PAYMENT ATTEMPT: the request names the price the customer saw (its fingerprint) and a method TYPE — no amount, no currency, no status — with the customer session and an idempotency key",
+      "pass": true,
+      "detail": "{\"pricing_fingerprint\":\"6100a06d0cfdfb40a4627a65f67af8016448cc5c6f88f9fe7b236ce1ef110c92\",\"payment_method\":{\"type\":\"UPI\"}}"
+    },
+    {
+      "name": "A5 THE ATTEMPT IS THE BACKEND'S: PROVIDER_READY for exactly the checkout's total in INR, attempt 1, a support reference, the provider session (public key id, order reference, the same amount) — and nothing secret in the answer",
+      "pass": true,
+      "detail": "{\"id\":\"05e8caa1-5430-494a-85f9-666f6a065dc9\",\"checkout_id\":\"132a8c00-5b37-4a31-a981-b1c1af6f76d9\",\"attempt_number\":1,\"status\":\"PROVIDER_READY\",\"amount\":{\"amount\":42700,\"currency\":\"INR\"},\"provider\":{\"name\":\"fake\",\"mode\":\"FAKE\"},\"requested_method_type\":\"UPI\",\"method\":null,\"failure\":null,\"message\":null"
+    },
+    {
+      "name": "A6 DATABASE: one attempt for the checkout (PROVIDER_READY, the total in minor units, provider \"fake\" in mode FAKE, the provider order reference); the checkout is PAYMENT_PENDING and its pickup hold is still held",
+      "pass": true,
+      "detail": "{\"status\":\"PROVIDER_READY\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_5dikxcxnk4o0ec\",\"payment\":\"\",\"fulfillment\":\"NOT_APPLICABLE\",\"reason\":\"\",\"client\":\"\",\"signed\":false,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":false} PAYMENT_PENDING ACTIVE"
+    },
+    {
+      "name": "A7 THE PROVIDER'S PLACE: on this machine the development provider's sheet stands in for the provider's own window (labelled as such, \"no money moves\"); opening it verified nothing",
+      "pass": true,
+      "detail": "{\"view\":\"PROCESSING\",\"status\":\"PROVIDER_READY\",\"sheet\":true,\"mode\":\"FAKE\"}"
+    },
+    {
+      "name": "A8 THE PROVIDER'S OUTCOME IS REPORTED, NOT BELIEVED: the page sends outcome \"success\" with the provider's payment reference and proof — no amount, no status — and the BACKEND answers VERIFIED",
+      "pass": true,
+      "detail": "{\"outcome\":\"success\",\"provider_payment_reference\":\"fakepay_fojgyap5pvhopk\",\"provider_signature\":\"<proof>\"}"
+    },
+    {
+      "name": "A9 PAID IS NOT ORDERED: the page says \"Payment verified — order creation is pending\", stays on /payment, shows no order confirmation and no order number, and offers nothing to pay again",
+      "pass": false,
+      "detail": "{\"view\":\"VERIFIED\",\"status\":\"VERIFIED\",\"pending\":true,\"fulfillment\":\"ORDER_PENDING\",\"url\":\"/payment\",\"text\":\"SECURE PAYMENT Payment Complete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details. development payment p\",\"submit\":false,\"retry\":false}"
+    },
+    {
+      "name": "A10 DATABASE: the attempt is VERIFIED (proof checked, provider payment reference kept, verified_at set), its order state is ORDER_PENDING — and there is NO ORDER: no orders table exists yet; the checkout stays PAYMENT_PENDING with its hold",
+      "pass": false,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_5dikxcxnk4o0ec\",\"payment\":\"fakepay_fojgyap5pvhopk\",\"fulfillment\":\"ORDER_PENDING\",\"reason\":\"\",\"client\":\"success\",\"signed\":true,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":true}"
+    },
+    {
+      "name": "A11 THE BROWSER KEEPS TWO REFERENCES for the payment (checkout id, payment id) — no proof of payment, no provider reference, no card data anywhere in its storage",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe (payment page, verified): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A12 RELOAD: the page asks the BACKEND what the payment is (GET /payments/{id}) and shows VERIFIED again — it posts nothing and opens no provider",
+      "pass": true,
+      "detail": "GET /payments/05e8caa1-5430-494a-85f9-666f6a065dc9, GET /payments/05e8caa1-5430-494a-85f9-666f6a065dc9"
+    },
+    {
+      "name": "A13 NOTHING CAN BE PAID TWICE: a second start is refused (409 payment_already_verified, naming the attempt), the cart cannot be changed (409 cart_locked_for_payment), a repeated report is answered with the same VERIFIED payment — and there is still ONE attempt",
+      "pass": true,
+      "detail": "409 409 200"
+    },
+    {
+      "name": "A14 A TAB THAT KEPT NOTHING FINDS THE PAYMENT AGAIN: without a stored request /payment sends the customer to checkout, checkout says a payment is in progress and offers \"Go to payment\", and the payment page reads the checkout the backend names and shows the VERIFIED payment — nothing is started",
+      "pass": true,
+      "detail": "/checkout true /checkouts/132a8c00-5b37-4a31-a981-b1c1af6f76d9, /checkouts/132a8c00-5b37-4a31-a981-b1c1af6f76d9, /payments/05e8caa1-5430-494a-85f9-666f6a065dc9"
+    },
+    {
+      "name": "B1 CANCEL: the page reports \"cancelled\" (nothing else), the backend asks the provider — no payment there — and answers CANCELLED with its own safe words; the page offers to try again and to go back",
+      "pass": true,
+      "detail": "{\"payment\":{\"id\":\"91b60a0e-f28e-4158-9401-74ac791b9f55\",\"checkout_id\":\"9fe9f3ad-df1e-43e6-baaf-2e7aef479433\",\"attempt_number\":1,\"status\":\"CANCELLED\",\"amount\":{\"amount\":42700,\"currency\":\"INR\"},\"provider\":{\"name\":\"fake\",\"mode\":\"FAKE\"},\"requested_method_type\":\"UPI\",\"method\":null,\"failure\":{\"category\":\""
+    },
+    {
+      "name": "B2 THE CHECKOUT IS RECOVERABLE: after the cancellation it is READY again, its pickup hold is still held, the attempt is CANCELLED and no money is recorded",
+      "pass": true,
+      "detail": "READY ACTIVE {\"status\":\"CANCELLED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_1ewubyegs6pynm\",\"payment\":\"\",\"fulfillment\":\"NOT_APPLICABLE\",\"reason\":\"CUSTOMER_CANCELLED\",\"client\":\"cancelled\",\"signed\":false,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"CUSTOMER_CANCELLED\",\"verifiedAt\":false}"
+    },
+    {
+      "name": "B3 RETRY IS A NEW ATTEMPT with a new provider order: attempt 2, another id and another provider order reference, the same amount; the first attempt stays CANCELLED",
+      "pass": true,
+      "detail": "{\"n\":2,\"same\":false}"
+    },
+    {
+      "name": "B4 FAILED: the backend asks the provider, finds the failed payment and answers FAILED with a category and safe words; the page shows those words — no provider error code — and offers another try",
+      "pass": true,
+      "detail": "{\"category\":\"UNKNOWN\",\"code\":\"PAYMENT_FAILED\",\"message\":\"The payment could not be completed. Please try again.\",\"retryable\":true}"
+    },
+    {
+      "name": "B5 A FORGED SUCCESS IS REFUSED: a made-up payment reference with a made-up proof gets 422 payment_signature_invalid; the attempt is NOT verified — also after the backend looked at the provider itself (no payment there) — and the failure is counted",
+      "pass": true,
+      "detail": "422 PROVIDER_READY attempt_created/SYSTEM,provider_ready/PROVIDER,signature_invalid/CLIENT"
+    },
+    {
+      "name": "B6 A DAMAGED PROOF OF A REAL PAYMENT: the report is refused (422) — and the backend, asking the provider ITSELF, finds the captured payment on its own order for its own amount and verifies it on the provider's word (the proof stays unverified; nothing came from the device's claim)",
+      "pass": true,
+      "detail": "422 {\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_1kdvzzalqnifs7\",\"payment\":\"fakepay_zji4qjj5zzqqm0\",\"fulfillment\":\"ORDER_PENDING\",\"reason\":\"\",\"client\":\"\",\"signed\":false,\"failures\":2,\"number\":3,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":true}"
+    },
+    {
+      "name": "B7 THREE ATTEMPTS, ONE PAYMENT: the checkout has attempts CANCELLED, FAILED and VERIFIED — exactly one verified",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 PENDING: the bank has not answered — the page waits, warns \"do not pay again\", offers \"check payment status\" and neither a Pay nor a retry button nor a way back to change the order",
+      "pass": true,
+      "detail": "{\"view\":\"PENDING\",\"warn\":true,\"submit\":false,\"retry\":false,\"check\":true,\"back\":false} PENDING"
+    },
+    {
+      "name": "C2 NO SECOND PAYMENT WHILE MONEY MAY BE ON ITS WAY: another start is refused (409 payment_already_in_progress, naming the attempt and its state) and the checkout still has ONE attempt",
+      "pass": true,
+      "detail": "409 {\"error\":{\"code\":\"payment_already_in_progress\",\"message\":\"A payment for this checkout is still being confirmed.\",\"details\":{\"payment_id\":\"833657ee-e52e-4772-91be-61cd6005c8cc\",\"status\":\"PENDING\",\"next"
+    },
+    {
+      "name": "C3 THE PROVIDER'S EVENT SETTLES IT: the bank confirms later, the provider sends a signed event, the backend verifies the payment — the page (asking the backend, 2 status reads) shows VERIFIED; the device never reported a success and no report was posted",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_nm5uz2ylnbab2f\",\"payment\":\"fakepay_d9wdp3pwasztsb\",\"fulfillment\":\"ORDER_PENDING\",\"reason\":\"\",\"client\":\"\",\"signed\":false,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":true} hooks=payment.captured/PROCESSED/1"
+    },
+    {
+      "name": "C4 the payment's timeline shows where the truth came from: the attempt, the provider, the pending state, the provider's event and the verification",
+      "pass": true,
+      "detail": "attempt_created/SYSTEM,provider_ready/PROVIDER,pending/CLIENT,webhook_payment_captured/WEBHOOK,verified/WEBHOOK"
+    },
+    {
+      "name": "D1 THE DEVICE NEVER HEARD BACK: the customer paid, the provider's window told the page nothing — the page asks the backend, the backend finds the captured payment (the provider's event and its own look at the provider) and the page shows VERIFIED; no success was ever reported by the device",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_93cbqnppc1snb5\",\"payment\":\"fakepay_cor7mxv14ujocx\",\"fulfillment\":\"ORDER_PENDING\",\"reason\":\"\",\"client\":\"\",\"signed\":false,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":true}"
+    },
+    {
+      "name": "E1 A WEBHOOK WITHOUT A VALID SIGNATURE IS REFUSED (401 webhook_signature_invalid): unsigned, wrongly signed, a body changed by one byte after signing — and a customer session does not make it valid; nothing was stored and the attempt is unchanged",
+      "pass": true,
+      "detail": "401,401,401,401 PROVIDER_READY"
+    },
+    {
+      "name": "E2 A SIGNED WEBHOOK NEEDS NO CUSTOMER SESSION: sent without any Authorization header it is accepted (200, 343 ms), handled on the queue, and the payment becomes VERIFIED — the device reported nothing",
+      "pass": true,
+      "detail": "200 {\"received\":true} VERIFIED payment.captured/PROCESSED/1"
+    },
+    {
+      "name": "E3 THE SAME EVENT AGAIN IS A DUPLICATE: answered 200 \"duplicate\", counted on the one stored event (deliveries 2), processed once — the payment is VERIFIED once",
+      "pass": true,
+      "detail": "200 payment.captured/PROCESSED/2 attempt_created/SYSTEM,provider_ready/PROVIDER,webhook_payment_captured/WEBHOOK,verified/WEBHOOK"
+    },
+    {
+      "name": "E4 A LATE \"FAILED\" EVENT CANNOT UNDO A VERIFIED PAYMENT: it is accepted and recorded, and the attempt stays VERIFIED (a verified payment never goes back)",
+      "pass": true,
+      "detail": "VERIFIED payment.captured/PROCESSED/2,payment.failed/PROCESSED/1"
+    },
+    {
+      "name": "E5 the endpoint refuses what it should: a body over the size limit (413), an unknown provider (404) — and what is kept of an event is a summary of safe fields, never the raw message",
+      "pass": true,
+      "detail": "413 404 summary keys: payment"
+    },
+    {
+      "name": "F1 OWNERSHIP: another signed-in customer cannot read, complete or simulate this payment, nor start one for this checkout (404 — it does not exist for them); without a session every call is 401",
+      "pass": true,
+      "detail": "{\"show\":404,\"complete\":404,\"sim\":404,\"start\":404} guest 401/401"
+    },
+    {
+      "name": "F2 TAMPERING: a start that carries an amount, a currency, a status, an owner, a provider, a secret or card details is refused as a whole (422, each field named) and creates nothing; a start for another price than the confirmed one is refused (409 checkout_stale)",
+      "pass": true,
+      "detail": "422 payment_method,amount,currency,status,verified,customer_id,provider,key_secret,card_number,cvv,upi_pin,payment_method.card_number | 409 checkout_stale"
+    },
+    {
+      "name": "F3 a report that carries a status or an amount is refused (422) and an outcome the API does not know is refused (422); the attempt is untouched",
+      "pass": true,
+      "detail": "422 422 PROVIDER_READY"
+    },
+    {
+      "name": "G1 STARTING AGAIN GIVES THE SAME ATTEMPT: the same key, another key — every answer is the one open attempt (200), and the checkout has ONE attempt and one provider order",
+      "pass": true,
+      "detail": "200:true 200:true 200:true"
+    },
+    {
+      "name": "G2 FOUR REPORTS AT ONCE AND THE PROVIDER'S EVENT TWICE: every report is answered (200,200,200,200), the payment is VERIFIED exactly once (one \"verified\" in its timeline), the event is stored once with two deliveries",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_ecpykwhcwhiytz\",\"payment\":\"fakepay_iemdrgj3t4tj8q\",\"fulfillment\":\"ORDER_PENDING\",\"reason\":\"\",\"client\":\"\",\"signed\":false,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":true} payment.captured/PROCESSED/2 attempt_created/SYSTEM,provider_ready/PROVIDER,webhook_payment_captu"
+    },
+    {
+      "name": "H1 THE PROVIDER CAPTURED ANOTHER AMOUNT THAN OURS: the payment is NOT verified — REVIEW_REQUIRED (PAYMENT_AMOUNT_MISMATCH) — the page says it is being checked, gives the support reference, warns not to pay again and offers nothing to pay",
+      "pass": true,
+      "detail": "{\"status\":\"REVIEW_REQUIRED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_uanmenc3b8anxp\",\"payment\":\"\",\"fulfillment\":\"NOT_APPLICABLE\",\"reason\":\"PAYMENT_AMOUNT_MISMATCH\",\"client\":\"success\",\"signed\":true,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":false} {\"view\":\"UNKNOWN\",\"status\":\"REVIEW_REQUIRED\",\"support\":true,\"warn\":true,\"retry\":f"
+    },
+    {
+      "name": "H2 the checkout stays locked while a person has to look: another start is refused (409, a payment is in progress) — no second payment beside money that may have moved",
+      "pass": true,
+      "detail": "409 {\"error\":{\"code\":\"payment_in_progress\",\"message\":\"A payment for this checkout is already in progress.\",\"request_id\":\"db306986-4bae-44a6-a04b-a2fd2f480f7e\"}}"
+    },
+    {
+      "name": "H3 ADMIN API: the payment is in the \"needs attention\" list with its state, amount and currency, the customer's phone MASKED; its detail has the provider references, the timeline, the provider's events and says what cannot be done (mark_paid false, refund NOT_IMPLEMENTED) — no secret, no proof, no full phone number",
+      "pass": false,
+      "detail": "{\"id\":\"c76ff7a9-241a-4a7e-ac8a-07db43b45377\",\"support_reference\":\"PAY-C76FF7A924\",\"checkout_id\":\"be257372-522b-4780-9721-91157601339d\",\"attempt_number\":1,\"status\":\"REVIEW_REQUIRED\",\"status_reason\":\"PAYMENT_AMOUNT_MISMATCH\",\"fulfillment_status\":\"NOT_APPLICABLE\""
+    },
+    {
+      "name": "H4 ADMIN PERMISSIONS, ENFORCED BY THE BACKEND: \"ask the provider again\" needs a reason (422) and the reconcile permission (support admin: 403); an admin without payment access cannot list payments (403), nor can restaurant staff or a customer (401 / 401) — and a request that tries to set a status is refused or changes nothing",
+      "pass": true,
+      "detail": "422,403,403,401,401,422"
+    },
+    {
+      "name": "H5 ADMIN › PAYMENTS RUNS ON THE BACKEND: searched by its support reference the page shows this payment — \"Review required\", \"Needs attention\", the amount with INR — from real data (data-source \"backend\")",
+      "pass": true,
+      "detail": "Payment Management REFERENCE RESTAURANT METHOD AMOUNT STATUS DATE PAY-C76FF7A924 fake Burger Hub — ₹427.00 INR Review required Needs attention 15 Oct, 10:15 am Showing 1–1 of 1"
+    },
+    {
+      "name": "H6 THE DETAIL: why it needs a person (PAYMENT_AMOUNT_MISMATCH, \"do not ask the customer to pay again\"), the provider references, the timeline — and NO button to mark it paid, capture or refund; the page says a payment cannot be marked as paid by hand and that refunds are not available yet",
+      "pass": false,
+      "detail": "{\"status\":\"REVIEW_REQUIRED\",\"attention\":true,\"refs\":\"fakeorder_uanmenc3b8anxp / —\",\"events\":5,\"noMark\":true,\"refund\":false,\"buttons\":[\"Ask the provider again\"],\"text\":\"This payment needs a person: automatic checking could not settle it, or what the provider reports does not match (PAYMENT_AMOUNT_MISMATCH). Do not ask the customer to pay again. STATUS Review required\"}"
+    },
+    {
+      "name": "H7 \"ASK THE PROVIDER AGAIN\" from the page: sends a reason and nothing else, the backend asks the provider and the payment stays what the provider's record makes it (still REVIEW_REQUIRED — nothing was set by hand); the action is in the audit log with its reason",
+      "pass": true,
+      "detail": "200 1:admin_user:payment_attempts attempt_created/SYSTEM,provider_ready/PROVIDER,client_callback/CLIENT,processing/CLIENT,review_required/CLIENT"
+    },
+    {
+      "name": "axe (admin payment detail): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "H8 ADMIN › SYSTEM shows the payment numbers of the backend: the provider in use (the development provider — \"no money moves\"), verified payments, \"verified, no order yet\", \"need review\" — and the note that orders and refunds are not built; the same report by API names no key and no secret",
+      "pass": false,
+      "detail": "{\"driver\":\"fake\",\"mode\":\"FAKE\",\"configured\":\"true\",\"text\":\"6 Verified payments 6 Verified, no order yet 0 Verified, recovery required 1 Need review\",\"note\":\"Events cover the last 24 hours. A verified payment becomes an order on the server (Orders). Refunds are not built yet: nothing can be refunded "
+    },
+    {
+      "name": "I1 THE RESTAURANT PAUSES ORDERS BEFORE THE CUSTOMER PAYS: Pay is refused by the backend (409 checkout_stale) — no attempt, no provider order, nothing charged — and the page sends the customer back to review the order",
+      "pass": true,
+      "detail": "409 {\"code\":\"checkout_stale\",\"message\":\"This checkout is out of date. Please review it again.\",\"details\":{\"reason\":\"RESTAURANT_NOT_ACCEPTING\",\"issues\":[{\"code\":\"RESTAURANT_NOT_ACCEPTING\",\"message\":\"This r {\"view\":\"ERROR\",\"back\":true,\"submit\":false,\"text\":\"\"}"
+    },
+    {
+      "name": "I2 AN ADMINISTRATOR SUSPENDS THE RESTAURANT: no payment can be started for its checkout (409 checkout_stale), no attempt exists",
+      "pass": true,
+      "detail": "200 409 {\"error\":{\"code\":\"checkout_stale\",\"message\":\"This checkout is out of date. Please review it again.\",\"details\":{\"reason\":\"RESTAURANT_UNAVAILABLE\",\"issues\":[{\"code\":\"RESTAURANT_UNAVAILABLE\",\"message\":\"T"
+    },
+    {
+      "name": "I3 THE RESTAURANT PAUSES AFTER THE PROVIDER OPENED — AND THE CUSTOMER PAYS: the money is real, so the payment IS verified, and it is marked RECOVERY_REQUIRED (RESTAURANT_NOT_ACCEPTING): the page says the payment was received, that the order could not be confirmed yet and that the customer need not pay again — no order is invented",
+      "pass": false,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_lauc6kdhfee7mb\",\"payment\":\"fakepay_wz1wsr6zf2tgh9\",\"fulfillment\":\"RECOVERY_REQUIRED\",\"reason\":\"\",\"client\":\"success\",\"signed\":true,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"RESTAURANT_NOT_ACCEPTING\",\"failure\":\"\",\"verifiedAt\":true} SECURE PAYMENT Payment Complete your payment with the provider'"
+    },
+    {
+      "name": "I4 the administrator sees it: the payment is in \"needs attention\" as verified with recovery required — money that needs a person, never a silent loss",
+      "pass": true,
+      "detail": "{\"id\":\"57bf04e0-c80c-4fef-bac4-702ec9e3b0ff\",\"support_reference\":\"PAY-57BF04E0C8\",\"checkout_id\":\"23a15dc4-73f0-499a-84a6-9ba1d2ac8959\",\"attempt_number\":1,\"status\":\"VERIFIED\",\"status_reason\":null,\"fulfillment_status\":\"RECOVERY_REQUIRED\",\"ful"
+    },
+    {
+      "name": "I5 THE CHECKOUT RAN OUT BEFORE PAY: the backend refuses (410 checkout_expired), nothing is charged, no attempt exists, the page sends the customer back to review the order; the pickup hold is released",
+      "pass": true,
+      "detail": "410 {\"code\":\"checkout_expired\",\"message\":\"This checkout has expired. Please start it again.\",\"details\":{\"issues\":[{\"code\":\"CHECKOUT_EXPIRED\",\"message\":\"This checkou holds RELEASED"
+    },
+    {
+      "name": "J1 THE PROVIDER IS UNREACHABLE WHILE A PAYMENT IS PENDING: the status read still answers (200, 339 ms), the payment is PENDING — NOT failed, not cancelled — the customer is told to wait, and the timeline notes that the provider could not be asked",
+      "pass": true,
+      "detail": "PENDING WAIT attempt_created/SYSTEM,provider_ready/PROVIDER,pending/CLIENT,provider_unreachable/CLIENT"
+    },
+    {
+      "name": "J2 THE SWEEP (payments:reconcile) runs while the provider is down: it changes nothing it cannot prove — the payment is still unsettled, a later look is scheduled",
+      "pass": true,
+      "detail": "PENDING | Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 6 verified payment(s) now need recovery. "
+    },
+    {
+      "name": "J3 THE PROVIDER IS BACK AND NO EVENT EVER ARRIVED: the scheduled sweep asks the provider, finds the captured payment and verifies it (source: the job) — and the page, asked to check, shows VERIFIED",
+      "pass": true,
+      "detail": "{\"status\":\"VERIFIED\",\"amount\":42700,\"currency\":\"INR\",\"provider\":\"fake\",\"mode\":\"FAKE\",\"order\":\"fakeorder_3llj1yyujumyyk\",\"payment\":\"fakepay_r5ekblrtlgz67c\",\"fulfillment\":\"ORDER_PENDING\",\"reason\":\"\",\"client\":\"\",\"signed\":false,\"failures\":0,\"number\":1,\"fulfillmentReason\":\"\",\"failure\":\"\",\"verifiedAt\":true} attempt_created/SYSTEM,provider_ready/PROVIDER,pending/CLIENT,provider_unreachable/CLIENT,verifie"
+    },
+    {
+      "name": "J4 PAY WHILE THE PROVIDER IS DOWN: the backend answers 503 payment_provider_unavailable — nothing is simulated in the provider's place — the page says payments are temporarily unavailable and that nothing was charged, and offers to try again; the checkout is not left locked",
+      "pass": true,
+      "detail": "503 {\"code\":\"payment_provider_unavailable\",\"message\":\"Payments are temporarily unavailable. Nothing was charged — please try again in a moment.\",\"details\":{\"payment {\"view\":\"FAILED\",\"retry\":true,\"text\":\"\",\"code\":\"provider_unavailable\"} checkout READY attempts FAILED"
+    },
+    {
+      "name": "J5 THE PROVIDER IS BACK: trying again works — a payment attempt with a provider order, ready to be paid",
+      "pass": true,
+      "detail": "201 {}"
+    },
+    {
+      "name": "K1 THE CONNECTION DROPS ON THE PAYMENT PAGE: the page does not say the payment failed and does not offer to pay again — it says it is offline / that the status needs confirmation; nothing is verified by the browser on its own",
+      "pass": true,
+      "detail": "{\"view\":\"READY\",\"text\":\"SECURE PAYMENT Payment Complete your payment with the provider's secure experience. FoodOnTheGo never sees your card, UPI or bank details. development payment p\",\"offline\":true,\"retry\":false} PROVIDER_READY"
+    },
+    {
+      "name": "L1 NOTHING SECRET IN ANY ANSWER KEPT FROM THIS RUN: no provider secret, no webhook secret, no proof of payment, no card number, CVV, UPI PIN or bank credential field",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L2 LOGS: 117 payment lines were written in this run — ids, states, amounts in minor units and reason codes only: no phone number, no item name, no token, no proof of payment, no signing key",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L3 MEASURED on this machine through the local API (PHP built-in server, no OPcache; the development provider answers in-process, a real provider adds its network time): start 454 ms, status 339 ms, report 341 ms, webhook accepted in 343 ms (medians)",
+      "pass": true,
+      "detail": "{\"start\":{\"n\":10,\"median_ms\":454,\"max_ms\":615},\"status\":{\"n\":2,\"median_ms\":339,\"max_ms\":339},\"complete\":{\"n\":3,\"median_ms\":341,\"max_ms\":455},\"webhook\":{\"n\":2,\"median_ms\":343,\"max_ms\":343}}"
+    },
+    {
+      "name": "L4 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "L5 THE RATE LIMIT HOLDS: of 12 payment starts in a few seconds 6 are answered (all with the ONE attempt) and 6 are refused with 429 — and the checkout still has one attempt",
+      "pass": true,
+      "detail": "201,200,200,200,200,200,429,429,429,429,429,429"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every payment attempt, timeline entry, provider event, checkout, hold and cart of this run is removed; Burger Hub and Asha's fixture cart are as they were",
+      "pass": true,
+      "detail": "{\"attempts\":0,\"events\":0,\"webhooks\":0,\"checkouts\":0,\"holds\":0,\"carts\":0,\"hub\":true,\"asha\":true}"
+    }
+  ]
+}

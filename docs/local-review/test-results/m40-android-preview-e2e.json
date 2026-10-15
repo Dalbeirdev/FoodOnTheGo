@@ -1,0 +1,115 @@
+{
+ "module": "M40",
+ "date": "2026-10-15 08:39",
+ "target": "Flutter web preview (412×915) of the Android app on the REAL local backend — the Module 37 (support) and Module 38 (behavioural events) preview suites, unchanged, run after the Module 40 performance and reliability work; NO MONEY MOVES; the real device is verified by the owner (USER DEVICE VERIFICATION = PENDING)",
+ "runs": [
+  "m37_flutter.js 08:33:51: 8/8",
+  "m38_flutter.js 08:36:33: 9/9"
+ ],
+ "passed": 17,
+ "total": 17,
+ "results": [
+  {
+   "suite": "m37_flutter.js",
+   "name": "A1 ANDROID — HELP: the Help screen offers \"contact support\" and \"my cases\" to the signed-in customer and reads the customer's cases from the backend; the old note that requests are not sent anywhere is not shown",
+   "pass": true,
+   "detail": "failed: - {\"contact\":true,\"cases\":true}"
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "A2 ANDROID — A NEW CASE: the form (category from the link, subject, message) sends the category, the subject, the message and the source ANDROID with an Idempotency-Key — and no priority, status, owner or queue; the BACKEND creates the case (CUSTOMER_SUPPORT, NORMAL) and the app opens it by its case number, status Open",
+   "pass": true,
+   "detail": "failed: - {\"sent\":[\"category\",\"subject\",\"message\",\"source\",\"locale\"],\"row0\":{\"status\":\"OPEN\",\"source\":\"ANDROID\",\"requester\":\"CUSTOMER\",\"messages\":1,\"resolution\":\"\",\"team\":\"CUSTOMER_SUPPORT\",\"priority\":\"NORMAL\"},\"landed\":\"#/support/cases/CS-D4SVBRFN\",\"status\":\"Open\"}"
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "A3 ANDROID — SUPPORT REPLIED: \"My cases\" marks the case \"New reply\" and \"Waiting for your reply\"; the case shows the customer's message and Support's reply; the internal note written on the desk is on no screen and in NO answer the phone received — and no answer carries a priority, an assignee, a target or a classification",
+   "pass": true,
+   "detail": "failed: - My support cases | Refresh | Every request you sent to FoodOnTheGo support, and where it stands. | Open | Closed | Contact support | 1 with a new reply from sup"
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "A4 ANDROID — RETRY SAFETY: with the connection gone the reply is shown as \"Not sent\" and nothing is stored on the backend; Retry sends it with its client_message_id and it joins the conversation only then; the same id sent again writes nothing twice (one message more than before, not two)",
+   "pass": true,
+   "detail": "failed: - {\"notSent\":true,\"storedWhileOffline\":2,\"messagesBefore\":2,\"retry\":201,\"again\":201,\"now\":3}"
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "A5 ANDROID — CONFIRM, REOPEN, WITHDRAW: a resolved case offers no reply box; \"confirm\" says CONFIRM and the case is Closed; the customer reopens it with a message (REOPENED on the desk, Open on the phone); \"withdraw\" asks first, says WITHDRAW and the case is Cancelled (USER_WITHDREW)",
+   "pass": true,
+   "detail": "failed: - {\"sawResolved\":\"Resolved\",\"confirm\":[200,\"{\\\"intent\\\":\\\"CONFIRM\\\"}\"],\"sawClosed\":\"Closed\",\"reopen\":200,\"sawOpen\":\"Open\",\"withdraw\":[200,\"{\\\"intent\\\":\\\"WITHDRAW\\\"}\"],\"sawCancelled\":\"Cancelled\",\"final\":{\"status\":\"CANCELLED\",\"source\":\"ANDROID\",\"requester\":\"CUSTOMER\",\"messages\":4,\"resolution\":\"USER_WITHDREW\",\"team\":\"CUSTOMER_SUPPORT\",\"priority\":\"NORMAL\"}}"
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "A6 ANDROID — NOT THEIR CASE, AND THE NOTICES: the case number of ANOTHER customer's case opens \"Case not found\" (the backend answered 404, nothing of it is shown); for the customer's own case the backend wrote one notice each for \"opened\", \"support replied\" and \"resolved\" — the reply notice leads to the case by its number (the app's route for that target is covered by its unit tests)",
+   "pass": true,
+   "detail": "failed: - {\"other\":201,\"notFound\":true,\"call\":404,\"notices\":\"support.case_created,support.reply,support.case_resolved\"}"
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "A7 NO SCRIPT ERROR in the app during the run (the blocked request of A4 aside)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "suite": "m37_flutter.js",
+   "name": "Z1 CLEAN-UP: every case, message, note and support notice of this run is removed from the local database",
+   "pass": true,
+   "detail": "{\"cases\":0,\"messages\":0,\"notes\":0,\"notices\":0}"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "A0 the journey works in the app with the event emitter on: the journey is planned (201), the restaurants are listed (200) and a restaurant opens",
+   "pass": true,
+   "detail": "[201,200]"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "A1 THE APP SENT ITS BEHAVIOURAL EVENTS to POST /analytics/events, answered 202: journey search started, results viewed, restaurant viewed and menu viewed — each exactly ONCE, although the list was loaded more than once — as platform ANDROID with the app's version and build number",
+   "pass": true,
+   "detail": "{\"posts\":2,\"events\":[\"journey_search_started\",\"journey_results_viewed\",\"restaurant_viewed\",\"menu_viewed\"],\"version\":\"0.1.0+42\"}"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "A2 what the app sends is the contract and nothing more: the session, the platform, the version and the events — references by id (the journey, the restaurant), allowlisted properties, UTC times; no phone number, no place, no coordinate, and no customer token for a guest",
+   "pass": true,
+   "detail": "app_version,events,platform,session {\"restaurant\":\"0a000000-0000-4000-8000-0000000000a1\",\"journey\":\"6f66d5dd-427c-470e-9fa1-c9cd208f923a\"}"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "A3 what the backend stored: four ANDROID events of one anonymous session — no customer (a guest), the journey as a keyed hash and never its id — and its own record of the planned journey",
+   "pass": true,
+   "detail": "4 rows, server 1"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "A4 ONCE PER SESSION: going back to the list and opening the same restaurant again sends no second \"restaurant viewed\", no second \"menu viewed\" and no second \"results viewed\"",
+   "pass": true,
+   "detail": "[\"journey_search_started\",\"journey_results_viewed\",\"restaurant_viewed\",\"menu_viewed\"]"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "A5 THE EVENT DOOR IS UNREACHABLE (every request to it fails): the journey is planned, the restaurants are listed and a restaurant opens exactly as before; the app shows nothing about it, stores no client event, and does not hammer the door",
+   "pass": true,
+   "detail": "{\"refused\":1,\"plan\":201}"
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "X1 URL audit: of every API request the app made, none carries a coordinate or a token in its URL — the events travel in a request body",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "X2 no page errors in the app across these flows",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "suite": "m38_flutter.js",
+   "name": "Z1 CLEAN-UP: every event and journey of this run is removed from the local database",
+   "pass": true,
+   "detail": ""
+  }
+ ]
+}

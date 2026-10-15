@@ -11,6 +11,23 @@
     }
   ],
   "paths": {
+    "/live": {
+      "get": {
+        "summary": "Liveness (Module 40): the process answers. No database, Redis or provider is touched — for a load balancer or an orchestrator restarting a hung process; readiness is /health and /ready.",
+        "responses": {
+          "200": {
+            "description": "Alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Live"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Public availability check (no infrastructure detail)",
@@ -34827,6 +34844,58 @@
             }
           },
           "422": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/system/reliability": {
+      "get": {
+        "summary": "Operational health (admin.system.view, Module 40): the database (connections, lock waits, the longest statement and transaction, deadlocks, cache hit ratio, size), Redis (memory, evictions, clients), every queue (waiting, delayed, reserved, age of the oldest waiting job), failed jobs and the domain signals (verified payments without an order, refunds in flight too long, payouts needing attention, failed webhooks, the latest ledger verification, urgent and breached support cases), with the alerts their thresholds raise. Read only; counts, ages and flags only. A section that cannot be read is null (its dependency is down) or {\"error\": \"unavailable\"}.",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ReliabilityStatus",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReliabilityStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
             "description": "Error envelope",
             "content": {
               "application/json": {
@@ -80784,6 +80853,483 @@
               "idle_minutes": {},
               "max_hours": {}
             }
+          }
+        }
+      },
+      "Live": {
+        "type": "object",
+        "required": [
+          "status",
+          "time"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReliabilityStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "checked_at",
+          "status",
+          "dependencies",
+          "database",
+          "redis",
+          "queues",
+          "failed_jobs",
+          "domain",
+          "alerts",
+          "thresholds_note"
+        ],
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "warning",
+              "critical"
+            ],
+            "description": "the most severe alert (ok when there is none)"
+          },
+          "dependencies": {
+            "type": "object",
+            "required": [
+              "database",
+              "postgis",
+              "redis"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              },
+              "postgis": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              },
+              "redis": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "error"
+                ]
+              }
+            }
+          },
+          "database": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "This database in PostgreSQL. null when its dependency is down; {\"error\": \"unavailable\"} when it could not be read.",
+            "additionalProperties": false,
+            "properties": {
+              "connections": {
+                "type": "integer"
+              },
+              "max_connections": {
+                "type": "integer"
+              },
+              "connections_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "active": {
+                "type": "integer"
+              },
+              "idle_in_transaction": {
+                "type": "integer"
+              },
+              "waiting_on_lock": {
+                "type": "integer"
+              },
+              "longest_query_s": {
+                "type": "number"
+              },
+              "longest_transaction_s": {
+                "type": "number"
+              },
+              "deadlocks": {
+                "type": "integer"
+              },
+              "cache_hit_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "size_mb": {
+                "type": "number"
+              },
+              "error": {
+                "type": "string",
+                "enum": [
+                  "unavailable"
+                ],
+                "description": "present (alone) when the section could not be read"
+              }
+            }
+          },
+          "redis": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The Redis server. null when its dependency is down; {\"error\": \"unavailable\"} when it could not be read.",
+            "additionalProperties": false,
+            "properties": {
+              "used_memory_mb": {
+                "type": "number"
+              },
+              "peak_memory_mb": {
+                "type": "number"
+              },
+              "maxmemory_mb": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "memory_pct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "maxmemory_policy": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "evicted_keys": {
+                "type": "integer"
+              },
+              "connected_clients": {
+                "type": "integer"
+              },
+              "error": {
+                "type": "string",
+                "enum": [
+                  "unavailable"
+                ],
+                "description": "present (alone) when the section could not be read"
+              }
+            }
+          },
+          "queues": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "One entry per queue the workers serve (config observability.queues); {\"driver\": …} alone when the queue driver is not Redis (nothing waits). null when its dependency is down; {\"error\": \"unavailable\"} when it could not be read.",
+            "additionalProperties": false,
+            "properties": {
+              "orders": {
+                "type": "object",
+                "required": [
+                  "waiting",
+                  "delayed",
+                  "reserved",
+                  "oldest_waiting_s"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "waiting": {
+                    "type": "integer"
+                  },
+                  "delayed": {
+                    "type": "integer"
+                  },
+                  "reserved": {
+                    "type": "integer"
+                  },
+                  "oldest_waiting_s": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "payments": {
+                "type": "object",
+                "required": [
+                  "waiting",
+                  "delayed",
+                  "reserved",
+                  "oldest_waiting_s"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "waiting": {
+                    "type": "integer"
+                  },
+                  "delayed": {
+                    "type": "integer"
+                  },
+                  "reserved": {
+                    "type": "integer"
+                  },
+                  "oldest_waiting_s": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "finance": {
+                "type": "object",
+                "required": [
+                  "waiting",
+                  "delayed",
+                  "reserved",
+                  "oldest_waiting_s"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "waiting": {
+                    "type": "integer"
+                  },
+                  "delayed": {
+                    "type": "integer"
+                  },
+                  "reserved": {
+                    "type": "integer"
+                  },
+                  "oldest_waiting_s": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "notifications": {
+                "type": "object",
+                "required": [
+                  "waiting",
+                  "delayed",
+                  "reserved",
+                  "oldest_waiting_s"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "waiting": {
+                    "type": "integer"
+                  },
+                  "delayed": {
+                    "type": "integer"
+                  },
+                  "reserved": {
+                    "type": "integer"
+                  },
+                  "oldest_waiting_s": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "default": {
+                "type": "object",
+                "required": [
+                  "waiting",
+                  "delayed",
+                  "reserved",
+                  "oldest_waiting_s"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "waiting": {
+                    "type": "integer"
+                  },
+                  "delayed": {
+                    "type": "integer"
+                  },
+                  "reserved": {
+                    "type": "integer"
+                  },
+                  "oldest_waiting_s": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "driver": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string",
+                "enum": [
+                  "unavailable"
+                ],
+                "description": "present (alone) when the section could not be read"
+              }
+            }
+          },
+          "failed_jobs": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Jobs that failed for good. null when its dependency is down; {\"error\": \"unavailable\"} when it could not be read.",
+            "additionalProperties": false,
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "last_24h": {
+                "type": "integer"
+              },
+              "error": {
+                "type": "string",
+                "enum": [
+                  "unavailable"
+                ],
+                "description": "present (alone) when the section could not be read"
+              }
+            }
+          },
+          "domain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Signals that mean money or a customer is waiting. null when its dependency is down; {\"error\": \"unavailable\"} when it could not be read.",
+            "additionalProperties": false,
+            "properties": {
+              "payments_verified_without_order": {
+                "type": "integer"
+              },
+              "payments_recovery_required": {
+                "type": "integer"
+              },
+              "refunds_stuck": {
+                "type": "integer"
+              },
+              "refunds_review_required": {
+                "type": "integer"
+              },
+              "payouts_needing_attention": {
+                "type": "integer"
+              },
+              "webhooks_failed_24h": {
+                "type": "integer"
+              },
+              "ledger_verification": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "the latest finished ledger verification; null when none ran",
+                "required": [
+                  "status",
+                  "problems",
+                  "finished_at",
+                  "age_h"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "problems": {
+                    "type": "integer"
+                  },
+                  "finished_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "age_h": {
+                    "type": "number"
+                  }
+                }
+              },
+              "support_urgent_open": {
+                "type": "integer"
+              },
+              "support_sla_breached": {
+                "type": "integer"
+              },
+              "error": {
+                "type": "string",
+                "enum": [
+                  "unavailable"
+                ],
+                "description": "present (alone) when the section could not be read"
+              }
+            }
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "severity",
+                "value",
+                "threshold"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "warning",
+                    "critical"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "threshold": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "thresholds_note": {
+            "type": "string"
           }
         }
       }

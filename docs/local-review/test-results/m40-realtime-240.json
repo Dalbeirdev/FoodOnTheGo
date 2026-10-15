@@ -1,0 +1,74 @@
+{
+ "module": "M40",
+ "kind": "realtime",
+ "at": "2026-10-14T15:56:48.647Z",
+ "reverb": {
+  "port": 8086,
+  "process": "php artisan reverb:start (one process, local)"
+ },
+ "connections": {
+  "requested": 180,
+  "wave": 90,
+  "established": 180,
+  "failed": 0,
+  "errors": {},
+  "seconds": 0.1,
+  "connect_ms": {
+   "n": 180,
+   "p50": 53,
+   "p95": 55,
+   "p99": 56,
+   "max": 57
+  },
+  "reverb_memory_mb": {
+   "before": 59,
+   "after": 61
+  }
+ },
+ "latency": {
+  "transition_errors": [],
+  "staff_sockets": 50,
+  "staff_subscribe_failed": 0,
+  "orders": 10,
+  "transitions": 30,
+  "staff": {
+   "expected": 1500,
+   "received": 1500,
+   "ms_from_request": {
+    "n": 1500,
+    "p50": 198,
+    "p95": 300,
+    "p99": 329,
+    "max": 330
+   }
+  },
+  "customer": {
+   "expected": 30,
+   "received": 30,
+   "ms_from_request": {
+    "n": 30,
+    "p50": 191,
+    "p95": 283,
+    "p99": 325,
+    "max": 325
+   }
+  },
+  "note": "time from the moment the transition request was sent to the arrival of its order.updated on each socket (the request itself is included: the update is broadcast after commit, before the answer)"
+ },
+ "reconnect": {
+  "connections": 230,
+  "reconnected": 230,
+  "failed": 0,
+  "errors": {},
+  "private_reauthorized": 50,
+  "seconds_until_all_back": 1.7,
+  "connect_ms": {
+   "n": 230,
+   "p50": 69,
+   "p95": 95,
+   "p99": 98,
+   "max": 100
+  },
+  "reverb_memory_mb": 65
+ }
+}

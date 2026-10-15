@@ -1,5 +1,5 @@
 {
- "generated": "Module 39 — from `php artisan route:list --json` (local environment, so the DEVELOPMENT_ONLY routes appear) and the staff RBAC tables of the Module 39 authorization audit. Regenerate after any route change; tests/Feature/Security/RouteInventoryTest fails when a registered route is missing here or breaks the rule of its class.",
+ "generated": "Module 39 — from `php artisan route:list --json` (local environment, so the DEVELOPMENT_ONLY routes appear) and the staff RBAC tables of the Module 39 authorization audit. Regenerate after any route change; tests/Feature/Security/RouteInventoryTest fails when a registered route is missing here or breaks the rule of its class. Module 40 added GET /api/v1/live (HEALTH) and GET /api/v1/admin/system/reliability (ADMIN, admin.system.view).",
  "classes": {
   "PUBLIC": "no sign-in; public data only",
   "PUBLIC_AUTH": "sign-in / recovery entry points; rate-limited",
@@ -2919,6 +2919,20 @@
   },
   {
    "method": "GET",
+   "uri": "/api/v1/admin/system/reliability",
+   "class": "ADMIN",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api"
+   ],
+   "owner": "platform (M20)",
+   "permission": "admin.system.view (route `can:`)",
+   "scope": "platform-wide only (can: / Gate without scope)",
+   "name": "api.v1.admin.system.reliability"
+  },
+  {
+   "method": "GET",
    "uri": "/api/v1/admin/system/support",
    "class": "ADMIN",
    "guard": "admin",
@@ -4745,6 +4759,19 @@
    "permission": null,
    "scope": null,
    "name": "api.v1.journeys.restaurants"
+  },
+  {
+   "method": "GET",
+   "uri": "/api/v1/live",
+   "class": "HEALTH",
+   "guard": null,
+   "active": false,
+   "throttle": [],
+   "owner": "platform (M20)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.live",
+   "note": "Module 40: not rate limited — liveness must not depend on the limiter store (Redis); RouteInventoryTest::UNTHROTTLED"
   },
   {
    "method": "GET",

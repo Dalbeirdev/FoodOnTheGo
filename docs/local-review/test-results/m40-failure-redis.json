@@ -1,0 +1,331 @@
+{
+ "module": "M40",
+ "kind": "failure-injection",
+ "scenario": "redis",
+ "at": "2026-10-14T16:36:16.467Z",
+ "database": "foodonthego_perf",
+ "steps": [
+  {
+   "step": "healthy",
+   "t": "2026-10-14T16:36:19.839Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 26,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 67,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 213,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 169,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 195,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 141,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 101,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 139,
+     "code": null
+    }
+   }
+  },
+  {
+   "step": "paid, jobs waiting in Redis",
+   "t": "2026-10-14T16:36:26.098Z",
+   "purchases": [
+    "paid, order queued",
+    "paid, order queued",
+    "paid, order queued"
+   ],
+   "queues": {
+    "orders": {
+     "depth": 3,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": 3.8
+    },
+    "payments": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "finance": {
+     "depth": 3,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": 4
+    },
+    "notifications": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    },
+    "default": {
+     "depth": 0,
+     "delayed": 0,
+     "reserved": 0,
+     "oldest_age_s": null
+    }
+   }
+  },
+  {
+   "step": "redis DOWN",
+   "t": "2026-10-14T16:36:45.582Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 23,
+     "code": null
+    },
+    "health": {
+     "status": 500,
+     "ms": 2076,
+     "code": "internal_error"
+    },
+    "restaurants": {
+     "status": 500,
+     "ms": 2067,
+     "code": "internal_error"
+    },
+    "menu": {
+     "status": 500,
+     "ms": 2046,
+     "code": "internal_error"
+    },
+    "journey_plan": {
+     "status": 500,
+     "ms": 2049,
+     "code": "internal_error"
+    },
+    "customer_orders": {
+     "status": 500,
+     "ms": 2097,
+     "code": "internal_error"
+    },
+    "cart": {
+     "status": 500,
+     "ms": 2102,
+     "code": "internal_error"
+    },
+    "admin_orders": {
+     "status": 500,
+     "ms": 2091,
+     "code": "internal_error"
+    }
+   },
+   "purchase": "cart 500 internal_error"
+  },
+  {
+   "step": "redis back EMPTY (queued jobs lost = a flush)",
+   "t": "2026-10-14T16:36:47.527Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 25,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 86,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 269,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 159,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 138,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 111,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 147,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 126,
+     "code": null
+    }
+   },
+   "payments": [
+    {
+     "payment": "eb910d6b",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 0
+    },
+    {
+     "payment": "6d4f1669",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 0
+    },
+    {
+     "payment": "b5dc1138",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 0
+    }
+   ]
+  },
+  {
+   "step": "worker running, before any sweep",
+   "t": "2026-10-14T16:36:52.643Z",
+   "payments": [
+    {
+     "payment": "eb910d6b",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 0
+    },
+    {
+     "payment": "6d4f1669",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 0
+    },
+    {
+     "payment": "b5dc1138",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 0
+    }
+   ]
+  },
+  {
+   "step": "sweeps run at once (inside the 60 s grace of orders:recover)",
+   "t": "2026-10-14T16:36:55.887Z",
+   "sweep": {
+    "payments:reconcile": {
+     "exit": 0,
+     "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+    },
+    "orders:recover": {
+     "exit": 0,
+     "tail": "orders:recover retried 0, picked up 0, completed 0"
+    },
+    "finance:post-pending": {
+     "exit": 0,
+     "tail": "{\"payments\":3,\"allocations\":0,\"recognized\":0,\"voided\":0,\"refunds\":0,\"disputes\":0,\"holds_released\":0,\"failed\":0,\"payouts_submitted\":0,\"payouts_checked\":0}"
+    },
+    "finance:verify-ledger": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":38573,\"entries\":96278,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements"
+    }
+   },
+   "payments": [
+    {
+     "payment": "eb910d6b",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 1
+    },
+    {
+     "payment": "6d4f1669",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 1
+    },
+    {
+     "payment": "b5dc1138",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_PENDING",
+     "orders": 0,
+     "payment_postings": 1
+    }
+   ]
+  },
+  {
+   "step": "after the scheduled sweeps (orders:recover, payments:reconcile …) past the grace",
+   "t": "2026-10-14T16:37:37.403Z",
+   "sweep": {
+    "payments:reconcile": {
+     "exit": 0,
+     "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+    },
+    "orders:recover": {
+     "exit": 0,
+     "tail": "orders:recover retried 0, picked up 3, completed 0"
+    },
+    "finance:post-pending": {
+     "exit": 0,
+     "tail": "{\"payments\":0,\"allocations\":0,\"recognized\":0,\"voided\":0,\"refunds\":0,\"disputes\":0,\"holds_released\":0,\"failed\":0,\"payouts_submitted\":0,\"payouts_checked\":0}"
+    },
+    "finance:verify-ledger": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":38573,\"entries\":96278,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements"
+    }
+   },
+   "payments": [
+    {
+     "payment": "eb910d6b",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_CREATED",
+     "orders": 1,
+     "payment_postings": 1
+    },
+    {
+     "payment": "6d4f1669",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_CREATED",
+     "orders": 1,
+     "payment_postings": 1
+    },
+    {
+     "payment": "b5dc1138",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_CREATED",
+     "orders": 1,
+     "payment_postings": 1
+    }
+   ],
+   "orders": 3,
+   "seconds_from_payment_to_orders": 72
+  }
+ ]
+}

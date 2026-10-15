@@ -14,6 +14,15 @@ use Illuminate\Http\Request;
 class HealthController extends Controller
 {
     /**
+     * Module 40 — liveness: the process is alive and can answer. Touches no dependency (a database outage must not make
+     * an orchestrator restart healthy application processes); says nothing about the installation.
+     */
+    public function live(): JsonResponse
+    {
+        return response()->json(['status' => 'ok', 'time' => now()->toIso8601String()]);
+    }
+
+    /**
      * Public health: availability only. No environment, hosts or dependency names.
      */
     public function health(DependencyChecks $checks): JsonResponse

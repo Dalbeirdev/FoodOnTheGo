@@ -1,0 +1,34 @@
+{
+ "module": "M40",
+ "kind": "android-size",
+ "at": "2026-10-15",
+ "debug_apk": {
+  "file": "FoodOnTheGo-local-review-v0.1.0-build044.apk",
+  "bytes": 247197060,
+  "build": "flutter build apk --flavor local --debug (scripts/local/build-android-local.ps1 -Build 44, WSL Ubuntu)"
+ },
+ "release_apk_arm64": {
+  "bytes": 24679972,
+  "build": "flutter build apk --release --flavor local --target-platform android-arm64 --analyze-size --dart-define=APP_ENV=local (WSL Ubuntu; signed with the debug key \u2014 release signing is CF-548)",
+  "not_shipped": true
+ },
+ "release_breakdown_bytes": {
+  "total_analysed": 24541027,
+  "lib/arm64-v8a": 21389848,
+  "libflutter.so (engine)": 11747864,
+  "libapp.so (Dart AOT)": 9503624,
+  "libdartjni.so": 131248,
+  "lib/x86_64 + armeabi-v7a (JNI helpers only)": 208724,
+  "assets": 1642914,
+  "classes.dex": 866679,
+  "res": 210166,
+  "resources.arsc": 196296
+ },
+ "summary": {
+  "debug_MB": 235.7,
+  "release_arm64_MB": 23.5,
+  "dart_aot_MB": 9.1,
+  "engine_MB": 11.2
+ },
+ "not_measured": "startup time, frame times, memory and battery on a device \u2014 no device / emulator session (USER DEVICE VERIFICATION = PENDING)"
+}

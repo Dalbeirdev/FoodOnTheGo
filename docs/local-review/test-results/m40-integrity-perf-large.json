@@ -1,0 +1,56 @@
+{
+ "module": "M40",
+ "kind": "integrity",
+ "database": "foodonthego_large_perf",
+ "at": "2026-10-14T17:44:13.036Z",
+ "results": [
+  {
+   "command": "finance:verify-ledger",
+   "exit": 0,
+   "duration_ms": 8276,
+   "output_tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":375030,\"entries\":937575,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements\":0,\"paid_settlements_without_paid_payout\":0,\"paid_payouts_without_posting\":0,\"recognized_orders_without_payable_line\":0}}"
+  },
+  {
+   "command": "finance:reconcile-internal",
+   "exit": 0,
+   "duration_ms": 1832,
+   "output_tail": "{\"status\":\"OK\",\"problems\":0,\"found\":[],\"auto_resolved\":0}"
+  },
+  {
+   "command": "payments:reconcile",
+   "exit": 0,
+   "duration_ms": 708,
+   "output_tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+  },
+  {
+   "command": "refunds:reconcile",
+   "exit": 0,
+   "duration_ms": 588,
+   "output_tail": "{\"policy\":0,\"submitted\":0,\"reconciled\":0,\"failed\":0}"
+  },
+  {
+   "command": "orders:recover",
+   "exit": 0,
+   "duration_ms": 642,
+   "output_tail": "orders:recover retried 0, picked up 0, completed 0"
+  },
+  {
+   "command": "analytics:aggregate",
+   "exit": 0,
+   "duration_ms": 2539,
+   "output_tail": "{\"status\":\"OK\",\"trigger\":\"SCHEDULED\",\"dry_run\":false,\"rows\":159,\"order_facts\":0,\"session_facts\":0,\"groups\":{\"orders\":38,\"customers\":2,\"restaurants\":11,\"items\":6,\"funnel\":38,\"routes\":11,\"payments\":8,\"refunds\":0,\"finance\":14,\"support\":2,\"notifications\":20,\"pickup\":9},\"markets\":[{\"market\":1,\"days\":2,\"from\":\"2026-10-13\",\"to\":\"2026-10-14\"},{\"market\":2,\"days\":2,\"from\":\"2026-10-13\",\"to\":\"2026-10-14\"},{\"market\":3,\"days\":2,\"from\":\"2026-10-13\",\"to\":\"2026-10-14\"},{\"market\":4,\"days\":2,\"from\":\"2026-10-13\",\"to\":\"2026-10-14\"}],\"since\":\"2026-10-14T17:40:34+00:00\"}"
+  },
+  {
+   "command": "analytics:check",
+   "exit": 0,
+   "duration_ms": 2395,
+   "output_tail": "{\"status\":\"WARNING\",\"counts\":{\"healthy\":8,\"warning\":2,\"error\":0},\"problems\":[\"aggregation_is_fresh=WARNING\",\"funnel_transitions=WARNING\"]}"
+  },
+  {
+   "command": "ops:reliability --alerts",
+   "exit": 0,
+   "duration_ms": 1126,
+   "output_tail": "{\n \"status\": \"warning\",\n \"alerts\": [\n {\n \"key\": \"failed_jobs_24h\",\n \"severity\": \"warning\",\n \"value\": 24,\n \"threshold\": 1\n }\n ]\n}"
+  }
+ ]
+}

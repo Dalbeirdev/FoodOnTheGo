@@ -43,10 +43,9 @@ return [
             ],
             // Module 32: a broadcast is sent after the commit, synchronously; a server that is down must cost at most
             // this many seconds and never the request (the listener catches the failure and counts it).
+            // (Module 40: a second, empty 'client_options' key below this one used to override it — PHP keeps the last
+            // duplicate key — so the framework's 10 s connect / 30 s total applied instead. Removed.)
             'client_options' => ['timeout' => (float) env('REVERB_CLIENT_TIMEOUT', 2), 'connect_timeout' => 1.0],
-            'client_options' => [
-                // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
-            ],
         ],
 
         'pusher' => [

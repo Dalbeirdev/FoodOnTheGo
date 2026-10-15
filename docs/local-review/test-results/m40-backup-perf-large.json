@@ -1,0 +1,1 @@
+{"step":"backup","database":"foodonthego_large_perf","file":"C:/dev/backups/perf-large.dump","method":"pg_dump custom format (-Fc, compression 6), application role","duration_ms":44872,"size_bytes":267469870,"sha256":"d57a73df7e256db8adeffd6893af574043f3fcfc0c4ad27ef1c6432754ad52a5","at":"2026-10-14T17:42:20.066Z"}

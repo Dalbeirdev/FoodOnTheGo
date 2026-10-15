@@ -1,0 +1,366 @@
+{
+ "module": "M40",
+ "profile": "race",
+ "started_at": "2026-10-14T16:26:06.691Z",
+ "php_pool": 12,
+ "orders": 20,
+ "racers_per_order": 8,
+ "exactly_once": 20,
+ "results": [
+  {
+   "order": "LZ7X",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "H6RM",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "PTK9",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "XKDM",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "EJ7D",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "86YW",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "GQZC",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "KTGM",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED"
+   ]
+  },
+  {
+   "order": "JXBS",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "WSGW",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED"
+   ]
+  },
+  {
+   "order": "MBGL",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "XWGK",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "T8UX",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "HCC4",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "THM3",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "3EU2",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "SMWQ",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "B787",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "HJZE",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "QA3F",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED"
+   ]
+  }
+ ],
+ "requests": {
+  "requests": 180,
+  "ok_2xx_3xx": 40,
+  "r429": 0,
+  "r4xx_other": 140,
+  "r5xx": 0,
+  "transport_errors": 0,
+  "error_rate_pct": 0,
+  "throughput_rps": null,
+  "avg_ms": 262.7,
+  "p50_ms": 257.7,
+  "p90_ms": 343.3,
+  "p95_ms": 370.2,
+  "p99_ms": 431,
+  "max_ms": 467,
+  "server_app_p95_ms": 323.1,
+  "db_queries_avg": 30,
+  "db_queries_max": 80,
+  "db_ms_avg": 175.6
+ },
+ "dataset": {
+  "customers": 5106,
+  "restaurant_locations": 339,
+  "menu_items": 3305,
+  "orders": 19301,
+  "order_items": 19301,
+  "payment_attempts": 19301,
+  "ledger_entries": 95938,
+  "notifications": 21279,
+  "restaurant_reviews": 7506,
+  "support_cases": 2504,
+  "analytics_events": 217012,
+  "journeys": 2758
+ },
+ "note": "each order: N staff requests verify the same manual pickup code at the same moment; exactly one may verify it, the order is completed once"
+}

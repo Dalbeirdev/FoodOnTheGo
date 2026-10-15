@@ -1,0 +1,31 @@
+{
+ "module": "M40",
+ "kind": "realtime",
+ "at": "2026-10-14T15:54:55.884Z",
+ "reverb": {
+  "port": 8086,
+  "process": "php artisan reverb:start (one process, local)"
+ },
+ "connections": {
+  "requested": 1000,
+  "wave": 250,
+  "established": 255,
+  "failed": 745,
+  "errors": {
+   "error": 745
+  },
+  "seconds": 60.4,
+  "connect_ms": {
+   "n": 255,
+   "p50": 105,
+   "p95": 111,
+   "p99": 111,
+   "max": 114
+  },
+  "reverb_memory_mb": {
+   "before": 59,
+   "after": 75
+  }
+ },
+ "stopped_by": "error"
+}

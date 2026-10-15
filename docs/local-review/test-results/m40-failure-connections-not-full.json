@@ -1,0 +1,171 @@
+{
+ "module": "M40",
+ "kind": "failure-injection",
+ "scenario": "connections",
+ "at": "2026-10-15T01:03:53.504Z",
+ "database": "foodonthego_perf",
+ "steps": [
+  {
+   "step": "healthy",
+   "t": "2026-10-15T01:03:55.726Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 23,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 67,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 192,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 134,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 161,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 115,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 80,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 120,
+     "code": null
+    }
+   }
+  },
+  {
+   "step": "PostgreSQL full",
+   "t": "2026-10-15T01:03:58.182Z",
+   "max_connections": 100,
+   "superuser_reserved": 3,
+   "connections_in_use": 99,
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 24,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 72,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 147,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 121,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 128,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 113,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 98,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 211,
+     "code": null
+    }
+   }
+  },
+  {
+   "step": "slots free again (no application restart)",
+   "t": "2026-10-15T01:04:21.356Z",
+   "connections_in_use": 9,
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 25,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 97,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 200,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 142,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 171,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 102,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 90,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 124,
+     "code": null
+    }
+   },
+   "purchase": "no item",
+   "seconds": 1.1,
+   "integrity": {
+    "payments:reconcile": {
+     "exit": 0,
+     "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+    },
+    "orders:recover": {
+     "exit": 0,
+     "tail": "orders:recover retried 0, picked up 0, completed 0"
+    },
+    "finance:post-pending": {
+     "exit": 0,
+     "tail": "{\"payments\":0,\"allocations\":0,\"recognized\":0,\"voided\":0,\"refunds\":0,\"disputes\":0,\"holds_released\":0,\"failed\":0,\"payouts_submitted\":0,\"payouts_checked\":0}"
+    },
+    "finance:verify-ledger": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":40065,\"entries\":99835,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements"
+    }
+   }
+  }
+ ]
+}

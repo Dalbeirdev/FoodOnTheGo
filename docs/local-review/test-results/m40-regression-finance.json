@@ -1,0 +1,345 @@
+{
+  "module": "M36",
+  "suite": "Module 36 — Customer Web + Restaurant Dashboard + Platform Admin on the real local backend (ledger, commission, earnings, holds, refund liability, settlements, payouts, provider settlement import, reconciliation, checks) with a finance queue worker, two API processes for the double-submit steps, the DEVELOPMENT payment provider and the DEVELOPMENT payout provider (PAYMENT_DRIVER=fake, PAYOUT_DRIVER=fake) — NO MONEY MOVES; LIVE PAYOUT = DISABLED; the Razorpay settlement reader is NOT exercised (no credentials on this machine: PENDING PROVIDER VERIFICATION); every commission rate and provider fee is a TEST FIXTURE",
+  "ran_at": "2026-10-15T05:17:54.842Z",
+  "passed": 67,
+  "failed": 0,
+  "total": 67,
+  "results": [
+    {
+      "name": "A1 PAYMENT → LEDGER: the verified payment of the order is ONE balanced posting (key payment:{id}:verified): the provider holds the customer money for the platform (Dr PROVIDER_CLEARING / Cr PAYMENT_CLEARING, the order total) — nobody has earned anything, no commission exists yet",
+      "pass": true,
+      "detail": "{\"payA\":\"D PROVIDER_CLEARING 42700, C PAYMENT_CLEARING 42700\",\"T\":42700}"
+    },
+    {
+      "name": "A2 ORDER → ALLOCATION: the order has ONE financial allocation, frozen with the terms of the moment it was placed — the TEST FIXTURE plan of this machine (1000 basis points of the merchandise; NOT a production commission) — and it is PENDING: an order that is not completed is not an earning",
+      "pass": true,
+      "detail": "{\"status\":\"PENDING\",\"rate\":1000,\"commission\":4270,\"net\":38430,\"gross\":42700,\"total\":42700,\"source\":\"PLAN\",\"review\":\"\"}"
+    },
+    {
+      "name": "A3 THE RESTAURANT DASHBOARD API SAYS SO (GET /restaurant/finance/summary): pending = the estimated net of the order in progress, available 0, paid out 0, balance 0 — with the words that say what each figure means and that live payouts are not enabled",
+      "pass": true,
+      "detail": "{\"currency\":\"INR\",\"pending\":{\"amount\":38430,\"currency\":\"INR\"},\"pending_orders\":1,\"awaiting_terms_orders\":0,\"available\":{\"amount\":0,\"currency\":\"INR\"},\"held\":{\"amount\":0,\"currency\":\"INR\"},\"in_settlement\":{\"amount\":0,\"currency\":\"INR\"},\"paid_out\":{\"amount\":0,\"currency\":\"INR\"},\"balance\":{\"amount\":0,\"curr"
+    },
+    {
+      "name": "A4 COMPLETION → EARNINGS: when the order is COMPLETED (pickup verified) its allocation is RECOGNIZED in ONE balanced posting (key order:{id}:recognized): Dr PAYMENT_CLEARING total / Cr RESTAURANT_PAYABLE net + Cr PLATFORM_COMMISSION_REVENUE commission; the customer money left clearing, the restaurant is owed the net, and the earning is ONE payable line (AVAILABLE)",
+      "pass": true,
+      "detail": "{\"recA\":\"D PAYMENT_CLEARING 42700, C RESTAURANT_PAYABLE 38430, C PLATFORM_COMMISSION_REVENUE 4270\",\"payable\":38430}"
+    },
+    {
+      "name": "A5 IDEMPOTENT: after a second completed order the sweep and the backfill (php artisan finance:post-pending [--backfill]) find nothing to post — the same payments, orders and earnings are in the ledger once; every transaction balances",
+      "pass": true,
+      "detail": "4/2/2"
+    },
+    {
+      "name": "B1 A REJECTED ORDER EARNS NOTHING: its allocation is VOID (no posting, no payable line); when its refund is CONFIRMED by the provider the customer money goes back out of clearing (key refund:{id}:completed: Dr PAYMENT_CLEARING / Cr PROVIDER_CLEARING) — no liability to decide, the restaurant payable and the commission are untouched",
+      "pass": true,
+      "detail": "{\"refCLines\":\"D PAYMENT_CLEARING 42700, C PROVIDER_CLEARING 42700\",\"alloc\":{\"status\":\"VOID\",\"rate\":1000,\"commission\":4270,\"net\":38430,\"gross\":42700,\"total\":42700,\"source\":\"PLAN\",\"review\":\"\"}}"
+    },
+    {
+      "name": "B2 AN OPEN REFUND HOLDS THE EARNING IT IS ABOUT (a switchable policy, PENDING BUSINESS APPROVAL): asking for a partial refund of a completed, unsettled order places a SYSTEM hold REFUND_PENDING on that order's payable line — held is still the restaurant's (the ledger balance did not change), it is only not settled",
+      "pass": true,
+      "detail": "REFUND_PENDING|ACTIVE|SYSTEM|ITEM"
+    },
+    {
+      "name": "B3 REFUND → LEDGER for an order that HAD been recognized: the confirmed refund leaves the provider (Cr PROVIDER_CLEARING) and waits in REFUND_CLEARING — nobody is charged yet. Who bears it is a recorded decision (REFUND_LIABILITY, PENDING_DECISION, UNASSIGNED: no liability policy is approved); the hold is released; the dashboard showed the held amount while it lasted",
+      "pass": true,
+      "detail": "{\"refBLines\":\"D REFUND_CLEARING 5000, C PROVIDER_CLEARING 5000\",\"adjB\":\"aa0765e2-090a-4c86-b4c3-8e7871abde48|PENDING_DECISION|UNASSIGNED|5000\",\"held\":{\"amount\":38430,\"currency\":\"INR\"}}"
+    },
+    {
+      "name": "B4 WHO BEARS THE REFUND IS DECIDED BY A PERSON WITH A REASON (POST /admin/finance/adjustments/{id}/decide): a share above the refund is refused (422), a typed ledger account / status / balance is refused (422), and the decision posts ONE balanced transaction (Dr RESTAURANT_PAYABLE / Cr REFUND_CLEARING) and a NEW negative payable line — the earning line itself is what it was",
+      "pass": true,
+      "detail": "{\"bad\":422,\"typed\":422,\"liabB\":\"D RESTAURANT_PAYABLE 5000, C REFUND_CLEARING 5000\"}"
+    },
+    {
+      "name": "C1 DRY RUN (POST /admin/finance/settlements/generate, dry_run): the calculation is answered — one settlement of 3 lines for the net of two earnings minus the refund the restaurant bears — and NOTHING is written (the lines of this run are dated one day back so that today's cutoff, 00:00 India time, lies after them)",
+      "pass": true,
+      "detail": "{\"dry_run\":true,\"summary\":{\"locations\":1,\"settlements\":1,\"zero_statements\":0,\"negative_carried\":0,\"held\":0,\"below_minimum\":0,\"lines\":3},\"results\":[{\"location\":\"0a000000-0000-4000-8000-0000000000a1\",\"restaurant\":\"Burger Hub\",\"currency\":\"INR\",\"period_end\":\"2026-10-11T18:30:00+00:00\",\"dry_run\":true,\"se"
+    },
+    {
+      "name": "C2 SETTLEMENT GENERATION UNDER A RACE: two requests at the same moment through two API processes make ONE settlement (CALCULATED) — every line was consumed exactly once, the second request found nothing left; generating sent no money and made no payout",
+      "pass": true,
+      "detail": "{\"g\":[{\"locations\":1,\"settlements\":1,\"zero_statements\":0,\"negative_carried\":0,\"held\":0,\"below_minimum\":0,\"lines\":3},{\"locations\":1,\"settlements\":0,\"zero_statements\":0,\"negative_carried\":0,\"held\":0,\"below_minimum\":0,\"lines\":0}],\"s1\":{\"status\":\"CALCULATED\",\"net\":71860,\"lines\":3,\"paid\":0,\"version\":1,\"reference\":\"STL-20261012-5OX7UQ\",\"paidAt\":false}}"
+    },
+    {
+      "name": "C3 NO OPAQUE TOTAL (GET /admin/finance/settlements/{id}): the statement lists its lines — two ORDER_EARNING with gross / commission / net and one REFUND_ADJUSTMENT, each with its order number — and they add up to the net payable; it says it is a settlement statement and NOT a tax invoice; the queue shows it as calculated; live payouts are DISABLED",
+      "pass": true,
+      "detail": "{\"completed_orders\":2,\"lines\":3,\"gross_sales\":{\"amount\":85400,\"currency\":\"INR\"},\"restaurant_discounts\":{\"amount\":0,\"currency\":\"INR\"},\"commission\":{\"amount\":8540,\"currency\":\"INR\"},\"tax_passed\":{\"amount\":0,\"currency\":\"INR\"},\"fees_passed\":{\"amount\":0,\"currency\":\"INR\"},\"refund_adjustments\":{\"amount\":-5000,\"currency\":\"INR\"},\"other_adjustments\":{\"amount\":0,\"currency\":\"INR\"},\"net_paya"
+    },
+    {
+      "name": "C4 APPROVAL: a typed status / paid_at / total is refused (422); \"mark-paid\", \"paid\", \"pay\", \"status\", \"settle\" are not routes (404); an administrator who only reads finance cannot approve (403); two approvals at the same moment are one approval (one audit event) — and approving sent no money",
+      "pass": true,
+      "detail": "{\"typed\":422,\"routes\":[404,404,404,404,404],\"nina\":403}"
+    },
+    {
+      "name": "D1 PAYOUT DOUBLE-SUBMIT: two administrators' requests at the same moment through two API processes make ONE payout (the second is answered with the payout that exists); its amount is the settlement's (a typed amount or destination is refused, 422; an unconfirmed request is refused, 422); it was sent once with one idempotency key and is PROCESSING at the FAKE provider — the settlement is PAYMENT_PENDING and NOTHING is paid",
+      "pass": true,
+      "detail": "{\"po1\":{\"status\":\"PROCESSING\",\"amount\":71860,\"method\":\"PROVIDER\",\"reference\":\"fpout_gqyi1ggrcilgbg\",\"attempts\":1,\"review\":\"\",\"key\":\"po-b06c2dbe-67cc-4bc2-8abc-7be070a1b4f6\",\"posted\":false},\"typed\":422}"
+    },
+    {
+      "name": "D2 THERE IS NO \"MARK AS PAID\": the routes do not exist (404), a typed status is refused (422), and asking the provider again changes nothing while the provider itself says \"processing\"",
+      "pass": true,
+      "detail": "[404,404,404,404]"
+    },
+    {
+      "name": "D3 PAID ON TRUSTED EVIDENCE ONLY: the (fake) bank finishes the payout and the provider's signed webhook arrives TWICE — the payout is PAID once on the provider's own record, with ONE ledger posting (key payout:{id}:paid: Dr RESTAURANT_PAYABLE / Cr PAYOUT_CLEARING); the settlement is PAID for exactly its net; the restaurant is owed nothing",
+      "pass": true,
+      "detail": "{\"paidLines\":\"D RESTAURANT_PAYABLE 71860, C PAYOUT_CLEARING 71860\",\"webhooks\":[\"PROCESSED\",\"DUPLICATE\"]}"
+    },
+    {
+      "name": "D4 PAYOUT → RESTAURANT DASHBOARD API: paid out = the settlement, available / in settlement / balance = 0; the statement reads PAID in the restaurant's own words with its payout; the payout list shows PAID with the destination as a MASK (the owner's to see) — no provider reference, no administrator, no token leaves the API to a restaurant",
+      "pass": true,
+      "detail": "{\"currency\":\"INR\",\"pending\":{\"amount\":0,\"currency\":\"INR\"},\"pending_orders\":0,\"awaiting_terms_orders\":0,\"available\":{\"amount\":0,\"currency\":\"INR\"},\"held\":{\"amount\":0,\"currency\":\"INR\"},\"in_settlement\":{\"amount\":0,\"currency\":\"INR\"},\"paid_out\":{\"amount\":71860,\"currency\":\"INR\"},\"balance\":{\"amount\":0,\"curr"
+    },
+    {
+      "name": "E1 POST-PAYOUT REFUND: the customer is refunded after the restaurant was paid and the decision is that the restaurant bears it — the historical payout, its settlement, its lines and its ledger posting are byte for byte what they were (HISTORICAL PAYOUT MUTATION = NO); what exists is a NEW negative payable line for a LATER settlement; the restaurant's balance is negative, shown as \"finance review required\" — no bank debit, no payout, no collection",
+      "pass": true,
+      "detail": "{\"restaurant\":{\"id\":\"0a000000-0000-4000-8000-0000000000a1\",\"name\":\"Burger Hub\",\"organization\":\"Riverside Hospitality Group\"},\"market\":\"india\",\"currency\":\"INR\",\"balance\":{\"amount\":-3000,\"currency\":\"INR\"},\"available\":{\"amount\":-3000,\"currency\":\"INR\"},\"held\":{\"amount\":0,\"currency\":\"INR\"},\"in_settlement"
+    },
+    {
+      "name": "E2 A NEGATIVE TOTAL IS NEVER A SETTLEMENT: generating now answers NEGATIVE_CARRIED_FORWARD — no settlement, no payout, nothing consumed; the line waits for the next earnings and the finance queue holds a NEGATIVE_RESTAURANT_BALANCE finding (FINANCE REVIEW REQUIRED)",
+      "pass": true,
+      "detail": "{\"r\":{\"location\":\"0a000000-0000-4000-8000-0000000000a1\",\"restaurant\":\"Burger Hub\",\"currency\":\"INR\",\"period_end\":\"2026-10-11T18:30:00+00:00\",\"dry_run\":false,\"settlement\":null,\"line_count\":1,\"outcome\":\"NEGATIVE_CARRIED_FORWARD\",\"net_payable\":{\"amount\":-3000,\"currency\":\"INR\"}},\"negDiff\":\"OPEN|MEDIUM|-3000\"}"
+    },
+    {
+      "name": "F1 THE NEXT SETTLEMENT CARRIES THE ADJUSTMENT: a new earning covers the carried line — the settlement is the new earning minus the post-payout refund (2 lines), and the negative-balance finding closes by the rule that opened it (RESOLVED / AUTO_MATCHED)",
+      "pass": true,
+      "detail": "{\"r\":{\"location\":\"0a000000-0000-4000-8000-0000000000a1\",\"restaurant\":\"Burger Hub\",\"currency\":\"INR\",\"period_end\":\"2026-10-11T18:30:00+00:00\",\"dry_run\":false,\"settlement\":\"7a3c2031-8404-456b-98fb-a899b84ba9f4\",\"line_count\":2,\"outcome\":\"SETTLEMENT\",\"reference\":\"STL-20261012-MI552D\",\"net_payable\":{\"amount\":35430,\"currency\":\"INR\"}},\"negClosed\":\"RESOLVED|AUTO_MATCHED\"}"
+    },
+    {
+      "name": "F2 PAYOUT TIMEOUT: the provider makes the payout and its answer is lost — the payout is UNKNOWN (no provider reference, nothing paid); a second start is answered with the SAME payout; \"send again\" is refused (409 payout_not_retryable) — it was sent ONCE",
+      "pass": true,
+      "detail": "{\"status\":\"UNKNOWN\",\"amount\":35430,\"method\":\"PROVIDER\",\"reference\":\"\",\"attempts\":1,\"review\":\"\",\"key\":\"po-821a2112-6794-4626-bf34-11eac12a364f\",\"posted\":false}"
+    },
+    {
+      "name": "F3 PAYOUT RECONCILIATION: asking the provider what it has for the payout's idempotency key FINDS the payout it made (PROCESSING, with the provider's reference); when the bank finishes it the payout is PAID — one payout, one posting, the settlement PAID, the restaurant owed nothing again",
+      "pass": true,
+      "detail": "{\"looked\":\"PROCESSING\"}"
+    },
+    {
+      "name": "G1 MANUAL ADJUSTMENT: without a supporting reference it is refused (422); with a typed ledger account / debit / credit / balance it is refused (422); without the permission it is refused (403); with reason + reference it is ONE balanced posting (Dr PLATFORM_ADJUSTMENTS / Cr RESTAURANT_PAYABLE) and one payable line, and the same request again (same Idempotency-Key) is the same adjustment — no balance was edited",
+      "pass": true,
+      "detail": "{\"noRef\":422,\"typed\":422,\"nina\":403,\"adjLines\":\"D PLATFORM_ADJUSTMENTS 20000, C RESTAURANT_PAYABLE 20000\"}"
+    },
+    {
+      "name": "G2 FINANCIAL HOLD: a person holds a whole restaurant with a reason (audited) — settlement generation answers LOCATION_HELD and consumes nothing; after the release (with a reason, audited) the same line is settled",
+      "pass": true,
+      "detail": "{\"held\":\"LOCATION_HELD\"}"
+    },
+    {
+      "name": "G3 A PAYOUT MADE OUTSIDE THE PLATFORM IS RECORDED WITH ITS EVIDENCE: another amount than the settlement's is refused (422 amount_mismatch), missing evidence is refused (422), bank details are refused (422), the permission is its own (403 for a reader); the record needs reference + day + amount + currency + reason + evidence and posts the SAME payout transaction a provider payout does — the settlement is PAID and cannot be paid again (409)",
+      "pass": true,
+      "detail": "{\"wrong\":422,\"noEv\":422,\"bank\":422,\"nina\":403,\"again\":409}"
+    },
+    {
+      "name": "H1 PROVIDER SETTLEMENT IMPORT: the fake provider reports the day (4 payments with the fee and tax GIVEN to it — a test fixture, no fee formula exists — 3 refunds and one payment we never had); the import keeps every line as reported and matches each to our verified payment / completed refund by the provider's reference, amount and currency: 7 matched, 1 unmatched",
+      "pass": true,
+      "detail": "{\"provider\":\"fake\",\"day\":\"2026-10-15\",\"lines_read\":8,\"lines_new\":8,\"lines_repeated\":0,\"lines_changed\":0,\"settlements_read\":1,\"settlements_new\":1,\"reconciliation\":{\"items_checked\":8,\"items_matched\":7,\"fees_posted\":4,\"settlements_checked\":1,\"settlements_matched\":0,\"missing_at_provider\":0,\"differences_open\":1}}"
+    },
+    {
+      "name": "H2 PROVIDER FEES ARE THE PROVIDER'S OWN FIGURES: for each matched payment the reported fee is posted net of its reported tax (Dr PROVIDER_FEE_EXPENSE + Dr PROVIDER_TAX_EXPENSE / Cr PROVIDER_CLEARING) — the platform bears them (policy PLATFORM_BORNE, pending approval); no restaurant payable moved",
+      "pass": true,
+      "detail": "{\"feeSum\":3416,\"taxSum\":616,\"fee\":2800,\"tax\":616}"
+    },
+    {
+      "name": "H3 WHAT DOES NOT AGREE STAYS VISIBLE: the payment the provider settled and we never had is an OPEN reconciliation difference (MISSING_INTERNAL_PAYMENT, HIGH) in the finance queue; the provider's settlement is kept as reported, marked DIFFERENCES and NOT posted as received; the source says FAKE_PROVIDER and that the Razorpay settlement API is PENDING PROVIDER VERIFICATION",
+      "pass": true,
+      "detail": "{\"id\":\"1ad5ebfb-1d85-4173-a50a-fd7c75051da2\",\"source\":\"PROVIDER\",\"type\":\"MISSING_INTERNAL_PAYMENT\",\"severity\":\"HIGH\",\"status\":\"OPEN\",\"provider\":\"fake\",\"provider_reference\":\"fpay_unknown_7ui8rfii\",\"subject\":null,\"market\":null,\"restaurant\":null,\"currency\":\"INR\",\"expected\":null,\"actual\":{\"amount\":12300"
+    },
+    {
+      "name": "H4 IMPORTED AGAIN — AND TWICE AT THE SAME MOMENT: the same provider records are ONE logical record each (8 lines, 1 settlement), nothing is posted again; a second import running at the same time is refused (409 import_running) or finds everything there",
+      "pass": true,
+      "detail": "[201,409]"
+    },
+    {
+      "name": "H5 DIFFERENCE RESOLUTION IS AUDITED: the numbers of a difference cannot be edited (422), a resolution needs a note (422), a reader of the queue cannot close (403); a finance administrator takes it up and resolves it with a resolution and a note — the audit log has who, from which state to which, and why",
+      "pass": true,
+      "detail": "{\"typed\":422,\"noNote\":422,\"nina\":403}"
+    },
+    {
+      "name": "I1 LEDGER INTEGRITY (POST /admin/finance/checks LEDGER and php artisan finance:verify-ledger): every transaction balances, no currency mismatch, no duplicate or orphan posting, the restaurants' payable lines minus the paid payouts ARE the ledger's payable balances, no clearing account is on the wrong side — 0 problems",
+      "pass": true,
+      "detail": "{\"transactions\":20,\"entries\":47,\"accounts\":14,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements\":0,\"paid_settlements_without_paid_payout\":0,\"paid_payouts_without_posting\":0,\"recognized_orders_without_payable"
+    },
+    {
+      "name": "I2 INTERNAL RECONCILIATION (POST /admin/finance/checks INTERNAL): every paid order has its verified payment of the same amount and currency, no orphan payment, no refund above its payment, every paid payout is its settlement's amount, every financial event has its posting — 0 findings",
+      "pass": true,
+      "detail": "{\"found\":[],\"auto_resolved\":0}"
+    },
+    {
+      "name": "I3 THE FINANCE OVERVIEW IS THE LEDGER (GET /admin/finance/overview): customer payments = the four payments, refunds = the three refunds, GROSS MARKETPLACE SALES = the three completed orders (labelled \"not FoodOnTheGo revenue\"), platform revenue = the commission only, restaurant payouts = the three paid payouts, provider fees = the imported figures (\"never estimated\"), restaurant payables 0 — and health says what is not real: payout provider FAKE_PROVIDER, live payouts DISABLED",
+      "pass": true,
+      "detail": "{\"customer_payments\":{\"amount\":170800,\"currency\":\"INR\"},\"refunds\":{\"amount\":50700,\"currency\":\"INR\"},\"gross_marketplace_sales\":{\"amount\":128100,\"currency\":\"INR\"},\"platform_commission\":{\"amount\":12810,\"currency\":\"INR\"},\"platform_fee_revenue\":{\"amount\":0,\"currency\":\"INR\"},\"promotion_expense\":{\"amount\":0,\"currency\":\"INR\"},\"refund_expense\":{\"amount\":0,\"currency\":\"INR\"},\"restaurant_e"
+    },
+    {
+      "name": "J1 COMMISSION IS CONFIGURATION: a plan that would start in the past is refused (422 effective_from_in_the_past), a plan without a rate is refused (422 — there is no default rate); a future plan for one restaurant is created as SCHEDULED and labelled TEST; a rate cannot be edited (PATCH 405); orders already allocated keep their terms; an administrator without admin.finance.commission.view reads no plan and no rate (403); a plan that has not started can be withdrawn",
+      "pass": true,
+      "detail": "{\"past\":422,\"noRate\":422,\"edit\":405,\"nina\":403}"
+    },
+    {
+      "name": "J2 A RESTAURANT READS ITS OWN TERMS ONLY (GET /restaurant/finance/terms): Burger Hub sees the market's standard TEST plan (1000 bps, marked test_fixture — not a final commercial rate), with no reason, approver or reference; another organization asking for a Riverside location gets 404",
+      "pass": true,
+      "detail": "{\"location\":{\"id\":\"0a000000-0000-4000-8000-0000000000a1\",\"name\":\"Burger Hub\"},\"currency\":\"INR\",\"commission\":{\"type\":\"PERCENTAGE\",\"rate_bps\":1000,\"base_policy\":\"MERCHANDISE_NET_OF_RESTAURANT_DISCOUNT\",\"applies_to\":\"MARKET_STANDARD\",\"effective_from\":\"2025-12-31T18:30:00+00:00\",\"effective_until\":null,\"test_fixture\":true}}"
+    },
+    {
+      "name": "K1 RESTAURANT ISOLATION: the owner of ANOTHER organization gets 404 for Riverside's settlement, its export, its summary, its earnings and its payouts, and its own summary names only its own location; ORDER_STAFF of Burger Hub has no finance permission (403); a MANAGER of two locations reads those two — and not where the payouts go (that is the owner's); a customer's token opens no finance API (401 / 404)",
+      "pass": true,
+      "detail": "{\"idor\":[404,404,404,404,404],\"staff\":[403,403,403,403],\"customer\":[401,401,401,404,404],\"sarah\":2}"
+    },
+    {
+      "name": "K2 ADMIN FINANCE RBAC: SUPPORT_ADMIN and RESTAURANT_ONBOARDING hold no finance permission (403 everywhere); OPERATIONS_ADMIN reads the overview, settlements, payouts and differences and can do NOTHING — generate, withdraw, pay, hold, import and the ledger are all 403; the ledger has no write route even for the finance administrator (405 / 404)",
+      "pass": true,
+      "detail": "{\"lea\":[403,403,403,403,403,403],\"nina\":[403,403,403,403,403,403],\"ledger\":[405,404,405]}"
+    },
+    {
+      "name": "K3 EXPORTS: the settlement statement and the earnings of a period download as CSV (text/csv, attachment, the file name readable by the web application) with order numbers and amounts — no customer, no phone, no token; the statement says it is not a tax invoice; no cell starts as a spreadsheet formula; a period longer than 92 days is refused; each export is audited",
+      "pass": true,
+      "detail": "{\"s\":200,\"e\":200,\"long\":422,\"formula\":[]}"
+    },
+    {
+      "name": "U1 RESTAURANT DASHBOARD — EARNINGS (owner, all locations): the page is on the backend and shows the REAL figures of this run — paid out = the three confirmed payouts, balance 0, available 0 — per currency, with what each figure means, the note that the settlement schedule is not final and that live payouts are not enabled; nothing offers to mark anything as paid",
+      "pass": true,
+      "detail": "Skip to content RESTAURANT DASHBOARD Overview Orders 2 Pickup Verification Menu Restaurant Profile Operating Hours Pickup Settings Reviews Staff Analytics Earnings Support Notifications 3 Settings Help Collapse navigation 🍔 Burger Hub Sector 62 · Noida Accepting Orders 3 JD John Doe Owner Earnings "
+    },
+    {
+      "name": "axe (dashboard earnings): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U2 LOCATION FILTER: choosing Burger Hub narrows every figure to that location (paid out = its two payouts — the Brew & Bites payout is not in it)",
+      "pass": true,
+      "detail": "107290"
+    },
+    {
+      "name": "U3 EARNINGS LINES: the five lines of Burger Hub — three order earnings and the two refund adjustments, each with its order number — all PAID; no customer name or phone on the page",
+      "pass": true,
+      "detail": "[\"PAID:FOTG-20261015-NB8AYA\",\"PAID:FOTG-20261015-85PEBC\",\"PAID:FOTG-20261015-5AQQA8\",\"PAID:FOTG-20261015-5AQQA8\",\"PAID:FOTG-20261015-85PEBC\"]"
+    },
+    {
+      "name": "U4 SETTLEMENT STATEMENT: two settlements of Burger Hub, both PAID in the restaurant's own words; the statement of the first lists its three lines and its payout, says it is a settlement statement and NOT a tax invoice, and its CSV export downloads from the backend",
+      "pass": true,
+      "detail": "{\"sRows\":[\"PAID\",\"PAID\"],\"expStatus\":200}"
+    },
+    {
+      "name": "U5 PAYOUT STATUS: three payouts, all PAID; the payout destination is shown to the owner as a MASK only (marked as a test destination); the page says live payouts are not enabled; no provider reference, token or administrator is on the page",
+      "pass": true,
+      "detail": "{\"pRows\":[\"PAID\",\"PAID\",\"PAID\"],\"mask\":\"•••• 7788\"}"
+    },
+    {
+      "name": "U6 COMMERCIAL TERMS: the restaurant reads its own terms — 10.00 % marked as a TEST FIXTURE (not a final commercial rate) for the market standard and 8.00 % for Brew & Bites, provider fees borne by the platform — and cannot edit them (no input, no save)",
+      "pass": true,
+      "detail": "Skip to content RESTAURANT DASHBOARD Overview Orders 2 Pickup Verification Menu Restaurant Profile Operating Hours Pickup Settings Reviews Staff Analytics Earnings Support Notifications 3 Settings Help Collapse navigation 🍔 Burger Hub Sector 62 · Noida Accept"
+    },
+    {
+      "name": "U7 RESTAURANT FINANCE RBAC ON THE SCREEN: order staff (no restaurant.finance.view) get no Earnings entry in the navigation and no earnings page",
+      "pass": true,
+      "detail": "Skip to content RESTAURANT DASHBOARD Overview Orders 2 Pickup Verification Menu Restaurant Profile Operating Hours Pickup Settings Support Notifications 3 Setti"
+    },
+    {
+      "name": "U8 PLATFORM ADMIN — FINANCE OVERVIEW (finance administrator): on the backend, with the real figures — gross marketplace sales = the three completed orders and labelled as NOT FoodOnTheGo revenue, platform commission = 10 % of it (test fixture), provider fees \"never estimated\" — and it says LIVE PAYOUTS: DISABLED; no control marks anything as paid or edits a balance",
+      "pass": true,
+      "detail": "Skip to content PLATFORM ADMINISTRATION Overview OPERATIONS Restaurants 1 Orders Support FINANCE Payments Refunds Settlements PLATFORM Markets Analytics SECURITY & ADMINISTRATION Audit Logs Help Collapse navigation Global search MARKET India IN Local · Backend data 4 KW Kenji Watanabe Finance Admin "
+    },
+    {
+      "name": "axe (admin finance overview): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U9 DRY RUN FROM THE PAGE: \"Preview\" asks the backend for a dry run for Healthy Bites and shows its answer — one settlement of 150.00 that WOULD be made — and nothing was written",
+      "pass": true,
+      "detail": "{\"dryStatus\":200,\"dryShown\":\"true\"}"
+    },
+    {
+      "name": "U10 SETTLEMENT APPROVAL FROM THE PAGE: the settlement is generated from the page (CALCULATED: the page offers Approve — and no payout yet), approved in a dialog, and the page then offers what the backend allows for an APPROVED settlement: start the payout, or record one made outside; the statement says it is not a tax invoice and that there is no way to mark it as paid",
+      "pass": true,
+      "detail": "{\"before4\":{\"status\":\"CALCULATED\",\"approve\":1,\"pay\":0,\"ext\":0},\"after4\":{\"status\":\"APPROVED\",\"approve\":0,\"pay\":1,\"ext\":1}}"
+    },
+    {
+      "name": "axe (admin settlement detail): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "U11 PAYOUT FROM THE PAGE: starting the payout asks for a confirmation and sends the settlement's own amount (the request carries no amount); the payout is PROCESSING at the fake provider; when the provider confirms it the page shows the settlement PAID with no action left — not even \"withdraw\"",
+      "pass": true,
+      "detail": "{\"status\":\"PAID\",\"approve\":0,\"pay\":0,\"ext\":0,\"cancel\":0}"
+    },
+    {
+      "name": "U12 PAYOUT QUEUE: four payouts, all PAID; the provider banner says what it is — the FAKE provider — and LIVE PAYOUT = DISABLED",
+      "pass": true,
+      "detail": "Payout provider:\nFAKE_PROVIDER\n· fake · test ·\nLIVE PAYOUT = DISABLED\n· real adapter: Not implemented · PENDING PROVIDER ACCOUNT ENABLEMENT"
+    },
+    {
+      "name": "U13 RESTAURANT PAYABLES: the three restaurants of this run are listed with what is owed now (nothing) — none is flagged negative",
+      "pass": true,
+      "detail": "[\"0859d041-80dd-4086-9416-61cdb3e9b0f9:false\",\"0a000000-0000-4000-8000-0000000000a1:false\",\"3aab7c65-48c6-447b-b40c-d234ff116cb0:false\"]"
+    },
+    {
+      "name": "U14 COMMERCIAL TERMS: the two TEST FIXTURE plans (ACTIVE) and the withdrawn one of this run, each marked TEST — a development fixture, not a production commission; a plan has no \"edit rate\" control",
+      "pass": true,
+      "detail": "[\"WITHDRAWN:TEST\",\"ACTIVE:TEST\",\"ACTIVE:TEST\"]"
+    },
+    {
+      "name": "U15 PROVIDER SETTLEMENTS: the source is the FAKE provider and the page says the Razorpay settlement API is PENDING PROVIDER VERIFICATION; the one imported provider settlement is listed with its reconciliation state DIFFERENCES",
+      "pass": true,
+      "detail": "Settlement source:\nFAKE_PROVIDER\n· fake · test ·\nRazorpay settlement API: PENDING PROVIDER VERIFICATION\n· imports are not scheduled · last import 15 Oct, 10:44 am (PROBLEMS)"
+    },
+    {
+      "name": "U16 RECONCILIATION QUEUE: no open difference is left; the closed ones of this run stay readable — the provider payment we never had (RESOLVED by a person) and the negative restaurant balance (RESOLVED by the rule that found it)",
+      "pass": true,
+      "detail": "[\"MISSING_INTERNAL_PAYMENT:RESOLVED\",\"NEGATIVE_RESTAURANT_BALANCE:RESOLVED\"]"
+    },
+    {
+      "name": "U17 ADJUSTMENTS: the two refund-liability decisions and the two manual adjustments of this run, all POSTED; the page states the liability policy (UNASSIGNED by default — pending approval)",
+      "pass": true,
+      "detail": "[\"MANUAL:POSTED\",\"MANUAL:POSTED\",\"REFUND_LIABILITY:POSTED\",\"REFUND_LIABILITY:POSTED\"]"
+    },
+    {
+      "name": "U18 REPORTS: commission by day (the completed orders of this run), the refund impact (restaurant-funded part of the two decided refunds) and the provider costs from the imported provider figures — labelled as provider-reported, never estimated",
+      "pass": true,
+      "detail": "Skip to content PLATFORM ADMINISTRATION Overview OPERATIONS Restaurants 1 Orders Support FINANCE Payments Refunds Settlements PLATFORM Markets Analytics SECURITY & ADMINISTRATION Audit Logs Help Collapse navigation Global search MARKET India IN Local · Backend"
+    },
+    {
+      "name": "U19 THE LEDGER IS READ-ONLY ON THE SCREEN: a transaction opens with its debit and credit lines and says it is balanced; the page says the ledger cannot be written and offers no field or button to post, edit or delete an entry",
+      "pass": true,
+      "detail": "{\"balanced\":\"true\",\"entries\":3,\"readonly\":true,\"inputs\":0}"
+    },
+    {
+      "name": "U20 ADMIN FINANCE RBAC ON THE SCREEN: an operations administrator (reads only) sees the settlement and NO action — no approve, no payout, no generate — and has no Commission and no Ledger tab; a support administrator has no finance page at all",
+      "pass": true,
+      "detail": "{\"commission\":0,\"ledger\":0,\"settlement\":1,\"approve\":0,\"pay\":0,\"ext\":0,\"generate\":0}"
+    },
+    {
+      "name": "U21 SYSTEM STATUS — FINANCE: the card shows the ledger BALANCED (checked in this run), the payout provider as the FAKE provider and LIVE PAYOUTS: DISABLED, GST and TDS / TCS not hard-coded and the tax documents pending — nothing is shown as healthy because it exists",
+      "pass": true,
+      "detail": "Balanced Ledger OK Internal reconciliation Development provider Provider reconciliation Development provider Payout provider"
+    },
+    {
+      "name": "U22 NO SCRIPT ERROR on the finance screens of the dashboard and the admin",
+      "pass": true,
+      "detail": "[]"
+    },
+    {
+      "name": "Y1 FINANCE HEALTH HIDES NOTHING (GET /admin/system/finance): ledger BALANCED (checked in this run), payout provider FAKE_PROVIDER with live_payout DISABLED and no real adapter, provider account PENDING PROVIDER ACCOUNT ENABLEMENT, restaurant KYC NOT_IMPLEMENTED, GST / TDS / TCS hard-coded: false, tax invoice / credit note / withholding pending, every policy marked as pending approval, production NO — and no secret, key or token in the answer",
+      "pass": true,
+      "detail": "{\"live_payouts\":\"DISABLED\",\"restaurant_kyc\":\"NOT_IMPLEMENTED\",\"gst_rate_hardcoded\":false,\"tds_tcs_hardcoded\":false,\"tax_invoice\":\"PENDING TAX / ACCOUNTING DESIGN\",\"commission_invoice\":\"PENDING TAX / ACCOUNTING DESIGN\",\"credit_note\":\"PENDING TAX / ACCOUNTING DESIGN\",\"withholding\":\"PENDING PROFESSIONAL TAX REVIEW\",\"production\":\"NO\"}"
+    },
+    {
+      "name": "Y2 FINANCIAL LOGGING: the application log of this run has the ledger postings and the payouts by public id, amount in minor units, currency and status — and no payout destination token, no bank detail, no bearer token, no provider signing key and no fixture password",
+      "pass": true,
+      "detail": "log bytes: 4388"
+    },
+    {
+      "name": "Z0 CLEAN-UP OF FINANCE: every ledger transaction, entry and account, allocation, payable line, adjustment, hold, settlement, payout, provider record, difference and administrator-made plan of this run is removed from the local database (the two TEST FIXTURE plans stay); no refund of the run is left",
+      "pass": true,
+      "detail": "{\"ledger_transactions\":0,\"ledger_entries\":0,\"ledger_accounts\":0,\"order_financial_allocations\":0,\"restaurant_payable_items\":0,\"financial_adjustments\":0,\"financial_holds\":0,\"restaurant_settlements\":0,\"restaurant_settlement_lines\":0,\"restaurant_payouts\":0,\"provider_settlements\":0,\"provider_settlement_items\":0,\"reconciliation_differences\":0,\"admin_plans\":0,\"fixture_plans\":2,\"refunds\":0}"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+ "module": "M40",
+ "kind": "backup-restore",
+ "at": "2026-10-14T17:07:46.314Z",
+ "source": "foodonthego_local",
+ "copy": "foodonthego_restore",
+ "backup": {
+  "step": "backup",
+  "database": "foodonthego_local",
+  "file": "C:/dev/backups/foodonthego_local-2026-10-14.dump",
+  "method": "pg_dump custom format (-Fc, compression 6), application role",
+  "duration_ms": 1034,
+  "size_bytes": 2765993,
+  "sha256": "7ed323c57d814f198b16951cc5773582d6a8440324e4fd0874d98a25d23b034e",
+  "at": "2026-10-14T17:07:57.993Z"
+ },
+ "restore": {
+  "step": "restore",
+  "file": "C:/dev/backups/foodonthego_local-2026-10-14.dump",
+  "database": "foodonthego_restore",
+  "file_sha256": "7ed323c57d814f198b16951cc5773582d6a8440324e4fd0874d98a25d23b034e",
+  "duration_ms": 2960,
+  "analyze_ms": 707,
+  "facts": {
+   "database": "foodonthego_restore",
+   "size_bytes": 38188735,
+   "postgis": "3.6.2",
+   "spatial_rows_valid": 15,
+   "gist_indexes": 5,
+   "migrations": 32,
+   "tables": 138,
+   "counts": {
+    "customers": 39,
+    "restaurant_organizations": 17,
+    "restaurant_locations": 19,
+    "menus": 19,
+    "menu_items": 165,
+    "orders": 0,
+    "order_items": 0,
+    "payment_attempts": 0,
+    "refunds": 0,
+    "ledger_transactions": 0,
+    "ledger_entries": 0,
+    "restaurant_settlements": 0,
+    "restaurant_payouts": 0,
+    "support_cases": 0,
+    "support_case_messages": 0,
+    "notifications": 0,
+    "restaurant_reviews": 0,
+    "analytics_events": 0,
+    "analytics_order_facts": 0,
+    "audit_events": 894,
+    "security_events": 6792,
+    "service_areas": 15,
+    "route_corridors": 7,
+    "cities": 23,
+    "markets": 4
+   }
+  },
+  "at": "2026-10-14T17:08:05.474Z"
+ },
+ "tables": 138,
+ "rows_source": 20212,
+ "rows_restored": 20212,
+ "tables_that_differ": [],
+ "integrity": {
+  "finance:verify-ledger": {
+   "exit": 0,
+   "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":0,\"entries\":0,\"accounts\":0,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements\":0,\"pai"
+  },
+  "finance:reconcile-internal": {
+   "exit": 0,
+   "tail": "{\"status\":\"OK\",\"problems\":0,\"found\":[],\"auto_resolved\":0}"
+  },
+  "payments:reconcile": {
+   "exit": 0,
+   "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+  },
+  "refunds:reconcile": {
+   "exit": 0,
+   "tail": "{\"policy\":0,\"submitted\":0,\"reconciled\":0,\"failed\":0}"
+  },
+  "orders:recover": {
+   "exit": 0,
+   "tail": "orders:recover retried 0, picked up 0, completed 0"
+  },
+  "analytics:aggregate": {
+   "exit": 0,
+   "tail": "{\"status\":\"OK\",\"trigger\":\"SCHEDULED\",\"dry_run\":false,\"rows\":11,\"order_facts\":0,\"session_facts\":0,\"groups\":{\"orders\":0,\"customers\":11,\"restaurants\":0,\"items\":0,\"funnel\":0,\"routes\":0,\"payments\":0,\"refunds\":0,\"finance\":0,\"support\":0,\"notifications\":0,\"pickup\":0},\"markets\":[{\"market\":1,\"days\":16,\"from\":"
+  },
+  "analytics:check": {
+   "exit": 0,
+   "tail": "{\"status\":\"HEALTHY\",\"counts\":{\"healthy\":10,\"warning\":0,\"error\":0},\"problems\":[]}"
+  }
+ },
+ "copy_dropped": true
+}

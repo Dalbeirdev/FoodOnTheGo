@@ -1,0 +1,134 @@
+{
+ "module": "M40",
+ "kind": "web-vitals",
+ "at": "2026-10-14T17:58:37.362Z",
+ "base": "http://127.0.0.1:5173",
+ "build": "vite build (production), served by vite preview; API: local backend via api-proxy",
+ "pages": {
+  "customer home": {
+   "url": "/",
+   "cold_median": {
+    "ttfb": 3,
+    "dcl": 336,
+    "load": 338,
+    "fcp": 520,
+    "lcp": 2720,
+    "kb_total": 1751,
+    "kb_js": 1440,
+    "requests": 16
+   },
+   "warm_median": {
+    "ttfb": 2,
+    "dcl": 21,
+    "load": 22,
+    "fcp": 128,
+    "lcp": 128,
+    "kb_total": 41,
+    "kb_js": 0,
+    "requests": 12
+   }
+  },
+  "restaurant page": {
+   "url": "/restaurants/burger-hub",
+   "cold_median": {
+    "ttfb": 3,
+    "dcl": 336,
+    "load": 336,
+    "fcp": 460,
+    "lcp": 3348,
+    "kb_total": 1773,
+    "kb_js": 1440,
+    "requests": 17
+   },
+   "warm_median": {
+    "ttfb": 2,
+    "dcl": 24,
+    "load": 24,
+    "fcp": 60,
+    "lcp": 508,
+    "kb_total": 63,
+    "kb_js": 0,
+    "requests": 13
+   }
+  },
+  "menu item": {
+   "url": "/restaurants/burger-hub/item/classic-burger",
+   "cold_median": {
+    "ttfb": 3,
+    "dcl": 326,
+    "load": 328,
+    "fcp": 368,
+    "lcp": 4476,
+    "kb_total": 1776,
+    "kb_js": 1440,
+    "requests": 17
+   },
+   "warm_median": {
+    "ttfb": 2,
+    "dcl": 26,
+    "load": 27,
+    "fcp": 60,
+    "lcp": 1312,
+    "kb_total": 66,
+    "kb_js": 0,
+    "requests": 13
+   }
+  },
+  "restaurant dashboard (sign-in)": {
+   "url": "/dashboard",
+   "cold_median": {
+    "ttfb": 3,
+    "dcl": 386,
+    "load": 388,
+    "fcp": 436,
+    "lcp": 2864,
+    "kb_total": 1751,
+    "kb_js": 1440,
+    "requests": 13
+   },
+   "warm_median": {
+    "ttfb": 2,
+    "dcl": 22,
+    "load": 23,
+    "fcp": 48,
+    "lcp": 48,
+    "kb_total": 41,
+    "kb_js": 0,
+    "requests": 9
+   }
+  },
+  "platform admin (sign-in)": {
+   "url": "/admin",
+   "cold_median": {
+    "ttfb": 3,
+    "dcl": 432,
+    "load": 435,
+    "fcp": 520,
+    "lcp": 2128,
+    "kb_total": 2618,
+    "kb_js": 2276,
+    "requests": 14
+   },
+   "warm_median": {
+    "ttfb": 2,
+    "dcl": 29,
+    "load": 30,
+    "fcp": 160,
+    "lcp": 504,
+    "kb_total": 43,
+    "kb_js": 0,
+    "requests": 12
+   }
+  }
+ },
+ "throttled_mobile_home": {
+  "ttfb": 3,
+  "dcl": 3001,
+  "load": 3002,
+  "fcp": 3248,
+  "lcp": 3248,
+  "kb_total": 1655,
+  "kb_js": 1440,
+  "requests": 5
+ }
+}

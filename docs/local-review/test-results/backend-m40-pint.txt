@@ -1,0 +1,4 @@
+# Module 40 — Pint on the changed PHP files (2026-10-15 09:27), after the full backend run in backend-m40-phpunit.txt
+{"tool":"pint","result":"fixed","files":["bootstrap/app.php (fully_qualified_strict_types, ordered_imports)","tests/Feature/Security/RouteInventoryTest.php (fully_qualified_strict_types, unary_operator_spaces, not_operator_with_successor_space, ordered_imports)","tests/Feature/Foundation/RequestObservabilityTest.php (line_ending)"]}
+# formatting only; the tests of the touched files re-run after Pint: tests/Feature/Security/RouteInventoryTest.php + tests/Feature/Foundation (bootstrap/app.php is exercised by every request test):
+{"tool":"phpunit","result":"passed","tests":63,"passed":63,"assertions":1725}

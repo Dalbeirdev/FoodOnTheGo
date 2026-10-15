@@ -1,0 +1,366 @@
+{
+ "module": "M40",
+ "profile": "race",
+ "started_at": "2026-10-14T16:18:31.934Z",
+ "php_pool": 12,
+ "orders": 20,
+ "racers_per_order": 8,
+ "exactly_once": 20,
+ "results": [
+  {
+   "order": "B5D8",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "FBML",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "4B3R",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED"
+   ]
+  },
+  {
+   "order": "GGHT",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "QL4P",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "CFTB",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED"
+   ]
+  },
+  {
+   "order": "XYKC",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "BUV9",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "TNBV",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "BKJ7",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "QTLD",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "7GKY",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "RFH3",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "AXM4",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "HXFX",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "K7LW",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "BQYL",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "6GQG",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified"
+   ]
+  },
+  {
+   "order": "KW4B",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "500:internal_error",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "409:pickup_already_verified",
+    "409:pickup_already_verified",
+    "500:internal_error"
+   ]
+  },
+  {
+   "order": "E4MP",
+   "verified_answers": 1,
+   "verified_rows": 1,
+   "order_status": "COMPLETED",
+   "statuses": [
+    "409:pickup_already_verified",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "500:internal_error",
+    "200:PICKUP_VERIFIED",
+    "500:internal_error",
+    "500:internal_error"
+   ]
+  }
+ ],
+ "requests": {
+  "requests": 180,
+  "ok_2xx_3xx": 40,
+  "r429": 0,
+  "r4xx_other": 38,
+  "r5xx": 102,
+  "transport_errors": 0,
+  "error_rate_pct": 56.7,
+  "throughput_rps": null,
+  "avg_ms": 2955.9,
+  "p50_ms": 3256.7,
+  "p90_ms": 5297.2,
+  "p95_ms": 5331.4,
+  "p99_ms": 6333,
+  "max_ms": 6428,
+  "server_app_p95_ms": 5297.2,
+  "db_queries_avg": 26.8,
+  "db_queries_max": 80,
+  "db_ms_avg": 1852.1
+ },
+ "dataset": {
+  "customers": 5106,
+  "restaurant_locations": 339,
+  "menu_items": 3305,
+  "orders": 19281,
+  "order_items": 19281,
+  "payment_attempts": 19281,
+  "ledger_entries": 95838,
+  "notifications": 21159,
+  "restaurant_reviews": 7506,
+  "support_cases": 2504,
+  "analytics_events": 217012,
+  "journeys": 2758
+ },
+ "note": "each order: N staff requests verify the same manual pickup code at the same moment; exactly one may verify it, the order is completed once"
+}

@@ -48,3 +48,6 @@ restaurant-ordering-saas-main/
 *firebase-adminsdk*.json
 google-services.json
 GoogleService-Info.plist
+
+# Module 40: load-test state (cached test tokens) — never committed
+tests/performance/.state/

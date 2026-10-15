@@ -25,6 +25,9 @@ use Illuminate\Support\Str;
  */
 final class AggregationService
 {
+    /** New fact rows in one run from which the fact tables are analysed before the daily queries (Module 40). */
+    private const ANALYZE_AFTER_FACT_ROWS = 5000;
+
     public function __construct(
         private readonly FactBuilder $facts,
         private readonly DailyAggregator $daily,
@@ -86,6 +89,14 @@ final class AggregationService
         $orderFacts = $rows;
         $sessionFacts = $this->facts->sessions($since, $now);
         $rows += $sessionFacts;
+        // Module 40: after a large catch-up the facts were written in THIS transaction, so the planner has no
+        // statistics for them and plans the daily queries for an empty table — on the large perf dataset (187,515
+        // order facts written at once) a single daily query ran for minutes. ANALYZE (allowed inside a transaction)
+        // gives it real numbers; a normal five-minute run writes a handful of rows and skips this.
+        if ($orderFacts + $sessionFacts >= self::ANALYZE_AFTER_FACT_ROWS) {
+            DB::statement('analyze analytics_order_facts');
+            DB::statement('analyze analytics_session_facts');
+        }
 
         $markets = DB::table('markets')->orderBy('id')->when($marketIds !== null, fn ($q) => $q->whereIn('id', $marketIds))->get(['id', 'default_timezone', 'default_currency']);
         $defaultId = (int) (DB::table('markets')->where('country_code', (string) config('market.default_country'))->value('id') ?? DB::table('markets')->min('id'));

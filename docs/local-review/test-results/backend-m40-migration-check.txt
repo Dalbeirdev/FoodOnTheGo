@@ -1,0 +1,17 @@
+# Module 40 — migration check 2026-10-14 23:25 (test database: rollback + re-apply of the Module 40 migration; then the local development database migrated)
+## DB_DATABASE=foodonthego_test php artisan migrate:status (last 2)
+ 2026_10_19_100000_module39_security .. [1] Ran 
+ 2026_10_20_100000_module40_performance_indexes .. [1] Ran 
+
+## DB_DATABASE=foodonthego_test php artisan migrate:rollback --step=1
+
+ 2026_10_20_100000_module40_performance_indexes .. 26.56ms DONE
+
+## DB_DATABASE=foodonthego_test php artisan migrate
+
+ 2026_10_20_100000_module40_performance_indexes .. 20.36ms DONE
+
+## local development database: php artisan migrate
+
+ 2026_10_20_100000_module40_performance_indexes .. 68.19ms DONE
+

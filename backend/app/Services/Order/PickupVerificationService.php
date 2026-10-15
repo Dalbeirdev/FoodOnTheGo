@@ -135,8 +135,14 @@ final class PickupVerificationService
 
         try {
             $order = DB::transaction(function () use ($user, $context, $method, $credential, $requestId, $matches, $now): Order {
-                $order = $this->orders->locked((int) $credential->order_id);
-                $locked = OrderPickupCredential::query()->whereKey($credential->getKey())->lockForUpdate()->firstOrFail();
+                // Module 40: both rows are locked FOR NO KEY UPDATE — still exclusive between verifiers (two of them
+                // never both pass the checks below), but not in conflict with the FOR KEY SHARE that the foreign keys
+                // of a refused request's attempt row take on this order and this credential. With FOR UPDATE, eight
+                // simultaneous verifications of one code deadlocked (40P01 → 500 instead of 409): the attempt INSERT
+                // held KEY SHARE on the credential and waited for the order, the winner held the order and waited
+                // for the credential (docs/reliability/database-performance.md, the pickup race).
+                $order = Order::query()->whereKey((int) $credential->order_id)->lock('for no key update')->firstOrFail();
+                $locked = OrderPickupCredential::query()->whereKey($credential->getKey())->lock('for no key update')->firstOrFail();
 
                 // Whose order is it? Out of the staff member's reach entirely → nothing is revealed.
                 if (! $this->access->reaches($user, $order->location)) {

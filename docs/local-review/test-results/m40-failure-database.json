@@ -1,0 +1,201 @@
+{
+ "module": "M40",
+ "kind": "failure-injection",
+ "scenario": "database",
+ "at": "2026-10-14T16:31:45.582Z",
+ "database": "foodonthego_perf",
+ "steps": [
+  {
+   "step": "healthy",
+   "t": "2026-10-14T16:31:49.000Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 33,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 85,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 318,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 188,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 219,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 147,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 467,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 232,
+     "code": null
+    }
+   }
+  },
+  {
+   "step": "database REFUSING connections",
+   "t": "2026-10-14T16:31:50.010Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 43,
+     "code": null
+    },
+    "health": {
+     "status": 503,
+     "ms": 134,
+     "code": null
+    },
+    "restaurants": {
+     "status": 500,
+     "ms": 92,
+     "code": "internal_error"
+    },
+    "menu": {
+     "status": 500,
+     "ms": 82,
+     "code": "internal_error"
+    },
+    "journey_plan": {
+     "status": 500,
+     "ms": 87,
+     "code": "internal_error"
+    },
+    "customer_orders": {
+     "status": 500,
+     "ms": 125,
+     "code": "internal_error"
+    },
+    "cart": {
+     "status": 500,
+     "ms": 116,
+     "code": "internal_error"
+    },
+    "admin_orders": {
+     "status": 500,
+     "ms": 135,
+     "code": "internal_error"
+    }
+   }
+  },
+  {
+   "step": "database back (no application restart)",
+   "t": "2026-10-14T16:31:51.371Z",
+   "probe": {
+    "live": {
+     "status": 200,
+     "ms": 47,
+     "code": null
+    },
+    "health": {
+     "status": 200,
+     "ms": 97,
+     "code": null
+    },
+    "restaurants": {
+     "status": 200,
+     "ms": 222,
+     "code": null
+    },
+    "menu": {
+     "status": 200,
+     "ms": 180,
+     "code": null
+    },
+    "journey_plan": {
+     "status": 201,
+     "ms": 252,
+     "code": null
+    },
+    "customer_orders": {
+     "status": 200,
+     "ms": 132,
+     "code": null
+    },
+    "cart": {
+     "status": 200,
+     "ms": 219,
+     "code": null
+    },
+    "admin_orders": {
+     "status": 200,
+     "ms": 127,
+     "code": null
+    }
+   }
+  },
+  {
+   "step": "connections killed mid-purchase",
+   "t": "2026-10-14T16:32:03.884Z",
+   "killed_connections": 4,
+   "outcomes": [
+    "cart 409 cart_locked_for_payment",
+    "cart 409 cart_locked_for_payment",
+    "cart 409 cart_locked_for_payment",
+    "order",
+    "order",
+    "order"
+   ],
+   "payments": [
+    {
+     "payment": "ea397fa5",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_CREATED",
+     "orders": 1,
+     "payment_postings": 1
+    },
+    {
+     "payment": "f3aed097",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_CREATED",
+     "orders": 1,
+     "payment_postings": 1
+    },
+    {
+     "payment": "5e5d308a",
+     "status": "VERIFIED",
+     "fulfillment": "ORDER_CREATED",
+     "orders": 1,
+     "payment_postings": 1
+    }
+   ],
+   "integrity": {
+    "payments:reconcile": {
+     "exit": 0,
+     "tail": "Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery."
+    },
+    "orders:recover": {
+     "exit": 0,
+     "tail": "orders:recover retried 0, picked up 3, completed 0"
+    },
+    "finance:post-pending": {
+     "exit": 0,
+     "tail": "{\"payments\":0,\"allocations\":0,\"recognized\":0,\"voided\":0,\"refunds\":0,\"disputes\":0,\"holds_released\":0,\"failed\":0,\"payouts_submitted\":0,\"payouts_checked\":0}"
+    },
+    "finance:verify-ledger": {
+     "exit": 0,
+     "tail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":38506,\"entries\":96144,\"accounts\":7,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orphan_postings\":0,\"payable_mismatches\":0,\"negative_restaurant_balances\":0,\"inverted_accounts\":0,\"settled_lines_of_cancelled_settlements"
+    }
+   }
+  }
+ ]
+}

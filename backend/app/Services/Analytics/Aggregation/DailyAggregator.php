@@ -96,24 +96,37 @@ final class DailyAggregator
         DB::delete('delete from analytics_daily_customers where market_id = ? and local_date = any(?::date[])', [$m->id, $days]);
 
         // A customer without a market belongs to the default market — there is one account space, not one per market.
+        // Module 40: every figure is computed ONCE, grouped by day, and the scans of customers, order facts and events
+        // are bounded by the UTC window of the requested days (their market + time indexes). The first version ran
+        // five correlated sub-queries per requested day, each over the market's whole history — on the large perf
+        // dataset (187,515 orders, 2,000,068 events, 365 days) one statement ran for minutes. Same figures: the first
+        // completed order is still taken over the whole history, and the join to the requested days drops the rest.
+        [$from, $to] = $this->window($dates);
+
         return DB::affectingStatement(
-            "with done as (select customer_key, (completed_at at time zone {$z})::date as d from analytics_order_facts where market_id = ? and status = 'COMPLETED'),
+            "with days as (select unnest(?::date[]) as d),
+                done as (select customer_key, (completed_at at time zone {$z})::date as d from analytics_order_facts where market_id = ? and status = 'COMPLETED'),
                 firsts as (select customer_key, min(d) as first_d from done group by customer_key),
-                days as (select unnest(?::date[]) as d)
+                in_days as (select customer_key, d from done where d in (select d from days)),
+                new_accounts as (select (c.created_at at time zone {$z})::date as d, count(*) as n from customers c
+                    where (c.market_id = ? or (c.market_id is null and ?)) and c.created_at >= ? and c.created_at < ? group by 1),
+                first_times as (select first_d as d, count(*) as n from firsts group by 1),
+                orderers as (select d, count(distinct customer_key) as n from in_days group by d),
+                repeaters as (select w.d, count(distinct w.customer_key) as n from in_days w join firsts f on f.customer_key = w.customer_key where f.first_d < w.d group by w.d),
+                actives as (select d, count(*) as n from (
+                    select (placed_at at time zone {$z})::date as d, customer_key from analytics_order_facts where market_id = ? and placed_at >= ? and placed_at < ?
+                    union select (occurred_at at time zone {$z})::date as d, customer_key from analytics_events where market_id = ? and customer_key is not null and occurred_at >= ? and occurred_at < ?
+                ) a group by d)
             insert into analytics_daily_customers (market_id, local_date, timezone, new_accounts, first_time_ordering, ordering_customers, repeat_ordering, active_customers, computed_at)
             select y.* from (select ?::bigint as market_id, days.d, ?::text as timezone,
-                (select count(*) from customers c where (c.market_id = ? or (c.market_id is null and ?)) and (c.created_at at time zone {$z})::date = days.d),
-                (select count(*) from firsts where first_d = days.d),
-                (select count(distinct customer_key) from done where d = days.d),
-                (select count(distinct dn.customer_key) from done dn join firsts f on f.customer_key = dn.customer_key where dn.d = days.d and f.first_d < days.d),
-                (select count(*) from (
-                    select customer_key from analytics_order_facts where market_id = ? and (placed_at at time zone {$z})::date = days.d
-                    union select customer_key from analytics_events where market_id = ? and customer_key is not null and (occurred_at at time zone {$z})::date = days.d
-                ) active) as active_customers,
+                coalesce(na.n, 0), coalesce(ft.n, 0), coalesce(o.n, 0), coalesce(r.n, 0), coalesce(a.n, 0),
                 ?::timestamptz as computed_at
-            from days) as y(market_id, d, timezone, new_accounts, first_time_ordering, ordering_customers, repeat_ordering, active_customers, computed_at)
+            from days
+                left join new_accounts na on na.d = days.d left join first_times ft on ft.d = days.d left join orderers o on o.d = days.d
+                left join repeaters r on r.d = days.d left join actives a on a.d = days.d
+            ) as y(market_id, d, timezone, new_accounts, first_time_ordering, ordering_customers, repeat_ordering, active_customers, computed_at)
             where y.new_accounts + y.first_time_ordering + y.ordering_customers + y.repeat_ordering + y.active_customers > 0",
-            [$m->id, $days, $m->id, $m->timezone, $m->id, $m->is_default, $m->id, $m->id, $now],
+            [$days, $m->id, $m->id, $m->is_default, $from, $to, $m->id, $from, $to, $m->id, $from, $to, $m->id, $m->timezone, $now],
         );
     }
 

@@ -1,0 +1,60 @@
+{
+ "module": "M40",
+ "kind": "laravel-caches",
+ "at": "2026-10-14T17:18:31.981Z",
+ "note": "config:cache + route:cache + event:cache written to storage/framework/m40-cache via APP_*_CACHE (the shared bootstrap/cache untouched); OPcache on; one PHP process each; development database, GET only; 3 warm-up + 20 timed",
+ "routes_cached": 424,
+ "results": {
+  "/live": {
+   "no caches": {
+    "status": 200,
+    "p50_ms": 328.8
+   },
+   "config+route+event cached": {
+    "status": 200,
+    "p50_ms": 346.4
+   }
+  },
+  "/health": {
+   "no caches": {
+    "status": 200,
+    "p50_ms": 467.4
+   },
+   "config+route+event cached": {
+    "status": 200,
+    "p50_ms": 486.3
+   }
+  },
+  "/restaurants?page[size]=20": {
+   "no caches": {
+    "status": 200,
+    "p50_ms": 750.8
+   },
+   "config+route+event cached": {
+    "status": 200,
+    "p50_ms": 719.5
+   }
+  },
+  "/restaurants/burger-hub/menu": {
+   "no caches": {
+    "status": 200,
+    "p50_ms": 515.5
+   },
+   "config+route+event cached": {
+    "status": 200,
+    "p50_ms": 479.8
+   }
+  },
+  "/markets/current": {
+   "no caches": {
+    "status": 200,
+    "p50_ms": 368.5
+   },
+   "config+route+event cached": {
+    "status": 200,
+    "p50_ms": 343.8
+   }
+  }
+ },
+ "conclusion": "WORKS: every route answers 200 from the cached configuration, routes and events (424 routes). LATENCY COMPARISON INCONCLUSIVE: measured while the full backend test suite and the large dataset build were running on the same machine (330-750 ms for both modes; differences within noise)."
+}

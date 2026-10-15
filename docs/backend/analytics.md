@@ -44,7 +44,7 @@ php artisan migrate
 php artisan db:seed --class=RoleSeeder
 php artisan analytics:rebuild                 # backfill from everything the domains hold
 php artisan analytics:check                   # the ten integrity checks
-php artisan queue:work                        # exports are built by a queued job
+php artisan queue:work redis --queue=orders,payments,finance,notifications,default   # exports are built by a queued job (queue "default")
 php artisan schedule:work                     # analytics:aggregate every 5 min, :check hourly, :prune daily
 ```
 

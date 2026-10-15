@@ -3,6 +3,7 @@
 namespace Tests\Feature\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\Feature\Security\Concerns\WalksRoutes;
 use Tests\TestCase;
 
@@ -16,6 +17,13 @@ class RouteInventoryTest extends TestCase
     use RefreshDatabase, WalksRoutes;
 
     private const GUARD = ['CUSTOMER' => 'customer', 'RESTAURANT' => 'restaurant', 'ADMIN' => 'admin'];
+
+    /**
+     * API routes without a rate limit, each with its reason. Module 40: liveness must answer whatever the limiter's
+     * store (Redis) does — with the limiter in front of it, a Redis outage answered 500 to every liveness probe and an
+     * orchestrator would restart every healthy process. The route touches nothing (no query, no cache).
+     */
+    private const UNTHROTTLED = ['GET /api/v1/live' => 'liveness: touches no dependency, not even the limiter store'];
 
     public function test_every_registered_route_is_in_the_inventory_and_keeps_the_rule_of_its_class(): void
     {
@@ -40,7 +48,7 @@ class RouteInventoryTest extends TestCase
             if (in_array($class, ['RESTAURANT', 'ADMIN'], true) && ($row['permission'] === null || $row['permission'] === '')) {
                 $problems[] = "$key: a staff route needs a recorded permission";
             }
-            if (str_starts_with($r['uri'], '/api/') && $row['throttle'] === []) {
+            if (str_starts_with($r['uri'], '/api/') && $row['throttle'] === [] && ! isset(self::UNTHROTTLED[$key])) {
                 $problems[] = "$key: no rate limit";
             }
         }
@@ -52,6 +60,27 @@ class RouteInventoryTest extends TestCase
         }
 
         $this->assertSame([], $problems);
+    }
+
+    public function test_every_api_route_really_runs_a_rate_limiter_except_the_listed_ones(): void
+    {
+        // The inventory records what route:list said; this checks the middleware the router actually runs.
+        $router = app('router');
+        $missing = [];
+        foreach (Route::getRoutes()->getRoutes() as $route) {
+            $uri = '/'.ltrim($route->uri(), '/');
+            if (! str_starts_with($uri, '/api/')) {
+                continue;
+            }
+            $throttled = collect($router->gatherRouteMiddleware($route))->contains(fn ($m): bool => is_string($m) && str_contains($m, 'ThrottleRequests'));
+            foreach (array_diff($route->methods(), ['HEAD']) as $method) {
+                $listed = isset(self::UNTHROTTLED[$method.' '.$uri]);
+                if ($throttled === $listed) {
+                    $missing[] = $method.' '.$uri.($listed ? ': listed as unthrottled but has a limiter' : ': no rate limiter');
+                }
+            }
+        }
+        $this->assertSame([], $missing);
     }
 
     public function test_the_class_rules_cover_the_whole_api_and_the_dangerous_framework_routes_are_gone(): void

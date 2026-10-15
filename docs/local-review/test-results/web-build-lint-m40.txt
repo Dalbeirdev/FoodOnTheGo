@@ -1,0 +1,31 @@
+# Module 40 — web checks (LOCAL, 2026-10-15): tsc, oxlint, vitest, vite build (Module 40 changed no web source; this is the regression run)
+
+## tsc -b --noEmit
+tsc: 0 errors (exit 0)
+
+## oxlint (npm run lint)
+src/checkout/ServerCheckoutProvider.tsx:83:40: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/checkout/ServerCheckoutProvider.tsx:84:46: warning react(refs): Cannot access refs during render help: React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected
+src/dashboard/components/Charts.tsx:71:331: warning react(immutability): Cannot reassign variable after render completes help: Reassigning `acc` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead
+(oxlint exit 0; 0 errors; 162 warnings — Module 39 recorded 162; Module 40 changed no web source.)
+
+## vitest (npx vitest run)
+vitest exit 0
+ Test Files  81 passed (81)
+      Tests  1016 passed (1016)
+
+## vite build (npm run build)
+build: exit 0
+dist/index.html                            1.79 kB │ gzip:   0.79 kB
+dist/assets/DashboardApp-Cwh1m0ve.css      1.17 kB │ gzip:   0.52 kB
+dist/assets/AdminApp-M8SM5Dfm.css         32.89 kB │ gzip:   6.64 kB
+dist/assets/Charts-C4L0Mj8f.css           36.70 kB │ gzip:   7.41 kB
+dist/assets/index-BnXkeKcv.css           210.86 kB │ gzip:  36.30 kB
+dist/assets/Charts-CXXnGK3W.js            84.70 kB │ gzip:  23.76 kB
+dist/assets/DashboardApp-Dw8opHCi.js     436.78 kB │ gzip: 117.20 kB
+dist/assets/AdminApp-LTgkXYUG.js         771.31 kB │ gzip: 164.54 kB
+dist/assets/index-Bedw5Iiz.js          1,474.73 kB │ gzip: 407.68 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+✓ built in 671ms
+
+## built index.html: Content-Security-Policy meta present

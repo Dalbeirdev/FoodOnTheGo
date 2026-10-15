@@ -1,0 +1,9 @@
+# Module 40 — Flutter checks (LOCAL, 2026-10-15 08:32 India time — some widget tests of Modules 28-29 read the wall clock and run only during the opening hours of the restaurant fixture: CF-527): flutter analyze + flutter test (Module 40 changed no Android source; this is the regression run)
+
+## flutter analyze
+Analyzing mobile...                                             
+No issues found! (ran in 4.5s)
+
+## flutter test
+00:29 +682: E:/TechPio-Data/FoodOnTheGo/mobile/test/support_screens_test.dart: Notifications — an inbox item and a push with the target SUPPORT_CASE open that case; the route is behind sign-in
+00:29 +683: All tests passed!
