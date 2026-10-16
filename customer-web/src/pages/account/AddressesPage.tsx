@@ -7,6 +7,7 @@ import { useAccount, type Address, type AddressInput, type AddressKind, type Cov
 import { useProfile } from '../../profile/ProfileContext'
 import './AccountPage.css'
 import './AddressesPage.css'
+import { userMessage } from '../../api/userMessage'
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -82,7 +83,7 @@ export default function AddressesPage() {
       toast.success(editing.id ? 'Address updated' : 'Address saved')
       setEditing(null)
     } catch (e2) {
-      setErrors({ form: e2 instanceof Error ? e2.message : 'Could not save the address. Please try again.' })
+      setErrors({ form: userMessage(e2, 'Could not save the address. Please try again.') })
       if (e2 instanceof Error && 'code' in e2 && (e2 as { code?: string | null }).code === 'stale_update') void addresses.reload()
     } finally {
       setSaving(false)
@@ -91,7 +92,7 @@ export default function AddressesPage() {
   const confirmDelete = async () => {
     if (!deleting) return
     setBusyDelete(true)
-    try { await removeAddress(deleting.id); toast.success(`${deleting.label} deleted`); setDeleting(null) } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not delete the address') } finally { setBusyDelete(false) }
+    try { await removeAddress(deleting.id); toast.success(`${deleting.label} deleted`); setDeleting(null) } catch (e) { toast.error(userMessage(e, 'Could not delete the address')) } finally { setBusyDelete(false) }
   }
 
   const fmt = (a: Address) => a.formatted || [a.line1, a.line2, a.locality, `${a.city}${a.city && a.state ? ', ' : ''}${a.state} ${a.pincode}`.trim()].filter(Boolean).join(', ')
@@ -104,18 +105,18 @@ export default function AddressesPage() {
           <AccountSidebar />
           <div className="ac__main">
             <div className="ac-head">
-              <div><h1>Saved Addresses</h1><p>Your journey start and destination shortcuts</p></div>
-              <button type="button" className="btn btn--primary" onClick={() => openForm()}><PlusIcon /> Add New Address</button>
+              <div><h1>Saved Places</h1><p>Your journey start and destination shortcuts</p></div>
+              <button type="button" className="btn btn--primary" onClick={() => openForm()}><PlusIcon /> Add a Place</button>
             </div>
             <p className="ac-note ac-note--info">Saved places make planning a journey faster. FoodOnTheGo is pickup-only — these are not delivery addresses.{live && ' Each place shows whether FoodOnTheGo serves it right now; a place outside our markets can still be saved for a journey.'}</p>
 
             {addresses.status === 'loading' || addresses.status === 'idle' ? <LoadingState label="Loading your addresses" /> : null}
             {addresses.status === 'error' && <ErrorState message={addresses.error ?? 'Failed to load addresses.'} onRetry={addresses.reload} />}
             {addresses.status === 'ready' && addresses.data.length === 0 && (
-              <EmptyState icon={<PinIcon size={34} />} title="No saved addresses yet" text="Add Home, Work or any place you travel from often." action={<button type="button" className="btn btn--primary" onClick={() => openForm()}>Add Address</button>} />
+              <EmptyState icon={<PinIcon size={34} />} title="No saved places yet" text="Add Home, Work or any place you travel from often." action={<button type="button" className="btn btn--primary" onClick={() => openForm()}>Add your first place</button>} />
             )}
             {addresses.status === 'ready' && addresses.data.length > 0 && (
-              <ul className="addr-list" aria-label="Saved addresses">
+              <ul className="addr-list" aria-label="Saved places">
                 {addresses.data.map((a) => {
                   const Icon = KIND_ICON[a.kind]
                   return (
@@ -141,7 +142,7 @@ export default function AddressesPage() {
         {editing && (
           <div className="ac-modal" role="dialog" aria-modal="true" aria-labelledby="addr-form-title" onClick={(e) => { if (e.target === e.currentTarget) cancel() }}>
             <form className="ac-modal__box" onSubmit={submit} noValidate aria-busy={saving}>
-              <h2 id="addr-form-title">{editing.id ? 'Edit Address' : 'Add New Address'}</h2>
+              <h2 id="addr-form-title">{editing.id ? 'Edit Place' : 'Add a Place'}</h2>
               <div className="ac-fields">
                 <label>Label<input value={editing.label} placeholder="Home, Work, Parents…" maxLength={40} onChange={(e) => setEditing({ ...editing, label: e.target.value })} aria-invalid={!!errors.label} />{errors.label && <em role="alert">{errors.label}</em>}</label>
                 <label>Type<select value={editing.kind} onChange={(e) => setEditing({ ...editing, kind: e.target.value as AddressKind })}><option value="home">Home</option><option value="work">Work</option><option value="other">Other</option></select></label>
@@ -154,7 +155,7 @@ export default function AddressesPage() {
                 <label>Latitude (optional)<input type="number" step="any" inputMode="decimal" value={editing.lat ?? ''} placeholder="28.6271" onChange={(e) => setEditing({ ...editing, lat: number(e.target.value) })} aria-invalid={!!errors.coords} /></label>
                 <label>Longitude (optional)<input type="number" step="any" inputMode="decimal" value={editing.lng ?? ''} placeholder="77.3717" onChange={(e) => setEditing({ ...editing, lng: number(e.target.value) })} aria-invalid={!!errors.coords} />{errors.coords && <em role="alert">{errors.coords}</em>}</label>
               </div>
-              <p className="ac-note" style={{ marginTop: 12 }}>Map search and pin-drop arrive with the Maps &amp; Places module. Until then you can paste coordinates from your maps app; with a pin, {live ? 'the backend tells you whether the place is served.' : 'coverage is shown once the backend is connected.'}</p>
+              <p className="ac-note" style={{ marginTop: 12 }}>Tip: you can paste coordinates from your maps app to pin a place exactly; with a pin, {live ? 'we show whether FoodOnTheGo serves that place.' : 'coverage is shown once the backend is connected.'}</p>
               {errors.form && <p className="ac-note" role="alert" style={{ marginTop: 10, color: '#9a1d17', background: '#fdecec', borderColor: '#f5c2c0' }}>{errors.form}</p>}
               <div className="ac-modal__actions">
                 <button type="button" className="btn btn--outline" onClick={cancel} disabled={saving}>Cancel</button>
@@ -164,7 +165,7 @@ export default function AddressesPage() {
           </div>
         )}
 
-        <ConfirmDialog open={!!deleting} title="Delete this address?" text={<>“{deleting?.label}” will be removed from your saved places.</>} confirmLabel="Delete" danger busy={busyDelete} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
+        <ConfirmDialog open={!!deleting} title="Delete this place?" text={<>“{deleting?.label}” will be removed from your saved places.</>} confirmLabel="Delete" danger busy={busyDelete} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
       </main>
     </>
   )

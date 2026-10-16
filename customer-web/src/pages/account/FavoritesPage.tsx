@@ -11,6 +11,7 @@ import { computeAvailability } from '../../repositories/mock/restaurants'
 import type { Restaurant } from '../../repositories/types'
 import './AccountPage.css'
 import './FavoritesPage.css'
+import { userMessage } from '../../api/userMessage'
 
 const HeartIcon = ({ size = 18, filled = false }: { size?: number; filled?: boolean }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1 8 3.5 4.5 7 4.5c2 0 3.5 1 5 2.8 1.5-1.8 3-2.8 5-2.8 3.5 0 6 3.5 4.5 7.2C19.5 16.4 12 21 12 21Z" /></svg>
@@ -30,7 +31,7 @@ export default function FavoritesPage() {
 
   const remove = async (id: string, name: string) => {
     setRemoving(id)
-    try { await removeFavorite(id); toast.success(`${name} removed from favorites`) } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not update favorites') } finally { setRemoving(null) }
+    try { await removeFavorite(id); toast.success(`${name} removed from favorites`) } catch (e) { toast.error(userMessage(e, 'Could not update favorites')) } finally { setRemoving(null) }
   }
 
   return (

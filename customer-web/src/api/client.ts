@@ -86,7 +86,18 @@ export type ApiRequest = {
   query?: Record<string, string | number | boolean | null | undefined>; idempotencyKey?: string; signal?: AbortSignal
   /** Extra request headers (e.g. X-Journey-Token for a guest's own journey). Never a bearer token: use `token`. */
   headers?: Record<string, string>
+  /** Internal: this request is the one repetition after an administrator step-up (Module 41). */
+  stepUpRetry?: boolean
 }
+
+/**
+ * Module 41: high-risk administrator actions answer 403 step_up_required when the session was not authenticated
+ * recently. The Platform Admin registers a handler that asks for the password (and the MFA code) and confirms the
+ * session (POST /auth/admin/step-up); the request is then repeated once. Without a handler the error goes to the caller.
+ */
+export type StepUpHandler = (info: { mfa: boolean }) => Promise<boolean>
+let stepUpHandler: StepUpHandler | null = null
+export function setStepUpHandler(handler: StepUpHandler | null) { stepUpHandler = handler }
 
 const urlOf = (path: string, query: ApiRequest['query']): string => {
   const q = Object.entries(query ?? {}).filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&')
@@ -107,6 +118,19 @@ function failure(res: Response, data: Record<string, unknown>, requestId: string
   })
 }
 
+/**
+ * Module 41: no request waits for ever. A request the backend has not answered within this time fails like a lost
+ * connection (ApiError kind "network"), so every loading state ends in its error / retry state instead of spinning.
+ */
+export const REQUEST_TIMEOUT_MS = 30_000
+
+function withTimeout(signal: AbortSignal | undefined): AbortSignal | undefined {
+  if (typeof AbortSignal === 'undefined' || typeof AbortSignal.timeout !== 'function') return signal
+  const timeout = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+  if (!signal) return timeout
+  return typeof AbortSignal.any === 'function' ? AbortSignal.any([signal, timeout]) : signal
+}
+
 export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const requestId = newRequestId()
   const context = init.context ?? 'customer'
@@ -120,7 +144,7 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   const url = urlOf(path, init.query)
   let res: Response
   try {
-    res = await fetch(url, { method: init.method ?? 'GET', headers, body: init.body === undefined ? undefined : form ? (init.body as FormData) : JSON.stringify(init.body), signal: init.signal })
+    res = await fetch(url, { method: init.method ?? 'GET', headers, body: init.body === undefined ? undefined : form ? (init.body as FormData) : JSON.stringify(init.body), signal: withTimeout(init.signal) })
   } catch {
     throw new ApiError(0, FALLBACK.network, { requestId })
   }
@@ -132,7 +156,12 @@ export async function api<T>(path: string, init: ApiRequest = {}): Promise<T> {
   if (!res.ok) {
     // Only a rejected *stored* session ends the session. A 403 never signs anyone out.
     if (kindOf(res.status) === 'unauthenticated' && token && !init.token) { tokens.set(context, null); unauthenticatedHandlers[context]?.() }
-    throw failure(res, data, requestId)
+    const error = failure(res, data, requestId)
+    if (error.code === 'step_up_required' && context === 'admin' && stepUpHandler && !init.stepUpRetry) {
+      const stepUp = (error.details.step_up ?? {}) as { mfa?: boolean }
+      if (await stepUpHandler({ mfa: stepUp.mfa === true })) return api<T>(path, { ...init, stepUpRetry: true })
+    }
+    throw error
   }
   return data as T
 }

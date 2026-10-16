@@ -28,9 +28,9 @@ const NAVIGATION: SiteNavigation = {
       { label: 'Help & Support', to: '/help' },
     ],
     legal: [
-      { label: 'Terms of Service', to: '/terms' },
+      { label: 'Terms & Conditions', to: '/terms' },
       { label: 'Privacy Policy', to: '/privacy' },
-      { label: 'Refund Policy', to: '/refund-policy' },
+      { label: 'Refund & Cancellation Policy', to: '/refund-policy' },
       { label: 'Cookie Policy', to: '/cookie-policy' },
     ],
     // Social profile URLs have not been supplied/approved — rendered as pending, never as live links.
@@ -52,7 +52,7 @@ const HOME: HomeContent = {
   primaryCta: { label: 'Plan a Journey', to: '/plan-journey' },
   secondaryCta: { label: 'Explore Restaurants', to: '/restaurants' },
   stores: [
-    { store: 'google-play', to: '/get-app', status: 'placeholder', label: 'Google Play', sub: 'GET IT ON' },
+    { store: 'google-play', to: '/get-app', status: 'placeholder', label: 'Google Play', sub: 'COMING SOON ON' },
     // iOS is deferred: shown as a non-link "coming later" state, never as an active download.
     { store: 'app-store', status: 'deferred', label: 'App Store', sub: 'Coming later' },
   ],
@@ -143,19 +143,17 @@ const ABOUT: AboutContent = {
 const HELP: HelpContent = {
   title: 'Help & Support',
   sub: 'How can we help you?',
-  searchPlaceholder: 'Search for help articles...',
+  searchPlaceholder: 'Search help topics…',
   topics: [
     { icon: 'bag', title: 'Orders & Pickup', text: 'Track orders, cancellations', to: '/my-orders', keywords: 'order pickup cancel track refund late ready' },
     { icon: 'card', title: 'Payments & Refunds', text: 'Payment methods, refunds', to: '/payment-methods', keywords: 'payment card upi wallet refund charge failed' },
     { icon: 'user', title: 'Account & Profile', text: 'Manage your account', to: '/my-profile', keywords: 'account profile password email phone delete login' },
     { icon: 'store', title: 'Restaurant Questions', text: 'Discover restaurants', to: '/restaurants', keywords: 'restaurant menu hours partner list' },
     { icon: 'route', title: 'Plan a Journey', text: 'Route and travel help', to: '/plan-journey', keywords: 'route journey trip detour distance map' },
-    { icon: 'phone', title: 'App Issues', text: 'Technical support', to: '#contact', keywords: 'app crash bug update android install technical' },
+    { icon: 'phone', title: 'App Issues', text: 'Technical support', to: '/help/cases', keywords: 'app crash bug update android install technical' },
   ],
   contacts: [
-    { icon: 'chat', kind: 'chat', title: 'Live Chat', detail: 'Chat with our support team', note: 'Available once the support system is connected', backendRequired: true },
     { icon: 'mail', kind: 'email', title: 'Email Support', detail: 'support@foodonthego.com', href: 'mailto:support@foodonthego.com', backendRequired: false },
-    { icon: 'phone', kind: 'phone', title: 'Call Us', detail: '+91 98765 43210', note: 'Available 8 AM – 10 PM (IST)', href: 'tel:+919876543210', backendRequired: false },
   ],
 }
 
@@ -177,7 +175,7 @@ const FOR_RESTAURANTS: ForRestaurantsContent = {
     { title: 'List your restaurant', text: 'Tell us about your restaurant, location and opening hours.' },
     { title: 'Add your menu', text: 'Upload dishes, prices and photos from the partner dashboard.' },
     { title: 'Receive pre-orders', text: 'Travellers order ahead; you prepare for their pickup time.' },
-    { title: 'Get paid', text: 'Payouts settle automatically for every completed pickup.' },
+    { title: 'Get paid', text: 'Earnings from completed pickups are settled to your account.' },
   ],
   closing: { title: 'Ready to List Your Restaurant?', text: 'Join FoodOnTheGo today and start receiving orders.', cta: { label: 'Get Started', to: '/for-restaurants/register' } },
 }

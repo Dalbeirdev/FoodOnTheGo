@@ -97,6 +97,8 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // Module 41: the managed database's CA certificate for DB_SSLMODE=verify-full / verify-ca.
+            'sslrootcert' => env('DB_SSLROOTCERT'),
             // Sessions always run in UTC: timestamps are stored normalised, business time zones are explicit data.
             'timezone' => 'UTC',
             // Module 40: reuse a PHP worker's database connection across requests (PDO persistent connections). OFF by

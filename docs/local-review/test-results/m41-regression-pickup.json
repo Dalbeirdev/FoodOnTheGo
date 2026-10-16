@@ -1,0 +1,131 @@
+{
+  "module": "M28",
+  "date": "2026-10-16T07:49:39.651Z",
+  "base": "http://localhost:5173",
+  "api": "http://127.0.0.1:8001/api/v1",
+  "note": "Customer Web (VITE_PICKUP_MODE=api), Restaurant Dashboard and Platform Admin against the real local backend (PostgreSQL 18, Redis). Pickup times are SELECTED, NOT RESERVED: no slot hold exists yet (Module 29 / 31). Capacity rows used here are local test rows (source FIXTURE). Checkout, payment and orders are still development data.",
+  "passed": 21,
+  "total": 24,
+  "results": [
+    {
+      "name": "A1 the pickup page asks the backend (GET /cart/pickup-availability): the guest cart token in a header, no query, no body — and shows the restaurant, its time zone and the estimated preparation; nothing is labelled \"development pickup times\"",
+      "pass": true,
+      "detail": "Pickup time Choose when you will collect your order. Times are shown in the restaurant’s local time. PICKUP AT Burger Hub Sector 62, Noida, Uttar Pradesh 201309, India Open Closes 11:30 pm Restaurant "
+    },
+    {
+      "name": "A2 ASAP is the backend's sum: max(preparation 12 + buffer 0, minimum lead 12) = 12 min after the server clock, rounded up to the minute; it is on the restaurant's clock (+05:30) and marked recommended when there is no journey",
+      "pass": true,
+      "detail": "lead 12.966666666666667 delay 12"
+    },
+    {
+      "name": "A3 the page shows that ASAP time in restaurant time, with the backend's \"Recommended\"",
+      "pass": false,
+      "detail": "Ready in about 1:31 pm (IST) Recommended"
+    },
+    {
+      "name": "axe (pickup page, ASAP): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A4 choosing ASAP sends a mode, the method and the cart version — no time, no restaurant, no customer — with the guest token in a header and an Idempotency-Key; the backend stores the choice",
+      "pass": true,
+      "detail": "{\"mode\":\"ASAP\",\"method\":\"COUNTER\",\"cart_version\":1} 200"
+    },
+    {
+      "name": "A5 SELECTED IS NOT RESERVED: the answer says reserved: false, no capacity row was written, and the page says \"selected, not reserved\" — never \"reserved\"",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A6 one selection row for the cart in the database: ASAP, SELECTED, restaurant time zone and the cart version it was made for",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "A7 after a reload the choice is still there — it lives with the cart on the backend, and an ASAP choice follows the clock (its time is the current estimate)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 SLOTS are the backend's: every start is on the 15-minute grid of the restaurant's local clock, none is before the kitchen can be ready, today's last one starts 23:15 (before the 23:30 close), and the list ends at the 24-hour horizon — 61 slots over 2 local days",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B2 the page lists exactly the backend's slots of the chosen day, with a tab per restaurant-local day",
+      "pass": true,
+      "detail": "39 vs 39"
+    },
+    {
+      "name": "B3 choosing a slot sends its key — a mode, a key, the method, the cart version; never a timestamp — and the backend answers with the slot it stored",
+      "pass": true,
+      "detail": "{\"mode\":\"SCHEDULED\",\"slot_key\":\"ps1_tmzt00_15_f34a63619536\",\"method\":\"COUNTER\",\"cart_version\":1}"
+    },
+    {
+      "name": "B4 the summary shows that time on the restaurant clock and the row in the database holds the slot (still one row for the cart)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "axe (pickup page, scheduled): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B5 TAMPERING is refused and changes nothing: an altered slot key, a key of another restaurant, a malformed key, a missing key (422 slot_invalid / validation_failed); a timestamp, a restaurant, a customer, a cart id, a currency or a capacity in the request (422 — fields the client may not send); an unknown mode (422)",
+      "pass": true,
+      "detail": "{\"tampered\":\"422:slot_invalid\",\"foreign\":\"422:slot_invalid\",\"garbage\":\"422:slot_invalid\",\"missing\":\"422:validation_failed\",\"time\":\"422:validation_failed\",\"restaurant\":\"422:validation_failed\",\"customer\":\"422:validation_failed\",\"cartId\":\"422:validation_failed\",\"currency\":\"422:validation_failed\",\"capacity\":\"422:validation_failed\",\"mode\":\"422:validation_failed\"}"
+    },
+    {
+      "name": "B6 IDEMPOTENT: the same request with the same key is answered again without choosing twice (same selection version); the same key with another choice is refused (409 / 422); still one row",
+      "pass": true,
+      "detail": "200 200 409"
+    },
+    {
+      "name": "B7 five different choices sent at the same moment end as ONE valid selection — the last one stored — never two rows",
+      "pass": true,
+      "detail": "200,200,200,200,200"
+    },
+    {
+      "name": "B8 \"Change time\" clears the choice on the backend (DELETE): no row, the summary asks for a time again and Continue is off",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C1 CAPACITY (Pizza Point, 2 orders per slot, local fixture): the next 13:00 is FULL — listed, not available, reason SLOT_FULL — and 13:15, taken once, has its last place left: LIMITED and still available; other slots are untouched",
+      "pass": false,
+      "detail": "{\"full\":{\"slot_key\":\"ps1_tn1ji0_15_24af6133a73d\",\"starts_at\":\"2026-10-17T07:30:00+00:00\",\"ends_at\":\"2026-10-17T07:45:00+00:00\",\"local_starts_at\":\"2026-10-17T13:00:00+05:30\",\"local_date\":\"2026-10-17\",\"available\":false,\"capacity_state\":\"FULL\",\"recommended\":false,\"reason\":\"SLOT_FULL\",\"arrival_vs_pickup"
+    },
+    {
+      "name": "C2 customers see a state, never a number: a slot carries no count, no capacity and no remaining places, and the answer has no capacity setting",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C3 the page shows the full slot as \"Full\", disabled, the one with its last place as \"Limited\", and the others as choosable",
+      "pass": true,
+      "detail": "{\"start\":\"2026-10-17T07:30:00+00:00\",\"capacity\":\"full\",\"recommended\":false,\"disabled\":true,\"on\":false,\"text\":\"1:00 pm Full\"}"
+    },
+    {
+      "name": "C4 the API refuses the full slot too: 409 slot_full, nothing selected",
+      "pass": true,
+      "detail": "409 {\"error\":{\"code\":\"slot_full\",\"message\":\"That pickup time is no longer available. Please select another time.\",\"request_id\":\"7c8815e1-c6aa-49ca-83d1-76f006e9d5ec"
+    },
+    {
+      "name": "C5 A SLOT FILLS UP WHILE THE CUSTOMER LOOKS: the tap is refused (409 slot_full), the page says so in the backend's words, shows the slot as Full after asking again, and nothing is selected",
+      "pass": true,
+      "detail": "409 {\"start\":\"2026-10-17T07:45:00+00:00\",\"capacity\":\"full\",\"recommended\":false,\"disabled\":true,\"on\":false,\"text\":\"1:15 pm Full\"}"
+    },
+    {
+      "name": "E2E run completed without an exception",
+      "pass": false,
+      "detail": "TypeError: Cannot read properties of undefined (reading 'slot_key') |     at C:\\Users\\DalbeirSingh\\AppData\\Local\\Temp\\claude\\E--TechPio-Data-FoodOnTheGo\\2d42022e-36d6-4b61-9c0a-7fd285469465\\scratchpad\\shots\\m28_e2e.js:264:73"
+    },
+    {
+      "name": "Z the local database is back in its seeded state: no cart, selection or capacity row of this run is left, the review account has no cart, Burger Hub (settings, hours, status, menu) and the Pizza Point capacity fixture are as before",
+      "pass": true,
+      "detail": "{\"carts\":0,\"selections\":0,\"rahul\":0,\"e2eReservations\":0,\"fixtureReservations\":\"8:12\",\"location\":\"APPROVED:true\",\"rings\":\"ACTIVE\",\"settingsAfter\":\"true:true:true:12:12:0:1440:15:0:none\",\"settingsBefore\":\"true:true:true:12:12:0:1440:15:0:none\",\"hoursSame\":true}"
+    }
+  ]
+}

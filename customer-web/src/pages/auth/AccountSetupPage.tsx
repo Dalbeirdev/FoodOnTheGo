@@ -5,6 +5,7 @@ import { formatPhone } from '../../auth/phone'
 import { AuthError } from '../../auth/repository'
 import { ArrowRightIcon } from '../../components/Icons'
 import AuthLayout from './AuthLayout'
+import { userMessage } from '../../api/userMessage'
 
 /** Step 3 (new customers only): essential details — name, optional email, consent. */
 export default function AccountSetupPage() {
@@ -35,7 +36,7 @@ export default function AccountSetupPage() {
       navigate(pending.returnTo, { replace: true })
     } catch (e2) {
       if (e2 instanceof AuthError && e2.code === 'expired_otp') navigate('/login?reason=expired', { replace: true })
-      else setErrors({ form: e2 instanceof Error ? e2.message : 'Something went wrong. Please try again.' })
+      else setErrors({ form: userMessage(e2, 'Something went wrong. Please try again.') })
     } finally {
       setBusy(false)
     }

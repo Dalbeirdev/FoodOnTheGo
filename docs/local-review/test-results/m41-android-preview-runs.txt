@@ -1,0 +1,6 @@
+# Module 41 — Android preview (Flutter web 412x915 on the real local backend), runs of 2026-10-16
+Final run 08:45–08:51 IST: m37_flutter.js 8/8, m38_flutter_m41.js 9/9 = 17/17 (m41-android-preview-e2e.json).
+Earlier runs, kept for the record:
+- 08:33 (cold Flutter web debug server, first compile after the Module 41 changes): m37_flutter.js aborted waiting for the login field (the app had not finished loading); m38_flutter.js 7/9.
+- 08:40 (warm): m37_flutter.js 8/8; m38_flutter.js 7/9.
+The two m38 misses (A1, A3) asserted /42/ in the app version: Module 41 takes the version from the build (BUILD_NUMBER, 0.1.0+45) instead of the hard-coded build 42. m38_flutter_m41.js changes only that expectation (/45/); the events, the contract, the stored rows and every other check are unchanged.

@@ -53,6 +53,17 @@ return [
     // Module 39: an administrator's token that was not used for this long is revoked on its next use (0 = off).
     'admin_idle_minutes' => (int) env('AUTH_ADMIN_IDLE_MINUTES', 60),
 
+    // Module 41 (closes the Module 39 blocker B-1): high-risk administrator actions — refund approval and execution,
+    // settlement approval, payouts, financial adjustments, administrator role / status / MFA changes, restaurant and
+    // organization status changes, analytics exports — need a RECENT authentication: a sign-in no older than
+    // fresh_token_minutes, or a step-up (password + the MFA code when MFA is on, POST /auth/admin/step-up) no older
+    // than window_minutes on this session. Otherwise they answer 403 step_up_required. Values PENDING BUSINESS APPROVAL.
+    'step_up' => [
+        'enabled' => filter_var(env('AUTH_ADMIN_STEP_UP', true), FILTER_VALIDATE_BOOL),
+        'fresh_token_minutes' => (int) env('AUTH_ADMIN_STEP_UP_FRESH_MINUTES', 15),
+        'window_minutes' => (int) env('AUTH_ADMIN_STEP_UP_MINUTES', 15),
+    ],
+
     'mfa' => [
         'required' => [
             'admin' => (bool) env('AUTH_MFA_REQUIRED_ADMIN', ! in_array(env('APP_ENV', 'production'), ['local', 'testing'], true)),   // Module 39: on by default everywhere except local development and the test suite

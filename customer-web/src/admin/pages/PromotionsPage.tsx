@@ -6,6 +6,7 @@ import { validatePromotion } from '../mock/mockAdmin'
 import { Badge, DataTable, DevNote, ReasonDialog, Select, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { Promotion, PromotionIssue, PromotionStatus } from '../types'
 import { Cell, KNOWN_MARKET_CODES, StatusPill, fmtDate, money, useLoad, usePageTitle } from './shared'
+import { userMessage } from '../../api/userMessage'
 
 const DEFAULTS = { q: '', status: 'all', page: '1' }
 const STATUSES: PromotionStatus[] = ['DRAFT', 'SCHEDULED', 'ACTIVE', 'PAUSED', 'EXPIRED', 'DISABLED']
@@ -69,7 +70,7 @@ export default function PromotionsPage() {
           <DevNote>{t(backend ? 'adm.promotions.backendNote' : 'adm.promotions.lead', undefined, locale)}</DevNote>
         </form>}
       </Drawer>
-      <ReasonDialog open={!!statusTarget} title={statusTarget ? t('adm.promotions.statusTitle', { code: statusTarget.p.code, status: t(`adm.promoStatus.${statusTarget.to}`, undefined, locale) }, locale) : ''} confirmLabel={t('adm.action.apply', undefined, locale)} danger={statusTarget?.to === 'DISABLED'} requireReason={backend || statusTarget?.to === 'DISABLED' || statusTarget?.to === 'PAUSED'} busy={busy} locale={locale} onCancel={() => setStatusTarget(null)} onConfirm={async (reason) => { if (!statusTarget) return; setBusy(true); try { await a.repos.promotions.setStatus(statusTarget.p.id, statusTarget.to, a.admin.id, reason); setStatusTarget(null); await refresh(); toast(t('adm.updated', undefined, locale)) } catch (e) { setStatusTarget(null); toast(e instanceof Error ? e.message : String(e)) } finally { setBusy(false) } }} testId="promo-status-dialog" />
+      <ReasonDialog open={!!statusTarget} title={statusTarget ? t('adm.promotions.statusTitle', { code: statusTarget.p.code, status: t(`adm.promoStatus.${statusTarget.to}`, undefined, locale) }, locale) : ''} confirmLabel={t('adm.action.apply', undefined, locale)} danger={statusTarget?.to === 'DISABLED'} requireReason={backend || statusTarget?.to === 'DISABLED' || statusTarget?.to === 'PAUSED'} busy={busy} locale={locale} onCancel={() => setStatusTarget(null)} onConfirm={async (reason) => { if (!statusTarget) return; setBusy(true); try { await a.repos.promotions.setStatus(statusTarget.p.id, statusTarget.to, a.admin.id, reason); setStatusTarget(null); await refresh(); toast(t('adm.updated', undefined, locale)) } catch (e) { setStatusTarget(null); toast(userMessage(e, 'Something went wrong. Please try again.')) } finally { setBusy(false) } }} testId="promo-status-dialog" />
       <ToastLine msg={msg} />
     </div>
   )

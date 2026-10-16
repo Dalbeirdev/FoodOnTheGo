@@ -27,6 +27,10 @@ class LocalCartFixtureSeeder extends Seeder
 {
     public function run(CartService $carts): void
     {
+        // Module 41: development fixtures never reach another environment, also through db:seed --class.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
         $asha = Customer::query()->where('phone_e164', '+919876543212')->first();
         $pizzaPoint = RestaurantLocation::query()->where('slug', 'pizza-point')->first();
         if ($asha === null || $pizzaPoint === null || Cart::query()->where('customer_id', $asha->getKey())->exists()) {

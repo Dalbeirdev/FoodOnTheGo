@@ -156,8 +156,8 @@ describe('Account flows (web UI)', () => {
     await auth.completeSetup((r as { setupToken: string }).setupToken, { name: 'Address Tester', acceptTerms: true })
     const user = userEvent.setup()
     mount('/addresses')
-    expect(await screen.findByRole('heading', { name: /no saved addresses yet/i })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: /add new address/i }))
+    expect(await screen.findByRole('heading', { name: /no saved places yet/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /add a place/i }))
     const dialog = screen.getByRole('dialog')
     await user.click(within(dialog).getByRole('button', { name: /save address/i }))
     expect((await within(dialog).findAllByRole('alert')).length).toBeGreaterThan(0)
@@ -180,7 +180,7 @@ describe('Account flows (web UI)', () => {
 
     await user.click(screen.getByRole('button', { name: /^delete$/i }))
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: /^delete$/i }))
-    expect(await screen.findByRole('heading', { name: /no saved addresses yet/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /no saved places yet/i })).toBeInTheDocument()
   })
 
   it('TEST 4 — payment methods show provider references and no way to type a card number', async () => {
@@ -191,7 +191,7 @@ describe('Account flows (web UI)', () => {
     expect(screen.getByText(/•••• •••• •••• 3456/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /add new payment method/i }))
     const dialog = await screen.findByRole('dialog')
-    expect(dialog).toHaveTextContent(/RAZORPAY CONNECTION = NOT STARTED/i)
+    expect(dialog).toHaveTextContent(/secure payment provider/i); expect(dialog).not.toHaveTextContent(/NOT STARTED|cash/i)
     expect(within(dialog).queryByRole('textbox')).toBeNull()
     expect(JSON.stringify(localStorage).toLowerCase()).not.toContain('cvv')
   })

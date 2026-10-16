@@ -21,6 +21,7 @@ import { reviewRepositories, reviewsAreLive } from '../review/reviewRepositories
 import type { RestaurantReviewSummary } from '../review/repositories'
 import { restaurantRef, track } from '../analytics'
 import './RestaurantDetailPage.css'
+import { userMessage } from '../api/userMessage'
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -88,7 +89,7 @@ export default function RestaurantDetailPage() {
       const r = await restaurantRepository.getRestaurantBySlug(slug)
       if (!r) { setRest({ status: 'notfound', data: null }); return }
       setRest({ status: 'ready', data: r })
-    } catch (e) { setRest({ status: 'error', data: null, error: e instanceof Error ? e.message : 'Something went wrong.' }) }
+    } catch (e) { setRest({ status: 'error', data: null, error: userMessage(e, 'Something went wrong.') }) }
   }, [slug])
   useEffect(() => { void loadRestaurant() }, [loadRestaurant])
   const r = rest.data
@@ -137,7 +138,7 @@ export default function RestaurantDetailPage() {
       setItems(page.items); setMenuStatus('ready')
     } catch (e) {
       if (my !== seq.current) return
-      if (first) setCats({ status: 'error', data: null, error: e instanceof Error ? e.message : 'Menu failed to load.' })
+      if (first) setCats({ status: 'error', data: null, error: userMessage(e, 'Menu failed to load.') })
       setMenuStatus('error')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useJourney, type Location } from '../journey/JourneyContext'
 import { DEV_LOCATION } from '../journey/mock/mockRepositories'
 import './LocationInput.css'
+import { userMessage } from '../api/userMessage'
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -88,7 +89,7 @@ export default function LocationInput({ id, label, placeholder, value, onChange,
     if (q.trim().length < 2) { setResults([]); setState('idle'); return }
     setState('loading'); setLookupError('')
     searchLocations(q).then((r) => { if (my !== seq.current) return; setResults(r); setState(r.length ? 'ready' : 'empty') })
-      .catch((e) => { if (my !== seq.current) return; setResults([]); setState('error'); setLookupError(e instanceof Error ? e.message : 'Location search failed.') })
+      .catch((e) => { if (my !== seq.current) return; setResults([]); setState('error'); setLookupError(userMessage(e, 'Location search failed.')) })
   }
   useEffect(() => {
     if (!open || !text.trim() || text === value?.name) return
@@ -135,7 +136,7 @@ export default function LocationInput({ id, label, placeholder, value, onChange,
     // A provider suggestion is text until the server resolves it: coordinates, time zone, and whether we serve it.
     if (picked.source === 'place' && picked.lat === null) {
       setBusy('resolving'); setText(picked.name)
-      resolveLocation(picked).then((l) => { setBusy(null); accept(l) }).catch((e) => { setBusy(null); setText(''); setNotice(e instanceof Error ? e.message : 'This place could not be loaded. Please try again.') })
+      resolveLocation(picked).then((l) => { setBusy(null); accept(l) }).catch((e) => { setBusy(null); setText(''); setNotice(userMessage(e, 'This place could not be loaded. Please try again.')) })
       return
     }
     accept(picked)

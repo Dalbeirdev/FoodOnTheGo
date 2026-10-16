@@ -6,6 +6,7 @@ import { PickupCtx, type LoadInput, type PickupApi, type PickupStatus } from './
 import { pickupMode } from './pickupMode'
 import { ServerPickupProvider } from './ServerPickupProvider'
 import { addLocalDays, localDateOf } from './time'
+import { userMessage } from '../api/userMessage'
 
 export { usePickup } from './pickupApi'
 export type { PickupApi, PickupStatus } from './pickupApi'
@@ -70,7 +71,7 @@ export function DevicePickupProvider({ children, repository = defaultRepo, eta =
       setStatus((s) => (s === 'SELECTED' || s === 'STALE' ? s : list.some((x) => x.available) || cfg.modes.includes('asap') ? 'AVAILABLE' : 'UNAVAILABLE'))
     } catch (e) {
       if (my !== seq.current) return
-      setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR')
+      setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR')
     }
   }, [repository, eta, mode, setSelection])
 
@@ -99,7 +100,7 @@ export function DevicePickupProvider({ children, repository = defaultRepo, eta =
       const res = await repository.validatePickupSelection(restaurant, selection, nowIso)
       if (res.ok) { setStatus('SELECTED'); setStaleReason(null) } else { setStatus('STALE'); setStaleReason(res.reason) }
       return res
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR'); throw e }
+    } catch (e) { setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR'); throw e }
   }, [repository, selection])
 
   const clear = useCallback(() => { setSelection(null); setStaleReason(null); setStatus('NOT_SELECTED') }, [setSelection])

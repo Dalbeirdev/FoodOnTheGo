@@ -1,6 +1,6 @@
 # Production security checklist
 
-Module 39 — 2026-10-14 — local only; production = NO
+Module 39 — 2026-10-14, updated in Module 41 (2026-10-15) — local only; production = NO
 
 Sources: `backend/app/Console/Commands/SecurityCheck.php` (and its output on this machine, 2026-10-14), `backend/.env.production.example`, `backend/config/{auth_security,refunds,finance,payments,journey,filesystems,cors,security,database,logging,mail,notifications,support,legal}.php`, `backend/routes/api.php`, `backend/bootstrap/app.php`, `backend/tests/Feature/Security/*.php`, `customer-web/vite.config.ts`, `customer-web/src/{config/modeOverride.ts,auth/devOtp.ts,auth/privateContext.ts,security/contentSecurityPolicy.ts,api/client.ts}`, `mobile/android/app/build.gradle.kts`, `mobile/lib/core/app_config.dart`, M39 `docs_brief.md` (decisions and blockers), `client_agent_report.txt`, `npm_audit_after_fix.json`, `composer-audit.json`.
 
@@ -14,7 +14,7 @@ Status values:
 
 No compliance (PCI DSS, DPDP, ISO 27001, SOC 2, OWASP ASVS / MASVS) is claimed; none was assessed.
 
-## 1. `php artisan security:check` — 32 checks
+## 1. `php artisan security:check` — 41 checks (32 of Module 39 + 9 of Module 41)
 
 The command reads the configuration of the installation it runs on and never prints a secret. Outside `local` /
 `testing` (or with `--as-production`) any failure exits 1: **a deployment must run it and stop on failure.** The
@@ -56,16 +56,35 @@ The command reads the configuration of the installation it runs on and never pri
 | 30 | Realtime: no wildcard or localhost origin (`REVERB_ALLOWED_ORIGINS`) | FAIL | DEPLOYMENT (the production example sets the web origin; locally `localhost,127.0.0.1`) |
 | 31 | Request body limit on (`SECURITY_MAX_BODY_BYTES`, default 262144) | PASS | DONE — `LimitRequestBody` (413 before decoding); `HardeningConfigTest::test_an_oversized_request_body_is_refused_before_it_is_read_and_uploads_keep_their_own_limit` |
 
+Module 41 (final readiness review) added nine items — locally all FAIL by design (a development install), each turns
+PASS with the production value of [environment-matrix.md](../production/environment-matrix.md):
+
+| # | Check | Local | Status |
+|---|---|---|---|
+| 33 | TEST tax / fee rules are refused (`checkout.financial_rules.allow_test`, now an allow-list of local / testing) | FAIL | DEPLOYMENT (false outside local / testing by construction) |
+| 34 | Fake notification providers are refused (push / e-mail / SMS — `notifications.allow_fake`, new runtime guard) | FAIL | DONE in code — `HardeningConfigTest::test_outside_local_and_testing_no_fake_notification_provider_runs_and_no_fixture_is_seeded` |
+| 35 | Places and routing use the live provider (`PLACES_DRIVER` / `ROUTING_DRIVER` = google) | FAIL | OPEN — BLOCKER (CF-352) |
+| 36 | FCM credentials present (`FIREBASE_PROJECT_ID`, readable `FIREBASE_CREDENTIALS`) | FAIL | OPEN — BLOCKER (CF-450) |
+| 37 | Web origins set and https only (`FRONTEND_URLS`, `FRONTEND_URL`) | FAIL | DEPLOYMENT |
+| 38 | Trusted proxies configured (`TRUSTED_PROXIES`) | FAIL | DEPLOYMENT |
+| 39 | Log level is not debug (`LOG_LEVEL`) | FAIL | DEPLOYMENT |
+| 40 | No development secret set (`LOCAL_FIXTURE_PASSWORD`, `OTP_DEV_CODE`, `ADMIN_BOOTSTRAP_PASSWORD`) | FAIL | DEPLOYMENT |
+| 41 | Legal documents are approved versions (no `draft-*`) | FAIL | OPEN — BLOCKER (CF-394) |
+
+Local result 2026-10-15: **10 / 41** (`docs/local-review/test-results/m41-security-check.txt`). On a clean install with
+`APP_ENV=production` (Module 41 clean-migration test): 20 / 32 of the Module 39 items before the new ones were added —
+every FAIL a deployment value (`docs/local-review/test-results/m41-migration-tests.txt`).
+
 ## 2. Blockers (production = NO until closed)
 
 | # | Item | Status |
 |---|---|---|
-| B-1 | Administrator step-up (recent re-authentication) for high-risk actions (refund approval, payouts, role / status changes, exports) | OPEN — BLOCKER, not implemented |
+| B-1 | Administrator step-up (recent re-authentication) for high-risk actions (refund approval, payouts, role / status changes, exports) | DONE (Module 41) — `step-up` middleware on 17 high-risk administrator routes; a sign-in younger than 15 min or `POST /auth/admin/step-up` (password + MFA code) on the same session within 15 min (`config/auth_security.php` `step_up`, PENDING BUSINESS APPROVAL of the windows); Platform Admin dialog repeats the action once; `tests/Feature/Auth/AdminStepUpTest.php`, `src/qa/module41.test.tsx` |
 | B-2 | Legal documents (terms, privacy policy, refund, cookie) are DRAFT (`config/legal.php`, `customer-web/src/data/legal.ts`); analytics consent screen not built (an opt-out flag exists) | OPEN — BLOCKER, PENDING LEGAL REVIEW |
-| B-3 | Android release signing uses the debug key (`build.gradle.kts:50-55`) | OPEN — BLOCKER |
+| B-3 | Android release signing | PARTIAL (Module 41) — `build.gradle.kts` signs release with the upload key from `android/key.properties` (git-ignored) or `FOTG_UPLOAD_*` CI variables, and a production release without it stops the build (`m41-android-release-signing-guard.txt`); the upload keystore and Play App Signing are the owner's — OPEN — BLOCKER until then (CF-548) |
 | B-4 | Real provider verification: Razorpay (payments, refunds, webhooks), FCM, e-mail, SMS | OPEN — BLOCKER, pending credentials |
 | B-5 | Malware scanning before support attachments are enabled (attachments are off by code constant) | OPEN — BLOCKER for attachments only |
-| B-6 | Web release build with every `VITE_*_MODE=api` (SEC-44: with `VITE_AUTH_MODE` unset or `mock`, a production build opens staff screens on mock data; there is no fail-closed gate) | OPEN — release checklist item (section 3) |
+| B-6 | Web release build with every `VITE_*_MODE=api` (SEC-44) | DONE (Module 41) — the release gate `customer-web/src/security/releaseBuild.ts` stops `vite build` unless `VITE_ENVIRONMENT` is declared and, for staging / production, every switch is `api`, https / wss, no dev OTP (`releaseBuild.test.ts`) |
 | B-7 | Retention periods and the erasure policy approved; audit / security trail retention decided | OPEN — PENDING BUSINESS APPROVAL / LEGAL REVIEW |
 | B-8 | Every row of section 5 (infrastructure) | DEPLOYMENT |
 

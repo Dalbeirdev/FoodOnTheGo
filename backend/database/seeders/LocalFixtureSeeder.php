@@ -37,6 +37,10 @@ class LocalFixtureSeeder extends Seeder
 
     public function run(RoleService $roles): void
     {
+        // Module 41: development fixtures never reach another environment, also through db:seed --class.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
         $this->markets();
         $this->customers();
 

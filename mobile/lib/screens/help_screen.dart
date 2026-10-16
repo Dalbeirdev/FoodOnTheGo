@@ -115,7 +115,7 @@ class _HelpScreenState extends State<HelpScreen> {
                   subtitle: Text(help.contacts[i].note == null ? help.contacts[i].detail : '${help.contacts[i].detail}\n${help.contacts[i].note}', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
                   isThreeLine: help.contacts[i].note != null,
                   trailing: help.contacts[i].backendRequired ? const Pill('Pending', color: Brand.grey, bg: Color(0xFFF2F3F6), small: true) : const Icon(Icons.chevron_right),
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(help.contacts[i].backendRequired ? '${help.contacts[i].title} will be available once the support system is connected.' : '${help.contacts[i].title}: ${help.contacts[i].detail} (opens the phone/mail app in a later module)'))),
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(help.contacts[i].backendRequired ? '${help.contacts[i].title} will be available once the support system is connected.' : '${help.contacts[i].title}: ${help.contacts[i].detail}'))),
                 ),
               ],
             ]),

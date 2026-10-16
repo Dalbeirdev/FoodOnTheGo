@@ -2,7 +2,20 @@
 
 namespace Tests\Feature\Security;
 
+use App\Contracts\Notifications\EmailNotificationProvider;
+use App\Contracts\Notifications\PushNotificationProvider;
+use App\Contracts\Notifications\SmsNotificationProvider;
+use App\Models\AdminUser;
+use App\Models\Promotion;
+use App\Services\Notifications\Providers\FakePushProvider;
+use App\Services\Notifications\Providers\FcmHttpV1PushProvider;
+use App\Services\Notifications\Providers\MailEmailProvider;
+use App\Services\Notifications\Providers\SmsMessage;
+use App\Services\Notifications\Providers\UnavailableSmsProvider;
+use App\Services\Sms\SmsManager;
 use App\Support\Logging\SensitiveDataRedactor;
+use Database\Seeders\LocalCheckoutFixtureSeeder;
+use Database\Seeders\LocalFixtureSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -66,7 +79,12 @@ class HardeningConfigTest extends TestCase
             $auth = $this->configIn('auth_security', ['APP_ENV' => $env, 'AUTH_MFA_REQUIRED_ADMIN' => null]);
             $this->assertTrue($auth['mfa']['required']['admin'], "admin MFA in {$env}");
             $this->assertGreaterThan(0, $auth['admin_idle_minutes']);
+            // Module 41: TEST tax / fee rules and the fake notification providers follow the same allow-list.
+            $this->assertFalse($this->configIn('checkout', ['APP_ENV' => $env, 'CHECKOUT_ALLOW_TEST_RULES' => 'true'])['financial_rules']['allow_test'], "TEST rules in {$env}");
+            $this->assertFalse($this->configIn('notifications', ['APP_ENV' => $env])['allow_fake'], "fake notification providers in {$env}");
         }
+        $this->assertTrue($this->configIn('checkout', ['APP_ENV' => 'local', 'CHECKOUT_ALLOW_TEST_RULES' => null])['financial_rules']['allow_test']);
+        $this->assertTrue($this->configIn('notifications', ['APP_ENV' => 'local'])['allow_fake']);
         // Local development keeps its fake providers, and can switch them off.
         $this->assertTrue($this->configIn('payments', ['APP_ENV' => 'local'])['providers']['allow_fake']);
         $this->assertFalse($this->configIn('payments', ['APP_ENV' => 'local', 'PAYMENT_ALLOW_FAKE_PROVIDER' => 'false'])['providers']['allow_fake']);
@@ -75,6 +93,41 @@ class HardeningConfigTest extends TestCase
         $this->assertFalse(config('cors.supports_credentials'));
         $this->assertSame(['api/*'], config('cors.paths'));
         $this->assertFalse(config('sanctum.routes'));
+    }
+
+    public function test_outside_local_and_testing_no_fake_notification_provider_runs_and_no_fixture_is_seeded(): void
+    {
+        // Module 41: a server whose environment does not allow fakes gets FCM (UNAVAILABLE until configured), the mailer
+        // and a not-configured SMS provider — whatever PUSH_DRIVER / EMAIL_NOTIFICATIONS_DRIVER say.
+        config(['notifications.allow_fake' => false, 'notifications.channels.PUSH.driver' => 'fake', 'notifications.channels.EMAIL.driver' => 'fake']);
+        $this->assertInstanceOf(FcmHttpV1PushProvider::class, app(PushNotificationProvider::class));
+        $this->assertInstanceOf(MailEmailProvider::class, app(EmailNotificationProvider::class));
+        $sms = app(SmsNotificationProvider::class);
+        $this->assertInstanceOf(UnavailableSmsProvider::class, $sms);
+        $this->assertSame('UNAVAILABLE', $sms->health()['status']);
+        $this->assertFalse($sms->send(new SmsMessage('+919800000000', 'x', 'delivery-1'))->accepted);
+        config(['notifications.allow_fake' => true]);
+        $this->assertInstanceOf(FakePushProvider::class, app(PushNotificationProvider::class));
+
+        // The fixture seeders refuse themselves, also when called one by one (db:seed --class=… --force).
+        $env = $this->app['env'];
+        try {
+            foreach (['staging', 'production'] as $name) {
+                $this->app['env'] = $name;
+                $promotions = Promotion::query()->count();
+                $admins = AdminUser::query()->count();
+                // Called directly, as db:seed --class would (seed() asks for confirmation in production).
+                foreach ([LocalCheckoutFixtureSeeder::class, LocalFixtureSeeder::class] as $seeder) {
+                    $this->app->make($seeder)->setContainer($this->app)->__invoke();
+                }
+                $this->assertSame($promotions, Promotion::query()->count(), "no fixture promotion in {$name}");
+                $this->assertSame($admins, AdminUser::query()->count(), "no fixture administrator in {$name}");
+                // The OTP log driver sends nothing: refused outside local / testing (not only in "production").
+                $this->assertFalse(app(SmsManager::class)->status()['ready'], "SMS log driver in {$name}");
+            }
+        } finally {
+            $this->app['env'] = $env;
+        }
     }
 
     public function test_security_check_reports_locally_and_fails_when_judged_as_production(): void
@@ -102,6 +155,11 @@ class HardeningConfigTest extends TestCase
             'payments.providers.allow_fake' => false, 'journey.providers.allow_fake' => false, 'finance.payouts.driver' => 'razorpayx', 'auth_security.mfa.required.admin' => true,
             'refunds.policy.four_eyes' => true, 'finance.settlements.four_eyes' => true, 'finance.payouts.four_eyes' => true, 'finance.adjustments.four_eyes' => true,
             'payments.providers.allow_live' => false, 'reverb.apps.apps.0.allowed_origins' => ['www.foodonthego.example'],
+            // Module 41 items.
+            'checkout.financial_rules.allow_test' => false, 'notifications.allow_fake' => false, 'services.places.driver' => 'google', 'services.routing.driver' => 'google',
+            'notifications.fcm.project_id' => 'foodonthego-prod', 'notifications.fcm.credentials' => base_path('composer.json'), 'app.frontend_url' => 'https://www.foodonthego.example',
+            'security.trusted_proxies' => ['10.0.0.0/8'], 'logging.channels.single.level' => 'info', 'auth_security.fixture_password' => null, 'otp.development.code' => null,
+            'auth_security.bootstrap_password' => null, 'legal.documents.terms.version' => '2026-11-01', 'legal.documents.privacy.version' => '2026-11-01', 'legal.documents.refund.version' => '2026-11-01',
         ]);
         Artisan::call('security:check', ['--json' => true, '--as-production' => true]);
         $safe = json_decode(Artisan::output(), true);

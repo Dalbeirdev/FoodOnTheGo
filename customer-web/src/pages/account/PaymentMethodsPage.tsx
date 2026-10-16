@@ -8,6 +8,7 @@ import { useProfile } from '../../profile/ProfileContext'
 import { inr } from '../../data/menu'
 import './AccountPage.css'
 import './PaymentMethodsPage.css'
+import { userMessage } from '../../api/userMessage'
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -45,7 +46,7 @@ export default function PaymentMethodsPage() {
       case 'upi': return { icon: <span className="pm-brand pm-brand--upi">UPI</span>, title: 'UPI', lines: [`UPI ID: ${m.handleMasked}`, m.holder].filter(Boolean), removable: true, reference: true }
       case 'other': return { icon: <span className="pm-icon"><WalletIcon /></span>, title: m.label, lines: [`Held by ${m.provider ?? 'the payment provider'}`], removable: true, reference: true }
       case 'wallet': return { icon: <span className="pm-icon"><WalletIcon /></span>, title: 'Wallet', lines: ['FoodOnTheGo Wallet', `Balance: ${inr(m.balance)}`], removable: false, green: true, reference: false }
-      case 'cash': return { icon: <span className="pm-icon pm-icon--dark"><CashIcon /></span>, title: 'Cash on Pickup', lines: ['Development data — cash at pickup is not an approved payment option'], removable: false, reference: false }
+      case 'cash': return { icon: <span className="pm-icon pm-icon--dark"><CashIcon /></span>, title: 'Payment method', lines: ['Not available'], removable: false, reference: false }
     }
   }
   const statusOf = (m: PaymentMethod) => ('status' in m && m.status ? m.status : 'ACTIVE')
@@ -53,7 +54,7 @@ export default function PaymentMethodsPage() {
   const confirmRemove = async () => {
     if (!removing) return
     setBusy(true)
-    try { await removePaymentMethod(removing.id); toast.success('Payment method removed'); setRemoving(null) } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not remove this method') } finally { setBusy(false) }
+    try { await removePaymentMethod(removing.id); toast.success('Payment method removed'); setRemoving(null) } catch (e) { toast.error(userMessage(e, 'Could not remove this method')) } finally { setBusy(false) }
   }
 
   return (
@@ -71,7 +72,7 @@ export default function PaymentMethodsPage() {
             {paymentMethods.status === 'loading' || paymentMethods.status === 'idle' ? <LoadingState label="Loading payment methods" /> : null}
             {paymentMethods.status === 'error' && <ErrorState message={paymentMethods.error ?? 'Failed to load payment methods.'} onRetry={paymentMethods.reload} />}
             {paymentMethods.status === 'ready' && paymentMethods.data.length === 0 && (
-              <EmptyState icon={<LockIcon size={30} />} title="No payment methods yet" text="Cards and UPI are added through the secure payment provider when the Payments module is connected. Nothing is typed into FoodOnTheGo." />
+              <EmptyState icon={<LockIcon size={30} />} title="No payment methods yet" text="Cards and UPI are saved through our secure payment provider when you pay. FoodOnTheGo never sees your card or UPI details." />
             )}
             {paymentMethods.status === 'ready' && paymentMethods.data.length > 0 && (
               <ul className="pm-list">
@@ -88,7 +89,7 @@ export default function PaymentMethodsPage() {
                         {v.reference && <p className="pm__ref"><LockIcon size={12} /> Provider reference only — FoodOnTheGo never stores card or UPI credentials</p>}
                       </div>
                       <div className="pm__actions">
-                        {!m.isDefault && usable && <button type="button" className="ac-link-btn" onClick={() => setDefaultPayment(m.id).then(() => toast.success('Default payment method updated')).catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Could not update the default'))}>Set as default</button>}
+                        {!m.isDefault && usable && <button type="button" className="ac-link-btn" onClick={() => setDefaultPayment(m.id).then(() => toast.success('Default payment method updated')).catch((e: unknown) => toast.error(userMessage(e, 'Could not update the default')))}>Set as default</button>}
                         {v.removable && <button type="button" className="ac-danger-btn" onClick={() => setRemoving(m)}>Remove</button>}
                       </div>
                     </li>
@@ -96,7 +97,7 @@ export default function PaymentMethodsPage() {
                 })}
               </ul>
             )}
-            <p className="ac-note ac-note--info"><LockIcon size={14} /> Cards and UPI are tokenised by the payment provider. This app keeps only the brand, last four digits and a masked UPI handle; the provider reference stays on the server. {live ? 'Local backend: development references seeded for testing — REAL PAYMENT PROVIDER CONNECTION = NOT STARTED (Payments module).' : 'Local environment: mock references, test mode only.'}</p>
+            <p className="ac-note ac-note--info"><LockIcon size={14} /> Cards and UPI are tokenised by the payment provider. This app keeps only the brand, last four digits and a masked UPI handle; the provider reference stays on the server.{live ? '' : ' Development data in this browser.'}</p>
           </div>
         </div>
 
@@ -106,15 +107,14 @@ export default function PaymentMethodsPage() {
               <h2 id="pm-add-title">Add a payment method</h2>
               <div className="ac-confirm__text">
                 <p>New cards, UPI IDs and wallets are added through the payment provider's secure page, so your details never pass through FoodOnTheGo — there is no form for them here, by design.</p>
-                <p><b>Status:</b> REAL RAZORPAY CONNECTION = NOT STARTED · PAYMENT TOKENIZATION = NOT STARTED. This opens automatically once the Payments module is connected.</p>
-                <p>Paying in cash at pickup is not an approved option.</p>
+                <p>You can add a card or UPI ID while paying for an order — your details go straight to our secure payment provider.</p>
               </div>
               <div className="ac-modal__actions"><button type="button" className="btn btn--primary" onClick={() => setAddOpen(false)}>Got it</button></div>
             </div>
           </div>
         )}
 
-        <ConfirmDialog open={!!removing} title="Remove this payment method?" text={live ? 'The reference is marked as removed on your account and will be revoked at the payment provider once the Payments module is connected. You can add it again later through the secure payment flow.' : 'The provider reference will be deleted from your account. You can add it again later through the secure payment flow.'} confirmLabel="Remove" danger busy={busy} onCancel={() => setRemoving(null)} onConfirm={confirmRemove} />
+        <ConfirmDialog open={!!removing} title="Remove this payment method?" text="The provider reference is removed from your account. You can add it again later through the secure payment flow." confirmLabel="Remove" danger busy={busy} onCancel={() => setRemoving(null)} onConfirm={confirmRemove} />
       </main>
     </>
   )

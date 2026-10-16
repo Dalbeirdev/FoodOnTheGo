@@ -188,7 +188,7 @@ return [
     | asked, while they still hold the permission, until the file expires.
     */
     'exports' => [
-        'disk' => 'local',
+        'disk' => env('ANALYTICS_EXPORT_DISK', 'local'),
         'directory' => 'analytics-exports',
         'expiry_hours' => (int) env('ANALYTICS_EXPORT_EXPIRY_HOURS', 24),
         'max_rows' => (int) env('ANALYTICS_EXPORT_MAX_ROWS', 50000),

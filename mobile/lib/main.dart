@@ -85,6 +85,7 @@ const protectedPrefixes = ['/my-orders', '/my-reviews', '/order/', '/my-profile'
 
 GoRouter buildRouter(AuthState auth) => GoRouter(
   initialLocation: '/',
+  errorBuilder: (_, _) => const NotFoundScreen(),
   refreshListenable: auth,
   redirect: (context, state) {
     final path = state.uri.path;
@@ -134,7 +135,8 @@ GoRouter buildRouter(AuthState auth) => GoRouter(
     GoRoute(path: '/login', builder: (_, s) => LoginScreen(reason: s.uri.queryParameters['reason'])),
     GoRoute(path: '/verify-otp', builder: (_, _) => const VerifyOtpScreen()),
     GoRoute(path: '/account-setup', builder: (_, _) => const AccountSetupScreen()),
-    GoRoute(path: '/build-info', builder: (_, _) => const BuildInfoScreen()),
+    // Module 41: build diagnostics only in local / staging builds.
+    if (!AppConfig.isProduction) GoRoute(path: '/build-info', builder: (_, _) => const BuildInfoScreen()),
   ],
 );
 
@@ -188,7 +190,6 @@ class _FoodOnTheGoAppState extends State<FoodOnTheGoApp> {
     cart.ready.then((_) { _cartReady = true; _onCart(); });
     if (journeysFromApi) journeyApi.onUnauthenticated = auth.expire;
     // Restore the session at app start so deep links to protected screens are guarded even when Splash is skipped.
-    auth.restore();
     auth.restore();
     if (AppConfig.authMode == 'api' && AppConfig.pushMode != 'off') _startPush();
   }

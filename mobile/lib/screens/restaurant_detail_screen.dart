@@ -24,6 +24,7 @@ import '../review/restaurant_reviews.dart';
 import '../state/order_state.dart';
 import '../widgets/common.dart';
 import 'restaurants_screen.dart' show DiscoveryMapShell;
+import '../core/user_message.dart';
 
 /// Restaurant Details (approved Design A, Module 07) — mobile-native: collapsing cover, info card,
 /// Menu / Info / Photos tabs, sticky category chips, lazy item tiles, route context when a journey exists.
@@ -79,7 +80,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
       if (Analytics.enabled) Analytics.restaurantViewed(found.backendId ?? found.slug, journeyId: _journeyId, listed: _browsed(found.slug)); // Module 38
       await _loadMenu(first: true);
     } catch (e) {
-      if (mounted) setState(() { status = 'error'; error = '$e'; });
+      if (mounted) setState(() { status = 'error'; error = userMessage(e); });
     }
   }
 
@@ -95,7 +96,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
       if (Analytics.enabled) Analytics.menuViewed(rest.backendId ?? rest.slug, journeyId: _journeyId); // Module 38
     } catch (e) {
       if (!mounted || my != _seq) return;
-      setState(() { menuStatus = 'error'; menuError = '$e'; });
+      setState(() { menuStatus = 'error'; menuError = userMessage(e); });
     }
   }
 
@@ -246,10 +247,8 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> with Si
   Widget _photosTab(GlobalRestaurant rest) => GridView.builder(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: Layout.isWide(context) ? 3 : 2, crossAxisSpacing: 8, mainAxisSpacing: 8, childAspectRatio: 4 / 3),
-        itemCount: rest.images.length + 1,
-        itemBuilder: (context, i) => i == rest.images.length
-            ? Padding(padding: const EdgeInsets.all(8), child: Text('Placeholder photography — final images tracked under PENDING ASSETS.', style: const TextStyle(color: Brand.grey, fontSize: 12)))
-            : Semantics(button: true, label: 'Photo ${i + 1} of ${rest.images.length}', child: GestureDetector(onTap: () => showDialog<void>(context: context, builder: (_) => Dialog.fullscreen(backgroundColor: Colors.black, child: Stack(children: [Center(child: InteractiveViewer(child: Image.asset(rest.images[i]))), Positioned(top: 12, right: 12, child: IconButton(color: Colors.white, tooltip: 'Close', icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)))]))), child: Photo(rest.images[i], radius: 12, aspect: 4 / 3))),
+        itemCount: rest.images.length,
+        itemBuilder: (context, i) => Semantics(button: true, label: 'Photo ${i + 1} of ${rest.images.length}', child: GestureDetector(onTap: () => showDialog<void>(context: context, builder: (_) => Dialog.fullscreen(backgroundColor: Colors.black, child: Stack(children: [Center(child: InteractiveViewer(child: rest.images[i].startsWith('http') ? Image.network(rest.images[i]) : Image.asset(rest.images[i]))), Positioned(top: 12, right: 12, child: IconButton(color: Colors.white, tooltip: 'Close', icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)))]))), child: Photo(rest.images[i], radius: 12, aspect: 4 / 3))),
       );
 }
 
@@ -355,7 +354,7 @@ class _FavoriteAction extends StatelessWidget {
       icon: Icon(on ? Icons.favorite : Icons.favorite_border, color: on ? Brand.red : Brand.navy),
       onPressed: () async {
         if (!auth.isAuthenticated) { auth.requireLoginFor('/restaurants/${restaurant.slug}'); context.push('/login'); return; }
-        try { await account.toggleFavorite(restaurant.id); } catch (e) { if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e'))); }
+        try { await account.toggleFavorite(restaurant.id); } catch (e) { if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(userMessage(e)))); }
       },
     );
   }

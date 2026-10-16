@@ -392,6 +392,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             });
         });
 
+        // Module 41: an administrator confirms the session (password + MFA code) before a high-risk action.
+        Route::post('/admin/step-up', [StaffSecurityController::class, 'stepUp'])->middleware(['auth:admin', 'active', 'throttle:mfa-verify'])->name('admin.step-up');
+
         // Credentials of the signed-in restaurant or admin user.
         Route::middleware('auth:restaurant,admin')->group(function (): void {
             Route::middleware('active:enroll')->group(function (): void {
@@ -528,9 +531,9 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
         Route::get('/roles', [AdminUserController::class, 'roles'])->middleware('can:'.Permission::AdminRolesView->value)->name('roles.index');
         Route::middleware('throttle:admin-sensitive')->group(function (): void {
             Route::post('/users', [AdminUserController::class, 'store'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.store');
-            Route::patch('/users/{adminUser}/status', [AdminUserController::class, 'updateStatus'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.status');
-            Route::put('/users/{adminUser}/role', [AdminUserController::class, 'updateRole'])->middleware('can:'.Permission::AdminRolesManage->value)->name('users.role');
-            Route::post('/users/{adminUser}/mfa/reset', [AdminUserController::class, 'resetMfa'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.mfa.reset');
+            Route::patch('/users/{adminUser}/status', [AdminUserController::class, 'updateStatus'])->middleware('can:'.Permission::AdminUsersManage->value)->middleware('step-up')->name('users.status');
+            Route::put('/users/{adminUser}/role', [AdminUserController::class, 'updateRole'])->middleware('can:'.Permission::AdminRolesManage->value)->middleware('step-up')->name('users.role');
+            Route::post('/users/{adminUser}/mfa/reset', [AdminUserController::class, 'resetMfa'])->middleware('can:'.Permission::AdminUsersManage->value)->middleware('step-up')->name('users.mfa.reset');
             Route::post('/users/{adminUser}/invitation', [AdminUserController::class, 'resendInvitation'])->middleware('can:'.Permission::AdminUsersManage->value)->name('users.invitation');
         });
 
@@ -597,16 +600,16 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
                 Route::post('/commission-plans/{commissionPlan}/withdraw', [AdminCommissionPlanController::class, 'withdraw'])->name('commission-plans.withdraw');
                 Route::post('/allocations/{allocation}/decide', [AdminFinanceOverviewController::class, 'decideAllocation'])->name('allocations.decide');
                 Route::post('/settlements/generate', [AdminSettlementController::class, 'generate'])->name('settlements.generate');
-                Route::post('/settlements/{settlement}/approve', [AdminSettlementController::class, 'approve'])->name('settlements.approve');
+                Route::post('/settlements/{settlement}/approve', [AdminSettlementController::class, 'approve'])->middleware('step-up')->name('settlements.approve');
                 Route::post('/settlements/{settlement}/cancel', [AdminSettlementController::class, 'cancel'])->name('settlements.cancel');
-                Route::post('/settlements/{settlement}/payouts', [AdminPayoutController::class, 'start'])->name('settlements.payouts.store');
-                Route::post('/settlements/{settlement}/external-payouts', [AdminPayoutController::class, 'recordExternal'])->name('settlements.external-payouts.store');
+                Route::post('/settlements/{settlement}/payouts', [AdminPayoutController::class, 'start'])->middleware('step-up')->name('settlements.payouts.store');
+                Route::post('/settlements/{settlement}/external-payouts', [AdminPayoutController::class, 'recordExternal'])->middleware('step-up')->name('settlements.external-payouts.store');
                 Route::post('/payouts/{payout}/reconcile', [AdminPayoutController::class, 'reconcile'])->name('payouts.reconcile');
-                Route::post('/payouts/{payout}/retry', [AdminPayoutController::class, 'retry'])->name('payouts.retry');
-                Route::post('/payouts/{payout}/cancel', [AdminPayoutController::class, 'cancel'])->name('payouts.cancel');
-                Route::post('/adjustments', [AdminFinanceAdjustmentController::class, 'store'])->name('adjustments.store');
-                Route::post('/adjustments/{adjustment}/decide', [AdminFinanceAdjustmentController::class, 'decide'])->name('adjustments.decide');
-                Route::post('/adjustments/{adjustment}/approve', [AdminFinanceAdjustmentController::class, 'approve'])->name('adjustments.approve');
+                Route::post('/payouts/{payout}/retry', [AdminPayoutController::class, 'retry'])->middleware('step-up')->name('payouts.retry');
+                Route::post('/payouts/{payout}/cancel', [AdminPayoutController::class, 'cancel'])->middleware('step-up')->name('payouts.cancel');
+                Route::post('/adjustments', [AdminFinanceAdjustmentController::class, 'store'])->middleware('step-up')->name('adjustments.store');
+                Route::post('/adjustments/{adjustment}/decide', [AdminFinanceAdjustmentController::class, 'decide'])->middleware('step-up')->name('adjustments.decide');
+                Route::post('/adjustments/{adjustment}/approve', [AdminFinanceAdjustmentController::class, 'approve'])->middleware('step-up')->name('adjustments.approve');
                 Route::post('/adjustments/{adjustment}/cancel', [AdminFinanceAdjustmentController::class, 'cancel'])->name('adjustments.cancel');
                 Route::post('/holds', [AdminFinanceAdjustmentController::class, 'placeHold'])->name('holds.store');
                 Route::post('/holds/{hold}/release', [AdminFinanceAdjustmentController::class, 'releaseHold'])->name('holds.release');
@@ -693,10 +696,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::middleware('throttle:refund-action')->group(function (): void {
                 Route::post('/orders/{order}/refunds', [AdminRefundController::class, 'storeForOrder'])->middleware('idempotent:refund.create,optional')->name('orders.refunds.store');
                 Route::post('/payments/{payment}/refunds', [AdminRefundController::class, 'storeForPayment'])->middleware('idempotent:refund.create,optional')->name('payments.refunds.store');
-                Route::post('/refunds/{refund}/approve', [AdminRefundController::class, 'approve'])->name('refunds.approve');
+                Route::post('/refunds/{refund}/approve', [AdminRefundController::class, 'approve'])->middleware('step-up')->name('refunds.approve');
                 Route::post('/refunds/{refund}/reject', [AdminRefundController::class, 'reject'])->name('refunds.reject');
-                Route::post('/refunds/{refund}/execute', [AdminRefundController::class, 'execute'])->name('refunds.execute');
-                Route::post('/refunds/{refund}/retry', [AdminRefundController::class, 'retry'])->name('refunds.retry');
+                Route::post('/refunds/{refund}/execute', [AdminRefundController::class, 'execute'])->middleware('step-up')->name('refunds.execute');
+                Route::post('/refunds/{refund}/retry', [AdminRefundController::class, 'retry'])->middleware('step-up')->name('refunds.retry');
                 Route::post('/refunds/{refund}/reconcile', [AdminRefundController::class, 'reconcile'])->name('refunds.reconcile');
             });
             Route::post('/markets/{market}/tax-rules', [FinancialRuleController::class, 'storeTaxRule'])->name('tax-rules.store');
@@ -707,10 +710,10 @@ Route::prefix('v1')->name('api.v1.')->middleware('throttle:api')->group(function
             Route::post('/fee-rules/{feeRule}/status', [FinancialRuleController::class, 'feeRuleStatus'])->name('fee-rules.status');
 
             Route::patch('/restaurants/{location}', [AdminRestaurantController::class, 'update'])->name('restaurants.update');
-            Route::post('/restaurants/{location}/status', [AdminRestaurantController::class, 'status'])->name('restaurants.status');
+            Route::post('/restaurants/{location}/status', [AdminRestaurantController::class, 'status'])->middleware('step-up')->name('restaurants.status');
             Route::post('/restaurant-organizations', [RestaurantOrganizationController::class, 'store'])->name('restaurant-organizations.store');
             Route::patch('/restaurant-organizations/{organization}', [RestaurantOrganizationController::class, 'update'])->name('restaurant-organizations.update');
-            Route::post('/restaurant-organizations/{organization}/status', [RestaurantOrganizationController::class, 'status'])->name('restaurant-organizations.status');
+            Route::post('/restaurant-organizations/{organization}/status', [RestaurantOrganizationController::class, 'status'])->middleware('step-up')->name('restaurant-organizations.status');
             Route::post('/restaurant-organizations/{organization}/locations', [RestaurantOrganizationController::class, 'storeLocation'])->name('restaurant-organizations.locations.store');
             Route::post('/restaurant-organizations/{organization}/notes', [RestaurantOrganizationController::class, 'storeNote'])->name('restaurant-organizations.notes.store');
             Route::post('/restaurant-organizations/{organization}/staff', [RestaurantOrganizationController::class, 'inviteStaff'])->name('restaurant-organizations.staff.store');
@@ -853,7 +856,7 @@ Route::prefix('v1')->name('api.v1.')->middleware(['throttle:api'])->group(functi
                 Route::get('/exports/{reportExport}', [AdminAnalyticsExportController::class, 'show'])->name('exports.show');
             });
             Route::middleware('throttle:analytics-export')->group(function (): void {
-                Route::post('/exports', [AdminAnalyticsExportController::class, 'store'])->name('exports.store');
+                Route::post('/exports', [AdminAnalyticsExportController::class, 'store'])->middleware('step-up')->name('exports.store');
                 Route::get('/exports/{reportExport}/download', [AdminAnalyticsExportController::class, 'download'])->name('exports.download');
             });
         });

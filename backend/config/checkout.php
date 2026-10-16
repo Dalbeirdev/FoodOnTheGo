@@ -31,9 +31,10 @@ return [
 
     'financial_rules' => [
         // Tax and fee rules marked TEST are development configurations. They are applied only where this is true.
-        // In production it is ALWAYS false, whatever the environment file says — a test rate cannot reach a real
-        // customer. Elsewhere it is true unless CHECKOUT_ALLOW_TEST_RULES switches it off (to see production's view).
-        'allow_test' => env('APP_ENV', 'production') !== 'production' && ! in_array(env('CHECKOUT_ALLOW_TEST_RULES'), [false, 'false', '0', 0, 'off', 'no'], true),
+        // Outside local / testing it is ALWAYS false, whatever the environment file says — a test rate cannot reach a
+        // real customer (Module 41: an allow-list; a "staging" or misnamed environment refuses TEST rules too). In local /
+        // testing it is true unless CHECKOUT_ALLOW_TEST_RULES switches it off (to see production's view).
+        'allow_test' => in_array(env('APP_ENV', 'production'), ['local', 'testing'], true) && ! in_array(env('CHECKOUT_ALLOW_TEST_RULES'), [false, 'false', '0', 0, 'off', 'no'], true),
     ],
 
     'payment' => [

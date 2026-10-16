@@ -1,0 +1,16 @@
+# Module 41 — final dependency audit (2026-10-15, local machine)
+
+## Composer (backend): composer audit --format=json
+advisories: 0; abandoned: 0  -> RESULT: PASS (0 known vulnerabilities)
+
+## npm (customer-web, incl. dev dependencies): npm audit --json
+vulnerabilities: {'info': 0, 'low': 0, 'moderate': 0, 'high': 0, 'critical': 0, 'total': 0}; dependencies: {'prod': 44, 'dev': 146, 'optional': 46, 'peer': 10, 'peerOptional': 0, 'total': 189}  -> RESULT: PASS
+
+## Dart / Flutter (mobile): flutter pub get + flutter pub outdated --json
+packages reported: 35; affected by a pub.dev security advisory: none; retracted: none; discontinued: none  -> RESULT: PASS
+Newer versions available (upgrade is maintenance, not a vulnerability): cupertino_icons 1.0.9->2.0.0, firebase_core 4.14.0->5.0.0, firebase_messaging 16.7.0->17.0.0, go_router 18.0.1->18.1.0, image_picker 1.2.3->1.2.4, url_launcher 6.3.2->6.3.3
+
+## Android (Gradle / native)
+No vulnerability database scanner (e.g. OWASP dependency-check) is installed locally and the build host has no network scanner configured: Gradle dependencies NOT SCANNED -> PENDING (recorded as a Module 42 / CI item). The Android plugins come from the Flutter packages above.
+
+DEPENDENCY GATE: Critical = 0, High = 0 in every scanned ecosystem (Composer, npm, pub). Gradle: not scanned (PENDING).

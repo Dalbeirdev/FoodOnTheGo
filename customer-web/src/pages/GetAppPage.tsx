@@ -23,7 +23,7 @@ export default function GetAppPage() {
               <h1>{c.title} <span className="ga-accent">{c.accent}</span></h1>
               <p className="ga-lead">{c.lead}</p>
               <StoreBadges stores={c.stores} />
-              <p className="ga-note" role="note">The Android app is in local review and will be published to Google Play when it is production-ready. iOS is planned for a later release.</p>
+              <p className="ga-note" role="note">The FoodOnTheGo Android app is coming soon to Google Play.</p>
             </div>
             <div className="ga-hero__visual" aria-hidden="true">
               <div className="ga-phone">

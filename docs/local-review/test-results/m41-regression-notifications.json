@@ -1,0 +1,215 @@
+{
+  "module": "M33",
+  "suite": "Module 33 — Customer Web + Platform Admin on the real local backend with the DEVELOPMENT push provider (fake), the local mailer, SMS off, Laravel Reverb and the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — no money moves; Razorpay itself is NOT exercised",
+  "ran_at": "2026-10-16T07:14:45.614Z",
+  "passed": 40,
+  "failed": 1,
+  "total": 41,
+  "results": [
+    {
+      "name": "A1 DEVICE REGISTRATION (PUT /customer/devices/current): the first call creates (201), the same installation again with a refreshed token updates the same row (200, same id); a second installation is a second device; the answer never carries the token",
+      "pass": true,
+      "detail": "{\"a\":201,\"b\":200,\"c\":201}"
+    },
+    {
+      "name": "A2 MY DEVICES (GET /customer/devices): two active rows, the calling installation marked current, token state ACTIVE, no token anywhere",
+      "pass": true,
+      "detail": "[[\"ac38e533\",true,\"ACTIVE\"],[\"5729d060\",false,\"ACTIVE\"]]"
+    },
+    {
+      "name": "A3 A CUSTOMER ID IN THE REGISTRATION IS REFUSED (422 validation_failed): the device belongs to the authenticated principal, never to a field",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "A4 A PAID ORDER EXISTS (Module 31 / 32 path unchanged): the payment page waited for the server's order number and opened its confirmation",
+      "pass": true,
+      "detail": "FOTG-20261016-AYAEHH"
+    },
+    {
+      "name": "A5 THE ORDER CREATED THE IN-APP NOTIFICATION (GET /customer/notifications): type order.created, category ORDER_UPDATES, the restaurant's name and the order number in the body, action ORDER_DETAIL + the order number, unread; the unread count is part of the answer",
+      "pass": true,
+      "detail": "{\"title\":\"Order placed\",\"body\":\"Your order FOTG-20261016-AYAEHH has reached Burger Hub. We will tell you as soon as they confirm it.\",\"action\":{\"target\":\"ORDER_DETAIL\",\"reference\":\"FOTG-20261016-AYAEHH\"},\"unread\":1}"
+    },
+    {
+      "name": "A6 ONE PUSH PER DEVICE (admin GET /admin/notifications/{id}): the live device SENT through the development provider (a provider reference, one attempt), the dead device INVALID_DESTINATION (UNREGISTERED, one attempt, never retried); the in-app delivery SENT; the e-mail SKIPPED with SKIP_USER_PREFERENCE (order e-mail is the one channel this fixture customer switched off in Module 25; the no-address skip is covered by the backend tests) — and the logical notification stands",
+      "pass": true,
+      "detail": "[[\"IN_APP\",\"SENT\",\"MANDATORY\",null],[\"EMAIL\",\"SKIPPED\",\"SKIP_USER_PREFERENCE\",null],[\"PUSH\",\"SENT\",\"SEND\",null],[\"PUSH\",\"INVALID_DESTINATION\",\"SEND\",\"UNREGISTERED\"]]"
+    },
+    {
+      "name": "A7 THE DEAD TOKEN WAS REMOVED: the device the provider reported unregistered is revoked (INVALID_TOKEN) and gone from my active devices; the live one stays",
+      "pass": true,
+      "detail": "INVALID_TOKEN"
+    },
+    {
+      "name": "A8 THE PUSH PAYLOAD (what the development provider received): notification + minimal data (type, notification_id, category, target, reference, subject_id, channel_id, created_at — all strings), android priority NORMAL, channel orders, visibility PRIVATE, a collapse key; no token, no phone, no e-mail, no amount, no item",
+      "pass": true,
+      "detail": "{\"data\":{\"type\":\"order.created\",\"notification_id\":\"778ef560-b6de-451e-aa99-6003fb76ead6\",\"category\":\"ORDER_UPDATES\",\"target\":\"ORDER_DETAIL\",\"reference\":\"FOTG-20261016-AYAEHH\",\"subject_id\":\"8a57e1f1-f13b-4ca6-a1fe-d03857f0101c\",\"channel_id\":\"orders\",\"created_at\":\"2026-10-16T07:12:29+00:00\"},\"android\":{\"priority\":\"NORMAL\",\"ttl\":\"3600s\",\"collapse_key\":\"subject-6971d44ab9c026870a43b457\",\"notification\""
+    },
+    {
+      "name": "B1 THE HEADER BELL (Customer Web) shows the real unread count from the backend",
+      "pass": true,
+      "detail": "1"
+    },
+    {
+      "name": "B2 THE NOTIFICATIONS PAGE lists the backend inbox (no development-data note): the newest item is the order notice, unread",
+      "pass": true,
+      "detail": "order.created"
+    },
+    {
+      "name": "B3 THE PREFERENCES PANEL names what each channel can do on this server: in-app available, push = development provider, e-mail pending, SMS not available",
+      "pass": true,
+      "detail": "In app available Push development provider on this machine (no real message leaves it) Email provider pending — nothing is sent yet SMS not available"
+    },
+    {
+      "name": "B4 OPENING THE NOTICE marks it read on the backend (POST /customer/notifications/{id}/read) and follows its allow-listed target to the order page (/order/<number>) — never a URL from the data",
+      "pass": true,
+      "detail": "http://localhost:5173/order/FOTG-20261016-AYAEHH"
+    },
+    {
+      "name": "B5 THE UNREAD COUNT FELL BY ONE and the read is idempotent (a second read keeps the first read_at)",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "C1 ACCEPT → order.accepted (ORDER_UPDATES, action ORDER_TRACKING) in the inbox within seconds; the live tracking page refreshed the inbox so the bell rose without a reload",
+      "pass": true,
+      "detail": "{\"bell\":\"1\",\"title\":\"Order confirmed\"}"
+    },
+    {
+      "name": "C2 PREPARING → an in-app notice only (no push fatigue): the admin view shows IN_APP SENT and NO push delivery row at all (the registry says push off for this type)",
+      "pass": true,
+      "detail": "[[\"IN_APP\",\"SENT\"]]"
+    },
+    {
+      "name": "C3 READY → order.ready is a PICKUP_UPDATES notice of HIGH priority on the pickup channel, action ORDER_TRACKING; the SMS channel is OFF on this server (SKIPPED, SKIP_CHANNEL_DISABLED — never a failure); the push went to the live device",
+      "pass": true,
+      "detail": "[[\"IN_APP\",\"SENT\",\"MANDATORY\"],[\"SMS\",\"SKIPPED\",\"SKIP_CHANNEL_DISABLED\"],[\"PUSH\",\"SENT\",\"SEND\"]]"
+    },
+    {
+      "name": "C4 THE READY PUSH CARRIES NO SECRET: priority HIGH, channel pickup — and neither the QR payload nor the pickup code nor \"FOTG1.\" is anywhere in it; the body sends the customer to the app for the code",
+      "pass": true,
+      "detail": "{\"title\":\"Your order is ready\",\"body\":\"Order FOTG-20261016-AYAEHH is ready for pickup at Burger Hub. Open the app to show your pickup code.\"}"
+    },
+    {
+      "name": "C5 THE INBOX IS NEWEST FIRST and filters work: ?unread=1 lists only unread rows; ?category=PICKUP_UPDATES lists the ready notice only",
+      "pass": true,
+      "detail": "order.ready,order.preparing,order.accepted,order.created"
+    },
+    {
+      "name": "D1 PUSH OFF FOR ORDER UPDATES (PATCH /customer/notification-preferences): the next order's notice is still written in-app, its push delivery is SKIPPED with SKIP_USER_PREFERENCE — nothing was sent, nothing failed",
+      "pass": true,
+      "detail": "[[\"IN_APP\",\"SENT\",\"MANDATORY\"],[\"PUSH\",\"SKIPPED\",\"SKIP_USER_PREFERENCE\"],[\"EMAIL\",\"SKIPPED\",\"SKIP_USER_PREFERENCE\"]]"
+    },
+    {
+      "name": "D2 THE PREFERENCE MATRIX (Module 25) now carries the channel status of this server: IN_APP AVAILABLE, PUSH DEVELOPMENT, EMAIL PENDING, SMS UNAVAILABLE",
+      "pass": true,
+      "detail": "{\"IN_APP\":\"AVAILABLE\",\"PUSH\":\"DEVELOPMENT\",\"EMAIL\":\"PENDING\",\"SMS\":\"UNAVAILABLE\"}"
+    },
+    {
+      "name": "E1 ANOTHER CUSTOMER sees none of my notices (empty inbox), cannot mark mine read (404), cannot touch my device (404 / 404); no session → 401",
+      "pass": true,
+      "detail": "[404,404,404,401]"
+    },
+    {
+      "name": "E2 ADMIN RBAC: an administrator without admin.notifications.view (moderation) gets 403 on the list and on a resend; a restaurant token gets 401 / 403",
+      "pass": true,
+      "detail": "[403,403,401]"
+    },
+    {
+      "name": "F1 SIGN-OUT WITH THE INSTALLATION ID (POST /auth/logout {installation_id}) ends the push binding (LOGOUT) in the same request — the phone keeps its token, Firebase is not touched, nothing of Rahul's reaches it any more",
+      "pass": true,
+      "detail": "LOGOUT active=0"
+    },
+    {
+      "name": "F2 A SHARED PHONE: Asha signs in on the same installation → her binding is created; Rahul signs in on it again → Asha's row ends (REBOUND, a security event) and a new row is Rahul's; one active binding per installation at any time",
+      "pass": true,
+      "detail": "LOGOUT:+919876543210,REBOUND:+919876543212,ACTIVE:+919876543210 | rebound events 1"
+    },
+    {
+      "name": "F3 RAHUL'S NEXT NOTICE goes to Rahul's current binding only: exactly one push delivery, its device belongs to Rahul (never to Asha's ended binding)",
+      "pass": true,
+      "detail": "+919876543210"
+    },
+    {
+      "name": "G1 ADMIN › NOTIFICATIONS › DELIVERY STATUS (Platform Admin, Alex) lists the real notifications of this run from the backend with their delivery summary",
+      "pass": true,
+      "detail": "6"
+    },
+    {
+      "name": "G2 SEARCH BY ORDER NUMBER, then THE DETAIL DRAWER shows every delivery with its channel, status and policy result, the attempts, the dedupe key and the template version — and no token, no phone",
+      "pass": true,
+      "detail": "Order placed Your order FOTG-20261016-AYAEHH has reached Burger Hub. We will tell you as soon as they confirm it. Customer Rahul Sharma Type order.created · ORDER_UPDATES · NORMAL Template order.created v1 · en-IN Dedupe"
+    },
+    {
+      "name": "G3 THE REGISTRY TAB shows the backend's mapping (11 types: order.created … account.phone_changed) with category, domain events, channel rules, priority, template version and locales; the API says the same",
+      "pass": false,
+      "detail": "20"
+    },
+    {
+      "name": "G4 ADMIN › SYSTEM › NOTIFICATION DELIVERY card: health from the backend, push driver fake with the plain statement REAL FCM = PENDING FIREBASE CONFIGURATION, the counters of this run",
+      "pass": true,
+      "detail": "OPERATIONAL | Development provider — no real push is sent; outcomes are simulated from the token. REAL FCM = PENDING FIREBASE CONFIGUR"
+    },
+    {
+      "name": "G5 THE SYSTEM REPORT (GET /admin/system/notifications) tells the truth about the providers: push OPERATIONAL (development provider, says no real push is sent), e-mail = local mailer / REAL EMAIL PROVIDER = PENDING, SMS OFF; the queue has nothing stranded",
+      "pass": true,
+      "detail": "{\"push\":\"OPERATIONAL\",\"email\":\"OPERATIONAL\",\"sms\":\"OFF\",\"queue\":{\"queued\":0,\"sending\":0,\"retry_scheduled\":0,\"stranded\":0,\"overdue_retries\":0,\"oldest_open_seconds\":null,\"queue_name\":\"notifications\",\"paused_after_auth_failure\":false}}"
+    },
+    {
+      "name": "G6 A CREDENTIAL FAILURE AT THE PROVIDER: the delivery is FAILED (AUTH_CONFIGURATION, UNAUTHENTICATED), never retried in a storm; the device stays active; the push provider is paused and the system report says DEGRADED with paused_after_auth_failure",
+      "pass": true,
+      "detail": "[\"FAILED\",{\"code\":\"UNAUTHENTICATED\",\"category\":\"AUTH_CONFIGURATION\"},1]"
+    },
+    {
+      "name": "G7 A CONTROLLED RESEND from the admin UI (Send again + a reason): POST …/retry → the delivery is RETRY_SCHEDULED (a new attempt on the same delivery; the history stays), audited with the actor and the reason; the button exists only for a FAILED delivery with a live destination",
+      "pass": true,
+      "detail": "[200,\"RETRY_SCHEDULED\",\"1\"]"
+    },
+    {
+      "name": "G8 A RESEND IS REFUSED for a delivery that is not FAILED (409 delivery_not_retryable) — the one just scheduled, and an in-app record",
+      "pass": true,
+      "detail": "[409,409]"
+    },
+    {
+      "name": "H1 A DELIVERY LEFT SENDING BY A CRASHED WORKER is found by notifications:recover after the lease (120 s) and queued again (RETRY_SCHEDULED, STRANDED)",
+      "pass": true,
+      "detail": "notifications:recover — stranded 1, due 0, lost 0 → RETRY_SCHEDULED|STRANDED"
+    },
+    {
+      "name": "H2 notifications:prune runs as a bounded job (nothing of this run is old enough to expire; order history is never touched)",
+      "pass": true,
+      "detail": "notifications:prune — notifications 0, attempts 0, tokens purged 0"
+    },
+    {
+      "name": "H3 THE ORDERS NEVER NOTICED ANY OF THIS: order A is READY_FOR_PICKUP with the Module 32 timeline intact (4 lines), order B READY_FOR_PICKUP; no notification outcome changed an order",
+      "pass": true,
+      "detail": "READY_FOR_PICKUP"
+    },
+    {
+      "name": "H4 THE BACKEND LOG OF THIS RUN carries no push token, no QR payload and no pickup code",
+      "pass": true,
+      "detail": "16109 bytes"
+    },
+    {
+      "name": "I1 MEASURED on this machine (PHP built-in server, no OPcache; queue worker local): accept → the accepted notice readable in the inbox 1185 ms; inbox read 329 ms; admin detail 297 ms (measurements, not targets)",
+      "pass": true,
+      "detail": "{\"inbox_read\":{\"n\":1,\"median_ms\":329,\"max_ms\":329},\"admin_detail\":{\"n\":1,\"median_ms\":297,\"max_ms\":297},\"live_notice_ms\":{\"n\":1,\"median_ms\":1185,\"max_ms\":1185}}"
+    },
+    {
+      "name": "I2 THE SAVED API SAMPLES carry no push token, no QR payload and no pickup code",
+      "pass": true,
+      "detail": "5885 bytes"
+    },
+    {
+      "name": "I3 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

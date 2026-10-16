@@ -51,6 +51,17 @@ void main() {
       expect(_problems(env: 'production', apiBaseUrl: 'https://api.foodonthego.example/api/v1', modes: mock), ['AUTH_MODE is "mock", not "api"', 'PAYMENT_MODE is "mock", not "api"']);
     });
 
+    test('Module 41: push on FCM needs the Firebase defines, and realtime needs a production host', () {
+      List<String> p({bool firebase = true, String host = 'ws.foodonthego.example'}) => BuildEnvironment.configurationProblems(env: 'production', apiBaseUrl: _https, modes: _allApi, realtimeScheme: 'wss', pushMode: 'fcm', devOtp: '', firebaseConfigured: firebase, realtimeHost: host);
+      expect(p(), isEmpty);
+      expect(p(firebase: false), ['FIREBASE_API_KEY / FIREBASE_APP_ID / FIREBASE_SENDER_ID / FIREBASE_PROJECT_ID are not all set']);
+      for (final host in ['10.0.2.2', 'localhost', '127.0.0.1', '']) {
+        expect(p(host: host), ['REVERB_HOST is not set to the production realtime host'], reason: host);
+      }
+      // Not production: no problems at all.
+      expect(BuildEnvironment.configurationProblems(env: 'local', apiBaseUrl: '', modes: const {}, realtimeScheme: 'http', pushMode: 'off', devOtp: '', firebaseConfigured: false, realtimeHost: '10.0.2.2'), isEmpty);
+    });
+
     test('the forgotten APP_ENV on the production flavor: production, no API, mock defaults → not configured', () {
       final env = BuildEnvironment.effectiveEnv(flavor: 'production', definedEnv: 'local');
       final url = BuildEnvironment.apiBaseUrl(env: env, definedUrl: '');

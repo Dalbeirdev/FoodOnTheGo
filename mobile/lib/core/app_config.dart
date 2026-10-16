@@ -53,6 +53,8 @@ class BuildEnvironment {
     required String realtimeScheme,
     required String pushMode,
     required String devOtp,
+    bool firebaseConfigured = true,
+    String realtimeHost = 'api.example',
   }) {
     if (env != 'production') return const [];
     return [
@@ -61,7 +63,10 @@ class BuildEnvironment {
       for (final e in modes.entries)
         if (e.value != 'api') '${e.key} is "${e.value}", not "api"',
       if (!secureRealtimeSchemes.contains(realtimeScheme)) 'REVERB_SCHEME is "$realtimeScheme", not "https" or "wss"',
-      if (pushMode != realPushMode) 'PUSH_MODE is "$pushMode", not "$realPushMode"',
+      if (pushMode != realPushMode) 'PUSH_MODE is "$pushMode", not "$realPushMode"'
+      else if (!firebaseConfigured) 'FIREBASE_API_KEY / FIREBASE_APP_ID / FIREBASE_SENDER_ID / FIREBASE_PROJECT_ID are not all set',
+      // Module 41: the realtime host defaults to the emulator's address of the development PC.
+      if (realtimeHost.isEmpty || realtimeHost == '10.0.2.2' || realtimeHost == 'localhost' || realtimeHost.startsWith('127.')) 'REVERB_HOST is not set to the production realtime host',
       if (devOtp.isNotEmpty) 'DEV_OTP is set (a production build must not carry a development code)',
     ];
   }
@@ -140,8 +145,9 @@ class AppConfig {
   static const String devOtp = String.fromEnvironment('DEV_OTP', defaultValue: '');
   static const String buildLabel = String.fromEnvironment('BUILD_LABEL', defaultValue: 'dev');
   static const String gitCommit = String.fromEnvironment('GIT_COMMIT', defaultValue: 'no-git');
-  static const String appVersion = '0.1.0';
-  static const int buildNumber = 42;
+  /// Module 41: from the build (`--dart-define=BUILD_NAME / BUILD_NUMBER`, the same values as --build-name / --build-number).
+  static const String appVersion = String.fromEnvironment('BUILD_NAME', defaultValue: '0.1.0');
+  static const int buildNumber = int.fromEnvironment('BUILD_NUMBER', defaultValue: 45);
 
   static bool get isLocal => env == 'local';
   static bool get isProduction => env == 'production';
@@ -159,7 +165,9 @@ class AppConfig {
         'PAYMENT_MODE': paymentMode,
         'ORDER_MODE': orderMode,
         'REVIEW_MODE': reviewMode,
-      }, realtimeScheme: reverbScheme, pushMode: pushMode, devOtp: devOtp);
+      }, realtimeScheme: reverbScheme, pushMode: pushMode, devOtp: devOtp,
+      firebaseConfigured: firebaseApiKey.isNotEmpty && firebaseAppId.isNotEmpty && firebaseSenderId.isNotEmpty && firebaseProjectId.isNotEmpty,
+      realtimeHost: reverbHost);
 
   /// Module 39 (C-03): the backend's local test code may be shown only in a LOCAL build, never only because DEV_OTP
   /// was defined.

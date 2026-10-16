@@ -6,6 +6,7 @@ import { useAdmin } from '../AdminContext'
 import { Badge, DevNote } from '../components/DataTable'
 import type { AdminNotificationDetail, Announcement, NotificationDeliveryRow } from '../types'
 import { StatusPill, fmtDateTime, KNOWN_MARKET_CODES, useLoad, usePageTitle } from './shared'
+import { userMessage } from '../../api/userMessage'
 
 type Tab = 'alerts' | 'announcements' | 'templates' | 'delivery'
 const blank = (): Omit<Announcement, 'id' | 'createdAt'> & { id?: string } => ({ title: '', audience: 'customers', markets: [], channel: 'push', status: 'DRAFT', scheduledAt: null })
@@ -24,7 +25,7 @@ export default function NotificationsPage() {
   const ann = useLoad(() => a.repos.notifications.announcements(), [a.repos]); const tpl = useLoad(() => a.repos.notifications.templates(), [a.repos])
   const canManage = a.can('notifications.manage')
   const backend = a.repos.notifications.deliveriesAreBackend === true
-  const save = async () => { if (!form) return; setBusy(true); setErr(null); try { await a.repos.notifications.saveAnnouncement(form, a.admin.id); setForm(null); await ann.refresh(); toast(t('adm.saved', undefined, locale)) } catch (e) { setErr(e instanceof Error ? e.message : 'error') } finally { setBusy(false) } }
+  const save = async () => { if (!form) return; setBusy(true); setErr(null); try { await a.repos.notifications.saveAnnouncement(form, a.admin.id); setForm(null); await ann.refresh(); toast(t('adm.saved', undefined, locale)) } catch (e) { setErr(userMessage(e, 'error')) } finally { setBusy(false) } }
   return (
     <div className="db-page" data-testid="adm-notifications">
       <div className="db-page__head"><div><h1 className="db-page__title">{t('adm.notifications.title', undefined, locale)}</h1><p className="db-page__lead">{t('adm.notifications.lead', undefined, locale)}</p></div>{canManage && <button type="button" className="db-btn db-btn--primary" onClick={() => { setErr(null); setForm(blank()) }}>{t('adm.notifications.new', undefined, locale)}</button>}</div>
@@ -84,7 +85,7 @@ function DeliveryTab({ canManage }: { canManage: boolean }) {
   const doRetry = async () => {
     if (!retry || !open) return
     setBusy(true); setErr(null)
-    try { await a.repos.notifications.retryDelivery!(retry.id, reason); setRetry(null); setReason(''); toast(t('adm.notifications.deliveries.retried', undefined, locale)); await show(open.id); await list.refresh() } catch (e) { setErr(e instanceof Error ? e.message : 'error') } finally { setBusy(false) }
+    try { await a.repos.notifications.retryDelivery!(retry.id, reason); setRetry(null); setReason(''); toast(t('adm.notifications.deliveries.retried', undefined, locale)); await show(open.id); await list.refresh() } catch (e) { setErr(userMessage(e, 'error')) } finally { setBusy(false) }
   }
   const summary = (s: Record<string, Record<string, number>>) => Object.entries(s).map(([ch, by]) => <span key={ch} style={{ marginRight: 6 }}><b>{ch}</b> {Object.entries(by).map(([st, n]) => <Badge key={st} tone={TONE[st] ?? 'muted'}>{st}{n > 1 ? ` ×${n}` : ''}</Badge>)}</span>)
   return (

@@ -7,10 +7,12 @@ import 'package:provider/provider.dart';
 import '../core/app_config.dart';
 import '../core/theme.dart';
 import '../data/mock_data.dart';
+import '../i18n/format.dart';
 import '../state/app_state.dart';
 import '../screens/auth_screens.dart' show confirmLogout;
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
+import '../core/user_message.dart';
 
 /// Visible LOCAL/DEV strip so screenshots can never be mistaken for production.
 class EnvBanner extends StatelessWidget {
@@ -749,7 +751,7 @@ class CartBar extends StatelessWidget {
                 Expanded(
                   child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('${cart.count} ${cart.count == 1 ? 'item' : 'items'} in cart', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                    Text('${inr(cart.total)} incl. taxes', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
+                    Text(cart.currency != null ? '${formatMoney(cart.subtotalMinor, cart.currency!)} subtotal' : '${inr(cart.total)} subtotal', style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
                   ]),
                 ),
                 BrandButton(label: 'View Cart', trailingIcon: Icons.arrow_forward, expand: false, height: 44, onPressed: () => context.push('/cart')),
@@ -778,7 +780,7 @@ class BottomBar extends StatelessWidget {
       );
 }
 
-void comingSoon(BuildContext context, String what) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$what arrives in a later module (local preview).')));
+void comingSoon(BuildContext context, String what) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$what is not available yet.')));
 
 /// Heart toggle shared by restaurant cards and the detail screen. Guests are sent to sign in and return.
 class FavoriteButton extends StatelessWidget {
@@ -810,7 +812,7 @@ class FavoriteButton extends StatelessWidget {
             await account.toggleFavorite(restaurantId);
             if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(on ? '$name removed from favorites' : '$name added to favorites')));
           } catch (e) {
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(userMessage(e))));
           }
         },
       ),

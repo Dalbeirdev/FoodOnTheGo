@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { MockProfileRepository } from '../account/mock/mockRepositories'
 import type { AccountSecurity, Profile, ProfilePatch, ProfileRepository } from '../account/repositories'
 import { useAuth } from '../auth/AuthContext'
+import { userMessage } from '../api/userMessage'
 
 export type { AccountSecurity, AccountStatus, CodeChallenge, Gender, Option, Profile, ProfilePatch } from '../account/repositories'
 export { RepositoryError } from '../account/repositories'
@@ -36,7 +37,7 @@ export function ProfileProvider({ children, repository = defaultProfileRepositor
   const reload = useCallback(async () => {
     if (!user) { setProfile(null); setStatus('idle'); return }
     setStatus('loading'); setError(null)
-    try { setProfile(await repository.get(user.id, { name: user.name, phone: user.phone, email: user.email, memberSince: user.memberSince })); setStatus('ready') } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong.'); setStatus('error') }
+    try { setProfile(await repository.get(user.id, { name: user.name, phone: user.phone, email: user.email, memberSince: user.memberSince })); setStatus('ready') } catch (e) { setError(userMessage(e, 'Something went wrong.')); setStatus('error') }
   }, [user, repository])
   useEffect(() => { const t = setTimeout(() => { void reload() }, 0); return () => clearTimeout(t) }, [reload])
 

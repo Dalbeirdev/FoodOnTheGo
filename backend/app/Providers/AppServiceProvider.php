@@ -43,6 +43,7 @@ use App\Services\Notifications\Providers\FakePushProvider;
 use App\Services\Notifications\Providers\FakeSmsProvider;
 use App\Services\Notifications\Providers\FcmHttpV1PushProvider;
 use App\Services\Notifications\Providers\MailEmailProvider;
+use App\Services\Notifications\Providers\UnavailableSmsProvider;
 use App\Services\Payment\PaymentProviderManager;
 use App\Services\Pickup\DatabasePickupCapacityRepository;
 use App\Services\Pickup\PickupCapacityRepository;
@@ -87,15 +88,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(NotificationMetrics::class);
         $this->app->singleton(FakeEmailProvider::class);
         $this->app->singleton(FakeSmsProvider::class);
-        $this->app->bind(PushNotificationProvider::class, fn () => match ((string) config('notifications.channels.PUSH.driver')) {
-            'fcm' => $this->app->make(FcmHttpV1PushProvider::class),
-            default => $this->app->make(FakePushProvider::class),
-        });
-        $this->app->bind(EmailNotificationProvider::class, fn () => match ((string) config('notifications.channels.EMAIL.driver')) {
-            'fake' => $this->app->make(FakeEmailProvider::class),
-            default => $this->app->make(MailEmailProvider::class),
-        });
-        $this->app->bind(SmsNotificationProvider::class, fn () => $this->app->make(FakeSmsProvider::class));
+        // Module 41: the fake providers only where notifications.allow_fake (local / testing) — see config/notifications.php.
+        $this->app->bind(PushNotificationProvider::class, fn () => (string) config('notifications.channels.PUSH.driver') !== 'fcm' && (bool) config('notifications.allow_fake')
+            ? $this->app->make(FakePushProvider::class)
+            : $this->app->make(FcmHttpV1PushProvider::class));
+        $this->app->bind(EmailNotificationProvider::class, fn () => (string) config('notifications.channels.EMAIL.driver') === 'fake' && (bool) config('notifications.allow_fake')
+            ? $this->app->make(FakeEmailProvider::class)
+            : $this->app->make(MailEmailProvider::class));
+        $this->app->bind(SmsNotificationProvider::class, fn () => (bool) config('notifications.allow_fake')
+            ? $this->app->make(FakeSmsProvider::class)
+            : $this->app->make(UnavailableSmsProvider::class));
     }
 
     public function boot(): void

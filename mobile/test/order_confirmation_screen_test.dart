@@ -54,7 +54,7 @@ void main() {
     expect(find.text('pay_dev_ref'), findsOneWidget);
     expect(find.text('Track order'), findsOneWidget);
     await t.tap(find.text('View receipt')); await t.pumpAndSettle();
-    expect(find.text('ORDER RECEIPT (development)'), findsOneWidget);
+    expect(find.text('ORDER RECEIPT'), findsOneWidget);
     expect(find.textContaining('Not a tax invoice'), findsOneWidget);
   });
 

@@ -94,7 +94,7 @@ Whether the backup exclusions survive the Gradle manifest merge and a real resto
 
 | Item | State | Evidence |
 |---|---|---|
-| Release signing | **uses the debug key** (`signingConfig = signingConfigs.getByName("debug")` with a TODO) — **production blocker** | `build.gradle.kts:50-55` |
+| Release signing | Module 41: the upload key from `android/key.properties` / `FOTG_UPLOAD_*` (never committed); a production release without it **stops the build**; local / staging releases may use the debug key for internal review — the upload keystore + Play App Signing are still to be created (**production blocker**, CF-548) | `build.gradle.kts`; `m41-android-release-signing-guard.txt` |
 | Code shrinking (R8) | not configured explicitly (`isMinifyEnabled` / `isShrinkResources` absent); the Flutter Gradle plugin's defaults were not verified | `build.gradle.kts` |
 | Dart obfuscation (`--obfuscate --split-debug-info`) | not used by any build command found | APK manifests; no script contains it |
 | Root / jailbreak detection | **does not exist** (no package, no code) | `pubspec.yaml`, grep |

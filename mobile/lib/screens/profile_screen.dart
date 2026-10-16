@@ -13,6 +13,7 @@ import '../state/auth_state.dart';
 import '../widgets/common.dart';
 import 'account_pages.dart' show avatarWidget;
 import 'auth_screens.dart' show confirmLogout;
+import '../core/user_message.dart';
 
 /// Development-data choices (Module 04). In API mode the market's locale options and the platform cuisine taxonomy replace them.
 const _languages = ['English', 'Hindi', 'Punjabi', 'Marathi', 'Tamil'];
@@ -130,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() { errors.addAll({if (e.fields['name'] != null) 'name': e.fields['name']!, if (e.fields['email'] != null) 'email': e.fields['email']!}); if (errors.isEmpty) errors['form'] = e.message; });
       if (e.code == 'stale_update') account.loadProfile();
     } catch (e) {
-      setState(() => errors['form'] = '$e');
+      setState(() => errors['form'] = userMessage(e));
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -148,7 +149,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await account.setAvatar(AvatarUpload(bytes: bytes, filename: file.name, localPath: file.path));
       _snack('Photo updated');
     } catch (e) {
-      _snack('Could not update the photo: $e');
+      _snack('Could not update the photo: ${userMessage(e)}');
     } finally {
       if (mounted) setState(() => avatarBusy = false);
     }
@@ -190,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _snack('Mobile number updated. Other devices were signed out.');
       });
     } catch (e) {
-      _snack('$e');
+      _snack(userMessage(e));
     }
   }
 
@@ -203,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _snack('Deletion request received');
       });
     } catch (e) {
-      _snack('$e');
+      _snack(userMessage(e));
     }
   }
 
@@ -260,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 14),
                   Row(children: [
                     Expanded(child: OutlineButton(label: avatarBusy ? 'Updating…' : 'Change Photo', icon: Icons.photo_camera_outlined, color: Brand.orangeDeep, borderColor: Brand.orangeDeep, height: 44, onPressed: avatarBusy ? null : () => _pickAvatar(account))),
-                    if (p.avatarPath != null) ...[const SizedBox(width: 8), TextButton(onPressed: avatarBusy ? null : () => account.setAvatar(null).then((_) => _snack('Photo removed')).catchError((e) { _snack('$e'); return p; }), child: const Text('Remove', style: TextStyle(color: Brand.red)))],
+                    if (p.avatarPath != null) ...[const SizedBox(width: 8), TextButton(onPressed: avatarBusy ? null : () => account.setAvatar(null).then((_) => _snack('Photo removed')).catchError((e) { _snack(userMessage(e)); return p; }), child: const Text('Remove', style: TextStyle(color: Brand.red)))],
                   ]),
                 ]),
               ),
@@ -303,9 +304,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 const Text('Preferred cuisine', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
                 const SizedBox(height: 8),
-                Wrap(spacing: 6, runSpacing: 6, children: [for (final c in cuisineOptions) FilterChip(label: Text(c.name), selected: p.cuisines.contains(c.code), selectedColor: Brand.peach, checkmarkColor: Brand.orangeDeep, onSelected: (on) => account.updateProfile((x) => x.copyWith(cuisines: on ? [...x.cuisines, c.code] : x.cuisines.where((y) => y != c.code).toList())).catchError((e) { _snack('$e'); return p; }))]),
-                SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: Brand.orangeDeep, title: const Text('Vegetarian only', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), subtitle: const Text('Show vegetarian dishes first', style: TextStyle(fontSize: 12, color: Brand.grey)), value: p.vegetarian, onChanged: (v) => account.updateProfile((x) => x.copyWith(vegetarian: v)).catchError((e) { _snack('$e'); return p; })),
-                ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.place_outlined, color: Brand.orangeDeep), title: const Text('Default search radius', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), trailing: DropdownButton<int>(value: p.searchRadiusKm, underline: const SizedBox.shrink(), items: [for (final r in radii) DropdownMenuItem(value: r, child: Text('$r km'))], onChanged: (v) { if (v != null) account.updateProfile((x) => x.copyWith(searchRadiusKm: v)).catchError((e) { _snack('$e'); return p; }); })),
+                Wrap(spacing: 6, runSpacing: 6, children: [for (final c in cuisineOptions) FilterChip(label: Text(c.name), selected: p.cuisines.contains(c.code), selectedColor: Brand.peach, checkmarkColor: Brand.orangeDeep, onSelected: (on) => account.updateProfile((x) => x.copyWith(cuisines: on ? [...x.cuisines, c.code] : x.cuisines.where((y) => y != c.code).toList())).catchError((e) { _snack(userMessage(e)); return p; }))]),
+                SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: Brand.orangeDeep, title: const Text('Vegetarian only', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), subtitle: const Text('Show vegetarian dishes first', style: TextStyle(fontSize: 12, color: Brand.grey)), value: p.vegetarian, onChanged: (v) => account.updateProfile((x) => x.copyWith(vegetarian: v)).catchError((e) { _snack(userMessage(e)); return p; })),
+                ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.place_outlined, color: Brand.orangeDeep), title: const Text('Default search radius', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), trailing: DropdownButton<int>(value: p.searchRadiusKm, underline: const SizedBox.shrink(), items: [for (final r in radii) DropdownMenuItem(value: r, child: Text('$r km'))], onChanged: (v) { if (v != null) account.updateProfile((x) => x.copyWith(searchRadiusKm: v)).catchError((e) { _snack(userMessage(e)); return p; }); })),
                 ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.notifications_none, color: Brand.orangeDeep), title: const Text('Notification preferences', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), subtitle: const Text('Order, pickup, payment, security and offer notices per channel', style: TextStyle(fontSize: 12, color: Brand.grey)), trailing: const Icon(Icons.chevron_right), onTap: () => context.push('/notifications')),
               ]),
             ),

@@ -1,0 +1,13 @@
+# Module 41 — Android release signing guard (CF-548), 2026-10-15 22:47 IST, WSL Ubuntu build host
+# Command: flutter build apk --flavor production --release --dart-define=APP_ENV=production (no android/key.properties, no FOTG_UPLOAD_* variables)
+# Expected: the build stops before compiling; a production release is never signed with the debug key.
+
+ls: cannot access 'android/key.properties': No such file or directory
+Running Gradle task 'assembleProductionRelease'...              
+FAILURE: Build failed with an exception.
+Release signing: a production release needs the upload key (android/key.properties or FOTG_UPLOAD_STORE_FILE / FOTG_UPLOAD_STORE_PASSWORD / FOTG_UPLOAD_KEY_ALIAS / FOTG_UPLOAD_KEY_PASSWORD). It is never signed with the debug key.
+BUILD FAILED in 22s
+Running Gradle task 'assembleProductionRelease'...                 22.8s
+Gradle task assembleProductionRelease failed with exit code 1
+
+RESULT: PASS (the build failed with the release-signing message)

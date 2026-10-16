@@ -179,7 +179,7 @@ void main() {
     final (plain, _) = states(null);
     await t.pumpWidget(app(plain, await signedIn(t), '/help')); await t.pumpAndSettle();
     expect(id('help-contact-support'), findsNothing); expect(id('help-my-cases'), findsNothing); expect(find.text('Sign in to contact support'), findsNothing);
-    expect(find.textContaining('Support requests are not sent anywhere yet'), findsOneWidget); expect(find.text('Live Chat'), findsOneWidget); expect(find.text('Popular Topics'), findsOneWidget);
+    expect(find.textContaining('Support requests are not sent anywhere yet'), findsOneWidget); expect(find.text('Live Chat'), findsNothing); expect(find.text('Call Us'), findsNothing); expect(find.text('Popular Topics'), findsOneWidget);
 
     // With the backend and a session.
     final s = Scripted()..unread = 2..lists['open'] = [row(number, unread: true)];

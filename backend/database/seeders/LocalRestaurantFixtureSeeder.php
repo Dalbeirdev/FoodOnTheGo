@@ -135,6 +135,10 @@ class LocalRestaurantFixtureSeeder extends Seeder
 
     public function run(LocationGeography $geography, PickupSettingsService $pickup, RestaurantStaffService $staff, RestaurantCatalog $catalog): void
     {
+        // Module 41: development fixtures never reach another environment, also through db:seed --class.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
         $india = Market::query()->where('country_code', 'IN')->first();
         if ($india === null) {
             return;

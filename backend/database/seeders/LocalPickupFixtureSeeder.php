@@ -39,6 +39,10 @@ class LocalPickupFixtureSeeder extends Seeder
 
     public function run(): void
     {
+        // Module 41: development fixtures never reach another environment, also through db:seed --class.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
         $pizzaPoint = RestaurantLocation::query()->where('slug', 'pizza-point')->first();
         $settings = $pizzaPoint === null ? null : RestaurantPickupSettings::query()->where('location_id', $pizzaPoint->getKey())->first();
         if ($pizzaPoint === null || $settings === null) {

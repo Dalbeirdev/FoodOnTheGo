@@ -186,3 +186,72 @@ FCM itself: PENDING CONFIGURATION (Module 33).
 | Recovery verified | `finance:verify-ledger` OK; the difference marked settled by the next run; payable figures match |
 
 Measured: `finance:verify-ledger` OK after every load, failure and restore run in Module 40. It caught the first synthetic dataset's missing payable lines (18,750 problems), which is how the generator bug was found (`m40-integrity-perf-medium.json` history in `load-test-plan.md` §2).
+
+---
+
+Module 41 (2026-10-15) adds the five domain runbooks below. The same rules apply: use only platform signals. Nothing is marked paid, created, refunded or picked up by hand. Every recovery goes through the domain's own service and is audited.
+
+## RB-11 Payment stuck (customer paid, the screen still waits)
+
+| | |
+|---|---|
+| Symptoms | A customer reports "money taken, still processing". Payment attempts sit in `PAYMENT_PENDING` / `UNKNOWN` / `REVIEW_REQUIRED` longer than the `observability.alerts` thresholds. There is no dedicated alert: the attention filter lists them |
+| Metrics / logs | `GET /admin/payments?filter[attention]=1`. The attempt's timeline (`GET /admin/payments/{payment}`): provider order, webhook events, verification tries. The `payments:reconcile` output |
+| Impact | One customer is waiting. A duplicate payment happens if the customer is told to "just pay again" |
+| First checks | 1. Did the provider capture the payment (provider dashboard, by the attempt's receipt)? 2. Did the webhook arrive (`payment_webhook_events`)? 3. Are the payments queue worker and the scheduler running (`payments:reconcile` every minute)? |
+| Safe actions | `POST /admin/payments/{payment}/reconcile` (reason required, audited) asks the provider again; otherwise wait for the sweep. Tell the customer "payment being confirmed — do not pay again". A REVIEW_REQUIRED attempt (amount / currency mismatch, duplicate capture) goes to a refund decision (RB-12), never to a manual "paid" |
+| Do NOT | Mark the attempt VERIFIED; create an order by hand; ask the customer to pay a second time while the first payment is unknown |
+| Escalation | One customer unknown for more than 15 min: support lead. Several customers: engineering, and RB-05 (provider outage) |
+| Recovery verified | The attempt is VERIFIED, or FAILED with no money taken. A VERIFIED attempt has an order (RB-13) |
+
+## RB-12 Refund stuck
+
+| | |
+|---|---|
+| Symptoms | Refunds sit in `PROCESSING` / `REQUIRED` / `APPROVED` longer than `observability.alerts.refund_stuck_hours`. `REVIEW_REQUIRED` refunds appear in `GET /admin/refunds/queues`. The reliability view raises `refunds_stuck` |
+| Metrics / logs | The refund's timeline (`GET /admin/refunds/{refund}`), its attempts and provider references. The `refunds:reconcile` output |
+| Impact | A customer waits for money. The customer sees "Taking longer — our team is on it", never "failed" |
+| First checks | 1. Was it sent (an attempt with a provider id)? 2. Does the provider show it processed or failed? 3. Is the second approval missing (`APPROVED` needs `admin.refunds.issue`)? 4. Is a dispute open on the payment (`REVIEW_REQUIRED: DISPUTE_OPEN`)? |
+| Safe actions | `POST /admin/refunds/{refund}/reconcile` asks the provider again (reason required). `…/execute` or `…/retry` with `admin.refunds.issue` resends with the same idempotency key, so the provider cannot refund twice. A FAILED refund is replaced by a **new** refund once the cause is fixed |
+| Do NOT | Set a refund to REFUNDED by hand; refund outside the platform and then "close" the record; change the order's status to explain the refund (order and refund states are independent) |
+| Escalation | REVIEW_REQUIRED: finance owner. Many refunds waiting: engineering (if the provider is down, RB-05) |
+| Recovery verified | The refund is REFUNDED with the provider reference. The ledger posting exists (`finance:verify-ledger` OK). The customer got the refund notification only after the provider confirmed |
+
+## RB-13 Verified payment without an order
+
+| | |
+|---|---|
+| Symptoms | A payment is VERIFIED with fulfilment `ORDER_PENDING` for more than 60 s, or `RECOVERY_REQUIRED`. The reliability view raises `payments_verified_without_order` (critical). `GET /admin/order-fulfillments?filter[attention]=1` lists them |
+| Metrics / logs | The fulfilment row (state, last error code, tries, next try). The `orders:recover` output. The orders queue depth and oldest job age |
+| Impact | The customer paid but the restaurant has nothing to cook. The customer sees "payment received, order not confirmed yet, do not pay again" |
+| First checks | 1. Is the orders queue worker running (`--queue=orders,…`)? 2. What is the fulfilment's error: no capacity at the pickup time, restaurant suspended or closed, market paused, or a technical failure? 3. Is the scheduler running (`orders:recover` every minute)? |
+| Safe actions | Start or restart the worker. Run `php artisan orders:recover`. Use `POST /admin/order-fulfillments/{fulfillment}/recover` (reason required, audited; the order is judged again from scratch). When the order can never be made (restaurant closed for good, no capacity for hours), issue a **refund** (RB-12) and tell the customer |
+| Do NOT | Insert an order row; change the payment state; tell the customer the order exists before the backend has created it |
+| Escalation | Any single case older than 10 min: support lead and engineering. Several cases: RB-04 (queue backlog) |
+| Recovery verified | The fulfilment is `ORDER_CREATED` with an order number, or a refund went from REQUIRED to REFUNDED. The reliability alert is cleared |
+
+## RB-14 Restaurant cannot accept orders
+
+| | |
+|---|---|
+| Symptoms | A restaurant reports "Accept does nothing" or an error. Orders in `WAITING_FOR_RESTAURANT` keep ageing. The dashboard shows a "connection lost" banner |
+| Metrics / logs | `http.request` lines for `POST restaurant/orders/{order}/accept` (status, request id). The staff member's role assignment and locations. `GET /admin/system/realtime` |
+| Impact | Customers wait. If nothing is accepted before the pickup time, the order must be rejected and refunded |
+| First checks | 1. Read the answer code: 403 = the staff member lacks `restaurant.orders.manage` for that location (role / location scope); 409 = another staff member already moved the order (reload); 401 = signed out or token expired; 5xx = RB-01. 2. Is only realtime down? The board still works by polling (RB-08) |
+| Safe actions | The restaurant owner, or an administrator through restaurant staff management, fixes the role or location assignment. The staff member signs in again and reloads the board. Pausing new orders (`accepting orders` off) while the restaurant recovers is the restaurant's decision |
+| Do NOT | Accept orders "on behalf of" the restaurant from the admin tools; grant a broader role than needed to "make it work" |
+| Escalation | Restaurant success / support lead; engineering for 5xx |
+| Recovery verified | The order moves to ACCEPTED, with the staff member as the actor in the order timeline |
+
+## RB-15 Pickup verification problem at the counter
+
+| | |
+|---|---|
+| Symptoms | The scanner or the manual code entry shows an error while the customer is at the counter |
+| Metrics / logs | The answer code. `GET /admin/pickup-attempts`: attempts, refusals by reason, locked credentials, staff with 5 or more refusals. Security events `PICKUP_REPLAY_ATTEMPT` and `PICKUP_LOCATION_UNAUTHORIZED` |
+| Impact | A customer cannot collect a paid order |
+| First checks | Act on the answer code:<br>• `order_not_ready_for_pickup`: mark the order READY first.<br>• `pickup_location_unauthorized`: the scanner is set to another location; choose the order's location.<br>• `pickup_credential_invalid`: wrong code or a foreign QR; ask the customer to open the order screen.<br>• `pickup_attempts_exceeded`: 5 wrong codes, locked for 15 min.<br>• `pickup_credential_revoked` / `expired`: the customer re-opens the order (reissue: `POST /customer/orders/{order}/pickup-credential/reissue`, 3 per hour).<br>• `pickup_already_verified`: the order was already picked up; the timeline shows by whom and when |
+| Safe actions | Ask the customer to show the code on their own device (the manual code is the fallback when a QR will not scan). The customer reissues the credential from the order screen. After a lock, wait out the 15-minute window |
+| Do NOT | Hand over food without a successful verification; read the customer's code over the phone to a third party; mark an order PICKED_UP from the admin tools (there is no such action, by design) |
+| Escalation | Repeated refusals for one staff account (possible misuse): security and the restaurant owner. System-wide errors: engineering |
+| Recovery verified | The order timeline shows `PICKED_UP` then `COMPLETED`, with the verifying staff member |

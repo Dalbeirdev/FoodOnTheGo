@@ -7,6 +7,7 @@ import { useToast } from '../../components/Toast'
 import { useAccount, useInboxRefreshOn, type Notification, type NotificationChannel, type NotificationKind, type NotificationMatrix, type NotificationPreferences } from '../../account/AccountContext'
 import './AccountPage.css'
 import './NotificationsPage.css'
+import { userMessage } from '../../api/userMessage'
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -100,7 +101,7 @@ export default function NotificationsPage() {
   const toggleCell = async (category: string, channel: NotificationChannel, enabled: boolean) => {
     const key = `${category}.${channel}`
     setSavingPref(key)
-    try { await updateNotificationPrefs({ cells: [{ category, channel, enabled }] }); toast.success('Preference saved') } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not save the preference') } finally { setSavingPref(null) }
+    try { await updateNotificationPrefs({ cells: [{ category, channel, enabled }] }); toast.success('Preference saved') } catch (e) { toast.error(userMessage(e, 'Could not save the preference')) } finally { setSavingPref(null) }
   }
 
   return (
@@ -135,7 +136,7 @@ export default function NotificationsPage() {
                   </ul>
                 )}
                 {matrix?.channelStatus && <ul className="nt-channel-status" data-testid="nt-channel-status">{(Object.entries(matrix.channelStatus) as Array<[NotificationChannel, string]>).map(([ch, st]) => <li key={ch} data-channel={ch} data-status={st}><b>{CHANNEL_LABEL[ch]}</b> {CHANNEL_STATUS_TEXT[st] ?? st}</li>)}</ul>}
-                <p className="ac-note">{matrix ? 'Your choices decide what the backend sends. In-app notices are always kept here; push goes to the Android app; e-mail needs a verified address (none is verified yet); SMS has no provider yet.' : 'Delivery of push, SMS and email is connected in later modules; your choices are saved now.'}</p>
+                <p className="ac-note">{matrix ? 'Your choices decide which updates we send and where. In-app notifications always appear here; push notifications go to the Android app.' : 'Your choices are saved in this browser.'}</p>
               </section>
             )}
 

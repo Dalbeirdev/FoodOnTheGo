@@ -14,6 +14,7 @@ import { t, useLocale } from '../i18n/strings'
 import { restaurantRef, track } from '../analytics'
 import { clampQuantity, defaultSelections, lineTotalMinor, normalizeInstructions, orderability, selectOption, selectedOptions, unitPriceMinor, validateSelections, type GroupIssue, type Selections } from '../pricing/pricing'
 import './ItemDetailPage.css'
+import { userMessage } from '../api/userMessage'
 
 /**
  * Food Item Details & Customization (Module 08) — canonical /restaurants/:restaurantSlug/item/:itemSlug.
@@ -101,7 +102,7 @@ export default function ItemDetailPage() {
         document.title = `${item.name} · ${restaurant.name} · FoodOnTheGo`
         menuRepository.getItems(restaurant.id, { limit: 12 }).then((p) => { if (alive) setMore(p.items.filter((i) => i.id !== item.id && i.availability === 'available').slice(0, 4)) }).catch(() => {})
       } catch (e) {
-        if (alive) setState({ status: 'error', restaurant: null, item: null, error: e instanceof Error ? e.message : String(e) })
+        if (alive) setState({ status: 'error', restaurant: null, item: null, error: userMessage(e, 'Something went wrong. Please try again.') })
       }
     })()
     return () => { alive = false }

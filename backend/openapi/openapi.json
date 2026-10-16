@@ -34917,6 +34917,91 @@
           }
         }
       }
+    },
+    "/auth/admin/step-up": {
+      "post": {
+        "summary": "Administrator step-up (Module 41): confirm the session with the password and, when MFA is on, the TOTP code or a recovery code, before a high-risk action. A sign-in younger than auth_security.step_up.fresh_token_minutes already counts as recent. High-risk actions (refund approve / execute / retry, settlement approval and payouts, payout retry / cancel, financial adjustments, administrator role / status / MFA reset, restaurant and organization status, analytics exports) answer 403 step_up_required otherwise. Errors: step_up_failed (422), validation_failed (422), rate_limited (429)",
+        "security": [
+          {
+            "admin": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "password"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "code": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{6}$"
+                  },
+                  "recovery_code": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "step_up_until"
+                      ],
+                      "properties": {
+                        "step_up_until": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error"
+          }
+        }
+      }
     }
   },
   "components": {

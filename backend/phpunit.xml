@@ -134,6 +134,8 @@
         <env name="AUTH_PASSWORD_MIN_LENGTH" value="12" force="true"/>
         <env name="AUTH_PASSWORD_RESET_TTL_MINUTES" value="30" force="true"/>
         <env name="AUTH_MFA_REQUIRED_ADMIN" value="false" force="true"/>
+        <!-- Module 41: Sanctum::actingAs tokens carry no issue time; AdminStepUpTest switches step-up on with real tokens. -->
+        <env name="AUTH_ADMIN_STEP_UP" value="false" force="true"/>
         <env name="AUTH_MFA_REQUIRED_RESTAURANT" value="false" force="true"/>
         <env name="AUTH_MFA_CHALLENGE_TTL_SECONDS" value="300" force="true"/>
         <env name="AUTH_MFA_CHALLENGE_MAX_ATTEMPTS" value="5" force="true"/>

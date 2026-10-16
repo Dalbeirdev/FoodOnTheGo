@@ -186,7 +186,7 @@ void main() {
     final (app3, _) = tracking(s3, auth);
     await t.pumpWidget(app3); await t.pumpAndSettle();
     expect(find.text('Cancel order'), findsOneWidget); expect(find.byKey(const Key('trk-cancel')), findsNothing);
-    expect(find.textContaining('POLICY / BACKEND PENDING'), findsOneWidget);
+    expect(find.textContaining('Cancellation depends on the restaurant policy'), findsOneWidget); expect(find.textContaining('PENDING'), findsNothing);
   });
 
   testWidgets('Tracking — when the backend allows it: the quote is shown before confirming, only a reason is sent, and the screen shows what the backend made of it', (t) async {

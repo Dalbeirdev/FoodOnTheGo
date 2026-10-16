@@ -1,4 +1,5 @@
 import type { ProviderReport, ProviderSession } from './apiPayment'
+import { userMessage } from '../../api/userMessage'
 
 /**
  * Opens the PROVIDER'S OWN payment interface (Module 30) and resolves with what it tells the browser.
@@ -47,7 +48,7 @@ export class ProviderUnavailableError extends Error {}
 
 export const launchRazorpay: ProviderLauncher = async (session) => {
   if (!session.keyId || !session.checkoutScript) throw new ProviderUnavailableError('provider_not_configured')
-  try { await loadProviderScript(session.checkoutScript) } catch (e) { throw new ProviderUnavailableError(e instanceof Error ? e.message : 'provider_script_failed') }
+  try { await loadProviderScript(session.checkoutScript) } catch (e) { throw new ProviderUnavailableError(userMessage(e, 'provider_script_failed')) }
   const Razorpay = window.Razorpay
   if (!Razorpay) throw new ProviderUnavailableError('provider_script_failed')
 

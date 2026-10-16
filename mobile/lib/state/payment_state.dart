@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../checkout/checkout_models.dart';
 import '../payment/payment_models.dart';
+import '../core/user_message.dart';
 
 export '../payment/payment_models.dart';
 
@@ -86,7 +87,7 @@ class PaymentState extends ChangeNotifier {
         await repo.transition(current.publicId, PaymentStatus.expired, note: 'superseded by a new checkout');
       }
       await _create(p, req, _snapshot!, restaurantId, req.paymentMethodId);
-    } catch (e) { error = '$e'; status = PaymentStatus.error; notifyListeners(); }
+    } catch (e) { error = userMessage(e); status = PaymentStatus.error; notifyListeners(); }
     finally { _inFlight = false; busy = false; notifyListeners(); }
   }
 
@@ -117,7 +118,7 @@ class PaymentState extends ChangeNotifier {
       await _commit(a.publicId, PaymentStatus.processing, note: 'waiting for the customer to pay');
       final r = await p.openPaymentExperience(a, cancelled: cancel.future).timeout(providerTimeout, onTimeout: () => const ClientPaymentResult(ClientOutcome.unknown, reason: 'timeout'));
       await _applyResult(a, r);
-    } catch (e) { error = '$e'; await _commit(a.publicId, PaymentStatus.error, failureReason: 'error', note: 'unexpected error'); }
+    } catch (e) { error = userMessage(e); await _commit(a.publicId, PaymentStatus.error, failureReason: 'error', note: 'unexpected error'); }
     finally { _inFlight = false; busy = false; _cancelSignal = null; notifyListeners(); }
   }
 
@@ -143,7 +144,7 @@ class PaymentState extends ChangeNotifier {
     if (req == null || p == null || a == null || _inFlight || !retryableStatuses.contains(status)) return;
     _inFlight = true; busy = true; notifyListeners();
     try { await _create(p, req, _snapshot!, _restaurantId!, a.methodId); }
-    catch (e) { error = '$e'; status = PaymentStatus.error; notifyListeners(); }
+    catch (e) { error = userMessage(e); status = PaymentStatus.error; notifyListeners(); }
     finally { _inFlight = false; busy = false; notifyListeners(); }
   }
 
@@ -155,7 +156,7 @@ class PaymentState extends ChangeNotifier {
     if (status == PaymentStatus.ready) { await _commit(a.publicId, PaymentStatus.ready, methodId: m.id, methodType: m.type.name, note: 'method changed'); return; }
     _inFlight = true; busy = true; notifyListeners();
     try { await _create(p, req, _snapshot!, _restaurantId!, m.id); }
-    catch (e) { error = '$e'; status = PaymentStatus.error; notifyListeners(); }
+    catch (e) { error = userMessage(e); status = PaymentStatus.error; notifyListeners(); }
     finally { _inFlight = false; busy = false; notifyListeners(); }
   }
 
@@ -173,7 +174,7 @@ class PaymentState extends ChangeNotifier {
         case ClientOutcome.pending: await _commit(a.publicId, PaymentStatus.pending, note: 'status check → still pending');
         default: await _commit(a.publicId, PaymentStatus.unknown, note: 'status check → still unknown');
       }
-    } catch (e) { error = '$e'; status = PaymentStatus.error; notifyListeners(); }
+    } catch (e) { error = userMessage(e); status = PaymentStatus.error; notifyListeners(); }
     finally { _inFlight = false; busy = false; notifyListeners(); }
   }
 

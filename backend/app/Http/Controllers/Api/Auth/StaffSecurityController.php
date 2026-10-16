@@ -9,6 +9,7 @@ use App\Http\Resources\Auth\PrincipalResource;
 use App\Models\AccessToken;
 use App\Models\AdminUser;
 use App\Models\RestaurantUser;
+use App\Services\Auth\AdminStepUp;
 use App\Services\Auth\MfaService;
 use App\Services\Auth\PasswordResetService;
 use App\Services\Auth\TokenIssuer;
@@ -71,6 +72,22 @@ class StaffSecurityController extends Controller
         $mfa->disable($user, $data['code']);
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Module 41: step-up of an administrator's session before a high-risk action (password, and the MFA code or a
+     * recovery code when MFA is on). Answers until when the session counts as recently authenticated.
+     */
+    public function stepUp(Request $request, AdminStepUp $stepUp): JsonResponse
+    {
+        $data = $request->validate([
+            'password' => ['required', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'regex:/^\d{6}$/'],
+            'recovery_code' => ['nullable', 'string', 'max:64'],
+        ]);
+        $until = $stepUp->confirm($request, $data['password'], $data['code'] ?? null, $data['recovery_code'] ?? null);
+
+        return response()->json(['data' => ['step_up_until' => $until->toIso8601String()]]);
     }
 
     private function staff(Request $request): AdminUser|RestaurantUser

@@ -13,6 +13,7 @@ import type { CheckoutIssue, CheckoutRepository, CheckoutRequest, CheckoutStatus
 import { CheckoutCtx as Ctx, useCheckout, type CheckoutApi } from './checkoutApi'
 import { checkoutMode } from './checkoutMode'
 import { ServerCheckoutProvider } from './ServerCheckoutProvider'
+import { userMessage } from '../api/userMessage'
 
 export { useCheckout }
 
@@ -99,7 +100,7 @@ function DeviceCheckoutProvider({ children, promotions = defaultPromos, payments
       else setStatus('READY')
     } catch (e) {
       if (my !== seq.current) return
-      setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR')
+      setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR')
     }
   }, [auth.isAuthenticated, c, connectivity, promoCode, promotions, checkout, payments])
 

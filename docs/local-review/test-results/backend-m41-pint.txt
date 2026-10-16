@@ -1,0 +1,5 @@
+# Module 41 — Pint after the full run (2026-10-16 07:28 IST)
+{"tool":"pint","result":"fail","files":[{"path":"app\\Providers\\AppServiceProvider.php","fixers":["unary_operator_spaces","not_operator_with_successor_space","ordered_imports"]},{"path":"tests\\Feature\\Auth\\AdminStepUpTest.php","fixers":["fully_qualified_strict_types","ordered_imports"]}]}pint exit 1
+pint --dirty: fixed AppServiceProvider.php (operator spacing, import order) and AdminStepUpTest.php (imports); formatting only.
+Affected tests re-run: tests/Feature/Auth/AdminStepUpTest.php, tests/Feature/Security, tests/Feature/Notifications -> 77/77 passed (1764 assertions).
+pint --test --dirty after the fix: passed

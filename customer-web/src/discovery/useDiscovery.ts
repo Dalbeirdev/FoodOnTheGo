@@ -4,6 +4,7 @@ import type { DiscoveryQuery, DiscoveryScope, FilterDefinition, FilterValue, Jou
 import { JourneyError, type JourneyErrorCode } from '../journey/repositories'
 import { marketFor } from '../i18n/markets'
 import { track } from '../analytics'
+import { userMessage } from '../api/userMessage'
 
 export type DiscoveryStatus = 'idle' | 'loading' | 'updating' | 'loadingMore' | 'ready' | 'error'
 
@@ -72,7 +73,7 @@ export function useDiscovery(journey: JourneyLike | null, journeyReady: boolean,
       if (journey?.backend) track('journey_results_viewed', { journey: journey.id }, { results: Math.max(0, Math.min(500, Math.trunc(page.total))) }, `journey_results_viewed:${journey.id}`)
     } catch (e) {
       if (my !== seq.current) return
-      setError(e instanceof Error ? e.message : 'Something went wrong.'); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error')
+      setError(userMessage(e, 'Something went wrong.')); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [journey, journeyReady, debounced, filters, sort, effectiveCorridor, scopeKey, maxRing])

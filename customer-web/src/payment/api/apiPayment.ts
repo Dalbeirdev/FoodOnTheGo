@@ -1,4 +1,5 @@
 import { ApiError, api } from '../../api/client'
+import { userMessage } from '../../api/userMessage'
 
 /**
  * The backend's payment attempts (Module 30), as the web client uses them.
@@ -125,7 +126,7 @@ export function toPaymentError(e: unknown): PaymentApiError {
     const code: PaymentErrorCode = e.kind === 'network' ? 'offline' : e.kind === 'unauthenticated' ? 'unauthenticated' : e.kind === 'rate_limited' ? 'rate_limited' : CODES[e.code] ?? (e.kind === 'not_found' ? 'not_found' : 'error')
     return new PaymentApiError(code, e.message, e.code, e.details, e.retryAfterSeconds)
   }
-  return new PaymentApiError('error', e instanceof Error ? e.message : 'error')
+  return new PaymentApiError('error', userMessage(e, 'error'))
 }
 
 export type SimulationScenario = 'SUCCESS' | 'AUTHORIZED' | 'PENDING' | 'FAILED' | 'CANCELLED' | 'INVALID_SIGNATURE' | 'AMOUNT_MISMATCH' | 'LATE_SUCCESS' | 'LATE_FAILURE' | 'PROVIDER_DOWN' | 'PROVIDER_UP'

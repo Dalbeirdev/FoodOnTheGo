@@ -87,11 +87,10 @@ describe('Module 02 navigation and routes', () => {
     expect(within(footer).queryByRole('link', { name: /facebook|instagram|youtube/i })).toBeNull()
   })
 
-  it('Help contact keeps Live Chat as an honest pending action (no backend)', async () => {
-    const user = userEvent.setup()
+  it('Help contact offers only real channels: no live chat, no placeholder phone number (Module 41)', async () => {
     mount('/help')
-    await user.click(screen.getByRole('button', { name: /live chat/i }))
-    expect(screen.getByRole('status')).toHaveTextContent(/once the support system is connected/i)
+    expect(screen.queryByRole('button', { name: /live chat/i })).toBeNull()
+    expect(screen.queryByText(/98765 43210/)).toBeNull()
     expect(screen.getByRole('link', { name: /email support/i })).toHaveAttribute('href', 'mailto:support@foodonthego.com')
   })
 })

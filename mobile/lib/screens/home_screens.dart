@@ -43,11 +43,32 @@ class _SplashScreenState extends State<SplashScreen> {
               const Spacer(),
               const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(color: Brand.orange, strokeWidth: 2.5)),
               const SizedBox(height: 14),
-              Text('${AppConfig.env.toUpperCase()} BUILD · checking local API…', style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: .5)),
+              if (!AppConfig.isProduction) Text('${AppConfig.env.toUpperCase()} BUILD · checking API…', style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: .5)),
               const SizedBox(height: 32),
             ]),
           ),
         ]),
+      );
+}
+
+/// Module 41: an address the app does not know (no router error text on screen).
+class NotFoundScreen extends StatelessWidget {
+  const NotFoundScreen({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('Page not found')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.explore_off_outlined, size: 56, color: Brand.grey),
+              const SizedBox(height: 12),
+              const Text('This page does not exist.', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+              const SizedBox(height: 16),
+              FilledButton(onPressed: () => context.go('/home'), child: const Text('Go to Home')),
+            ]),
+          ),
+        ),
       );
 }
 
@@ -126,7 +147,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                ...restaurants.take(2).map((r) => Padding(padding: const EdgeInsets.only(bottom: 10), child: RestaurantMini(r))),
+                if (!restaurantsFromApi) ...restaurants.take(2).map((r) => Padding(padding: const EdgeInsets.only(bottom: 10), child: RestaurantMini(r))),
               ]),
             ),
           ),
@@ -142,8 +163,12 @@ class HomeScreen extends StatelessWidget {
               FeatureCard(icon: Icons.schedule, title: 'Save Time & Enjoy', sub: 'No waiting, no detours. Just great food on your way.', bg: Brand.amberBg, fg: Brand.amber),
             ],
           ),
-          SectionTitle('Restaurants on your route', subtitle: 'Top-rated picks near Sector 62 → Connaught Place', action: 'See all', onAction: () => context.go('/restaurants')),
-          ResponsiveGrid(columns: Layout.columns(context), children: restaurants.take(3).map((r) => RestaurantCard(r)).toList()),
+          if (restaurantsFromApi)
+            SectionTitle('Restaurants on your route', subtitle: 'Plan a journey to see the restaurants along your way', action: 'Plan a journey', onAction: () => context.go('/plan-journey'))
+          else ...[
+            SectionTitle('Restaurants on your route', subtitle: 'Top-rated picks on your way', action: 'See all', onAction: () => context.go('/restaurants')),
+            ResponsiveGrid(columns: Layout.columns(context), children: restaurants.take(3).map((r) => RestaurantCard(r)).toList()),
+          ],
         ],
       ),
       bottomNavigationBar: const CartBar(),

@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { PRIVATE_CONTEXT_CLEARED } from '../auth/privateContext'
 import { journeyRepositories, type JourneyRepositories } from './journeyRepositories'
 import { JourneyError, validateJourney, type Journey, type JourneyErrorCode, type Location, type ValidationErrors } from './repositories'
+import { userMessage } from '../api/userMessage'
 
 export type { Journey, Location, RouteSummary, ValidationErrors } from './repositories'
 export type { JourneyRepositories } from './journeyRepositories'
@@ -104,7 +105,7 @@ export function JourneyProvider({ children, repositories = journeyRepositories }
   }, [loadRecent])
   const persist = (j: Journey | null) => { try { j ? sessionStorage.setItem(CURRENT_KEY, JSON.stringify(j)) : sessionStorage.removeItem(CURRENT_KEY) } catch { /* ignore */ } }
   const clearError = () => { setError(null); setErrorCode(null) }
-  const fail = (e: unknown, fallback: string) => { setError(e instanceof Error && e.message ? e.message : fallback); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error') }
+  const fail = (e: unknown, fallback: string) => { setError(userMessage(e, fallback)); setErrorCode(e instanceof JourneyError ? e.code : 'unexpected'); setStatus('error') }
 
   const setOrigin = (l: Location | null) => { setOriginState(l); setErrors((e) => ({ ...e, origin: undefined, form: undefined })); setStatus('editing'); clearError() }
   const setDestination = (l: Location | null) => { setDestinationState(l); setErrors((e) => ({ ...e, destination: undefined, form: undefined })); setStatus('editing'); clearError() }

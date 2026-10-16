@@ -14,6 +14,7 @@ import type { OrderSummary } from '../order/repositories'
 import { orderRepositories } from '../order/useOrderConfirmation'
 import { useAccount } from '../account/AccountContext'
 import './MyProfilePage.css'
+import { userMessage } from '../api/userMessage'
 
 type P = { size?: number }
 const stroke = (size: number) => ({ width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const })
@@ -131,7 +132,7 @@ export default function MyProfilePage() {
       if (fields.name) mapped.name = fields.name
       if (fields.email) mapped.email = fields.email
       if (fields.date_of_birth) mapped.dob = fields.date_of_birth
-      if (!Object.keys(mapped).length) mapped.form = e2 instanceof Error ? e2.message : 'Could not save your profile. Please try again.'
+      if (!Object.keys(mapped).length) mapped.form = userMessage(e2, 'Could not save your profile. Please try again.')
       setErrors(mapped)
       if (e2 instanceof RepositoryError && e2.code === 'stale_update') void reload()
     } finally {
@@ -150,9 +151,9 @@ export default function MyProfilePage() {
     reader.onload = () => setAvatarPreview(String(reader.result))
     reader.readAsDataURL(file)
   }
-  const saveAvatar = async () => { if (!avatarPreview) return; setAvatarBusy(true); try { await setAvatar(avatarPreview); setAvatarPreview(null); toast.success('Photo updated') } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not update the photo') } finally { setAvatarBusy(false) } }
+  const saveAvatar = async () => { if (!avatarPreview) return; setAvatarBusy(true); try { await setAvatar(avatarPreview); setAvatarPreview(null); toast.success('Photo updated') } catch (e) { toast.error(userMessage(e, 'Could not update the photo')) } finally { setAvatarBusy(false) } }
   const removeAvatar = async () => { setAvatarBusy(true); try { await setAvatar(null); toast.success('Photo removed') } catch { toast.error('Could not remove the photo') } finally { setAvatarBusy(false) } }
-  const pref = async (patch: Parameters<typeof update>[0]) => { setPrefBusy(true); try { await update(patch); toast.success('Preference saved') } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not save the preference') } finally { setPrefBusy(false) } }
+  const pref = async (patch: Parameters<typeof update>[0]) => { setPrefBusy(true); try { await update(patch); toast.success('Preference saved') } catch (e) { toast.error(userMessage(e, 'Could not save the preference')) } finally { setPrefBusy(false) } }
 
   /** Runs a sensitive action; when the backend wants a fresh code first, asks for it and runs the action again. */
   const withRecentAuth = async (action: () => Promise<void>, onCodeNeeded?: () => void) => {
@@ -169,7 +170,7 @@ export default function MyProfilePage() {
     setDeleteBusy(true)
     try {
       await withRecentAuth(async () => { await requestDeletion(live ? deleteReason : undefined); setDeleteOpen(false); toast.success('Deletion request received') }, () => setDeleteOpen(false))
-    } catch (e) { toast.error(e instanceof Error ? e.message : 'Could not submit the request') } finally { setDeleteBusy(false) }
+    } catch (e) { toast.error(userMessage(e, 'Could not submit the request')) } finally { setDeleteBusy(false) }
   }
 
   const startPhoneChange = () => { if (security) { setNewPhone(''); setPhoneError(null); setPhoneOpen(true) } else setPhoneInfo(true) }
@@ -186,7 +187,7 @@ export default function MyProfilePage() {
         setCodeStep({ challenge, title: 'Verify your new number', intro: 'We sent a code to', verify: async (c) => { await security.verifyPhoneChange(challenge.challengeId, c); setCodeStep(null); toast.success('Mobile number updated. Other devices were signed out.') } })
       }, () => setPhoneOpen(false))
     } catch (e2) {
-      setPhoneError(e2 instanceof RepositoryError ? e2.fields.phone ?? e2.message : e2 instanceof Error ? e2.message : 'Could not start the change')
+      setPhoneError(e2 instanceof RepositoryError ? e2.fields.phone ?? e2.message : userMessage(e2, 'Could not start the change'))
     } finally { setPhoneBusy(false) }
   }
   const submitCode = async (e: FormEvent) => {
@@ -194,7 +195,7 @@ export default function MyProfilePage() {
     if (!codeStep) return
     if (code.trim().length < 4) { setCodeError('Enter the code we sent'); return }
     setCodeBusy(true); setCodeError(null)
-    try { await codeStep.verify(code.trim()) } catch (e2) { setCodeError(e2 instanceof Error ? e2.message : 'That code was not accepted') } finally { setCodeBusy(false) }
+    try { await codeStep.verify(code.trim()) } catch (e2) { setCodeError(userMessage(e2, 'That code was not accepted')) } finally { setCodeBusy(false) }
   }
 
   const DONE = ['PICKED_UP', 'COMPLETED'], STOPPED = ['CANCELLED', 'REJECTED', 'REFUND_PENDING', 'REFUNDED']
@@ -273,7 +274,7 @@ export default function MyProfilePage() {
                   </div>
                   <dl className="pf-account">
                     <div><dt><PhoneIcon size={18} /> Sign-in method</dt><dd>Mobile OTP · {profile.phone} <span className="pf-tag">Verified</span></dd></div>
-                    <div><dt><DeviceIcon /> Sessions</dt><dd>This device <span className="pf-tag">Active</span> <small className="pf-hint">{live ? 'Changing your number signs every other device out. A device list arrives in a later module.' : 'Device management arrives with the backend.'}</small></dd></div>
+                    <div><dt><DeviceIcon /> Sessions</dt><dd>This device <span className="pf-tag">Active</span> <small className="pf-hint">{live ? 'Changing your number signs every other device out.' : 'Device management needs the backend.'}</small></dd></div>
                     <div><dt><UserIcon size={18} /> Account Type</dt><dd>{profile.accountType} <span className="pf-tag">Standard User</span></dd></div>
                     <div><dt><CalendarIcon /> Member Since</dt><dd>{fmtDate(profile.memberSince)}</dd></div>
                     <div><dt><ShieldIcon size={18} /> Account Status</dt><dd><span className="pf-status">● {STATUS_LABEL[profile.status] ?? profile.status}</span></dd></div>
@@ -345,7 +346,7 @@ export default function MyProfilePage() {
             <div className="ac-modal__box ac-modal__box--sm pf-avatar-modal">
               <h2 id="avatar-title">Preview your photo</h2>
               <img src={avatarPreview} alt="Selected profile photo preview" className="pf-avatar-preview" />
-              <p className="ac-note">{live ? 'The photo is checked and stored by the backend (local environment): JPG, PNG or WebP, up to 2 MB, at least 120 px on each side. Your previous photo is deleted.' : 'Stored locally in this preview. Upload, validation and image optimisation happen on the backend.'}</p>
+              <p className="ac-note">{live ? 'JPG, PNG or WebP, up to 2 MB, at least 120 px on each side. Your previous photo is replaced.' : 'Stored locally in this preview.'}</p>
               <div className="ac-modal__actions">
                 <button type="button" className="btn btn--outline" onClick={() => setAvatarPreview(null)} disabled={avatarBusy}>Cancel</button>
                 <button type="button" className="btn btn--primary" onClick={saveAvatar} disabled={avatarBusy}>{avatarBusy ? 'Saving…' : 'Use this photo'}</button>

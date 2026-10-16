@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
         <div className="footer__col footer__app">
           <h3>Get the App</h3>
-          <p>Download our Android app for a better experience.</p>
+          <p>Our Android app is coming soon to Google Play.</p>
           <Link to={primaryAction.to} className="store-badge" aria-label="Google Play: coming soon"><GooglePlayIcon size={26} /><span><small>COMING SOON ON</small><strong>Google Play</strong></span></Link>
           {/* iOS is deferred — App Store badge intentionally omitted until approved. */}
         </div>

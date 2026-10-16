@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useAuth } from '../auth/AuthContext'
 import { MockAddressRepository, MockFavoriteRepository, MockNotificationRepository, MockPaymentMethodRepository } from './mock/mockRepositories'
 import type { Address, AddressInput, AddressRepository, Favorite, FavoriteRepository, Notification, NotificationPreferences, NotificationPreferencesPatch, NotificationRepository, PaymentMethod, PaymentMethodRepository } from './repositories'
+import { userMessage } from '../api/userMessage'
 
 export type { Address, AddressInput, AddressKind, Coverage, CoverageStatus, Favorite, Notification, NotificationCategory, NotificationCell, NotificationChannel, NotificationKind, NotificationMatrix, NotificationPreferences, NotificationPreferencesPatch, PaymentMethod, PaymentMethodStatus } from './repositories'
 
@@ -53,7 +54,7 @@ function useResource<T>(userId: string | null, load: (userId: string) => Promise
   const reload = useCallback(async () => {
     if (!userId) { setStatus('idle'); setData(empty); return }
     setStatus('loading'); setError(null)
-    try { setData(await load(userId)); setStatus('ready') } catch (e) { setError(e instanceof Error ? e.message : 'Something went wrong.'); setStatus('error') }
+    try { setData(await load(userId)); setStatus('ready') } catch (e) { setError(userMessage(e, 'Something went wrong.')); setStatus('error') }
   }, [userId, empty, load])
   useEffect(() => { const t = setTimeout(() => { void reload() }, 0); return () => clearTimeout(t) }, [reload])
   const setReady = useCallback((next: T) => { setData(next); setStatus('ready'); setError(null) }, [])

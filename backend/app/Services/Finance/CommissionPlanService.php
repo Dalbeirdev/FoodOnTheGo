@@ -43,7 +43,7 @@ final class CommissionPlanService
         if ($until !== null && ! $until->greaterThan($from)) {
             throw new ApiException(422, 'effective_until_invalid', 'A plan ends after it starts.', ['fields' => ['effective_until' => ['Must be after effective_from.']]]);
         }
-        if (app()->isProduction() && $input['approval'] !== CommissionPlan::APPROVAL_APPROVED) {
+        if (! app()->environment(['local', 'testing']) && $input['approval'] !== CommissionPlan::APPROVAL_APPROVED) {
             throw new ApiException(422, 'approval_required', 'A production commission plan needs the reference of its approval.', ['fields' => ['approval' => ['Only an APPROVED plan can be made here.']]]);
         }
         if ($location !== null && ((int) $location->market_id !== (int) $market->getKey() || $organization === null || (int) $location->organization_id !== (int) $organization->getKey())) {

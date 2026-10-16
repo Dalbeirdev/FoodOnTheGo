@@ -7,6 +7,7 @@ import { BASE } from '../AdminLayout'
 import { Badge, DataTable, Details, DevNote, ReasonDialog, Toolbar, useUrlState, type Column } from '../components/DataTable'
 import type { AdminReview, AdminReviewCase, ModerationAction, ReviewModerationFilter } from '../types'
 import { Cell, Stars, StatusPill, fmtDate, fmtDateTime, useLoad, usePageTitle } from './shared'
+import { userMessage } from '../../api/userMessage'
 
 const DEFAULTS = { tab: 'all', q: '', page: '1' }
 const TABS: ReviewModerationFilter['tab'][] = ['all', 'pending', 'flagged', 'published', 'hidden', 'rejected', 'removed']
@@ -33,7 +34,7 @@ export default function ReviewsPage() {
   /** The backend's detail: history, cases and the reports behind them. The row stays on screen if it cannot be loaded. */
   const detail = async (id: string) => { if (!a.repos.reviews.get) return; try { setOpen(await a.repos.reviews.get(id)) } catch { /* keep the row */ } }
   const show = (r: AdminReview) => { setErr(null); setOpen(r); void detail(r.review.reviewId) }
-  const failed = (e: unknown) => { const m = e instanceof Error ? e.message : ''; const text = open?.backend && m && !/_failed$/.test(m) ? m : `${t('adm.error.saveFailed', undefined, locale)}${m ? ` (${m})` : ''}`; setErr(text); return text }
+  const failed = (e: unknown) => { const m = userMessage(e, ''); const text = open?.backend && m && !/_failed$/.test(m) ? m : `${t('adm.error.saveFailed', undefined, locale)}${m ? ` (${m})` : ''}`; setErr(text); return text }
   const moderate = async (reason: string) => {
     if (!open || !action) return
     setBusy(true); setErr(null)

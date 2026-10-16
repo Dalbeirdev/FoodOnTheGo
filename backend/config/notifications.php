@@ -21,6 +21,12 @@ return [
     | notifications yet (the OTP provider of Module 21 is a separate policy and is never reused here).
     */
 
+    // Module 41: the fake push / e-mail / SMS providers exist for local development and tests ONLY (an allow-list,
+    // like payments and journeys). Anywhere else a push driver other than `fcm` means FCM — which reports
+    // UNAVAILABLE until it is configured — `fake` e-mail means the mailer, and SMS is the not-configured provider:
+    // a misconfigured server says so instead of reporting fake messages as SENT.
+    'allow_fake' => in_array(env('APP_ENV', 'production'), ['local', 'testing'], true),
+
     'channels' => [
         'PUSH' => ['driver' => env('PUSH_DRIVER', 'fake')],
         'EMAIL' => ['driver' => env('EMAIL_NOTIFICATIONS_DRIVER', 'mail'), 'require_verified' => true],

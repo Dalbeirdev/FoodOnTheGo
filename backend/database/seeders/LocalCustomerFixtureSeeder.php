@@ -38,6 +38,10 @@ class LocalCustomerFixtureSeeder extends Seeder
 {
     public function run(CustomerFavoriteService $favorites, SavedLocationService $locations, PaymentMethodReferenceService $payments): void
     {
+        // Module 41: development fixtures never reach another environment, also through db:seed --class.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
         $india = Market::query()->where('country_code', 'IN')->first();
         $rahul = Customer::query()->where('phone_e164', '+919876543210')->first();
         if ($india === null || $rahul === null) {

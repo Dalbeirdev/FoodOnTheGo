@@ -13,6 +13,7 @@ import { useCheckout } from '../checkout/CheckoutContext'
 import type { CheckoutRequest, PaymentMethodOption } from '../checkout/repositories'
 import { MockPaymentProviderResolver, MockPaymentRepository, MockPaymentVerificationService, MOCK_PROVIDER_TIMEOUT_MS } from './mock/mockPayment'
 import { IN_FLIGHT, type ClientPaymentResult, type PaymentAttempt, type PaymentProvider, type PaymentProviderResolver, type PaymentRepository, type PaymentStatus, type PaymentVerificationService } from './repositories'
+import { userMessage } from '../api/userMessage'
 
 export type PaymentApi = {
   status: PaymentStatus
@@ -97,7 +98,7 @@ export function PaymentProviderContext({ children, resolver = defaultResolver, r
       }
       await createAttempt(p, request, snapshot, ctx, request.paymentMethodId, list)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR')
+      setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR')
     } finally { inFlight.current = false; setBusy(false) }
   }, [resolver, repository, verifier, commit, createAttempt])
 
@@ -134,7 +135,7 @@ export function PaymentProviderContext({ children, resolver = defaultResolver, r
       ac.abort()
       await applyResult(a, r)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e)); if (attempt) await commit(attempt.publicId, 'ERROR', { failureReason: 'error' }, 'unexpected error')
+      setError(userMessage(e, 'Something went wrong. Please try again.')); if (attempt) await commit(attempt.publicId, 'ERROR', { failureReason: 'error' }, 'unexpected error')
     } finally { inFlight.current = false; setBusy(false); abortRef.current = null }
   }, [attempt, provider, status, co.online, commit, applyResult, providerTimeoutMs])
 
@@ -151,7 +152,7 @@ export function PaymentProviderContext({ children, resolver = defaultResolver, r
     if (!c || !p || inFlight.current || !a || !['FAILED', 'CANCELLED', 'EXPIRED', 'ERROR'].includes(status)) return
     inFlight.current = true; setBusy(true)
     try { await createAttempt(p, c.request, c.snapshot, { countryCode: c.countryCode, restaurantId: c.restaurantId }, a.methodId, methods) }
-    catch (e) { setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR') }
+    catch (e) { setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR') }
     finally { inFlight.current = false; setBusy(false) }
   }, [provider, attempt, status, methods, createAttempt])
 
@@ -164,7 +165,7 @@ export function PaymentProviderContext({ children, resolver = defaultResolver, r
     if (status === 'READY') { await commit(a.publicId, 'READY', { methodId: m.id, methodType: m.type }, 'method changed'); return }
     inFlight.current = true; setBusy(true)
     try { await createAttempt(p, c.request, c.snapshot, { countryCode: c.countryCode, restaurantId: c.restaurantId }, m.id, methods) }
-    catch (e) { setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR') }
+    catch (e) { setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR') }
     finally { inFlight.current = false; setBusy(false) }
   }, [provider, attempt, methods, status, co, commit, createAttempt])
 
@@ -180,7 +181,7 @@ export function PaymentProviderContext({ children, resolver = defaultResolver, r
       else if (r.outcome === 'failed') await commit(a.publicId, 'FAILED', { failureReason: r.reason ?? null }, 'status check → failed')
       else if (r.outcome === 'pending') await commit(a.publicId, 'PENDING', undefined, 'status check → still pending')
       else await commit(a.publicId, 'UNKNOWN', undefined, 'status check → still unknown')
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); setStatus('ERROR') }
+    } catch (e) { setError(userMessage(e, 'Something went wrong. Please try again.')); setStatus('ERROR') }
     finally { inFlight.current = false; setBusy(false) }
   }, [attempt, provider, status, commit, verifier])
 

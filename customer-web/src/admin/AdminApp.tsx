@@ -4,6 +4,7 @@ import { ForgotPasswordPage, ResetPasswordPage } from '../auth/staff/StaffPasswo
 import { StaffAuthGate } from '../auth/staff/StaffSession'
 import { AdminProvider } from './AdminContext'
 import AdminLayout, { RequirePermission as RequireAdminPermission } from './AdminLayout'
+import StepUpDialog from './StepUpDialog'
 import AcceptInvitationPage from './pages/AcceptInvitationPage'
 import AdminOverviewPage from './pages/OverviewPage'
 import AdminRestaurantsPage, { RestaurantDetailsPage as AdminRestaurantDetailsPage } from './pages/RestaurantsPage'
@@ -30,7 +31,7 @@ export default function AdminApp() {
     <Route path="accept-invitation" element={<AcceptInvitationPage />} />
     <Route path="forgot-password" element={<ForgotPasswordPage context="admin" />} />
     <Route path="reset-password" element={<ResetPasswordPage context="admin" />} />
-    <Route path="/" element={<StaffAuthGate context="admin"><AdminProvider><AdminLayout /></AdminProvider></StaffAuthGate>}>
+    <Route path="/" element={<StaffAuthGate context="admin"><AdminProvider><AdminLayout /><StepUpDialog /></AdminProvider></StaffAuthGate>}>
       <Route index element={<Navigate to="overview" replace />} />
       <Route path="overview" element={<AdminOverviewPage />} />
       <Route path="account-security" element={<AccountSecurityPage context="admin" />} />

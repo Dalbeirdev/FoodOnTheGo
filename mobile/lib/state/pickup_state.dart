@@ -11,6 +11,7 @@ import '../journey/journey_repositories.dart' show Journey;
 import '../pickup/api_pickup.dart';
 import '../pickup/pickup_models.dart';
 import '../pickup/pickup_repository.dart';
+import '../core/user_message.dart';
 
 export '../pickup/api_pickup.dart' show PickupIssue, ServerPickup, ServerSelection, ServerSlot;
 export '../pickup/pickup_models.dart';
@@ -115,7 +116,7 @@ class PickupState extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (my != _seq) return;
-      error = '$e'; status = PickupStatus.error; notifyListeners();
+      error = userMessage(e); status = PickupStatus.error; notifyListeners();
     }
   }
 
@@ -171,7 +172,7 @@ class PickupState extends ChangeNotifier {
       final res = await repo.validatePickupSelection(restaurant, sel, (now ?? DateTime.now()).toUtc());
       if (res.ok) { status = PickupStatus.selected; staleReason = null; } else { status = PickupStatus.stale; staleReason = res.reason; }
       notifyListeners(); return res;
-    } catch (e) { error = '$e'; status = PickupStatus.error; notifyListeners(); rethrow; }
+    } catch (e) { error = userMessage(e); status = PickupStatus.error; notifyListeners(); rethrow; }
   }
   /// Module 39: the customer signed out (or the session ended) — the choice kept on this device goes. Nothing is sent:
   /// the backend's choice belongs to the customer's cart, and the guest cart is read again by [syncWithCart].

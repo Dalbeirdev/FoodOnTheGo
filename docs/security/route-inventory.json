@@ -1,5 +1,5 @@
 {
- "generated": "Module 39 — from `php artisan route:list --json` (local environment, so the DEVELOPMENT_ONLY routes appear) and the staff RBAC tables of the Module 39 authorization audit. Regenerate after any route change; tests/Feature/Security/RouteInventoryTest fails when a registered route is missing here or breaks the rule of its class. Module 40 added GET /api/v1/live (HEALTH) and GET /api/v1/admin/system/reliability (ADMIN, admin.system.view).",
+ "generated": "Module 39 — from `php artisan route:list --json` (local environment, so the DEVELOPMENT_ONLY routes appear) and the staff RBAC tables of the Module 39 authorization audit. Regenerate after any route change; tests/Feature/Security/RouteInventoryTest fails when a registered route is missing here or breaks the rule of its class. Module 40 added GET /api/v1/live (HEALTH) and GET /api/v1/admin/system/reliability (ADMIN, admin.system.view). Module 41 added POST /api/v1/auth/admin/step-up (ANY_STAFF, admin guard) and the step-up middleware on 17 high-risk administrator routes.",
  "classes": {
   "PUBLIC": "no sign-in; public data only",
   "PUBLIC_AUTH": "sign-in / recovery entry points; rate-limited",
@@ -3153,6 +3153,21 @@
    "permission": null,
    "scope": null,
    "name": "api.v1.auth.admin.password.reset"
+  },
+  {
+   "method": "POST",
+   "uri": "/api/v1/auth/admin/step-up",
+   "class": "ANY_STAFF",
+   "guard": "admin",
+   "active": true,
+   "throttle": [
+    "api",
+    "mfa-verify"
+   ],
+   "owner": "identity (M21; step-up M41)",
+   "permission": null,
+   "scope": null,
+   "name": "api.v1.auth.admin.step-up"
   },
   {
    "method": "POST",

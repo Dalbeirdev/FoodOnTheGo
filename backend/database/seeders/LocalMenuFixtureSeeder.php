@@ -234,6 +234,10 @@ class LocalMenuFixtureSeeder extends Seeder
 
     public function run(MenuService $menus): void
     {
+        // Module 41: development fixtures never reach another environment, also through db:seed --class.
+        if (! app()->environment(['local', 'testing'])) {
+            return;
+        }
         $locations = RestaurantLocation::query()->withoutGlobalScope('coordinates')->get()->keyBy('slug');
 
         foreach (self::menus() as $slug => [$status, $categories]) {

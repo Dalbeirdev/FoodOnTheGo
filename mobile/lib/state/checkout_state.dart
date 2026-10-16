@@ -15,6 +15,7 @@ import '../menu/menu_repository.dart';
 import 'auth_state.dart';
 import 'cart_state.dart' hide PromoState, PromoStatus;
 import 'pickup_state.dart';
+import '../core/user_message.dart';
 
 export '../checkout/checkout_models.dart';
 
@@ -164,7 +165,7 @@ class CheckoutState extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       if (my != _seq) return;
-      error = '$e'; status = CheckoutStatus.error; notifyListeners();
+      error = userMessage(e); status = CheckoutStatus.error; notifyListeners();
     }
   }
 

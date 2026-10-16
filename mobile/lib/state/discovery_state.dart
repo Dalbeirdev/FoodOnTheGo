@@ -12,6 +12,7 @@ import '../auth/auth_repository.dart' show KeyValueStore, SecureKeyValueStore;
 import '../account/account_repositories.dart' show SavedAddress;
 import '../journey/api_journey.dart';
 import '../journey/journey_repositories.dart' show Journey, JourneyErrorCode, JourneyException, JourneyLocation;
+import '../core/user_message.dart';
 
 enum DiscoveryStatus { idle, loading, updating, loadingMore, ready, error }
 
@@ -161,7 +162,7 @@ class DiscoveryState extends ChangeNotifier {
         journeyGone = errorCode == JourneyErrorCode.expired ? 'expired' : 'missing';
         items = const []; total = 0; nextCursor = null; searchMeta = null; emptyReason = null;
       }
-      error = e is JourneyException ? e.message : e.toString().replaceFirst('Exception: ', ''); status = DiscoveryStatus.error;
+      error = e is JourneyException ? e.message : userMessage(e); status = DiscoveryStatus.error;
     }
     notifyListeners();
   }

@@ -28,7 +28,7 @@ final class CommissionCalculationService
         $applies = fn (Builder $q) => $q->whereNull('withdrawn_at')
             ->where('effective_from', '<=', $at)
             ->where(fn (Builder $w) => $w->whereNull('effective_until')->orWhere('effective_until', '>', $at))
-            ->when(app()->isProduction(), fn (Builder $w) => $w->where('approval', CommissionPlan::APPROVAL_APPROVED));
+            ->when(! app()->environment(['local', 'testing']), fn (Builder $w) => $w->where('approval', CommissionPlan::APPROVAL_APPROVED));
 
         return CommissionPlan::query()->where('market_id', $marketId)
             ->where(fn (Builder $q) => $q

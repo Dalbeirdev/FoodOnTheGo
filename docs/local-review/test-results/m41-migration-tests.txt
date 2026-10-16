@@ -1,0 +1,187 @@
+# Module 41 — migration tests (local PostgreSQL 18.6 + PostGIS 3.6.2; scratch databases, dropped afterwards)
+
+## A. CLEAN: empty database -> every migration -> production seed (APP_ENV=production, APP_DEBUG=false) -> boot
+# clean migration test 2026-10-15 21:44:37 IST
+tables before: 0
+ Creating migration table .. 31.47ms DONE
+ 0001_01_01_000000_create_users_table .. 21.04ms DONE
+ 0001_01_01_000001_create_cache_table .. 11.10ms DONE
+ 0001_01_01_000002_create_jobs_table .. 17.67ms DONE
+ 2026_09_25_124118_create_personal_access_tokens_table .. 8.61ms DONE
+ 2026_09_25_130000_add_auth_fields_to_users_table .. 10.83ms DONE
+ 2026_09_30_100000_enable_postgis_extension .. 2.60ms DONE
+ 2026_09_30_100100_convert_user_role_to_principal_type .. 9.57ms DONE
+ 2026_09_30_100200_create_markets_table .. 17.12ms DONE
+ 2026_09_30_100300_create_permission_grants_table .. 15.61ms DONE
+ 2026_09_30_100400_create_idempotency_keys_table .. 8.11ms DONE
+ 2026_09_30_200000_create_identity_tables .. 55.31ms DONE
+ 2026_09_30_200100_create_rbac_tables .. 32.03ms DONE
+ 2026_09_30_200200_create_auth_security_tables .. 31.61ms DONE
+ 2026_09_30_300000_add_channel_to_otp_challenges .. 2.09ms DONE
+ 2026_09_30_400000_create_geography_tables .. 99.57ms DONE
+ 2026_10_01_200000_create_restaurant_tables .. 205.03ms DONE
+ 2026_10_03_100000_create_menu_tables .. 98.16ms DONE
+ 2026_10_04_100000_create_customer_account_tables .. 98.46ms DONE
+ 2026_10_05_100000_create_journey_tables .. 25.10ms DONE
+ 2026_10_06_100000_create_cart_tables .. 77.01ms DONE
+ 2026_10_07_100000_create_pickup_tables .. 37.79ms DONE
+ 2026_10_08_100000_create_checkout_tables .. 187.13ms DONE
+ 2026_10_09_100000_create_payment_tables .. 94.03ms DONE
+ 2026_10_10_100000_create_order_tables .. 179.87ms DONE
+ 2026_10_12_100000_module32_realtime_and_pickup_verification .. 67.21ms DONE
+ 2026_10_13_100000_module33_notifications .. 78.98ms DONE
+ 2026_10_14_100000_module34_reviews .. 116.10ms DONE
+ 2026_10_15_100000_module35_refunds .. 202.35ms DONE
+ 2026_10_16_100000_module36_finance .. 636.32ms DONE
+ 2026_10_17_100000_module37_support .. 301.45ms DONE
+ 2026_10_18_100000_module38_analytics .. 240.93ms DONE
+ 2026_10_19_100000_module39_security .. 27.60ms DONE
+ 2026_10_20_100000_module40_performance_indexes .. 11.01ms DONE
+migrate exit 0 (4 s)
+migrations applied: 33
+migration files: 33
+ Database\Seeders\MarketSeeder .. RUNNING 
+ Database\Seeders\MarketSeeder .. 1,194 ms DONE 
+ Database\Seeders\IndiaGeographySeeder .. RUNNING 
+ Database\Seeders\IndiaGeographySeeder .. 67 ms DONE 
+ Database\Seeders\RoleSeeder .. RUNNING 
+ Database\Seeders\RoleSeeder .. 225 ms DONE 
+ Database\Seeders\RestaurantTaxonomySeeder .. RUNNING 
+ Database\Seeders\RestaurantTaxonomySeeder .. 85 ms DONE 
+ Database\Seeders\DietaryTagSeeder .. RUNNING 
+ Database\Seeders\DietaryTagSeeder .. 19 ms DONE 
+db:seed (production) exit 0
+tables after: 137
+## row counts (reference data expected; no customers, restaurants, orders, payments, staff, administrators)
+  markets: 1
+  market_regions: 36
+  cities: 0
+  service_areas: 0
+  route_corridors: 0
+  roles: 12
+  permissions: (no such table)
+  role_permissions: 253
+  cuisines: 29
+  restaurant_features: 16
+  dietary_tags: 10
+  users: (no such table)
+  customers: 0
+  customer_profiles: (no such table)
+  restaurant_organizations: 0
+  restaurant_locations: 0
+  menus: 0
+  menu_items: 0
+  orders: 0
+  payments: (no such table)
+  payment_attempts: 0
+  checkouts: (no such table)
+  carts: 0
+  admin_users: 0
+  restaurant_staff: (no such table)
+  ledger_entries: 0
+  support_cases: 0
+  tax_rules: 0
+  fee_rules: 0
+  promotions: 0
+  commission_plans: 0
+## boot: php -S 127.0.0.1:8301 (APP_ENV=production, APP_DEBUG=false)
+  GET /api/v1/live -> 200 {"status":"ok","time":"2026-10-15T16:14:54+00:00"}
+  GET /api/v1/health -> 200 {"status":"ok","service":"FoodOnTheGo","version":"local-dev","time":"2026-10-15T16:14:55+00:00"}
+  GET /api/v1/markets -> 200 {"data":[{"id":"50533fc3-e21d-437a-8c8f-1d99acf2f956","slug":"india","country_code":"IN","name":"India","status":"ACTIVE","default_currency":"INR","supported_cu
+  GET /api/v1/markets/active -> 404 {"error":{"code":"not_found","message":"The requested resource was not found.","request_id":"54811c41-db2f-4990-9955-af7505428224"}}
+  GET /api/v1/does-not-exist -> 404 {"error":{"code":"not_found","message":"The requested resource was not found.","request_id":"53a4e377-27d1-4c8d-aacc-b602bd818dc6"}}
+## security:check --as-production on this install
+security:check --as-production exit 1 (detail: clean_security_check.txt)
+# done 21:44:57
+
+### security:check --as-production on the clean install (deployment values come from the production environment — Module 42)
+Security check — environment production (judged as production)
+ PASS APP_DEBUG is off
+ PASS APP_KEY is set
+ FAIL APP_URL is https
+ PASS trusted hosts are configured (APP_URL / TRUSTED_HOSTS)
+ FAIL session cookie is Secure
+ PASS session cookie is HttpOnly
+ PASS CORS: no wildcard origin and no credentials
+ FAIL realtime: no wildcard or localhost origin (REVERB_ALLOWED_ORIGINS)
+ FAIL CORS: no localhost origin
+ FAIL readiness endpoint is not public
+ FAIL database connection requires TLS (DB_SSLMODE require / verify-*)
+ FAIL Redis has a password
+ FAIL mail is a real provider (set; not log / array)
+ FAIL SMS is a real provider (not log / fake)
+ FAIL push is FCM (not the fake provider)
+ PASS fake payment provider is refused
+ PASS fake journey providers are refused
+ FAIL payout provider is not the fake one
+ PASS administrator MFA is required
+ PASS four-eyes: refunds
+ PASS four-eyes: settlements
+ PASS four-eyes: payouts
+ PASS four-eyes: manual adjustments
+ PASS administrator idle timeout is on
+ PASS request body limit is on
+ PASS private disk is not served over HTTP
+ PASS no development routes are registered (/dev, _boost)
+ PASS no default /broadcasting/auth web route
+ FAIL development packages are not installed (laravel/boost)
+ PASS audit and security trails are append-only (database triggers present)
+ PASS audit purge is not enabled for this database session
+ PASS live payments stay off until a deliberate change (Module 30)
+20 / 32 passed
+
+## B. UPGRADE 1: development database backup of 2026-10-14 20:10 (Module 39 schema)
+# upgrade migration test 2026-10-15 21:45:38 IST — source /c/dev/backups/local-2026-10-14.dump (2765993 bytes, 2026-10-14 20:10)
+{"step":"drop","database":"foodonthego_m41_upgrade_restore"}
+restore exit 0
+migrations in the backup: 32
+latest migration in the backup: 2026_10_19_100000_module39_security
+orders / payments / ledger entries in the backup: 0 / 0 / 0
+pending before: 1
+ 2026_10_20_100000_module40_performance_indexes .. 14.46ms DONE
+migrate --force exit 0 (0 s)
+migrations after: 33; files: 33
+Module 40 indexes present: ledger_entries_market_id_occurred_at_index, ledger_entries_occurred_at_index, ledger_entries_location_id_occurred_at_index, ledger_entries_account_id_occurred_at_index
+invalid indexes: 0
+  finance:verify-ledger -> exit 0: {"status":"OK","problems":0,"transactions":0,"entries":0,"accounts":0,"checks":{"unbalanced_transactions":0,"currency_mismatches":0,"duplicate_postings":0,"orphan_postings":0,"payable_mismatches":0,"negative_restaurant_b
+  finance:reconcile-internal -> exit 0: {"status":"OK","problems":0,"found":[],"auto_resolved":0} 
+  payments:reconcile -> exit 0: Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery. 
+  refunds:reconcile -> exit 0: {"policy":0,"submitted":0,"reconciled":0,"failed":0} 
+  orders:recover -> exit 0: orders:recover retried 0, picked up 0, completed 0 
+  analytics:aggregate -> exit 0: {"status":"OK","trigger":"SCHEDULED","dry_run":false,"rows":11,"order_facts":0,"session_facts":0,"groups":{"orders":0,"customers":11,"restaurants":0,"items":0,"funnel":0,"routes":0,"payments":0,"refunds":0,"finance":0,"s
+  analytics:check -> exit 0: {"status":"HEALTHY","counts":{"healthy":10,"warning":0,"error":0},"problems":[]} 
+## rollback of the last batch and re-apply (reversibility of the newest migration on real data)
+ 2026_10_20_100000_module40_performance_indexes .. 14.44ms DONE
+rollback --step=1 exit 0
+ 2026_10_20_100000_module40_performance_indexes .. 13.28ms DONE
+re-apply exit 0
+# done 21:45:57
+
+## C. UPGRADE 2: perf medium dataset backup of 2026-10-14 21:09 (Module 39 schema, 18,765 orders)
+# upgrade migration test 2026-10-15 21:46:07 IST — source /c/dev/backups/perf-medium.dump (32208412 bytes, 2026-10-14 21:09)
+{"step":"drop","database":"foodonthego_m41_upgrade_medium_restore"}
+restore exit 0
+migrations in the backup: 32
+latest migration in the backup: 2026_10_19_100000_module39_security
+orders / payments / ledger entries in the backup: 18765 / 18765 / 93825
+pending before: 1
+ 2026_10_20_100000_module40_performance_indexes .. 287.18ms DONE
+migrate --force exit 0 (1 s)
+migrations after: 33; files: 33
+Module 40 indexes present: ledger_entries_occurred_at_index, ledger_entries_market_id_occurred_at_index, ledger_entries_account_id_occurred_at_index, ledger_entries_location_id_occurred_at_index
+invalid indexes: 0
+  finance:verify-ledger -> exit 0: {"status":"OK","problems":0,"transactions":37530,"entries":93825,"accounts":7,"checks":{"unbalanced_transactions":0,"currency_mismatches":0,"duplicate_postings":0,"orphan_postings":0,"payable_mismatches":0,"negative_rest
+  finance:reconcile-internal -> exit 0: {"status":"OK","problems":0,"found":[],"auto_resolved":0} 
+  payments:reconcile -> exit 0: Looked at 0 payment attempt(s) (0 could not be looked at); re-queued 0 webhook event(s); 0 verified payment(s) now need recovery. 
+  refunds:reconcile -> exit 0: {"policy":0,"submitted":0,"reconciled":0,"failed":0} 
+  orders:recover -> exit 0: orders:recover retried 0, picked up 0, completed 0 
+  analytics:aggregate -> exit 0: {"status":"OK","trigger":"SCHEDULED","dry_run":false,"rows":36393,"order_facts":2,"session_facts":25001,"groups":{"orders":2339,"customers":180,"restaurants":556,"items":370,"funnel":3420,"routes":11,"payments":720,"refu
+  analytics:check -> exit 0: {"status":"WARNING","counts":{"healthy":9,"warning":1,"error":0},"problems":["funnel_transitions=WARNING"]} 
+## rollback of the last batch and re-apply (reversibility of the newest migration on real data)
+ 2026_10_20_100000_module40_performance_indexes .. 23.17ms DONE
+rollback --step=1 exit 0
+ 2026_10_20_100000_module40_performance_indexes .. 300.25ms DONE
+re-apply exit 0
+# done 21:46:55
+
+Note: analytics:check WARNING funnel_transitions on the synthetic medium dataset (generated sessions are not complete funnels; exit 0; the same data was HEALTHY/WARNING in Module 40).

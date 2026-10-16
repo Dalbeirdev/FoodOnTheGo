@@ -230,7 +230,7 @@ void main() {
     });
 
     test('the app version is the build\'s, in the characters the backend accepts', () {
-      expect('${AppConfig.appVersion}+${AppConfig.buildNumber}', '0.1.0+42');
+      expect('${AppConfig.appVersion}+${AppConfig.buildNumber}', '0.1.0+45'); // Module 41: BUILD_NAME / BUILD_NUMBER defaults
       expect(AnalyticsEmitter.cleanAppVersion('0.1.0+42'), '0.1.0+42');
       expect(AnalyticsEmitter.cleanAppVersion('0.1.0+42 (local review) #7'), '0.1.0+42localreview7');
       expect(AnalyticsEmitter.cleanAppVersion('1.2.3-beta+${'9' * 40}'), hasLength(24));

@@ -14,6 +14,7 @@ import '../menu/menu_repository.dart';
 import '../pricing/pricing_service.dart';
 import '../state/cart_state.dart';
 import '../widgets/common.dart';
+import '../core/user_message.dart';
 
 /// Food Item Details & Customization (Module 08) — /restaurants/:restaurantSlug/item/:itemSlug.
 /// Scrollable content + sticky bottom Add to Cart. Everything is driven by MenuItemDetail
@@ -85,7 +86,7 @@ class _ItemDetailState extends State<_ItemDetail> {
       setState(() { r = rest; detail = d; selections = line != null ? restored : defaultSelections(d); quantity = clampQuantity(d.minimumQuantity, d.maximumQuantity, line?.quantity ?? d.minimumQuantity); status = 'ready'; attempted = false; touched.clear(); notices.clear(); });
       Analytics.itemViewed(rest.backendId ?? rest.slug, d.item.id); // Module 38: once per item per session — opening it again to edit a cart line is not a second view
     } catch (e) {
-      if (mounted) setState(() { status = 'error'; error = '$e'; });
+      if (mounted) setState(() { status = 'error'; error = userMessage(e); });
     }
   }
 

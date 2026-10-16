@@ -18,6 +18,7 @@ import { formatMoney } from '../../i18n/format'
 import { t } from '../../i18n/strings'
 import { Badge, ReasonDialog } from '../components/DataTable'
 import { fmtDate, useLoad } from './shared'
+import { userMessage } from '../../api/userMessage'
 
 type RuleCommon = { id: string; status: 'DRAFT' | 'ACTIVE' | 'DISABLED'; approval: 'TEST' | 'APPROVED'; in_force: boolean; effective_from: string; effective_until: string | null; location: { id: string; name: string } | null; version: number }
 export type TaxRuleDto = RuleCommon & { name: string; applies_to: 'MERCHANDISE' | 'FEES'; price_treatment: 'EXCLUSIVE' | 'INCLUSIVE'; discount_treatment: 'AFTER_DISCOUNT' | 'BEFORE_DISCOUNT'; components: Array<{ code: string; label: string; rate_basis_points: number }> }
@@ -45,7 +46,7 @@ export function FinancialRulesPanel({ marketId, canManage, locale, load }: { mar
   const [error, setError] = useState<string | null>(null)
   const { msg, toast } = useToastMessage()
   const words = (key: string, vars?: Record<string, string | number>) => t(`adm.fin.${key}`, vars, locale)
-  const say = (e: unknown) => setError(e instanceof ApiError ? e.field(Object.keys(e.errors)[0] ?? '') ?? e.message : e instanceof Error ? e.message : String(e))
+  const say = (e: unknown) => setError(e instanceof ApiError ? e.field(Object.keys(e.errors)[0] ?? '') ?? e.message : userMessage(e, 'Something went wrong. Please try again.'))
   const done = async () => { setTax(null); setFee(null); setTarget(null); setError(null); await refresh(); toast(t('adm.updated', undefined, locale)) }
   const run = async (work: () => Promise<unknown>) => { setBusy(true); setError(null); try { await work(); await done() } catch (e) { say(e) } finally { setBusy(false) } }
 

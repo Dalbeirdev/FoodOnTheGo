@@ -1,0 +1,231 @@
+{
+ "suite": "m41_e2e.js",
+ "at": "2026-10-16T06:49:36.319Z",
+ "passed": 44,
+ "total": 44,
+ "samples": {
+  "order": "FOTG-20261016-VS45F2"
+ },
+ "results": [
+  {
+   "name": "A1 Home: pickup-only promise, no development wording, Google Play only \"coming soon\", no download claim for iOS",
+   "pass": true,
+   "detail": "Skip to content Login Get the App GOOD FOOD MAKES EVERY JOURNEY BETTER Delicious Food On Your Route Plan your journey, discover great restaurants along your rou"
+  },
+  {
+   "name": "A2 Footer: every link has a real target (no \"#\"), legal links present",
+   "pass": true,
+   "detail": "/ /how-it-works /restaurants /plan-journey /about-us /for-restaurants /help /terms /privacy /refund-policy /cookie-policy /get-app"
+  },
+  {
+   "name": "A3 Help: no live chat placeholder and no fixture phone number; e-mail support shown",
+   "pass": true,
+   "detail": "Skip to content Login Get the App ? … My Profile Favorite Restaurants Saved Places Payment Methods Notifications My Orders My Reviews Plan a Journey Help & Support Logout Help & Support How can we hel"
+  },
+  {
+   "name": "A4 Plan a journey (guest): POST /journeys/plan 201 with the backend route (India, metric)",
+   "pass": true,
+   "detail": "201"
+  },
+  {
+   "name": "A5 Restaurants along the route come from the backend journey; Burger Hub is among them",
+   "pass": true,
+   "detail": "pizza-point,burger-hub,healthy-bites,spice-nest,brew-bites,wok-express"
+  },
+  {
+   "name": "axe (/restaurants along a journey): no WCAG A/AA violations",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "B1 The singular /restaurant/:slug only redirects to the canonical /restaurants/:slug",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "B2 Restaurant page (Design A) with its canonical link and the menu",
+   "pass": true,
+   "detail": "http://localhost:5173/restaurants/burger-hub"
+  },
+  {
+   "name": "axe (/restaurants/burger-hub): no WCAG A/AA violations",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "B3 Item with a required size and an add-on, added as a guest: the server prices it (201)",
+   "pass": true,
+   "detail": "201 {\"cart\":{\"id\":\"bcd24d91-3f19-4206-b8fd-7932fbc3b387\",\"version\":1,\"status\":\"ACTIVE\",\"owner\":\"guest\",\"currency\":\"INR\",\"restaurant\":{\"id\":\"0a000000-0000-4000-8000-"
+  },
+  {
+   "name": "B4 Cart (guest): two lines, one restaurant, server total in ₹, separate from checkout",
+   "pass": true,
+   "detail": "Skip to content 2 Login Get the App Your cart Review your items, then continue to choose a pickup time. PICKUP AT Burger Hub Sector 62, Noida, Uttar Pradesh 201309, India Open Closes 11:30 pm IST Prep"
+  },
+  {
+   "name": "B5 Pickup time chosen on the backend (ASAP or the first scheduled slot), in the restaurant's time",
+   "pass": true,
+   "detail": "200"
+  },
+  {
+   "name": "B6 Checkout needs sign-in: a guest is sent to the OTP login",
+   "pass": true,
+   "detail": "http://localhost:5173/login"
+  },
+  {
+   "name": "C1 After the OTP sign-in the guest cart is the customer's (claimed, nothing lost)",
+   "pass": true,
+   "detail": "[\"Classic Burger\",\"Onion Rings\"]"
+  },
+  {
+   "name": "C2 Checkout: no delivery fee, legal documents to accept, total from the server",
+   "pass": true,
+   "detail": "Skip to content 2 My Account Get the App Checkout Review everything before you continue to secure payment. Nothing is charged on this page. Prices on this page are valid for 15:00. Customer Edit Name "
+  },
+  {
+   "name": "C3 Checkout confirmed on the server (slot held, prices fixed) → the payment page",
+   "pass": true,
+   "detail": "200"
+  },
+  {
+   "name": "C4 Payment (development provider) verified by the SERVER → exactly one order, FOTG number, confirmation page",
+   "pass": true,
+   "detail": "201 FOTG-20261016-VS45F2"
+  },
+  {
+   "name": "C5 Confirmation shows the QR and the manual code; no development wording",
+   "pass": true,
+   "detail": "Skip to content 1 My Account Get the App ORDER CONFIRMED Order confirmed Burger Hub has your order. Show your pickup code at the counter when you arrive. ORDER NUMBER FOTG-20261016-VS45F2 ORDER STATUS"
+  },
+  {
+   "name": "axe (/order-confirmation): no WCAG A/AA violations",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "D1 Restaurant accept → preparing → ready (each once, server state machine); the customer's tracking page shows READY without a reload (realtime or polling)",
+   "pass": true,
+   "detail": "WAITING_FOR_RESTAURANT 200"
+  },
+  {
+   "name": "D2 In-app notices for accepted / ready; no notice carries the pickup code",
+   "pass": true,
+   "detail": "4"
+  },
+  {
+   "name": "D3 A wrong manual code is refused (422 pickup_credential_invalid) and says nothing about the order",
+   "pass": true,
+   "detail": "422"
+  },
+  {
+   "name": "D4 The dashboard scanner verifies the QR (READY required, location-bound) → PICKED_UP → COMPLETED",
+   "pass": true,
+   "detail": "200 ok COMPLETED"
+  },
+  {
+   "name": "D5 The same QR again: 409 pickup_already_verified (single use)",
+   "pass": true,
+   "detail": "409 {\"error\":{\"code\":\"pickup_already_verified\",\"message\":\"This pickup was already verified.\",\"details\":{\"order_number\":\"FOTG"
+  },
+  {
+   "name": "D6 The customer sees the order completed",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "E1 A completed order can be reviewed once; a second review is refused",
+   "pass": true,
+   "detail": "201 / 409"
+  },
+  {
+   "name": "E2 Support: the customer opens a case about the order; the service desk replies; the case is in \"My cases\"",
+   "pass": true,
+   "detail": "201 / 201"
+  },
+  {
+   "name": "F1 STEP-UP: an older administrator session must confirm the password before approving a refund (403 step_up_required → 422 wrong → 200 → approved)",
+   "pass": true,
+   "detail": "201 403 422 200 200"
+  },
+  {
+   "name": "F2 Refund executed through the provider (development): REFUNDED only on the provider's record; the order stays COMPLETED (order / payment state shown)",
+   "pass": true,
+   "detail": "200 refund REFUNDED order COMPLETED/PAID"
+  },
+  {
+   "name": "F3 Ledger verification after the journey and the refund: OK, 0 problems",
+   "pass": true,
+   "detail": "{\"status\":\"OK\",\"problems\":0,\"transactions\":3,\"entries\":7,\"accounts\":8,\"checks\":{\"unbalanced_transactions\":0,\"currency_mismatches\":0,\"duplicate_postings\":0,\"orph"
+  },
+  {
+   "name": "G1 The same customer on a second device (the Android app's API) sees the same order, notifications, favorites, profile and case",
+   "pass": true,
+   "detail": "200,200,200,200,200 fav 200"
+  },
+  {
+   "name": "G2 Logout of that device: its token no longer reaches any private resource (401); the web session is unaffected",
+   "pass": true,
+   "detail": "204 / 401"
+  },
+  {
+   "name": "H1 Saved journey places are \"Saved Places\" — journey shortcuts, not delivery addresses",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "H2 Payment methods: no card form, no \"NOT STARTED\" status text, no cash option",
+   "pass": true,
+   "detail": "Skip to content 9 My Account Get the App RS Rahul Sharma rahul.sharma@example.com My Profile Favorite Restaurants Saved Places Payment Methods Notifications 9 My Orders My Reviews Plan a Journey Help "
+  },
+  {
+   "name": "H3 Unknown address: the branded 404 page with a way home",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "H4 Unknown restaurant: a \"not found\" state, never a blank page or developer text",
+   "pass": true,
+   "detail": "Skip to content 9 My Account Get the App We couldn’t find that restaurant. The link may be out of date or the restaurant is no longer listed on FoodOnTheGo. Bro"
+  },
+  {
+   "name": "H5 API error envelope: 404 {error: {code, message, request_id}}, no SQL / stack / exception text",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "I1 mobile (375px): home, restaurant and help fit the width (no horizontal scroll)",
+   "pass": true,
+   "detail": "true,true,true"
+  },
+  {
+   "name": "I1 tablet (768px): home, restaurant and help fit the width (no horizontal scroll)",
+   "pass": true,
+   "detail": "true,true,true"
+  },
+  {
+   "name": "I1 laptop (1280px): home, restaurant and help fit the width (no horizontal scroll)",
+   "pass": true,
+   "detail": "true,true,true"
+  },
+  {
+   "name": "I1 wide (1920px): home, restaurant and help fit the width (no horizontal scroll)",
+   "pass": true,
+   "detail": "true,true,true"
+  },
+  {
+   "name": "I2 Microsoft Edge renders the public pages (home, plan journey, restaurant, item, help, terms)",
+   "pass": true,
+   "detail": "true,true,true,true,true,true"
+  },
+  {
+   "name": "J1 The server log of the run carries no pickup code, QR payload, OTP or bearer token",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "name": "J2 No uncaught page error or console error during the run",
+   "pass": true,
+   "detail": ""
+  }
+ ]
+}

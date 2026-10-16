@@ -9,6 +9,7 @@ use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\LimitRequestBody;
 use App\Http\Middleware\OptionalCustomer;
 use App\Http\Middleware\RequestMetrics;
+use App\Http\Middleware\RequireAdminStepUp;
 use App\Http\Middleware\ResolveCartOwner;
 use App\Http\Middleware\ResolveJourney;
 use Illuminate\Foundation\Application;
@@ -47,6 +48,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'customer.optional' => OptionalCustomer::class,
             'journey' => ResolveJourney::class,
             'cart.owner' => ResolveCartOwner::class,
+            // Module 41: recent re-authentication before a high-risk administrator action.
+            'step-up' => RequireAdminStepUp::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

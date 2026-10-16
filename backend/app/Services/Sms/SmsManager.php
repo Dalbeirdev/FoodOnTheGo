@@ -58,8 +58,8 @@ final class SmsManager
         if (! in_array($driver, self::DRIVERS, true)) {
             $missing[] = 'SMS_DRIVER';
         }
-        if ($driver === 'log' && app()->isProduction()) {
-            $missing[] = 'SMS_DRIVER (the log driver sends nothing and is refused in production)';
+        if ($driver === 'log' && ! app()->environment(['local', 'testing'])) {
+            $missing[] = 'SMS_DRIVER (the log driver sends nothing and is refused outside local / testing)';
         }
 
         return ['driver' => $driver, 'fallback' => $fallback, 'sends_real_sms' => $driver !== 'log', 'ready' => $missing === [], 'missing' => $missing];
@@ -79,12 +79,13 @@ final class SmsManager
     }
 
     /**
-     * The log driver sends nothing: in production that would silently lock every customer out, so it is refused.
+     * The log driver sends nothing: anywhere but local / testing that would silently lock every customer out, so it
+     * is refused (Module 41: an allow-list — staging needs a real provider too).
      */
     private function logDriver(): SmsProvider
     {
-        if (app()->isProduction()) {
-            throw DeliveryException::notConfigured('log', 'a real SMS_DRIVER is required in production');
+        if (! app()->environment(['local', 'testing'])) {
+            throw DeliveryException::notConfigured('log', 'a real SMS_DRIVER is required outside local / testing');
         }
 
         return new LogSmsProvider;

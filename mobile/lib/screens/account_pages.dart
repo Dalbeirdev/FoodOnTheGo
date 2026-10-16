@@ -10,6 +10,7 @@ import '../discovery/discovery_repository.dart' show computeAvailability, global
 import '../state/account_state.dart';
 import '../state/auth_state.dart';
 import '../widgets/common.dart';
+import '../core/user_message.dart';
 
 /* ---------- shared state widgets ---------- */
 
@@ -50,7 +51,7 @@ class FavoritesScreen extends StatelessWidget {
 
   Widget _card(BuildContext context, AccountState account, Favorite f) {
     Future<void> remove(String name) async {
-      try { await account.removeFavorite(f.restaurantId); if (context.mounted) _snack(context, '$name removed from favorites'); } catch (e) { if (context.mounted) _snack(context, '$e'); }
+      try { await account.removeFavorite(f.restaurantId); if (context.mounted) _snack(context, '$name removed from favorites'); } catch (e) { if (context.mounted) _snack(context, userMessage(e)); }
     }
     final g = f.restaurant;
     if (!f.available || (g == null && account.live)) {
@@ -220,7 +221,7 @@ class AddressesScreen extends StatelessWidget {
                             if (context.mounted) _snack(context, '${a.label} deleted');
                           }
                         } catch (e) {
-                          if (context.mounted) _snack(context, '$e');
+                          if (context.mounted) _snack(context, userMessage(e));
                         }
                       },
                       itemBuilder: (_) => [const PopupMenuItem(value: 'edit', child: Text('Edit')), if (!a.isDefault) const PopupMenuItem(value: 'default', child: Text('Use as default start')), const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Brand.red)))],
@@ -280,7 +281,7 @@ class _AddressFormState extends State<_AddressForm> {
       ));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      setState(() { errors['form'] = '$e'; saving = false; });
+      setState(() { errors['form'] = userMessage(e); saving = false; });
     }
   }
 
@@ -336,7 +337,7 @@ class PaymentMethodsScreen extends StatelessWidget {
             retry: account.loadPayments,
             loadingLabel: 'Loading payment methods',
             isEmpty: (d) => d.isEmpty,
-            empty: () => const EmptyState(icon: Icons.lock_outline, title: 'No payment methods yet', sub: 'Cards and UPI are added through the secure payment provider when the Payments module is connected. Nothing is typed into FoodOnTheGo.'),
+            empty: () => const EmptyState(icon: Icons.lock_outline, title: 'No payment methods yet', sub: 'Cards and UPI are saved by the secure payment provider when you pay. Nothing is typed into FoodOnTheGo.'),
             ready: (data) => Column(children: [
               for (final m in data)
                 Card(
@@ -349,14 +350,14 @@ class PaymentMethodsScreen extends StatelessWidget {
                           Container(width: 46, height: 46, decoration: BoxDecoration(color: m.type == 'cash' ? Brand.navy : Brand.peach, borderRadius: BorderRadius.circular(12)), alignment: Alignment.center, child: m.type == 'card' ? Text(m.brand == 'Visa' ? 'VISA' : (m.brand ?? 'CARD').toUpperCase().substring(0, (m.brand ?? 'CARD').length.clamp(0, 6)), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: Brand.blue)) : Icon(switch (m.type) { 'upi' => Icons.qr_code_2, 'wallet' || 'other' => Icons.account_balance_wallet_outlined, _ => Icons.payments_outlined }, color: m.type == 'cash' ? Colors.white : Brand.orangeDeep)),
                           const SizedBox(width: 12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 4, children: [Text(switch (m.type) { 'card' => 'Credit / Debit Card', 'upi' => 'UPI', 'other' => m.label ?? 'Payment method', 'wallet' => 'Wallet', _ => 'Cash on Pickup' }, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), if (m.isDefault) const Pill('Default', small: true), if (!m.usable) Pill(_paymentStatusLabel[m.status] ?? m.status, color: Brand.red, bg: const Color(0xFFFFE9E9), small: true)]),
-                            Text(switch (m.type) { 'card' => '•••• •••• •••• ${m.last4 ?? '••••'}${m.expiry != null ? ' · Expires ${m.expiry}' : ''}', 'upi' => 'UPI ID: ${m.handleMasked}', 'other' => 'Held by ${m.provider ?? 'the payment provider'}', 'wallet' => 'Balance: ${inr(m.balance ?? 0)}', _ => 'Development data — cash at pickup is not an approved payment option' }, style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
+                            Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 4, children: [Text(switch (m.type) { 'card' => 'Credit / Debit Card', 'upi' => 'UPI', 'other' => m.label ?? 'Payment method', 'wallet' => 'Wallet', _ => 'Payment method' }, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)), if (m.isDefault) const Pill('Default', small: true), if (!m.usable) Pill(_paymentStatusLabel[m.status] ?? m.status, color: Brand.red, bg: const Color(0xFFFFE9E9), small: true)]),
+                            Text(switch (m.type) { 'card' => '•••• •••• •••• ${m.last4 ?? '••••'}${m.expiry != null ? ' · Expires ${m.expiry}' : ''}', 'upi' => 'UPI ID: ${m.handleMasked}', 'other' => 'Held by ${m.provider ?? 'the payment provider'}', 'wallet' => 'Balance: ${inr(m.balance ?? 0)}', _ => 'Not available' }, style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
                             if (m.removable) const Text('Provider reference only — no card or UPI credentials stored', style: TextStyle(color: Brand.greyLight, fontSize: 11)),
                           ])),
                         ]),
                         if ((!m.isDefault && m.usable) || m.removable) Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                          if (!m.isDefault && m.usable) TextButton(onPressed: () => account.setDefaultPayment(m.id).then((_) { if (context.mounted) _snack(context, 'Default payment method updated'); }).catchError((e) { if (context.mounted) _snack(context, '$e'); }), child: const Text('Set as default')),
-                          if (m.removable) TextButton(onPressed: () async { if (await confirmDialog(context, title: 'Remove this payment method?', text: account.live ? 'The reference is marked as removed on your account and will be revoked at the payment provider once the Payments module is connected.' : 'The provider reference will be deleted from your account.', confirmLabel: 'Remove', danger: true)) { try { await account.removePayment(m.id); if (context.mounted) _snack(context, 'Payment method removed'); } catch (e) { if (context.mounted) _snack(context, '$e'); } } }, child: const Text('Remove', style: TextStyle(color: Brand.red))),
+                          if (!m.isDefault && m.usable) TextButton(onPressed: () => account.setDefaultPayment(m.id).then((_) { if (context.mounted) _snack(context, 'Default payment method updated'); }).catchError((e) { if (context.mounted) _snack(context, userMessage(e)); }), child: const Text('Set as default')),
+                          if (m.removable) TextButton(onPressed: () async { if (await confirmDialog(context, title: 'Remove this payment method?', text: 'The provider reference is removed from your account.', confirmLabel: 'Remove', danger: true)) { try { await account.removePayment(m.id); if (context.mounted) _snack(context, 'Payment method removed'); } catch (e) { if (context.mounted) _snack(context, userMessage(e)); } } }, child: const Text('Remove', style: TextStyle(color: Brand.red))),
                         ]),
                       ]),
                     ),
@@ -365,13 +366,13 @@ class PaymentMethodsScreen extends StatelessWidget {
             ]),
           ),
           const SizedBox(height: 12),
-          InfoBox(icon: Icons.lock_outline, color: Brand.blue, bg: Brand.blueBg, child: Text('Cards and UPI are tokenised by the payment provider. This app keeps only the brand, last four digits and a masked UPI handle; the provider reference stays on the server. ${account.live ? 'Local backend: development references seeded for testing.' : 'Local environment: mock references, test mode only.'} REAL PAYMENT PROVIDER CONNECTION = NOT STARTED (Payments module).', style: const TextStyle(fontSize: 12.5, color: Brand.navy))),
+          InfoBox(icon: Icons.lock_outline, color: Brand.blue, bg: Brand.blueBg, child: Text('Cards and UPI are tokenised by the payment provider. This app keeps only the brand, last four digits and a masked UPI handle; the provider reference stays on the server.${account.live ? '' : ' Development data on this device.'}', style: const TextStyle(fontSize: 12.5, color: Brand.navy))),
         ],
       ),
     );
   }
 
-  void _explainAdd(BuildContext context) => showDialog<void>(context: context, builder: (ctx) => AlertDialog(title: const Text('Add a payment method'), content: const Text("New cards, UPI IDs and wallets are added through the payment provider's secure page, so your details never pass through FoodOnTheGo — there is no form for them here, by design. This opens automatically once the Payments module is connected (REAL RAZORPAY CONNECTION = NOT STARTED). Paying in cash at pickup is not an approved option."), actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Got it'))]));
+  void _explainAdd(BuildContext context) => showDialog<void>(context: context, builder: (ctx) => AlertDialog(title: const Text('Add a payment method'), content: const Text("New cards, UPI IDs and wallets are added through the payment provider's secure page, so your details never pass through FoodOnTheGo — there is no form for them here, by design. They are offered on the provider's screen when you pay."), actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Got it'))]));
 }
 
 /* ---------- Notifications ---------- */
@@ -429,7 +430,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ? null
                           : (v) async {
                               setState(() => savingCell = '${c.category}.$ch');
-                              try { await account.updateCells([NotificationCellChange(c.category, ch, v)]); if (mounted) _snack(context, 'Preference saved'); } catch (e) { if (mounted) _snack(context, '$e'); } finally { if (mounted) setState(() => savingCell = null); }
+                              try { await account.updateCells([NotificationCellChange(c.category, ch, v)]); if (mounted) _snack(context, 'Preference saved'); } catch (e) { if (mounted) _snack(context, userMessage(e)); } finally { if (mounted) setState(() => savingCell = null); }
                             },
                     ),
                   ),
@@ -488,7 +489,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ('Email notifications', 'Receipts and account emails · Email provider = NOT STARTED', (p) => p.email, (p, v) => p.copyWith(email: v)),
                             ('SMS notifications', 'Pickup codes and urgent updates · SMS provider = NOT STARTED', (p) => p.sms, (p, v) => p.copyWith(sms: v)),
                           ])
-                            SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: Brand.orangeDeep, title: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), subtitle: Text(sub, style: const TextStyle(fontSize: 12, color: Brand.grey)), value: get(prefs), onChanged: (v) => account.updatePreferences(set(prefs, v)).then((_) { if (context.mounted) _snack(context, 'Preference saved'); }).catchError((e) { if (context.mounted) _snack(context, '$e'); })),
+                            SwitchListTile(contentPadding: EdgeInsets.zero, activeThumbColor: Brand.orangeDeep, title: Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)), subtitle: Text(sub, style: const TextStyle(fontSize: 12, color: Brand.grey)), value: get(prefs), onChanged: (v) => account.updatePreferences(set(prefs, v)).then((_) { if (context.mounted) _snack(context, 'Preference saved'); }).catchError((e) { if (context.mounted) _snack(context, userMessage(e)); })),
                         ]),
             ),
             const SizedBox(height: 14),
@@ -499,7 +500,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ],
           Row(children: [
             Expanded(child: SizedBox(height: 40, child: ListView(scrollDirection: Axis.horizontal, children: [for (final t in const [('all', 'All'), ('orders', 'Orders'), ('offers', 'Offers'), ('updates', 'Updates')]) Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(label: Text(t.$2), selected: tab == t.$1, selectedColor: Brand.orangeDeep, labelStyle: TextStyle(color: tab == t.$1 ? Colors.white : Brand.navy, fontWeight: FontWeight.w700), onSelected: (_) => setState(() => tab = t.$1)))]))),
-            if (account.unreadCount > 0) TextButton(onPressed: () => account.markAllRead().then((_) { if (context.mounted) _snack(context, 'All notifications marked as read'); }).catchError((e) { if (context.mounted) _snack(context, '$e'); }), child: const Text('Mark all read')),
+            if (account.unreadCount > 0) TextButton(onPressed: () => account.markAllRead().then((_) { if (context.mounted) _snack(context, 'All notifications marked as read'); }).catchError((e) { if (context.mounted) _snack(context, userMessage(e)); }), child: const Text('Mark all read')),
           ]),
           const SizedBox(height: 10),
           resourceView<List<AppNotification>>(
@@ -519,7 +520,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     isThreeLine: true,
                     trailing: n.read ? null : Semantics(label: 'Unread', child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: Brand.orangeDeep, shape: BoxShape.circle))),
                     onTap: () {
-                      if (!n.read) account.markRead(n.id).catchError((e) { if (context.mounted) _snack(context, '$e'); });
+                      if (!n.read) account.markRead(n.id).catchError((e) { if (context.mounted) _snack(context, userMessage(e)); });
                       if (n.route != null) context.push(n.route!);
                     },
                   ),

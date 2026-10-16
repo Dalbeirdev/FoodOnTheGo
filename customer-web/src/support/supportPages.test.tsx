@@ -392,7 +392,7 @@ describe('Where support starts (Module 37)', () => {
     expect(await within(block).findByTestId('help-cases-unread')).toHaveTextContent('2')
     expect(calls.find((c) => c.path.startsWith('/customer/support/cases'))?.path).toBe('/customer/support/cases?state=all&page=1&per_page=1')
     // Everything the page showed before is still there.
-    expect(screen.getByRole('heading', { name: 'Help & Support' })).toBeInTheDocument(); expect(screen.getByRole('link', { name: /email support/i })).toHaveAttribute('href', 'mailto:support@foodonthego.com'); expect(screen.getByRole('button', { name: /live chat/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Help & Support' })).toBeInTheDocument(); expect(screen.getByRole('link', { name: /email support/i })).toHaveAttribute('href', 'mailto:support@foodonthego.com'); expect(screen.queryByRole('button', { name: /live chat/i })).toBeNull()
     signedIn.unmount()
 
     routes['GET /customer/support/cases'] = { body: pageOf([], { unread: 0 }) }

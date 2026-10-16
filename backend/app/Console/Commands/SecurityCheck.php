@@ -58,6 +58,16 @@ class SecurityCheck extends Command
             ['audit and security trails are append-only (database triggers present)', $this->appendOnlyTriggers()],
             ['audit purge is not enabled for this database session', $this->auditPurgeOff()],
             ['live payments stay off until a deliberate change (Module 30)', ! (bool) config('payments.providers.allow_live')],
+            // Module 41 (final readiness review): what a deployment could still get wrong after the items above.
+            ['TEST tax / fee rules are refused', ! (bool) config('checkout.financial_rules.allow_test')],
+            ['fake notification providers are refused (push / e-mail / SMS)', ! (bool) config('notifications.allow_fake')],
+            ['places and routing use the live provider (PLACES_DRIVER / ROUTING_DRIVER = google)', strtolower((string) config('services.places.driver')) === 'google' && strtolower((string) config('services.routing.driver')) === 'google'],
+            ['FCM credentials are present (FIREBASE_PROJECT_ID, readable FIREBASE_CREDENTIALS file)', (string) config('notifications.fcm.project_id') !== '' && is_readable((string) config('notifications.fcm.credentials'))],
+            ['web origins are set and https only (FRONTEND_URLS / FRONTEND_URL)', ($origins = (array) config('cors.allowed_origins')) !== [] && collect($origins)->every(fn ($o): bool => str_starts_with((string) $o, 'https://')) && str_starts_with((string) config('app.frontend_url'), 'https://')],
+            ['trusted proxies are configured (TRUSTED_PROXIES — the client address behind a load balancer)', config('security.trusted_proxies') !== null],
+            ['log level is not debug (LOG_LEVEL)', strtolower((string) config('logging.channels.single.level')) !== 'debug'],
+            ['no development secret is set (LOCAL_FIXTURE_PASSWORD, OTP_DEV_CODE, ADMIN_BOOTSTRAP_PASSWORD)', (string) config('auth_security.fixture_password') === '' && (string) config('otp.development.code') === '' && (string) config('auth_security.bootstrap_password') === ''],
+            ['legal documents are approved versions (no draft-*)', collect((array) config('legal.documents'))->every(fn ($d): bool => ! str_starts_with(strtolower((string) ($d['version'] ?? '')), 'draft'))],
         ];
         $failed = array_values(array_filter($checks, fn (array $c): bool => ! $c[1]));
         if ($this->option('json')) {

@@ -1,0 +1,250 @@
+{
+  "module": "M34",
+  "suite": "Module 34 — Customer Web + Restaurant Dashboard + Platform Admin on the real local backend (reviews, ratings, responses, reports, moderation) with two API processes for the concurrency steps and the DEVELOPMENT payment provider (PAYMENT_DRIVER=fake) — no money moves; Razorpay itself is NOT exercised",
+  "ran_at": "2026-10-16T07:18:45.326Z",
+  "passed": 48,
+  "failed": 0,
+  "total": 48,
+  "results": [
+    {
+      "name": "A1 AN ORDER THAT IS NOT COMPLETED CANNOT BE REVIEWED: eligibility ORDER_NOT_COMPLETED, a POST is refused 409 order_not_completed and nothing is stored; the review page says reviews open after pickup and shows no form",
+      "pass": true,
+      "detail": "{\"get\":200,\"reason\":\"ORDER_NOT_COMPLETED\",\"post\":409}"
+    },
+    {
+      "name": "A2 A COMPLETED ORDER SAYS IT CAN BE REVIEWED: the order and the order list carry review.state ELIGIBLE with the window's end; My Orders offers \"Rate your experience\" on that order only — the order that is still waiting has no such button",
+      "pass": true,
+      "detail": "{\"a\":{\"state\":\"ELIGIBLE\",\"reason\":\"ELIGIBLE\",\"window_ends_at\":\"2026-11-15T07:15:54+00:00\",\"review\":null},\"b\":\"NOT_ELIGIBLE\"}"
+    },
+    {
+      "name": "A3 SOMEBODY ELSE'S ORDER: another signed-in customer gets 404 for the review of this order (GET and POST) — its existence is not disclosed; a guest gets 401; nothing is stored",
+      "pass": true,
+      "detail": "[404,404,401]"
+    },
+    {
+      "name": "axe (review form): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "B1 THE REVIEW PAGE: a rating is required before anything is sent; then ONE POST carries the rating, the tag and the text (Unicode kept) — and no customer, order, restaurant, status or \"verified\" field; the backend answers 201 with a PUBLISHED verified-order review",
+      "pass": true,
+      "detail": "{\"status\":201,\"keys\":\"category_ratings,client_submission_id,comment,item_feedback,overall_rating,tags\",\"state\":\"PUBLISHED\"}"
+    },
+    {
+      "name": "B2 DATABASE: one review for the order — customer, location, organization and market are the ORDER's (derived on the server), status PUBLISHED, version 1, no flag; the location's rating summary is 1 review, average 4.0",
+      "pass": true,
+      "detail": "{\"status\":\"PUBLISHED\",\"rating\":4,\"version\":1,\"edits\":0,\"derived\":true,\"flags\":\"\"} 1/4/4.0"
+    },
+    {
+      "name": "B3 FORGED AND REPEATED SUBMISSIONS: \"verified: true\" and customer_id / status in the body are refused (422 — unknown fields); the same content again answers the same review (200, created false); different content is refused 409 review_already_exists; still ONE review",
+      "pass": true,
+      "detail": "[422,422,200,409]"
+    },
+    {
+      "name": "B4 MARKUP IS REFUSED, NOT \"CLEANED\": an edit with a script tag answers 422 and the stored text is unchanged",
+      "pass": true,
+      "detail": "422"
+    },
+    {
+      "name": "C1 THE PUBLIC REVIEW (GET /restaurants/burger-hub/reviews, no session): exactly author / rating / categories / tags / title / comment / verified_order / edited / response / date — the author is \"First L.\", and the answer carries no phone, no e-mail, no customer id, no order number or id, no pickup code",
+      "pass": true,
+      "detail": "{\"author\":{\"display_name\":\"Rahul S.\"},\"keys\":\"author,category_ratings,comment,edited,id,overall_rating,response,submitted_at,tags,title,verified_order\"}"
+    },
+    {
+      "name": "C2 THE RATING SUMMARY is the backend's: average 4, count 1, one review under 4 stars, nothing under the others; the summary endpoint agrees",
+      "pass": true,
+      "detail": "{\"average\":4,\"count\":1,\"distribution\":{\"1\":0,\"2\":0,\"3\":0,\"4\":1,\"5\":0},\"categories\":{\"food_quality\":{\"average\":null,\"count\":0},\"order_accuracy\":{\"average\":null,\"count\":0},\"preparation_time\":{\"average\":null,\"count\":0},\"pickup_experience\":{\"average\":null,\"count\":0}}}"
+    },
+    {
+      "name": "C3 DISCOVERY USES THE REAL RATING: the restaurant payload carries rating {average 4, count 1}; sort=-rating lists Burger Hub first (the only rated one — unrated last); filter[min_rating]=4.5 does not list it, 4 does",
+      "pass": true,
+      "detail": "{\"first\":\"burger-hub\",\"rating\":{\"average\":4,\"count\":1}}"
+    },
+    {
+      "name": "C4 THE RESTAURANT PAGE (guest): the reviews section shows 4.0 from 1 verified order review, the review with its text and \"Verified order\", and asks a guest to sign in before reporting",
+      "pass": true,
+      "detail": "4.0 / 5 from 1 verified order review"
+    },
+    {
+      "name": "axe (restaurant page with reviews): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "C5 THE RESTAURANT LIST: Burger Hub's card shows 4.0 with its one review; a restaurant nobody reviewed shows no stars and no number — \"New\" / no reviews, never an invented figure",
+      "pass": true,
+      "detail": "{\"rated\":\"🍔 Open Burger Hub 4.0 (1) Burgers · Fast Food ₹₹ Closes 11:30 pm IST 12m prep S\",\"unrated\":\"🍵 Open Ambala Chai Point New Cafe · Beverages ₹ Closes 11:30 pm IST 5m prep GT \"}"
+    },
+    {
+      "name": "D1 EDITING THROUGH THE PAGE: the PATCH carries the version that was loaded (1); the review is 2 stars, version 2, one edit used; the previous content is kept as a revision; the summary follows (average 2.0); the public review says \"edited\"",
+      "pass": true,
+      "detail": "{\"status\":\"PUBLISHED\",\"rating\":2,\"version\":2,\"edits\":1,\"derived\":true,\"flags\":\"\"} 1/2/2.0"
+    },
+    {
+      "name": "D2 A STALE EDIT is refused 409 version_conflict; another customer's PATCH is 404; the review is unchanged",
+      "pass": true,
+      "detail": "[409,404]"
+    },
+    {
+      "name": "E1 THE RESTAURANT DASHBOARD shows the backend's reviews (no \"demo data\" banner): average 2.0, 1 review, 0 answered; the card has the public name, the order number, the text — and no phone number, e-mail or customer id",
+      "pass": true,
+      "detail": "2 Average Rating | ★★☆☆☆ 2 of 5 Rahul S. 16 Oct 2026 · FOTG-20261016-5M6GF6 · Published Great food Fresh, hot and quick. धन्यवाद 🙏 — would"
+    },
+    {
+      "name": "E2 THE RESPONSE is published from the dashboard: one PUT with the text only (no responder name, no location), 201; the card shows it and now offers \"Edit Response\"",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "name": "axe (restaurant dashboard reviews): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "E3 THE PUBLIC RESPONSE names the restaurant, never the staff member: {text, restaurant_name \"Burger Hub\", responded_at, edited}",
+      "pass": true,
+      "detail": "{\"name\":\"Burger Hub\",\"keys\":\"edited,responded_at,restaurant_name,text\"}"
+    },
+    {
+      "name": "E4 THE CUSTOMER IS TOLD THROUGH THE MODULE 33 INBOX: one review.response notice, action REVIEW with the order number (never a URL); no reminder and no second notice exists",
+      "pass": true,
+      "detail": "{\"title\":\"Burger Hub replied to your review\",\"action\":{\"target\":\"REVIEW\",\"reference\":\"FOTG-20261016-5M6GF6\"}}"
+    },
+    {
+      "name": "E5 TAPPING THE NOTICE opens the review of that order, where the restaurant's reply is shown",
+      "pass": true,
+      "detail": "http://localhost:5173/order/FOTG-20261016-5M6GF6/review"
+    },
+    {
+      "name": "E6 ONE RESPONSE PER REVIEW: a second PUT that does not say which version it read is refused (409 response_exists) — it overwrites nothing; an edit with the version it loaded is accepted (200, version 2), the same version again is refused (409 version_conflict); still one response row",
+      "pass": true,
+      "detail": "[409,200,409]"
+    },
+    {
+      "name": "E7 PERMISSIONS AND LIMITS: the menu manager (may view and report) cannot respond (403); order staff cannot list reviews (403); the owner has no way to change, delete or hide the customer's review (404 / 405) and cannot read a location that is not theirs (403 / 404); the rating is still 2",
+      "pass": true,
+      "detail": "[403,403,405,405,404,404]"
+    },
+    {
+      "name": "F1 A CUSTOMER REPORTS THE REVIEW from the restaurant page: a reason from the list (201) and a thank-you; reporting twice is refused (409 review_already_reported), reporting one's own review is refused (409 cannot_report_own_review), a reason outside the list is refused (422) — and the review is STILL PUBLISHED: a report hides nothing",
+      "pass": true,
+      "detail": "[201,409,409,422]"
+    },
+    {
+      "name": "F2 THE RESTAURANT REPORTS IT from the dashboard (201): the card says \"Reported\" and offers no second report; both reports are ONE open moderation case with 2 reports",
+      "pass": true,
+      "detail": "1/2/OPEN"
+    },
+    {
+      "name": "F3 THE MODERATION SCREEN (Platform Admin, moderation admin) runs on the backend: the \"Flagged\" queue lists the reported review; the detail shows 2 reports with their reasons and who reported (customer / restaurant staff), the audit history, and the reminder that a low rating is not a violation; for a PUBLISHED review only \"Hide\" is offered",
+      "pass": true,
+      "detail": "★★★★★ Published 2 report(s) Fresh, hot and quick. धन्यवाद 🙏 — would stop here again. CUSTOMER Rahul Sharma SHOWN PUBLICLY AS Rahul S. MARKET IN EDITS BY THE CUSTOMER 1 ORDER FOTG-20261016-5M6GF6 DATE"
+    },
+    {
+      "name": "F4 HIDING NEEDS A REASON and the version: without a reason the dialog refuses; with one the POST carries {reason, expected_version} and the review is HIDDEN — gone from the public list (0 reviews, no average), gone from the restaurant's list, the rating summary empty, the case closed as HIDDEN",
+      "pass": true,
+      "detail": "{\"status\":200,\"summary\":\"0/0/null\"}"
+    },
+    {
+      "name": "F5 AFTER THE DECISION: a decision on the old version is refused (409); the customer gets a neutral review.moderated notice (it does not say who reported) and My Reviews shows the review as not shown publicly, with the way to contact support — the customer's rating and text are untouched",
+      "pass": true,
+      "detail": "{\"stale\":409,\"notice\":\"Your review of Burger Hub for order FOTG-20261016-5M6GF6 is not shown publicly because it does not meet the review guidelines. Contact support if you think this is a mistake.\",\"mine\":\"Burger Hub Hidden ★★☆☆☆ 2 of 5 FOTG-20261016-5M6GF6 16 Oct 2026 Great food Fresh, hot and quick. धन्\"}"
+    },
+    {
+      "name": "axe (my reviews): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F6 RESTORING (admin.reviews.restore) with a reason brings the review back: PUBLISHED, public again, the summary 1 review / 2.0; the history on screen names the administrator, the action and the reason; the audit trail has review.hidden and review.restored by an admin user, each with its reason",
+      "pass": true,
+      "detail": "review.hidden:admin_user:true,review.restored:admin_user:true | Review submitted · Customer · 16 Oct, 12:46 pm Edited by the customer · Customer · 16 Oct, 12:46 pm Restaurant responded · John Doe · 16 Oct, 12:46 pm Restauran"
+    },
+    {
+      "name": "axe (admin review moderation): no WCAG A/AA violations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "F7 ADMIN PERMISSIONS (backend-authoritative): the finance admin cannot list reviews (403); the operations admin (India scope; view only) lists them but cannot hide (403); a customer token is not an admin (401 / 403); the review is still PUBLISHED",
+      "pass": true,
+      "detail": "[403,200,403,401]"
+    },
+    {
+      "name": "G1 TWO SUBMISSIONS AT THE SAME MOMENT (two API processes): exactly ONE review exists for the order; one call created it (201), the other got the same review (200) — never two rows",
+      "pass": true,
+      "detail": "[201,200]"
+    },
+    {
+      "name": "G2 THE AUTOMATED CHECK HOLDS, IT DOES NOT REJECT: the review with a link and a spam phrase is PENDING_MODERATION with flags (UNSAFE_LINK, SPAM_PATTERN) — a 5-star review, so the rating played no part; it is not public and not counted (the summary is still 1 review / 2.0); an AUTOMATED case is open",
+      "pass": true,
+      "detail": "{\"status\":\"PENDING_MODERATION\",\"rating\":5,\"version\":1,\"edits\":0,\"derived\":true,\"flags\":\"UNSAFE_LINK,SPAM_PATTERN\"}"
+    },
+    {
+      "name": "G3 THE CUSTOMER SEES THEIR OWN PENDING REVIEW in My Reviews (\"being checked before it is shown publicly\") — two reviews listed, one published, one being checked",
+      "pass": true,
+      "detail": "Burger Hub Being checked ★★★★★ 5 of 5 FOTG-20261016-YUHR9Q 16 Oct 2026 Decent food. More offers at http://cheap-deals.example/win — click here Your review is be"
+    },
+    {
+      "name": "G4 TWO MODERATORS DECIDE AT THE SAME MOMENT (publish vs reject, same version, two API processes): one decision wins (200), the other is refused (409) — the review has ONE final state and its version moved once",
+      "pass": true,
+      "detail": "{\"statuses\":[200,409],\"final\":\"PUBLISHED\"}"
+    },
+    {
+      "name": "G5 THE RATING FOLLOWS THE DECISION, whichever won: PUBLISHED → summary 2/7/3.5 (published count / rating sum / average) and the public list has 2 review(s)",
+      "pass": true,
+      "detail": "2/7/3.5"
+    },
+    {
+      "name": "G6 reviews:recalculate rebuilds the summaries from the reviews and changes nothing (the stored summary was already right)",
+      "pass": true,
+      "detail": "Rating summaries recalculated: 1"
+    },
+    {
+      "name": "H1 THE CUSTOMER WITHDRAWS THE REVIEW from its page (a confirmation first): status REMOVED (the row and its history stay), it leaves the public list and the rating at once, the order says REMOVED and cannot be reviewed again (409), and the page says so and offers no form",
+      "pass": true,
+      "detail": "{\"del\":200,\"state\":\"REMOVED\",\"again\":409,\"summary\":\"1/5/5.0\"}"
+    },
+    {
+      "name": "H2 A WITHDRAWN REVIEW IS FINAL: moderation cannot restore it (409 review_state_conflict)",
+      "pass": true,
+      "detail": "409"
+    },
+    {
+      "name": "I1 AT 390 px the restaurant page with its reviews section does not scroll sideways",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "name": "I2 THE BACKEND LOG OF THIS RUN carries no review text, no customer token and no pickup code",
+      "pass": true,
+      "detail": "17914 bytes"
+    },
+    {
+      "name": "I3 MEASURED on this machine (PHP built-in server, no OPcache): submitting a review through the page 552 ms; the public review list 335 ms; the admin queue 853 ms (measurements, not targets)",
+      "pass": true,
+      "detail": "{\"review_submit\":{\"n\":1,\"median_ms\":552,\"max_ms\":552},\"public_list\":{\"n\":1,\"median_ms\":335,\"max_ms\":335},\"admin_list\":{\"n\":1,\"median_ms\":853,\"max_ms\":853}}"
+    },
+    {
+      "name": "I4 THE SAVED API SAMPLES carry no phone number, no token and no pickup code",
+      "pass": true,
+      "detail": "4283 bytes"
+    },
+    {
+      "name": "I5 no JavaScript error and no dialog in any page of the run",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Z0 CLEAN-UP OF THE REVIEWS: every review, revision, response, report and moderation case of this run is removed and the rating summary of Burger Hub is rebuilt from what is left (0 published reviews — the restaurant is \"New\" again)",
+      "pass": true,
+      "detail": "{\"leftReviews\":0,\"summary\":\"0\"}"
+    },
+    {
+      "name": "Z1 CLEAN-UP: every order, fulfilment record, payment attempt, checkout, reservation and cart of this run is removed; the FREEMEAL count is as it was",
+      "pass": true,
+      "detail": "{\"orders\":0,\"fulfillments\":0,\"attempts\":0,\"checkouts\":0,\"reservations\":0,\"carts\":0,\"redeemed\":true}"
+    }
+  ]
+}

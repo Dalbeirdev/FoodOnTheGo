@@ -21,7 +21,7 @@ const LogoutIcon = ({ size = 20 }: P) => (<svg {...stroke(size)}><path d="M10 4H
 const NAV: Array<{ to: string; label: string; icon: (p: P) => ReactElement; badge?: number }> = [
   { to: '/my-profile', label: 'My Profile', icon: UserIcon },
   { to: '/favorites', label: 'Favorite Restaurants', icon: HeartIcon },
-  { to: '/addresses', label: 'Saved Addresses', icon: PinIcon },
+  { to: '/addresses', label: 'Saved Places', icon: PinIcon },
   { to: '/payment-methods', label: 'Payment Methods', icon: CardIcon },
   { to: '/notifications', label: 'Notifications', icon: BellIcon },
   { to: '/my-orders', label: 'My Orders', icon: OrdersIcon },

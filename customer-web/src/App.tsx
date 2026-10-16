@@ -50,6 +50,7 @@ import LegalPage from './pages/LegalPage'
 import NotFoundPage from './pages/NotFoundPage'
 import GetAppPage from './pages/GetAppPage'
 import ComingSoonPage from './pages/ComingSoonPage'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const DashboardApp = lazy(() => import('./dashboard/DashboardApp'))
 const AdminApp = lazy(() => import('./admin/AdminApp'))
@@ -111,7 +112,7 @@ export function AppShell() {
             <Route path="/help/cases/new" element={<RequireAuth><SupportNewCasePage /></RequireAuth>} />
             <Route path="/help/cases/:caseId" element={<RequireAuth><SupportCasePage /></RequireAuth>} />
             <Route path="/for-restaurants" element={<ForRestaurantsPage />} />
-            <Route path="/for-restaurants/register" element={<ComingSoonPage title="Restaurant Registration" text="Partner onboarding opens with the restaurant portal. We are not accepting registrations through the website yet." module="the Restaurant Portal module" backTo="/for-restaurants" backLabel="Back to For Restaurants" />} />
+            <Route path="/for-restaurants/register" element={<ComingSoonPage title="Restaurant Registration" text="Partner registration opens soon. We are not accepting registrations through the website yet." backTo="/for-restaurants" backLabel="Back to For Restaurants" />} />
             <Route path="/get-app" element={<GetAppPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/verify-otp" element={<VerifyOtpPage />} />
@@ -148,8 +149,10 @@ export function AppShell() {
 
 export default function App() {
   return (
-    <Router>
-      <AppShell />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppShell />
+      </Router>
+    </ErrorBoundary>
   )
 }

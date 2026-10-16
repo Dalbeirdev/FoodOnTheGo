@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import { contentSecurityPolicy, type CspEnv } from './src/security/contentSecurityPolicy.ts'
+import { releaseConfigurationProblems } from './src/security/releaseBuild.ts'
 
 // https://vite.dev/config/
 /** Share build (VITE_SHARE_BUILD=1): public assets referenced by absolute path become relative so the bundle runs from any base path. */
@@ -46,8 +47,22 @@ function contentSecurityPolicyPlugin(): Plugin {
  */
 const withoutDevOtp: Plugin = { name: 'fotg-no-dev-otp', apply: 'build', config: () => ({ define: { 'import.meta.env.VITE_DEV_OTP': JSON.stringify('') } }) }
 
+/**
+ * Module 41: a build that would run on development data never comes out (src/security/releaseBuild.ts explains the
+ * rules). VITE_ENVIRONMENT must say local, staging or production; staging and production need every domain on the
+ * backend, https / wss and no local test code. The share preview (VITE_SHARE_BUILD=1) is mock-only by design.
+ */
+const releaseGate: Plugin = {
+  name: 'fotg-release-gate',
+  apply: 'build',
+  configResolved(config) {
+    const problems = releaseConfigurationProblems({ ...(config.env as Record<string, string>), VITE_SHARE_BUILD: process.env.VITE_SHARE_BUILD })
+    if (problems.length) throw new Error(`fotg-release-gate: this build is not configured for its environment:\n  - ${problems.join('\n  - ')}`)
+  },
+}
+
 export default defineConfig({
-  plugins: [react(), contentSecurityPolicyPlugin(), withoutDevOtp,...(process.env.VITE_SHARE_BUILD === '1' ? [shareAssets] : [])],
+  plugins: [react(), releaseGate, contentSecurityPolicyPlugin(), withoutDevOtp,...(process.env.VITE_SHARE_BUILD === '1' ? [shareAssets] : [])],
   server: {
     host: true,
     port: 5173,

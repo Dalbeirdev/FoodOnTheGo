@@ -396,7 +396,7 @@ class _JourneyPreview extends StatelessWidget {
             const SizedBox(height: 8),
             Text(switch (r.mode) {
               'development' => 'The route line comes from the development routing model (synthetic roads, not real road data). This is a schematic view, not a map — map tiles: map provider integration is PENDING.',
-              'live' => 'The route line comes from the routing provider. This is a schematic view, not a map — map tiles: map provider integration is PENDING.',
+              'live' => 'The route line comes from the routing provider. This is a schematic view, not a map.',
               _ => 'Development route preview — not a map. Real map rendering and geometry arrive with Google Maps / Routes integration (PENDING). Distances and times are mock development values.',
             }, style: const TextStyle(color: Brand.grey, fontSize: 12.5)),
             if (journey.coverage != null && !journey.coverage!.covered) ...[
